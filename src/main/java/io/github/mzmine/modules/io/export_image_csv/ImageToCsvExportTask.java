@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportParameters.HandleMissingValues;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,7 +40,6 @@ import java.nio.file.Files;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -57,37 +56,32 @@ public class ImageToCsvExportTask extends AbstractTask {
 
   private static Logger logger = Logger.getLogger(ImageToCsvExportTask.class.getName());
 
-  private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
   private final NumberFormat mobilityFormat;
-  private final NumberFormat intensityFormat;
-  private final UnitFormat unitFormat;
   private final String sep;
 
   private final File dir;
   private final Collection<ModularFeature> features;
   private final HandleMissingValues handleMissingSpectra;
   private final HandleMissingValues handleMissingSignals;
+  private final Boolean normalize;
 
   private int processed;
 
-  public ImageToCsvExportTask(ParameterSet param,
-      Collection<ModularFeature> features, @NotNull Instant moduleCallDate) {
+  public ImageToCsvExportTask(ParameterSet param, Collection<ModularFeature> features,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.dir = param.getParameter(ImageToCsvExportParameters.dir).getValue();
     this.sep = param.getParameter(ImageToCsvExportParameters.delimiter).getValue().trim();
-    handleMissingSpectra = param
-        .getParameter(ImageToCsvExportParameters.handleMissingSpectra)
+    normalize = param.getParameter(ImageToCsvExportParameters.normalize).getValue();
+    handleMissingSpectra = param.getParameter(ImageToCsvExportParameters.handleMissingSpectra)
         .getValue();
-    handleMissingSignals = param
-        .getParameter(ImageToCsvExportParameters.handleMissingSignals).getValue();
+    handleMissingSignals = param.getParameter(ImageToCsvExportParameters.handleMissingSignals)
+        .getValue();
     this.features = features;
 
-    rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
-    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   }
 
   public static String getImageParamString(ImagingRawDataFile file) {
@@ -118,8 +112,8 @@ public class ImageToCsvExportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     logger.fine(() -> "Determining maximum export dimensions...");
-    final List<ImagingRawDataFile> distinctFiles = features
-        .stream().map(ModularFeature::getRawDataFile).distinct()
+    final List<ImagingRawDataFile> distinctFiles = features.stream()
+        .map(ModularFeature::getRawDataFile).distinct()
         .filter(file -> file instanceof ImagingRawDataFile).map(file -> (ImagingRawDataFile) file)
         .toList();
 
@@ -147,11 +141,16 @@ public class ImageToCsvExportTask extends AbstractTask {
         final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
         final IonTimeSeries<? extends ImagingScan> data;
         try {
-          data = (IonTimeSeries<? extends ImagingScan>) featureData;
+          if (normalize) {
+            data = IonTimeSeriesUtils.normalizeToAvgTic(
+                (IonTimeSeries<? extends ImagingScan>) featureData, null);
+          } else {
+            data = (IonTimeSeries<? extends ImagingScan>) featureData;
+          }
         } catch (ClassCastException e) {
-          logger
-              .info("Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
-                    + FeatureUtils.featureToString(f));
+          logger.info(
+              "Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
+                  + FeatureUtils.featureToString(f));
           continue;
         }
 
@@ -218,8 +217,7 @@ public class ImageToCsvExportTask extends AbstractTask {
    * @param minimumIntensity the minimum signal intensity that is used if handleMissingSignals is
    *                         {@link HandleMissingValues#REPLACE_BY_LOWEST_VALUE}
    */
-  private void handleMissingSpectra(double[][] dataMatrix,
-      double minimumIntensity) {
+  private void handleMissingSpectra(double[][] dataMatrix, double minimumIntensity) {
     if (handleMissingSpectra.equals(HandleMissingValues.LEAVE_EMPTY)) {
       return;
     }
@@ -256,8 +254,7 @@ public class ImageToCsvExportTask extends AbstractTask {
       return false;
     }
 
-    String newFilename =
-        f.getRawDataFile().getName() + "_mz-" + mzFormat.format(f.getMZ());
+    String newFilename = f.getRawDataFile().getName() + "_mz-" + mzFormat.format(f.getMZ());
     if (f.getMobility() != null && Float.compare(f.getMobility(), 0f) != 0) {
       newFilename += "_mobility-" + mobilityFormat.format(f.getMobility());
     }
@@ -267,8 +264,7 @@ public class ImageToCsvExportTask extends AbstractTask {
 
     final File file = FileAndPathUtil.getUniqueFilename(flDir, newFilename);
 
-    try (BufferedWriter writer = Files
-        .newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+    try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
 
       for (int y = 0; y < dataMatrix.length; y++) {
         StringBuilder b = new StringBuilder();

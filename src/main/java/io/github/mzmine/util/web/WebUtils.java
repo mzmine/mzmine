@@ -16,18 +16,27 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_library_analysis_csv;
+package io.github.mzmine.util.web;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.http.ParseException;
 
-/**
- * this package private record holds precomputed filtered spectral and neutral loss data for a
- * spectral library entry
- *
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
-                    double precursorMZ) {
+public class WebUtils {
 
+  private static final Logger logger = Logger.getLogger(WebUtils.class.getName());
+
+  public static void openURL(String url) {
+    if (Desktop.isDesktopSupported() && !url.isBlank()) {
+      try {
+        Desktop.getDesktop().browse(new URI(url));
+      } catch (ParseException | IOException | URISyntaxException e) {
+        logger.log(Level.WARNING, "Cannot open browser for URL: " + url, e);
+      }
+    }
+  }
 }

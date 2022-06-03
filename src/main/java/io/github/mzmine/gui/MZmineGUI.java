@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -29,6 +29,7 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
@@ -56,6 +57,7 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -105,6 +107,8 @@ public class MZmineGUI extends Application implements Desktop {
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
+  private static WindowLocation currentTaskManagerLocation = WindowLocation.MAIN;
+  private static Stage currentTaskWindow;
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
@@ -157,7 +161,7 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
-  public static void addWindow(Node node, String title) {
+  public static Stage addWindow(Node node, String title) {
 
     BorderPane parent = new BorderPane();
     parent.setCenter(node);
@@ -171,7 +175,7 @@ public class MZmineGUI extends Application implements Desktop {
     newStage.getIcons().add(mzMineIcon);
     newStage.setScene(newScene);
     newStage.show();
-
+    return newStage;
   }
 
   public static void activateProject(MZmineProject project) {
@@ -357,6 +361,20 @@ public class MZmineGUI extends Application implements Desktop {
     }
     event.setDropCompleted(hasFileDropped);
     event.consume();
+  }
+
+  public static TableView<WrappedTask> removeTasksFromBottom() {
+    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+    mainWindowController.getBottomBox().getChildren().remove(tasksView);
+    return tasksView;
+  }
+
+  public static void addTasksToBottom() {
+    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+    ObservableList<Node> children = mainWindowController.getBottomBox().getChildren();
+    if (!children.contains(tasksView)) {
+      children.add(0, tasksView);
+    }
   }
 
   @Override
@@ -724,5 +742,46 @@ public class MZmineGUI extends Application implements Desktop {
       e.printStackTrace();
     }
     return ButtonType.NO;
+  }
+
+
+  public static void handleTaskManagerLocationChange(WindowLocation loc) {
+    if (Objects.equals(loc, currentTaskManagerLocation)) {
+      return;
+    }
+
+    String title = "Tasks";
+    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+
+    // remove
+    switch (currentTaskManagerLocation) {
+      case TAB -> mainWindowController.removeTab(title);
+      case MAIN -> removeTasksFromBottom();
+      case HIDDEN -> {
+      }
+      case EXTERNAL -> {
+        if (currentTaskWindow != null) {
+          currentTaskWindow.close();
+          currentTaskWindow = null;
+        }
+      }
+    }
+
+    // add
+    switch (loc) {
+      case TAB -> {
+        MZmineTab tab = new SimpleTab(title);
+        tab.setContent(tasksView);
+        MZmineCore.getDesktop().addTab(tab);
+      }
+      case EXTERNAL -> {
+        currentTaskWindow = addWindow(tasksView, title);
+      }
+      case MAIN -> addTasksToBottom();
+      case HIDDEN -> {
+      }
+    }
+
+    currentTaskManagerLocation = loc;
   }
 }

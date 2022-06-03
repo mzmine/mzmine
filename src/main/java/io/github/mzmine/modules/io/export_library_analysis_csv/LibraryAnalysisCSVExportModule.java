@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -28,6 +28,12 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This module can be applied to a spectral library to run a comparison study that compares modified
+ * cosine similarity and neutral loss similarity on a spectral pairs.
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public class LibraryAnalysisCSVExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export library analysis csv";

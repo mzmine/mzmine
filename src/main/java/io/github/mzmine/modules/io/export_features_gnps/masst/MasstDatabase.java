@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,18 +16,35 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_library_analysis_csv;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+package io.github.mzmine.modules.io.export_features_gnps.masst;
 
 /**
- * this package private record holds precomputed filtered spectral and neutral loss data for a
- * spectral library entry
+ * Available databases to search by masst. Selection of the database in GNPS is with the enum value
+ * names - not toString.
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
-                    double precursorMZ) {
+public enum MasstDatabase {
+  // value names equal the GNPS values
+  ALL("ALL (Non-redundant MS/MS)"), GNPS("GNPS"), METABOLOMICSWORKBENCH(
+      "Metabolomics Workbench"), METABOLIGHTS("Metabolights");
 
+  private final String title;
+
+  MasstDatabase(String title) {
+    this.title = title;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  @Override
+  public String toString() {
+    return getTitle();
+  }
+
+  public String getGnpsValue() {
+    return name();
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -128,8 +128,6 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
   }
 
   /**
-   * @param precursorMZ
-   * @param dp
    * @return true if data point is accepted and matches all requirements
    */
   public boolean filter(double precursorMZ, DataPoint dp) {
@@ -298,7 +296,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     // Open file
     try (BufferedWriter writer = Files.newBufferedWriter(full.toPath(), StandardCharsets.UTF_8)) {
       // header
-      String header = Arrays.stream(NODES).collect(Collectors.joining(fieldSeparator));
+      String header = String.join(fieldSeparator, NODES);
       writer.append(header).append("\n");
       // data
       for (var spec : spectra) {
@@ -436,8 +434,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
   /**
    * Calculate overlap
    *
-   * @param aligned
-   * @return
+   * @return number of aligned signals
    */
   protected int calcOverlap(List<DataPoint[]> aligned) {
     int n = 0;
@@ -460,7 +457,6 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     }
   }
 
-  @SuppressWarnings("rawtypes")
   private String csvEscape(String input) {
     return CSVUtils.escape(input, fieldSeparator);
   }

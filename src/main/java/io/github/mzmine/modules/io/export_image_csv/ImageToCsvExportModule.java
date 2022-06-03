@@ -27,7 +27,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -20,18 +20,18 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
+import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -43,9 +43,12 @@ public class ChromatogramPlotControlPane extends VBox {
   protected final Button btnUpdateXIC;
 
   protected final ObjectProperty<Range<Double>> mzRange;
+  private final Button btnParam;
   protected NumberFormat mzFormat;
   protected Number min;
   protected Number max;
+
+  protected Consumer<ParameterSet> parameterListener;
 
 
   public ChromatogramPlotControlPane() {
@@ -59,13 +62,16 @@ public class ChromatogramPlotControlPane extends VBox {
     cbXIC = new CheckBox("Show XIC");
     btnUpdateXIC = new Button("Update chromatogram(s)");
     btnUpdateXIC.setTooltip(new Tooltip("Applies the current m/z range to the TIC/XIC plot."));
+    btnParam = new Button("Setup");
+    btnParam.setTooltip(new Tooltip("Setup parameters"));
+    btnParam.setOnAction(event -> showChromParameterSetup());
     mzRangeNode = new MZRangeComponent();
 
     // disable mz range and button if xic is not selected
     btnUpdateXIC.disableProperty().bind(cbXIC.selectedProperty().not());
     mzRangeNode.disableProperty().bind(cbXIC.selectedProperty().not());
 
-    HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC);
+    HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam);
     controlsWrap.setAlignment(Pos.CENTER);
     mzRangeNode.setAlignment(Pos.CENTER);
     getChildren().addAll(controlsWrap, mzRangeNode);
@@ -77,16 +83,30 @@ public class ChromatogramPlotControlPane extends VBox {
     max = null;
   }
 
+  public void setParameterListener(Consumer<ParameterSet> parameterListener) {
+    this.parameterListener = parameterListener;
+  }
+
+  public void showChromParameterSetup() {
+    showChromParameterSetup(MZmineCore.getConfiguration()
+        .getModuleParameters(ChromatogramAndSpectraVisualizerModule.class));
+  }
+
+  public void showChromParameterSetup(ParameterSet parameterSet) {
+    ExitCode code = parameterSet.showSetupDialog(true);
+    if (code == ExitCode.OK) {
+      if (parameterListener != null) {
+        parameterListener.accept(parameterSet);
+      }
+    }
+  }
+
   public CheckBox getCbXIC() {
     return cbXIC;
   }
 
   public Range<Double> getMzRange() {
     return mzRange.get();
-  }
-
-  public ObjectProperty<Range<Double>> mzRangeProperty() {
-    return mzRange;
   }
 
   public void setMzRange(Range<Double> mzRange) {
@@ -98,6 +118,10 @@ public class ChromatogramPlotControlPane extends VBox {
       mzRangeNode.getMinTxtField().setText("");
       mzRangeNode.getMaxTxtField().setText("");
     }
+  }
+
+  public ObjectProperty<Range<Double>> mzRangeProperty() {
+    return mzRange;
   }
 
   public Button getBtnUpdateXIC() {

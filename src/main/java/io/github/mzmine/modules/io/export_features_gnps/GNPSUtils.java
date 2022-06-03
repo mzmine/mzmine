@@ -21,9 +21,11 @@ package io.github.mzmine.modules.io.export_features_gnps;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParameters;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
+import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.GnpsJsonParser;
+import io.github.mzmine.util.web.RequestResponse;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -34,10 +36,17 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -46,6 +55,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,11 +71,13 @@ public class GNPSUtils {
 
   public static final String FBMN_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzefeaturenetworking";
   public static final String GC_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
+  public static final String MASST_SUBMIT_URL = "https://masst.ucsd.edu/submit";
+
+
   public static final String ACCESS_LIBRARY_SPECTRUM = "https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=";
   public static final String ACCESS_USI_SPECTRUM = "https://metabolomics-usi.ucsd.edu/json/?usi1=";
   // Logger.
   private static final Logger logger = Logger.getLogger(GNPSUtils.class.getName());
-
 
   /**
    * @param libIDorUSI GNPS library ID
@@ -262,11 +274,12 @@ public class GNPSUtils {
           logger.info("GNPS submit response status: " + response.getStatusLine());
           HttpEntity resEntity = response.getEntity();
           if (resEntity != null) {
-            logger.info("GNPS submit response content length: " + resEntity.getContentLength());
+            final String requestResult = EntityUtils.toString(resEntity);
+            logger.info("GNPS FBMN/IIMN response: " + requestResult);
 
             // open job website
             if (openWebsite) {
-              openWebsite(resEntity);
+              openWebsite(requestResult);
             }
             EntityUtils.consume(resEntity);
           }
@@ -276,24 +289,142 @@ public class GNPSUtils {
     return "";
   }
 
+
+  public static @NotNull RequestResponse submitMASSTJob(DataPoint[] data, double precursorMZ,
+      MasstDatabase database, double minCosine, double parentMzTol, double fragmentMzTol,
+      int minMatchedSignals, boolean searchAnalogs, boolean openWebsite) throws IOException {
+    return submitMASSTJob("MZmine3 MASST submission", data, precursorMZ, database, minCosine,
+        parentMzTol, fragmentMzTol, minMatchedSignals, searchAnalogs, "", "", "", openWebsite);
+  }
+
+  /**
+   * Submit a masst search on GNPS agianst public datasets. Single spectrum against all public
+   * data.
+   *
+   * @param description       job description
+   * @param data              the actual spectral data points
+   * @param precursorMZ       the searched precursor m/z
+   * @param database          the repositories to search in
+   * @param minCosine         minimum cosine similarity score
+   * @param parentMzTol       parent/precursor m/z tolerance
+   * @param fragmentMzTol     fragment m/z tolerance
+   * @param minMatchedSignals minimum number of matched signals
+   * @param searchAnalogs     search analog compounds by precursor m/z shift
+   * @param email             optional email
+   * @param username          optional username
+   * @param password          optional password
+   * @param openWebsite       open the website if successfull
+   * @return URL if successful otherwise empty string
+   * @throws IOException
+   */
+  public static @NotNull RequestResponse submitMASSTJob(String description, DataPoint[] data,
+      double precursorMZ, MasstDatabase database, double minCosine, double parentMzTol,
+      double fragmentMzTol, int minMatchedSignals, boolean searchAnalogs, String email,
+      String username, String password, boolean openWebsite) throws IOException {
+    if (data.length < minMatchedSignals) {
+      logger.warning(() -> String.format(
+          "Cannot MASST search when spectrum contains less data points (%d) than minimum matched signals (%d).",
+          data.length, minMatchedSignals));
+      return RequestResponse.NONE;
+    }
+    if (precursorMZ <= 1) {
+      logger.warning("Cannot MASST search with this precursor m/z=" + precursorMZ);
+      return RequestResponse.NONE;
+    }
+
+    final String data_tab_sep = Arrays.stream(data).map(d -> d.getMZ() + "\t" + d.getIntensity())
+        .collect(Collectors.joining("\n"));
+
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpPost httpPost = new HttpPost(MASST_SUBMIT_URL);
+
+      List<NameValuePair> params = new ArrayList<>();
+      if ("MZMINE_TEST_SUBMISSION_ADD_TEST_PART".equals(description)) {
+        // only do test submission
+        params.add(new BasicNameValuePair("test", ""));
+      }
+      params.add(new BasicNameValuePair("peaks", data_tab_sep));
+      params.add(new BasicNameValuePair("precursormz", "" + precursorMZ));
+      params.add(new BasicNameValuePair("pmtolerance", "" + parentMzTol));
+      params.add(new BasicNameValuePair("fragmenttolerance", "" + fragmentMzTol));
+      params.add(new BasicNameValuePair("cosinescore", "" + minCosine));
+      params.add(new BasicNameValuePair("matchedpeaks", "" + minMatchedSignals));
+      params.add(new BasicNameValuePair("email", "" + email));
+      params.add(new BasicNameValuePair("login", "" + username));
+      params.add(new BasicNameValuePair("password", "" + password));
+      params.add(new BasicNameValuePair("description", description));
+      params.add(new BasicNameValuePair("database", database.getGnpsValue()));
+      params.add(new BasicNameValuePair("analogsearch", searchAnalogs ? "Yes" : "No"));
+      httpPost.setEntity(new UrlEncodedFormEntity(params));
+
+      logger.info("Submitting GNPS job " + httpPost.getRequestLine());
+
+      try (CloseableHttpResponse response = client.execute(httpPost)) {
+        logger.info("GNPS submit response status: " + response.getStatusLine());
+        RequestResponse res = getResponse(response);
+
+        if (res.isSuccess() && res.url().isBlank()) {
+          logger.log(Level.WARNING,
+              "Error while submitting GNPS job, cannot read response URL as json or text");
+        }
+
+        if (openWebsite) {
+          res.openURL();
+        }
+        return res;
+      }
+    }
+  }
+
+  @NotNull
+  private static RequestResponse getResponse(CloseableHttpResponse response) {
+    String requestResult = "";
+    try {
+      HttpEntity entity = response.getEntity();
+      requestResult = EntityUtils.toString(entity);
+      EntityUtils.consume(entity);
+    } catch (IOException e) {
+      //
+    }
+    return new RequestResponse(requestResult, extractUrl(requestResult),
+        response.getStatusLine().getStatusCode());
+  }
+
   /**
    * Open website with GNPS job
    */
-  private static void openWebsite(HttpEntity resEntity) {
+  private static void openWebsite(String requestResult) {
     if (Desktop.isDesktopSupported()) {
-      try {
-        JSONObject res = new JSONObject(EntityUtils.toString(resEntity));
-        String url = res.getString("url");
-        logger.info("Response: " + res);
+      String url = extractUrl(requestResult);
 
-        if (url != null && !url.isEmpty()) {
+      if (!url.isBlank()) {
+        try {
           Desktop.getDesktop().browse(new URI(url));
+        } catch (ParseException | IOException | URISyntaxException e) {
+          logger.log(Level.WARNING, "Cannot open browser for URL: " + url, e);
         }
-
-      } catch (ParseException | IOException | URISyntaxException | JSONException e) {
-        logger.log(Level.SEVERE, "Error while submitting GNPS job", e);
       }
     }
+  }
+
+  /**
+   * Read URL from json or text response
+   *
+   * @param requestResult json or text format response
+   * @return URL or empty string
+   */
+  private static @NotNull String extractUrl(String requestResult) {
+    String url = "";
+    try {
+      JSONObject res = new JSONObject(requestResult);
+      url = res.getString("url");
+    } catch (ParseException | JSONException e) {
+      // try reading the link from text - maybe type was plain text
+      // parse from html response link, e.g.:
+      // <a href="https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=theTaskID">
+      url = StringUtils.substringBetween(requestResult, "<a href=\"", "\">");
+    }
+    return url == null ? "" : url;
   }
 
   /**

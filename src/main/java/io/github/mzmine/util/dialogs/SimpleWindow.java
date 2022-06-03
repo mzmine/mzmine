@@ -16,18 +16,37 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_library_analysis_csv;
+package io.github.mzmine.util.dialogs;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
- * this package private record holds precomputed filtered spectral and neutral loss data for a
- * spectral library entry
+ * A simple window that shows one entity.
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
-                    double precursorMZ) {
+public class SimpleWindow extends Stage {
 
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+
+  public SimpleWindow(String title, Node content) {
+    setTitle(title);
+    mainPane = new BorderPane(content);
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    // Add the Windows menu
+    WindowsMenu.addWindowsMenu(mainScene);
+    this.show();
+  }
 }

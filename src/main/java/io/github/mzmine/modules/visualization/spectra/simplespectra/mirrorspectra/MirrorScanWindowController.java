@@ -72,17 +72,18 @@ public class MirrorScanWindowController {
   public static final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
       DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
   private static final Logger logger = Logger.getLogger(MirrorScanWindowController.class.getName());
+  private final ParameterSet parameters;
   // USI / spec number / gnps library id
   @FXML
   public TextField txtTop;
   @FXML
   public TextField txtBottom;
-  private final ParameterSet parameters;
   @FXML
   public Label lbTitleCos;
   @FXML
   public Label lbTitleNL;
-
+  @FXML
+  public TitledPane pnParams;
   // components
   @FXML
   private BorderPane pnMirror;
@@ -98,8 +99,6 @@ public class MirrorScanWindowController {
   private Label lbNeutralLossStats;
   @FXML
   private Label lbMirrorModifiedStats;
-
-
   @FXML
   private TableColumn<TableData, Double> colMzTop;
   @FXML
@@ -114,7 +113,6 @@ public class MirrorScanWindowController {
   private TableColumn<TableData, Color> colMatchColor;
   @FXML
   private TableColumn<TableData, Double> colContribution;
-
   // neutral loss columns
   @FXML
   private TableColumn<TableData, Double> colMzTop1;
@@ -130,12 +128,9 @@ public class MirrorScanWindowController {
   private TableColumn<TableData, Color> colMatchColor1;
   @FXML
   private TableColumn<TableData, Double> colContribution1;
-
   // data
   private EChartViewer mirrorSpecrumPlot;
   private EChartViewer neutralLossMirrorSpecrumPlot;
-  @FXML
-  public TitledPane pnParams;
   private ParameterSetupPane parameterSetupPane;
 
   // last spectra

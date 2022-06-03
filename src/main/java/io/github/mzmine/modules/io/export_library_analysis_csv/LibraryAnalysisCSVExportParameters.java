@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -48,7 +48,7 @@ public class LibraryAnalysisCSVExportParameters extends SimpleParameterSet {
       "Spectral m/z tolerance",
       "Spectral m/z tolerance is used to match all signals in the query and library spectra (usually higher than precursor m/z tolerance)",
       0.01, 10);
-  public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
+  public static final IntegerParameter minMatch = new IntegerParameter("Minimum matched signals",
       "Minimum number of matched signals in masslist and spectral library entry (within mz tolerance)",
       6);
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping = new OptionalModuleParameter<>(

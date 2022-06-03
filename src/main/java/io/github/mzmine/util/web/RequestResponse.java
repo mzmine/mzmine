@@ -16,18 +16,29 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_library_analysis_csv;
+package io.github.mzmine.util.web;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import java.util.logging.Logger;
 
 /**
- * this package private record holds precomputed filtered spectral and neutral loss data for a
- * spectral library entry
+ * Simple representation of a response from web api. Extracts the URL from the json or text
+ * response
  *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * @param response   response text
+ * @param url        extracted URL or empty string
+ * @param statusCode the status code from the request
+ * @author <a href="https://github.com/robinschmid">Robin Schmid</a>
  */
-record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
-                    double precursorMZ) {
+public record RequestResponse(String response, String url, int statusCode) {
 
+  private static final Logger logger = Logger.getLogger(RequestResponse.class.getName());
+  public static RequestResponse NONE = new RequestResponse("", "", -1);
+
+  public void openURL() {
+    WebUtils.openURL(url);
+  }
+
+  public boolean isSuccess() {
+    return statusCode / 200 == 1;
+  }
 }

@@ -16,18 +16,11 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_library_analysis_csv;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+package io.github.mzmine.gui;
 
 /**
- * this package private record holds precomputed filtered spectral and neutral loss data for a
- * spectral library entry
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * Location of main elements e.g. the TaskViewer
  */
-record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
-                    double precursorMZ) {
-
+public enum WindowLocation {
+  MAIN, TAB, EXTERNAL, HIDDEN
 }
