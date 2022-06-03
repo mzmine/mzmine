@@ -41,7 +41,7 @@ public class MSnTreeJsonExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return null;
+    return MSnTreeJsonExportParameters.class;
   }
 
   @Override

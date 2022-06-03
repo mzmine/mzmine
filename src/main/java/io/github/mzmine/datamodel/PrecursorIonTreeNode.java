@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -108,6 +108,12 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
         : stream.flatMap(node -> node.streamPrecursors(levelFromRoot - 1));
   }
 
+  @NotNull
+  public Stream<PrecursorIonTreeNode> streamWholeTree() {
+    return Stream.concat(Stream.of(this),
+        getChildPrecursors().stream().flatMap(PrecursorIonTreeNode::streamWholeTree));
+  }
+
   public void addFragmentScan(Scan scan) {
     fragmentScans.add(scan);
   }
@@ -208,7 +214,7 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
     }
   }
 
-  public int countChildren() {
+  public int countPrecursors() {
     return childPrecursors == null ? 0 : childPrecursors.size();
   }
 
@@ -248,6 +254,30 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
       }
       scans.addAll(list);
       level++;
+    }
+  }
+
+  public int getMaxMSLevel() {
+    return streamWholeTree().mapToInt(PrecursorIonTreeNode::getMsLevel).max().orElse(0);
+  }
+
+  public double[] getPrecursorMZList() {
+    return streamParents().mapToDouble(PrecursorIonTreeNode::getPrecursorMZ).toArray();
+  }
+
+  /**
+   * Stream over this tree from root -> this
+   *
+   * @return stream from root to this node (including this)
+   */
+  public Stream<PrecursorIonTreeNode> streamParents() {
+    Stream<PrecursorIonTreeNode> stream;
+    PrecursorIonTreeNode p = getParent();
+    if (p != null) {
+      stream = p.streamParents();
+      return Stream.concat(stream, Stream.of(this));
+    } else {
+      return Stream.of(this);
     }
   }
 }

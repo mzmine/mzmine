@@ -33,6 +33,7 @@ package io.github.mzmine.modules.io.export_msn_tree_json;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -46,8 +47,12 @@ public class MSnTreeJsonExportParameters extends SimpleParameterSet {
   public static final MZToleranceParameter MZ_TOL = new MZToleranceParameter("m/z tolerance", "",
       0.001, 5);
   public static final RawDataFilesParameter RAW_FILES = new RawDataFilesParameter();
+
+  public static final StringParameter SEPARATOR = new StringParameter("Separator",
+      "Separator used in tabular data file", "\t");
   private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("jsonlines format for json entries in individual lines", "*.jsonl") //
+      new ExtensionFilter("tab separated file", "*.tsv"), //
+      new ExtensionFilter("comma separated file", "*.csv") //
   );
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the raw data files to be exported "
@@ -57,7 +62,7 @@ public class MSnTreeJsonExportParameters extends SimpleParameterSet {
       FileSelectionType.SAVE);
 
   public MSnTreeJsonExportParameters() {
-    super(new Parameter[]{RAW_FILES, FILENAME, MZ_TOL});
+    super(new Parameter[]{RAW_FILES, FILENAME, SEPARATOR, MZ_TOL});
   }
 
   @Override
