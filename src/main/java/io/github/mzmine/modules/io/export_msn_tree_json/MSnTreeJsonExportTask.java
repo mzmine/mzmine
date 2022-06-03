@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.export_msn_tree_json;
 
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -27,6 +28,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.io.CSVUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedWriter;
@@ -169,8 +171,20 @@ public class MSnTreeJsonExportTask extends AbstractTask {
       case N_MS4 -> "" + common.N_MS4;
       case N_MS5 -> "" + common.N_MS5;
       case N_MS6 -> "" + common.N_MS6;
-      case MZS -> CSVUtils.getMzListFormatted(spec, ",");
-      case INTENSITIES -> CSVUtils.getIntensityListFormatted(spec, ",");
+      case MZS -> {
+        MassList massList = spec.getMassList();
+        if (massList == null) {
+          throw new MissingMassListException(spec);
+        }
+        yield CSVUtils.getMzListFormatted(massList, ",");
+      }
+      case INTENSITIES -> {
+        MassList massList = spec.getMassList();
+        if (massList == null) {
+          throw new MissingMassListException(spec);
+        }
+        yield CSVUtils.getIntensityListFormatted(massList, ",");
+      }
     };
   }
 
