@@ -16,24 +16,19 @@
  *
  */
 
-package io.github.mzmine.util.spectraldb.entry;
+package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
 
-public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED, UNALIGNED;
+import io.github.mzmine.datamodel.DataPoint;
+import java.util.List;
 
-  /**
-   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
-   *
-   * @return
-   */
-  public String toRemainderString() {
-    return switch (this) {
-      case ORIGINAL -> "filtered";
-      case UNALIGNED -> "unaligned";
-      case FILTERED -> "unaligned";
-      case ALIGNED -> "aligned";
-      case ALIGNED_MODIFIED -> "modified";
-      case MERGED -> "merged";
-    };
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public record CosinePairContributions(List<DataPoint[]> pairs, double[] contributions,
+                                      SignalAlignmentAnnotation[] match) {
+
+
+  public int size() {
+    return pairs.size();
   }
 }

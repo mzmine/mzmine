@@ -25,6 +25,7 @@ package io.github.mzmine.datamodel.features.correlation;
  * @param cosine  the cosine similarity
  * @param overlap number of overlapping signals
  */
-public record SpectralSimilarity(double cosine, int overlap) {
+public record SpectralSimilarity(double cosine, int overlap, int sizeA, int sizeB,
+                                 double explainedIntensityA, double explainedIntensityB) {
 
 }
