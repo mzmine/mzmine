@@ -49,11 +49,16 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
   public LocalDateTime convert(String input, LocalDateTime defaultValue) {
     try {
       //ISO-8601 format
-      return input == null ? defaultValue : LocalDateTime.parse(input.trim());
+      return (input == null || input.isBlank()) ? defaultValue : LocalDateTime.parse(input.trim());
 //      return LocalDateTime.parse(input.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
     } catch (DateTimeParseException ignored) {
     }
 
     return null;
+  }
+
+  @Override
+  public LocalDateTime defaultValue() {
+    return LocalDateTime.parse("1111-11-11T11:11:11");
   }
 }

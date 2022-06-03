@@ -46,10 +46,15 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
   @Override
   public Double convert(String input, Double defaultValue) {
     try {
-      return input == null ? defaultValue : Double.parseDouble(input.trim());
+      return (input == null || input.isBlank()) ? defaultValue : Double.parseDouble(input.trim());
     } catch (NumberFormatException ignored) {
     }
 
     return null;
+  }
+
+  @Override
+  public Double defaultValue() {
+    return 0.0;
   }
 }

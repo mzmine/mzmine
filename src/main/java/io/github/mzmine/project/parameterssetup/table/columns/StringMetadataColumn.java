@@ -45,6 +45,11 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
 
   @Override
   public String convert(String input, String defaultValue) {
-    return input == null ? defaultValue : input.trim();
+    return (input == null || input.isBlank()) ? defaultValue : input.trim();
+  }
+
+  @Override
+  public String defaultValue() {
+    return "Default";
   }
 }
