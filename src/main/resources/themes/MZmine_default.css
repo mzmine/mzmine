@@ -167,3 +167,8 @@
 .web-view {
   -fx-font-smoothing-type: LCD;
 }
+
+.accordion > .titled-pane > .title {
+    -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
+    -fx-background-radius: 0, 0, 0;
+}

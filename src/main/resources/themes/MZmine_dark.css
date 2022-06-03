@@ -49,6 +49,8 @@
   -highlight-dark-border: #19475d;
   -selection-highlight-outline: -highlight;
 
+
+  -titled-pane-arrow-color: -highlight-dark-border;
   /** **/
 
   -default-border-color: derive(-fx-base, 10%);
@@ -185,4 +187,13 @@
 .progress-bar > .bar {
   -fx-background-color: -highlight;
   -fx-box-border: -highlight;
+}
+
+
+.accordion > .titled-pane > .title {
+    -fx-background-color: -control-bg, -fx-inner-border, -fx-body-color;
+}
+
+.accordion .titled-pane>.title>.arrow-button>.arrow {
+    -fx-background-color: -titled-pane-arrow-color;
 }
