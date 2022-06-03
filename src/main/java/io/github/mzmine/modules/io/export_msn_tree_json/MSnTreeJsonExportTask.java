@@ -52,9 +52,9 @@ public class MSnTreeJsonExportTask extends AbstractTask {
   private final MZTolerance mzTol;
   private final String sep;
   private final NumberFormat mzFormat;
+  private final String description;
   private int total = 0;
   private int done;
-  private final String description;
 
   public MSnTreeJsonExportTask(ParameterSet parameters, Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -144,7 +144,7 @@ public class MSnTreeJsonExportTask extends AbstractTask {
       String formattedPrecursorMzList) {
     return Arrays.stream(MSnFields.values())
         .map(field -> getValue(field, raw, spec, treeID, commonValues, formattedPrecursorMzList))
-        .collect(Collectors.joining(sep));
+        .map(value -> CSVUtils.escape(value, sep)).collect(Collectors.joining(sep));
   }
 
   private String getValue(MSnFields field, RawDataFile raw, Scan spec, int treeID,
@@ -154,6 +154,7 @@ public class MSnTreeJsonExportTask extends AbstractTask {
       case SCAN_NUMBER -> "" + spec.getScanNumber();
       case TREE_ID -> "" + treeID;
       case MS_LEVEL -> "" + spec.getMSLevel();
+      case PRECURSOR_MZ -> mzFormat.format(spec.getPrecursorMz());
       case PRECURSOR_MS2 -> common.PRECURSOR_MS2;
       case PRECURSOR_LIST -> formattedPrecursorMzList;
       case MAX_MSN -> "" + common.MAX_MSN;
@@ -187,7 +188,7 @@ public class MSnTreeJsonExportTask extends AbstractTask {
 
 
   enum MSnFields {
-    FILENAME, SCAN_NUMBER, TREE_ID, MS_LEVEL, PRECURSOR_MS2, PRECURSOR_LIST,
+    FILENAME, SCAN_NUMBER, TREE_ID, MS_LEVEL, PRECURSOR_MZ, PRECURSOR_MS2, PRECURSOR_LIST,
 
     // tree specific
     MAX_MSN, N_PREC, N_PREC_MS3, N_PREC_MS4, N_PREC_MS5, N_PREC_MS6, //
