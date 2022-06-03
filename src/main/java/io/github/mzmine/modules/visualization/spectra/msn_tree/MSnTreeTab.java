@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -96,13 +96,13 @@ public class MSnTreeTab extends SimpleTab {
   private final CheckBox cbDenoise;
   private final List<SpectraPlot> spectraPlots = new ArrayList<>(1);
   private final Spinner<Integer> sizeSpinner;
+  private final ChartGroup chartGroup;
   // current shapes
   public Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, 3}, 3);
   public Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{3, 3, 0}, 3);
   public Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, 3, 6, 3}, 4);
   public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 5, 5, 5);
   private int lastSelectedItem = -1;
-  private final ChartGroup chartGroup;
   private PrecursorIonTreeNode currentRoot = null;
 
 
@@ -147,7 +147,7 @@ public class MSnTreeTab extends SimpleTab {
     // create first plot and initialize group for zooming etc
     chartGroup = new ChartGroup(false, false, true, false);
     chartGroup.setShowCrosshair(true, false);
-    final SpectraPlot plot = new SpectraPlot();
+    final SpectraPlot plot = new SpectraPlot(false, false);
     spectraPlots.add(plot);
     chartGroup.add(new ChartViewWrapper(plot));
     spectraPane.add(new BorderPane(spectraPlots.get(0)), 0, 0);
@@ -395,6 +395,7 @@ public class MSnTreeTab extends SimpleTab {
           combineDatasetsToOne(combinedData, data);
         }
 
+        spectraPlot.getChart().getLegend().setVisible(false);
         // add precursor markers for each different precursor only once
         spectraPlot.addPrecursorMarkers(precursor.getFragmentScans().get(0), color, 0.25f);
         c++;
