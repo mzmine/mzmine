@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -28,6 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
+import io.github.mzmine.util.javafx.TableViewUitls;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
@@ -102,6 +103,11 @@ public class RawDataFileInfoPaneController {
   @FXML
   private GridPane metaDataGridPane;
 
+  @FXML
+  public void initialize() {
+    TableViewUitls.autoFitLastColumn(rawDataTableView);
+  }
+
   /**
    * Only populate the table if it gets selected. This is called by a listener in
    * {@link RawDataOverviewWindowController}.
@@ -127,8 +133,9 @@ public class RawDataFileInfoPaneController {
     String scansMSLevel = "Total scans (" + rawDataFile.getNumOfScans() + ") ";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       int level = rawDataFile.getMSLevels()[i];
-      scansMSLevel = scansMSLevel + "MS" + level + " level ("
-          + rawDataFile.getScanNumbers(level).size() + ") ";
+      scansMSLevel =
+          scansMSLevel + "MS" + level + " level (" + rawDataFile.getScanNumbers(level).size()
+              + ") ";
       lblNumScans.setText(scansMSLevel);
     }
 
@@ -136,10 +143,9 @@ public class RawDataFileInfoPaneController {
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.rtFormat.getValue()
-              .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
-          + "-" + MZminePreferences.rtFormat.getValue()
-              .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
-          + " [min] ";
+          .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint()) + "-"
+          + MZminePreferences.rtFormat.getValue()
+          .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint()) + " [min] ";
       lblRtRange.setText(rtRangeMSLevel);
     }
 
@@ -147,10 +153,9 @@ public class RawDataFileInfoPaneController {
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.mzFormat.getValue()
-              .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
-          + "-" + MZminePreferences.mzFormat.getValue()
-              .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
-          + " ";
+          .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint()) + "-"
+          + MZminePreferences.mzFormat.getValue()
+          .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint()) + " ";
       lblMzRange.setText(mzRangeMSLevel);
     }
 
@@ -216,12 +221,12 @@ public class RawDataFileInfoPaneController {
 
   private class PopulateTask implements Task {
 
-    private ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
+    private final ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
 
     private double perc = 0;
     private TaskStatus status;
     private boolean isCanceled;
-    private RawDataFile rawDataFile;
+    private final RawDataFile rawDataFile;
 
     public PopulateTask(RawDataFile rawDataFile) {
       perc = 0;
@@ -270,8 +275,8 @@ public class RawDataFileInfoPaneController {
 
         String mzRangeStr = "";
         if (mzRange != null) {
-          mzRangeStr = mzFormat.format(mzRange.lowerEndpoint()) + "-"
-              + mzFormat.format(mzRange.upperEndpoint());
+          mzRangeStr = mzFormat.format(mzRange.lowerEndpoint()) + "-" + mzFormat.format(
+              mzRange.upperEndpoint());
         }
 
         String basePeakMZ = "-";
@@ -283,7 +288,7 @@ public class RawDataFileInfoPaneController {
         }
 
         tableData.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan
-                                                                                        // number
+            // number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
@@ -304,6 +309,7 @@ public class RawDataFileInfoPaneController {
 
       Platform.runLater(() -> {
         rawDataTableView.setItems(tableData);
+
         // rawDataTableView.getSelectionModel().select(0);
       });
 
