@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -385,8 +385,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   /**
-   * Registers a data type column and all it's sub colums to the {@link
-   * FeatureTableFX#newColumnMap}.
+   * Registers a data type column and all it's sub colums to the
+   * {@link FeatureTableFX#newColumnMap}.
    */
   private void registerColumn(@NotNull TreeTableColumn<ModularFeatureListRow, ?> column,
       @NotNull ColumnType type, @NotNull DataType<?> dataType, @Nullable RawDataFile file) {

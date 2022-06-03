@@ -65,7 +65,7 @@ import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidS
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.util.IonMobilityUtils;
@@ -368,8 +368,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
-      MirrorScanWindowFX mirrorScanTab = new MirrorScanWindowFX();
-      mirrorScanTab.setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
+      MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
+      mirrorScanTab.getController().setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
           selectedRows.get(1).getMostIntenseFragmentScan());
       mirrorScanTab.show();
     });

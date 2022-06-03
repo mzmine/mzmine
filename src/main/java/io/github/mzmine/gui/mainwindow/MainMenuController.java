@@ -30,6 +30,7 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
@@ -245,6 +246,11 @@ public class MainMenuController {
 
   public void hideTaskViewer(ActionEvent e) {
     MZmineGUI.handleTaskManagerLocationChange(WindowLocation.HIDDEN);
+  }
+
+  public void showSpectralMirrorDialog(ActionEvent event) {
+    MirrorScanWindowFXML window = new MirrorScanWindowFXML();
+    window.show();
   }
 }
 

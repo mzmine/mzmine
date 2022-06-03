@@ -23,7 +23,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.util.components.ButtonCell;
-import io.github.mzmine.util.components.ColorTableCell;
+import io.github.mzmine.util.components.ColorPickerTableCell;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -76,14 +76,13 @@ public class DatasetControlPane<T extends PlotXYDataProvider> extends AnchorPane
 
   public void initialize() {
 
-    colColor.setCellFactory(ColorTableCell::new);
-    colColor.setCellValueFactory(
-        param -> {
-          if (param.getValue() instanceof ColorPropertyProvider) {
-            return ((ColoredXYDataset) param.getValue()).fxColorProperty();
-          }
-          return null;
-        });
+    colColor.setCellFactory(ColorPickerTableCell::new);
+    colColor.setCellValueFactory(param -> {
+      if (param.getValue() instanceof ColorPropertyProvider) {
+        return ((ColoredXYDataset) param.getValue()).fxColorProperty();
+      }
+      return null;
+    });
     colColor.setOnEditCommit(event -> {
       ((ColorPropertyProvider) event.getRowValue()).fxColorProperty().set(event.getNewValue());
       chart.getChart().fireChartChanged();

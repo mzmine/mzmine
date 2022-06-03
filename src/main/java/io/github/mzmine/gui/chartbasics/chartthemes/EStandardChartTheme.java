@@ -299,8 +299,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
-    if (p instanceof CombinedDomainXYPlot) {
-      CombinedDomainXYPlot mirrorPlot = (CombinedDomainXYPlot) p;
+    if (p instanceof CombinedDomainXYPlot mirrorPlot) {
       mirrorPlot.setGap(0);
       mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
       for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {

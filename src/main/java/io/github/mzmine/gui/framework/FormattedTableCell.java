@@ -16,24 +16,25 @@
  *
  */
 
-package io.github.mzmine.util.spectraldb.entry;
+package io.github.mzmine.gui.framework;
 
-public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED, UNALIGNED;
+import java.text.NumberFormat;
+import javafx.scene.control.TableCell;
 
-  /**
-   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
-   *
-   * @return
-   */
-  public String toRemainderString() {
-    return switch (this) {
-      case ORIGINAL -> "filtered";
-      case UNALIGNED -> "unaligned";
-      case FILTERED -> "unaligned";
-      case ALIGNED -> "aligned";
-      case ALIGNED_MODIFIED -> "modified";
-      case MERGED -> "merged";
-    };
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public class FormattedTableCell<S, T> extends TableCell<S, T> {
+
+  private final NumberFormat format;
+
+  public FormattedTableCell(NumberFormat format) {
+    this.format = format;
+  }
+
+  @Override
+  protected void updateItem(T item, boolean empty) {
+    super.updateItem(item, empty);
+    this.setText(empty || item == null ? null : format.format(item));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,24 +16,18 @@
  *
  */
 
-package io.github.mzmine.util.spectraldb.entry;
+package io.github.mzmine.modules.io.export_library_analysis_csv;
 
-public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED, UNALIGNED;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
-  /**
-   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
-   *
-   * @return
-   */
-  public String toRemainderString() {
-    return switch (this) {
-      case ORIGINAL -> "filtered";
-      case UNALIGNED -> "unaligned";
-      case FILTERED -> "unaligned";
-      case ALIGNED -> "aligned";
-      case ALIGNED_MODIFIED -> "modified";
-      case MERGED -> "merged";
-    };
-  }
+/**
+ * this package private record holds precomputed filtered spectral and neutral loss data for a
+ * spectral library entry
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
+                    double precursorMZ) {
+
 }
