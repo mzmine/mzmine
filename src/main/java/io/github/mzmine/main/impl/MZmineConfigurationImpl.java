@@ -389,6 +389,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
+  public int getNumOfThreads() {
+    return preferences.getValue(MZminePreferences.numOfThreads);
+  }
+
+  @Override
   @NotNull
   public FileNameListSilentParameter getLastProjectsParameter() {
     return lastProjects;

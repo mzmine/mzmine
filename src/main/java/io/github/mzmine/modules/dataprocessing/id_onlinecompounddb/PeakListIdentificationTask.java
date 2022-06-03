@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
@@ -36,7 +36,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.io.IOException;
@@ -45,6 +44,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
@@ -211,15 +211,15 @@ public class PeakListIdentificationTask extends AbstractTask {
       if (isotopeFilter && rowIsotopePattern != null && formula != null) {
 
         // First modify the formula according to ionization.
-        final String adjustedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
+        final IMolecularFormula ionizedFormula = ionType.ionizeFormula(formula);
 
         logger.finest(
             "Calculating isotope pattern for compound formula " + formula + " adjusted to "
-            + adjustedFormula);
+            + ionizedFormula);
 
         // Generate IsotopePattern for this compound
         final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-            .calculateIsotopePattern(adjustedFormula, MIN_ABUNDANCE, charge, ionType.getPolarity());
+            .calculateIsotopePattern(ionizedFormula, MIN_ABUNDANCE, charge, ionType.getPolarity());
 
         // Check isotope pattern match
         boolean check = IsotopePatternScoreCalculator

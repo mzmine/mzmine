@@ -23,10 +23,17 @@ import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParam
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.parser.GnpsJsonParser;
 import io.github.mzmine.util.web.RequestResponse;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -41,6 +48,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
@@ -62,17 +70,129 @@ import org.json.JSONObject;
 public class GNPSUtils {
 
   public static final String FBMN_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzefeaturenetworking";
-  public static final String MASST_SUBMIT_URL = "https://masst.ucsd.edu/submit";
   public static final String GC_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
+  public static final String MASST_SUBMIT_URL = "https://masst.ucsd.edu/submit";
+
+
+  public static final String ACCESS_LIBRARY_SPECTRUM = "https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=";
+  public static final String ACCESS_USI_SPECTRUM = "https://metabolomics-usi.ucsd.edu/json/?usi1=";
   // Logger.
   private static final Logger logger = Logger.getLogger(GNPSUtils.class.getName());
+
+  /**
+   * @param libIDorUSI GNPS library ID
+   * @return library spectrum or null
+   */
+  public static SpectralDBEntry accessLibraryOrUSISpectrum(String libIDorUSI) throws IOException {
+    if (isGnpsLibID(libIDorUSI)) {
+      return accessLibrarySpectrum(libIDorUSI);
+    } else {
+      return accessUSISpectrum(libIDorUSI);
+    }
+  }
+
+  public static boolean isGnpsLibID(String libIDorUSI) {
+    return libIDorUSI.toLowerCase().startsWith("ccmslib");
+  }
+
+  /**
+   * @param libraryID GNPS library ID
+   * @return library spectrum or null
+   */
+  public static SpectralDBEntry accessLibrarySpectrum(String libraryID) throws IOException {
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpGet httpGet = new HttpGet(ACCESS_LIBRARY_SPECTRUM + libraryID);
+      logger.info("Retrieving library spectrum " + httpGet.getRequestLine());
+
+      try (CloseableHttpResponse response = client.execute(httpGet)) {
+        logger.info("GNPS library response: " + response.getStatusLine());
+        HttpEntity resEntity = response.getEntity();
+        if (resEntity != null) {
+          final String requestResult = EntityUtils.toString(resEntity);
+          logger.info("GNPS library response: " + requestResult);
+
+          // all 200s are success
+          if (response.getStatusLine().getStatusCode() / 200 == 1) {
+            // open job website
+            EntityUtils.consume(resEntity);
+            // create object from json
+            return parseJsonToSpectrum(requestResult);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @param usi universal spectrum identifier
+   * @return library spectrum or null
+   */
+  public static SpectralDBEntry accessUSISpectrum(String usi) throws IOException {
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpGet httpGet = new HttpGet(ACCESS_USI_SPECTRUM + usi);
+      logger.info("Retrieving USI spectrum " + httpGet.getRequestLine());
+
+      try (CloseableHttpResponse response = client.execute(httpGet)) {
+        logger.info("GNPS library response: " + response.getStatusLine());
+        HttpEntity resEntity = response.getEntity();
+        if (resEntity != null) {
+          final String requestResult = EntityUtils.toString(resEntity);
+          logger.info("GNPS library response: " + requestResult);
+
+          // all 200s are success
+          if (response.getStatusLine().getStatusCode() / 200 == 1) {
+            // open job website
+            EntityUtils.consume(resEntity);
+            // create object from json
+            return parseJsonToSpectrum(requestResult);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @NotNull
+  private static SpectralDBEntry parseJsonToSpectrum(String jsonSpec) {
+    try (JsonReader reader = Json.createReader(new StringReader(jsonSpec))) {
+      JsonObject json = reader.readObject();
+      // GNPS has different json return types just try to read the first one which is used for USI
+      // then the other that is used for library spectra
+      if (json.containsKey("peaks")) {
+        // https://metabolomics-usi.ucsd.edu/json/?usi1=mzspec%3AGNPS%3AGNPS-LIBRARY%3Aaccession%3ACCMSLIB00000579622
+        JsonArray peaks = json.getJsonArray("peaks");
+        DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(peaks);
+        final double precursorMz = json.getJsonNumber("precursor_mz").doubleValue();
+        final int charge = json.getJsonNumber("precursor_charge").intValue();
+        return new SpectralDBEntry(precursorMz, charge, spectrum);
+      } else {
+        // https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737
+        // library ID
+        final JsonObject info = json.getJsonObject("spectruminfo");
+        final String spectrumString = info.getJsonString("peaks_json").getString();
+        try (JsonReader specReader = Json.createReader(new StringReader(spectrumString))) {
+          final DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(
+              specReader.readArray());
+
+          // precursor mz
+          final JsonObject annotations = json.getJsonArray("annotations").getJsonObject(0);
+          final double precursorMz = Double.parseDouble(
+              annotations.getJsonString("Precursor_MZ").getString());
+          return new SpectralDBEntry(precursorMz, spectrum);
+        }
+      }
+    }
+  }
+
 
   /**
    * Submit feature-based molecular networking (FBMN) job to GNPS
    *
    * @param file  base file name to find mgf (file) and csv (file_quant.csv)
    * @param param submission parameters
-   * @return
    */
   public static String submitFbmnJob(File file, GnpsFbmnSubmitParameters param) throws IOException {
     // optional
@@ -309,10 +429,6 @@ public class GNPSUtils {
 
   /**
    * GNPS-GC-MS workflow: Direct submission
-   *
-   * @param fileName
-   * @param param
-   * @return
    */
   public static String submitGcJob(File fileName, GnpsGcSubmitParameters param) {
     // TODO Auto-generated method stub
