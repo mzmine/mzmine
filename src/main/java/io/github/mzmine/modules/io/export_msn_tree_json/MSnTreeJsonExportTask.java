@@ -164,6 +164,13 @@ public class MSnTreeJsonExportTask extends AbstractTask {
       case PRECURSOR_MZ -> mzFormat.format(spec.getPrecursorMz());
       case PRECURSOR_MS2 -> common.PRECURSOR_MS2;
       case PRECURSOR_LIST -> formattedPrecursorMzList;
+      case N_SIGNALS -> {
+        MassList massList = spec.getMassList();
+        if (massList == null) {
+          throw new MissingMassListException(spec);
+        }
+        yield "" + massList.getNumberOfDataPoints();
+      }
       case MAX_MSN -> "" + common.MAX_MSN;
       case N_PREC -> "" + common.N_PREC;
       case N_PREC_MS3 -> "" + common.N_PREC_MS3;
@@ -207,7 +214,7 @@ public class MSnTreeJsonExportTask extends AbstractTask {
 
 
   enum MSnFields {
-    FILENAME, SCAN_NUMBER, TREE_ID, MS_LEVEL, PRECURSOR_MZ, PRECURSOR_MS2, PRECURSOR_LIST,
+    FILENAME, SCAN_NUMBER, TREE_ID, MS_LEVEL, PRECURSOR_MZ, PRECURSOR_MS2, PRECURSOR_LIST, N_SIGNALS,
 
     // tree specific
     MAX_MSN, N_PREC, N_PREC_MS3, N_PREC_MS4, N_PREC_MS5, N_PREC_MS6, //
