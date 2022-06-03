@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -29,7 +29,8 @@ import java.util.Objects;
  */
 public class SimpleDataPoint implements DataPoint {
 
-  private double mz, intensity;
+  private final double mz;
+  private final double intensity;
 
   /**
    * Constructor which copies the data from another DataPoint

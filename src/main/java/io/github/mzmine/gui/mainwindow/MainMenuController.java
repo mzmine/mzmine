@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,6 +22,7 @@ import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -229,6 +230,22 @@ public class MainMenuController {
 
   public void showMSnTreeTab(ActionEvent actionEvent) {
     MSnTreeVisualizerModule.showNewTab();
+  }
+
+  public void setTaskViewerBottom(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.MAIN);
+  }
+
+  public void setTaskViewerTab(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.TAB);
+  }
+
+  public void setTaskViewerExternal(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.EXTERNAL);
+  }
+
+  public void hideTaskViewer(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.HIDDEN);
   }
 
   public void showSpectralMirrorDialog(ActionEvent event) {
