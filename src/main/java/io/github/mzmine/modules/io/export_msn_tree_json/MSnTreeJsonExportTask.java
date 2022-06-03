@@ -101,6 +101,11 @@ public class MSnTreeJsonExportTask extends AbstractTask {
         }
         done++;
       }
+    } catch (MissingMassListException e) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Missing mass list, run mass detection on all scans");
+      logger.log(Level.WARNING, e.getMessage(), e);
+      return;
     } catch (IOException e) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not open file " + outFile.getAbsolutePath() + " for writing.");
