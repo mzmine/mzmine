@@ -92,7 +92,7 @@ jobs:
           retention-days: 7  # store for 7 days
 
       # Sign MZmine.app with ČVUT developer ID
-      - name: Codesign executable
+      - name: Codesign executable for MacOS
         if: matrix.os == 'macos-latest'
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
