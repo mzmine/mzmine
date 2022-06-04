@@ -77,8 +77,6 @@ jobs:
           path: build/jpackage/MZmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
-
-
       # for macOS:
       # 1. upload the dmg installer
       # 2. remove the dmg isntaller from path
@@ -93,6 +91,7 @@ jobs:
           path: build/jpackage/*.dmg
           retention-days: 7  # store for 7 days
 
+      # Sign MZmine.app with ČVUT developer ID
       - name: Codesign executable
         if: matrix.os == 'macos-latest'
         env:
@@ -125,8 +124,6 @@ jobs:
           name: MZmine_macos_portable
           path: build/jpackage/MZmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
-
-
 
   # release dev version
   release_dev:
