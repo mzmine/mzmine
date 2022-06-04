@@ -93,6 +93,20 @@ jobs:
           path: build/jpackage/*.dmg
           retention-days: 7  # store for 7 days
 
+      - name: Codesign executable
+        if: matrix.os == 'macos-latest'
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          echo $MACOS_CERTIFICATE | base64 —decode > certificate.p12
+          security create-keychain -p abc123 build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p abc123 build.keychain
+          security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
+          /usr/bin/codesign --force -s 'Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)' build/jpackage/MZmine.app -v
+
       - name: Remove dmg File and Make .app executable
         if: matrix.os == 'macos-latest'
         run: |
@@ -111,6 +125,7 @@ jobs:
           name: MZmine_macos_portable
           path: build/jpackage/MZmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
+
 
 
   # release dev version
@@ -150,4 +165,3 @@ jobs:
         with:
           commit_message: Increment patch version
           branch: master
-
