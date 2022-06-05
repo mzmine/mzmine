@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -34,7 +33,7 @@ import java.util.stream.Stream;
  */
 public class MetadataTable {
 
-  private final Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data;
+  private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
 
   // use GoF "State" pattern where the state will interpret the table format (either long or wide)
   private TableExportUtility tableExportUtility = new LongTableExportUtility(this);
@@ -54,11 +53,11 @@ public class MetadataTable {
     this.data = new HashMap<>();
   }
 
-  public MetadataTable(Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data) {
+  public MetadataTable(Map<MetadataColumn<?>, Map<RawDataFile, Object>> data) {
     this.data = data;
   }
 
-  public Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> getData() {
+  public Map<MetadataColumn<?>, Map<RawDataFile, Object>> getData() {
     return data;
   }
 
