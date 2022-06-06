@@ -183,7 +183,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
     getChart().getLegend().setVisible(showLegend);
 
-    setMinHeight(100);
+    setMinHeight(50);
 
     // set processingAllowed
     setProcessingAllowed(processingAllowed);

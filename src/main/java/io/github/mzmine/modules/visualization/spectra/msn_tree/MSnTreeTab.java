@@ -151,7 +151,7 @@ public class MSnTreeTab extends SimpleTab {
         true);
     spectraPane.getColumnConstraints().add(col);
     spectraPane.setGridLinesVisible(true);
-    final RowConstraints rowConstraints = new RowConstraints(200, 350, -1, Priority.ALWAYS,
+    final RowConstraints rowConstraints = new RowConstraints(100, -1, -1, Priority.ALWAYS,
         VPos.CENTER, true);
     spectraPane.getRowConstraints().add(rowConstraints);
     // create first plot and initialize group for zooming etc
@@ -444,7 +444,7 @@ public class MSnTreeTab extends SimpleTab {
       // add
       spectraPlot.getXYPlot().getDomainAxis().setVisible(true);
       spectraPane.getRowConstraints()
-          .add(new RowConstraints(200, 250, -1, Priority.ALWAYS, VPos.CENTER, true));
+          .add(new RowConstraints(100, -1, -1, Priority.ALWAYS, VPos.CENTER, true));
       spectraPane.add(new BorderPane(spectraPlot), 0, levelFromRoot);
       previousPlot = spectraPlot;
       // next level
