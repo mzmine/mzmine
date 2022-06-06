@@ -92,10 +92,22 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
    * @return instance of the MetadataColumn
    */
   public static MetadataColumn forType(AvailableTypes type, String name) {
+    return forType(type, name, null);
+  }
+
+  /**
+   * Factory method for creating the MetadataColumn instances according to their type and name.
+   *
+   * @param type        type of the parameter
+   * @param name        name of the parameter
+   * @param description description of the parameter
+   * @return instance of the MetadataColumn
+   */
+  public static MetadataColumn forType(AvailableTypes type, String name, String description) {
     return switch (type) {
-      case TEXT -> new StringMetadataColumn(name);
-      case DOUBLE -> new DoubleMetadataColumn(name);
-      case DATETIME -> new DateMetadataColumn(name);
+      case TEXT -> new StringMetadataColumn(name, description);
+      case DOUBLE -> new DoubleMetadataColumn(name, description);
+      case DATETIME -> new DateMetadataColumn(name, description);
     };
   }
 

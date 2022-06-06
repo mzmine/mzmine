@@ -25,6 +25,7 @@ import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.TextParameter;
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 import io.github.mzmine.project.parameterssetup.table.columns.DoubleMetadataColumn;
 import io.github.mzmine.project.parameterssetup.table.columns.DateMetadataColumn;
@@ -90,11 +91,11 @@ public class ProjectParametersSetupDialogController {
 
     // display the columns
     TableColumn[] tableColumns = new TableColumn[columnsNumber + 1];
-    tableColumns[0] = createColumn(0, "Data File");
+    tableColumns[0] = createColumn(0, "Data File", "These are the names of the RawDataFiles");
     var columns = metadataTable.getColumns();
     int columnId = 1;
     for (var col : columns) {
-      tableColumns[columnId] = createColumn(columnId, col.getTitle());
+      tableColumns[columnId] = createColumn(columnId, col.getTitle(), col.getDescription());
       columnId++;
     }
     parameterTable.getColumns().addAll(tableColumns);
@@ -115,7 +116,7 @@ public class ProjectParametersSetupDialogController {
   }
 
   private TableColumn<ObservableList<StringProperty>, String> createColumn(final int columnIndex,
-      String columnTitle) {
+      String columnTitle, String columnDescription) {
     // validate the column title (assign the default value in case if it's empty)
     TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
     String title;
@@ -125,7 +126,12 @@ public class ProjectParametersSetupDialogController {
       title = columnTitle;
     }
 
-    column.setText(title);
+    // add the tooltips
+    Label descriptionLabel = new Label(title);
+    descriptionLabel.setTooltip(new Tooltip(columnDescription));
+    descriptionLabel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+    column.setGraphic(descriptionLabel);
+
     // define what the cell value would be
     column.setCellValueFactory(cellDataFeatures -> {
       ObservableList<StringProperty> values = cellDataFeatures.getValue();
@@ -141,7 +147,8 @@ public class ProjectParametersSetupDialogController {
       column.setCellFactory(TextFieldTableCell.forTableColumn());
       column.setOnEditCommit(event -> {
         String parameterValueNew = event.getNewValue();
-        String parameterName = event.getTableColumn().getText().trim();
+        // this complication in extracting the value is caused by using labels as the cells values
+        String parameterName = ((Label) event.getTableColumn().getGraphic()).getText();
         MetadataColumn<?> parameter = metadataTable.getColumnByName(parameterName);
 
         // define RawDataFile name
@@ -195,6 +202,8 @@ public class ProjectParametersSetupDialogController {
 
     StringParameter parameterTitle = projectMetadataParameters.getParameter(
         ProjectMetadataParameters.title);
+    TextParameter parameterDescription = projectMetadataParameters.getParameter(
+        ProjectMetadataParameters.description);
     ComboParameter<String> parameterType = projectMetadataParameters.getParameter(
         ProjectMetadataParameters.valueType);
 
@@ -212,13 +221,16 @@ public class ProjectParametersSetupDialogController {
       // add the new column to the parameters table
       switch (AvailableTypes.valueOf(parameterType.getValue())) {
         case TEXT -> {
-          metadataTable.addColumn(new StringMetadataColumn(parameterTitle.getValue()));
+          metadataTable.addColumn(
+              new StringMetadataColumn(parameterTitle.getValue(), parameterDescription.getValue()));
         }
         case DOUBLE -> {
-          metadataTable.addColumn(new DoubleMetadataColumn(parameterTitle.getValue()));
+          metadataTable.addColumn(
+              new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescription.getValue()));
         }
         case DATETIME -> {
-          metadataTable.addColumn(new DateMetadataColumn(parameterTitle.getValue()));
+          metadataTable.addColumn(
+              new DateMetadataColumn(parameterTitle.getValue(), parameterDescription.getValue()));
         }
       }
       // need to render
@@ -248,7 +260,7 @@ public class ProjectParametersSetupDialogController {
       alert.showAndWait();
       return;
     }
-    String parameterName = column.getText();
+    String parameterName = ((Label)column.getGraphic()).getText();
     if (parameterName.equals("Data File")) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
       alert.setTitle("Cannot remove Raw Data File Column");

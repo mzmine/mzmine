@@ -165,7 +165,8 @@ public class WideTableExportUtility implements TableExportUtility {
       // create a column instance according to the parameter type
       for (int i = 2; i < parametersTitles.size(); i++) {
         metadataColumns[i - 2] = MetadataColumn.forType(
-            AvailableTypes.valueOf(parametersTypes.get(i)), parametersTitles.get(i));
+            AvailableTypes.valueOf(parametersTypes.get(i)), parametersTitles.get(i),
+            parametersDescriptions.get(i));
       }
 
       // we will need the info about the rawDataFiles to decide whether to import the parameters or not
@@ -194,8 +195,9 @@ public class WideTableExportUtility implements TableExportUtility {
             if (metadataColumns[i - 2].checkInput(convertedParameterInput)) {
               metadataTable.setValue(metadataColumns[i - 2], files[rawDataFileInd],
                   convertedParameterInput);
-            } else {
-              logger.info("Parameter import failed: wrong parameter value format");
+            } else if (!splitLine[i].isEmpty()) {
+              // if neither parameter value is unset nor it has valid structure
+              logger.severe("Parameter import failed: wrong parameter value format");
               return false;
             }
           }
