@@ -91,7 +91,7 @@ public class MSnTreeExportTask extends AbstractTask {
       bw.append(getHeader()).append("\n");
 
       for (RawDataFile raw : raws) {
-        final List<PrecursorIonTree> trees = ScanUtils.getMSnFragmentTrees(raw);
+        final List<PrecursorIonTree> trees = ScanUtils.getMSnFragmentTrees(raw, mzTol);
         for (PrecursorIonTree tree : trees) {
           List<String> lines = treeToCSV(raw, tree, new ArrayList<>(), treeID);
           for (String line : lines) {

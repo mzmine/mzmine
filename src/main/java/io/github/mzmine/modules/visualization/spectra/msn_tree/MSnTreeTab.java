@@ -39,6 +39,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.Ar
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ArrowRenderer.ShapeType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.LabelOnlyRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -61,6 +64,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -69,6 +73,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
@@ -84,7 +89,7 @@ import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * @author Robin Schmid (https://github.com/robinschmid)
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class MSnTreeTab extends SimpleTab {
 
@@ -97,6 +102,7 @@ public class MSnTreeTab extends SimpleTab {
   private final List<SpectraPlot> spectraPlots = new ArrayList<>(1);
   private final Spinner<Integer> sizeSpinner;
   private final ChartGroup chartGroup;
+  private final ParameterSet treeParameters;
   // current shapes
   public Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, 3}, 3);
   public Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{3, 3, 0}, 3);
@@ -104,10 +110,14 @@ public class MSnTreeTab extends SimpleTab {
   public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 5, 5, 5);
   private int lastSelectedItem = -1;
   private PrecursorIonTreeNode currentRoot = null;
+  private RawDataFile raw;
 
 
   public MSnTreeTab() {
     super("MSn Tree", true, false);
+
+    treeParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(MSnTreeVisualizerModule.class);
 
     BorderPane main = new BorderPane();
 
@@ -183,6 +193,22 @@ public class MSnTreeTab extends SimpleTab {
 
     SplitPane splitPane = new SplitPane(left, center);
     splitPane.setDividerPositions(0.22);
+
+    Accordion topParam = new Accordion(new TitledPane("Tree generation parameters",
+        new ParameterSetupPane(true, true, treeParameters) {
+          @Override
+          protected void callOkButton() {
+            regenerateTrees(treeParameters);
+          }
+
+          @Override
+          protected void parametersChanged() {
+            regenerateTrees(treeParameters);
+          }
+        }));
+
+    // main pane
+    main.setTop(topParam);
     main.setCenter(splitPane);
 
     // add main to tab
@@ -200,6 +226,31 @@ public class MSnTreeTab extends SimpleTab {
         e.consume();
       }
     });
+  }
+
+  private synchronized void regenerateTrees(ParameterSet treeParameters) {
+    lastSelectedItem = -1;
+    treeView.getRoot().getChildren().clear();
+
+    // parameters
+    final MZTolerance mzTol = treeParameters.getValue(MSnTreeVisualizerParameters.mzTol);
+    final RawDataFile finalraw = this.raw;
+    // track current thread
+    final long current = currentThread.incrementAndGet();
+    Thread thread = new Thread(() -> {
+      // run on different thread
+      final List<PrecursorIonTree> trees = ScanUtils.getMSnFragmentTrees(finalraw, mzTol);
+      MZmineCore.runLater(() -> {
+        if (current == currentThread.get()) {
+
+          treeView.getRoot().getChildren()
+              .addAll(trees.stream().map(t -> createTreeItem(t.getRoot())).toList());
+
+          expandTreeView(treeView.getRoot(), false);
+        }
+      });
+    });
+    thread.start();
   }
 
   private void changeSymbolSize() {
@@ -277,26 +328,8 @@ public class MSnTreeTab extends SimpleTab {
    * @param raw update all views to this raw file
    */
   public synchronized void setRawDataFile(RawDataFile raw) {
-    lastSelectedItem = -1;
-    treeView.getRoot().getChildren().clear();
-    //    spectraPane.getChildren().clear();
-
-    // track current thread
-    final long current = currentThread.incrementAndGet();
-    Thread thread = new Thread(() -> {
-      // run on different thread
-      final List<PrecursorIonTree> trees = ScanUtils.getMSnFragmentTrees(raw);
-      MZmineCore.runLater(() -> {
-        if (current == currentThread.get()) {
-
-          treeView.getRoot().getChildren()
-              .addAll(trees.stream().map(t -> createTreeItem(t.getRoot())).toList());
-
-          expandTreeView(treeView.getRoot(), false);
-        }
-      });
-    });
-    thread.start();
+    this.raw = raw;
+    regenerateTrees(treeParameters);
   }
 
   private TreeItem<PrecursorIonTreeNode> createTreeItem(PrecursorIonTreeNode node) {
