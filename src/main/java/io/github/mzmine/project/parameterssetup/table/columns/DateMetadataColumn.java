@@ -45,11 +45,12 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
     return AvailableTypes.DATETIME;
   }
 
+  // todo: make it clear with the logic of covert; should it ever return null?
   @Override
   public LocalDateTime convert(String input, LocalDateTime defaultValue) {
     try {
       //ISO-8601 format
-      return (input == null || input.isBlank()) ? defaultValue : LocalDateTime.parse(input.trim());
+      return input == null ? defaultValue : LocalDateTime.parse(input.trim());
 //      return LocalDateTime.parse(input.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
     } catch (DateTimeParseException ignored) {
     }

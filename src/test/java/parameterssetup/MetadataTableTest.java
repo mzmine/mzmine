@@ -65,7 +65,7 @@ class MetadataTableTest {
 
   @BeforeEach
   void setUp() {
-    Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data = new HashMap<>();
+    Map<MetadataColumn<?>, Map<RawDataFile, Object>> data = new HashMap<>();
     ConcurrentMap<RawDataFile, Object> row1 = new ConcurrentHashMap<>();
     ConcurrentMap<RawDataFile, Object> row2 = new ConcurrentHashMap<>();
     ConcurrentMap<RawDataFile, Object> row3 = new ConcurrentHashMap<>();

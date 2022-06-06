@@ -32,6 +32,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -106,7 +107,8 @@ public class WideTableExportUtility implements TableExportUtility {
       for (var rawDataFile : files) {
         List<String> lineFieldsValues = new ArrayList<>(List.of("", rawDataFile.getName()));
         for (var column : data.entrySet()) {
-          // get the parameter value ( "" will be returned in case if it's unset )
+          // get the parameter value
+          // [IMPORTANT] "" will be returned in case if it's unset
           Object value = metadataTable.getValue(column.getKey(), rawDataFile);
           lineFieldsValues.add(value == null ? "" : value.toString());
         }
@@ -147,10 +149,10 @@ public class WideTableExportUtility implements TableExportUtility {
       // compare the headers
       if (!parametersTitles.get(0).equals(HeaderFields.TITLE.toString())
           || !parametersDescriptions.get(0).equals(HeaderFields.DESC.toString())
-          || !parametersTypes.get(0).equals(HeaderFields.TYPE.toString()) || !parametersTitles.get(
-          1).equals(dataFileCol.getTitle()) || !parametersDescriptions.get(1)
-          .equals(dataFileCol.getDescription()) || !parametersTypes.get(1)
-          .equals(dataFileCol.getType().toString())
+          || !parametersTypes.get(0).equals(HeaderFields.TYPE.toString())
+          || !parametersTitles.get(1).equals(dataFileCol.getTitle())
+          || !parametersDescriptions.get(1).equals(dataFileCol.getDescription())
+          || !parametersTypes.get(1).equals(dataFileCol.getType().toString())
           || parametersTitles.size() != parametersDescriptions.size()
           || parametersTitles.size() != parametersTypes.size()) {
         logger.severe("Import failed: wrong format of the header");
@@ -189,12 +191,11 @@ public class WideTableExportUtility implements TableExportUtility {
             // otherwise abort importing
             Object convertedParameterInput = metadataColumns[i - 2].convert(splitLine[i],
                 metadataColumns[i - 2].defaultValue());
-            System.out.println(metadataColumns[i - 2].defaultValue() + " " +  splitLine[i]);
             if (metadataColumns[i - 2].checkInput(convertedParameterInput)) {
               metadataTable.setValue(metadataColumns[i - 2], files[rawDataFileInd],
                   convertedParameterInput);
             } else {
-              logger.severe("Import failed: wrong parameter value format");
+              logger.info("Parameter import failed: wrong parameter value format");
               return false;
             }
           }

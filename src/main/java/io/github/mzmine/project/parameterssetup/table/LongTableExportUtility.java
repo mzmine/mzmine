@@ -35,6 +35,13 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * According to the current implementation parameter would be imported only in case if
+ * value for it is set at least for one of the RawDataFiles
+ *
+ * [IMPORTANT] "" would be treated as a valid value for the Text parameters, whilst for
+ * the other types of parameters this value would be invalid
+ */
 public class LongTableExportUtility implements TableExportUtility {
 
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
@@ -50,6 +57,16 @@ public class LongTableExportUtility implements TableExportUtility {
     this.metadataTable = metadataTable;
   }
 
+  /**
+   * ====================================================================
+   * NAME  - parameter name
+   * DESC  - description of the parameter
+   * FILE  - name of the file to which the parameter belong to
+   * VALUE - value of the parameter
+   *
+   * @param file the file in which exported metadata will be stored
+   * @return true if the export was successful, false otherwise
+   */
   @Override
   public boolean exportTo(File file) {
     try (FileWriter fw = new FileWriter(file,
@@ -153,7 +170,7 @@ public class LongTableExportUtility implements TableExportUtility {
 
       String line;
       while ((line = bufferedReader.readLine()) != null) {
-        String[] splitLine = line.split("\t");
+        String[] splitLine = line.split("\t", -1);
 
         if (splitLine.length != HeaderFieldsArr.length) {
           logger.severe("Import failed: wrong number of the fields in line");

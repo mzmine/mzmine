@@ -157,34 +157,16 @@ public class ProjectParametersSetupDialogController {
 
         // pattern match the metadata column type
         // derive the example value from the parameter's type
-        String parameterMatchedType = "undef";
-        String parameterMatchedExample = "undef";
-        Object parameterMatchedDefaultValue = null;
         MetadataColumn parameterMatched = switch (parameter) {
-          case StringMetadataColumn stringMetadataColumn -> {
-            parameterMatchedType = "String";
-            parameterMatchedExample = "\"String\"";
-            parameterMatchedDefaultValue = "defaultString";
-            yield stringMetadataColumn;
-          }
-          case DoubleMetadataColumn doubleMetadataColumn -> {
-            parameterMatchedType = "Double";
-            parameterMatchedExample = "\"1.46\"";
-            parameterMatchedDefaultValue = 1.621;
-            yield doubleMetadataColumn;
-          }
-          case DateMetadataColumn dateMetadataColumn -> {
-            parameterMatchedType = "Datetime";
-            parameterMatchedExample = "\"2022-12-24T10:11:36\"";
-            parameterMatchedDefaultValue = LocalDateTime.now();
-            yield dateMetadataColumn;
-          }
+          case StringMetadataColumn stringMetadataColumn -> stringMetadataColumn;
+          case DoubleMetadataColumn doubleMetadataColumn -> doubleMetadataColumn;
+          case DateMetadataColumn dateMetadataColumn -> dateMetadataColumn;
         };
 
         // if the parameter value is in the right format then save it to the metadata table,
         // otherwise show alert dialog
         Object convertedParameterInput = parameterMatched.convert(parameterValueNew,
-            parameterMatchedDefaultValue);
+            parameterMatched.defaultValue());
         if (parameter.checkInput(convertedParameterInput)) {
           metadataTable.setValue(parameterMatched, rawDataFile, convertedParameterInput);
         } else {
@@ -192,8 +174,8 @@ public class ProjectParametersSetupDialogController {
           alert.setTitle("Wrong parameter value format");
           alert.setHeaderText(null);
           alert.setContentText(
-              "Please respect the " + parameterMatchedType + " parameter value format, e.g. "
-                  + parameterMatchedExample);
+              "Please respect the " + parameterMatched.getType() + " parameter value format, e.g. "
+                  + parameterMatched.defaultValue());
           alert.showAndWait();
         }
         // need to render
