@@ -32,9 +32,10 @@
         </TableView>
         <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">
         <buttons>
-          <Button onAction="#addPara" mnemonicParsing="false" text="Add new Parameter" ButtonBar.buttonData="LEFT" />
-            <Button onAction="#importPara" mnemonicParsing="false" text="Import parameters and values..." ButtonBar.buttonData="LEFT" />
-            <Button onAction="#removePara" mnemonicParsing="false" text="Remove selected parameter" ButtonBar.buttonData="LEFT" />
+            <Button onAction="#addParameter" mnemonicParsing="false" text="Add new Parameter" ButtonBar.buttonData="LEFT" />
+            <Button onAction="#importParameters" mnemonicParsing="false" text="Import parameters" ButtonBar.buttonData="LEFT" />
+            <Button onAction="#exportParameters" mnemonicParsing="false" text="Export parameters" ButtonBar.buttonData="LEFT" />
+            <Button onAction="#removeParameters" mnemonicParsing="false" text="Remove selected parameter" ButtonBar.buttonData="LEFT" />
         </buttons>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

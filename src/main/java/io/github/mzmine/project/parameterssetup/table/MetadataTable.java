@@ -36,7 +36,7 @@ public class MetadataTable {
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
 
   // use GoF "State" pattern where the state will interpret the table format (either long or wide)
-  private TableExportUtility tableExportUtility = new LongTableExportUtility(this);
+  private TableExportUtility tableExportUtility = new WideTableExportUtility(this);
 
   // define the header fields names of the file with imported metadata
   private enum HeaderFields {
@@ -143,6 +143,7 @@ public class MetadataTable {
    * @param <T>         type of the project parameter
    * @return parameter value
    */
+  @SuppressWarnings("unchecked")
   public <T> T getValue(MetadataColumn<T> column, RawDataFile rawDataFile) {
     var row = data.get(column);
     if (row != null) {

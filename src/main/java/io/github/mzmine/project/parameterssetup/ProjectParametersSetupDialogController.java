@@ -65,8 +65,6 @@ public class ProjectParametersSetupDialogController {
     parameterTable.setEditable(true);
     parameterTable.getSelectionModel().setCellSelectionEnabled(true);
     fileList = currentProject.getDataFiles();
-    metadataTable.importMetadata(new File("metadata_exp.tsv"), false);
-
     updateParametersToTable();
   }
 
@@ -196,7 +194,7 @@ public class ProjectParametersSetupDialogController {
   }
 
   @FXML
-  public void addPara(ActionEvent actionEvent) {
+  public void addParameter(ActionEvent actionEvent) {
     ProjectMetadataParameters projectMetadataParameters = new ProjectMetadataParameters();
     ExitCode exitCode = projectMetadataParameters.showSetupDialog(true);
 
@@ -242,7 +240,7 @@ public class ProjectParametersSetupDialogController {
   }
 
   @FXML
-  public void importPara(ActionEvent actionEvent) {
+  public void importParameters(ActionEvent actionEvent) {
     ProjectParametersImporter importer = new ProjectParametersImporter(currentStage);
     if (importer.importParameters()) {
       logger.info("Successfully imported parameters from file");
@@ -253,7 +251,18 @@ public class ProjectParametersSetupDialogController {
   }
 
   @FXML
-  public void removePara(ActionEvent actionEvent) {
+  public void exportParameters(ActionEvent actionEvent) {
+    ProjectParametersExporter exporter = new ProjectParametersExporter(currentStage);
+    if (exporter.exportParameters()) {
+      logger.info("Successfully exported parameters");
+      updateParametersToTable();
+    } else {
+      logger.info("Exporting parameters to file failed");
+    }
+  }
+
+  @FXML
+  public void removeParameters(ActionEvent actionEvent) {
     TableColumn column = parameterTable.getFocusModel().getFocusedCell().getTableColumn();
     if (column == null) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -288,9 +297,6 @@ public class ProjectParametersSetupDialogController {
 
   @FXML
   public void onClickOK(ActionEvent actionEvent) {
-    // testing export
-    metadataTable.exportMetadata(new File("metadata_exp.tsv"));
-
     currentStage.close();
   }
 
