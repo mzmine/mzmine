@@ -67,12 +67,12 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
   }
 
   public int countSpectra(int msLevel) {
-    return stream().mapToInt(PrecursorIonTreeNode::countSpectra).filter(level -> msLevel == level)
-        .sum();
+    return stream().filter(ion -> msLevel == ion.getMsLevel())
+        .mapToInt(PrecursorIonTreeNode::countSpectra).sum();
   }
 
   public int countPrecursor(int msLevel) {
-    return stream().mapToInt(PrecursorIonTreeNode::countPrecursors)
-        .filter(level -> msLevel == level).sum();
+    return stream().filter(ion -> msLevel - 1 == ion.getMsLevel())
+        .mapToInt(PrecursorIonTreeNode::countPrecursors).sum();
   }
 }

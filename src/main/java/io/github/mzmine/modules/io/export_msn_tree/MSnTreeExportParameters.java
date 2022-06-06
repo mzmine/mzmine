@@ -28,7 +28,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package io.github.mzmine.modules.io.export_msn_tree_json;
+package io.github.mzmine.modules.io.export_msn_tree;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -42,7 +42,7 @@ import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
-public class MSnTreeJsonExportParameters extends SimpleParameterSet {
+public class MSnTreeExportParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter MZ_TOL = new MZToleranceParameter("m/z tolerance", "",
       0.001, 5);
@@ -61,7 +61,7 @@ public class MSnTreeJsonExportParameters extends SimpleParameterSet {
           + "If the file already exists, it will be overwritten.", extensions,
       FileSelectionType.SAVE);
 
-  public MSnTreeJsonExportParameters() {
+  public MSnTreeExportParameters() {
     super(new Parameter[]{RAW_FILES, FILENAME, SEPARATOR, MZ_TOL});
   }
 

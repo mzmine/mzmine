@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_msn_tree_json;
+package io.github.mzmine.modules.io.export_msn_tree;
 
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PrecursorIonTree;
@@ -45,9 +45,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class MSnTreeJsonExportTask extends AbstractTask {
+public class MSnTreeExportTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(MSnTreeJsonExportTask.class.getName());
+  private static final Logger logger = Logger.getLogger(MSnTreeExportTask.class.getName());
 
   private final File outFile;
   private final RawDataFile[] raws;
@@ -58,13 +58,13 @@ public class MSnTreeJsonExportTask extends AbstractTask {
   private int total = 0;
   private int done;
 
-  public MSnTreeJsonExportTask(ParameterSet parameters, Instant moduleCallDate) {
+  public MSnTreeExportTask(ParameterSet parameters, Instant moduleCallDate) {
     super(null, moduleCallDate);
-    outFile = parameters.getValue(MSnTreeJsonExportParameters.FILENAME);
-    raws = parameters.getValue(MSnTreeJsonExportParameters.RAW_FILES).getMatchingRawDataFiles();
-    mzTol = parameters.getValue(MSnTreeJsonExportParameters.MZ_TOL);
-    sep = parameters.getValue(MSnTreeJsonExportParameters.SEPARATOR);
-    description = String.format("Exporting %d raw files as MSn trees to jsonlines file %s",
+    outFile = parameters.getValue(MSnTreeExportParameters.FILENAME);
+    raws = parameters.getValue(MSnTreeExportParameters.RAW_FILES).getMatchingRawDataFiles();
+    mzTol = parameters.getValue(MSnTreeExportParameters.MZ_TOL);
+    sep = parameters.getValue(MSnTreeExportParameters.SEPARATOR);
+    description = String.format("Exporting %d raw files as MSn trees to tabular file %s",
         raws.length, outFile.getAbsolutePath());
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -207,9 +207,13 @@ public class MSnTreeJsonExportTask extends AbstractTask {
   private ExtractedValues extractCommonValues(PrecursorIonTree tree) {
     PrecursorIonTreeNode root = tree.getRoot();
     return new ExtractedValues(mzFormat.format(root.getPrecursorMZ()), tree.getMaxMSLevel(),
-        tree.countPrecursor(), tree.countSpectra(), tree.countPrecursor(3), tree.countPrecursor(4),
-        tree.countPrecursor(5), tree.countPrecursor(6), tree.countSpectra(2), tree.countSpectra(3),
-        tree.countSpectra(4), tree.countSpectra(5), tree.countSpectra(6));
+        tree.countPrecursor(), tree.countSpectra(),
+        // count precursor ions
+        tree.countPrecursor(3), tree.countPrecursor(4), tree.countPrecursor(5),
+        tree.countPrecursor(6),
+        // count spectra
+        tree.countSpectra(2), tree.countSpectra(3), tree.countSpectra(4), tree.countSpectra(5),
+        tree.countSpectra(6));
   }
 
 

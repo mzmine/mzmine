@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_msn_tree_json;
+package io.github.mzmine.modules.io.export_msn_tree;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -29,9 +29,9 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MSnTreeJsonExportModule implements MZmineProcessingModule {
+public class MSnTreeExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export MSn trees to different formats";
+  private static final String MODULE_NAME = "Export MSn trees";
   private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into a CSV (comma-separated values) file.";
 
   @Override
@@ -41,7 +41,7 @@ public class MSnTreeJsonExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return MSnTreeJsonExportParameters.class;
+    return MSnTreeExportParameters.class;
   }
 
   @Override
@@ -53,7 +53,7 @@ public class MSnTreeJsonExportModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    MSnTreeJsonExportTask task = new MSnTreeJsonExportTask(parameters, moduleCallDate);
+    MSnTreeExportTask task = new MSnTreeExportTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }
