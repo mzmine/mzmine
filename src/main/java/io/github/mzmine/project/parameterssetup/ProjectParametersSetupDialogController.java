@@ -218,19 +218,22 @@ public class ProjectParametersSetupDialogController {
         return;
       }
 
+      // it's important to replace tabs due to the tsv file format
+      String parameterDescriptionVal = parameterDescription.getValue().replace("\t", " ");
+
       // add the new column to the parameters table
       switch (AvailableTypes.valueOf(parameterType.getValue())) {
         case TEXT -> {
           metadataTable.addColumn(
-              new StringMetadataColumn(parameterTitle.getValue(), parameterDescription.getValue()));
+              new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
         }
         case DOUBLE -> {
           metadataTable.addColumn(
-              new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescription.getValue()));
+              new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
         }
         case DATETIME -> {
           metadataTable.addColumn(
-              new DateMetadataColumn(parameterTitle.getValue(), parameterDescription.getValue()));
+              new DateMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
         }
       }
       // need to render
@@ -260,7 +263,7 @@ public class ProjectParametersSetupDialogController {
       alert.showAndWait();
       return;
     }
-    String parameterName = ((Label)column.getGraphic()).getText();
+    String parameterName = ((Label) column.getGraphic()).getText();
     if (parameterName.equals("Data File")) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
       alert.setTitle("Cannot remove Raw Data File Column");
