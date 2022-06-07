@@ -53,13 +53,12 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
       return input == null ? defaultValue : LocalDateTime.parse(input.trim());
 //      return LocalDateTime.parse(input.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
     } catch (DateTimeParseException ignored) {
+      return defaultValue;
     }
-
-    return null;
   }
 
   @Override
   public LocalDateTime defaultValue() {
-    return LocalDateTime.parse("1111-11-11T11:11:11");
+    return null;
   }
 }

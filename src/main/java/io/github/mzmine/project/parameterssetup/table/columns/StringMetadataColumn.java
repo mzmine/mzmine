@@ -50,6 +50,6 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
 
   @Override
   public String defaultValue() {
-    return "Default";
+    return null;
   }
 }

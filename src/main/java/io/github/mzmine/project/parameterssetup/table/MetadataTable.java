@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /**
  * Holds the metadata of a project and represents it as a table (parameters are columns).
@@ -162,12 +163,17 @@ public class MetadataTable {
    * @param value  value to be set
    * @param <T>    type of the parameter
    */
-  public <T> void setValue(MetadataColumn<T> column, RawDataFile file, T value) {
+  public <T> void setValue(MetadataColumn<T> column, RawDataFile file, @Nullable T value) {
     if (!data.containsKey(column)) {
       addColumn(column);
     }
 
-    data.get(column).put(file, value);
+    // this check is necessary because a ConcurrentMap can't contain null values
+    if (value == null) {
+      data.get(column).remove(file);
+    } else {
+      data.get(column).put(file, value);
+    }
   }
 
   /**

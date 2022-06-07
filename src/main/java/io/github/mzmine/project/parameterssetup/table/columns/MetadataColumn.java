@@ -20,6 +20,7 @@ package io.github.mzmine.project.parameterssetup.table.columns;
 
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -117,7 +118,8 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
    * @param input input string
    * @return converted value of the specific type
    */
-  public abstract T convert(String input, T defaultValue);
+  @Nullable
+  public abstract T convert(@Nullable String input, @Nullable T defaultValue);
 
   /**
    * Returns the default value for the columns of such type.

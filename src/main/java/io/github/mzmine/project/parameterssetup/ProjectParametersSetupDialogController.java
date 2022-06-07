@@ -172,7 +172,9 @@ public class ProjectParametersSetupDialogController {
         // otherwise show alert dialog
         Object convertedParameterInput = parameterMatched.convert(parameterValueNew,
             parameterMatched.defaultValue());
-        if (parameter.checkInput(convertedParameterInput)) {
+        // the first check allows us to unset an already set parameter's value
+        if ((convertedParameterInput == null && parameterValueNew.isBlank())
+            || parameter.checkInput(convertedParameterInput)) {
           metadataTable.setValue(parameterMatched, rawDataFile, convertedParameterInput);
         } else {
           Alert alert = new Alert(Alert.AlertType.INFORMATION);

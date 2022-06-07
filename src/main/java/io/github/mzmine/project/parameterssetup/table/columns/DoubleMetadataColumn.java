@@ -48,13 +48,12 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
     try {
       return input == null ? defaultValue : Double.parseDouble(input.trim());
     } catch (NumberFormatException ignored) {
+      return defaultValue;
     }
-
-    return null;
   }
 
   @Override
   public Double defaultValue() {
-    return 0.0;
+    return null;
   }
 }
