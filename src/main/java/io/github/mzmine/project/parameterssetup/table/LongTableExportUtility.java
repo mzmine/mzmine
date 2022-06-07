@@ -185,7 +185,7 @@ public class LongTableExportUtility implements TableExportUtility {
             != -1) {
           // create a column instance according to the parameter type
           MetadataColumn parameterMatched = MetadataColumn.forType(
-              AvailableTypes.valueOf(splitLine[typePos]), splitLine[namePos]);
+              AvailableTypes.valueOf(splitLine[typePos]), splitLine[namePos], splitLine[descPos]);
           logger.info("RawDataFile corresponding to this metadata parameter is found");
 
           // if the parameter value is in the right format then save it to the metadata table,
