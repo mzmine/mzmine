@@ -94,11 +94,11 @@ public class WideTableExportUtility implements TableExportUtility {
       }
 
       // write the header down
-      bufferedWriter.write(String.join("\t", parametersTitles));
-      bufferedWriter.newLine();
       bufferedWriter.write(String.join("\t", parametersDescriptions));
       bufferedWriter.newLine();
       bufferedWriter.write(String.join("\t", parametersTypes));
+      bufferedWriter.newLine();
+      bufferedWriter.write(String.join("\t", parametersTitles));
       bufferedWriter.newLine();
       logger.info("Header was successfully written down");
 
@@ -136,11 +136,11 @@ public class WideTableExportUtility implements TableExportUtility {
     try (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
         fr)) {
       // read the header
-      List<String> parametersTitles = new ArrayList<>(
-          List.of(bufferedReader.readLine().split("\t", -1)));
       List<String> parametersDescriptions = new ArrayList<>(
           List.of(bufferedReader.readLine().split("\t", -1)));
       List<String> parametersTypes = new ArrayList<>(
+          List.of(bufferedReader.readLine().split("\t", -1)));
+      List<String> parametersTitles = new ArrayList<>(
           List.of(bufferedReader.readLine().split("\t", -1)));
 
       // represents the names of the RawDataFiles
