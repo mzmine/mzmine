@@ -87,10 +87,10 @@ public class WideTableExportUtility implements TableExportUtility {
           List.of(HeaderFields.DESC.toString(), dataFileCol.getDescription()));
       List<String> parametersTypes = new ArrayList<>(
           List.of(HeaderFields.TYPE.toString(), dataFileCol.getType().toString()));
-      for (var column : data.entrySet()) {
-        parametersTitles.add(column.getKey().getTitle());
-        parametersDescriptions.add(column.getKey().getDescription());
-        parametersTypes.add(column.getKey().getType().toString());
+      for (var column : data.keySet()) {
+        parametersTitles.add(column.getTitle());
+        parametersDescriptions.add(column.getDescription());
+        parametersTypes.add(column.getType().toString());
       }
 
       // write the header down

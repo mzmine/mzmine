@@ -204,7 +204,7 @@ public class ProjectParametersSetupDialogController {
         ProjectMetadataParameters.title);
     TextParameter parameterDescription = projectMetadataParameters.getParameter(
         ProjectMetadataParameters.description);
-    ComboParameter<String> parameterType = projectMetadataParameters.getParameter(
+    ComboParameter<AvailableTypes> parameterType = projectMetadataParameters.getParameter(
         ProjectMetadataParameters.valueType);
 
     if (exitCode == ExitCode.OK) {
@@ -222,7 +222,7 @@ public class ProjectParametersSetupDialogController {
       String parameterDescriptionVal = parameterDescription.getValue().replace("\t", " ");
 
       // add the new column to the parameters table
-      switch (AvailableTypes.valueOf(parameterType.getValue())) {
+      switch (parameterType.getValue()) {
         case TEXT -> {
           metadataTable.addColumn(
               new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));

@@ -44,10 +44,6 @@ public class MetadataTable {
     NAME, DESC, TYPE, FILE, VALUE
   }
 
-  // we will need HeaderFields enum converted into array
-  private final String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
-      .toArray(String[]::new);
-
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
 
   public MetadataTable() {
