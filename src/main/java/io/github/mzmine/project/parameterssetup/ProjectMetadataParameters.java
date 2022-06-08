@@ -31,7 +31,7 @@ public class ProjectMetadataParameters extends SimpleParameterSet {
       "Title of the new parameter", "", true, true);
 
   public static final TextParameter description = new TextParameter("Description",
-      "Description of the new parameter", "");
+      "Description of the new parameter", "", false);
 
   public enum AvailableTypes {
     TEXT, DOUBLE, DATETIME

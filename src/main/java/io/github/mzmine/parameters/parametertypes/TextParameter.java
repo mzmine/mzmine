@@ -27,14 +27,21 @@ public class TextParameter implements UserParameter<String, TextArea> {
 
   private String name, description, value;
 
+  private boolean valueRequired;
+
   public TextParameter(String name, String description) {
     this(name, description, null);
   }
 
   public TextParameter(String name, String description, String defaultValue) {
+    this(name, description, defaultValue, true);
+  }
+
+  public TextParameter(String name, String description, String defaultValue, boolean valueRequired) {
     this.name = name;
     this.description = description;
     this.value = defaultValue;
+    this.valueRequired = valueRequired;
   }
 
   /**
@@ -104,11 +111,10 @@ public class TextParameter implements UserParameter<String, TextArea> {
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if ((value == null) || (value.trim().length() == 0)) {
+    if (valueRequired && ((value == null) || (value.trim().length() == 0))) {
       errorMessages.add(name + " is not set properly");
       return false;
     }
     return true;
   }
-
 }
