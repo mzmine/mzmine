@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -51,13 +51,11 @@ import org.jfree.chart.ui.RectangleEdge;
  */
 public class MirrorScanWindow extends JFrame {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  public static final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
+      DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
   // for SpectralDBIdentity
-
-  public static final DataPointsTag[] tags =
-      new DataPointsTag[] {DataPointsTag.ORIGINAL, DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
-
-  private JPanel contentPane;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final JPanel contentPane;
   private EChartPanel mirrorSpecrumPlot;
 
   /**
@@ -100,8 +98,8 @@ public class MirrorScanWindow extends JFrame {
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
     contentPane.removeAll();
-    mirrorSpecrumPlot =
-        MirrorChartFactory.createMirrorChartPanel(scan, mirror, labelA, labelB, false, true);
+    mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartPanel(scan, mirror, labelA, labelB,
+        false, true);
     contentPane.add(mirrorSpecrumPlot, BorderLayout.CENTER);
     contentPane.revalidate();
     contentPane.repaint();
@@ -114,8 +112,9 @@ public class MirrorScanWindow extends JFrame {
    */
   public void setScans(SpectralDBAnnotation db) {
     Scan scan = db.getQueryScan();
-    if (scan == null)
+    if (scan == null) {
       return;
+    }
 
     // get highest data intensity to calc relative intensity
     double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
@@ -123,14 +122,17 @@ public class MirrorScanWindow extends JFrame {
     double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
         .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
 
-    if (mostIntenseDB == 0d)
+    if (mostIntenseDB == 0d) {
       logger.warning(
           "This data set has no original data points in the library spectrum (development error)");
-    if (mostIntenseQuery == 0d)
+    }
+    if (mostIntenseQuery == 0d) {
       logger.warning(
           "This data set has no original data points in the query spectrum (development error)");
-    if (mostIntenseDB == 0d || mostIntenseQuery == 0d)
+    }
+    if (mostIntenseDB == 0d || mostIntenseQuery == 0d) {
       return;
+    }
 
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
@@ -141,8 +143,8 @@ public class MirrorScanWindow extends JFrame {
     };
 
     // scan a
-    double precursorMZA = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
-        info.getIsolationMz() : 0d;
+    double precursorMZA =
+        scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
     double rtA = scan.getRetentionTime();
 
     Double precursorMZB = db.getEntry().getPrecursorMZ();
@@ -151,8 +153,9 @@ public class MirrorScanWindow extends JFrame {
     contentPane.removeAll();
     // create without data
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartPanel(
-        "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getCompoundName(),
-        precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
+        "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null,
+        "Library: " + db.getCompoundName(), precursorMZB == null ? 0 : precursorMZB, rtB, null,
+        false, true);
     mirrorSpecrumPlot.setMaximumDrawWidth(4200);
     mirrorSpecrumPlot.setMaximumDrawHeight(2500);
     // add data
@@ -166,8 +169,8 @@ public class MirrorScanWindow extends JFrame {
 
     // add datasets and renderer
     // set up renderer
-    CombinedDomainXYPlot domainPlot =
-        (CombinedDomainXYPlot) mirrorSpecrumPlot.getChart().getXYPlot();
+    CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorSpecrumPlot.getChart()
+        .getXYPlot();
     NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
     axis.setLabel("m/z");
     XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
@@ -177,19 +180,21 @@ public class MirrorScanWindow extends JFrame {
     // masslist
     for (int i = 0; i < tags.length; i++) {
       DataPointsTag tag = tags[i];
-      PseudoSpectrumDataSet qdata =
-          new PseudoSpectrumDataSet(true, "Query " + tag.toRemainderString());
+      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true,
+          "Query " + tag.toRemainderString());
       for (DataPoint dp : query[i]) {
         // not contained in other
-        if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0)
+        if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0) {
           qdata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseQuery * 100d, null);
+        }
       }
 
-      PseudoSpectrumDataSet ldata =
-          new PseudoSpectrumDataSet(true, "Library " + tag.toRemainderString());
+      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true,
+          "Library " + tag.toRemainderString());
       for (DataPoint dp : library[i]) {
-        if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0)
+        if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0) {
           ldata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseDB * 100d, null);
+        }
       }
 
       Color color = colors[i];
@@ -228,8 +233,9 @@ public class MirrorScanWindow extends JFrame {
     for (int i = current + 1; i < query.length; i++) {
       for (DataPoint b : query[i]) {
         if (Double.compare(dp.getMZ(), b.getMZ()) == 0
-            && Double.compare(dp.getIntensity(), b.getIntensity()) == 0)
+            && Double.compare(dp.getIntensity(), b.getIntensity()) == 0) {
           return false;
+        }
       }
     }
     return true;

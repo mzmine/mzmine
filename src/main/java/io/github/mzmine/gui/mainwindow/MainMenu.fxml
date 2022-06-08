@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2020 The MZmine Development Team
+  ~ Copyright 2006-2022 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -10,12 +10,11 @@
   ~ License, or (at your option) any later version.
   ~
   ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-  ~ Public License for more details.
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
-  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
-  ~ USA
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
   ~
   -->
 
@@ -203,8 +202,8 @@
       <MenuItem onAction="#runModule"
         text="ADAP chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
-      <!--<MenuItem text="GridMass" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>-->
+      <MenuItem text="GridMass" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
       <MenuItem onAction="#runModule"
         text="Targeted feature detection"
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
@@ -544,12 +543,15 @@
     <MenuItem text="Isotope pattern preview"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
+    <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
     <MenuItem text="Kovats index extraction"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
+    <MenuItem onAction="#runModule" text="Analyse libraries to csv"
+      userData="io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule"/>
   </Menu>
 
   <Menu text="Processing wizard">
@@ -563,7 +565,15 @@
   </Menu>
 
   <!-- WINDOWS -->
-  <WindowsMenu/>
+  <WindowsMenu>
+    <Menu text="Task manager">
+      <MenuItem text="Hide" onAction="#hideTaskViewer"/>
+      <MenuItem text="Main window" onAction="#setTaskViewerBottom"/>
+      <MenuItem text="External window" onAction="#setTaskViewerExternal"/>
+      <MenuItem text="Tab" onAction="#setTaskViewerTab"/>
+    </Menu>
+    <SeparatorMenuItem/>
+  </WindowsMenu>
 
   <!-- HELP -->
   <Menu text="Help">

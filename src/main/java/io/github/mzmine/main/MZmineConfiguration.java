@@ -54,6 +54,12 @@ public interface MZmineConfiguration {
   @NotNull
   public List<File> getLastProjects();
 
+
+  /**
+   * Number of user defined threads or system if selected
+   */
+  int getNumOfThreads();
+
   /**
    * List of last loaded projects
    *

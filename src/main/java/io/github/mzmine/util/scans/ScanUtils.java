@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -175,7 +175,7 @@ public class ScanUtils {
   @Deprecated
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
     int size = spectrum.getNumberOfDataPoints();
-    DataPoint result[] = new DataPoint[size];
+    DataPoint[] result = new DataPoint[size];
     double[] mz = spectrum.getMzValues(new double[size]);
     double[] intensity = spectrum.getIntensityValues(new double[size]);
     for (int i = 0; i < size; i++) {
@@ -303,7 +303,7 @@ public class ScanUtils {
   /**
    * Selects data points within given m/z range
    */
-  public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[], Range<Double> mzRange) {
+  public static DataPoint[] selectDataPointsByMass(DataPoint[] dataPoints, Range<Double> mzRange) {
     ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
     for (DataPoint dp : dataPoints) {
       if (mzRange.contains(dp.getMZ())) {
@@ -316,7 +316,7 @@ public class ScanUtils {
   /**
    * Selects data points with intensity >= given intensity
    */
-  public static DataPoint[] selectDataPointsOverIntensity(DataPoint dataPoints[],
+  public static DataPoint[] selectDataPointsOverIntensity(DataPoint[] dataPoints,
       double minIntensity) {
     ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
     for (DataPoint dp : dataPoints) {
@@ -470,7 +470,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -576,7 +576,7 @@ public class ScanUtils {
    *
    * @return index of best match, or -1 if no datapoint was found
    */
-  public static int findClosestDatapoint(double key, double mzValues[], double mzTolerance) {
+  public static int findClosestDatapoint(double key, double[] mzValues, double mzTolerance) {
 
     int index = Arrays.binarySearch(mzValues, key);
 
@@ -758,7 +758,7 @@ public class ScanUtils {
   /**
    * Find the highest data point in array
    */
-  public static @NotNull DataPoint findTopDataPoint(@NotNull DataPoint dataPoints[]) {
+  public static @NotNull DataPoint findTopDataPoint(@NotNull DataPoint[] dataPoints) {
 
     DataPoint topDP = null;
 
@@ -774,7 +774,7 @@ public class ScanUtils {
   /**
    * Find the highest data point index in array
    */
-  public static int findTopDataPoint(@NotNull double intensityValues[]) {
+  public static int findTopDataPoint(@NotNull double[] intensityValues) {
 
     int basePeak = 0;
     for (int i = 0; i < intensityValues.length; i++) {
@@ -790,7 +790,7 @@ public class ScanUtils {
    * Find the m/z range of the data points in the array. We assume there is at least one data point,
    * and the data points are sorted by m/z.
    */
-  public static @NotNull Range<Double> findMzRange(@NotNull DataPoint dataPoints[]) {
+  public static @NotNull Range<Double> findMzRange(@NotNull DataPoint[] dataPoints) {
 
     assert dataPoints.length > 0;
 
@@ -813,7 +813,7 @@ public class ScanUtils {
    * Find the m/z range of the data points in the array. We assume there is at least one data point,
    * and the data points are sorted by m/z.
    */
-  public static @NotNull Range<Double> findMzRange(@NotNull double mzValues[]) {
+  public static @NotNull Range<Double> findMzRange(@NotNull double[] mzValues) {
 
     assert mzValues.length > 0;
 
@@ -835,7 +835,7 @@ public class ScanUtils {
   /**
    * Find the RT range of given scans. We assume there is at least one scan.
    */
-  public static @NotNull Range<Float> findRtRange(@NotNull Scan scans[]) {
+  public static @NotNull Range<Float> findRtRange(@NotNull Scan[] scans) {
 
     assert scans.length > 0;
 
@@ -854,7 +854,7 @@ public class ScanUtils {
     return Range.closed(lowRt, highRt);
   }
 
-  public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {
+  public static byte[] encodeDataPointsToBytes(DataPoint[] dataPoints) {
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     DataOutputStream featureStream = new DataOutputStream(byteStream);
     for (int i = 0; i < dataPoints.length; i++) {
@@ -866,17 +866,17 @@ public class ScanUtils {
         e.printStackTrace();
       }
     }
-    byte featureBytes[] = byteStream.toByteArray();
+    byte[] featureBytes = byteStream.toByteArray();
     return featureBytes;
   }
 
-  public static char[] encodeDataPointsBase64(DataPoint dataPoints[]) {
-    byte featureBytes[] = encodeDataPointsToBytes(dataPoints);
-    char encodedData[] = Base64.getEncoder().encodeToString(featureBytes).toCharArray();
+  public static char[] encodeDataPointsBase64(DataPoint[] dataPoints) {
+    byte[] featureBytes = encodeDataPointsToBytes(dataPoints);
+    char[] encodedData = Base64.getEncoder().encodeToString(featureBytes).toCharArray();
     return encodedData;
   }
 
-  public static DataPoint[] decodeDataPointsFromBytes(byte bytes[]) {
+  public static DataPoint[] decodeDataPointsFromBytes(byte[] bytes) {
     // each double is 8 bytes and we need one for m/z and one for intensity
     int dpCount = bytes.length / 2 / 8;
 
@@ -884,7 +884,7 @@ public class ScanUtils {
     ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
     DataInputStream featureStream = new DataInputStream(byteStream);
 
-    DataPoint dataPoints[] = new DataPoint[dpCount];
+    DataPoint[] dataPoints = new DataPoint[dpCount];
 
     for (int i = 0; i < dataPoints.length; i++) {
       try {
@@ -899,9 +899,9 @@ public class ScanUtils {
     return dataPoints;
   }
 
-  public static DataPoint[] decodeDataPointsBase64(char encodedData[]) {
+  public static DataPoint[] decodeDataPointsBase64(char[] encodedData) {
     byte[] bytes = Base64.getDecoder().decode(new String(encodedData));
-    DataPoint dataPoints[] = decodeDataPointsFromBytes(bytes);
+    DataPoint[] dataPoints = decodeDataPointsFromBytes(bytes);
     return dataPoints;
   }
 
@@ -1541,7 +1541,7 @@ public class ScanUtils {
       }
     }
 
-    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+    DataPoint[] pointsWithinRange = new DataPoint[endIndex - startIndex];
 
     // Copy the relevant points
     System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
@@ -1567,9 +1567,56 @@ public class ScanUtils {
   }
 
   /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(DataPoint[] dps, double precursorMZ) {
+    return getNeutralLossSpectrum(Arrays.stream(dps), precursorMZ);
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(List<DataPoint> dps, double precursorMZ) {
+    return getNeutralLossSpectrum(dps.stream(), precursorMZ);
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(Stream<DataPoint> dps, double precursorMZ) {
+    return dps.map(d -> new SimpleDataPoint(precursorMZ - d.getMZ(), d.getIntensity()))
+        .toArray(DataPoint[]::new);
+  }
+
+  /**
+   * Remove all data points within mz and tolerance
+   *
+   * @param dps       original data points
+   * @param mz        the filter center
+   * @param tolerance the filter tolerance
+   * @return a new filtered array
+   */
+  public static DataPoint[] removeSignals(DataPoint[] dps, double mz, MZTolerance tolerance) {
+    Range<Double> range = tolerance.getToleranceRange(mz);
+    return Arrays.stream(dps).filter(dp -> !range.contains(dp.getMZ())).toArray(DataPoint[]::new);
+  }
+
+  /**
    * Binning modes
    */
-  public static enum BinningType {
+  public enum BinningType {
     SUM, MAX, MIN, AVG
   }
 
@@ -1577,7 +1624,7 @@ public class ScanUtils {
   /**
    * Integer conversion methods.
    */
-  public static enum IntegerMode {
+  public enum IntegerMode {
 
     SUM("Merging mode: Sum"), MAX("Merging mode: Maximum");
 

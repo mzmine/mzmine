@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.spectraldb.entry;
@@ -23,6 +24,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -40,6 +42,17 @@ public class SpectralDBEntry {
 
   private final Map<DBEntryField, Object> fields;
   private final DataPoint[] dps;
+
+  public SpectralDBEntry(double precursorMZ, DataPoint[] dps) {
+    this.fields = new HashMap<>();
+    fields.put(DBEntryField.MZ, precursorMZ);
+    this.dps = dps;
+  }
+
+  public SpectralDBEntry(double precursorMZ, int charge, DataPoint[] dps) {
+    this(precursorMZ, dps);
+    fields.put(DBEntryField.CHARGE, charge);
+  }
 
   public SpectralDBEntry(Map<DBEntryField, Object> fields, DataPoint[] dps) {
     this.fields = fields;
@@ -63,10 +76,10 @@ public class SpectralDBEntry {
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
         case XML_DB_FIELD_LIST_ELEMENT -> fields = loadDBEntriesFromXML(reader);
         default -> {
         }

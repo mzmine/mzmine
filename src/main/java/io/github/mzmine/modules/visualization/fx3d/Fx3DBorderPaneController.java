@@ -26,7 +26,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.components.ButtonCell;
-import io.github.mzmine.util.components.ColorTableCell;
+import io.github.mzmine.util.components.ColorPickerTableCell;
 import io.github.mzmine.util.components.SliderCell;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -180,7 +180,7 @@ public class Fx3DBorderPaneController {
     HBox.setHgrow(leftRegion, Priority.ALWAYS);
     HBox.setHgrow(rightRegion, Priority.ALWAYS);
     plot.getChildren().add(axes);
-    colorCol.setCellFactory(column -> new ColorTableCell<Fx3DAbstractDataset>(column));
+    colorCol.setCellFactory(column -> new ColorPickerTableCell<Fx3DAbstractDataset>(column));
     double minValue = 0;
     double maxValue = 1;
     opacityCol
