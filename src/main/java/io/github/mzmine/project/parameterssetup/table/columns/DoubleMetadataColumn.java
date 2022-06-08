@@ -56,4 +56,9 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
   public Double defaultValue() {
     return null;
   }
+
+  @Override
+  public Double exampleValue() {
+    return 19.21;
+  }
 }

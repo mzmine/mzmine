@@ -20,6 +20,7 @@ package io.github.mzmine.project.parameterssetup.table.columns;
 
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 /**
@@ -60,5 +61,10 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
   @Override
   public LocalDateTime defaultValue() {
     return null;
+  }
+
+  @Override
+  public LocalDateTime exampleValue() {
+    return LocalDateTime.of(2021, 6, 10, 22, 23);
   }
 }

@@ -182,7 +182,7 @@ public class ProjectParametersSetupDialogController {
           alert.setHeaderText(null);
           alert.setContentText(
               "Please respect the " + parameterMatched.getType() + " parameter value format, e.g. "
-                  + parameterMatched.defaultValue());
+                  + parameterMatched.exampleValue());
           alert.showAndWait();
         }
         // need to render

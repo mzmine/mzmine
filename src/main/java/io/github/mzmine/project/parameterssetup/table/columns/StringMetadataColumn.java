@@ -52,4 +52,9 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
   public String defaultValue() {
     return null;
   }
+
+  @Override
+  public String exampleValue() {
+    return "Example";
+  }
 }

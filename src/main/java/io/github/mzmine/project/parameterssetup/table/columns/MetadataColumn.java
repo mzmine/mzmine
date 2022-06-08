@@ -128,6 +128,13 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
    */
   public abstract T defaultValue();
 
+  /**
+   * Returns the example value for the columns of such type.
+   *
+   * @return the value of the column type T.
+   */
+  public abstract T exampleValue();
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
