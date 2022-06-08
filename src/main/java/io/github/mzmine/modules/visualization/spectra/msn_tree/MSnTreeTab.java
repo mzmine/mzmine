@@ -158,6 +158,7 @@ public class MSnTreeTab extends SimpleTab {
     chartGroup = new ChartGroup(false, false, true, false);
     chartGroup.setShowCrosshair(true, false);
     final SpectraPlot plot = new SpectraPlot(false, false);
+    plot.getXYPlot().getRangeAxis().setLabel("MS2 intensity");
     spectraPlots.add(plot);
     chartGroup.add(new ChartViewWrapper(plot));
     spectraPane.add(new BorderPane(spectraPlots.get(0)), 0, 0);
@@ -395,6 +396,8 @@ public class MSnTreeTab extends SimpleTab {
       // create one spectra plot for each MS level
       if (levelFromRoot >= spectraPlots.size()) {
         final SpectraPlot plot = new SpectraPlot();
+        plot.getXYPlot().getRangeAxis()
+            .setLabel(String.format("MS%d intensity", levelFromRoot + 2));
         spectraPlots.add(plot);
         chartGroup.add(new ChartViewWrapper(plot));
       }
