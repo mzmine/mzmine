@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -84,7 +84,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected String xlabel, ylabel;
   protected Color clrXGrid, clrYGrid;
   // not final because we want themes without offsets for the export.
-  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(4, 4, 4, 4);
+  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(0, 0, 0, 0);
   private RectangleInsets MIRROR_PLOT_AXIS_OFFSET = new RectangleInsets(0, 4, 0, 4);
   private Font itemLabelFont;
 
@@ -299,8 +299,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
-    if (p instanceof CombinedDomainXYPlot) {
-      CombinedDomainXYPlot mirrorPlot = (CombinedDomainXYPlot) p;
+    if (p instanceof CombinedDomainXYPlot mirrorPlot) {
       mirrorPlot.setGap(0);
       mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
       for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {
