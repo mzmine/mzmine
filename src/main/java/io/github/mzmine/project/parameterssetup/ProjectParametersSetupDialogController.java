@@ -147,7 +147,7 @@ public class ProjectParametersSetupDialogController {
         String parameterValueNew = event.getNewValue();
         // this complication in extracting the value is caused by using labels as the cells values
         String parameterName = ((Label) event.getTableColumn().getGraphic()).getText();
-        MetadataColumn<?> parameter = metadataTable.getColumnByName(parameterName);
+        MetadataColumn parameter = metadataTable.getColumnByName(parameterName);
 
         // define RawDataFile name
         int rowNumber = parameterTable.getSelectionModel().selectedIndexProperty().get();
@@ -160,29 +160,21 @@ public class ProjectParametersSetupDialogController {
           }
         }
 
-        // pattern match the metadata column type
-        // derive the example value from the parameter's type
-        MetadataColumn parameterMatched = switch (parameter) {
-          case StringMetadataColumn stringMetadataColumn -> stringMetadataColumn;
-          case DoubleMetadataColumn doubleMetadataColumn -> doubleMetadataColumn;
-          case DateMetadataColumn dateMetadataColumn -> dateMetadataColumn;
-        };
-
         // if the parameter value is in the right format then save it to the metadata table,
         // otherwise show alert dialog
-        Object convertedParameterInput = parameterMatched.convert(parameterValueNew,
-            parameterMatched.defaultValue());
+        Object convertedParameterInput = parameter.convert(parameterValueNew,
+            parameter.defaultValue());
         // the first check allows us to unset an already set parameter's value
         if ((convertedParameterInput == null && parameterValueNew.isBlank())
             || parameter.checkInput(convertedParameterInput)) {
-          metadataTable.setValue(parameterMatched, rawDataFile, convertedParameterInput);
+          metadataTable.setValue(parameter, rawDataFile, convertedParameterInput);
         } else {
           Alert alert = new Alert(Alert.AlertType.INFORMATION);
           alert.setTitle("Wrong parameter value format");
           alert.setHeaderText(null);
           alert.setContentText(
-              "Please respect the " + parameterMatched.getType() + " parameter value format, e.g. "
-                  + parameterMatched.exampleValue());
+              "Please respect the " + parameter.getType() + " parameter value format, e.g. "
+                  + parameter.exampleValue());
           alert.showAndWait();
         }
         // need to render
