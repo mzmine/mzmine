@@ -16,24 +16,33 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.compounddb;
+package io.github.mzmine.project.parameterssetup.columns;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import org.jetbrains.annotations.NotNull;
+/**
+ * Specific Double-type implementation of the project parameter.
+ */
+public final class DoubleMetadataColumn extends MetadataColumn<Double> {
 
-public class CompoundAnnotationScoreType extends ScoreType {
+  public DoubleMetadataColumn(String title) {
+    super(title);
+  }
 
-  public CompoundAnnotationScoreType() {
-    super();
+  public DoubleMetadataColumn(String title, String description) {
+    super(title, description);
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return "compound_annotation_score";
+  public boolean checkInput(Object value) {
+    return value instanceof Double;
   }
 
   @Override
-  public @NotNull String getHeaderString() {
-    return "Score";
+  public Double convert(String input, Double defaultValue) {
+    try {
+      return input == null ? defaultValue : Double.parseDouble(input.trim());
+    } catch (NumberFormatException ignored) {
+    }
+
+    return null;
   }
 }

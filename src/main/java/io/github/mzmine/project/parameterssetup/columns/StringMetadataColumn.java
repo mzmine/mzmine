@@ -16,18 +16,28 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_sirius;
+package io.github.mzmine.project.parameterssetup.columns;
 
-public class EmptyListsException extends RuntimeException {
-  public EmptyListsException(String msg) {
-    super(msg);
+/**
+ * Specific String-type implementation of the project parameter.
+ */
+public final class StringMetadataColumn extends MetadataColumn<String> {
+
+  public StringMetadataColumn(String title) {
+    super(title);
   }
 
-  public EmptyListsException(Throwable t) {
-    super(t);
+  public StringMetadataColumn(String title, String description) {
+    super(title, description);
   }
 
-  public EmptyListsException(String msg, Throwable t) {
-    super(msg, t);
+  @Override
+  public boolean checkInput(Object value) {
+    return value instanceof String;
+  }
+
+  @Override
+  public String convert(String input, String defaultValue) {
+    return input == null ? defaultValue : input.trim();
   }
 }

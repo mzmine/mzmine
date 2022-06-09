@@ -32,8 +32,8 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -106,7 +106,7 @@ public class SpectralMatchPanelFX extends GridPane {
   private static Font font;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final EChartViewer mirrorChart;
-  private final SpectralDBFeatureIdentity hit;
+  private final SpectralDBAnnotation hit;
   private boolean setCoupleZoomY;
   private XYPlot queryPlot;
   private XYPlot libraryPlot;
@@ -120,7 +120,7 @@ public class SpectralMatchPanelFX extends GridPane {
   private EStandardChartTheme theme;
   private SpectralMatchPanel swingPanel;
 
-  public SpectralMatchPanelFX(SpectralDBFeatureIdentity hit) {
+  public SpectralMatchPanelFX(SpectralDBAnnotation hit) {
     super();
 
     this.hit = hit;
@@ -173,7 +173,7 @@ public class SpectralMatchPanelFX extends GridPane {
     pnTitle.setBackground(
         new Background(new BackgroundFill(gradientCol, CornerRadii.EMPTY, Insets.EMPTY)));
 
-    lblHit = new Label(hit.getName());
+    lblHit = new Label(hit.getCompoundName());
     lblHit.getStyleClass().add("white-larger-label");
 
     lblScore = new Label(COS_FORM.format(simScore));
@@ -337,7 +337,7 @@ public class SpectralMatchPanelFX extends GridPane {
     setCoupleZoomY = selected;
   }
 
-  private IAtomContainer parseInChi(SpectralDBFeatureIdentity hit) {
+  private IAtomContainer parseInChi(SpectralDBAnnotation hit) {
     String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
     InChIGeneratorFactory factory;
     IAtomContainer molecule;
@@ -359,7 +359,7 @@ public class SpectralMatchPanelFX extends GridPane {
     }
   }
 
-  private IAtomContainer parseSmiles(SpectralDBFeatureIdentity hit) {
+  private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
     SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
     String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
     IAtomContainer molecule;
@@ -515,7 +515,7 @@ public class SpectralMatchPanelFX extends GridPane {
     // it works though, until we figure something out
   }
 
-  public SpectralDBFeatureIdentity getHit() {
+  public SpectralDBAnnotation getHit() {
     return hit;
   }
 

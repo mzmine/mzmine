@@ -23,12 +23,12 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 /**
  * This class represents a score between feature list row and aligned feature list row
  */
-class RowVsRowScore implements Comparable<RowVsRowScore> {
+public class RowVsRowScore implements Comparable<RowVsRowScore> {
 
   double score;
   private FeatureListRow peakListRow, alignedRow;
 
-  RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
+  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
       double mzWeight, double rtMaxDiff, double rtWeight) {
 
     this.peakListRow = peakListRow;
@@ -43,7 +43,7 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
   }
 
-  RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
+  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
       double mzWeight, double rtMaxDiff, double rtWeight, double mobilityMaxDiff,
       double mobilityWeight) {
 
@@ -69,21 +69,21 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   /**
    * This method returns the feature list row which is being aligned
    */
-  FeatureListRow getRowToAdd() {
+  public FeatureListRow getRowToAdd() {
     return peakListRow;
   }
 
   /**
    * This method returns the row of aligned feature list
    */
-  FeatureListRow getAlignedBaseRow() {
+  public FeatureListRow getAlignedBaseRow() {
     return alignedRow;
   }
 
   /**
    * This method returns score between the these two peaks (the lower score, the better match)
    */
-  double getScore() {
+  public double getScore() {
     return score;
   }
 

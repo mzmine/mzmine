@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.main.MZmineCore;
@@ -57,7 +58,7 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
 
   @Override
   public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file) {
+      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
 
     return () -> {
       if (row.get(PossibleIsomerType.class) == null || row.get(PossibleIsomerType.class)

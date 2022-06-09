@@ -71,7 +71,7 @@ public class ResultWindowController {
     colID.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(
         String.valueOf(cell.getValue().getDatabaseMatchInfo())));
     colName.setCellValueFactory(
-        cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getCompundName()));
+        cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getCompoundName()));
     colFormula.setCellValueFactory(
         cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getFormula()));
     colMassDiff.setCellValueFactory(cell -> {
@@ -164,7 +164,7 @@ public class ResultWindowController {
 
     URL url2D = compound.get2DStructureURL();
     URL url3D = compound.get3DStructureURL();
-    String name = compound.getCompundName() + " (" + compound.getDatabaseMatchInfo() + ")";
+    String name = compound.getCompoundName() + " (" + compound.getDatabaseMatchInfo() + ")";
     MolStructureViewer viewer = new MolStructureViewer(name, url2D, url3D);
     viewer.show();
   }
