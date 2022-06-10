@@ -73,8 +73,8 @@ public class TDFMaldiFrameInfoTable extends TDFDataTable<Long> {
     motorPositionZColumn = new TDFDataColumn<>(MOTOR_POSITON_Z);
     laserInfoColumn = new TDFDataColumn<>(LASER_INFO);
 
-    columns.addAll(Arrays.asList(frameIdColumn, chipColumn, spotNameColumn, regionNumberColumn, xIndexPosColumn,
-        yIndexPosColumn, laserPowerColumn, numLaserShotsColumn, laserRepRateColumn,
+    columns.addAll(Arrays.asList(chipColumn, spotNameColumn, regionNumberColumn,
+        xIndexPosColumn, yIndexPosColumn, laserPowerColumn, numLaserShotsColumn, laserRepRateColumn,
         motorPositionXColumn, motorPositionYColumn, motorPositionZColumn, laserInfoColumn));
   }
 
