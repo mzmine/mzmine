@@ -20,13 +20,16 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl;
 
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
+import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,16 +37,25 @@ import org.jfree.chart.renderer.PaintScale;
 
 public class FeatureImageProvider implements PlotXYZDataProvider {
 
+  private static final Logger logger = Logger.getLogger(FeatureImageProvider.class.getName());
+
   private final ModularFeature feature;
-  private final IonTimeSeries<ImagingScan> series;
+  private IonTimeSeries<ImagingScan> series;
   private double width;
   private double height;
+  private final boolean normalize;
 
   public FeatureImageProvider(ModularFeature feature) {
-    this.feature = feature;
-    series = (IonTimeSeries<ImagingScan>) feature.getFeatureData();
+    this(feature, false);
   }
 
+  public FeatureImageProvider(ModularFeature feature, boolean normalize) {
+    this.feature = feature;
+    this.normalize = normalize;
+    if (normalize == false) {
+      series = (IonTimeSeries<ImagingScan>) feature.getFeatureData();
+    }
+  }
 
   @NotNull
   @Override
@@ -83,10 +95,27 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    ImagingParameters imagingParam = ((ImagingRawDataFile) feature.getRawDataFile())
-        .getImagingParam();
+    ImagingParameters imagingParam = ((ImagingRawDataFile) feature.getRawDataFile()).getImagingParam();
     height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
     width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
+
+    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+    try {
+      if (normalize) {
+        series = (IonTimeSeries<ImagingScan>) IonTimeSeriesUtils.normalizeToAvgTic(
+            (IonTimeSeries<? extends ImagingScan>) featureData, null);
+      } else {
+        series = (IonTimeSeries<ImagingScan>) featureData;
+      }
+    } catch (ClassCastException e) {
+      logger.info("Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
+          + FeatureUtils.featureToString(feature));
+    }
+
+    if (series == null) {
+      throw new IllegalStateException(
+          "Could not create image provider for feature " + FeatureUtils.featureToString(feature));
+    }
   }
 
   @Override
