@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javafx.scene.layout.BorderPane;
 import org.apache.commons.collections4.CollectionUtils;
@@ -168,6 +169,8 @@ public class ScanHistogramTab extends MZmineTab {
           case MZ -> mz;
           case INTENSITY -> intensity;
           case MASS_DEFECT -> mz - Math.floor(mz);
+          case INTENSITY_RECAL ->
+              intensity * Objects.requireNonNullElse(scan.getInjectionTime(), 1f);
         };
         data.add(val);
       }

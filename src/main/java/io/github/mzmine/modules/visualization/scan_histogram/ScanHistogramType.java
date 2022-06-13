@@ -22,5 +22,5 @@ package io.github.mzmine.modules.visualization.scan_histogram;
  * The data types that can be displayed in a scan histogram
  */
 public enum ScanHistogramType {
-  MZ, INTENSITY, MASS_DEFECT
+  MZ, INTENSITY, INTENSITY_RECAL, MASS_DEFECT
 }
