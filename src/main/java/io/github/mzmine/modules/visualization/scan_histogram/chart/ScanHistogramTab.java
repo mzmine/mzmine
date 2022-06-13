@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram.chart;
+package io.github.mzmine.modules.visualization.scan_histogram.chart;
 
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
@@ -30,8 +30,8 @@ import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.visualization.mzhistogram.ScanHistogramType;
-import io.github.mzmine.modules.visualization.mzhistogram.ScanMzHistogramParameters;
+import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramParameters;
+import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -52,7 +52,7 @@ import org.jfree.chart.plot.XYPlot;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class HistogramTab extends MZmineTab {
+public class ScanHistogramTab extends MZmineTab {
 
   //private final Scene mainScene;
   private final BorderPane mainPane;
@@ -78,24 +78,24 @@ public class HistogramTab extends MZmineTab {
    * @param xLabel     xLabel
    * @param parameters parameters
    */
-  public HistogramTab(String title, String xLabel, ParameterSet parameters,
+  public ScanHistogramTab(String title, String xLabel, ParameterSet parameters,
       RawDataFile... dataFile) {
     super(title, true, false);
     //setTitle(title);
 
     this.dataFiles = dataFile;
-    scanSelection = parameters.getValue(ScanMzHistogramParameters.scanSelection);
+    scanSelection = parameters.getValue(ScanHistogramParameters.scanSelection);
 
-    mzRange = parameters.getValue(ScanMzHistogramParameters.mzRange);
-    binWidth = parameters.getValue(ScanMzHistogramParameters.binWidth);
-    useMobilityScans = parameters.getValue(ScanMzHistogramParameters.useMobilityScans);
-    useIntensityRange = parameters.getValue(ScanMzHistogramParameters.heightRange);
-    intensityRange = parameters.getParameter(ScanMzHistogramParameters.heightRange)
+    mzRange = parameters.getValue(ScanHistogramParameters.mzRange);
+    binWidth = parameters.getValue(ScanHistogramParameters.binWidth);
+    useMobilityScans = parameters.getValue(ScanHistogramParameters.useMobilityScans);
+    useIntensityRange = parameters.getValue(ScanHistogramParameters.heightRange);
+    intensityRange = parameters.getParameter(ScanHistogramParameters.heightRange)
         .getEmbeddedParameter().getValue();
-    useMassDefect = parameters.getValue(ScanMzHistogramParameters.massDefect);
-    massDefectFilter = parameters.getParameter(ScanMzHistogramParameters.massDefect)
+    useMassDefect = parameters.getValue(ScanHistogramParameters.massDefect);
+    massDefectFilter = parameters.getParameter(ScanHistogramParameters.massDefect)
         .getEmbeddedParameter().getValue();
-    valueType = parameters.getValue(ScanMzHistogramParameters.type);
+    valueType = parameters.getValue(ScanHistogramParameters.type);
 
     data = buildHistogramData(dataFile);
 

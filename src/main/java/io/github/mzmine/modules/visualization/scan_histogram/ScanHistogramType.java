@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 /**
  * The data types that can be displayed in a scan histogram

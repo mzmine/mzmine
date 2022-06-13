@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
@@ -33,7 +33,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
-public class ScanMzHistogramParameters extends SimpleParameterSet {
+public class ScanHistogramParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
@@ -59,7 +59,7 @@ public class ScanMzHistogramParameters extends SimpleParameterSet {
   public static final ComboParameter<ScanHistogramType> type = new ComboParameter<>("Type",
       "Create histogram of this type", ScanHistogramType.values(), ScanHistogramType.MZ);
 
-  public ScanMzHistogramParameters() {
+  public ScanHistogramParameters() {
     super(
         new Parameter[]{dataFiles, scanSelection, mzRange, heightRange, massDefect, type, binWidth,
             useMobilityScans});

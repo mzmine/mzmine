@@ -16,10 +16,10 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -29,10 +29,10 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class ScanMzHistogramModule implements MZmineRunnableModule {
+public class CorrelatedFeaturesMzHistogramModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "m/z scan histogram";
-  private static final String MODULE_DESCRIPTION = "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
+  private static final String MODULE_NAME = "Correlated features \u0394 m/z histogram";
+  private static final String MODULE_DESCRIPTION = "This module plots all m/z deltas between correlated features in a histogram and offers a Gaussian fit.";
 
   @Override
   public @NotNull String getName() {
@@ -49,24 +49,26 @@ public class ScanMzHistogramModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    RawDataFile[] dataFiles = parameters.getParameter(ScanMzHistogramParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+    ModularFeatureList[] flists = parameters.getParameter(
+        CorrelatedFeaturesMzHistogramParameters.featureLists).getValue().getMatchingFeatureLists();
 
-    Task newTask = new ScanMzHistogramTask(dataFiles, parameters.cloneParameterSet(),
-        moduleCallDate);
-    tasks.add(newTask);
+    for (ModularFeatureList flist : flists) {
+      Task newTask = new CorrelatedFeaturesMzHistogramTask(flist, parameters.cloneParameterSet(),
+          moduleCallDate);
+      tasks.add(newTask);
+    }
 
     return ExitCode.OK;
   }
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+    return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ScanMzHistogramParameters.class;
+    return CorrelatedFeaturesMzHistogramParameters.class;
   }
 
 }

@@ -16,11 +16,11 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramTab;
+import io.github.mzmine.modules.visualization.scan_histogram.chart.ScanHistogramTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -31,14 +31,14 @@ import java.util.stream.Collectors;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
-public class ScanMzHistogramTask extends AbstractTask {
+public class ScanHistogramTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(ScanMzHistogramTask.class.getName());
+  private static final Logger logger = Logger.getLogger(ScanHistogramTask.class.getName());
   private final RawDataFile[] dataFiles;
   private final ParameterSet parameters;
-  private HistogramTab tab;
+  private ScanHistogramTab tab;
 
-  public ScanMzHistogramTask(RawDataFile[] dataFile, ParameterSet parameters,
+  public ScanHistogramTask(RawDataFile[] dataFile, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.dataFiles = dataFile;
@@ -74,7 +74,7 @@ public class ScanMzHistogramTask extends AbstractTask {
 
     // create histogram dialog
     Platform.runLater(() -> {
-      tab = new HistogramTab("m/z scan histogram Visualizer", "m/z", parameters, dataFiles);
+      tab = new ScanHistogramTab("m/z scan histogram Visualizer", "m/z", parameters, dataFiles);
       MZmineCore.getDesktop().addTab(tab);
     });
 
