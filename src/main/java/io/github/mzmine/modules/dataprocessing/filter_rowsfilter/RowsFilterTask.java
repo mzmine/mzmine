@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
@@ -43,7 +42,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -343,19 +341,8 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     // Check identities.
-    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-    if (onlyIdentified) {
-      List<SpectralDBAnnotation> matches = row.getSpectralLibraryMatches();
-      List<GNPSLibraryMatch> gnps = row.get(GNPSSpectralLibraryMatchesType.class);
-
-      boolean noIdentity = (row.getPreferredFeatureIdentity() == null);
-      boolean noLipid = matchedLipids == null || matchedLipids.isEmpty();
-      boolean noGNPS = gnps == null || gnps.isEmpty();
-      boolean noMatch = matches == null || matches.isEmpty();
-
-      if (noIdentity && noLipid && noGNPS && noMatch) {
-        return true;
-      }
+    if (onlyIdentified && !row.isIdentified()) {
+      return true;
     }
 
     // Check average m/z.
@@ -383,6 +370,7 @@ public class RowsFilterTask extends AbstractTask {
           }
         }
       }
+      List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
       if (matchedLipids != null && !foundText) {
         for (var id : matchedLipids) {
           if (id != null && id.getLipidAnnotation().getAnnotation().toLowerCase().trim()
