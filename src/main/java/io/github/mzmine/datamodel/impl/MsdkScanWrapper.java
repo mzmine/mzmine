@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import java.util.Iterator;
 import java.util.Optional;
@@ -202,9 +203,14 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public @Nullable Float getInjectionTime() {
-    final Optional<String> value = ((MzMLMsScan)scan).getScanList().getScans().get(0).getCVParamsList().get(2)
-        .getValue();
-    final String injTime = value.orElse(null);
-    return injTime != null ? Float.parseFloat(injTime) : null;
+    try {
+      return ((MzMLMsScan) scan).getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
+    } catch (Exception ex) {
+      // float parsing error
+      return null;
+    }
   }
 }

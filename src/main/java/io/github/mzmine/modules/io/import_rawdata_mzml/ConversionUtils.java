@@ -157,13 +157,14 @@ public class ConversionUtils {
       }
     }
 
-    Float injTime;
+    Float injTime = null;
     try {
-      final Optional<String> value = scan.getScanList().getScans().get(0).getCVParamsList().get(2)
-          .getValue();
-      injTime = value.isPresent() ? Float.parseFloat(value.get()) : 0f;
+      injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
     } catch (Exception e) {
-      injTime = null;
+      // float parsing error
     }
 
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
