@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,7 +15,6 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
@@ -45,13 +44,19 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   public static final String XML_TYPE_NAME = "ddamsmsinfo";
 
   private final double isolationMz;
-  @Nullable private final Integer charge;
-  @Nullable private final Float activationEnergy;
-  @Nullable private Scan msMsScan;
-  @Nullable private Scan parentScan;
+  @Nullable
+  private final Integer charge;
+  @Nullable
+  private final Float activationEnergy;
   private final int msLevel;
-  @NotNull private final ActivationMethod method;
-  @Nullable private final Range<Double> isolationWindow;
+  @NotNull
+  private final ActivationMethod method;
+  @Nullable
+  private final Range<Double> isolationWindow;
+  @Nullable
+  private final Scan parentScan;
+  @Nullable
+  private Scan msMsScan;
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge,
       @Nullable Float activationEnergy, @Nullable Scan msMsScan, @Nullable Scan parentScan,
@@ -81,7 +86,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
-              .equals(MzMLCV.cvActivationEnergy2)) {
+          .equals(MzMLCV.cvActivationEnergy2)) {
         energy = Float.parseFloat(mzMLCVParam.getValue().get());
       }
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
@@ -110,6 +115,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
     Double lower = null;
     Double upper = null;
+    Double targetWindowCenter = null;
     final Optional<MzMLIsolationWindow> mzmlWindow = precursorElement.getIsolationWindow();
     if (mzmlWindow.isPresent()) {
       for (var param : mzmlWindow.get().getCVParamsList()) {
@@ -119,7 +125,20 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
         if (param.getAccession().equals(MzMLCV.cvIsolationWindowUpperOffset)) {
           upper = Double.parseDouble(param.getValue().get());
         }
+        if (param.getAccession().equals(MzMLCV.cvIsolationWindowTarget)) {
+          targetWindowCenter = Double.parseDouble(param.getValue().get());
+        }
       }
+    }
+
+    /*
+     use center of isolation window. At least for Orbitrap instruments and
+     msconvert conversion we found that the isolated ion actually refers to the main peak in
+     an isotope pattern whereas the isolation window is the correct isolation mz
+     see issue https://github.com/mzmine/mzmine3/issues/717
+    */
+    if (targetWindowCenter != null) {
+      precursorMz = targetWindowCenter;
     }
 
     if (precursorMz == null) {
@@ -131,6 +150,41 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       mzwindow = Range.closed(precursorMz - lower, precursorMz + upper);
     }
     return new DDAMsMsInfoImpl(precursorMz, charge, energy, null, null, msLevel, method, mzwindow);
+  }
+
+  /**
+   * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
+   * @return A loaded {@link DDAMsMsInfoImpl}.
+   */
+  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
+
+    final double precursorMz = Double.parseDouble(
+        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
+
+    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
+
+    final Integer scanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Integer parentScanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Float activationEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+
+    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
+
+    final ActivationMethod method = ActivationMethod.valueOf(
+        reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
+
+    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
+
+    return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
+        scanIndex != null ? file.getScan(scanIndex) : null,
+        parentScanIndex != null ? file.getScan(parentScanIndex) : null, msLevel, method,
+        isolationWindow);
   }
 
   @Override
@@ -221,41 +275,6 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     }
 
     writer.writeEndElement();
-  }
-
-  /**
-   * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
-   * @return A loaded {@link DDAMsMsInfoImpl}.
-   */
-  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
-
-    final double precursorMz = Double.parseDouble(
-        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-
-    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
-
-    final Integer scanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Integer parentScanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Float activationEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
-
-    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
-
-    final ActivationMethod method = ActivationMethod.valueOf(
-        reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
-
-    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
-
-    return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
-        scanIndex != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null ? file.getScan(parentScanIndex) : null, msLevel, method,
-        isolationWindow);
   }
 
   @Override
