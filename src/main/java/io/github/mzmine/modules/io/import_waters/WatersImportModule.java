@@ -15,24 +15,18 @@
 package io.github.mzmine.modules.io.import_waters;
 
 import com.google.common.base.Strings;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
-import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule;
-import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
