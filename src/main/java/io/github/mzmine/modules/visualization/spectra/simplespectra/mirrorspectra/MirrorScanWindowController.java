@@ -19,6 +19,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspect
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.framework.FormattedTableCell;
@@ -376,6 +377,23 @@ public class MirrorScanWindowController {
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
     setScans(scan, mirror);
+  }
+
+  /**
+   * @param a upper spectrum in the mirror
+   * @param b lower spectrum in the mirror
+   * @return true if the two rows had MS2 spectra
+   */
+  public boolean setFeatureListRows(FeatureListRow a, FeatureListRow b) {
+    Scan sa = a.getMostIntenseFragmentScan();
+    Scan sb = b.getMostIntenseFragmentScan();
+    if (sa == null || sb == null) {
+      return false;
+    }
+
+    setScans(sa, sb);
+
+    return true;
   }
 
   /**
