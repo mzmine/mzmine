@@ -29,10 +29,17 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This module plots the minimum signal intensities in mass lists against the injection time to
+ * detect trends in trap based mass spectrometers with fill times. Usually Orbitrap analyzers seem
+ * to follow a linear relation ship between (1/injection time & mass resolution) to noise level
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
 public class InjectTimeAnalysisModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "";
-  private static final String MODULE_DESCRIPTION = "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
+  private static final String MODULE_NAME = "Injection time analysis";
+  private static final String MODULE_DESCRIPTION = "Plots the minimum signal intensity against the injection time to see trends in trap based mass spectrometers";
 
   @Override
   public @NotNull String getName() {

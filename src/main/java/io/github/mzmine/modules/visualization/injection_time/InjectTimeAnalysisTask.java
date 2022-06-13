@@ -52,6 +52,13 @@ import java.util.stream.Collectors;
 import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This module plots the minimum signal intensities in mass lists against the injection time to
+ * detect trends in trap based mass spectrometers with fill times. Usually Orbitrap analyzers seem
+ * to follow a linear relation ship between (1/injection time & mass resolution) to noise level
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
 public class InjectTimeAnalysisTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(InjectTimeAnalysisTask.class.getName());

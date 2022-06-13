@@ -23,6 +23,12 @@ import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.util.List;
 
+/**
+ * This dataset filters the injection data for the MS level and plots the lowest intensity against
+ * 1/injection time
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
 class InjectTimeDataProvider extends SimpleXYProvider {
 
   public InjectTimeDataProvider(int msLevel, Color awt, List<InjectData> data) {

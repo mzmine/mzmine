@@ -18,6 +18,15 @@
 
 package io.github.mzmine.modules.visualization.injection_time;
 
+/**
+ * Local data structure to represent injection time to intensity relationship for ms levels
+ *
+ * @param injectTime      the injection time of the scan
+ * @param lowestIntensity lowest intensity in mass list
+ * @param mz              the mz of the data point with lowest intensity
+ * @param msLevel         the ms level of the scan
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
 record InjectData(double injectTime, double lowestIntensity, double mz, int msLevel) {
 
 }
