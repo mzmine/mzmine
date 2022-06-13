@@ -86,7 +86,6 @@ public class ScanHistogramTab extends MZmineTab {
 
     this.dataFiles = dataFile;
     scanSelection = parameters.getValue(ScanHistogramParameters.scanSelection);
-
     mzRange = parameters.getValue(ScanHistogramParameters.mzRange);
     binWidth = parameters.getValue(ScanHistogramParameters.binWidth);
     useMobilityScans = parameters.getValue(ScanHistogramParameters.useMobilityScans);

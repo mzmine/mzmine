@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.scan_histogram;
+package io.github.mzmine.modules.visualization.injection_time;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -29,10 +29,10 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class ScanHistogramModule implements MZmineRunnableModule {
+public class InjectTimeAnalysisModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "scan histogram";
-  private static final String MODULE_DESCRIPTION = "This module plots all values of all selected scans into one histogram and offers a Gaussian fit.";
+  private static final String MODULE_NAME = "";
+  private static final String MODULE_DESCRIPTION = "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
 
   @Override
   public @NotNull String getName() {
@@ -49,10 +49,11 @@ public class ScanHistogramModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    RawDataFile[] dataFiles = parameters.getParameter(ScanHistogramParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+    RawDataFile[] dataFiles = parameters.getParameter(InjectTimeAnalysisParameters.dataFiles)
+        .getValue().getMatchingRawDataFiles();
 
-    Task newTask = new ScanHistogramTask(dataFiles, parameters.cloneParameterSet(), moduleCallDate);
+    Task newTask = new InjectTimeAnalysisTask(dataFiles, parameters.cloneParameterSet(),
+        moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;
@@ -65,7 +66,7 @@ public class ScanHistogramModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ScanHistogramParameters.class;
+    return InjectTimeAnalysisParameters.class;
   }
 
 }

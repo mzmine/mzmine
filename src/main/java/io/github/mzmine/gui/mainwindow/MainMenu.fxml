@@ -528,6 +528,9 @@
     <MenuItem text="Scan histogram" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule"/>
 
+    <MenuItem text="Scan inject time analysis" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule"/>
+
     <SeparatorMenuItem/>
 
     <MenuItem text="Scatter plot" onAction="#runModule"
