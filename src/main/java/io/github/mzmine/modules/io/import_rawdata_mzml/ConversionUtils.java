@@ -157,10 +157,22 @@ public class ConversionUtils {
       }
     }
 
-    return new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
+    Float injTime = null;
+    try {
+      injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
+    } catch (Exception e) {
+      // float parsing error
+    }
+
+    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
         scan.getRetentionTime() / 60, info, sortedMzs, sortedIntensities, spectrumType,
         ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-        scan.getScanningRange());
+        scan.getScanningRange(), injTime);
+
+    return newScan;
   }
 
   public static BuildingMobilityScan msdkScanToMobilityScan(int scannum, MsScan scan) {
