@@ -143,7 +143,7 @@
       <MenuItem onAction="#runModule" text="Import spectral libraries"
         userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
       <MenuItem onAction="#runModule" text="Waters"
-        userData="io.github.mzmine.modules.io.import_rawdata_bruker_tdf.WatersImportTask"/>
+        userData="io.github.mzmine.modules.io.import_waters.WatersImportModule"/>
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="ICP-MS CVS"
