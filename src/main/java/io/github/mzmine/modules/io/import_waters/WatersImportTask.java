@@ -34,6 +34,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.csibio.aird.util.ArrayUtil;
@@ -118,9 +119,10 @@ public class WatersImportTask extends AbstractTask {
       PolarityType polarity = PolarityType.UNKNOWN;
       int mslevel;
       this.funcval = obj.GetFunctionCount();// Gets the number of function in Raw file
+      ArrayList<SimpleScan> ss=new ArrayList<>();
       for(int i=0;i<this.funcval;++i)
       {
-        //Scan values in each function
+        //total Scan values in each function
         this.scanvalue = obj.GetScansInFunction(i);
 
         //msLevel is calculated as per Function type
@@ -137,13 +139,16 @@ public class WatersImportTask extends AbstractTask {
         //Range is calculated using AcquisitionMass
         Range<Double> mzrange= Range.closed((double)obj.GetAcquisitionMassRange(i).getStart(),(double)obj.GetAcquisitionMassRange(i).getEnd());
 
+        //Optimisation need for this loop
         for (int j = 0; j < scanvalue; ++j)
         {
           scan = rawscanreader.ReadScan(i, j);
+          //Scan gives masses and intensities doubt in ScanNumber as well as mzValue[]
 
           simplescan = new SimpleScan(this.newMZmineFile,0,mslevel,obj.GetRetentionTime(i, j),
               null,ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities()),spectrumType,polarity
                     ,"",mzrange);
+          ss.add(simplescan);
         }
       }
     }
