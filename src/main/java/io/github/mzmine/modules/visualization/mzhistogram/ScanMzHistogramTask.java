@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,84 +18,68 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram;
 
-import io.github.mzmine.main.MZmineCore;
-import java.time.Instant;
-import java.util.Date;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 public class ScanMzHistogramTask extends AbstractTask {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private MZmineProject project;
-  private RawDataFile dataFile;
-
+  private static final Logger logger = Logger.getLogger(ScanMzHistogramTask.class.getName());
+  private final RawDataFile[] dataFiles;
+  private final ParameterSet parameters;
   private HistogramTab tab;
 
-  private ParameterSet parameters;
-
-  /**
-   * @param dataFile
-   * @param parameters
-   */
-  public ScanMzHistogramTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public ScanMzHistogramTask(RawDataFile[] dataFile, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
-    this.project = project;
-    this.dataFile = dataFile;
+    this.dataFiles = dataFile;
     this.parameters = parameters;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
-    return "Creating m/z distribution histogram of " + dataFile;
+    return "Creating scan histogram of " + Arrays.stream(dataFiles).map(Object::toString)
+        .collect(Collectors.joining(","));
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
-    if(tab == null) {
+    if (tab == null) {
       return 0;
     }
     int totalScans = tab.getTotalScans();
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
+    } else {
       return (double) tab.getProcessedScans() / totalScans;
+    }
   }
 
-  public RawDataFile getDataFile() {
-    return dataFile;
+  public RawDataFile[] getDataFiles() {
+    return dataFiles;
   }
 
-  /**
-   * @see Runnable#run()
-   */
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
     // create histogram dialog
     Platform.runLater(() -> {
-      tab = new HistogramTab(dataFile, "m/z scan histogram Visualizer", "m/z",
-          parameters);
+      tab = new HistogramTab("m/z scan histogram Visualizer", "m/z", parameters, dataFiles);
       MZmineCore.getDesktop().addTab(tab);
     });
 
     setStatus(TaskStatus.FINISHED);
-    logger.info("Finished mz distribution histogram on " + dataFile);
+    logger.info("Finished creating scan histogram");
   }
 
 }

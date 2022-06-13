@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,11 +18,6 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram;
 
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -30,12 +25,14 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class ScanMzHistogramModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "m/z scan histogram";
-  private static final String MODULE_DESCRIPTION =
-      "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
+  private static final String MODULE_DESCRIPTION = "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
 
   @Override
   public @NotNull String getName() {
@@ -55,11 +52,9 @@ public class ScanMzHistogramModule implements MZmineRunnableModule {
     RawDataFile[] dataFiles = parameters.getParameter(ScanMzHistogramParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
 
-    for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask =
-          new ScanMzHistogramTask(project, dataFiles[i], parameters.cloneParameterSet(), moduleCallDate);
-      tasks.add(newTask);
-    }
+    Task newTask = new ScanMzHistogramTask(dataFiles, parameters.cloneParameterSet(),
+        moduleCallDate);
+    tasks.add(newTask);
 
     return ExitCode.OK;
   }
