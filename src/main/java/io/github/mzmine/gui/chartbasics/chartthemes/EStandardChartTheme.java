@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
+import java.io.Serial;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -58,13 +59,13 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public static final Logger logger = Logger.getLogger(EStandardChartTheme.class.getName());
   public static final String XML_DESC = "ChartTheme";
+  @Serial
   private static final long serialVersionUID = 1L;
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
   private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
-  private static final double TITLE_TOP_MARGIN = 5.0;
   // master font
   protected Font masterFont;
   protected Color masterFontColor;
@@ -222,6 +223,12 @@ public class EStandardChartTheme extends StandardChartTheme {
           applyToAbstractRenderer(renderer);
         }
       }
+
+//      int nDatasets = plot.getDatasetCount();
+//      for (int i = 0; i < nDatasets; i++) {
+//        plot.getRenderer().setD
+//      }
+
     }
 
     chart.setNotify(oldNotify);
@@ -240,8 +247,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void applyToCrosshair(@NotNull JFreeChart chart) {
     Plot p = chart.getPlot();
-    if (p instanceof XYPlot) {
-      XYPlot xyp = (XYPlot) p;
+    if (p instanceof XYPlot xyp) {
       xyp.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
       xyp.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
       xyp.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
@@ -255,11 +261,10 @@ public class EStandardChartTheme extends StandardChartTheme {
     Plot p = chart.getPlot();
 
     // Only apply to XYPlot
-    if (!(p instanceof XYPlot)) {
+    if (!(p instanceof XYPlot xyp)) {
       return;
     }
 
-    XYPlot xyp = (XYPlot) p;
     Axis domainAxis = xyp.getDomainAxis();
     Axis rangeAxis = xyp.getRangeAxis();
 
@@ -339,8 +344,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     chart.getSubtitles().forEach(s -> {
-      if (s != chart.getTitle() && s instanceof TextTitle) {
-        TextTitle textTitle = (TextTitle) s;
+      if (s != chart.getTitle() && s instanceof TextTitle textTitle) {
         // ((TextTitle) s).setFont(getRegularFont());
         // ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
         textTitle.setVisible(isShowSubtitles());
@@ -352,8 +356,7 @@ public class EStandardChartTheme extends StandardChartTheme {
         // .setBackgroundPaint(this.getChartBackgroundPaint());
         // }
       }
-      if (s instanceof LegendTitle) {
-        LegendTitle legendTitle = (LegendTitle) s;
+      if (s instanceof LegendTitle legendTitle) {
         legendTitle.setVisible(isShowLegend());
       }
     });
@@ -374,9 +377,12 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   @Override
-  protected void applyToAbstractRenderer(AbstractRenderer renderer) {
+  public void applyToAbstractRenderer(AbstractRenderer renderer) {
     super.applyToAbstractRenderer(renderer);
-
+    renderer.setAutoPopulateSeriesStroke(false);
+    renderer.setAutoPopulateSeriesOutlineStroke(false);
+    renderer.setDefaultStroke(defaultDataStroke);
+    renderer.setDefaultOutlineStroke(defaultDataStroke);
     if (itemLabelFont != null) {
       renderer.setDefaultItemLabelFont(itemLabelFont);
     }
