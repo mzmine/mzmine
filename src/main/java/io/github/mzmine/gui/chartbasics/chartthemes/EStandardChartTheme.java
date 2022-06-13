@@ -20,7 +20,10 @@ package io.github.mzmine.gui.chartbasics.chartthemes;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -379,12 +382,17 @@ public class EStandardChartTheme extends StandardChartTheme {
   @Override
   public void applyToAbstractRenderer(AbstractRenderer renderer) {
     super.applyToAbstractRenderer(renderer);
-    renderer.setAutoPopulateSeriesStroke(false);
-    renderer.setAutoPopulateSeriesOutlineStroke(false);
-    renderer.setDefaultStroke(defaultDataStroke);
-    renderer.setDefaultOutlineStroke(defaultDataStroke);
+    // apply to all
     if (itemLabelFont != null) {
       renderer.setDefaultItemLabelFont(itemLabelFont);
+    }
+    // only apply to those renderers that we know should behave like this
+    if (renderer instanceof PeakRenderer || renderer instanceof ColoredXYLineRenderer
+        || renderer instanceof TICPlotRenderer) {
+      renderer.setAutoPopulateSeriesStroke(false);
+      renderer.setAutoPopulateSeriesOutlineStroke(false);
+      renderer.setDefaultStroke(defaultDataStroke);
+      renderer.setDefaultOutlineStroke(defaultDataStroke);
     }
   }
 
