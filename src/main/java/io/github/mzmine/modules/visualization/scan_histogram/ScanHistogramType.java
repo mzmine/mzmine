@@ -22,5 +22,15 @@ package io.github.mzmine.modules.visualization.scan_histogram;
  * The data types that can be displayed in a scan histogram
  */
 public enum ScanHistogramType {
-  MZ, INTENSITY, INTENSITY_RECAL, MASS_DEFECT
+  MZ, INTENSITY, INTENSITY_RECAL, MASS_DEFECT;
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case MZ -> "m/z";
+      case INTENSITY -> "Intensity";
+      case INTENSITY_RECAL -> "Intensity (noise recalibrated)";
+      case MASS_DEFECT -> "Mass defect";
+    };
+  }
 }

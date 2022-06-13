@@ -74,7 +74,7 @@ public class ScanHistogramTask extends AbstractTask {
 
     // create histogram dialog
     Platform.runLater(() -> {
-      tab = new ScanHistogramTab("m/z scan histogram Visualizer", "m/z", parameters, dataFiles);
+      tab = new ScanHistogramTab("Scan histogram Visualizer", parameters, dataFiles);
       MZmineCore.getDesktop().addTab(tab);
     });
 

@@ -76,11 +76,9 @@ public class ScanHistogramTab extends MZmineTab {
   /**
    * @param dataFile   rawDataFile
    * @param title      title
-   * @param xLabel     xLabel
    * @param parameters parameters
    */
-  public ScanHistogramTab(String title, String xLabel, ParameterSet parameters,
-      RawDataFile... dataFile) {
+  public ScanHistogramTab(String title, ParameterSet parameters, RawDataFile... dataFile) {
     super(title, true, false);
     //setTitle(title);
 
@@ -106,7 +104,7 @@ public class ScanHistogramTab extends MZmineTab {
     //mainScene.getStylesheets()
     //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
-    histo = new HistogramPanel(xLabel, data, binWidth);
+    histo = new HistogramPanel(valueType.toString(), data, binWidth);
 
     //setMinWidth(1050);
     //setMinHeight(700);
