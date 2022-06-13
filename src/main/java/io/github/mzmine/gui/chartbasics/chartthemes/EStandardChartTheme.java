@@ -15,12 +15,12 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -87,6 +87,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(0, 0, 0, 0);
   private RectangleInsets MIRROR_PLOT_AXIS_OFFSET = new RectangleInsets(0, 4, 0, 4);
   private Font itemLabelFont;
+  private BasicStroke defaultDataStroke;
 
 
   public EStandardChartTheme(String name) {
@@ -570,5 +571,18 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void setItemLabelFont(Font font) {
     this.itemLabelFont = font;
+  }
+
+  /**
+   * The default stroke used by many charts like the {@link TICPlot}
+   *
+   * @return a basic stroke with the width set by user
+   */
+  public BasicStroke getDefaultDataStroke() {
+    return defaultDataStroke;
+  }
+
+  public void setDefaultDataStroke(BasicStroke defaultDataStroke) {
+    this.defaultDataStroke = defaultDataStroke;
   }
 }
