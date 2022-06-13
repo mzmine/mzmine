@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -30,18 +30,24 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
+import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
@@ -52,6 +58,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
@@ -70,8 +77,7 @@ public class MirrorChartFactory {
    * @param db
    * @return
    */
-  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(
-      SpectralDBAnnotation db) {
+  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBAnnotation db) {
 
     Scan scan = db.getQueryScan();
     if (scan == null) {
@@ -170,7 +176,7 @@ public class MirrorChartFactory {
     }
 
     // add legend
-    LegendTitle legend = createLibraryMatchingLegend(domainPlot);
+    LegendTitle legend = createLibraryMatchingLegend(tags, colors, domainPlot);
     mirrorSpecrumPlot.getChart().addLegend(legend);
     mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
 
@@ -194,21 +200,176 @@ public class MirrorChartFactory {
     return mirrorSpecrumPlot;
   }
 
+  public static EChartViewer createMirrorPlotFromAligned(MZTolerance mzTol, boolean modified,
+      DataPoint[] dpa, double precursorMZA, DataPoint[] dpb, double precursorMZB) {
+    List<DataPoint[]> aligned;
+
+    if (modified) {
+      aligned = ScanAlignment.alignModAware(mzTol, dpa, dpb, precursorMZA, precursorMZB);
+    } else {
+      aligned = ScanAlignment.align(mzTol, dpa, dpb);
+    }
+    return createMirrorPlotFromAligned(mzTol, modified, aligned.toArray(DataPoint[][]::new),
+        precursorMZA, precursorMZB);
+  }
+
+  public static EChartViewer createMirrorPlotFromAligned(MZTolerance mzTol, boolean modified,
+      DataPoint[][] aligned, double precursorMZA, double precursorMZB) {
+
+    final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.UNALIGNED,
+        DataPointsTag.ALIGNED_MODIFIED, DataPointsTag.ALIGNED};
+
+    // get highest data intensity to calc relative intensity
+    double mostIntenseQuery = Arrays.stream(aligned).map(dps -> dps[0]).filter(Objects::nonNull)
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+    double mostIntenseDB = Arrays.stream(aligned).map(dps -> dps[1]).filter(Objects::nonNull)
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+
+    if (mostIntenseDB == 0d) {
+      logger.warning(
+          "This data set has no original data points in the library spectrum (development error)");
+      return null;
+    }
+    if (mostIntenseQuery == 0d) {
+      logger.warning(
+          "This data set has no original data points in the query spectrum (development error)");
+      return null;
+    }
+
+    // get colors for vision
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    // colors for the different DataPointsTags:
+    final Color[] colors = new Color[]{Color.black, // unaligned
+        palette.getNegativeColorAWT(), // modified
+        palette.getPositiveColorAWT() // aligned
+    };
+
+    // create without data
+    EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Top: " + precursorMZA, precursorMZA,
+        -1, null, "Bottom: " + precursorMZB, precursorMZB, -1, null, false, true);
+
+    // add datasets and renderer
+    // set up renderer
+    CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorSpecrumPlot.getChart()
+        .getXYPlot();
+    NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
+    axis.setLabel("m/z");
+    XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
+    XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
+
+    var labelGenerator = new PseudoSpectraItemLabelGenerator(mirrorSpecrumPlot);
+    // add all datapoints to a dataset that are not present in subsequent
+    // masslist
+    for (int i = 0; i < tags.length; i++) {
+      DataPointsTag tag = tags[i];
+      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
+      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
+
+      if (i == 0) {
+        // unmatched
+        for (DataPoint[] dps : aligned) {
+          if (dps[0] == null || dps[1] == null) {
+            if (dps[0] != null) {
+              qdata.addDP(dps[0].getMZ(), dps[0].getIntensity() / mostIntenseQuery * 100d, null);
+            }
+            if (dps[1] != null) {
+              ldata.addDP(dps[1].getMZ(), dps[1].getIntensity() / mostIntenseDB * 100d, null);
+            }
+          }
+        }
+      } else if (i == 1) {
+        // modified
+        for (DataPoint[] dps : aligned) {
+          if (dps[0] != null && dps[1] != null && !mzTol.checkWithinTolerance(dps[0].getMZ(),
+              dps[1].getMZ())) {
+            qdata.addDP(dps[0].getMZ(), dps[0].getIntensity() / mostIntenseQuery * 100d, null);
+            ldata.addDP(dps[1].getMZ(), dps[1].getIntensity() / mostIntenseDB * 100d, null);
+          }
+        }
+      } else if (i == 2) {
+        // matched
+        for (DataPoint[] dps : aligned) {
+          if (dps[0] != null && dps[1] != null && mzTol.checkWithinTolerance(dps[0].getMZ(),
+              dps[1].getMZ())) {
+            qdata.addDP(dps[0].getMZ(), dps[0].getIntensity() / mostIntenseQuery * 100d, null);
+            ldata.addDP(dps[1].getMZ(), dps[1].getIntensity() / mostIntenseDB * 100d, null);
+          }
+        }
+      }
+
+      Color color = colors[i];
+      PseudoSpectraRenderer renderer = new PseudoSpectraRenderer(color, false);
+      PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(color, false);
+
+      queryPlot.setDataset(i, qdata);
+      queryPlot.setRenderer(i, renderer);
+
+      libraryPlot.setDataset(i, ldata);
+      libraryPlot.setRenderer(i, renderer2);
+
+      renderer.setSeriesItemLabelGenerator(0, labelGenerator);
+      renderer2.setSeriesItemLabelGenerator(0, labelGenerator);
+      renderer.setDefaultItemLabelsVisible(true);
+      renderer2.setDefaultItemLabelsVisible(true);
+
+      renderer2.setDefaultSeriesVisibleInLegend(false, false);
+    }
+
+    // add legend
+    LegendTitle legend = createLibraryMatchingLegend(tags, colors, domainPlot);
+    mirrorSpecrumPlot.getChart().addLegend(legend);
+    mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
+
+    // set y axis title
+    queryPlot.getRangeAxis().setLabel("rel. intensity [%]");
+    libraryPlot.getRangeAxis().setLabel("rel. intensity [%]");
+    domainPlot.getDomainAxis().setLabel("m/z");
+
+    queryPlot.getRangeAxis().setUpperMargin(0.12);
+    libraryPlot.getRangeAxis().setUpperMargin(0.12);
+
+    queryPlot.setDomainGridlinesVisible(false);
+    queryPlot.setDomainMinorGridlinesVisible(false);
+    libraryPlot.setDomainGridlinesVisible(false);
+    libraryPlot.setDomainMinorGridlinesVisible(false);
+    queryPlot.setRangeGridlinesVisible(false);
+    queryPlot.setRangeMinorGridlinesVisible(false);
+    libraryPlot.setRangeGridlinesVisible(false);
+    libraryPlot.setRangeMinorGridlinesVisible(false);
+
+    final DecimalFormat intensityFormat = new DecimalFormat("0.0");
+    ((NumberAxis) queryPlot.getRangeAxis()).setNumberFormatOverride(intensityFormat);
+    ((NumberAxis) libraryPlot.getRangeAxis()).setNumberFormatOverride(intensityFormat);
+
+    if (precursorMZA > 0 && precursorMZB > 0) {
+      queryPlot.addDomainMarker(createPrecursorMarker(precursorMZA, Color.GRAY, 0.5f));
+      libraryPlot.addDomainMarker(createPrecursorMarker(precursorMZB, Color.GRAY, 0.5f));
+    }
+
+    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(mirrorSpecrumPlot.getChart());
+    mirrorSpecrumPlot.getChart().getLegend().setVisible(true);
+
+    return mirrorSpecrumPlot;
+  }
+
+  private static ValueMarker createPrecursorMarker(double precursorMz, Color color, float alpha) {
+    final ValueMarker marker = new ValueMarker(precursorMz);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    return marker;
+  }
+
   /**
    * Creates a legend for
    *
    * @param mirrorSpectrumPlot
    * @return
    */
-  public static LegendTitle createLibraryMatchingLegend(CombinedDomainXYPlot mirrorSpectrumPlot) {
-    // get colors for vision
-    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{Color.black, // black = filtered
-        palette.getNegativeColorAWT(), // unaligned
-        palette.getPositiveColorAWT() // aligned
-    };
-
+  public static LegendTitle createLibraryMatchingLegend(DataPointsTag[] tags, Color[] colors,
+      CombinedDomainXYPlot mirrorSpectrumPlot) {
     LegendItem item;
     LegendItemCollection collection = new LegendItemCollection();
 
@@ -275,9 +436,9 @@ public class MirrorChartFactory {
       label = " (" + label + ")";
     }
     // data
-    PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true, MessageFormat
-        .format("MSMS for m/z={0} RT={1}{2}", mzForm.format(precursorMZ), rtForm.format(rt),
-            label));
+    PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true,
+        MessageFormat.format("MSMS for m/z={0} RT={1}{2}", mzForm.format(precursorMZ),
+            rtForm.format(rt), label));
     // for each row
     for (DataPoint dp : dps) {
       series.addDP(dp.getMZ(), dp.getIntensity(), null);
@@ -304,9 +465,8 @@ public class MirrorChartFactory {
 
       String label1 = MessageFormat.format("MSMS for m/z={0} RT={1}", mzForm.format(scanPrecursor),
           rtForm.format(scan.getRetentionTime()));
-      String label2 = MessageFormat
-          .format("MSMS for m/z={0} RT={1}", mzForm.format(mirrorPrecursor),
-              rtForm.format(mirror.getRetentionTime()));
+      String label2 = MessageFormat.format("MSMS for m/z={0} RT={1}",
+          mzForm.format(mirrorPrecursor), rtForm.format(mirror.getRetentionTime()));
       // data
       PseudoSpectrumDataSet data = new PseudoSpectrumDataSet(true, label1, label2);
       // for each row
@@ -380,6 +540,23 @@ public class MirrorChartFactory {
         ScanUtils.extractDataPoints(mirror), showTitle, showLegend));
   }
 
+  public static EChartViewer createNeutralLossMirrorChartViewer(Scan scan, Scan mirror,
+      String labelA, String labelB, boolean showTitle, boolean showLegend) {
+    if (scan == null || mirror == null) {
+      return null;
+    }
+    double scanPrecursor =
+        scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
+    double mirrorPrecursor =
+        mirror.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
+
+    return new EChartViewer(createMirrorChart(labelA, scanPrecursor, scan.getRetentionTime(),
+        ScanUtils.getNeutralLossSpectrum(ScanUtils.extractDataPoints(scan), scanPrecursor), labelB,
+        mirrorPrecursor, mirror.getRetentionTime(),
+        ScanUtils.getNeutralLossSpectrum(ScanUtils.extractDataPoints(mirror), mirrorPrecursor),
+        showTitle, showLegend));
+  }
+
   public static EChartViewer createMirrorChartViewer(String labelA, double precursorMZA, double rtA,
       DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
       boolean showTitle, boolean showLegend) {
@@ -402,7 +579,7 @@ public class MirrorChartFactory {
         dpsB == null ? null : createMSMSDataSet(precursorMZB, rtB, dpsB, labelB);
 
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat intensityFormat = new DecimalFormat("0.#");
+    NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     // set the X axis (retention time) properties
     NumberAxis xAxis = new NumberAxis("m/z");

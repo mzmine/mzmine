@@ -19,11 +19,11 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.project.impl.ProjectChangeListener;
+import io.github.mzmine.project.parameterssetup.table.MetadataTable;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.Hashtable;
@@ -134,8 +134,7 @@ public interface MZmineProject {
 
   void removeProjectListener(ProjectChangeListener newListener);
 
-
-  void removeFeatureLists(@NotNull List<ModularFeatureList> featureLists);
+  void removeFeatureLists(@NotNull List<FeatureList> featureLists);
 
   /**
    * Returns all feature lists which contain given data file
@@ -221,4 +220,8 @@ public interface MZmineProject {
   void fireDataFilesChangeEvent(List<RawDataFile> dataFiles, Type type);
 
   int getNumberOfDataFiles();
+
+  MetadataTable getProjectMetadata();
+
+  void setProjectMetadata(MetadataTable metadata);
 }

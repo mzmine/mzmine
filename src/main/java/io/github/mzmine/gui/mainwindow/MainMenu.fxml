@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2021 The MZmine Development Team
+  ~ Copyright 2006-2022 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -72,7 +72,12 @@
 
     <SeparatorMenuItem/>
     <MenuItem text="Set sample parameters"
-      onAction="#setSampleParams"/>
+      onAction="#setSampleParams">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="M"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
 
     <SeparatorMenuItem/>
     <MenuItem onAction="#setPreferences" text="Set preferences">
@@ -202,8 +207,8 @@
       <MenuItem onAction="#runModule"
         text="ADAP chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
-      <!--<MenuItem text="GridMass" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>-->
+      <MenuItem text="GridMass" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
       <MenuItem onAction="#runModule"
         text="Targeted feature detection"
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
@@ -330,7 +335,7 @@
     <Menu text="Feature grouping">
       <MenuItem text="metaCorrelate (corrGroup)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
-      <MenuItem text="MS/MS similarity" onAction="#runModule"
+      <MenuItem text="MS/MS spectral networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
@@ -395,6 +400,8 @@
         userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>
       <MenuItem text="ADAP aligner (GC)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule"/>
+      <MenuItem text="LC-Image-Aligner" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_lcimage.LcImageAlignerModule"/>
     </Menu>
 
     <Menu text="Gap filling">
@@ -447,9 +454,6 @@
         <MenuItem text="MS2 similarity search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule"/>
-        <MenuItem text="SIRIUS / CSI-FingerID"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule"/>
       </Menu>
 
       <SeparatorMenuItem/>
@@ -511,7 +515,7 @@
 
     <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Feature networking"
+    <MenuItem onAction="#runModule" text="Interactive Ion Identity Molecular Networks"
       userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
       userData="io.github.mzmine.modules.visualization.mzhistogram.CorrelatedFeaturesMzHistogramModule"/>
@@ -544,12 +548,15 @@
     <MenuItem text="Isotope pattern preview"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
+    <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
     <MenuItem text="Kovats index extraction"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
+    <MenuItem onAction="#runModule" text="Analyse libraries to csv"
+      userData="io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule"/>
   </Menu>
 
   <Menu text="Processing wizard">
@@ -563,7 +570,15 @@
   </Menu>
 
   <!-- WINDOWS -->
-  <WindowsMenu/>
+  <WindowsMenu>
+    <Menu text="Task manager">
+      <MenuItem text="Hide" onAction="#hideTaskViewer"/>
+      <MenuItem text="Main window" onAction="#setTaskViewerBottom"/>
+      <MenuItem text="External window" onAction="#setTaskViewerExternal"/>
+      <MenuItem text="Tab" onAction="#setTaskViewerTab"/>
+    </Menu>
+    <SeparatorMenuItem/>
+  </WindowsMenu>
 
   <!-- HELP -->
   <Menu text="Help">
