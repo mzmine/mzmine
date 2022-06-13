@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.awt.Color;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,8 +116,6 @@ public class InjectTimeAnalysisTask extends AbstractTask {
     SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Inject time",
         "Lowest intensity");
 
-    chart.setDefaultRenderer(new ColoredXYShapeRenderer());
-
     SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
     List<ColoredXYDataset> datasets = data.stream().mapToInt(InjectData::msLevel).distinct()
         .sorted().mapToObj(msLevel -> new ColoredXYDataset(
@@ -124,8 +123,12 @@ public class InjectTimeAnalysisTask extends AbstractTask {
             RunOption.THIS_THREAD)).toList();
 
     for (ColoredXYDataset dataset : datasets) {
-      chart.addDataset(dataset, new SpectraMassListRenderer(dataset.getAWTColor()));
+      var defaultRenderer = new ColoredXYShapeRenderer();
+      Color color = dataset.getAWTColor();
+      defaultRenderer.setSeriesPaint(0, color);
+      chart.addDataset(dataset, new SpectraMassListRenderer(color));
 
+      chart.addRegression(dataset, 0);
     }
 
     MZmineCore.runLater(() -> {
@@ -136,7 +139,6 @@ public class InjectTimeAnalysisTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
     logger.info("Finished creating inject time scatter");
   }
-
 
   private List<InjectData> buildData(RawDataFile... dataFiles) {
     List<InjectData> data = new ArrayList<>();
