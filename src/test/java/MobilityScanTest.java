@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
  *  This file is part of MZmine.
  *
@@ -112,7 +112,7 @@ public class MobilityScanTest {
     for (int i = 0; i < numFrames; i++) {
       SimpleFrame frame = new SimpleFrame(file, 1, 1, 0f, new double[]{0d, 1},
           new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
-          Range.closed(0d, 1d), MobilityType.TIMS, null);
+          Range.closed(0d, 1d), MobilityType.TIMS, null, null);
 
       List<BuildingMobilityScan> scans = makeSomeScans(mobilities.length);
       frame.setMobilityScans(scans, false);
@@ -138,7 +138,7 @@ public class MobilityScanTest {
     logger.info("Creating frame.");
     SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
         new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
-        Range.closed(0d, 1d), MobilityType.TIMS, null);
+        Range.closed(0d, 1d), MobilityType.TIMS, null, null);
 
     List<BuildingMobilityScan> scans = makeSomeScans(100);
     frame.setMobilityScans(scans, true);
@@ -175,7 +175,7 @@ public class MobilityScanTest {
     final IMSRawDataFile rawDataFile = createRawDataFile();
     final SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
         new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
-        Range.closed(0d, 1d), MobilityType.TIMS, null);
+        Range.closed(0d, 1d), MobilityType.TIMS, null, null);
 
     // adding scans with mobility scan number 1 as first scan should throw an exception.
     Assertions.assertThrows(IllegalArgumentException.class,
