@@ -38,6 +38,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection.MaldiSpotFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
@@ -128,6 +129,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
+import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import java.util.List;
 
 public class BatchModeModulesList {
@@ -200,6 +202,7 @@ public class BatchModeModulesList {
       ADAPMultivariateCurveResolutionModule.class, //
       ADAP3DModule.class, //
       ImsExpanderModule.class, //
+      MaldiSpotFeatureDetectionModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
@@ -302,7 +305,7 @@ public class BatchModeModulesList {
       MzTabImportModule.class, //
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
-      LibraryAnalysisCSVExportModule.class //
+      LibraryAnalysisCSVExportModule.class, //
 
       /*
        * needed in batch mode?
@@ -313,6 +316,7 @@ public class BatchModeModulesList {
        * needed in batch mode?
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#OTHER}
        */
+      TimsTOFMaldiAcquisitionModule.class //
 
   );
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,10 +16,18 @@
  *
  */
 
-package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
+package io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection;
 
-public record MaldiSpotInfo(int frameNum, int chip, String spotName, int regionNumber,
-                            int xIndexPos, int yIndexPos, double motorX, double motorY,
-                            double motorZ) {
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
+public class TopNSelectionParameters extends SimpleParameterSet {
+
+  public static final IntegerParameter numPrecursors = new IntegerParameter("Number of precursors",
+      "The number of precursors to be fragmented.", 5);
+
+  public TopNSelectionParameters() {
+    super(new Parameter[]{numPrecursors});
+  }
 }

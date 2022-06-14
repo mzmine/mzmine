@@ -317,7 +317,7 @@ public class TDFUtils {
       }
       Arrays.fill(buffer, (byte) 0);
     }
-    if(dataPoints.get(0)[0].length != 0) {
+    if (dataPoints.get(0)[0].length != 0) {
       logger.finest("data");
     }
     return dataPoints;
@@ -432,13 +432,15 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
 
-    final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue());
-    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final float rt = (float) (frameTable.getTimeColumn().get(frameIndex) / 60); // to minutes
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + "Frame #" + frameId
+            + " RT: " + rt;
 
     double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
@@ -455,14 +457,12 @@ public class TDFUtils {
 
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
+          MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, MobilityType.TIMS, null);
     } else {
-      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
+          data[1], MassSpectrumType.CENTROIDED, polarity,
+          scanDefinition + " " + maldiFrameInfoTable.getSpotNameColumn().get(frameIndex), mzRange,
           MobilityType.TIMS, null);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
@@ -504,13 +504,16 @@ public class TDFUtils {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue());
-    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+
+    final float rt = (float) (frameTable.getTimeColumn().get(frameIndex) / 60); // to minutes
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + "Frame #" + frameId
+            + " RT: " + rt;
     final Range<Double> mzRange = metaDataTable.getMzRange();
 
     final int[] intensityData = extractProfileForFrame(frameId, 0, numScans);
@@ -530,18 +533,15 @@ public class TDFUtils {
     filteredMzIndices.add(intensityData.length - 1);
     filteredIntensities.add(intensityData[intensityData.length - 1]);
 
-    final double[] profileMzs = convertIndicesToMZ(handle, frameId,
-        filteredMzIndices.toIntArray());
+    final double[] profileMzs = convertIndicesToMZ(handle, frameId, filteredMzIndices.toIntArray());
 
     final double data[][];
     boolean massesDetected = false;
     if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
-      data = ms1Detector.getMassValues(profileMzs,
-          filteredIntensities.toDoubleArray(), ms1Param);
+      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms1Param);
       massesDetected = true;
     } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
-      data = ms2Detector.getMassValues(profileMzs,
-          filteredIntensities.toDoubleArray(), ms2Param);
+      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms2Param);
       massesDetected = true;
     } else {
       data = new double[2][];
@@ -551,15 +551,14 @@ public class TDFUtils {
 
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
-          polarity, scanDefinition, mzRange, MobilityType.TIMS, null);
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
+          massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE, polarity,
+          scanDefinition, mzRange, MobilityType.TIMS, null);
     } else {
-      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
-          polarity, scanDefinition, mzRange, MobilityType.TIMS, null);
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
+          data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
+          polarity, scanDefinition + " " + maldiFrameInfoTable.getSpotNameColumn().get(frameIndex),
+          mzRange, MobilityType.TIMS, null);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
@@ -654,7 +653,7 @@ public class TDFUtils {
         final String errorMessage = new String(errorBuffer, "UTF-8");
         logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
             + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
-        if(errorMessage.contains("CorruptFrameDataError")) {
+        if (errorMessage.contains("CorruptFrameDataError")) {
           throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
         }
       } catch (UnsupportedEncodingException e) {
