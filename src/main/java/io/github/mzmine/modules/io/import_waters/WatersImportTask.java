@@ -51,15 +51,13 @@ public class WatersImportTask extends AbstractTask {
   private RawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private MassLynxRawInfoReader obj;
+  private MassLynxRawInfoReader massLynxRawInfoReader;
   private MassLynxRawScanReader rawscanreader;
   private SimpleScan simplescan;
   private Scan scan;
   private String description;
   private double finishedPercentage;
   private double lastFinishedPercentage;
-  private int funcval;
-  private int scanvalue;
 
   public void setDescription(String description) {
     this.description = description;
@@ -113,43 +111,54 @@ public class WatersImportTask extends AbstractTask {
   private void readMetaData(String filepath){
     try {
       setDescription("Reading metadata from "+this.fileNameToOpen.getName());
-      obj = new MassLynxRawInfoReader(filepath);
+      massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       rawscanreader = new MassLynxRawScanReader(filepath);
       MassSpectrumType spectrumType;
       PolarityType polarity = PolarityType.UNKNOWN;
       int mslevel;
-      this.funcval = obj.GetFunctionCount();// Gets the number of function in Raw file
+      int scanvalue;
+      int driftscancount;
+      int functioncount =massLynxRawInfoReader.GetFunctionCount();
       ArrayList<SimpleScan> ss=new ArrayList<>();
-      for(int i=0;i<this.funcval;++i)
+      ArrayList<Float> drifttime=new ArrayList<>();
+      // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
+      for(int i=0;i<functioncount;++i)
       {
         //total Scan values in each function
-        this.scanvalue = obj.GetScansInFunction(i);
+        scanvalue = massLynxRawInfoReader.GetScansInFunction(i);
 
         //msLevel is calculated as per Function type
-        mslevel=obj.GetFunctionType(i)==MassLynxFunctionType.MS? MassLynxFunctionType.MS.getValue()
-            :obj.GetFunctionType(i)==MassLynxFunctionType.MS2?MassLynxFunctionType.MS2.getValue():
-                obj.GetFunctionType(i)==MassLynxFunctionType.TOFM?MassLynxFunctionType.TOFM.getValue():0;
+        mslevel=getMsLevel(massLynxRawInfoReader,i);
 
         //Spectrum type is calculated as per Continuum function
-        spectrumType=obj.IsContinuum(i)?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
+        spectrumType= massLynxRawInfoReader.IsContinuum(i)?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
 
         //Polarity is calculated using Ion mode
-        polarity=obj.GetIonMode(i)==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
+        polarity= massLynxRawInfoReader.GetIonMode(i)==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
         //Range is calculated using AcquisitionMass
-        Range<Double> mzrange= Range.closed((double)obj.GetAcquisitionMassRange(i).getStart(),(double)obj.GetAcquisitionMassRange(i).getEnd());
+        Range<Double> mzrange= Range.closed((double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getStart(),(double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getEnd());
 
-        //Optimisation need for this loop
+        //Drift scan count in each function
+        driftscancount=massLynxRawInfoReader.GetDriftScanCount(i);
+
+        //Optimisation need for this loop it is too slow to function
         for (int j = 0; j < scanvalue; ++j)
         {
           scan = rawscanreader.ReadScan(i, j);
           //Scan gives masses and intensities doubt in ScanNumber as well as mzValue[]
 
-          simplescan = new SimpleScan(this.newMZmineFile,0,mslevel,obj.GetRetentionTime(i, j),
+          simplescan = new SimpleScan(this.newMZmineFile,0,mslevel,
+              massLynxRawInfoReader.GetRetentionTime(i, j),
               null,ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities()),spectrumType,polarity
                     ,"",mzrange);
           ss.add(simplescan);
         }
+        //Error
+/*        for (int k = 0; k < driftscancount; ++k)
+        {
+          drifttime.add(massLynxRawInfoReader.GetDriftTime(i,k));
+        }*/
       }
     }
     catch (MasslynxRawException e)
@@ -157,6 +166,25 @@ public class WatersImportTask extends AbstractTask {
       e.printStackTrace();
       MZmineCore.getDesktop().displayErrorMessage("MasslynxRawException :: " + e.getMessage());
       logger.log(Level.SEVERE, "MasslynxRawException :: ", e.getMessage());
+    }
+  }
+  private int getMsLevel(MassLynxRawInfoReader masslynxrawinforeader,int value)
+      throws MasslynxRawException {
+    if(masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.MS)
+    {
+      return MassLynxFunctionType.MS.getValue();
+    }
+    else if (masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.MS2)
+    {
+      return MassLynxFunctionType.MS2.getValue();
+    }
+    else if (massLynxRawInfoReader.GetFunctionType(value)==MassLynxFunctionType.TOFM)
+    {
+      return MassLynxFunctionType.TOFM.getValue();
+    }
+    else
+    {
+      return 0;
     }
   }
 }
