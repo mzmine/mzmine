@@ -154,7 +154,7 @@ public class WatersImportTask extends AbstractTask {
                     ,"",mzrange);
           ss.add(simplescan);
         }
-        //Error
+        //Error in file handling
 /*        for (int k = 0; k < driftscancount; ++k)
         {
           drifttime.add(massLynxRawInfoReader.GetDriftTime(i,k));
