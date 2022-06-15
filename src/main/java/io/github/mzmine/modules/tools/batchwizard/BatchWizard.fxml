@@ -21,6 +21,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <ScrollPane fitToHeight="true" fitToWidth="true" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController">
   <BorderPane>
@@ -81,7 +82,10 @@
           </VBox>
           <VBox fx:id="rightMenu" alignment="TOP_RIGHT" spacing="5.0" GridPane.rowIndex="2">
             <FlowPane>
-              <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed" text="Build batch" />
+              <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed" text="Build batch">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font></Button>
             </FlowPane>
             <padding>
               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
