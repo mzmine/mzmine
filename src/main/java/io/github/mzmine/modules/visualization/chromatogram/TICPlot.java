@@ -114,7 +114,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     // Initialize.
-    // visualizer = listener;
     labelsVisible = 1;
     havePeakLabels = false;
     showSpectrumRequest = false;
@@ -325,8 +324,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
       renderer.setSeriesPaint(0, lineColor);
       renderer.setSeriesFillPaint(0, fillColor);
-//      renderer.setSeriesStroke(0,
-//          MZmineCore.getConfiguration().getDefaultChartTheme().getDefaultDataStroke());
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
       return addTICDataSet(dataSet, renderer);

@@ -193,7 +193,6 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   @Override
   public void apply(@NotNull JFreeChart chart) {
-    assert chart != null;
     final boolean oldNotify = chart.isNotify();
     chart.setNotify(false);
 
@@ -226,12 +225,6 @@ public class EStandardChartTheme extends StandardChartTheme {
           applyToAbstractRenderer(renderer);
         }
       }
-
-//      int nDatasets = plot.getDatasetCount();
-//      for (int i = 0; i < nDatasets; i++) {
-//        plot.getRenderer().setD
-//      }
-
     }
 
     chart.setNotify(oldNotify);
