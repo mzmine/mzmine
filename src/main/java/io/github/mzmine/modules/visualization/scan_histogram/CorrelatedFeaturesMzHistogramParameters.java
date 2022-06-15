@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -41,8 +41,8 @@ public class CorrelatedFeaturesMzHistogramParameters extends SimpleParameterSet 
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
   public static final MZRangeParameter mzRange = new MZRangeParameter(true);
-  public static final OptionalParameter<RTRangeParameter> rtRange =
-      new OptionalParameter<>(new RTRangeParameter(false));
+  public static final OptionalParameter<RTRangeParameter> rtRange = new OptionalParameter<>(
+      new RTRangeParameter(false));
   public static final DoubleParameter binWidth = new DoubleParameter("m/z bin width",
       "Binning of m/z values for feature picking ", MZmineCore.getConfiguration().getMZFormat(),
       0.001);
@@ -56,8 +56,7 @@ public class CorrelatedFeaturesMzHistogramParameters extends SimpleParameterSet 
   public static final OptionalParameter<FileNameParameter> saveToFile = new OptionalParameter<>(
       new FileNameParameter("Append to file",
           "Append the correlated features delta m/z to a csv file", extensions,
-          FileSelectionType.SAVE),
-      false);
+          FileSelectionType.SAVE), false);
 
   public CorrelatedFeaturesMzHistogramParameters() {
     super(new Parameter[]{featureLists, mzRange, rtRange, minCorr, limitToDoubleMz, binWidth,
