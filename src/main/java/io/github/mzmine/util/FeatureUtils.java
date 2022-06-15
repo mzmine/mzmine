@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utilities for feature lists
@@ -61,7 +62,10 @@ public class FeatureUtils {
    * @param feature Feature to be converted to String
    * @return String representation of the feature
    */
-  public static String featureToString(Feature feature) {
+  public static String featureToString(@Nullable Feature feature) {
+    if(feature == null) {
+      return "null";
+    }
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     buf.append("m/z ");

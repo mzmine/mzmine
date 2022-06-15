@@ -68,6 +68,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
@@ -238,6 +239,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         XYItemRenderer newRenderer;
         if (typeForDataSet == SpectrumPlotType.CENTROID) {
           newRenderer = new PeakRenderer((Color) clr, false);
+          ((PeakRenderer) newRenderer).setBarPainter(new StandardXYBarPainter());
         } else {
           newRenderer = new ContinuousRenderer((Color) clr, false);
           ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -47,17 +47,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RawDataOverviewWindowController {
 
-  public static final Logger logger =
-      Logger.getLogger(RawDataOverviewWindowController.class.getName());
+  public static final Logger logger = Logger.getLogger(
+      RawDataOverviewWindowController.class.getName());
 
   private boolean initialized = false;
 
-  private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers =
-      FXCollections.observableMap(new HashMap<>());
-  private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections.observableMap(
+      new HashMap<>());
+  private final ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections.observableMap(
+      new HashMap<>());
 
-  private boolean scroll;
 
   @FXML
   private ChromatogramAndSpectraVisualizer visualizer;
@@ -77,7 +76,6 @@ public class RawDataOverviewWindowController {
 
     addChromatogramSelectedScanListener();
 
-    scroll = true;
     initialized = true;
   }
 
@@ -85,7 +83,7 @@ public class RawDataOverviewWindowController {
    * Sets the raw data files to be displayed. Already present files are not removed to optimise
    * performance. This should be called over
    * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
-   * 
+   * <p>
    * Only add LC-MS data sets, exclude imaging
    *
    * @param rawDataFiles
@@ -98,7 +96,7 @@ public class RawDataOverviewWindowController {
         filesToProcess.add(rawDataFile);
       }
     }
-    filesToProcess.forEach(r -> removeRawDataFile(r));
+    filesToProcess.forEach(this::removeRawDataFile);
 
     // presence of file is checked in the add method
     rawDataFiles.forEach(r -> {
@@ -137,7 +135,7 @@ public class RawDataOverviewWindowController {
               // in that case we just select the table.
               return;
             }
-            visualizer.setFocusedScan(raw, newValue.getScan());
+            visualizer.setFocusedScan(raw, newValue.scan());
           }));
 
       Tab rawDataFileTab = new Tab(raw.getName());
@@ -145,7 +143,7 @@ public class RawDataOverviewWindowController {
       tpRawDataInfo.getTabs().add(rawDataFileTab);
 
       rawDataFileTab.selectedProperty().addListener((obs, o, n) -> {
-        if (n == true) {
+        if (n) {
           con.populate(raw);
         }
       });
@@ -198,8 +196,7 @@ public class RawDataOverviewWindowController {
       if (rawDataTableView.getItems() != null) {
         try {
           Scan scan = pos.getScan();
-          rawDataTableView.getItems().stream()
-              .filter(item -> item.getScan().equals(scan)).findFirst()
+          rawDataTableView.getItems().stream().filter(item -> item.scan().equals(scan)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
                 if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {

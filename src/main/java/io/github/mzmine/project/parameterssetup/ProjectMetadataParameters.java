@@ -22,6 +22,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.TextParameter;
 import java.util.stream.Stream;
 
 public class ProjectMetadataParameters extends SimpleParameterSet {
@@ -29,16 +30,18 @@ public class ProjectMetadataParameters extends SimpleParameterSet {
   public static final StringParameter title = new StringParameter("Title",
       "Title of the new parameter", "", true, true);
 
+  public static final TextParameter description = new TextParameter("Description",
+      "Description of the new parameter", "", false);
+
   public enum AvailableTypes {
     TEXT, DOUBLE, DATETIME
   }
 
-  public static final ComboParameter<String> valueType = new ComboParameter<String>("Type",
+  public static final ComboParameter<AvailableTypes> valueType = new ComboParameter<>("Type",
       "Type of the new parameter",
-      Stream.of(AvailableTypes.values()).map(Enum::toString).toArray(String[]::new),
-      Stream.of(AvailableTypes.values()).map(Enum::toString).toArray(String[]::new)[0]);
+      AvailableTypes.values(), AvailableTypes.values()[0]);
 
   public ProjectMetadataParameters() {
-    super(new Parameter[]{title, valueType});
+    super(new Parameter[]{title, description, valueType});
   }
 }

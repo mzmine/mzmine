@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
@@ -30,32 +31,27 @@ import org.jetbrains.annotations.NotNull;
 
 public class MS2SimilarityModule implements MZmineProcessingModule {
 
-  private static final String NAME = "MS2 similarity";
+  private static final String NAME = "MS/MS spectral networking (Molecular networking)";
 
-  private static final String DESCRIPTION =
-      "Checks MS2 similarity of all rows within the groups or on all networks and between networks";
+  private static final String DESCRIPTION = "Checks MS2 similarity of all rows within the groups or on all networks and between networks";
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return NAME;
   }
 
   @Override
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
     return DESCRIPTION;
   }
 
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ANNOTATION;
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.FEATURE_GROUPING;
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MS2SimilarityParameters.class;
   }
 
@@ -64,10 +60,8 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
       @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    ModularFeatureList[] featureLists = parameters
-        .getParameter(MS2SimilarityParameters.FEATURE_LISTS)
-        .getValue()
-        .getMatchingFeatureLists();
+    ModularFeatureList[] featureLists = parameters.getParameter(
+        MS2SimilarityParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
     for (ModularFeatureList pkl : featureLists) {
       tasks.add(new MS2SimilarityTask(parameters, pkl, pkl.getRows(), moduleCallDate));
     }
