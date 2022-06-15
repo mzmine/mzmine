@@ -37,7 +37,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.csibio.aird.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -51,9 +50,6 @@ public class WatersImportTask extends AbstractTask {
   private RawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private MassLynxRawInfoReader massLynxRawInfoReader;
-  private MassLynxRawScanReader rawscanreader;
-  private SimpleScan simplescan;
   private Scan scan;
   private String description;
   private double finishedPercentage;
@@ -111,55 +107,31 @@ public class WatersImportTask extends AbstractTask {
   private void readMetaData(String filepath){
     try {
       setDescription("Reading metadata from "+this.fileNameToOpen.getName());
-      massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
-      rawscanreader = new MassLynxRawScanReader(filepath);
-      MassSpectrumType spectrumType;
-      PolarityType polarity = PolarityType.UNKNOWN;
-      int mslevel;
-      int scanvalue;
-      int driftscancount;
-      int functioncount =massLynxRawInfoReader.GetFunctionCount();
-      ArrayList<SimpleScan> ss=new ArrayList<>();
-      ArrayList<Float> drifttime=new ArrayList<>();
-      // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
+      MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
+      MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
+      ArrayList<IntermediateScan> intermediatescanarray=new ArrayList<>();
+      int functioncount =massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
+      IntermediateScan intermediatescan;
       for(int i=0;i<functioncount;++i)
       {
         //total Scan values in each function
-        scanvalue = massLynxRawInfoReader.GetScansInFunction(i);
+        int scanvalue = massLynxRawInfoReader.GetScansInFunction(i);
 
         //msLevel is calculated as per Function type
-        mslevel=getMsLevel(massLynxRawInfoReader,i);
-
-        //Spectrum type is calculated as per Continuum function
-        spectrumType= massLynxRawInfoReader.IsContinuum(i)?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
-
-        //Polarity is calculated using Ion mode
-        polarity= massLynxRawInfoReader.GetIonMode(i)==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
+       int mslevel=getMsLevel(massLynxRawInfoReader,i);
 
         //Range is calculated using AcquisitionMass
         Range<Double> mzrange= Range.closed((double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getStart(),(double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getEnd());
 
-        //Drift scan count in each function
-        driftscancount=massLynxRawInfoReader.GetDriftScanCount(i);
-
-        //Optimisation need for this loop it is too slow to function
         for (int j = 0; j < scanvalue; ++j)
         {
-          scan = rawscanreader.ReadScan(i, j);
-          //Scan gives masses and intensities doubt in ScanNumber as well as mzValue[]
-
-          simplescan = new SimpleScan(this.newMZmineFile,0,mslevel,
-              massLynxRawInfoReader.GetRetentionTime(i, j),
-              null,ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities()),spectrumType,polarity
-                    ,"",mzrange);
-          ss.add(simplescan);
+          intermediatescan=new IntermediateScan(massLynxRawInfoReader.IsContinuum(i),mslevel,
+              massLynxRawInfoReader.GetIonMode(i),mzrange,functioncount,massLynxRawInfoReader.GetRetentionTime(i,j));
+          intermediatescanarray.add(intermediatescan);
         }
-        //Error in file handling
-/*        for (int k = 0; k < driftscancount; ++k)
-        {
-          drifttime.add(massLynxRawInfoReader.GetDriftTime(i,k));
-        }*/
       }
+      sortIntermediateScan(intermediatescanarray);
+      getSimpleScan(intermediatescanarray,rawscanreader);
     }
     catch (MasslynxRawException e)
     {
@@ -168,6 +140,36 @@ public class WatersImportTask extends AbstractTask {
       logger.log(Level.SEVERE, "MasslynxRawException :: ", e.getMessage());
     }
   }
+
+  private void sortIntermediateScan(ArrayList<IntermediateScan> intermediatescanarray)
+  {
+    //Sorting of intermediatescanarray by retention time
+
+  }
+
+  private void getSimpleScan(ArrayList<IntermediateScan> intermediatescanarray,
+      MassLynxRawScanReader rawscanreader)
+      throws MasslynxRawException {
+    ArrayList<SimpleScan> simplescansarray = new ArrayList<>();
+    int scannumber = intermediatescanarray.size();
+    PolarityType polarity = PolarityType.UNKNOWN;
+    SimpleScan simplescan;
+    for(int k=1;k<=scannumber;++k)
+    {
+      //Spectrum type is known as per Continuum function
+      MassSpectrumType spectrumType=intermediatescanarray.get(k-1).isIscontinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
+
+      //Polarity is calculated using Ion mode
+      polarity=intermediatescanarray.get(k-1).getIonmode()==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
+
+      simplescan = new SimpleScan(this.newMZmineFile,k,intermediatescanarray.get(k-1).getMslevel(),
+          intermediatescanarray.get(k-1).getRetentionTime(),null,null,null,spectrumType,polarity,"",
+          intermediatescanarray.get(k-1).getMZRange());
+
+      simplescansarray.add(simplescan);
+    }
+  }
+
   private int getMsLevel(MassLynxRawInfoReader masslynxrawinforeader,int value)
       throws MasslynxRawException {
     if(masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.MS)
@@ -178,7 +180,7 @@ public class WatersImportTask extends AbstractTask {
     {
       return MassLynxFunctionType.MS2.getValue();
     }
-    else if (massLynxRawInfoReader.GetFunctionType(value)==MassLynxFunctionType.TOFM)
+    else if (masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.TOFM)
     {
       return MassLynxFunctionType.TOFM.getValue();
     }
