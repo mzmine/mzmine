@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.visualization.injection_time;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
-import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -38,11 +38,12 @@ public class InjectTimeAnalysisParameters extends SimpleParameterSet {
       new ScanSelection(1));
   public static final MZRangeParameter mzRange = new MZRangeParameter(true);
 
-  public static final OptionalParameter<DoubleRangeParameter> heightRange = new OptionalParameter<>(
-      new DoubleRangeParameter("Signal intensity range",
-          "Limits signal intensities for better performance.",
-          MZmineCore.getConfiguration().getIntensityFormat(), Range.closed(1d, Double.MAX_VALUE)));
+  public static final IntegerParameter minSignalsInScan = new IntegerParameter(
+      "Min signals in scan", "Only consider scans with a minimum number of signals", 6);
 
+  public static final DoubleParameter minIntensityFactor = new DoubleParameter(
+      "Min intensity factor", "Minimum factor between top signal to lowest signal. ",
+      MZmineCore.getConfiguration().getScoreFormat(), 2d, 1d, Double.MAX_VALUE);
 
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
       new MassDefectParameter("Mass defect",
@@ -54,8 +55,8 @@ public class InjectTimeAnalysisParameters extends SimpleParameterSet {
 
 
   public InjectTimeAnalysisParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, mzRange, heightRange, massDefect,
-        useMobilityScans});
+    super(new Parameter[]{dataFiles, scanSelection, mzRange, minSignalsInScan, minIntensityFactor,
+        massDefect, useMobilityScans});
   }
 
 

@@ -65,11 +65,11 @@ public class InjectTimeAnalysisTask extends AbstractTask {
   private final RawDataFile[] dataFiles;
   private final MassDefectFilter massDefectFilter;
   private final Boolean useMassDefect;
-  private final Range<Double> intensityRange;
-  private final Boolean useIntensityRange;
   private final Boolean useMobilityScans;
   private final Range<Double> mzRange;
   private final ScanSelection scanSelection;
+  private final int minSignals;
+  private final Double minIntensityFactor;
   private int totalScans;
   private long processedScans;
 
@@ -80,9 +80,9 @@ public class InjectTimeAnalysisTask extends AbstractTask {
     scanSelection = parameters.getValue(InjectTimeAnalysisParameters.scanSelection);
     mzRange = parameters.getValue(InjectTimeAnalysisParameters.mzRange);
     useMobilityScans = parameters.getValue(InjectTimeAnalysisParameters.useMobilityScans);
-    useIntensityRange = parameters.getValue(InjectTimeAnalysisParameters.heightRange);
-    intensityRange = parameters.getParameter(InjectTimeAnalysisParameters.heightRange)
-        .getEmbeddedParameter().getValue();
+    minSignals = parameters.getValue(InjectTimeAnalysisParameters.minSignalsInScan);
+    minIntensityFactor = parameters.getValue(InjectTimeAnalysisParameters.minIntensityFactor);
+
     useMassDefect = parameters.getValue(InjectTimeAnalysisParameters.massDefect);
     massDefectFilter = parameters.getParameter(InjectTimeAnalysisParameters.massDefect)
         .getEmbeddedParameter().getValue();
@@ -178,23 +178,31 @@ public class InjectTimeAnalysisTask extends AbstractTask {
       return;
     }
 
+    int n = scan.getNumberOfDataPoints();
+    if (n < minSignals) {
+      return;
+    }
+
     double mz = -1d;
     double lowestIntensity = 0d;
+    double maxIntensity = 0d;
 
-    int n = scan.getNumberOfDataPoints();
     for (int i = 0; i < n; i++) {
       double intensity = scan.getIntensityValue(i);
       double currentMz = scan.getMzValue(i);
 
-      if (mzRange.contains(currentMz) && (!useIntensityRange || intensityRange.contains(intensity))
-          && (!useMassDefect || massDefectFilter.contains(currentMz))) {
+      if (intensity > 0 && mzRange.contains(currentMz) && (!useMassDefect
+          || massDefectFilter.contains(currentMz))) {
         if (mz < 0 || intensity < lowestIntensity) {
           mz = currentMz;
           lowestIntensity = intensity;
         }
+        if (maxIntensity < intensity) {
+          maxIntensity = intensity;
+        }
       }
     }
-    if (mz > 0) {
+    if (mz > 0 && maxIntensity / lowestIntensity >= minIntensityFactor) {
       data.add(new InjectData(injectTime, lowestIntensity, mz, scan.getMSLevel()));
     }
   }
