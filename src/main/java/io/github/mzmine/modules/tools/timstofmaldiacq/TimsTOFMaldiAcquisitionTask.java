@@ -67,9 +67,12 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
   private final Integer incrementOffsetX;
   private final File savePathDir;
   private final Boolean exportOnly;
+  private final Boolean enableCeStepping;
+  private final CeSteppingTables ceSteppingTables;
 
   private String desc = "Running MAlDI acquisition";
   private double progress;
+  private File currentCeFile = null;
 
   protected TimsTOFMaldiAcquisitionTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project) {
@@ -89,6 +92,14 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
         TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getModule();
     precursorSelectionParameters = parameters.getValue(
         TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getParameterSet();
+    enableCeStepping = parameters.getValue(TimsTOFMaldiAcquisitionParameters.ceStepping);
+    if (enableCeStepping) {
+      ceSteppingTables = new CeSteppingTables(
+          parameters.getParameter(TimsTOFMaldiAcquisitionParameters.ceStepping)
+              .getEmbeddedParameter().getValue());
+    } else {
+      ceSteppingTables = null;
+    }
   }
 
   @Override
@@ -112,62 +123,84 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     // todo: - ce ramp
     //       - export only
 
-    for (int j = 0; j < flists.length; j++) {
+    // we can (in the future) acquire multiple spots in one file, but not multiple CEs in one file
 
-      if (isCanceled()) {
-        return;
-      }
+    final int numCes = ceSteppingTables != null ? ceSteppingTables.getNumberOfCEs() : 1;
 
-      final FeatureList flist = flists[j];
-      progress = j / (double) Math.max((flists.length - 1), 1);
+    for (int ceCounter = 0; ceCounter < numCes; ceCounter++) {
 
-      if (flist.getNumberOfRows() == 0) {
-        continue;
-      }
-
-      final List<MaldiTimsPrecursor> precursors = flist.getRows().stream().filter(
-          row -> row.getBestFeature() != null
-              && row.getBestFeature().getFeatureStatus() != FeatureStatus.UNKNOWN
-              && row.getBestFeature().getMobility() != null
-              && row.getBestFeature().getMobilityRange() != null).map(row -> {
-        final Feature f = row.getBestFeature();
-        Range<Float> mobilityRange = adjustMobilityRange(f.getMobility(), f.getMobilityRange(),
-            minMobilityWidth, maxMobilityWidth);
-
-        return new MaldiTimsPrecursor(f, f.getMZ(), mobilityRange, null);
-      }).toList();
-
-      final List<String> spotNames = precursors.stream().map(precursor -> {
-        final Scan scan = precursor.feature().getRepresentativeScan();
-        if (!(scan instanceof ImagingFrame imgFrame)) {
-          throw new IllegalStateException(
-              "Representative scan of feature " + precursor.toString() + " is not an ImagingFrame");
+      if (enableCeStepping) {
+        assert ceSteppingTables != null;
+        currentCeFile = new File(savePathDir,
+            "ce_table_" + ceSteppingTables.getCE(ceCounter) + "eV.csv");
+        final boolean success = ceSteppingTables.writeCETable(ceCounter, currentCeFile);
+        if (!success) {
+          setErrorMessage("Cannot write CE table.");
+          ;
+          setStatus(TaskStatus.ERROR);
+          return;
         }
-        final MaldiSpotInfo maldiSpotInfo = imgFrame.getMaldiSpotInfo();
-        if (maldiSpotInfo == null) {
-          throw new IllegalStateException(
-              "Maldi spot info for frame " + imgFrame.toString() + " is null.");
-        }
-        return maldiSpotInfo.spotName();
-      }).distinct().toList();
-
-      if (spotNames.size() != 1) {
-        throw new IllegalStateException(
-            "No or more than one spot in feature list " + flist.getName());
       }
 
-      var spotName = spotNames.get(0);
+      for (int j = 0; j < flists.length; j++) {
 
-      final List<List<MaldiTimsPrecursor>> precursorLists = precursorSelectionModule.getPrecursorList(
-          precursors, precursorSelectionParameters);
+        if (isCanceled()) {
+          return;
+        }
 
-      for (int i = 0; i < precursorLists.size(); i++) {
-        List<MaldiTimsPrecursor> precursorList = precursorLists.get(i);
-        final String fileName = spotName + "_msms_" + (i + 1);
-        desc = "Acquiring " + fileName;
+        final FeatureList flist = flists[j];
+        progress = j / (double) Math.max((flists.length - 1), 1);
 
-        acquire(acqControl, spotName, precursorList, initialOffsetY, incrementOffsetX, (i + 1),
-            savePathDir, fileName);
+        if (flist.getNumberOfRows() == 0) {
+          continue;
+        }
+
+        final List<MaldiTimsPrecursor> precursors = flist.getRows().stream().filter(
+            row -> row.getBestFeature() != null
+                && row.getBestFeature().getFeatureStatus() != FeatureStatus.UNKNOWN
+                && row.getBestFeature().getMobility() != null
+                && row.getBestFeature().getMobilityRange() != null).map(row -> {
+          final Feature f = row.getBestFeature();
+          Range<Float> mobilityRange = adjustMobilityRange(f.getMobility(), f.getMobilityRange(),
+              minMobilityWidth, maxMobilityWidth);
+
+          return new MaldiTimsPrecursor(f, f.getMZ(), mobilityRange, null);
+        }).toList();
+
+        final List<String> spotNames = precursors.stream().map(precursor -> {
+          final Scan scan = precursor.feature().getRepresentativeScan();
+          if (!(scan instanceof ImagingFrame imgFrame)) {
+            throw new IllegalStateException("Representative scan of feature " + precursor.toString()
+                + " is not an ImagingFrame");
+          }
+          final MaldiSpotInfo maldiSpotInfo = imgFrame.getMaldiSpotInfo();
+          if (maldiSpotInfo == null) {
+            throw new IllegalStateException(
+                "Maldi spot info for frame " + imgFrame.toString() + " is null.");
+          }
+          return maldiSpotInfo.spotName();
+        }).distinct().toList();
+
+        if (spotNames.size() != 1) {
+          throw new IllegalStateException(
+              "No or more than one spot in feature list " + flist.getName());
+        }
+
+        var spotName = spotNames.get(0);
+
+        final List<List<MaldiTimsPrecursor>> precursorLists = precursorSelectionModule.getPrecursorList(
+            precursors, precursorSelectionParameters);
+
+        for (int i = 0; i < precursorLists.size(); i++) {
+          List<MaldiTimsPrecursor> precursorList = precursorLists.get(i);
+          final String fileName =
+              spotName + "_msms_" + (i + 1) + (enableCeStepping ? "_" + ceSteppingTables.getCE(
+                  ceCounter) + "eV" : "");
+          desc = "Acquiring " + fileName;
+
+          acquire(acqControl, spotName, precursorList, initialOffsetY, incrementOffsetX, (i + 1),
+              savePathDir, fileName, currentCeFile);
+        }
       }
     }
 
@@ -176,7 +209,8 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
   private boolean acquire(final File acqControl, final String spot,
       final List<MaldiTimsPrecursor> precursorList, final int initialOffsetY,
-      final int incrementOffsetX, int incrementCounter, final File savePathDir, String name) {
+      final int incrementOffsetX, int incrementCounter, final File savePathDir, String name,
+      File currentCeFile) {
     List<String> cmdLine = new ArrayList<>();
 
     cmdLine.add(acqControl.toString());
@@ -194,12 +228,18 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     cmdLine.add("--name");
     cmdLine.add(name);
 
+    cmdLine.add("--acqtype");
+    cmdLine.add("accumulate");
+
+    if (enableCeStepping && currentCeFile != null && currentCeFile.exists()) {
+      cmdLine.add("--cetable");
+      cmdLine.add(currentCeFile.toPath().toString());
+    }
+
     replacePrecursorCsv(precursorList, true, spot, incrementCounter);
 
     if (!exportOnly) {
-      final ProcessBuilder builder = new ProcessBuilder(cmdLine);
-      builder.redirectOutput();
-      builder.redirectError();
+      final ProcessBuilder builder = new ProcessBuilder(cmdLine).inheritIO();
       final Process process;
 
       try {
@@ -238,10 +278,8 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
     try (var writer = new FileWriter(csv)) {
 
-      // activate CE settings from the MALDI MS/MS tab
       Writer w = new BufferedWriter(writer);
-      w.write("1");
-      w.write("\n");
+      w.write("1\n");  // activate CE settings from the MALDI MS/MS tab
       w.flush();
 
       ICSVWriter csvWriter = new CSVWriterBuilder(w).withSeparator(',')

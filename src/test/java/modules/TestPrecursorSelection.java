@@ -25,8 +25,7 @@ public class TestPrecursorSelection {
     final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = TopNSelectionModule.findOverlaps(
         list);
 
-    final List<List<MaldiTimsPrecursor>> lists = TopNSelectionModule.generateTargetLists(overlaps,
-        list);
+    final List<List<MaldiTimsPrecursor>> lists = TopNSelectionModule.findRampsIterative(overlaps);
     for (List<MaldiTimsPrecursor> precursors : lists) {
       logger.info(precursors.toString());
     }
@@ -59,16 +58,17 @@ public class TestPrecursorSelection {
     final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = TopNSelectionModule.findOverlaps(
         list);
 
-    final List<List<MaldiTimsPrecursor>> lists = TopNSelectionModule.generateTargetLists(overlaps,
-        list);
+//    final List<List<MaldiTimsPrecursor>> lists = TopNSelectionModule.generateTargetLists(overlaps,
+//        list);
+    final List<List<MaldiTimsPrecursor>> lists = TopNSelectionModule.findRampsIterative(overlaps);
     for (List<MaldiTimsPrecursor> precursors : lists) {
       logger.info(precursors.toString());
     }
 
     Assertions.assertEquals(3, lists.size());
-    Assertions.assertEquals(2, lists.get(0).size());
+    Assertions.assertEquals(3, lists.get(0).size());
     Assertions.assertEquals(3, lists.get(1).size());
-    Assertions.assertEquals(3, lists.get(1).size());
+    Assertions.assertEquals(2, lists.get(2).size());
   }
 
 }

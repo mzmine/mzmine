@@ -22,10 +22,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +55,7 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
 
     // arrange the topN precursors into non overlapping lists
     final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = findOverlaps(topN);
-    return generateTargetLists(overlaps, topN);
+    return findRampsIterative(overlaps);
   }
 
   public static Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> findOverlaps(
@@ -79,44 +79,87 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
     return overlapsMap;
   }
 
-  public static List<List<MaldiTimsPrecursor>> generateTargetLists(
-      Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps,
-      List<MaldiTimsPrecursor> allPrecursors) {
+  public static List<List<MaldiTimsPrecursor>> findRampsIterative(
+      Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps) {
+    final List<PrecursorOverlap> allPrecursorOverlaps = new ArrayList<>();
+    overlaps.forEach((k, v) -> allPrecursorOverlaps.add(new PrecursorOverlap(k, v)));
 
-    // copy the list, so we can sort out which precursors we still need to queue
-    final List<MaldiTimsPrecursor> remainingPrecursors = new ArrayList<>(allPrecursors);
+    allPrecursorOverlaps.sort(Comparator.reverseOrder());
 
-    // start with the entry with the most overlaps
-    final List<MaldiTimsPrecursor> precursorsByOverlaps = overlaps.entrySet().stream()
-        .sorted((e1, e2) -> Integer.compare(e1.getValue().size(), e2.getValue().size()) * -1)
-        .map(Entry::getKey).toList();
+    List<List<MaldiTimsPrecursor>> allRamps = new ArrayList<>();
+    List<MaldiTimsPrecursor> nextRamp = List.of();
+    while ((nextRamp = findNextRamp(allPrecursorOverlaps)).size() != 0) {
+      allRamps.add(nextRamp);
+    }
 
-    Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> precursorAcqLists = new HashMap<>();
-    for (final MaldiTimsPrecursor precursor : precursorsByOverlaps) {
-      if (!remainingPrecursors.contains(precursor)) {
-        // already queued
-        continue;
+    /*for (List<MaldiTimsPrecursor> ramp : allRamps) {
+      for (MaldiTimsPrecursor p1 : ramp) {
+        for (MaldiTimsPrecursor p2 : ramp) {
+          if(p1 == p2) {
+            continue;
+          }
+          if(overlaps(p1, p2)) {
+            throw new RuntimeException("Overlapping precursors in ramp");
+          }
+        }
       }
+    }*/
+    return allRamps;
+  }
 
-      final List<MaldiTimsPrecursor> precursorRampList = new ArrayList<>();
-      precursorRampList.add(precursor);
-      remainingPrecursors.remove(precursor);
-      final List<MaldiTimsPrecursor> overlapping = overlaps.get(precursor);
+  private static List<MaldiTimsPrecursor> findNextRamp(
+      List<PrecursorOverlap> allPrecursorOverlaps) {
+    if (allPrecursorOverlaps.isEmpty()) {
+      return List.of();
+    }
 
-      // add non overlapping precursors
-      for (final MaldiTimsPrecursor remaining : remainingPrecursors) {
-        if (!overlapping.contains(remaining) && !precursorRampList.stream()
-            .anyMatch(pre -> overlaps(pre, remaining))) {
-          precursorRampList.add(remaining);
+    final List<MaldiTimsPrecursor> currentRamp = new ArrayList<>();
+
+    PrecursorOverlap nextPrecursor = null;
+    while ((nextPrecursor = findNextPrecursor(currentRamp, allPrecursorOverlaps)) != null) {
+      allPrecursorOverlaps.remove(nextPrecursor);
+      currentRamp.add(nextPrecursor.precursor());
+      allPrecursorOverlaps.sort(Comparator.reverseOrder());
+    }
+    // remove overlaps only AFTER! the whole ramp was set
+    currentRamp.forEach(precursor -> removePrecursorFromOverlaps(precursor, allPrecursorOverlaps));
+
+    return currentRamp;
+  }
+
+  private static void removePrecursorFromOverlaps(MaldiTimsPrecursor precursor,
+      List<PrecursorOverlap> allPrecursorOverlaps) {
+    for (PrecursorOverlap allPrecursorOverlap : allPrecursorOverlaps) {
+      allPrecursorOverlap.overlaps().remove(precursor);
+    }
+  }
+
+
+  /**
+   * Finds the next precursor in the allPrecursorOverlaps list to fit into the current ramp. Does
+   * not alter any of the lists!
+   *
+   * @return The next precursor or null, if no other precursor fits.
+   */
+  @Nullable
+  private static PrecursorOverlap findNextPrecursor(List<MaldiTimsPrecursor> currentRamp,
+      List<PrecursorOverlap> allPrecursorOverlaps) {
+
+    for (PrecursorOverlap precursorOverlap : allPrecursorOverlaps) {
+      boolean noOverlap = true;
+      for (MaldiTimsPrecursor maldiTimsPrecursor : currentRamp) {
+        if (precursorOverlap.overlaps().contains(maldiTimsPrecursor)) {
+          noOverlap = false;
+          break;
         }
       }
 
-      // remove precursors that we added to the current ramp list
-      remainingPrecursors.removeAll(precursorRampList);
-      precursorAcqLists.put(precursor, precursorRampList);
+      if (noOverlap) {
+        return precursorOverlap;
+      }
     }
 
-    return precursorAcqLists.values().stream().toList();
+    return null;
   }
 
   public static boolean overlaps(MaldiTimsPrecursor p1, MaldiTimsPrecursor p2) {

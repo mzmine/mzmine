@@ -29,6 +29,8 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -83,11 +85,14 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
       "Path to msmsmaldi.exe", "", List.of(new ExtensionFilter("executable", ".exe")),
       FileSelectionType.OPEN);
 
+  public static final OptionalParameter<StringParameter> ceStepping = new OptionalParameter<>(
+      new StringParameter("CE stepping", "Acquire MS2 spectra with multiple collision energies.\n" +
+          "Collision energies may be decimals '.' separated by ','.", "20.0,35.0,45.0"), false);
   public static final BooleanParameter exportOnly = new BooleanParameter("Export MS/MS lists only",
       "Will only export MS/MS lists and not start an acquisition.", false);
 
   public TimsTOFMaldiAcquisitionParameters() {
     super(new Parameter[]{flists, precursorSelectionModule, minMobilityWidth, maxMobilityWidth,
-        savePathDir, initialOffsetY, incrementOffsetX, acquisitionControl, exportOnly});
+        savePathDir, initialOffsetY, incrementOffsetX, acquisitionControl, ceStepping, exportOnly});
   }
 }
