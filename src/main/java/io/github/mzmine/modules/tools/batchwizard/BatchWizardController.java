@@ -70,6 +70,8 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
@@ -85,6 +87,7 @@ import io.github.mzmine.modules.tools.batchwizard.defaults.DefaultMsParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt.Mode;
@@ -96,6 +99,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -108,10 +112,16 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.Weights;
+import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
+import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarityParameters;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -322,11 +332,23 @@ public class BatchWizardController {
     }
     q.add(makeMetaCorrStep(msParameters, hplcParameters));
     q.add(makeIinStep(msParameters, cbPolarity.getValue()));
+
+    if (checkLibraryFiles(libraryFiles)) {
+      q.add(makeLibrarySearchStep(libraryFiles));
+    }
+
     if (useExport && exportPath != null) {
       q.add(makeIimnGnpsExportStep(exportPath));
       q.add(makeSiriusExportStep(exportPath));
     }
     return q;
+  }
+
+  /**
+   * Checks if at least one library file was selected
+   */
+  private boolean checkLibraryFiles(FileNamesParameter libraryFiles) {
+    return Arrays.stream(libraryFiles.getValue()).anyMatch(Objects::nonNull);
   }
 
   @Nullable
@@ -883,6 +905,55 @@ public class BatchWizardController {
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
         param);
+  }
+
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeLibrarySearchStep(
+      FileNamesParameter libraryFiles) {
+    ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralLibrarySearchModule.class);
+
+    param.setParameter(SpectralLibrarySearchParameters.peakLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(SpectralLibrarySearchParameters.libraries, new SpectralLibrarySelection());
+    param.setParameter(SpectralLibrarySearchParameters.msLevel, 2);
+    param.setParameter(SpectralLibrarySearchParameters.allMS2Spectra, false);
+    param.setParameter(SpectralLibrarySearchParameters.cropSpectraToOverlap, false);
+    param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
+        new MZTolerance(0.01, 20));
+    param.setParameter(SpectralLibrarySearchParameters.mzTolerance, new MZTolerance(0.01, 20));
+    param.setParameter(SpectralLibrarySearchParameters.removePrecursor, true);
+    param.setParameter(SpectralLibrarySearchParameters.deisotoping, false);
+    param.setParameter(SpectralLibrarySearchParameters.noiseLevel, 0d);
+    param.setParameter(SpectralLibrarySearchParameters.needsIsotopePattern, false);
+    param.setParameter(SpectralLibrarySearchParameters.rtTolerance, false);
+    param.setParameter(SpectralLibrarySearchParameters.minMatch, 5);
+    // similarity
+    ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
+        SpectralLibrarySearchParameters.similarityFunction);
+
+    ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
+        .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
+        Weights.MASSBANK);
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
+        Weights.MASSBANK);
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.7);
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched,
+        HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
+
+    SpectralSimilarityFunction weightedCosineModule = SpectralSimilarityFunction.weightedCosine;
+    var libMatchStep = new MZmineProcessingStepImpl<>(weightedCosineModule, weightedCosineParam);
+
+    // finally set the libmatch module plus parameters as step
+    simFunction.setValue(libMatchStep);
+    // IMS
+    param.setParameter(SpectralLibrarySearchParameters.ccsTolerance, cbIonMobility.isSelected());
+    param.getParameter(SpectralLibrarySearchParameters.ccsTolerance).getEmbeddedParameter()
+        .setValue(0.5);
+
+    return new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(SpectralLibrarySearchModule.class), param);
   }
 
   // export
