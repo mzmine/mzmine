@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -41,4 +41,5 @@ public class BatchWizardParameters extends SimpleParameterSet {
   public BatchWizardParameters() {
     super(new Parameter[]{msParams, hplcParams, exportPath});
   }
+
 }
