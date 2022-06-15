@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.injection_time;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
+import java.text.NumberFormat;
 import java.util.List;
 
 /**
@@ -31,11 +32,38 @@ import java.util.List;
  */
 class InjectTimeDataProvider extends SimpleXYProvider {
 
+  private final double[] mobilities;
+  private final boolean useMobilities;
+  private NumberFormat mobilityFormat;
+
   public InjectTimeDataProvider(int msLevel, Color awt, List<InjectData> data) {
     super("MS" + msLevel, awt, null, null, MZmineCore.getConfiguration().getRTFormat(),
         MZmineCore.getConfiguration().getIntensityFormat());
     List<InjectData> filtered = data.stream().filter(d -> d.msLevel() == msLevel).toList();
     setxValues(filtered.stream().mapToDouble(v -> 1.0 / v.injectTime()).toArray());
     setyValues(filtered.stream().mapToDouble(InjectData::lowestIntensity).toArray());
+
+    mobilities = filtered.stream().mapToDouble(InjectData::mobility).toArray();
+    useMobilities = mobilities[0] > 0;
+  }
+
+  @Override
+  public String getLabel(int index) {
+    if (useMobilities) {
+      mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+      return mobilityFormat.format(mobilities[index]);
+    }
+
+    return super.getLabel(index);
+  }
+
+  @Override
+  public String getToolTipText(int itemIndex) {
+    if (useMobilities) {
+      mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+      return mobilityFormat.format(mobilities[itemIndex]);
+    }
+
+    return super.getToolTipText(itemIndex);
   }
 }

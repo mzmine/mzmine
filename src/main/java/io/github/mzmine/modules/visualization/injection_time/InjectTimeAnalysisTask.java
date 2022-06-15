@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
@@ -133,6 +134,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
       var defaultRenderer = new ColoredXYShapeRenderer();
       Color color = dataset.getAWTColor();
       defaultRenderer.setSeriesPaint(0, color);
+      defaultRenderer.setSeriesToolTipGenerator(0, new SimpleToolTipGenerator());
       chart.addDataset(dataset, new SpectraMassListRenderer(color));
 
       chart.addRegression(dataset, 0);
@@ -156,7 +158,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextFrame() != null) {
           while (scanAccess.nextMobilityScan() != null) {
-            addAllDataPoints(scanAccess, data);
+            addAllDataPoints(scanAccess, data, scanAccess.getMobility());
           }
         }
       } else {
@@ -164,7 +166,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
             scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextScan() != null) {
-          addAllDataPoints(scanAccess, data);
+          addAllDataPoints(scanAccess, data, -1d);
           processedScans++;
         }
       }
@@ -172,7 +174,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
     return data;
   }
 
-  private void addAllDataPoints(Scan scan, List<InjectData> data) {
+  private void addAllDataPoints(Scan scan, List<InjectData> data, double mobility) {
     Float injectTime = scan.getInjectionTime();
     if (injectTime == null) {
       return;
@@ -203,8 +205,9 @@ public class InjectTimeAnalysisTask extends AbstractTask {
       }
     }
     if (mz > 0 && maxIntensity / lowestIntensity >= minIntensityFactor) {
-      data.add(new InjectData(injectTime, lowestIntensity, mz, scan.getMSLevel()));
+      data.add(new InjectData(injectTime, lowestIntensity, mz, scan.getMSLevel(), mobility));
     }
   }
+
 
 }

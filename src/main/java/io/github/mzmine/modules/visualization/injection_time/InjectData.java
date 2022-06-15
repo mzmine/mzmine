@@ -25,8 +25,10 @@ package io.github.mzmine.modules.visualization.injection_time;
  * @param lowestIntensity lowest intensity in mass list
  * @param mz              the mz of the data point with lowest intensity
  * @param msLevel         the ms level of the scan
+ * @param mobility        ion mobility if present
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-record InjectData(double injectTime, double lowestIntensity, double mz, int msLevel) {
+record InjectData(double injectTime, double lowestIntensity, double mz, int msLevel,
+                  double mobility) {
 
 }
