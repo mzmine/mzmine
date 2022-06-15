@@ -25,12 +25,15 @@ import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.TextParameter;
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
-import io.github.mzmine.project.parameterssetup.columns.DoubleMetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.DateMetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.StringMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.DateMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.StringMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.MetadataTable;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.time.LocalDateTime;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -86,11 +89,11 @@ public class ProjectParametersSetupDialogController {
 
     // display the columns
     TableColumn[] tableColumns = new TableColumn[columnsNumber + 1];
-    tableColumns[0] = createColumn(0, "Data File");
+    tableColumns[0] = createColumn(0, "Data File", "These are the names of the RawDataFiles");
     var columns = metadataTable.getColumns();
     int columnId = 1;
     for (var col : columns) {
-      tableColumns[columnId] = createColumn(columnId, col.getTitle());
+      tableColumns[columnId] = createColumn(columnId, col.getTitle(), col.getDescription());
       columnId++;
     }
     parameterTable.getColumns().addAll(tableColumns);
@@ -111,7 +114,7 @@ public class ProjectParametersSetupDialogController {
   }
 
   private TableColumn<ObservableList<StringProperty>, String> createColumn(final int columnIndex,
-      String columnTitle) {
+      String columnTitle, String columnDescription) {
     // validate the column title (assign the default value in case if it's empty)
     TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
     String title;
@@ -121,7 +124,12 @@ public class ProjectParametersSetupDialogController {
       title = columnTitle;
     }
 
-    column.setText(title);
+    // add the tooltips
+    Label descriptionLabel = new Label(title);
+    descriptionLabel.setTooltip(new Tooltip(columnDescription));
+    descriptionLabel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+    column.setGraphic(descriptionLabel);
+
     // define what the cell value would be
     column.setCellValueFactory(cellDataFeatures -> {
       ObservableList<StringProperty> values = cellDataFeatures.getValue();
@@ -137,8 +145,9 @@ public class ProjectParametersSetupDialogController {
       column.setCellFactory(TextFieldTableCell.forTableColumn());
       column.setOnEditCommit(event -> {
         String parameterValueNew = event.getNewValue();
-        String parameterName = event.getTableColumn().getText().trim();
-        MetadataColumn<?> parameter = metadataTable.getColumnByName(parameterName);
+        // this complication in extracting the value is caused by using labels as the cells values
+        String parameterName = ((Label) event.getTableColumn().getGraphic()).getText();
+        MetadataColumn parameter = metadataTable.getColumnByName(parameterName);
 
         // define RawDataFile name
         int rowNumber = parameterTable.getSelectionModel().selectedIndexProperty().get();
@@ -151,45 +160,21 @@ public class ProjectParametersSetupDialogController {
           }
         }
 
-        // pattern match the metadata column type
-        // derive the example value from the parameter's type
-        String parameterMatchedType = "undef";
-        String parameterMatchedExample = "undef";
-        Object parameterMatchedDefaultValue = null;
-        MetadataColumn parameterMatched = switch (parameter) {
-          case StringMetadataColumn stringMetadataColumn -> {
-            parameterMatchedType = "String";
-            parameterMatchedExample = "\"String\"";
-            parameterMatchedDefaultValue = "defaultString";
-            yield stringMetadataColumn;
-          }
-          case DoubleMetadataColumn doubleMetadataColumn -> {
-            parameterMatchedType = "Double";
-            parameterMatchedExample = "\"1.46\"";
-            parameterMatchedDefaultValue = 1.621;
-            yield doubleMetadataColumn;
-          }
-          case DateMetadataColumn dateMetadataColumn -> {
-            parameterMatchedType = "Datetime";
-            parameterMatchedExample = "\"2022-12-24T10:11:36\"";
-            parameterMatchedDefaultValue = LocalDateTime.now();
-            yield dateMetadataColumn;
-          }
-        };
-
         // if the parameter value is in the right format then save it to the metadata table,
         // otherwise show alert dialog
-        Object convertedParameterInput = parameterMatched.convert(parameterValueNew,
-            parameterMatchedDefaultValue);
-        if (parameter.checkInput(convertedParameterInput)) {
-          metadataTable.setValue(parameterMatched, rawDataFile, convertedParameterInput);
+        Object convertedParameterInput = parameter.convert(parameterValueNew,
+            parameter.defaultValue());
+        // the first check allows us to unset an already set parameter's value
+        if ((convertedParameterInput == null && parameterValueNew.isBlank())
+            || parameter.checkInput(convertedParameterInput)) {
+          metadataTable.setValue(parameter, rawDataFile, convertedParameterInput);
         } else {
           Alert alert = new Alert(Alert.AlertType.INFORMATION);
           alert.setTitle("Wrong parameter value format");
           alert.setHeaderText(null);
           alert.setContentText(
-              "Please respect the " + parameterMatchedType + " parameter value format, e.g. "
-                  + parameterMatchedExample);
+              "Please respect the " + parameter.getType() + " parameter value format, e.g. "
+                  + parameter.exampleValue());
           alert.showAndWait();
         }
         // need to render
@@ -203,13 +188,15 @@ public class ProjectParametersSetupDialogController {
   }
 
   @FXML
-  public void addPara(ActionEvent actionEvent) {
+  public void addParameter(ActionEvent actionEvent) {
     ProjectMetadataParameters projectMetadataParameters = new ProjectMetadataParameters();
     ExitCode exitCode = projectMetadataParameters.showSetupDialog(true);
 
     StringParameter parameterTitle = projectMetadataParameters.getParameter(
         ProjectMetadataParameters.title);
-    ComboParameter<String> parameterType = projectMetadataParameters.getParameter(
+    TextParameter parameterDescription = projectMetadataParameters.getParameter(
+        ProjectMetadataParameters.description);
+    ComboParameter<AvailableTypes> parameterType = projectMetadataParameters.getParameter(
         ProjectMetadataParameters.valueType);
 
     if (exitCode == ExitCode.OK) {
@@ -223,16 +210,22 @@ public class ProjectParametersSetupDialogController {
         return;
       }
 
+      // it's important to replace tabs due to the tsv file format
+      String parameterDescriptionVal = parameterDescription.getValue().replace("\t", " ");
+
       // add the new column to the parameters table
-      switch (AvailableTypes.valueOf(parameterType.getValue())) {
+      switch (parameterType.getValue()) {
         case TEXT -> {
-          metadataTable.addColumn(new StringMetadataColumn(parameterTitle.getValue()));
+          metadataTable.addColumn(
+              new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
         }
         case DOUBLE -> {
-          metadataTable.addColumn(new DoubleMetadataColumn(parameterTitle.getValue()));
+          metadataTable.addColumn(
+              new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
         }
         case DATETIME -> {
-          metadataTable.addColumn(new DateMetadataColumn(parameterTitle.getValue()));
+          metadataTable.addColumn(
+              new DateMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
         }
       }
       // need to render
@@ -241,7 +234,7 @@ public class ProjectParametersSetupDialogController {
   }
 
   @FXML
-  public void importPara(ActionEvent actionEvent) {
+  public void importParameters(ActionEvent actionEvent) {
     ProjectParametersImporter importer = new ProjectParametersImporter(currentStage);
     if (importer.importParameters()) {
       logger.info("Successfully imported parameters from file");
@@ -252,7 +245,18 @@ public class ProjectParametersSetupDialogController {
   }
 
   @FXML
-  public void removePara(ActionEvent actionEvent) {
+  public void exportParameters(ActionEvent actionEvent) {
+    ProjectParametersExporter exporter = new ProjectParametersExporter(currentStage);
+    if (exporter.exportParameters()) {
+      logger.info("Successfully exported parameters");
+      updateParametersToTable();
+    } else {
+      logger.info("Exporting parameters to file failed");
+    }
+  }
+
+  @FXML
+  public void removeParameters(ActionEvent actionEvent) {
     TableColumn column = parameterTable.getFocusModel().getFocusedCell().getTableColumn();
     if (column == null) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -262,7 +266,7 @@ public class ProjectParametersSetupDialogController {
       alert.showAndWait();
       return;
     }
-    String parameterName = column.getText();
+    String parameterName = ((Label) column.getGraphic()).getText();
     if (parameterName.equals("Data File")) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
       alert.setTitle("Cannot remove Raw Data File Column");

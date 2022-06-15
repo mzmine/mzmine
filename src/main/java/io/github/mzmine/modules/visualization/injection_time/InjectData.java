@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,28 +16,19 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.columns;
+package io.github.mzmine.modules.visualization.injection_time;
 
 /**
- * Specific String-type implementation of the project parameter.
+ * Local data structure to represent injection time to intensity relationship for ms levels
+ *
+ * @param injectTime      the injection time of the scan
+ * @param lowestIntensity lowest intensity in mass list
+ * @param mz              the mz of the data point with lowest intensity
+ * @param msLevel         the ms level of the scan
+ * @param mobility        ion mobility if present
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public final class StringMetadataColumn extends MetadataColumn<String> {
+record InjectData(double injectTime, double lowestIntensity, double mz, int msLevel,
+                  double mobility) {
 
-  public StringMetadataColumn(String title) {
-    super(title);
-  }
-
-  public StringMetadataColumn(String title, String description) {
-    super(title, description);
-  }
-
-  @Override
-  public boolean checkInput(Object value) {
-    return value instanceof String;
-  }
-
-  @Override
-  public String convert(String input, String defaultValue) {
-    return input == null ? defaultValue : input.trim();
-  }
 }

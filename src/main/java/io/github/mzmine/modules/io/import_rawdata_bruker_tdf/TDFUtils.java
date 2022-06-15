@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
@@ -441,6 +441,8 @@ public class TDFUtils {
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue()) + "Frame #" + frameId
             + " RT: " + rt;
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
 
     double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
@@ -458,12 +460,13 @@ public class TDFUtils {
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
       frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
-          MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, MobilityType.TIMS, null);
+          MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, MobilityType.TIMS, null,
+          accumulationTime);
     } else {
       frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
           data[1], MassSpectrumType.CENTROIDED, polarity,
           scanDefinition + " " + maldiFrameInfoTable.getSpotNameColumn().get(frameIndex), mzRange,
-          MobilityType.TIMS, null);
+          MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
@@ -515,6 +518,8 @@ public class TDFUtils {
             frameTable.getScanModeColumn().get(frameIndex).intValue()) + "Frame #" + frameId
             + " RT: " + rt;
     final Range<Double> mzRange = metaDataTable.getMzRange();
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
 
     final int[] intensityData = extractProfileForFrame(frameId, 0, numScans);
 
@@ -553,12 +558,11 @@ public class TDFUtils {
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
       frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
           massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE, polarity,
-          scanDefinition, mzRange, MobilityType.TIMS, null);
+          scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
     } else {
       frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
           data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
-          polarity, scanDefinition + " " + maldiFrameInfoTable.getSpotNameColumn().get(frameIndex),
-          mzRange, MobilityType.TIMS, null);
+          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
