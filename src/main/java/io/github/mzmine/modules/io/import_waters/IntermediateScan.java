@@ -24,6 +24,7 @@ public class IntermediateScan  {
   private Range<Double> MZRange;
   private int function_number;
   private float retentionTime;
+  // Number in function ?
 
   public IntermediateScan(boolean iscontinuum,int mslevel, MassLynxIonMode ionmode,
       Range<Double> MZRange, int function_number,float retentionTime)
