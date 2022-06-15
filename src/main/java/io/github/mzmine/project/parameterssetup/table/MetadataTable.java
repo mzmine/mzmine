@@ -16,13 +16,18 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup;
+package io.github.mzmine.project.parameterssetup.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /**
  * Holds the metadata of a project and represents it as a table (parameters are columns).
@@ -30,6 +35,16 @@ import java.util.Set;
 public class MetadataTable {
 
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
+
+  // use GoF "State" pattern where the state will interpret the table format (either long or wide)
+  private TableExportUtility tableExportUtility = new WideTableExportUtility(this);
+
+  // define the header fields names of the file with imported metadata
+  private enum HeaderFields {
+    NAME, DESC, TYPE, FILE, VALUE
+  }
+
+  private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
 
   public MetadataTable() {
     this.data = new HashMap<>();
@@ -56,7 +71,7 @@ public class MetadataTable {
    * @param column new parameter column
    */
   public void addColumn(MetadataColumn<?> column) {
-    data.putIfAbsent(column, new HashMap<>());
+    data.putIfAbsent(column, new ConcurrentHashMap<>());
   }
 
   /**
@@ -66,6 +81,19 @@ public class MetadataTable {
    */
   public void removeColumn(MetadataColumn<?> column) {
     data.remove(column);
+  }
+
+  /**
+   * Remove the all parameters values for a passed file.
+   *
+   * @param file file for which parameters values should be deleted.
+   */
+  public void removeFile(RawDataFile file) {
+    // iterate through the all parameters and try to delete the parameters
+    // values mapped to the passed file
+    for (var param : data.keySet()) {
+      data.get(param).remove(file);
+    }
   }
 
   /**
@@ -112,6 +140,7 @@ public class MetadataTable {
    * @param <T>         type of the project parameter
    * @return parameter value
    */
+  @SuppressWarnings("unchecked")
   public <T> T getValue(MetadataColumn<T> column, RawDataFile rawDataFile) {
     var row = data.get(column);
     if (row != null) {
@@ -130,11 +159,47 @@ public class MetadataTable {
    * @param value  value to be set
    * @param <T>    type of the parameter
    */
-  public <T> void setValue(MetadataColumn<T> column, RawDataFile file, T value) {
+  public <T> void setValue(MetadataColumn<T> column, RawDataFile file, @Nullable T value) {
     if (!data.containsKey(column)) {
       addColumn(column);
     }
 
-    data.get(column).put(file, value);
+    // this check is necessary because a ConcurrentMap can't contain null values
+    if (value == null) {
+      data.get(column).remove(file);
+    } else {
+      data.get(column).put(file, value);
+    }
+  }
+
+  /**
+   * Export the metadata depending on the table format (state).
+   *
+   * @param file where the metadata will be exported to
+   * @return was the export successful?
+   */
+  public boolean exportMetadata(File file) {
+    return tableExportUtility.exportTo(file);
+  }
+
+  /**
+   * Import the metadata depending on the table format (state).
+   *
+   * @param file       from which the metadata will be exported
+   * @param appendMode whether the new metadata should be appended or they should replace the old
+   *                   metadata
+   * @return was the import successful?
+   */
+  public boolean importMetadata(File file, boolean appendMode) {
+    return tableExportUtility.importFrom(file, appendMode);
+  }
+
+  /**
+   * Update the state of the tableExportUtility.
+   *
+   * @param tableExportUtility the new state which represents the new table format.
+   */
+  public void setTableExportUtility(TableExportUtility tableExportUtility) {
+    this.tableExportUtility = tableExportUtility;
   }
 }

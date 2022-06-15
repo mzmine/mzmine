@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -35,11 +35,11 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   public static final String XML_SCAN_TYPE = "simplescan";
-
-  @NotNull private final RawDataFile dataFile;
+  protected final Float injectionTime;
+  @NotNull
+  private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
-
   private float retentionTime;
   private PolarityType polarity;
   private String scanDefinition;
@@ -55,7 +55,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
         newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
-        sc.getScanDefinition(), sc.getScanningMZRange());
+        sc.getScanDefinition(), sc.getScanningMZRange(), sc.getInjectionTime());
   }
 
 
@@ -66,6 +66,15 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
       @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
+
+    this(dataFile, scanNumber, msLevel, retentionTime, msMsInfo, mzValues, intensityValues,
+        spectrumType, polarity, scanDefinition, scanMZRange, null);
+  }
+
+  public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
+      @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange, @Nullable Float injectionTime) {
 
     super(dataFile.getMemoryMapStorage(), mzValues, intensityValues);
 
@@ -78,6 +87,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.scanMZRange = scanMZRange;
     setSpectrumType(spectrumType);
     setMsMsInfo(msMsInfo);
+    this.injectionTime = injectionTime;
   }
 
 
@@ -198,5 +208,9 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return scanMZRange;
   }
 
+  @Override
+  public @Nullable Float getInjectionTime() {
+    return injectionTime;
+  }
 }
 

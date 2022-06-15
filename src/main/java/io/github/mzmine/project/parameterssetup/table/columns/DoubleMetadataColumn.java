@@ -16,7 +16,9 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.columns;
+package io.github.mzmine.project.parameterssetup.table.columns;
+
+import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 
 /**
  * Specific Double-type implementation of the project parameter.
@@ -37,12 +39,26 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
   }
 
   @Override
+  public AvailableTypes getType() {
+    return AvailableTypes.DOUBLE;
+  }
+
+  @Override
   public Double convert(String input, Double defaultValue) {
     try {
       return input == null ? defaultValue : Double.parseDouble(input.trim());
     } catch (NumberFormatException ignored) {
+      return defaultValue;
     }
+  }
 
+  @Override
+  public Double defaultValue() {
     return null;
+  }
+
+  @Override
+  public Double exampleValue() {
+    return 19.21;
   }
 }

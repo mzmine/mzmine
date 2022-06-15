@@ -72,7 +72,12 @@
 
     <SeparatorMenuItem/>
     <MenuItem text="Set sample parameters"
-      onAction="#setSampleParams"/>
+      onAction="#setSampleParams">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="M"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
 
     <SeparatorMenuItem/>
     <MenuItem onAction="#setPreferences" text="Set preferences">
@@ -330,7 +335,7 @@
     <Menu text="Feature grouping">
       <MenuItem text="metaCorrelate (corrGroup)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
-      <MenuItem text="MS/MS similarity" onAction="#runModule"
+      <MenuItem text="MS/MS spectral networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
@@ -510,7 +515,7 @@
 
     <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Feature networking"
+    <MenuItem onAction="#runModule" text="Interactive Ion Identity Molecular Networks"
       userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
       userData="io.github.mzmine.modules.visualization.mzhistogram.CorrelatedFeaturesMzHistogramModule"/>

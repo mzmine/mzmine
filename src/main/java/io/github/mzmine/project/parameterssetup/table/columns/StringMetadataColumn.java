@@ -16,7 +16,9 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.columns;
+package io.github.mzmine.project.parameterssetup.table.columns;
+
+import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 
 /**
  * Specific String-type implementation of the project parameter.
@@ -37,7 +39,22 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
   }
 
   @Override
+  public AvailableTypes getType() {
+    return AvailableTypes.TEXT;
+  }
+
+  @Override
   public String convert(String input, String defaultValue) {
     return input == null ? defaultValue : input.trim();
+  }
+
+  @Override
+  public String defaultValue() {
+    return null;
+  }
+
+  @Override
+  public String exampleValue() {
+    return "Example";
   }
 }
