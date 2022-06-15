@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -140,6 +140,9 @@ public class BatchWizardController {
       .getEmbeddedParameters();
   final ParameterSetupDialog msDialog = new ParameterSetupDialog(false, msParameters);
 
+  final ParameterSet dataInputParams = wizardParam.getParameter(
+      BatchWizardParameters.dataInputParams).getEmbeddedParameters();
+
   public RadioButton rbOrbitrap;
   public RadioButton rbTOF;
   public ToggleGroup massSpec;
@@ -158,6 +161,8 @@ public class BatchWizardController {
   private FileNamesParameter files;
   private FileNamesComponent filesComponent;
   private OptionalParameterComponent<?> exportPathComponent;
+  private FileNamesParameter libraryFiles;
+  private FileNamesComponent libraryFilesComponent;
 
   public void initialize() {
     pnParametersMS.add(msDialog.getParamsPane(), 0, 1, 1, 1);
@@ -175,14 +180,18 @@ public class BatchWizardController {
     rightMenu.setSpacing(4);
     rightMenu.getChildren().add(0, box);
 
-    files = new FileNamesParameter("MS data files",
-        "Please select the data files you want to process.",
-        AllSpectralDataImportParameters.extensions);
+    files = dataInputParams.getParameter(AllSpectralDataImportParameters.fileNames);
     filesComponent = files.createEditingComponent();
-
     pnParametersMS.add(filesComponent, 0, 3, 1, 1);
+
+    // libraries
+    libraryFiles = dataInputParams.getParameter(SpectralLibraryImportParameters.dataBaseFiles);
+    libraryFilesComponent = libraryFiles.createEditingComponent();
+    pnParametersMS.add(libraryFilesComponent, 0, 5, 1, 1);
+
     pnParametersMS.layout();
 
+    // right side
     cbIonMobility.disableProperty().bind(rbTOF.selectedProperty().not());
     cbMobilityType.disableProperty().bind(rbTOF.selectedProperty().not());
     rbOrbitrap.setSelected(true);
@@ -254,6 +263,8 @@ public class BatchWizardController {
 
     files.setValueFromComponent(filesComponent);
     files.checkValue(errorMessages);
+    libraryFiles.setValueFromComponent(libraryFilesComponent);
+    libraryFiles.checkValue(errorMessages);
 
     if (!errorMessages.isEmpty()) {
       MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
@@ -275,7 +286,7 @@ public class BatchWizardController {
 
   private BatchQueue createQueue(boolean useExport, File exportPath) {
     final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask(files));
+    q.add(makeImportTask(files, libraryFiles));
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
 
@@ -346,7 +357,8 @@ public class BatchWizardController {
 
     final Isotope13CFilterParameters filterIsoParam = param.getParameter(
         RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
-    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance, msParameters.getValue(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance));
+    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance,
+        msParameters.getValue(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance));
     filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
     filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
@@ -368,7 +380,8 @@ public class BatchWizardController {
     param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
     param.setParameter(RowsFilterParameters.Reset_ID, false);
     param.setParameter(RowsFilterParameters.massDefect, false);
-    param.setParameter(RowsFilterParameters.handleOriginal, hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
+    param.setParameter(RowsFilterParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),
         param);
@@ -424,14 +437,15 @@ public class BatchWizardController {
         param);
   }
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeImportTask(FileNamesParameter files) {
+  private MZmineProcessingStep<MZmineProcessingModule> makeImportTask(FileNamesParameter files,
+      FileNamesParameter libraryFiles) {
     // todo make auto mass detector work, so we can use it here.
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
     param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(files.getValue());
-    // for now import no libraries
-    param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(new File[0]);
+    param.getParameter(SpectralLibraryImportParameters.dataBaseFiles)
+        .setValue(libraryFiles.getValue());
 
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param);
@@ -606,7 +620,7 @@ public class BatchWizardController {
     groupParam.setParameter(GroupMS2SubParameters.outputNoiseLevel, hasIMS);
     groupParam.getParameter(GroupMS2SubParameters.outputNoiseLevel).getEmbeddedParameter().setValue(
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
-        * 2);
+            * 2);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
@@ -664,7 +678,7 @@ public class BatchWizardController {
         .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
         .getEmbeddedParameter().setValue(
             msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
-            * 2);
+                * 2);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.MOBILITY);
