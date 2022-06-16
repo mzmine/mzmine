@@ -19,11 +19,11 @@
 package parameterssetup;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.project.parameterssetup.table.MetadataTable;
-import io.github.mzmine.project.parameterssetup.table.columns.DateMetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.columns.DoubleMetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.columns.StringMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;

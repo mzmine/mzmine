@@ -17,7 +17,7 @@
  */
 
 
-package io.github.mzmine.project.parameterssetup;
+package io.github.mzmine.modules.visualization.projectmetadata;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -26,15 +26,13 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
-import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
-import io.github.mzmine.project.parameterssetup.table.columns.DoubleMetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.columns.DateMetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.columns.StringMetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.ExitCode;
-import java.io.File;
-import java.time.LocalDateTime;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -49,7 +47,7 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-public class ProjectParametersSetupDialogController {
+public class ProjectParametersSetupPaneController {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();

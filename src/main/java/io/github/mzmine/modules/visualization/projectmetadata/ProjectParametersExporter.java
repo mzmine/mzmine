@@ -16,11 +16,11 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup;
+package io.github.mzmine.modules.visualization.projectmetadata;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.project.parameterssetup.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import java.io.File;
 import java.util.logging.Logger;
 import javafx.stage.FileChooser;
