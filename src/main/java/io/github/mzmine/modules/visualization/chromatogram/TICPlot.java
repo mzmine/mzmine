@@ -114,7 +114,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     // Initialize.
-    // visualizer = listener;
     labelsVisible = 1;
     havePeakLabels = false;
     showSpectrumRequest = false;

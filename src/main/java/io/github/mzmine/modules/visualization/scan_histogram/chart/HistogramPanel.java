@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,14 +8,15 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram.chart;
+package io.github.mzmine.modules.visualization.scan_histogram.chart;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
@@ -111,8 +112,8 @@ public class HistogramPanel extends BorderPane {
       txtBinShift.setText("0");
 
       pnHistoSett = new HBox(5);
-      pnHistoSett.getChildren().addAll(cbExcludeSmallerNoise, lblBinWidth, txtBinWidth,
-          lblBinShift, txtBinShift);
+      pnHistoSett.getChildren()
+          .addAll(cbExcludeSmallerNoise, lblBinWidth, txtBinWidth, lblBinShift, txtBinShift);
       pnHistoSett.setAlignment(Pos.CENTER);
     }
     {
@@ -127,13 +128,13 @@ public class HistogramPanel extends BorderPane {
       cbGaussianFit = new CheckBox("Gaussian fit");
 
       txtGaussianLower = new TextField();
-      txtGaussianLower
-          .setTooltip(new Tooltip("The lower bound (domain axis) for the Gaussian fit"));
+      txtGaussianLower.setTooltip(
+          new Tooltip("The lower bound (domain axis) for the Gaussian fit"));
       txtGaussianLower.setText("0");
 
       txtGaussianUpper = new TextField();
-      txtGaussianUpper
-          .setTooltip(new Tooltip("The upper bound (domain axis, x) for the Gaussian fit"));
+      txtGaussianUpper.setTooltip(
+          new Tooltip("The upper bound (domain axis, x) for the Gaussian fit"));
       txtGaussianUpper.setText("0");
 
       txtPrecision = new TextField();
@@ -515,7 +516,7 @@ public class HistogramPanel extends BorderPane {
   /**
    * Set zoom factor around peak at data point i
    *
-   * @param i
+   * @param i index
    */
   private void setZoomAroundFeatureAt(int i) {
     XYPlot plot = getXYPlot();
