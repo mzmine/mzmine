@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -33,12 +33,16 @@ public class BatchWizardParameters extends SimpleParameterSet {
   public static final ParameterSetParameter hplcParams = new ParameterSetParameter(
       "(U)HPLC parameters", "", new BatchWizardHPLCParameters());
 
+  public static final ParameterSetParameter dataInputParams = new ParameterSetParameter(
+      "Data input", "Data files and spectral library files", new BatchWizardDataInputParameters());
+
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
           "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
           FileSelectionType.SAVE, false), false);
 
   public BatchWizardParameters() {
-    super(new Parameter[]{msParams, hplcParams, exportPath});
+    super(new Parameter[]{msParams, hplcParams, dataInputParams, exportPath});
   }
+
 }

@@ -30,17 +30,16 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
 import io.github.mzmine.util.javafx.TableViewUitls;
 import java.text.NumberFormat;
-import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.GridPane;
@@ -51,9 +50,7 @@ public class RawDataFileInfoPaneController {
   private static final Logger logger = Logger.getLogger(
       RawDataFileInfoPaneController.class.getName());
 
-  private RawDataFile rawDataFile;
   private boolean populated = false;
-  private List<TableRow> rawDataTableViewRows;
 
   @FXML
   private TableView<ScanDescription> rawDataTableView;
@@ -65,7 +62,7 @@ public class RawDataFileInfoPaneController {
   private TableColumn<ScanDescription, String> rtColumn;
 
   @FXML
-  private TableColumn<ScanDescription, Double> basePeakColumn;
+  private TableColumn<ScanDescription, String> basePeakColumn;
 
   @FXML
   private TableColumn<ScanDescription, String> basePeakIntensityColumn;
@@ -84,6 +81,8 @@ public class RawDataFileInfoPaneController {
 
   @FXML
   private TableColumn<ScanDescription, String> polarityColumn;
+  @FXML
+  private TableColumn<ScanDescription, String> injectTimeColumn;
 
   @FXML
   private TableColumn<ScanDescription, String> definitionColumn;
@@ -115,12 +114,11 @@ public class RawDataFileInfoPaneController {
    * @param rawDataFile
    */
   protected void populate(RawDataFile rawDataFile) {
-    if (populated == true) {
+    if (populated) {
       return;
     }
     logger.fine("Populating table for raw data file " + rawDataFile.getName());
     populated = true;
-    this.rawDataFile = rawDataFile;
     updateRawDataFileInfo(rawDataFile);
     updateScanTable(rawDataFile);
   }
@@ -164,22 +162,26 @@ public class RawDataFileInfoPaneController {
   }
 
   protected void updateScanTable(RawDataFile rawDataFile) {
-
-    scanColumn.setCellValueFactory(new PropertyValueFactory<>("scanNumber"));
-    rtColumn.setCellValueFactory(new PropertyValueFactory<>("retentionTime"));
-    msLevelColumn.setCellValueFactory(new PropertyValueFactory<>("msLevel"));
-    basePeakColumn.setCellValueFactory(new PropertyValueFactory<>("basePeak"));
-    basePeakIntensityColumn.setCellValueFactory(new PropertyValueFactory<>("basePeakIntensity"));
-    precursorMzColumn.setCellValueFactory(new PropertyValueFactory<>("precursorMz"));
-    mzRangeColumn.setCellValueFactory(new PropertyValueFactory<>("mzRange"));
-    scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
-    polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
-    definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
-
+    scanColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().scanNumber()));
+    rtColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().retentionTime()));
+    msLevelColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().msLevel()));
+    basePeakColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().basePeak()));
+    basePeakIntensityColumn.setCellValueFactory(
+        p -> new SimpleStringProperty(p.getValue().basePeakIntensity()));
+    precursorMzColumn.setCellValueFactory(
+        p -> new SimpleStringProperty(p.getValue().precursorMz()));
+    mzRangeColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().mzRange()));
+    scanTypeColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().scanType()));
+    polarityColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().polarity()));
+    injectTimeColumn.setCellValueFactory(
+        p -> new SimpleStringProperty(p.getValue().injectionTime()));
+    definitionColumn.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().definition()));
     scanColumn.setComparator(new StringToDoubleComparator());
     rtColumn.setComparator(new StringToDoubleComparator());
     msLevelColumn.setComparator(new StringToDoubleComparator());
-    // basePeakColumn.setComparator(new StringToDoubleComparator());
+    precursorMzColumn.setComparator(new StringToDoubleComparator());
+    injectTimeColumn.setComparator(new StringToDoubleComparator());
+    basePeakColumn.setComparator(new StringToDoubleComparator());
     basePeakIntensityColumn.setComparator(new StringToDoubleComparator());
 
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
@@ -212,8 +214,6 @@ public class RawDataFileInfoPaneController {
 
   /**
    * Used to add action listener for table selection
-   *
-   * @return
    */
   protected TableView<ScanDescription> getRawDataTableView() {
     return rawDataTableView;
@@ -222,11 +222,10 @@ public class RawDataFileInfoPaneController {
   private class PopulateTask implements Task {
 
     private final ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
-
+    private final RawDataFile rawDataFile;
     private double perc = 0;
     private TaskStatus status;
     private boolean isCanceled;
-    private final RawDataFile rawDataFile;
 
     public PopulateTask(RawDataFile rawDataFile) {
       perc = 0;
@@ -287,6 +286,9 @@ public class RawDataFileInfoPaneController {
           basePeakIntensity = itFormat.format(scan.getBasePeakIntensity());
         }
 
+        String injectTime = Optional.ofNullable(scan.getInjectionTime()).map(rtFormat::format)
+            .orElse("");
+
         tableData.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan
             // number
             rtFormat.format(scan.getRetentionTime()), // rt
@@ -297,10 +299,10 @@ public class RawDataFileInfoPaneController {
             scan.getPolarity().toString(), // polarity
             scan.getScanDefinition(), // definition
             basePeakMZ, // base peak mz
-            basePeakIntensity) // base peak intensity
+            basePeakIntensity, injectTime) // base peak intensity and inject time
         );
 
-        perc = i / (scanNumbers.size() + 1);
+        perc = i / (double) (scanNumbers.size() + 1);
         if (isCanceled) {
           status = TaskStatus.CANCELED;
           return;

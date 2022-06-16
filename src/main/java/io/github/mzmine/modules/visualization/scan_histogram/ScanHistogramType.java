@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,33 +16,21 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.columns;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 /**
- * Specific Double-type implementation of the project parameter.
+ * The data types that can be displayed in a scan histogram
  */
-public final class DoubleMetadataColumn extends MetadataColumn<Double> {
-
-  public DoubleMetadataColumn(String title) {
-    super(title);
-  }
-
-  public DoubleMetadataColumn(String title, String description) {
-    super(title, description);
-  }
+public enum ScanHistogramType {
+  MZ, INTENSITY, INTENSITY_RECAL, MASS_DEFECT;
 
   @Override
-  public boolean checkInput(Object value) {
-    return value instanceof Double;
-  }
-
-  @Override
-  public Double convert(String input, Double defaultValue) {
-    try {
-      return input == null ? defaultValue : Double.parseDouble(input.trim());
-    } catch (NumberFormatException ignored) {
-    }
-
-    return null;
+  public String toString() {
+    return switch (this) {
+      case MZ -> "m/z";
+      case INTENSITY -> "Intensity";
+      case INTENSITY_RECAL -> "Intensity (noise recalibrated)";
+      case MASS_DEFECT -> "Mass defect";
+    };
   }
 }

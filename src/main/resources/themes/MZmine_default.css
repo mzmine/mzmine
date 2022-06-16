@@ -106,11 +106,11 @@
 }
 
 .title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
 }
 
 .bold-title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
   -fx-font-weight: bold;
 }
 

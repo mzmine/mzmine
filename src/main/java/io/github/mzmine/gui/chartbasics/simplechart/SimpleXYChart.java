@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
@@ -59,15 +60,19 @@ import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.statistics.Regression;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
- * Generic plot class that can be used to plot everything that implements the {@link
- * PlotXYDataProvider} interface or is a {@link ColoredXYDataset}.
+ * Generic plot class that can be used to plot everything that implements the
+ * {@link PlotXYDataProvider} interface or is a {@link ColoredXYDataset}.
  *
  * @param <T>
  * @author https://github.com/SteffenHeu
@@ -79,7 +84,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     SimpleChart<T> {
 
   private static final double AXIS_MARGINS = 0.01;
-  private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
+  private static final Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
   protected final JFreeChart chart;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
@@ -472,5 +477,23 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
   public BooleanProperty itemLabelsVisibleProperty() {
     return itemLabelsVisible;
+  }
+
+  public void addRegression(ColoredXYDataset dataset, int series) {
+    var regressionRenderer = new XYLineAndShapeRenderer(true, false);
+    regressionRenderer.setSeriesPaint(series, dataset.getAWTColor());
+
+    double[] coefficients = Regression.getOLSRegression(dataset, series);
+    double b = coefficients[0]; // intercept
+    double m = coefficients[1]; // slope
+
+    Range<Double> xrange = dataset.getDomainValueRange();
+    XYSeries trend = new XYSeries(String.format("y=%.3f+%.3f", b, m));
+    double x = xrange.lowerEndpoint();
+    trend.add(x, m * x + b);
+    x = xrange.upperEndpoint();
+    trend.add(x, m * x + b);
+
+    addDataset(new XYSeriesCollection(trend), regressionRenderer);
   }
 }

@@ -27,7 +27,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
-import io.github.mzmine.project.parameterssetup.MetadataTable;
+import io.github.mzmine.project.parameterssetup.table.MetadataTable;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -222,8 +222,11 @@ public class MZmineProjectImpl implements MZmineProject {
       rawDataFiles.removeAll(file);
       fireDataFilesChangeEvent(List.of(file), Type.REMOVED);
 
-      // Close the data file, which also removed the temporary data
       for (RawDataFile f : file) {
+        // Remove the file from the metadata table
+        projectMetadata.removeFile(f);
+
+        // Close the data file, which also removed the temporary data
         f.close();
       }
     } finally {

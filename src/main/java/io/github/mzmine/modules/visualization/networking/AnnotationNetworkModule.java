@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -33,19 +33,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class AnnotationNetworkModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "MS annotations networks";
-  private static final String MODULE_DESCRIPTION =
-      "Visualise the results of the MS annotation module";
+  private static final String MODULE_NAME = "Ion Identity Molecular Networks";
+  private static final String MODULE_DESCRIPTION = "Visualize the results of the MS annotation module";
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
@@ -55,19 +52,19 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ModularFeatureList[] pkls = parameters.getParameter(AnnotationNetworkParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
-    boolean connectByNetRelations =
-        parameters.getParameter(AnnotationNetworkParameters.CONNECT_BY_NET_RELATIONS).getValue();
-    boolean onlyBest =
-        parameters.getParameter(AnnotationNetworkParameters.ONLY_BEST_NETWORKS).getValue();
-    boolean collapseNodes =
-        parameters.getParameter(AnnotationNetworkParameters.COLLAPSE_NODES).getValue();
-    boolean ms2SimEdges =
-        parameters.getParameter(AnnotationNetworkParameters.MS2_SIMILARITY_EDGES).getValue();
-    boolean ms1FeatureShapeEdges =
-        parameters.getParameter(AnnotationNetworkParameters.MS1_SIMILARITY_EDGES).getValue();
+    boolean connectByNetRelations = parameters.getParameter(
+        AnnotationNetworkParameters.CONNECT_BY_NET_RELATIONS).getValue();
+    boolean onlyBest = parameters.getParameter(AnnotationNetworkParameters.ONLY_BEST_NETWORKS)
+        .getValue();
+    boolean collapseNodes = parameters.getParameter(AnnotationNetworkParameters.COLLAPSE_NODES)
+        .getValue();
+    boolean ms2SimEdges = parameters.getParameter(AnnotationNetworkParameters.MS2_SIMILARITY_EDGES)
+        .getValue();
+    boolean ms1FeatureShapeEdges = parameters.getParameter(
+        AnnotationNetworkParameters.MS1_SIMILARITY_EDGES).getValue();
     if (pkls != null && pkls.length > 0) {
-      FeatureNetworkTab f = new FeatureNetworkTab(pkls[0], collapseNodes,
-          connectByNetRelations, onlyBest, ms2SimEdges, ms1FeatureShapeEdges);
+      FeatureNetworkTab f = new FeatureNetworkTab(pkls[0], collapseNodes, connectByNetRelations,
+          onlyBest, ms2SimEdges, ms1FeatureShapeEdges);
       MZmineCore.getDesktop().addTab(f);
       return ExitCode.OK;
     }
@@ -75,14 +72,12 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return AnnotationNetworkParameters.class;
   }
 }

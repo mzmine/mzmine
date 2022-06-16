@@ -27,7 +27,7 @@ public class ProjectParametersSetupDialog extends Stage {
   public ProjectParametersSetupDialog(){
     try{
       FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectParametersSetupDialog.fxml"));
-      setTitle("Setup project parameters and values");
+      setTitle("Sample metadata");
       Scene rootScene = loader.load();
       setMinWidth(700);
       setMinHeight(400);

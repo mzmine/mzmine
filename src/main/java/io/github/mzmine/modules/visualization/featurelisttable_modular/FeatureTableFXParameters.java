@@ -38,17 +38,19 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "Lock images to aspect ratio",
       "If enabled, the width of the column will be determined by the lateral width of "
           + "the image.\nNevertheless, this options is capped to a maximum width of "
-          + GraphicalColumType.MAXIMUM_GRAPHICAL_CELL_WIDTH + " pixels.",
-      false);
+          + GraphicalColumType.MAXIMUM_GRAPHICAL_CELL_WIDTH + " pixels.", false);
 
-  public static final BooleanParameter hideImageAxes = new BooleanParameter(
-      "Hide image axes",
-      "If ticked, the axes of image plots will be hidden.",
-      false);
+  public static final BooleanParameter hideImageAxes = new BooleanParameter("Hide image axes",
+      "If ticked, the axes of image plots will be hidden.", false);
+
+  public static final BooleanParameter normalizeImagesTIC = new BooleanParameter(
+      "Normalize images to TIC",
+      "Specifies if images displayed in the feature table shall be normalized to the average TIC or shown according to the raw data.",
+      true);
 
   public FeatureTableFXParameters() {
     super(new Parameter[]{showRowTypeColumns, showFeatureTypeColumns, lockImagesToAspectRatio,
-        hideImageAxes});
+        hideImageAxes, normalizeImagesTIC});
   }
 
 }
