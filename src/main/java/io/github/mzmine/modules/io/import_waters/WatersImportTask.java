@@ -16,15 +16,11 @@
 package io.github.mzmine.modules.io.import_waters;
 
 import MassLynxSDK.MassLynxFunctionType;
-import MassLynxSDK.MassLynxIonMode;
 import MassLynxSDK.MassLynxRawInfoReader;
 import MassLynxSDK.MassLynxRawScanReader;
 import MassLynxSDK.MasslynxRawException;
-import MassLynxSDK.Scan;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
@@ -50,7 +46,6 @@ public class WatersImportTask extends AbstractTask {
   private RawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private Scan scan;
   private String description;
   private double finishedPercentage;
   private double lastFinishedPercentage;
@@ -101,13 +96,14 @@ public class WatersImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
-    readMetaData(filenamepath);
+    loadRegularFile(filenamepath);
     setStatus(TaskStatus.FINISHED);
   }
-  private void readMetaData(String filepath){
+  private void loadRegularFile(String filepath){
     try {
       setDescription("Reading metadata from "+this.fileNameToOpen.getName());
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
+      boolean isval=isIonMobilityFile(massLynxRawInfoReader);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       ArrayList<IntermediateScan> intermediatescanarray=new ArrayList<>();
       ArrayList<SimpleScan> simpleScanArrayList=new ArrayList<>();
@@ -126,13 +122,19 @@ public class WatersImportTask extends AbstractTask {
 
         for (int j = 0; j < scanvalue; ++j)
         {
-          intermediatescan=new IntermediateScan(massLynxRawInfoReader.IsContinuum(i),mslevel,
-              massLynxRawInfoReader.GetIonMode(i),mzrange,functioncount,massLynxRawInfoReader.GetRetentionTime(i,j));
+          //Please Check the Parameter I have passed i and j ,individual values of function count and numscan value
+          intermediatescan=new IntermediateScan(this.newMZmineFile,massLynxRawInfoReader.IsContinuum(i),mslevel,
+              massLynxRawInfoReader.GetIonMode(i),mzrange,i,massLynxRawInfoReader.GetRetentionTime(i,j),j);
+
           intermediatescanarray.add(intermediatescan);
         }
       }
       intermediatescanarray=sortIntermediateScan(intermediatescanarray);
-      simpleScanArrayList = getSimpleScan(intermediatescanarray,rawscanreader);
+      for (int k=1;k<=intermediatescanarray.size();++k)
+      {
+        SimpleScan simpleScan=intermediatescanarray.get(k-1).getScan(k,rawscanreader);
+        simpleScanArrayList.add(simpleScan);
+      }
     }
     catch (MasslynxRawException e)
     {
@@ -152,34 +154,6 @@ public class WatersImportTask extends AbstractTask {
     //Sorting of intermediatescanarray by retention time
 
     return intermediatescanarray;
-  }
-/**
- * @param rawscanreader for intensities and masses
- * @param intermediatescanarray sorted intermediatescanarray is passed
- * @return SimpleScan ArrayList
- */
-  private ArrayList<SimpleScan> getSimpleScan(ArrayList<IntermediateScan> intermediatescanarray,
-      MassLynxRawScanReader rawscanreader)
-      throws MasslynxRawException {
-    ArrayList<SimpleScan> simplescansarray = new ArrayList<>();
-    int scannumber = intermediatescanarray.size(); // Scan Number
-    PolarityType polarity = PolarityType.UNKNOWN;
-    SimpleScan simplescan;
-    for(int k=1;k<=scannumber;++k)
-    {
-      //Spectrum type is known as per Continuum function
-      MassSpectrumType spectrumType=intermediatescanarray.get(k-1).isIscontinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
-
-      //Polarity is calculated using Ion mode
-      polarity=intermediatescanarray.get(k-1).getIonmode()==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
-
-      simplescan = new SimpleScan(this.newMZmineFile,k,intermediatescanarray.get(k-1).getMslevel(),
-          intermediatescanarray.get(k-1).getRetentionTime(),null,null,null,spectrumType,polarity,"",
-          intermediatescanarray.get(k-1).getMZRange());
-
-      simplescansarray.add(simplescan);
-    }
-    return simplescansarray;
   }
 
   /**
@@ -207,5 +181,29 @@ public class WatersImportTask extends AbstractTask {
     {
       return 0;
     }
+  }
+
+  /**
+   *
+   * @param massLynxRawInfoReader
+   * @return bool value
+   */
+  private boolean isIonMobilityFile(MassLynxRawInfoReader massLynxRawInfoReader)
+  {
+    try {
+      int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
+      for (int i=0;i<totalfunctioncount;++i) {
+        massLynxRawInfoReader.GetDriftScanCount(i);
+      }
+      return true;
+    }
+ catch (MasslynxRawException e) {
+      e.printStackTrace();
+   return false;
+    }
+  }
+  public void loadIonMobilityFile()
+  {
+
   }
 }

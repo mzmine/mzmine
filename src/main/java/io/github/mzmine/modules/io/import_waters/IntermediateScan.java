@@ -14,27 +14,38 @@
 package io.github.mzmine.modules.io.import_waters;
 
 import MassLynxSDK.MassLynxIonMode;
+import MassLynxSDK.MassLynxRawScanReader;
+import MassLynxSDK.MasslynxRawException;
+import MassLynxSDK.Scan;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import net.csibio.aird.util.ArrayUtil;
 
 public class IntermediateScan  {
 
   private boolean iscontinuum;
+  private RawDataFile newMZmineFile;
   private int mslevel;
   private MassLynxIonMode ionmode;
   private Range<Double> MZRange;
   private int function_number;
   private float retentionTime;
-  // Number in function ?
+  private int numscan;
 
-  public IntermediateScan(boolean iscontinuum,int mslevel, MassLynxIonMode ionmode,
-      Range<Double> MZRange, int function_number,float retentionTime)
+  public IntermediateScan(RawDataFile newMZmineFile,boolean iscontinuum,int mslevel, MassLynxIonMode ionmode,
+      Range<Double> MZRange, int function_number,float retentionTime,int numscan)
   {
+    this.newMZmineFile=newMZmineFile;
     this.function_number=function_number;
     this.retentionTime=retentionTime;
     this.MZRange=MZRange;
     this.ionmode=ionmode;
     this.iscontinuum=iscontinuum;
     this.mslevel=mslevel;
+    this.numscan=numscan;
   }
 
   public boolean isIscontinuum() {
@@ -60,5 +71,34 @@ public class IntermediateScan  {
   public float getRetentionTime() {
     return retentionTime;
   }
+
+  public int getNumscan() { return numscan; }
+
+  /**
+   * for the simplescan
+   * @param numscan
+   * @param rawscanreader
+   * @return
+   * @throws MasslynxRawException
+   */
+
+  public SimpleScan getScan(int numscan, MassLynxRawScanReader rawscanreader)
+      throws MasslynxRawException {
+    PolarityType polarity = PolarityType.UNKNOWN;
+    Scan scan = rawscanreader.ReadScan(this.function_number,numscan);
+
+      //Spectrum type is known as per Continuum function
+      MassSpectrumType spectrumType=this.iscontinuum?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
+
+      //Polarity is calculated using Ion mode
+      polarity= this.ionmode==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
+
+      SimpleScan simplescan = new SimpleScan(this.newMZmineFile,numscan,this.getMslevel(),
+          this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
+          ,spectrumType,polarity,"",
+          this.getMZRange());
+    return simplescan;
+  }
+
 }
 
