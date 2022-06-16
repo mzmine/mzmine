@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,14 +8,15 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -27,7 +28,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.MzDeltaCorrelationHistogramTab;
+import io.github.mzmine.modules.visualization.scan_histogram.chart.MzDeltaCorrelationHistogramTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -57,13 +58,14 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
   private MzDeltaCorrelationHistogramTab tab;
   private final ParameterSet parameters;
 
-  public CorrelatedFeaturesMzHistogramTask(ModularFeatureList flist, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public CorrelatedFeaturesMzHistogramTask(ModularFeatureList flist, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.flist = flist;
     this.parameters = parameters;
     minScore = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.minCorr).getValue();
-    limitToDoubleMz = parameters
-        .getParameter(CorrelatedFeaturesMzHistogramParameters.limitToDoubleMz).getValue();
+    limitToDoubleMz = parameters.getParameter(
+        CorrelatedFeaturesMzHistogramParameters.limitToDoubleMz).getValue();
     useRtRange = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.rtRange)
         .getValue();
     rtRange = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.rtRange)
@@ -76,8 +78,9 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
         saveToFile ? parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.saveToFile)
             .getEmbeddedParameter().getValue() : null;
 
-    outputFileNeutralMasses = outputFile != null ? FileAndPathUtil
-        .getRealFilePathWithSuffix(outputFile, "_neutral", "csv") : null;
+    outputFileNeutralMasses =
+        outputFile != null ? FileAndPathUtil.getRealFilePathWithSuffix(outputFile, "_neutral",
+            "csv") : null;
   }
 
   @Override
@@ -260,10 +263,9 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
   }
 
   private boolean checkRT(FeatureListRow a, FeatureListRow b) {
-    return !useRtRange || (a.getAverageRT() != null && rtRange
-        .contains(a.getAverageRT().doubleValue())
-                           && b.getAverageRT() != null && rtRange
-                               .contains(b.getAverageRT().doubleValue()));
+    return !useRtRange || (a.getAverageRT() != null && rtRange.contains(
+        a.getAverageRT().doubleValue()) && b.getAverageRT() != null && rtRange.contains(
+        b.getAverageRT().doubleValue()));
   }
 
   enum Header {

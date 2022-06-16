@@ -15,17 +15,21 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
+import java.io.Serial;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -58,13 +62,13 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public static final Logger logger = Logger.getLogger(EStandardChartTheme.class.getName());
   public static final String XML_DESC = "ChartTheme";
+  @Serial
   private static final long serialVersionUID = 1L;
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
   private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
-  private static final double TITLE_TOP_MARGIN = 5.0;
   // master font
   protected Font masterFont;
   protected Color masterFontColor;
@@ -87,6 +91,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(0, 0, 0, 0);
   private RectangleInsets MIRROR_PLOT_AXIS_OFFSET = new RectangleInsets(0, 4, 0, 4);
   private Font itemLabelFont;
+  private BasicStroke defaultDataStroke;
 
 
   public EStandardChartTheme(String name) {
@@ -188,7 +193,6 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   @Override
   public void apply(@NotNull JFreeChart chart) {
-    assert chart != null;
     final boolean oldNotify = chart.isNotify();
     chart.setNotify(false);
 
@@ -239,8 +243,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void applyToCrosshair(@NotNull JFreeChart chart) {
     Plot p = chart.getPlot();
-    if (p instanceof XYPlot) {
-      XYPlot xyp = (XYPlot) p;
+    if (p instanceof XYPlot xyp) {
       xyp.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
       xyp.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
       xyp.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
@@ -254,11 +257,10 @@ public class EStandardChartTheme extends StandardChartTheme {
     Plot p = chart.getPlot();
 
     // Only apply to XYPlot
-    if (!(p instanceof XYPlot)) {
+    if (!(p instanceof XYPlot xyp)) {
       return;
     }
 
-    XYPlot xyp = (XYPlot) p;
     Axis domainAxis = xyp.getDomainAxis();
     Axis rangeAxis = xyp.getRangeAxis();
 
@@ -338,8 +340,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     chart.getSubtitles().forEach(s -> {
-      if (s != chart.getTitle() && s instanceof TextTitle) {
-        TextTitle textTitle = (TextTitle) s;
+      if (s != chart.getTitle() && s instanceof TextTitle textTitle) {
         // ((TextTitle) s).setFont(getRegularFont());
         // ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
         textTitle.setVisible(isShowSubtitles());
@@ -351,8 +352,7 @@ public class EStandardChartTheme extends StandardChartTheme {
         // .setBackgroundPaint(this.getChartBackgroundPaint());
         // }
       }
-      if (s instanceof LegendTitle) {
-        LegendTitle legendTitle = (LegendTitle) s;
+      if (s instanceof LegendTitle legendTitle) {
         legendTitle.setVisible(isShowLegend());
       }
     });
@@ -373,11 +373,19 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   @Override
-  protected void applyToAbstractRenderer(AbstractRenderer renderer) {
+  public void applyToAbstractRenderer(AbstractRenderer renderer) {
     super.applyToAbstractRenderer(renderer);
-
+    // apply to all
     if (itemLabelFont != null) {
       renderer.setDefaultItemLabelFont(itemLabelFont);
+    }
+    // only apply to those renderers that we know should behave like this
+    if (renderer instanceof PeakRenderer || renderer instanceof ColoredXYLineRenderer
+        || renderer instanceof TICPlotRenderer) {
+      renderer.setAutoPopulateSeriesStroke(false);
+      renderer.setAutoPopulateSeriesOutlineStroke(false);
+      renderer.setDefaultStroke(defaultDataStroke);
+      renderer.setDefaultOutlineStroke(defaultDataStroke);
     }
   }
 
@@ -570,5 +578,18 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void setItemLabelFont(Font font) {
     this.itemLabelFont = font;
+  }
+
+  /**
+   * The default stroke used by many charts like the {@link TICPlot}
+   *
+   * @return a basic stroke with the width set by user
+   */
+  public BasicStroke getDefaultDataStroke() {
+    return defaultDataStroke;
+  }
+
+  public void setDefaultDataStroke(BasicStroke defaultDataStroke) {
+    this.defaultDataStroke = defaultDataStroke;
   }
 }
