@@ -518,15 +518,18 @@
     <MenuItem onAction="#runModule" text="Interactive Ion Identity Molecular Networks"
       userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
-      userData="io.github.mzmine.modules.visualization.mzhistogram.CorrelatedFeaturesMzHistogramModule"/>
+      userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>
     <MenuItem onAction="#runModule"
       text="Correlation coefficient histogram (grouped feature shapes)"
       userData="io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule"/>
 
     <SeparatorMenuItem/>
 
-    <MenuItem text="m/z scan histogram" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.mzhistogram.ScanMzHistogramModule"/>
+    <MenuItem text="Scan histogram" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule"/>
+
+    <MenuItem text="Scan inject time analysis" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule"/>
 
     <SeparatorMenuItem/>
 

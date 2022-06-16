@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,12 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.mzhistogram;
-
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
+package io.github.mzmine.modules.visualization.scan_histogram;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -30,12 +25,14 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
-public class ScanMzHistogramModule implements MZmineRunnableModule {
+public class ScanHistogramModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "m/z scan histogram";
-  private static final String MODULE_DESCRIPTION =
-      "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
+  private static final String MODULE_NAME = "scan histogram";
+  private static final String MODULE_DESCRIPTION = "This module plots all values of all selected scans into one histogram and offers a Gaussian fit.";
 
   @Override
   public @NotNull String getName() {
@@ -52,14 +49,11 @@ public class ScanMzHistogramModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    RawDataFile[] dataFiles = parameters.getParameter(ScanMzHistogramParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+    RawDataFile[] dataFiles = parameters.getParameter(ScanHistogramParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
 
-    for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask =
-          new ScanMzHistogramTask(project, dataFiles[i], parameters.cloneParameterSet(), moduleCallDate);
-      tasks.add(newTask);
-    }
+    Task newTask = new ScanHistogramTask(dataFiles, parameters.cloneParameterSet(), moduleCallDate);
+    tasks.add(newTask);
 
     return ExitCode.OK;
   }
@@ -71,7 +65,7 @@ public class ScanMzHistogramModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ScanMzHistogramParameters.class;
+    return ScanHistogramParameters.class;
   }
 
 }
