@@ -44,8 +44,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class MSnTreeExportParameters extends SimpleParameterSet {
 
-  public static final MZToleranceParameter MZ_TOL = new MZToleranceParameter("m/z tolerance", "",
-      0.001, 5);
+  public static final MZToleranceParameter MZ_TOL = new MZToleranceParameter("m/z tolerance",
+      "Tolerance for building MSn trees to pair MSn on each level", 0.001, 5);
   public static final RawDataFilesParameter RAW_FILES = new RawDataFilesParameter();
 
   public static final StringParameter SEPARATOR = new StringParameter("Separator",
@@ -57,7 +57,7 @@ public class MSnTreeExportParameters extends SimpleParameterSet {
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the raw data files to be exported "
           + "Use pattern \"{}\" in the file name to substitute with raw data filename. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
+          + "(i.e. \"blah{}blah.mgf\" would become \"blahSOURCE_DATAFILE_Nameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.", extensions,
       FileSelectionType.SAVE);
 
