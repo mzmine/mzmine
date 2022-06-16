@@ -110,6 +110,7 @@ public class WatersImportTask extends AbstractTask {
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       ArrayList<IntermediateScan> intermediatescanarray=new ArrayList<>();
+      ArrayList<SimpleScan> simpleScanArrayList=new ArrayList<>();
       int functioncount =massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
       IntermediateScan intermediatescan;
       for(int i=0;i<functioncount;++i)
@@ -130,8 +131,8 @@ public class WatersImportTask extends AbstractTask {
           intermediatescanarray.add(intermediatescan);
         }
       }
-      sortIntermediateScan(intermediatescanarray);
-      getSimpleScan(intermediatescanarray,rawscanreader);
+      intermediatescanarray=sortIntermediateScan(intermediatescanarray);
+      simpleScanArrayList = getSimpleScan(intermediatescanarray,rawscanreader);
     }
     catch (MasslynxRawException e)
     {
@@ -141,13 +142,14 @@ public class WatersImportTask extends AbstractTask {
     }
   }
 
-  private void sortIntermediateScan(ArrayList<IntermediateScan> intermediatescanarray)
+  private ArrayList<IntermediateScan> sortIntermediateScan(ArrayList<IntermediateScan> intermediatescanarray)
   {
     //Sorting of intermediatescanarray by retention time
 
+    return intermediatescanarray;
   }
 
-  private void getSimpleScan(ArrayList<IntermediateScan> intermediatescanarray,
+  private ArrayList<SimpleScan> getSimpleScan(ArrayList<IntermediateScan> intermediatescanarray,
       MassLynxRawScanReader rawscanreader)
       throws MasslynxRawException {
     ArrayList<SimpleScan> simplescansarray = new ArrayList<>();
@@ -168,6 +170,7 @@ public class WatersImportTask extends AbstractTask {
 
       simplescansarray.add(simplescan);
     }
+    return simplescansarray;
   }
 
   private int getMsLevel(MassLynxRawInfoReader masslynxrawinforeader,int value)
