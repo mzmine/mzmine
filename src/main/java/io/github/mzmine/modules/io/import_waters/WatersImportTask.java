@@ -142,18 +142,27 @@ public class WatersImportTask extends AbstractTask {
     }
   }
 
+  /**
+   *
+   * @param intermediatescanarray
+   * @return sorted intermediatescanarray
+   */
   private ArrayList<IntermediateScan> sortIntermediateScan(ArrayList<IntermediateScan> intermediatescanarray)
   {
     //Sorting of intermediatescanarray by retention time
 
     return intermediatescanarray;
   }
-
+/**
+ * @param rawscanreader for intensities and masses
+ * @param intermediatescanarray sorted intermediatescanarray is passed
+ * @return SimpleScan ArrayList
+ */
   private ArrayList<SimpleScan> getSimpleScan(ArrayList<IntermediateScan> intermediatescanarray,
       MassLynxRawScanReader rawscanreader)
       throws MasslynxRawException {
     ArrayList<SimpleScan> simplescansarray = new ArrayList<>();
-    int scannumber = intermediatescanarray.size();
+    int scannumber = intermediatescanarray.size(); // Scan Number
     PolarityType polarity = PolarityType.UNKNOWN;
     SimpleScan simplescan;
     for(int k=1;k<=scannumber;++k)
@@ -173,6 +182,13 @@ public class WatersImportTask extends AbstractTask {
     return simplescansarray;
   }
 
+  /**
+   *
+   * @param masslynxrawinforeader
+   * @param value
+   * @return Msvalues
+   * @throws MasslynxRawException
+   */
   private int getMsLevel(MassLynxRawInfoReader masslynxrawinforeader,int value)
       throws MasslynxRawException {
     if(masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.MS)
