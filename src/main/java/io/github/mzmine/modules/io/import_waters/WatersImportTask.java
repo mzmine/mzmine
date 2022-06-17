@@ -103,12 +103,11 @@ public class WatersImportTask extends AbstractTask {
     try {
       setDescription("Reading metadata from "+this.fileNameToOpen.getName());
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
-      boolean isval=isIonMobilityFile(massLynxRawInfoReader);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       ArrayList<IntermediateScan> intermediatescanarray=new ArrayList<>();
       ArrayList<SimpleScan> simpleScanArrayList=new ArrayList<>();
       int functioncount =massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
-      IntermediateScan intermediatescan;
+      IntermediateScan intermediatescan = null;
       for(int i=0;i<functioncount;++i)
       {
         //total Scan values in each function
@@ -124,7 +123,7 @@ public class WatersImportTask extends AbstractTask {
         {
           //Please Check the Parameter I have passed i and j ,individual values of function count and numscan value
           intermediatescan=new IntermediateScan(this.newMZmineFile,massLynxRawInfoReader.IsContinuum(i),mslevel,
-              massLynxRawInfoReader.GetIonMode(i),mzrange,i,massLynxRawInfoReader.GetRetentionTime(i,j),j);
+              massLynxRawInfoReader.GetIonMode(i),mzrange,i,massLynxRawInfoReader.GetRetentionTime(i,j));
 
           intermediatescanarray.add(intermediatescan);
         }
@@ -132,7 +131,7 @@ public class WatersImportTask extends AbstractTask {
       intermediatescanarray=sortIntermediateScan(intermediatescanarray);
       for (int k=1;k<=intermediatescanarray.size();++k)
       {
-        SimpleScan simpleScan=intermediatescanarray.get(k-1).getScan(k,rawscanreader);
+        SimpleScan simpleScan=intermediatescan.getScan(k,rawscanreader);
         simpleScanArrayList.add(simpleScan);
       }
     }
@@ -199,6 +198,7 @@ public class WatersImportTask extends AbstractTask {
     }
  catch (MasslynxRawException e) {
       e.printStackTrace();
+   logger.log(Level.WARNING, e.getMessage(), e);
    return false;
     }
   }

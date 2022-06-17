@@ -33,10 +33,9 @@ public class IntermediateScan  {
   private Range<Double> MZRange;
   private int function_number;
   private float retentionTime;
-  private int numscan;
 
   public IntermediateScan(RawDataFile newMZmineFile,boolean iscontinuum,int mslevel, MassLynxIonMode ionmode,
-      Range<Double> MZRange, int function_number,float retentionTime,int numscan)
+      Range<Double> MZRange, int function_number,float retentionTime)
   {
     this.newMZmineFile=newMZmineFile;
     this.function_number=function_number;
@@ -45,7 +44,6 @@ public class IntermediateScan  {
     this.ionmode=ionmode;
     this.iscontinuum=iscontinuum;
     this.mslevel=mslevel;
-    this.numscan=numscan;
   }
 
   public boolean isIscontinuum() {
@@ -72,7 +70,6 @@ public class IntermediateScan  {
     return retentionTime;
   }
 
-  public int getNumscan() { return numscan; }
 
   /**
    * for the simplescan
