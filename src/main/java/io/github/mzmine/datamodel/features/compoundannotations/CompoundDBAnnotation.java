@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.compoundannotations;
@@ -63,11 +63,11 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
-  public static final Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
+  Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
-  public static final String XML_ELEMENT_OLD = "compound_db_annotation";
-  public static final String XML_TYPE_ATTRIBUTE_OLD = "annotationtype";
-  public static final String XML_NUM_ENTRIES_ATTR = "entries";
+  String XML_ELEMENT_OLD = "compound_db_annotation";
+  String XML_TYPE_ATTRIBUTE_OLD = "annotationtype";
+  String XML_NUM_ENTRIES_ATTR = "entries";
 
   @NotNull
   static List<CompoundDBAnnotation> buildCompoundsWithAdducts(
@@ -113,8 +113,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     final String formulaString = annotation.getFormula();
     final String smiles = annotation.getSmiles();
     final IMolecularFormula neutralFormula =
-        formulaString != null ? FormulaUtils.getNeutralFormula(formulaString)
-            : FormulaUtils.getNeutralFormula(FormulaUtils.getFomulaFromSmiles(smiles));
+        formulaString != null ? FormulaUtils.neutralizeFormulaWithHydrogen(formulaString)
+            : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFomulaFromSmiles(smiles));
 
     if (neutralFormula != null) {
       final double mass = MolecularFormulaManipulator.getMass(neutralFormula,
@@ -128,8 +128,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
   /**
    * @param adduct The adduct.
-   * @return A new {@link CompoundDBAnnotation} with the given adduct. {@link
-   * CompoundDBAnnotation#getPrecursorMZ()} is adjusted.
+   * @return A new {@link CompoundDBAnnotation} with the given adduct.
+   * {@link CompoundDBAnnotation#getPrecursorMZ()} is adjusted.
    * @throws CannotDetermineMassException In case the original compound does not contain enough
    *                                      information to calculate the ionized compound.
    */
@@ -183,87 +183,87 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(key);
   }
 
-  public Set<DataType<?>> getTypes();
+  Set<DataType<?>> getTypes();
 
-  public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
+  void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable
-  public default DatabaseMatchInfo getDatabaseMatchInfo() {
+  default DatabaseMatchInfo getDatabaseMatchInfo() {
     return get(DatabaseMatchInfoType.class);
   }
 
   @Nullable
-  public default String getDatabaseUrl() {
+  default String getDatabaseUrl() {
     final DatabaseMatchInfo databaseMatchInfo = getDatabaseMatchInfo();
     return databaseMatchInfo == null ? null : databaseMatchInfo.url();
   }
 
   @Override
   @Nullable
-  public default Double getPrecursorMZ() {
+  default Double getPrecursorMZ() {
     return get(PrecursorMZType.class);
   }
 
   @Override
   @Nullable
-  public default String getSmiles() {
+  default String getSmiles() {
     return get(SmilesStructureType.class);
   }
 
   @Override
   @Nullable
-  public default String getCompoundName() {
+  default String getCompoundName() {
     return get(CompoundNameType.class);
   }
 
   @Override
   @Nullable
-  public default String getFormula() {
+  default String getFormula() {
     return get(FormulaType.class);
   }
 
   @Override
   @Nullable
-  public default IonType getAdductType() {
+  default IonType getAdductType() {
     return get(IonTypeType.class);
   }
 
   @Override
   @Nullable
-  public default Float getMobility() {
+  default Float getMobility() {
     return get(MobilityType.class);
   }
 
   @Override
   @Nullable
-  public default Float getCCS() {
+  default Float getCCS() {
     return get(CCSType.class);
   }
 
   @Override
   @Nullable
-  public default Float getRT() {
+  default Float getRT() {
     return get(RTType.class);
   }
 
   @Override
   @Nullable
-  public default Float getScore() {
+  default Float getScore() {
     return get(CompoundAnnotationScoreType.class);
   }
 
   @Override
   @Nullable
-  public default String getDatabase() {
+  default String getDatabase() {
     return get(DatabaseNameType.class);
   }
 
-  public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
-  public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
@@ -309,7 +309,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(IsotopePatternType.class);
   }
 
-  public Map<DataType<?>, Object> getReadOnlyMap();
+  Map<DataType<?>, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
 }

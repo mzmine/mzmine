@@ -17,15 +17,16 @@
  */
 
 package io.github.mzmine.util.maths.similarity;
+
+import io.github.mzmine.util.maths.Transform;
 import java.util.Arrays;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
-import io.github.mzmine.util.maths.Transform;
 
 /**
  * Different similarity measures such as COSINE SIMILARITY, PEARSON, SPEARMAN,...
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
@@ -44,7 +45,7 @@ public abstract class Similarity {
   // Measures
   public static final Similarity COSINE = new Similarity() {
     public double calc(double[][] data) {
-      return dot(data) / (Math.sqrt(norm(data, 0)) * Math.sqrt(norm(data, 1)));
+      return dot(data) / cosineDivisor(data);
     }
   };
 
@@ -153,19 +154,13 @@ public abstract class Similarity {
   }
 
   /**
-   * ratio of a/b
-   * 
-   * @param data
-   * @param x
-   * @param y
+   * the divisor for calculating the cosine similarity
+   *
+   * @param data [data point][set 0,1]
    * @return
    */
-  public double[] ratio(double[][] data, int a, int b) {
-    double[] v = new double[data.length];
-    for (int d = 0; d < data.length; d++) {
-      v[d] = data[d][a] / data[d][b];
-    }
-    return v;
+  public static double cosineDivisor(double[][] data) {
+    return (Math.sqrt(norm(data, 0)) * Math.sqrt(norm(data, 1)));
   }
 
   public double[] transform(double[] data, Transform transform) {
@@ -178,20 +173,31 @@ public abstract class Similarity {
 
   // ############################################
   // COMMON METHODS
+
+  /**
+   * @param pair          pair of intensities
+   * @param cosineDivisor get by {@link #cosineDivisor}
+   * @return the contribution of this signal to the cosine
+   */
+  public static double cosineSignalContribution(double[] pair, double cosineDivisor) {
+    return pair[0] * pair[1] / cosineDivisor;
+  }
+
   /**
    * sum(x*y)
-   * 
+   *
    * @param data data[dp][x,y]
    * @return
    */
-  public double dot(double[][] data) {
+  public static double dot(double[][] data) {
     double sum = 0;
-    for (double[] val : data)
+    for (double[] val : data) {
       sum += val[0] * val[1];
+    }
     return sum;
   }
 
-  public double mean(double[][] data, int i) {
+  public static double mean(double[][] data, int i) {
     double m = 0;
     for (int d = 0; d < data.length; d++) {
       m = data[d][i];
@@ -199,7 +205,7 @@ public abstract class Similarity {
     return m / data.length;
   }
 
-  public double var(double[][] data, int i) {
+  public static double var(double[][] data, int i) {
     double mean = mean(data, i);
     double var = 0;
     for (int d = 0; d < data.length; d++) {
@@ -208,7 +214,7 @@ public abstract class Similarity {
     return var / data.length;
   }
 
-  public double mean(double[] data) {
+  public static double mean(double[] data) {
     double m = 0;
     for (int d = 0; d < data.length; d++) {
       m = data[d];
@@ -216,7 +222,7 @@ public abstract class Similarity {
     return m / data.length;
   }
 
-  public double var(double[] data) {
+  public static double var(double[] data) {
     double mean = mean(data);
     double var = 0;
     for (int d = 0; d < data.length; d++) {
@@ -225,7 +231,7 @@ public abstract class Similarity {
     return var / (data.length - 1);
   }
 
-  public double covar(double[] a, double[] b) {
+  public static double covar(double[] a, double[] b) {
     double meanA = mean(a);
     double meanB = mean(b);
     double covar = 0;
@@ -237,12 +243,12 @@ public abstract class Similarity {
 
   /**
    * Sample variance n-1
-   * 
+   *
    * @param data
    * @param i
    * @return
    */
-  public double varN(double[][] data, int i) {
+  public static double varN(double[][] data, int i) {
     double mean = mean(data, i);
     double var = 0;
     for (int d = 0; d < data.length; d++) {
@@ -251,25 +257,42 @@ public abstract class Similarity {
     return var / (data.length);
   }
 
-  public double stdev(double[][] data, int i) {
+  public static double stdev(double[][] data, int i) {
     return Math.sqrt(var(data, i));
   }
 
-  public double stdevN(double[][] data, int i) {
+  public static double stdevN(double[][] data, int i) {
     return Math.sqrt(varN(data, i));
   }
 
   /**
    * Euclidean norm (self dot product). sum(x*x)
-   * 
-   * @param data data[dp][indexOfX]
+   *
+   * @param data  data[dp][indexOfX]
    * @param index
    * @return
    */
-  public double norm(double[][] data, int index) {
+  public static double norm(double[][] data, int index) {
     double sum = 0;
-    for (double[] val : data)
+    for (double[] val : data) {
       sum += val[index] * val[index];
+    }
     return sum;
+  }
+
+  /**
+   * ratio of a/b
+   *
+   * @param data
+   * @param a
+   * @param b
+   * @return
+   */
+  public double[] ratio(double[][] data, int a, int b) {
+    double[] v = new double[data.length];
+    for (int d = 0; d < data.length; d++) {
+      v[d] = data[d][a] / data[d][b];
+    }
+    return v;
   }
 }

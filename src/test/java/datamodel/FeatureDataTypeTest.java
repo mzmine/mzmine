@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
  *  This file is part of MZmine.
  *
@@ -118,7 +118,7 @@ public class FeatureDataTypeTest {
       }
       SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
-          MobilityType.TIMS, null);
+          MobilityType.TIMS, null, null);
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans, true);
       try {

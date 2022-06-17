@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright 2006-2022 The MZmine Development Team
+  ~
+  ~ This file is part of MZmine.
+  ~
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
+  -->
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="650.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
+   <center>
+      <GridPane BorderPane.alignment="CENTER">
+         <children>
+            <SplitPane dividerPositions="0.7">
+               <items>
+                  <BorderPane fx:id="pnMirror">
+                     <top>
+                        <VBox BorderPane.alignment="CENTER">
+                           <children>
+                              <Label fx:id="lbTitleCos" text="MS/MS mirror (modified cosine)">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lbMirrorStats" text="scores" />
+                              <Label fx:id="lbMirrorModifiedStats" text="scores" />
+                           </children>
+                           <padding>
+                              <Insets left="5.0" />
+                           </padding>
+                        </VBox>
+                     </top>
+                  </BorderPane>
+                  <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                     <center>
+                        <ScrollPane fitToHeight="true" fitToWidth="true">
+                           <BorderPane>
+                              <center>
+                                 <TableView fx:id="tableMirror" BorderPane.alignment="CENTER">
+                                    <columns>
+                                       <TableColumn editable="false" prefWidth="75.0" text="top">
+                                          <columns>
+                                             <TableColumn fx:id="colMzTop" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityTop" editable="false" prefWidth="70.0" text="intensity" />
+                                          </columns>
+                                       </TableColumn>
+                                       <TableColumn editable="false" prefWidth="75.0" text="bottom">
+                                          <columns>
+                                             <TableColumn fx:id="colMzBottom" editable="false" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityBottom" editable="false" prefWidth="70.0" text="intensity" />
+                                          </columns>
+                                       </TableColumn>
+                                       <TableColumn fx:id="colMatchColor" editable="false" prefWidth="25" text="c" />
+                                       <TableColumn fx:id="colMatch" editable="false" prefWidth="75.0" text="match" />
+                                       <TableColumn fx:id="colContribution" editable="false" prefWidth="100.0" text="contribution" />
+                                    </columns>
+                                 </TableView>
+                              </center>
+                           </BorderPane>
+                        </ScrollPane>
+                     </center>
+                  </BorderPane>
+               </items>
+            </SplitPane>
+            <SplitPane dividerPositions="0.7" GridPane.rowIndex="1">
+               <items>
+                  <BorderPane fx:id="pnNLMirror">
+                     <top>
+                        <VBox BorderPane.alignment="CENTER">
+                           <children>
+                              <Label fx:id="lbTitleNL" text="Neutral loss mirror">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lbNeutralLossStats" text="scores" />
+                           </children>
+                           <padding>
+                              <Insets left="5.0" />
+                           </padding>
+                        </VBox>
+                     </top>
+                  </BorderPane>
+                  <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                     <center>
+                        <ScrollPane fitToHeight="true" fitToWidth="true">
+                           <BorderPane>
+                              <center>
+                                 <TableView fx:id="tableNLMIrror" BorderPane.alignment="CENTER">
+                                    <columns>
+                                       <TableColumn editable="false" prefWidth="75.0" text="top">
+                                          <columns>
+                                             <TableColumn fx:id="colMzTop1" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityTop1" editable="false" prefWidth="70.0" text="intensity" />
+                                          </columns>
+                                       </TableColumn>
+                                       <TableColumn editable="false" prefWidth="75.0" text="bottom">
+                                          <columns>
+                                             <TableColumn fx:id="colMzBottom1" editable="false" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityBottom1" editable="false" prefWidth="70.0" text="intensity" />
+                                          </columns>
+                                       </TableColumn>
+                                       <TableColumn fx:id="colMatchColor1" editable="false" prefWidth="25" text="c" />
+                                       <TableColumn fx:id="colMatch1" editable="false" prefWidth="75.0" text="match" />
+                                       <TableColumn fx:id="colContribution1" editable="false" prefWidth="100.0" text="contribution" />
+                                    </columns>
+                                 </TableView>
+                              </center>
+                           </BorderPane>
+                        </ScrollPane>
+                     </center>
+                  </BorderPane>
+               </items>
+            </SplitPane>
+         </children>
+         <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES" />
+            <RowConstraints vgrow="SOMETIMES" />
+         </rowConstraints>
+      </GridPane>
+   </center>
+   <top>
+      <Accordion BorderPane.alignment="CENTER">
+         <panes>
+            <TitledPane animated="false" graphicTextGap="0.0" text="Spectra selection">
+               <content>
+                  <GridPane hgap="4.0" vgap="3.0">
+                     <children>
+                        <HBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                           <children>
+                              <Button mnemonicParsing="false" onAction="#openGnpsLibExample" text="GNPS library" />
+                              <Button mnemonicParsing="false" onAction="#openUSIExample1" text="USI1" />
+                              <Button mnemonicParsing="false" onAction="#openUSIExample2" text="USI2" />
+                           </children>
+                        </HBox>
+                        <Label text="top" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+                        <Label text="bottom" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+                        <Label text="Spectrum number | GNPS library ID | USI" GridPane.columnIndex="1">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label text="examples" GridPane.rowIndex="3" />
+                        <TextField fx:id="txtTop" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="txtBottom" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                     </children>
+                     <columnConstraints>
+                        <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="0.0" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                     </rowConstraints>
+                  </GridPane>
+               </content>
+            </TitledPane>
+
+            <TitledPane fx:id="pnParams" animated="false" graphicTextGap="0.0" text="Parameters" />
+         </panes>
+      </Accordion>
+   </top>
+</BorderPane>

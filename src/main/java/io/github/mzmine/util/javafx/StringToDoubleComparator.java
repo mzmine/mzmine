@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -25,7 +25,7 @@ public class StringToDoubleComparator implements Comparator<String> {
   @Override
   public int compare(String o1, String o2) {
     try {
-      return Double.compare(Double.valueOf(o1), Double.valueOf(o2));
+      return Double.compare(Double.parseDouble(o1), Double.parseDouble(o2));
     } catch (Exception e) {
       return 0;
     }

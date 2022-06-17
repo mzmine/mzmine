@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -37,6 +37,8 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.DataPointUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,7 +47,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ConversionUtils {
 
-  private static Logger logger = Logger.getLogger(ConversionUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(ConversionUtils.class.getName());
 
   public static double[] convertFloatsToDoubles(float[] input, int length) {
     if (input == null) {
@@ -107,42 +109,44 @@ public class ConversionUtils {
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
-   * @param rawDataFile
-   * @param scan        the scan
+   * @param scan the scan
    * @return a {@link SimpleScan}
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
-    return msdkScanToSimpleScan(rawDataFile, scan, scan.getMzValues(),
-        convertFloatsToDoubles(scan.getIntensityValues()));
+    double[] mzs = scan.getMzValues();
+    double[] intensities = convertFloatsToDoubles(scan.getIntensityValues());
+    // we are sorting at this point to make sure mz are sorted, as not all mzML files are sorted
+    // latest converters should also ensure sorting of data points
+    // the other method uses sorted arrays
+    double[][] sorted = DataPointUtils.sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
+    return msdkScanToSimpleScan(rawDataFile, scan, sorted[0], sorted[1]);
   }
 
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
-   * @param rawDataFile
-   * @param scan        the scan
-   * @param mzs         use these mz values instead of the scan data
-   * @param intensities use these intensity values instead of the scan data
+   * @param scan              the scan
+   * @param sortedMzs         use these mz values instead of the scan data
+   * @param sortedIntensities use these intensity values instead of the scan data
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
-      double[] intensities) {
-    return msdkScanToSimpleScan(rawDataFile, scan, mzs, intensities,
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan,
+      double[] sortedMzs, double[] sortedIntensities) {
+    return msdkScanToSimpleScan(rawDataFile, scan, sortedMzs, sortedIntensities,
         ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
   }
 
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
-   * @param rawDataFile
-   * @param scan         the scan
-   * @param mzs          use these mz values instead of the scan data
-   * @param intensities  use these intensity values instead of the scan data
-   * @param spectrumType override spectrum type
+   * @param scan              the scan
+   * @param sortedMzs         use these mz values instead of the scan data
+   * @param sortedIntensities use these intensity values instead of the scan data
+   * @param spectrumType      override spectrum type
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
-      double[] intensities, MassSpectrumType spectrumType) {
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan,
+      double[] sortedMzs, double[] sortedIntensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
       final var precursorElements = scan.getPrecursorList().getPrecursorElements();
@@ -153,10 +157,20 @@ public class ConversionUtils {
       }
     }
 
+    Float injTime = null;
+    try {
+      injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
+    } catch (Exception e) {
+      // float parsing error
+    }
+
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, info, mzs, intensities, spectrumType,
+        scan.getRetentionTime() / 60, info, sortedMzs, sortedIntensities, spectrumType,
         ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-        scan.getScanningRange());
+        scan.getScanningRange(), injTime);
 
     return newScan;
   }
@@ -170,11 +184,10 @@ public class ConversionUtils {
    * Builds precursor info based on the current scan. If a new Precursors was detected, a new
    * element is added to the list parameter.
    *
-   * @param scan
    * @param buildingInfos      Altered during this method. New Infos are added if not part of this
    *                           list
-   * @param currentFrameNumber
-   * @param currentScanNumber
+   * @param currentFrameNumber the IMS frame
+   * @param currentScanNumber  the IMS scan number
    */
   public static void extractImsMsMsInfo(final MzMLMsScan scan,
       @NotNull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
@@ -196,7 +209,7 @@ public class ConversionUtils {
             isolationMz = Double.parseDouble(param.getValue().get());
           }
           if (param.getAccession().equals(MzMLCV.cvChargeState)) {
-            charge = Integer.parseInt(param.getValue().get());
+            charge = Integer.parseInt(param.getValue().orElse("0"));
           }
         }
       }
@@ -227,8 +240,7 @@ public class ConversionUtils {
       if (lowerWindow != null && upperWindow != null && isolationMz != null
           && colissionEnergy != null) {
         boolean infoFound = false;
-        for (int i = 0; i < buildingInfos.size(); i++) {
-          BuildingImsMsMsInfo buildingInfo = buildingInfos.get(i);
+        for (BuildingImsMsMsInfo buildingInfo : buildingInfos) {
           if (Double.compare(isolationMz, buildingInfo.getLargestPeakMz()) == 0
               && Float.compare(colissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
             buildingInfo.setLastSpectrumNumber(currentScanNumber);

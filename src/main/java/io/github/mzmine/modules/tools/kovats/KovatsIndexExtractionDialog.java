@@ -302,7 +302,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     lbCurrentAlkane.setText(formula);
     // set mz
     Range<Double> mzRange = MzRangeFormulaCalculatorModule.getMzRangeFromFormula(formula,
-        IonizationType.POSITIVE, new MZTolerance(0.75, 0), 1);
+        IonizationType.POSITIVE, new MZTolerance(0.75, 0));
     ((MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange))
         .setValue(mzRange);
   }

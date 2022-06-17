@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 import com.google.common.collect.Range;
@@ -70,7 +70,7 @@ class IonTimeSeriesTest {
     SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f,
         new double[]{1d}, new double[]{1d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
-        Range.closed(11d, 11d), MobilityType.TIMS, null);
+        Range.closed(11d, 11d), MobilityType.TIMS, null, null);
     frame.setMobilities(new double[]{1d, 2d});
 
     List<BuildingMobilityScan> mobilityScans = new ArrayList<>();

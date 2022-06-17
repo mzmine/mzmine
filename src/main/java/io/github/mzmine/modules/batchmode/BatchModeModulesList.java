@@ -108,6 +108,7 @@ import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
@@ -288,7 +289,8 @@ public class BatchModeModulesList {
        */
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
-      ExportCorrAnnotationModule.class, MetaboAnalystExportModule.class, //
+      ExportCorrAnnotationModule.class, //
+      MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
       AdapMspExportModule.class, //
@@ -299,7 +301,8 @@ public class BatchModeModulesList {
       MZTabmImportModule.class, //
       MzTabImportModule.class, //
       CSVExportModularModule.class, //
-      LegacyCSVExportModule.class //
+      LegacyCSVExportModule.class, //
+      LibraryAnalysisCSVExportModule.class //
 
       /*
        * needed in batch mode?

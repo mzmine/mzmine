@@ -18,26 +18,25 @@
 
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.paint.Color;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.components.ColorPickerTableCell;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.components.ColorTableCell;
-import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-
-import javafx.scene.control.*;
 import javafx.scene.control.Button;
-
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.paint.Color;
 import javafx.util.converter.DoubleStringConverter;
 
 public class InterpolatingLookupPaintScaleSetupDialogController{
@@ -88,12 +87,14 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
             updateOBList(lookupTable);
         });
 
-        colorColumn.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
-        colorColumn.setCellFactory(column -> new ColorTableCell<InterpolatingLookupPaintScaleRow>(column));
+        colorColumn.setCellValueFactory(
+            cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
+        colorColumn.setCellFactory(
+            column -> new ColorPickerTableCell<InterpolatingLookupPaintScaleRow>(column));
         colorColumn.setOnEditCommit(event -> {
             Color newColor = event.getNewValue();
-            Double key =  event.getRowValue().getKey();
-            lookupTable.put(key,newColor);
+            Double key = event.getRowValue().getKey();
+            lookupTable.put(key, newColor);
             updateOBList(lookupTable);
         });
 
