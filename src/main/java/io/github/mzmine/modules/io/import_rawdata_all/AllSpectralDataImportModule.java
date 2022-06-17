@@ -105,13 +105,20 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     return AllSpectralDataImportParameters.class;
   }
 
+
   @NotNull
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    File[] fileNames = parameters.getParameter(AllSpectralDataImportParameters.fileNames)
+    File[] selectedFiles = parameters.getParameter(AllSpectralDataImportParameters.fileNames)
         .getValue();
+
+    // for bruker files path might point to D:\datafile.d\datafile.d  where the first is a folder
+    // change to the folder
+    final File[] fileNames = Arrays.stream(selectedFiles).map(this::validateBrukerPath)
+        .toArray(File[]::new);
+
     boolean useAdvancedOptions = parameters.getParameter(
         AllSpectralDataImportParameters.advancedImport).getValue();
     AdvancedSpectraImportParameters advancedParam =
@@ -228,10 +235,22 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   }
 
   /**
+   * Checks if the file and its parent both start with .d
+   *
+   * @param f file to validate
+   * @return the valid bruker file path for bruker .d files or the input file
+   */
+  private File validateBrukerPath(File f) {
+    if (f.getName().endsWith(".d") && f.getParent().endsWith(".d")) {
+      return f.getParentFile();
+    } else {
+      return f;
+    }
+  }
+
+  /**
    * @param newMZmineFile null for mzml files, can be ims or non ims. must be determined in import
    *                      task.
-   * @param storage
-   * @return
    */
   private AbstractTask createTask(RawDataFileType fileType, MZmineProject project, File file,
       @Nullable RawDataFile newMZmineFile, Class<? extends MZmineModule> module,
