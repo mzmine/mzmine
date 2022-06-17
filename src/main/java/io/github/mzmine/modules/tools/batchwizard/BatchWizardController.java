@@ -927,7 +927,7 @@ public class BatchWizardController {
     param.setParameter(SpectralLibrarySearchParameters.noiseLevel, 0d);
     param.setParameter(SpectralLibrarySearchParameters.needsIsotopePattern, false);
     param.setParameter(SpectralLibrarySearchParameters.rtTolerance, false);
-    param.setParameter(SpectralLibrarySearchParameters.minMatch, 5);
+    param.setParameter(SpectralLibrarySearchParameters.minMatch, 4);
     // similarity
     ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
         SpectralLibrarySearchParameters.similarityFunction);
@@ -938,7 +938,7 @@ public class BatchWizardController {
         Weights.MASSBANK);
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
         Weights.MASSBANK);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.7);
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.65);
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
@@ -948,9 +948,9 @@ public class BatchWizardController {
     // finally set the libmatch module plus parameters as step
     simFunction.setValue(libMatchStep);
     // IMS
-    param.setParameter(SpectralLibrarySearchParameters.ccsTolerance, cbIonMobility.isSelected());
+    param.setParameter(SpectralLibrarySearchParameters.ccsTolerance, false);
     param.getParameter(SpectralLibrarySearchParameters.ccsTolerance).getEmbeddedParameter()
-        .setValue(0.5);
+        .setValue(0.05);
 
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralLibrarySearchModule.class), param);
