@@ -45,9 +45,9 @@ jobs:
           security unlock-keychain -p abc123 build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
-          /usr/bin/codesign --force -s 'Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)' build/jpackage/MZmine.app -v
+          /usr/bin/codesign --force --deep -s "Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)" build/jpackage/MZmine.app -v
 
-      - name: Remove dmg File and Make .app executable
+      - name: Remove dmg File (which was already uploaded) and Make .app executable and zip it
         run: |
           find ./build/jpackage/ -name '*.dmg' -delete
           chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine

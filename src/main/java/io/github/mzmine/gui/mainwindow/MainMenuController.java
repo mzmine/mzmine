@@ -29,10 +29,11 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
+import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotTab;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -128,9 +129,8 @@ public class MainMenuController {
     MZmineGUI.showAboutWindow();
   }
 
-  public void setSampleParams(Event event) {
-    ProjectParametersSetupDialog dialog = new ProjectParametersSetupDialog();
-    dialog.show();
+  public void setSampleMetadata(Event event) {
+    MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
   }
 
 

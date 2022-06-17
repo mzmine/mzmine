@@ -16,17 +16,16 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.table;
+package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**

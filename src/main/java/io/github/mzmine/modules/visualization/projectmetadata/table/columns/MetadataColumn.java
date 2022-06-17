@@ -16,9 +16,9 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.table.columns;
+package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;

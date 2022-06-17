@@ -71,8 +71,8 @@
     </MenuItem>
 
     <SeparatorMenuItem/>
-    <MenuItem text="Set sample parameters"
-      onAction="#setSampleParams">
+    <MenuItem text="Sample metadata"
+      onAction="#setSampleMetadata">
       <accelerator>
         <KeyCodeCombination alt="UP" code="M"
           control="UP" meta="UP" shift="UP" shortcut="DOWN"/>

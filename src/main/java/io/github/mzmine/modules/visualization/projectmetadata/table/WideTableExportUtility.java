@@ -16,13 +16,13 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.table;
+package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
-import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
-import io.github.mzmine.project.parameterssetup.table.columns.StringMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -32,7 +32,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
