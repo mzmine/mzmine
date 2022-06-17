@@ -288,11 +288,6 @@ public class ProjectParametersSetupPaneController {
   }
 
   @FXML
-  public void onClickOK(ActionEvent actionEvent) {
-    currentStage.close();
-  }
-
-  @FXML
   public void onClickHelp(ActionEvent actionEvent) {
     final URL helpPage = this.getClass().getResource("ParametersSetupHelp.html");
     HelpWindow helpWindow = new HelpWindow(helpPage.toString());

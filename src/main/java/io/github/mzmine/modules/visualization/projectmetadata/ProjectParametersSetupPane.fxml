@@ -36,7 +36,7 @@
     <VBox>
       <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">
         <buttons>
-          <Button onAction="#addParameter" mnemonicParsing="false" text="Add new Parameter"
+          <Button onAction="#addParameter" mnemonicParsing="false" text="Add new parameter"
             ButtonBar.buttonData="LEFT"/>
           <Button onAction="#importParameters" mnemonicParsing="false" text="Import parameters"
             ButtonBar.buttonData="LEFT"/>
@@ -44,19 +44,11 @@
             ButtonBar.buttonData="LEFT"/>
           <Button onAction="#removeParameters" mnemonicParsing="false"
             text="Remove selected parameter" ButtonBar.buttonData="LEFT"/>
-        </buttons>
-        <padding>
-          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-        </padding>
-      </ButtonBar>
-      <ButtonBar prefHeight="40.0" prefWidth="200.0">
-        <buttons>
-          <Button onAction="#onClickOK" mnemonicParsing="false" text="OK"/>
           <Button onAction="#onClickHelp" mnemonicParsing="false" text="Help"
             ButtonBar.buttonData="LEFT"/>
         </buttons>
         <padding>
-          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+          <Insets bottom="10.0" left="5.0" right="5.0" top="5.0"/>
         </padding>
       </ButtonBar>
     </VBox>
