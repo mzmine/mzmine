@@ -36,7 +36,7 @@ public class ProjectMetadataTab extends MZmineTab {
   private static final Logger logger = Logger.getLogger(ProjectMetadataTab.class.getName());
 
   public ProjectMetadataTab() {
-    super("Sample metadata", true, false);
+    super("Sample metadata", false, false);
 
     try {
       // try to load the markdown object from the FXML file
