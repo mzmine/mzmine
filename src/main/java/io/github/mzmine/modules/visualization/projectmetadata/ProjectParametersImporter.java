@@ -16,29 +16,15 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup;
+package io.github.mzmine.modules.visualization.projectmetadata;
 
-import io.github.mzmine.project.parameterssetup.table.MetadataTable;
-import java.io.BufferedReader;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**

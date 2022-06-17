@@ -16,14 +16,13 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup;
+package io.github.mzmine.modules.visualization.projectmetadata;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
-import java.util.stream.Stream;
 
 public class ProjectMetadataParameters extends SimpleParameterSet {
 

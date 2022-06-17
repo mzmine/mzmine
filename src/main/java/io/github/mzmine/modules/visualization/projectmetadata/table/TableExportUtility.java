@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.table;
+package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import java.io.File;
 
