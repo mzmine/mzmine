@@ -129,7 +129,7 @@ public class MainMenuController {
     MZmineGUI.showAboutWindow();
   }
 
-  public void setSampleParams(Event event) {
+  public void setSampleMetadata(Event event) {
     MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
   }
 
