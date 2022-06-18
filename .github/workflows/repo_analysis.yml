@@ -10,10 +10,8 @@ jobs:
       - uses: actions/checkout@master
         with:
           fetch-depth: 0
-      - uses: docker://srcd/hercules:latest
-        with:
-          args:
-            "/bin/bash -c pip install 'matplotlib==3.2.0' && hercules --devs --pb . | labours -m all -f pb --disable-projector -o hercules_charts && cd hercules_charts && tar -cf ../hercules_charts.tar * ../hercules_charts_* && cd .. && rm -r hercules_charts"
+      - name: Hercules-patched
+        uses: mzmine/mzmine3@master
       - uses: actions/upload-artifact@master
         with:
           name: hercules_charts

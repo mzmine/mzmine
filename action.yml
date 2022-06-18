@@ -1,0 +1,23 @@
+name: "Hercules Insights matplotlib fix"
+description: "Run various Git history analyses with src-d/hercules"
+author: "source{d}"
+inputs:
+  args:
+    description: "hercules command line arguments"
+    required: false
+    default: "--burndown --burndown-people --devs --couples"
+runs:
+  using: "docker"
+  image: "docker://srcd/hercules:latest"
+  args:
+    - "/bin/bash"
+    - "-c"
+    - "pip install 'matplotlib==3.2.0'
+       && hercules ${{ inputs.args }} --pb . | labours -m all -f pb --disable-projector -o hercules_charts
+       && cd hercules_charts
+       && tar -cf ../hercules_charts.tar * ../hercules_charts_*
+       && cd ..
+       && rm -r hercules_charts"
+branding:
+  color: purple
+  icon: bar-chart-2
