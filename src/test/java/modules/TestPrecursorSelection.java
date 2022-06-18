@@ -70,5 +70,4 @@ public class TestPrecursorSelection {
     Assertions.assertEquals(3, lists.get(1).size());
     Assertions.assertEquals(2, lists.get(2).size());
   }
-
 }
