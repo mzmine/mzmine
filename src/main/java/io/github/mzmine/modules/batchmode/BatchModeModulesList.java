@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -109,6 +109,7 @@ import io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
+import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
@@ -184,6 +185,7 @@ public class BatchModeModulesList {
       ExtractScansModule.class, //
       ExportScansFromRawFilesModule.class, //
       MzMLExportModule.class, //
+      MSnTreeExportModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}

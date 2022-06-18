@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -47,6 +47,6 @@ public class MSnTreeVisualizerModule implements MZmineModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return null;
+    return MSnTreeVisualizerParameters.class;
   }
 }

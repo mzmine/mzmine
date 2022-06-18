@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -56,6 +56,7 @@ public class ArrowRenderer extends XYLineAndShapeRenderer {
     this.color = color;
     this.shapeType = shapeType;
     setDefaultShape(shape);
+    setDefaultSeriesVisibleInLegend(false);
   }
 
   public ShapeType getShapeType() {
@@ -68,7 +69,7 @@ public class ArrowRenderer extends XYLineAndShapeRenderer {
   }
 
   public enum ShapeType {
-    UP, DOWN, LEFT, RIGHT, DIAMOND, CIRCLE;
+    UP, DOWN, LEFT, RIGHT, DIAMOND, CIRCLE
   }
 
   @Override
