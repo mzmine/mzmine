@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,27 +16,19 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup;
+package io.github.mzmine.modules.visualization.spectra.msn_tree;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class ProjectParametersSetupDialog extends Stage {
+public class MSnTreeVisualizerParameters extends SimpleParameterSet {
 
-  public ProjectParametersSetupDialog(){
-    try{
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectParametersSetupDialog.fxml"));
-      setTitle("Sample metadata");
-      Scene rootScene = loader.load();
-      setMinWidth(700);
-      setMinHeight(400);
-      setScene(rootScene);
-      ProjectParametersSetupDialogController controller = loader.getController();
-      controller.setStage(this);
-    }catch(Exception e){
-      e.printStackTrace();
-    }
+  public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance",
+      "Tolerance to group precursor ions into trees", 0.004, 20);
+
+  public MSnTreeVisualizerParameters() {
+    super(new Parameter[]{mzTol});
   }
 
 }
