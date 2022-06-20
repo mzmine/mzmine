@@ -33,6 +33,7 @@ public class IntermediateScan  {
   private Range<Double> MZRange;
   private int function_number;
   private float retentionTime;
+  private int numscan;
 
   public IntermediateScan(RawDataFile newMZmineFile,boolean iscontinuum,int mslevel, MassLynxIonMode ionmode,
       Range<Double> MZRange, int function_number,float retentionTime)

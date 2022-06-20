@@ -106,39 +106,46 @@ public class WatersImportTask extends AbstractTask {
    */
   private void loadRegularFile(String filepath){
     try {
-      setDescription("Reading metadata from "+this.fileNameToOpen.getName());
+      setDescription("Reading metadata from " + this.fileNameToOpen.getName());
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
-      ArrayList<IntermediateScan> intermediatescanarray=new ArrayList<>();
-      ArrayList<SimpleScan> simpleScanArrayList=new ArrayList<>();
-      int totalfunctioncount =massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
+      ArrayList<IntermediateScan> intermediatescanarray = new ArrayList<>();
+      ArrayList<SimpleScan> simpleScanArrayList = new ArrayList<>();
+      ArrayList<Integer> numscan_array  = new ArrayList<>();
+      int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
       IntermediateScan intermediatescan = null;
-      for(int functioncount=0;functioncount<totalfunctioncount;++functioncount)
-      {
+      for (int functioncount = 0; functioncount < totalfunctioncount; ++functioncount) {
         //total Scan values in each function
-        int totalscanvalueineachfunction = massLynxRawInfoReader.GetScansInFunction(functioncount);
+        int total_scanvalue_in_each_function = massLynxRawInfoReader.GetScansInFunction(functioncount);
+        numscan_array.add(total_scanvalue_in_each_function);
 
         //msLevel is calculated as per Function type
-       int mslevel=getMsLevel(massLynxRawInfoReader,functioncount);
+        int mslevel = getMsLevel(massLynxRawInfoReader, functioncount);
 
         //Range is calculated using AcquisitionMass
-        Range<Double> mzrange= Range.closed((double) massLynxRawInfoReader.GetAcquisitionMassRange(functioncount).getStart(),(double) massLynxRawInfoReader.GetAcquisitionMassRange(functioncount).getEnd());
+        Range<Double> mzrange = Range.closed(
+            (double) massLynxRawInfoReader.GetAcquisitionMassRange(functioncount).getStart(),
+            (double) massLynxRawInfoReader.GetAcquisitionMassRange(functioncount).getEnd());
 
-        for (int numscan = 0; numscan < totalscanvalueineachfunction; ++numscan)
-        {
-          intermediatescan=new IntermediateScan(this.newMZmineFile,
-              massLynxRawInfoReader.IsContinuum(functioncount),mslevel,
-              massLynxRawInfoReader.GetIonMode(functioncount),mzrange,functioncount
-              ,massLynxRawInfoReader.GetRetentionTime(functioncount,numscan));
+        for (int numscan = 0; numscan < total_scanvalue_in_each_function; ++numscan) {
+          intermediatescan = new IntermediateScan(this.newMZmineFile,
+              massLynxRawInfoReader.IsContinuum(functioncount), mslevel,
+              massLynxRawInfoReader.GetIonMode(functioncount), mzrange, functioncount,
+              massLynxRawInfoReader.GetRetentionTime(functioncount, numscan));
 
           intermediatescanarray.add(intermediatescan);
         }
       }
-      intermediatescanarray=sortIntermediateScan(intermediatescanarray);
-      for (int numscan=1;numscan<=intermediatescanarray.size();++numscan)
-      {
-        SimpleScan simpleScan=intermediatescanarray.get(numscan-1).getScan(numscan,rawscanreader);
-        simpleScanArrayList.add(simpleScan);
+        intermediatescanarray = sortIntermediateScan(intermediatescanarray);
+      int count=0;
+      for (int functioncount = 0; functioncount < totalfunctioncount; ++functioncount) {
+        for (int numscan = 0; numscan < numscan_array.get(functioncount); ++numscan) {
+
+          SimpleScan simpleScan = intermediatescanarray.get(count)
+              .getScan(numscan, rawscanreader);
+          simpleScanArrayList.add(simpleScan);
+          count++;
+        }
       }
     }
     catch (MasslynxRawException e)
