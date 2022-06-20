@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -17,6 +17,12 @@
  */
 
 package io.github.mzmine.util.io;
+
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.main.MZmineCore;
+import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -49,5 +55,42 @@ public class CSVUtils {
         return res;
       }
     }
+  }
+
+  /**
+   * Get formatted list of mz
+   *
+   * @param spec spectrum to extract the information from
+   * @param sep  separator
+   * @return [a, b, c] with formatted numbers based on the configuration
+   */
+  public static String getMzListFormatted(MassSpectrum spec, String sep) {
+    return getListString(spec.getMzValues(new double[spec.getNumberOfDataPoints()]), sep,
+        MZmineCore.getConfiguration().getMZFormat());
+  }
+
+  /**
+   * Get formatted list of intensities
+   *
+   * @param spec spectrum to extract the information from
+   * @param sep  separator
+   * @return [a, b, c] with formatted numbers based on the configuration
+   */
+  public static String getIntensityListFormatted(MassSpectrum spec, String sep) {
+    return getListString(spec.getIntensityValues(new double[spec.getNumberOfDataPoints()]), sep,
+        MZmineCore.getConfiguration().getIntensityFormat());
+  }
+
+  /**
+   * Get formatted list of mz
+   *
+   * @param list   the list of values to be formatted
+   * @param format the number format
+   * @param sep    separator
+   * @return [a, b, c] with formatted numbers based on the configuration
+   */
+  public static String getListString(double[] list, String sep, NumberFormat format) {
+    return String.format("[%s]",
+        Arrays.stream(list).mapToObj(format::format).collect(Collectors.joining(sep)));
   }
 }

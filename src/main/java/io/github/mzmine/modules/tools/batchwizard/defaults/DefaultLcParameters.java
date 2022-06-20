@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -49,7 +49,7 @@ public class DefaultLcParameters {
 
   public DefaultLcParameters(Range<Double> rtRange, RTTolerance fwhm,
       RTTolerance intraSampleTolerance, RTTolerance interSampleTolerance) {
-    this(true, rtRange, 3, 1, 15, fwhm, intraSampleTolerance, interSampleTolerance);
+    this(true, rtRange, 4, 1, 15, fwhm, intraSampleTolerance, interSampleTolerance);
   }
 
   public DefaultLcParameters(boolean stableIonizationAcrossSamples, Range<Double> cropRtRange,

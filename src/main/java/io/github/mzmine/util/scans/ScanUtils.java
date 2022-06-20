@@ -42,13 +42,13 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceRangeMap;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -100,7 +100,7 @@ public class ScanUtils {
    * @return String representation of the scan
    */
   public static @NotNull String scanToString(@NotNull Scan scan, @NotNull Boolean includeFileName) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
@@ -119,7 +119,7 @@ public class ScanUtils {
     buf.append(scan instanceof MobilityScan ? ((MobilityScan) scan).getMobilityScanNumber()
         : scan.getScanNumber());
     buf.append(" @");
-    buf.append(rtFormat.format(scan.getRetentionTime()) + "min");
+    buf.append(rtFormat.format(scan.getRetentionTime())).append("min");
 
     if (scan instanceof MobilityScan ms) {
       buf.append(" ");
@@ -137,18 +137,12 @@ public class ScanUtils {
     buf.append(" MS");
     buf.append(scan.getMSLevel());
     if (scan.getMSLevel() > 1 && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
-      buf.append(" (" + mzFormat.format(dda.getIsolationMz()) + ")");
+      buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
     switch (scan.getSpectrumType()) {
-      case CENTROIDED:
-        buf.append(" c");
-        break;
-      case PROFILE:
-        buf.append(" p");
-        break;
-      case THRESHOLDED:
-        buf.append(" t");
-        break;
+      case CENTROIDED -> buf.append(" c");
+      case PROFILE -> buf.append(" p");
+      case THRESHOLDED -> buf.append(" t");
     }
 
     buf.append(" ");
@@ -224,10 +218,7 @@ public class ScanUtils {
   }
 
   /**
-   * @param mzs
-   * @param intensities
-   * @param mzRange
-   * @param numValues   The number of values to be scanned.
+   * @param numValues The number of values to be scanned.
    * @return The base peak or null
    */
   @Nullable
@@ -272,13 +263,9 @@ public class ScanUtils {
   }
 
   /**
-   * @param mzs
-   * @param intensities
-   * @param mzRange
-   * @param numValues   The number of values to be scanned.
-   * @return
+   * @param numValues The number of values to be scanned.
+   * @return the tic summed intensity of all signals within range
    */
-  @Nullable
   public static double calculateTIC(@NotNull double[] mzs, @NotNull double[] intensities,
       @NotNull Range<Double> mzRange, final int numValues) {
 
@@ -304,7 +291,7 @@ public class ScanUtils {
    * Selects data points within given m/z range
    */
   public static DataPoint[] selectDataPointsByMass(DataPoint[] dataPoints, Range<Double> mzRange) {
-    ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
+    ArrayList<DataPoint> goodPoints = new ArrayList<>();
     for (DataPoint dp : dataPoints) {
       if (mzRange.contains(dp.getMZ())) {
         goodPoints.add(dp);
@@ -318,7 +305,7 @@ public class ScanUtils {
    */
   public static DataPoint[] selectDataPointsOverIntensity(DataPoint[] dataPoints,
       double minIntensity) {
-    ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
+    ArrayList<DataPoint> goodPoints = new ArrayList<>();
     for (DataPoint dp : dataPoints) {
       if (dp.getIntensity() >= minIntensity) {
         goodPoints.add(dp);
@@ -508,7 +495,7 @@ public class ScanUtils {
   public static int findFirstFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     final int insertionPoint = Arrays.binarySearch(dataPoints,
         new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
-        (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+        Comparator.comparingDouble(DataPoint::getMZ));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 1;
       if (k < dataPoints.length && mzRange.contains(dataPoints[k].getMZ())) {
@@ -532,7 +519,7 @@ public class ScanUtils {
   public static int findLastFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     final int insertionPoint = Arrays.binarySearch(dataPoints,
         new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
-        (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+        Comparator.comparingDouble(DataPoint::getMZ));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 2;
       if (k >= 0 && mzRange.contains(dataPoints[k].getMZ())) {
@@ -728,9 +715,7 @@ public class ScanUtils {
   }
 
   /**
-   * @param dataFile
-   * @param msLevel  0 for all scans
-   * @return
+   * @param msLevel 0 for all scans
    */
   public static Stream<Scan> streamScans(RawDataFile dataFile, int msLevel) {
     return dataFile.getScanNumbers(msLevel).stream();
@@ -1037,33 +1022,37 @@ public class ScanUtils {
 
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw) {
-    return getMSnFragmentTrees(raw, null);
+    return getMSnFragmentTrees(raw, new MZTolerance(0.015, 20));
   }
 
-  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, AtomicDouble progress) {
-    List<PrecursorIonTree> result = new ArrayList<>();
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol) {
+    return getMSnFragmentTrees(raw, mzTol, null);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol,
+      AtomicDouble progress) {
     // at any time in the flow there should only be the latest precursor with the same m/z
-    Long2ObjectOpenHashMap<PrecursorIonTreeNode> ms2Nodes = new Long2ObjectOpenHashMap<>();
+    MZToleranceRangeMap<PrecursorIonTreeNode> ms2Nodes = new MZToleranceRangeMap<>(mzTol);
+
     PrecursorIonTreeNode parent = null;
     final int totalScans = raw.getNumOfScans();
 
     for (Scan scan : raw.getScans()) {
+      if (scan.getMSLevel() <= 1) {
+        continue;
+      }
       // add MS2 scans to existing or create new
       if (scan.getMSLevel() == 2) {
         Double ms2PrecursorMz = scan.getPrecursorMz();
         if (ms2PrecursorMz != null) {
-          PrecursorIonTreeNode node = ms2Nodes.get(getMzKey(ms2PrecursorMz));
-          if (node == null) {
-            node = new PrecursorIonTreeNode(2, ms2PrecursorMz, null);
-            result.add(new PrecursorIonTree(node));
-            ms2Nodes.put(getMzKey(ms2PrecursorMz), node);
-          }
+          PrecursorIonTreeNode node = ms2Nodes.computeIfAbsent(ms2PrecursorMz,
+              (key) -> new PrecursorIonTreeNode(2, ms2PrecursorMz, null));
           node.addFragmentScan(scan);
         }
       } else if (scan.getMsMsInfo() instanceof MSnInfoImpl msn) {
         // add MSn scans to MS2 precursor
         Double ms2PrecursorMz = msn.getMS2PrecursorMz();
-        if (ms2PrecursorMz != null && (parent = ms2Nodes.get(getMzKey(ms2PrecursorMz))) != null) {
+        if ((parent = ms2Nodes.get(ms2PrecursorMz)) != null) {
           boolean added = parent.addChildFragmentScan(scan, msn);
           if (!added) {
             logger.warning(
@@ -1080,10 +1069,12 @@ public class ScanUtils {
           progress.addAndGet(1d / totalScans);
         }
       }
-      // sort
-      Collections.sort(result);
-      result.forEach(PrecursorIonTree::sort);
     }
+    // get all values
+    List<PrecursorIonTree> result = ms2Nodes.asMapOfRanges().values().stream()
+        .map(PrecursorIonTree::new).sorted().toList();
+    // sort
+    result.forEach(PrecursorIonTree::sort);
     return result;
   }
 
