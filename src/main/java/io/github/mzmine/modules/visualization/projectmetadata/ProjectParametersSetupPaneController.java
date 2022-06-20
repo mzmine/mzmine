@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
@@ -63,6 +64,15 @@ public class ProjectParametersSetupPaneController {
     parameterTable.setEditable(true);
     parameterTable.getSelectionModel().setCellSelectionEnabled(true);
     fileList = currentProject.getDataFiles();
+
+    // set the run start timestamp of the sample for each file
+    DateMetadataColumn startTimeStamp = new DateMetadataColumn("Run start time stamp",
+        "Run start time stamp of the sample");
+    for (RawDataFile rawFile : fileList) {
+      metadataTable.setValue(startTimeStamp, rawFile, rawFile.getStartTimeStamp());
+      System.out.println("Run start time stamp: " + rawFile.getStartTimeStamp());
+    }
+
     updateParametersToTable();
   }
 

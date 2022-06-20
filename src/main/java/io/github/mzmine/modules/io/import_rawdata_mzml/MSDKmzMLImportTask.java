@@ -41,6 +41,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -57,6 +58,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -141,7 +143,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         msdkTask = new MzMLFileImportMethod(file);
       }
-      msdkTask.execute();
+      MzMLRawDataFile msdkTaskRes = msdkTask.execute();
       io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
 
       if (msdkFile == null) {
@@ -159,6 +161,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
             storage);
       } else {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
+      }
+
+      // try to set a value of a start time stamp for a sample
+      try {
+        newMZmineFile.setStartTimeStamp(LocalDateTime.parse(msdkTaskRes.getStartTimeStamp()));
+      }
+      catch (Exception ignored) {
       }
 
       if (newMZmineFile instanceof IMSRawDataFileImpl) {
