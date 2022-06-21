@@ -97,6 +97,7 @@ public class WatersImportTask extends AbstractTask {
       return;
     }
     loadRegularFile(filenamepath);
+    loadIonMobilityFile(filenamepath);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -215,6 +216,11 @@ public class WatersImportTask extends AbstractTask {
    return false;
     }
   }
+
+  /**
+   *
+   * @param filepath
+   */
   public void loadIonMobilityFile(String filepath)
   {
     setDescription("Reading metadata from " + this.fileNameToOpen.getName());
