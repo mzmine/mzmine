@@ -42,7 +42,7 @@ public class MzMLRawDataFile implements RawDataFile {
   private @NotNull String defaultInstrumentConfiguration;
   private @NotNull String defaultDataProcessingScan;
   private @NotNull String defaultDataProcessingChromatogram;
-  private String startTimeStamp;
+  private @NotNull String startTimeStamp;
 
   private @NotNull String name;
 
@@ -122,7 +122,7 @@ public class MzMLRawDataFile implements RawDataFile {
     this.defaultInstrumentConfiguration = defaultInstrumentConfiguration;
   }
 
-  public String getStartTimeStamp() {
+  public @NotNull String getStartTimeStamp() {
     return startTimeStamp;
   }
 

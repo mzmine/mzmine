@@ -70,7 +70,7 @@ public class ProjectParametersSetupPaneController {
         "Run start time stamp of the sample");
     for (RawDataFile rawFile : fileList) {
       metadataTable.setValue(startTimeStamp, rawFile, rawFile.getStartTimeStamp());
-      System.out.println("Run start time stamp: " + rawFile.getStartTimeStamp());
+      logger.info("Run start time stamp: " + rawFile.getStartTimeStamp());
     }
 
     updateParametersToTable();

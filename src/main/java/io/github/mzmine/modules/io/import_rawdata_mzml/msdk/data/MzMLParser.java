@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javolution.text.CharArray;
@@ -46,6 +47,7 @@ public class MzMLParser {
   private final MzMLRawDataFile newRawFile;
   private final MzMLFileImportMethod importer;
   private int totalScans = 0, parsedScans = 0;
+  private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
   /**
    * <p>
@@ -84,14 +86,13 @@ public class MzMLParser {
 
       // startTimeStamp may be optional, so it makes no sense to stop import of a RawDataFile
       // if this tag is skipped
-      try {
-        final CharArray startTimeStamp = getRequiredAttribute(xmlStreamReader,
-            MzMLTags.ATTR_START_TIME_STAMP);
-
+      final CharArray startTimeStamp = xmlStreamReader.getAttributeValue(null,
+          MzMLTags.ATTR_START_TIME_STAMP);
+      if (startTimeStamp != null) {
         newRawFile.setStartTimeStamp(startTimeStamp.toString());
-        System.out.println("startTimeStamp value is: " + startTimeStamp);
-      } catch (IllegalStateException illegalStateException) {
-        System.out.println("startTimeStamp wasn't set");
+        logger.info("startTimeStamp value is: " + startTimeStamp);
+      } else {
+        logger.info("startTimeStamp wasn't set");
       }
     }
 
