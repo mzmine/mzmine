@@ -51,6 +51,14 @@ public class IntermediateScan  {
     return iscontinuum;
   }
 
+  public RawDataFile getNewMZmineFile() {
+    return newMZmineFile;
+  }
+
+  public int getNumscan() {
+    return numscan;
+  }
+
   public int getMslevel() {
     return mslevel;
   }
