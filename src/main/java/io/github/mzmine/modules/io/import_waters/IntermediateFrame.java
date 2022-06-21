@@ -29,6 +29,7 @@ public class IntermediateFrame extends IntermediateScan{
 
   public SimpleFrame toframe()
   {
+    //For frame Function
 
     return null;
   }
