@@ -105,8 +105,8 @@ public class WatersImportTask extends AbstractTask {
    * @param filepath
    */
   private void loadRegularFile(String filepath){
+    setDescription("Reading metadata from " + this.fileNameToOpen.getName());
     try {
-      setDescription("Reading metadata from " + this.fileNameToOpen.getName());
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       ArrayList<IntermediateScan> intermediatescanarray = new ArrayList<>();
@@ -215,8 +215,15 @@ public class WatersImportTask extends AbstractTask {
    return false;
     }
   }
-  public void loadIonMobilityFile()
+  public void loadIonMobilityFile(String filepath)
   {
+    setDescription("Reading metadata from " + this.fileNameToOpen.getName());
+    try {
+      MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
+      MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
+    } catch (MasslynxRawException e) {
+      e.printStackTrace();
+    }
 
   }
 }
