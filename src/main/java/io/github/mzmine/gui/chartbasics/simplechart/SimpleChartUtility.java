@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -23,7 +23,6 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -90,7 +89,7 @@ public class SimpleChartUtility {
 
     final int length = dataset.getItemCount(series);
     // todo: is size = lendth correct?
-    final Collection<Integer> indices = new ArrayList<Integer>(length);
+    final Collection<Integer> indices = new ArrayList<>(length);
     for (int index = startIndex; index < length && dataset.getXValue(series, index) <= xMax;
         index++) {
 
@@ -108,11 +107,9 @@ public class SimpleChartUtility {
   /**
    * Applies the chart theme from the {@link MZmineConfiguration} to a renderer. This method can be
    * safely used in renderer constructors to be up-to-date, all exceptions are caught.
-   *
-   * @param r
    */
   public static void tryApplyDefaultChartThemeToRenderer(AbstractRenderer r) {
-    if(r == null) {
+    if (r == null) {
       return;
     }
 
@@ -129,13 +126,7 @@ public class SimpleChartUtility {
         return;
       }
 
-      final Font itemLabelFont = chartTheme.getItemLabelFont();
-      if (itemLabelFont == null) {
-        logger.fine(() -> "Cannot apply item label color, font == null.");
-        return;
-      }
-
-      r.setDefaultItemLabelFont(itemLabelFont);
+      chartTheme.applyToAbstractRenderer(r);
     } catch (Exception e) {
       logger.log(Level.WARNING, e.getMessage(), e);
     }

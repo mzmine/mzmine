@@ -145,7 +145,14 @@ dependencies {
     implementation "io.github.msdk:msdk-io-mzml:$msdkVersion"
     implementation "io.github.msdk:msdk-io-netcdf:$msdkVersion"
     implementation "io.github.msdk:msdk-featuredetection-adap3d:$msdkVersion"
-    implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
+
+    implementation group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
+    implementation 'org.eclipse.parsson:jakarta.json:1.1.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    implementation group: 'org.openscience.cdk', name: 'cdk-bundle', version: '2.7.1'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
+//    implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
+
     implementation "org.xerial:sqlite-jdbc:3.8.11.2"
     implementation "org.du-lab.adap:adap:4.1.10"
     implementation "gnf:clustering:20210422"
@@ -238,15 +245,15 @@ javafx {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-    /*options.compilerArgs += ['--enable-preview']*/
+    options.compilerArgs += ['--enable-preview']
 }
 
 tasks.withType(Test) {
-    /*jvmArgs += "--enable-preview"*/
+    jvmArgs += "--enable-preview"
 }
 
 tasks.withType(JavaExec) {
-    /*jvmArgs += '--enable-preview'*/
+    jvmArgs += '--enable-preview'
 }
 
 /*

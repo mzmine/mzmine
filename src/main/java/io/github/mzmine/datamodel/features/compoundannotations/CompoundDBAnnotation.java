@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -51,22 +51,22 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public interface CompoundDBAnnotation extends Cloneable {
+public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
-  String XML_ELEMENT = "compound_db_annotation";
-  String XML_TYPE_ATTRIBUTE = "annotationtype";
+  String XML_ELEMENT_OLD = "compound_db_annotation";
+  String XML_TYPE_ATTRIBUTE_OLD = "annotationtype";
   String XML_NUM_ENTRIES_ATTR = "entries";
 
   @NotNull
@@ -74,6 +74,10 @@ public interface CompoundDBAnnotation extends Cloneable {
       CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     for (IonType adduct : library.getAllAdducts()) {
+      if (adduct.isUndefinedAdduct() || adduct.isUndefinedAdductParent() || adduct.getName()
+          .contains("?")) {
+        continue;
+      }
       try {
         annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
@@ -109,8 +113,8 @@ public interface CompoundDBAnnotation extends Cloneable {
     final String formulaString = annotation.getFormula();
     final String smiles = annotation.getSmiles();
     final IMolecularFormula neutralFormula =
-        formulaString != null ? FormulaUtils.getNeutralFormula(formulaString)
-            : FormulaUtils.getNeutralFormula(FormulaUtils.getFomulaFromSmiles(smiles));
+        formulaString != null ? FormulaUtils.neutralizeFormulaWithHydrogen(formulaString)
+            : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFomulaFromSmiles(smiles));
 
     if (neutralFormula != null) {
       final double mass = MolecularFormulaManipulator.getMass(neutralFormula,
@@ -122,26 +126,10 @@ public interface CompoundDBAnnotation extends Cloneable {
     throw new CannotDetermineMassException(annotation);
   }
 
-  static CompoundDBAnnotation loadFromXML(@NotNull final XMLStreamReader reader,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row)
-      throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
-      throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
-    }
-
-    return switch (reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
-      case SimpleCompoundDBAnnotation.XML_TYPE_NAME -> SimpleCompoundDBAnnotation.loadFromXML(
-          reader, flist, row);
-//      case BioTransformerAnnotationImpl.XML_TYPE_NAME -> BioTransformerAnnotationImpl.loadFromXML(
-//          reader, flist, row);
-      default -> null;
-    };
-  }
-
   /**
    * @param adduct The adduct.
-   * @return A new {@link CompoundDBAnnotation} with the given adduct. {@link
-   * CompoundDBAnnotation#getPrecursorMZ()} is adjusted.
+   * @return A new {@link CompoundDBAnnotation} with the given adduct.
+   * {@link CompoundDBAnnotation#getPrecursorMZ()} is adjusted.
    * @throws CannotDetermineMassException In case the original compound does not contain enough
    *                                      information to calculate the ionized compound.
    */
@@ -195,75 +183,87 @@ public interface CompoundDBAnnotation extends Cloneable {
     return get(key);
   }
 
+  Set<DataType<?>> getTypes();
+
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable
-  public default Double getPrecursorMZ() {
-    return get(PrecursorMZType.class);
-  }
-
-  @Nullable
-  public default String getSmiles() {
-    return get(SmilesStructureType.class);
-  }
-
-  @Nullable
-  public default DatabaseMatchInfo getDatabaseMatchInfo() {
+  default DatabaseMatchInfo getDatabaseMatchInfo() {
     return get(DatabaseMatchInfoType.class);
   }
 
   @Nullable
-  public default String getDatabaseUrl() {
+  default String getDatabaseUrl() {
     final DatabaseMatchInfo databaseMatchInfo = getDatabaseMatchInfo();
     return databaseMatchInfo == null ? null : databaseMatchInfo.url();
   }
 
+  @Override
   @Nullable
-  public default String getCompundName() {
+  default Double getPrecursorMZ() {
+    return get(PrecursorMZType.class);
+  }
+
+  @Override
+  @Nullable
+  default String getSmiles() {
+    return get(SmilesStructureType.class);
+  }
+
+  @Override
+  @Nullable
+  default String getCompoundName() {
     return get(CompoundNameType.class);
   }
 
+  @Override
   @Nullable
-  public default String getFormula() {
+  default String getFormula() {
     return get(FormulaType.class);
   }
 
+  @Override
   @Nullable
-  public default IonType getAdductType() {
+  default IonType getAdductType() {
     return get(IonTypeType.class);
   }
 
+  @Override
   @Nullable
-  public default Float getMobility() {
+  default Float getMobility() {
     return get(MobilityType.class);
   }
 
+  @Override
   @Nullable
-  public default Float getCCS() {
+  default Float getCCS() {
     return get(CCSType.class);
   }
 
+  @Override
   @Nullable
-  public default Float getRT() {
+  default Float getRT() {
     return get(RTType.class);
   }
 
+  @Override
   @Nullable
-  public default String getDatabase() {
-    return get(DatabaseNameType.class);
-  }
-
-  @Nullable
-  public default Float getScore() {
+  default Float getScore() {
     return get(CompoundAnnotationScoreType.class);
   }
 
-  public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  @Override
+  @Nullable
+  default String getDatabase() {
+    return get(DatabaseNameType.class);
+  }
+
+  boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
-  public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
@@ -309,7 +309,7 @@ public interface CompoundDBAnnotation extends Cloneable {
     return get(IsotopePatternType.class);
   }
 
-  public Map<DataType<?>, Object> getReadOnlyMap();
+  Map<DataType<?>, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
 }

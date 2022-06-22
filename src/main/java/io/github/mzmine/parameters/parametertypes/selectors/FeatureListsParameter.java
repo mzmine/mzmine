@@ -31,11 +31,14 @@ import org.w3c.dom.NodeList;
 
 public class FeatureListsParameter implements UserParameter<FeatureListsSelection, FeatureListsComponent> {
 
+  private static final String DEFAULT_DESC = "Feature lists that this module will take as its input.";
+
   private String name = "Feature lists";
   private int minCount, maxCount;
 
   private @NotNull
   FeatureListsSelection value = new FeatureListsSelection();
+  private final String description;
 
   public FeatureListsParameter() {
     this(1, Integer.MAX_VALUE);
@@ -48,12 +51,21 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   public FeatureListsParameter(int minCount, int maxCount) {
     this.minCount = minCount;
     this.maxCount = maxCount;
+    description = DEFAULT_DESC;
   }
 
   public FeatureListsParameter(String name, int minCount, int maxCount) {
     this.name = name;
     this.minCount = minCount;
     this.maxCount = maxCount;
+    description = DEFAULT_DESC;
+  }
+
+  public FeatureListsParameter(String name, String description, int minCount, int maxCount) {
+    this.name = name;
+    this.minCount = minCount;
+    this.maxCount = maxCount;
+    this.description = description;
   }
 
   @Override
@@ -94,7 +106,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
 
   @Override
   public String getDescription() {
-    return "Feature lists that this module will take as its input.";
+    return description;
   }
 
   @Override

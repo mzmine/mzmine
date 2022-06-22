@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
  *  This file is part of MZmine.
  *
@@ -112,7 +112,7 @@ public class MobilityScanTest {
     for (int i = 0; i < numFrames; i++) {
       SimpleFrame frame = new SimpleFrame(file, 1, 1, 0f, new double[]{0d, 1},
           new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
-          Range.closed(0d, 1d), MobilityType.TIMS, null);
+          Range.closed(0d, 1d), MobilityType.TIMS, null, null);
 
       List<BuildingMobilityScan> scans = makeSomeScans(mobilities.length);
       frame.setMobilityScans(scans, false);
@@ -138,7 +138,7 @@ public class MobilityScanTest {
     logger.info("Creating frame.");
     SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
         new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
-        Range.closed(0d, 1d), MobilityType.TIMS, null);
+        Range.closed(0d, 1d), MobilityType.TIMS, null, null);
 
     List<BuildingMobilityScan> scans = makeSomeScans(100);
     frame.setMobilityScans(scans, true);
@@ -171,11 +171,11 @@ public class MobilityScanTest {
    * MZmine. Therefore it is crucial that the exceptions are thrown.
    */
   @Test
-  private void testMobilityScanStorageAssumptions() {
+  public void testMobilityScanStorageAssumptions() {
     final IMSRawDataFile rawDataFile = createRawDataFile();
     final SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
         new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
-        Range.closed(0d, 1d), MobilityType.TIMS, null);
+        Range.closed(0d, 1d), MobilityType.TIMS, null, null);
 
     // adding scans with mobility scan number 1 as first scan should throw an exception.
     Assertions.assertThrows(IllegalArgumentException.class,
@@ -287,6 +287,32 @@ public class MobilityScanTest {
         }
         access.resetMobilityScan();
       }
+    }
+  }
+
+  @Test
+  public void testJumps() throws IOException {
+    IMSRawDataFile file = createRawDataFile();
+
+    final List<Frame> frames = makeSomeFrames(file, 10);
+    for (Frame frame : frames) {
+      file.addScan(frame);
+    }
+
+    final MobilityScanDataAccess access = new MobilityScanDataAccess(file, MobilityScanDataType.RAW,
+        frames);
+
+    final MobilityScan mobilityScan = frames.get(8).getMobilityScan(23);
+    final MobilityScan jumped = access.jumpToMobilityScan(mobilityScan);
+
+    Assertions.assertEquals(mobilityScan.getFrame(), access.getFrame());
+    Assertions.assertEquals(mobilityScan, jumped);
+    Assertions.assertEquals(mobilityScan.getMobilityScanNumber(), access.getMobilityScanNumber());
+    Assertions.assertEquals(mobilityScan.getNumberOfDataPoints(), access.getNumberOfDataPoints());
+
+    for(int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
+      Assertions.assertEquals(mobilityScan.getIntensityValue(i), access.getIntensityValue(i));
+      Assertions.assertEquals(mobilityScan.getMzValue(i), access.getMzValue(i));
     }
   }
 }

@@ -425,6 +425,7 @@ public class FeatureResolverTask extends AbstractTask {
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
+    final Integer minNumDp = parameters.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
 
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
@@ -435,6 +436,9 @@ public class FeatureResolverTask extends AbstractTask {
           mzCenterFunction, msmsRange, RTRangeMSMS);
 
       for (final ResolvedPeak peak : peaks) {
+        if(peak.getScanNumbers().length < minNumDp) {
+          continue;
+        }
         peak.setParentChromatogramRowID(originalRow.getID());
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);

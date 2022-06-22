@@ -18,15 +18,13 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.text.NumberFormat;
-
-import javax.annotation.concurrent.Immutable;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
+import java.text.NumberFormat;
+import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.Nullable;
 
 @Immutable
 public class FeatureSelection {
@@ -36,8 +34,8 @@ public class FeatureSelection {
   private final Range<Double> mzRange;
   private final String name;
 
-  public FeatureSelection(Range<Integer> idRange, Range<Double> mzRange, Range<Float> rtRange,
-      String name) {
+  public FeatureSelection(@Nullable Range<Integer> idRange, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, String name) {
     this.idRange = idRange;
     this.mzRange = mzRange;
     this.rtRange = rtRange;
@@ -62,26 +60,30 @@ public class FeatureSelection {
 
   @Override
   public String toString() {
-    if (idRange == null && mzRange == null && rtRange == null && Strings.isNullOrEmpty(name))
+    if (idRange == null && mzRange == null && rtRange == null && Strings.isNullOrEmpty(name)) {
       return "All";
+    }
     StringBuilder sb = new StringBuilder();
     if (idRange != null) {
-      if (sb.length() > 0)
+      if (sb.length() > 0) {
         sb.append(", ");
+      }
       sb.append("ID: ");
-      if (idRange.lowerEndpoint().equals(idRange.upperEndpoint()))
+      if (idRange.lowerEndpoint().equals(idRange.upperEndpoint())) {
         sb.append(idRange.lowerEndpoint().toString());
-      else
+      } else {
         sb.append(idRange.toString());
+      }
     }
     if (mzRange != null) {
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-      if (sb.length() > 0)
+      if (sb.length() > 0) {
         sb.append(", ");
+      }
       sb.append("m/z: ");
-      if (mzRange.lowerEndpoint().equals(mzRange.upperEndpoint()))
+      if (mzRange.lowerEndpoint().equals(mzRange.upperEndpoint())) {
         sb.append(mzFormat.format(mzRange.lowerEndpoint()));
-      else {
+      } else {
         sb.append(mzFormat.format(mzRange.lowerEndpoint()));
         sb.append("-");
         sb.append(mzFormat.format(mzRange.upperEndpoint()));
@@ -89,12 +91,13 @@ public class FeatureSelection {
     }
     if (rtRange != null) {
       NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-      if (sb.length() > 0)
+      if (sb.length() > 0) {
         sb.append(", ");
+      }
       sb.append("RT: ");
-      if (rtRange.lowerEndpoint().equals(rtRange.upperEndpoint()))
+      if (rtRange.lowerEndpoint().equals(rtRange.upperEndpoint())) {
         sb.append(rtFormat.format(rtRange.lowerEndpoint()));
-      else {
+      } else {
         sb.append(rtFormat.format(rtRange.lowerEndpoint()));
         sb.append("-");
         sb.append(rtFormat.format(rtRange.upperEndpoint()));
@@ -102,8 +105,9 @@ public class FeatureSelection {
       sb.append(" min");
     }
     if (!Strings.isNullOrEmpty(name)) {
-      if (sb.length() > 0)
+      if (sb.length() > 0) {
         sb.append(", ");
+      }
       sb.append("name: ");
       sb.append(name);
     }
@@ -111,21 +115,26 @@ public class FeatureSelection {
   }
 
   public boolean checkPeakListRow(FeatureListRow row) {
-    if ((idRange != null) && (!idRange.contains(row.getID())))
+    if ((idRange != null) && (!idRange.contains(row.getID()))) {
       return false;
+    }
 
-    if ((mzRange != null) && (!mzRange.contains(row.getAverageMZ())))
+    if ((mzRange != null) && (!mzRange.contains(row.getAverageMZ()))) {
       return false;
+    }
 
-    if ((rtRange != null) && (!rtRange.contains(row.getAverageRT())))
+    if ((rtRange != null) && (!rtRange.contains(row.getAverageRT()))) {
       return false;
+    }
 
     if (!Strings.isNullOrEmpty(name)) {
-      if ((row.getPreferredFeatureIdentity() == null)
-          || (row.getPreferredFeatureIdentity().getName() == null))
+      if ((row.getPreferredFeatureIdentity() == null) || (
+          row.getPreferredFeatureIdentity().getName() == null)) {
         return false;
-      if (!row.getPreferredFeatureIdentity().getName().toLowerCase().contains(name.toLowerCase()))
+      }
+      if (!row.getPreferredFeatureIdentity().getName().toLowerCase().contains(name.toLowerCase())) {
         return false;
+      }
     }
 
     return true;

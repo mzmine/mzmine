@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -37,39 +37,39 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
       "Intra-sample RT tolerance",
       "Retention time tolerance for multiple signals of the same compound in the same "
-      + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.");
+          + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.");
 
   public static final RTToleranceParameter interSampleRTTolerance = new RTToleranceParameter(
       "Inter-sample RT tolerance",
       "Retention time tolerance for the same compound in different samples.\n"
-      + "Used to align multiple measurements of the same sample or a batch run.");
+          + "Used to align multiple measurements of the same sample or a batch run.");
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Min # of data points",
-      "Minimum number of data points as used in chromatogram building and feature resolving.", 3, 1,
+      "Minimum number of data points as used in chromatogram building and feature resolving.", 4, 1,
       Integer.MAX_VALUE);
 
   public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
       "Min samples per aligned feature",
       "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
-      + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
+          + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
 
   public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
       "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"
-      + "and after the separation, where in many runs cleaning and re-equilibration starts.", true,
-      Range.closed(0.5, 30d));
+          + "and after the separation, where in many runs cleaning and re-equilibration starts.",
+      true, Range.closed(0.5, 30d));
 
   public static final IntegerParameter maximumIsomersInChromatogram = new IntegerParameter(
       "Max peaks in chromatogram",
       "An estimate maximum number of peaks in a chromatogram (number of same m/z features).\n"
-      + "Used to estimate the chromatographic threshold to filter noisy chromatograms.", 10, 1,
+          + "Used to estimate the chromatographic threshold to filter noisy chromatograms.", 10, 1,
       Integer.MAX_VALUE);
 
   public static final BooleanParameter stableIonizationAcrossSamples = new BooleanParameter(
       "Stable ionization across samples",
       "Only check if the ionization conditions are stable across all samples.\n"
-      + "Uncheck for varying salt content or variations in ionization conditions.\n"
-      + "Used in feature grouping.", true);
+          + "Uncheck for varying salt content or variations in ionization conditions.\n"
+          + "Used in feature grouping.", true);
 
 
   public static final BooleanParameter filter13C = new BooleanParameter(

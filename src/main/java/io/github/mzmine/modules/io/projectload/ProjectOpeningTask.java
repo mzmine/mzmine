@@ -40,10 +40,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -267,14 +267,14 @@ public class ProjectOpeningTask extends AbstractTask {
 
     currentLoadedObjectName = "Version";
 
-    Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)");
+    Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)\\.?(\\d+)?");
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String projectVersionString = reader.readLine();
     String mzmineVersionString = String.valueOf(MZmineCore.getMZmineVersion());
 
     // todo adjust for new version when project load/save is done
-    /*Matcher m = versionPattern.matcher(mzmineVersionString);
+    Matcher m = versionPattern.matcher(mzmineVersionString);
     if (!m.find()) {
       throw new IOException("Invalid MZmine version " + mzmineVersionString);
     }
@@ -285,6 +285,7 @@ public class ProjectOpeningTask extends AbstractTask {
     if (!m.find()) {
       throw new IOException("Invalid project version " + projectVersionString);
     }
+
     int projectMajorVersion = Integer.valueOf(m.group(1));
     int projectMinorVersion = Integer.valueOf(m.group(2));
 
@@ -308,7 +309,7 @@ public class ProjectOpeningTask extends AbstractTask {
             + " may result in errors or loss of information.";
         MZmineCore.getDesktop().displayMessage(warning);
       }
-    }*/
+    }
 
     // Default opening handler for MZmine 3 and higher
 //    peakListOpenHandler = new PeakListOpenHandler_3_0_old(dataFilesIDMap);

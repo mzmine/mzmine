@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -35,13 +35,14 @@ import org.jfree.data.xy.XYDataset;
 public class TICPlotRenderer extends XYLineAndShapeRenderer {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-  private double transparency = 1.0f;
+  private final double transparency = 1.0f;
 
   public TICPlotRenderer() {
     super(true, false);
+    // draw the whole line as one path and not disjoint segments
     setDrawSeriesLineAsPath(true);
     SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }

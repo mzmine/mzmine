@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,5 +47,32 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
   public void sort() {
     root.sort();
+  }
+
+  @NotNull
+  public Stream<PrecursorIonTreeNode> stream() {
+    return root.streamWholeTree();
+  }
+
+  public int getMaxMSLevel() {
+    return root.getMaxMSLevel();
+  }
+
+  public int countSpectra() {
+    return stream().mapToInt(PrecursorIonTreeNode::countSpectra).sum();
+  }
+
+  public int countPrecursor() {
+    return stream().mapToInt(PrecursorIonTreeNode::countPrecursors).sum();
+  }
+
+  public int countSpectra(int msLevel) {
+    return stream().filter(ion -> msLevel == ion.getMsLevel())
+        .mapToInt(PrecursorIonTreeNode::countSpectra).sum();
+  }
+
+  public int countPrecursor(int msLevel) {
+    return stream().filter(ion -> msLevel - 1 == ion.getMsLevel())
+        .mapToInt(PrecursorIonTreeNode::countPrecursors).sum();
   }
 }

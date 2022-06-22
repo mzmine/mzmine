@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -34,8 +34,10 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +51,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final List<Frame> eligibleFrames;
   protected final double[] mzs;
   protected final double[] intensities;
-
+  protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
   // current data
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
@@ -161,6 +163,10 @@ public class MobilityScanDataAccess implements MobilityScan {
    *                                  the current scan
    */
   public MobilityScan nextMobilityScan() throws MissingMassListException {
+    if (!hasNextMobilityScan()) {
+      return null;
+    }
+
     currentMobilityScanIndex++;
     if (currentSpectrum != null) {
       // increment by the last mobility scan!
@@ -195,12 +201,16 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   /**
-   * Sets the next frame. The mobility scan index is reset to -1, therefore {@link
-   * #nextMobilityScan} has to be called before accessing new scan data.
+   * Sets the next frame. The mobility scan index is reset to -1, therefore
+   * {@link #nextMobilityScan} has to be called before accessing new scan data.
    *
    * @return the next Frame.
    */
   public Frame nextFrame() {
+    if (!hasNextFrame()) {
+      return null;
+    }
+
     currentFrameIndex++;
     currentFrame = eligibleFrames.get(currentFrameIndex);
     currentNumberOfMobilityScans = currentFrame.getNumberOfMobilityScans();
@@ -234,6 +244,43 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentFrame = null;
     currentNumberOfMobilityScans = -1;
     resetMobilityScan();
+  }
+
+  public void jumpToFrame(Frame frame) {
+    jumpToFrameIndex(indexOfFrame(frame));
+  }
+
+  public void jumpToFrameIndex(int index) {
+    if (index <= -1 || index >= eligibleFrames.size()) {
+      throw new IllegalArgumentException("Illegal index " + index);
+    }
+
+    currentFrameIndex = index - 1;
+    nextFrame();
+  }
+
+  public int indexOfFrame(Frame frame) {
+    if (frameIndexMap.isEmpty()) {
+      int index = 0;
+      for (Frame eligibleFrame : eligibleFrames) {
+        final var val = frameIndexMap.put(eligibleFrame, index);
+        if (val != null) {
+          throw new IllegalStateException("Clash of Frame hash codes.");
+        }
+        index++;
+      }
+    }
+    final Integer index = frameIndexMap.get(frame);
+    return index != null ? index : -1;
+  }
+
+  public MobilityScan jumpToMobilityScan(MobilityScan scan) {
+    jumpToFrame(scan.getFrame());
+    MobilityScan mobilityScan = null;
+    while (currentMobilityScanIndex < scan.getMobilityScanNumber()) {
+      mobilityScan = nextMobilityScan();
+    }
+    return mobilityScan;
   }
 
   /**
@@ -285,10 +332,10 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
-          .orElse(0);
-      case CENTROID -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
-          .orElse(0);
+      case RAW ->
+          frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max().orElse(0);
+      case CENTROID ->
+          frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max().orElse(0);
     };
   }
 
@@ -380,4 +427,8 @@ public class MobilityScanDataAccess implements MobilityScan {
         "The intended use of this class is to loop over all scans and data points");
   }
 
+  @Override
+  public @Nullable Float getInjectionTime() {
+    return currentMobilityScan.getInjectionTime();
+  }
 }

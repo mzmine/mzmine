@@ -25,14 +25,13 @@ public class BuildingPASEFMsMsInfo {
   private final double precursorMz;
   private final Range<Integer> spectrumNumberRange;
   private final float collisionEnergy;
-  private final int precursorCharge;
-  private final int parentFrameNumber;
-  private final int fragmentFrameNumber;
+  private final Integer precursorCharge;
+  private final Integer parentFrameNumber;
+  private final Integer fragmentFrameNumber;
   private final double isolationWidth;
 
-
   public BuildingPASEFMsMsInfo(double precursorMz, Range<Integer> spectrumNumberRange,
-      float collisionEnergy, int precursorCharge, int parentFrameNumber, int fragmentFrameNumber,
+      float collisionEnergy, Integer precursorCharge, Integer parentFrameNumber, Integer fragmentFrameNumber,
       double isolationWidth) {
     this.precursorMz = precursorMz;
     this.spectrumNumberRange = spectrumNumberRange;
@@ -55,15 +54,15 @@ public class BuildingPASEFMsMsInfo {
     return collisionEnergy;
   }
 
-  public int getPrecursorCharge() {
+  public Integer getPrecursorCharge() {
     return precursorCharge;
   }
 
-  public int getParentFrameNumber() {
+  public Integer getParentFrameNumber() {
     return parentFrameNumber;
   }
 
-  public int getFrameNumber() {
+  public Integer getFrameNumber() {
     return fragmentFrameNumber;
   }
 
