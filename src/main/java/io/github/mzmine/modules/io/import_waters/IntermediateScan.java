@@ -22,9 +22,11 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import java.util.Comparator;
 import net.csibio.aird.util.ArrayUtil;
+import org.jetbrains.annotations.NotNull;
 
-public class IntermediateScan  {
+public class IntermediateScan {
 
   private boolean iscontinuum;
   private RawDataFile newMZmineFile;
@@ -36,7 +38,7 @@ public class IntermediateScan  {
   private int numscan;
 
   public IntermediateScan(RawDataFile newMZmineFile,boolean iscontinuum,int mslevel, MassLynxIonMode ionmode,
-      Range<Double> MZRange, int function_number,float retentionTime)
+      Range<Double> MZRange, int function_number,float retentionTime,int numscan)
   {
     this.newMZmineFile=newMZmineFile;
     this.function_number=function_number;
@@ -45,6 +47,7 @@ public class IntermediateScan  {
     this.ionmode=ionmode;
     this.iscontinuum=iscontinuum;
     this.mslevel=mslevel;
+    this.numscan=numscan;
   }
 
   public boolean isIscontinuum() {
@@ -99,12 +102,34 @@ public class IntermediateScan  {
       //Polarity is calculated using Ion mode
       polarity= this.ionmode==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
-      SimpleScan simplescan = new SimpleScan(this.newMZmineFile,numscan,this.getMslevel(),
+      SimpleScan simplescan = new SimpleScan(this.newMZmineFile,this.getNumscan(),this.getMslevel(),
           this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
           ,spectrumType,polarity,"",
           this.getMZRange());
     return simplescan;
   }
 
+  public static Comparator<IntermediateScan> obj1 = new Comparator<IntermediateScan>() {
+
+    @Override
+    public int compare(IntermediateScan o1, IntermediateScan o2) {
+      {
+
+        float retentiontimeno1 = o1.getRetentionTime();
+        float retentiontimeno2 = o2.getRetentionTime();
+        if (retentiontimeno1 - retentiontimeno2 == 0) {
+          return 0;
+        }
+        // For ascending order
+        else if (retentiontimeno1 - retentiontimeno2 > 0) {
+          return 1;
+        } else {
+          return -1;
+        }
+        // For descending order
+        // rollno2-rollno1;
+      }
+    }
+  };
 }
 

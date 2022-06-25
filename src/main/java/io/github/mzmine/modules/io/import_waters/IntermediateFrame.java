@@ -15,21 +15,33 @@ package io.github.mzmine.modules.io.import_waters;
 
 import MassLynxSDK.MassLynxIonMode;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import net.csibio.aird.util.ArrayUtil;
 
 public class IntermediateFrame extends IntermediateScan{
   private int driftscancount;
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int driftscancount) {
-    super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime);
+      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int driftscancount,int numscan) {
+    super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
     this.driftscancount=driftscancount;
   }
 
   public SimpleFrame toframe()
   {
-    //For frame Function
+    PolarityType polarity = PolarityType.UNKNOWN;
+
+    MassSpectrumType spectrumType=this.isIscontinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
+
+    polarity= this.getIonmode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
+
+    SimpleFrame simpleframe=new SimpleFrame(this.getNewMZmineFile(),0,this.getMslevel()
+        ,this.getRetentionTime(),null,null,spectrumType,polarity,"",
+        this.getMZRange(), MobilityType.TRAVELING_WAVE,null);
 
     return null;
   }
