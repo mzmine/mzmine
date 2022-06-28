@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -34,7 +34,6 @@ import javafx.stage.Window;
 
 /**
  * Dynamically-built Windows menu.
- *
  */
 public class WindowsMenu extends Menu {
 
@@ -55,7 +54,7 @@ public class WindowsMenu extends Menu {
 
     // If the menu has <= 3 items, it means only the main MZmine window is showing
     itemsProperty = new SimpleListProperty<>(getItems());
-    closeAllMenuItem.disableProperty().bind(itemsProperty.sizeProperty().lessThanOrEqualTo(3));
+    closeAllMenuItem.disableProperty().bind(itemsProperty.sizeProperty().lessThanOrEqualTo(5));
 
     getItems().addAll(closeAllMenuItem, new SeparatorMenuItem());
 
@@ -78,8 +77,9 @@ public class WindowsMenu extends Menu {
   }
 
   private void fillWindowsMenu() {
-    while (getItems().size() > 2)
-      getItems().remove(2);
+    while (getItems().size() > 4) {
+      getItems().remove(4);
+    }
     for (Window win : Window.getWindows()) {
       if (win instanceof Stage) {
         Stage stage = (Stage) win;
@@ -96,8 +96,9 @@ public class WindowsMenu extends Menu {
     // Close all JavaFX Windows
     final var allWindows = ImmutableList.copyOf(Stage.getWindows());
     for (Window window : allWindows) {
-      if (window == MZmineCore.getDesktop().getMainWindow())
+      if (window == MZmineCore.getDesktop().getMainWindow()) {
         continue;
+      }
       logger.finest("Closing window " + window);
       window.hide();
     }

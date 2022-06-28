@@ -88,7 +88,7 @@ public class CentWaveResolverParameters extends GeneralResolverParameters {
   public CentWaveResolverParameters() {
 
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, SN_THRESHOLD,
-        PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD, RENGINE_TYPE});
+        PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD, RENGINE_TYPE, MIN_NUMBER_OF_DATAPOINTS});
   }
 
   @Override

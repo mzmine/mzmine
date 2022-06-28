@@ -34,9 +34,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SimpleGapFeature {
 
-  private List<Scan> scans = new ArrayList<>();
-  private DoubleList mzs = new DoubleArrayList();
-  private DoubleList intensities = new DoubleArrayList();
+  private final List<Scan> scans = new ArrayList<>();
+  private final DoubleList mzs = new DoubleArrayList();
+  private final DoubleList intensities = new DoubleArrayList();
 
   public void addDataPoint(Scan scan, double mz, double intensity) {
     scans.add(scan);
@@ -50,7 +50,7 @@ public class SimpleGapFeature {
    * @param storage store data on disk in memory mapped file
    * @return an ion time series
    */
-  public IonTimeSeries toIonTimeSeries(@Nullable MemoryMapStorage storage) {
+  public IonTimeSeries<Scan> toIonTimeSeries(@Nullable MemoryMapStorage storage) {
     return new SimpleIonTimeSeries(storage, mzs.toDoubleArray(), intensities.toDoubleArray(),
         scans);
   }
@@ -97,7 +97,7 @@ public class SimpleGapFeature {
       }
     }
     // remove trailing zeros
-    for (int i = scans.size(); i >= 0; i--) {
+    for (int i = scans.size() - 1; i >= 0; i--) {
       if (isZeroIntensity(i)) {
         remove(i);
       } else {

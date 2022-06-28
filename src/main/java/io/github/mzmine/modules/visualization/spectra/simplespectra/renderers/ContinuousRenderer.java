@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,12 +19,14 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
+import io.github.mzmine.main.MZmineCore;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serial;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.DrawingSupplier;
@@ -36,20 +38,19 @@ import org.jfree.data.xy.XYDataset;
 
 public class ContinuousRenderer extends XYLineAndShapeRenderer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-
   public static final float TRANSPARENCY = 0.8f;
+  public static final AlphaComposite alphaComp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+      TRANSPARENCY);
 
-  public static final AlphaComposite alphaComp =
-      AlphaComposite.getInstance(AlphaComposite.SRC_OVER, TRANSPARENCY);
+  /**
+   *
+   */
+  @Serial
+  private static final long serialVersionUID = 1L;
 
   // data points shape
   private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5, 5);
-
-  private boolean isTransparent;
+  private final boolean isTransparent;
 
   public ContinuousRenderer(Color color, boolean isTransparent) {
 
@@ -59,6 +60,9 @@ public class ContinuousRenderer extends XYLineAndShapeRenderer {
     setDefaultPaint(color);
     setDefaultFillPaint(color);
     setUseFillPaint(true);
+    setDefaultStroke(MZmineCore.getConfiguration().getDefaultChartTheme().getDefaultDataStroke());
+    setDefaultOutlineStroke(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getDefaultDataStroke());
 
     // Set shape properties
     setDefaultShape(dataPointsShape);
@@ -78,8 +82,9 @@ public class ContinuousRenderer extends XYLineAndShapeRenderer {
       PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
       XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
 
-    if (isTransparent)
+    if (isTransparent) {
       g2.setComposite(alphaComp);
+    }
 
     super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataset, series, item,
         crosshairState, pass);

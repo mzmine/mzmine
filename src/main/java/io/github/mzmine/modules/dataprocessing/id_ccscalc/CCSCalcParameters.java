@@ -38,7 +38,8 @@ public class CCSCalcParameters extends SimpleParameterSet {
       false);
 
   public CCSCalcParameters() {
-    super(new UserParameter[]{featureLists, assumeChargeStage});
+    super(new UserParameter[]{featureLists, assumeChargeStage},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_ccs_calibration/ccs_calibration.html#calculating-ccs-values");
   }
 
   @NotNull

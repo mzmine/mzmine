@@ -19,12 +19,14 @@
 package io.github.mzmine.modules.io.import_rawdata_mzxml;
 
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
@@ -38,6 +40,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.ByteArrayInputStream;
@@ -45,6 +48,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -402,6 +406,7 @@ public class MzXMLImportTask extends AbstractTask {
         // make a data input stream
         DataInputStream peakStream = new DataInputStream(new ByteArrayInputStream(peakBytes));
 
+        DataPoint dps[] = new DataPoint[peaksCount];
         double mzValues[] = new double[peaksCount];
         double intensityValues[] = new double[peaksCount];
 
@@ -420,10 +425,16 @@ public class MzXMLImportTask extends AbstractTask {
             }
 
             // Copy m/z and intensity data
-            mzValues[i] = mz;
-            intensityValues[i] = intensity;
-
+            dps[i] = new SimpleDataPoint(mz, intensity);
           }
+          // sort because old converters might create unsorted spectral data
+          Arrays.sort(dps, DataPointSorter.DEFAULT_MZ_ASCENDING);
+
+          for (int i = 0; i < dps.length; i++) {
+            mzValues[i] = dps[i].getMZ();
+            intensityValues[i] = dps[i].getIntensity();
+          }
+
         } catch (IOException eof) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Corrupt mzXML file");

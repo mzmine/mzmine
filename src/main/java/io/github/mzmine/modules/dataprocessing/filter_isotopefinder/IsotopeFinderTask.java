@@ -19,35 +19,46 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
+import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IsotopesUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 /**
@@ -66,6 +77,7 @@ class IsotopeFinderTask extends AbstractTask {
   private final String isotopes;
   private final ScanRange scanRange;
   private int processedRows, totalRows;
+
 
   IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -132,8 +144,10 @@ class IsotopeFinderTask extends AbstractTask {
     RawDataFile raw = featureList.getRawDataFile(0);
 
     // Loop through all rows
-    ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
+    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
         featureList.getSeletedScans(raw));
+
+    final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
 
     int missingValues = 0;
     int detected = 0;
@@ -147,9 +161,7 @@ class IsotopeFinderTask extends AbstractTask {
       // start at max intensity signal
       Feature feature = row.getFeature(raw);
       double mz = feature.getMZ();
-      Scan maxScan = feature.getRepresentativeScan();
-      int scanIndex = scans.indexOf(maxScan);
-      scans.jumpToIndex(scanIndex);
+      final Scan scan = findBestScanOrMobilityScan(scans, mobScans, feature);
 
       // find candidate isotope pattern in max scan
       // for each charge state to determine best charge
@@ -163,10 +175,15 @@ class IsotopeFinderTask extends AbstractTask {
         final int charge = i + 1;
         final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
         final double currentMaxDiff = maxIsoMzDiff[i];
+        final SimpleDataPoint featureDp = new SimpleDataPoint(mz, feature.getHeight());
         List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
-            currentMaxDiff, isoMzTolerance, scans, new SimpleDataPoint(mz, feature.getHeight()));
+            currentMaxDiff, isoMzTolerance, scan, featureDp);
 
-        if (!candidates.isEmpty()) {
+        if (scan instanceof MobilityScan && !candidates.isEmpty()) {
+          candidates = normalizeImsIntensities(candidates, scan, featureDp);
+        }
+
+        if (candidates.size() > 1) { // feature itself is always in cadidates
           IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
               charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
           if (pattern == null) {
@@ -197,6 +214,19 @@ class IsotopeFinderTask extends AbstractTask {
         // add isotope pattern and charge
         feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
+        //Final CCS Calculation
+        RawDataFile data = feature.getRawDataFile();
+        Float mobility = feature.getMobility();
+        MobilityType mobilityType = feature.getMobilityUnit();
+        if (data instanceof IMSRawDataFile imsfile) {
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
+                && mobilityType != null) {
+              Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
+              if (ccs != null) {
+                feature.setCCS(ccs);
+              }
+            }
+        }//end
         detected++;
       } else {
         // find pattern in FWHM
@@ -251,6 +281,57 @@ class IsotopeFinderTask extends AbstractTask {
 
     logger.info("Finished isotope pattern finder on " + featureList);
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private List<DataPoint> normalizeImsIntensities(List<DataPoint> candidates, Scan scan,
+      SimpleDataPoint featureDp) {
+    final int i = scan.binarySearch(featureDp.getMZ(), true);
+    if (i < 0) {
+      // did not find the expected feature data point
+      return candidates;
+    }
+
+    final double intensity = scan.getIntensityValue(i);
+    final double normalisationFactor = featureDp.getIntensity() / intensity;
+
+    final List<DataPoint> newCandidates = new ArrayList<>(candidates.size());
+    for (DataPoint candidate : candidates) {
+      if (!candidate.equals(featureDp)) {
+        newCandidates.add(
+            new SimpleDataPoint(candidate.getMZ(), candidate.getIntensity() * normalisationFactor));
+      } else {
+        newCandidates.add(featureDp);
+      }
+    }
+
+    return newCandidates;
+  }
+
+  @NotNull
+  private Scan findBestScanOrMobilityScan(ScanDataAccess scans, MobilityScanDataAccess mobScans,
+      Feature feature) {
+
+    final Scan maxScan = feature.getRepresentativeScan();
+    final int scanIndex = scans.indexOf(maxScan);
+    scans.jumpToIndex(scanIndex);
+
+    final boolean mobility = feature.getMobility() != null;
+    MobilityScan mobilityScan = null;
+    if (mobility && mobScans != null) {
+      final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
+      if (bestMobilityScan != null) {
+        mobilityScan = mobScans.jumpToMobilityScan(bestMobilityScan);
+      }
+    }
+
+    return mobilityScan != null ? mobScans : scans;
+  }
+
+  @Nullable
+  private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
+    return raw instanceof IMSRawDataFile imsFile && featureList.getFeatureTypes()
+        .containsKey(MobilityUnitType.class) ? new MobilityScanDataAccess(imsFile,
+        MobilityScanDataType.CENTROID, (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
   }
 
   private void checkCandidatesInScan(ScanDataAccess scans, List<MergedDataPoint> candidates,

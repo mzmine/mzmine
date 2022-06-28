@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -93,7 +93,6 @@ import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
@@ -109,6 +108,8 @@ import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
+import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
@@ -184,6 +185,7 @@ public class BatchModeModulesList {
       ExtractScansModule.class, //
       ExportScansFromRawFilesModule.class, //
       MzMLExportModule.class, //
+      MSnTreeExportModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
@@ -282,7 +284,6 @@ public class BatchModeModulesList {
       NistMsSearchModule.class, //
       OnlineDBSearchModule.class, //
       PrecursorDBSearchModule.class, //
-      SiriusIdentificationModule.class, //
       SpectralLibrarySearchModule.class, //
 
       /*
@@ -290,7 +291,8 @@ public class BatchModeModulesList {
        */
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
-      ExportCorrAnnotationModule.class, MetaboAnalystExportModule.class, //
+      ExportCorrAnnotationModule.class, //
+      MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
       AdapMspExportModule.class, //
@@ -301,7 +303,8 @@ public class BatchModeModulesList {
       MZTabmImportModule.class, //
       MzTabImportModule.class, //
       CSVExportModularModule.class, //
-      LegacyCSVExportModule.class //
+      LegacyCSVExportModule.class, //
+      LibraryAnalysisCSVExportModule.class //
 
       /*
        * needed in batch mode?

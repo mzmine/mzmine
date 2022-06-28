@@ -21,7 +21,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ public class SpectraIdentificationResultsModule implements MZmineModule {
   public static final String MODULE_NAME = "Local spectral libraries search results";
 
   public static void showNewTab(List<ModularFeatureListRow> rows) {
-    List<SpectralDBFeatureIdentity> spectralID =
+    List<SpectralDBAnnotation> spectralID =
         rows.stream().flatMap(row -> row.getSpectralLibraryMatches().stream()).toList();
     if (!spectralID.isEmpty()) {
       SpectraIdentificationResultsWindowFX window = new SpectraIdentificationResultsWindowFX();

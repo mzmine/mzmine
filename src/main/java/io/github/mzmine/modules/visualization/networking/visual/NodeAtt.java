@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.List;
 
 /**
@@ -82,7 +82,7 @@ public enum NodeAtt {
       }
       case GROUP_ID -> row.getGroupID();
       case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
-          .map(SpectralDBFeatureIdentity::getName).findFirst().orElse(null);
+          .map(SpectralDBAnnotation::getCompoundName).findFirst().orElse(null);
       case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
           match -> match.getEntry().getOrElse(DBEntryField.NAME, (String) null)).findFirst()
           .orElse(null);
@@ -131,7 +131,7 @@ public enum NodeAtt {
         yield i > -1 ? String.valueOf(i) : "";
       }
       case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
-          .map(SpectralDBFeatureIdentity::getName).findFirst()
+          .map(SpectralDBAnnotation::getCompoundName).findFirst()
           .orElse("");
       case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
           match -> match.getEntry().getOrElse(DBEntryField.NAME, "")).findFirst().orElse("");

@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
@@ -47,6 +47,8 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -68,27 +70,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
- * jmzml library (http://code.google.com/p/jmzml/).
+ * This class reads mzML 1.0 and 1.1.0 files (<a href="http://www.psidev.info/index.php?q=node/257">http://www.psidev.info/index.php?q=node/257</a>)
+ * using the jmzml library (<a href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
  */
+@SuppressWarnings("UnstableApiUsage")
 public class MSDKmzMLImportTask extends AbstractTask {
 
+  public static final Pattern watersPattern = Pattern.compile(
+      "function=([1-9]+) process=[\\d]+ scan=[\\d]+");
   private static final Logger logger = Logger.getLogger(MSDKmzMLImportTask.class.getName());
   private final File file;
   private final InputStream fis;
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
-  private MzMLFileImportMethod msdkTask = null;
-  private MZmineProject project;
-  private int totalScans = 0, parsedScans;
-  private String description;
+  private final MZmineProject project;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
+  private MzMLFileImportMethod msdkTask = null;
+  private int totalScans = 0, parsedScans;
+  private String description;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
-
-  public static final Pattern watersPattern = Pattern.compile(
-      "function=([1-9]+) process=[\\d]+ scan=[\\d]+");
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -209,7 +211,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
 
       Scan newScan = null;
-
       if (applyMassDetection) {
         // wrap scan
         MsdkScanWrapper wrapper = new MsdkScanWrapper(scan);
@@ -223,6 +224,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
 
         if (mzIntensities != null) {
+          // sort arrays because some files are unsorted. Latest versions of msconvert should fix that
+          mzIntensities = DataPointUtils.sort(mzIntensities[0], mzIntensities[1],
+              DataPointSorter.DEFAULT_MZ_ASCENDING);
+
           // create mass list and scan. Override data points and spectrum type
           newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
               mzIntensities[1], MassSpectrumType.CENTROIDED);
@@ -232,6 +237,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       }
 
       if (newScan == null) {
+        // mz arrays are sorted within this method to ensure order in scans
         newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan);
       }
 
@@ -251,14 +257,14 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     final List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
-    Set<PasefMsMsInfo> finishedImsMsMsInfos = null;
+    Set<PasefMsMsInfo> finishedImsMsMsInfos;
     final IMSRawDataFile newImsFile = (IMSRawDataFile) newMZmineFile;
 
     // index ion mobility values first, some manufacturers don't save all scans for all frames if
     // they are empty.
     final RangeMap<Double, Integer> mappedMobilities = indexMobilityValues(file);
     final Map<Range<Double>, Integer> mobilitiesMap = mappedMobilities.asMapOfRanges();
-    final double mobilities[] = mobilitiesMap.keySet().stream().mapToDouble(RangeUtils::rangeCenter)
+    final double[] mobilities = mobilitiesMap.keySet().stream().mapToDouble(RangeUtils::rangeCenter)
         .toArray();
 
 //    int previousFunction = 1;
@@ -308,11 +314,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
             scan.getRetentionTime() / 60f, null, null,
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-            scan.getScanningRange(), mzMLScan.getMobility().mobilityType(), null);
+            scan.getScanningRange(), mzMLScan.getMobility().mobilityType(), null, null);
         frameNumber++;
 
         description =
-            "Importing " + this.file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
+            "Importing " + this.file.getName() + ", parsed " + parsedScans + "/" + totalScans
+                + " scans";
       }
 
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
@@ -346,8 +353,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
    * consecutive mobility values. (tims does not have the same difference between every mobility
    * scan, hence the quarter.)
    */
-  private RangeMap<Double, Integer> indexMobilityValues(io.github.msdk.datamodel.RawDataFile file)
-      throws IOException {
+  private RangeMap<Double, Integer> indexMobilityValues(io.github.msdk.datamodel.RawDataFile file) {
     final RangeMap<Double, Integer> mobilityCounts = TreeRangeMap.create();
 
     boolean isTims = false;
