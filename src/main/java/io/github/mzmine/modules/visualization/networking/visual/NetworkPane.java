@@ -54,6 +54,7 @@ import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.javafx.util.FxFileSinkImages;
 import org.graphstream.ui.view.Viewer;
+import org.graphstream.ui.view.Viewer.ThreadingModel;
 import org.graphstream.ui.view.ViewerListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -241,7 +242,7 @@ public class NetworkPane extends BorderPane {
     graph.setAutoCreate(true);
     graph.setStrict(false);
 
-    viewer = new FxViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
+    viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
     viewer.enableAutoLayout();
 
     view = (FxViewPanel) viewer.addDefaultView(false);
