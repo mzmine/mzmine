@@ -150,6 +150,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       false);
 
+  public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
+      "Show temp folder alert", true);
 
   public MZminePreferences() {
     super(new Parameter[]{
@@ -163,7 +165,9 @@ public class MZminePreferences extends SimpleParameterSet {
         unitFormat,
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, darkMode, presentationMode,
-        showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail});
+        showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
+        // silent parameters without controls
+        showTempFolderAlert});
   }
 
   @Override
@@ -186,7 +190,7 @@ public class MZminePreferences extends SimpleParameterSet {
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, darkMode,
             presentationMode, showPrecursorWindow});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
-        // imsModuleWarnings, windowSetttings  are hidden parameters
+        // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
     });
     dialog.setFilterText(filterParameters);
 

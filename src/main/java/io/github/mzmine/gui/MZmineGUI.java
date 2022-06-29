@@ -97,6 +97,7 @@ import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
 import org.controlsfx.control.action.Action;
 import org.jetbrains.annotations.NotNull;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * MZmine JavaFX Application class
@@ -428,6 +429,7 @@ public class MZmineGUI extends Application implements Desktop {
 
     logger.finest("Initializing MZmine main window");
 
+    MZminePreferences preferences = MZmineCore.getConfiguration().getPreferences();
     try {
       // Load the main window
       URL mainFXML = this.getClass().getResource(mzMineFXML);
@@ -439,8 +441,7 @@ public class MZmineGUI extends Application implements Desktop {
       rootScene.getStylesheets()
           .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
 
-      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.darkMode).getValue();
+      Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
       if (darkMode != null && darkMode == true) {
         rootScene.getStylesheets()
             .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
@@ -485,14 +486,16 @@ public class MZmineGUI extends Application implements Desktop {
     stage.show();
 
     // show message that temp folder should be setup
-    File tmpPath = MZmineCore.getConfiguration().getPreferences()
-        .getValue(MZminePreferences.tempDirectory);
-    if (tmpPath == null || tmpPath.getAbsolutePath().toLowerCase().contains("users")) {
-      MZmineCore.runLater(() -> displayNotification(
-          "Set temp folder to a fast local drive (prefer a public folder over a user folder)",
-          "Change", MZmineCore::openTempPreferences));
+    if (preferences.getValue(MZminePreferences.showTempFolderAlert)) {
+      File tmpPath = preferences.getValue(MZminePreferences.tempDirectory);
+      if (tmpPath == null || tmpPath.getAbsolutePath().toLowerCase().contains("users")) {
+        MZmineCore.runLater(() -> displayNotification("""
+                Set temp folder to a fast local drive (prefer a public folder over a user folder).
+                MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
+                """, "Change", MZmineCore::openTempPreferences,
+            () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
+      }
     }
-
     // update the size and position of the main window
     /*
      * ParameterSet paramSet = configuration.getPreferences(); WindowSettingsParameter settings =
@@ -531,7 +534,6 @@ public class MZmineGUI extends Application implements Desktop {
     ShutDownHook shutDownHook = new ShutDownHook();
     Runtime.getRuntime().addShutdownHook(shutDownHook);
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
-
   }
 
   @Override
@@ -673,14 +675,30 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public void displayNotification(String msg, String buttonText, Runnable action) {
+  public void displayNotification(String msg, String buttonText, Runnable action,
+      Runnable hideForeverAction) {
     logger.log(Level.INFO, msg);
     NotificationPane pane = mainWindowController.getNotificationPane();
     pane.getActions().clear();
-    pane.show(msg, null, new Action(buttonText, ae -> {
+    if (hideForeverAction != null) {
+      pane.getActions().add(new Action("Hide ∞", ae -> {
+        hideForeverAction.run();
+        pane.hide();
+      }));
+    }
+
+    Action buttonAction = new Action(buttonText, ae -> {
       action.run();
       pane.hide();
-    }));
+    });
+    FontIcon fontIcon = null;
+    try {
+      fontIcon = new FontIcon("bi-exclamation-triangle:30");
+      fontIcon.setOnMouseClicked(event -> buttonAction.handle(null));
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot load icon from Ikonli" + ex.getMessage(), ex);
+    }
+    pane.show(msg, fontIcon, buttonAction);
   }
 
   @Override

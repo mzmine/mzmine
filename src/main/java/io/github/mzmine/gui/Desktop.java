@@ -97,13 +97,26 @@ public interface Desktop extends MZmineModule {
 
 
   /**
-   * Use notification pane to display
+   * Use notification pane to display a notification on the top of the screen.
    *
    * @param msg        message to display
    * @param buttonText button text
    * @param action     button action
    */
-  void displayNotification(String msg, String buttonText, Runnable action);
+  default void displayNotification(String msg, String buttonText, Runnable action) {
+    displayNotification(msg, buttonText, action, null);
+  }
+
+  /**
+   * Use notification pane to display a notification on the top of the screen.
+   *
+   * @param msg               message to display
+   * @param buttonText        button text
+   * @param action            button action
+   * @param hideForeverAction hide forever button was pressed handle this option to not show again
+   */
+  void displayNotification(String msg, String buttonText, Runnable action,
+      Runnable hideForeverAction);
 
   /**
    * Displays an opt-out yes/no dialog. Can be called from any thread.

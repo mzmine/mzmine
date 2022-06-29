@@ -155,7 +155,8 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void displayNotification(String msg, String buttonText, Runnable action) {
+  public void displayNotification(String msg, String buttonText, Runnable action,
+      Runnable hideForeverAction) {
     logger.log(Level.INFO, msg);
   }
 
