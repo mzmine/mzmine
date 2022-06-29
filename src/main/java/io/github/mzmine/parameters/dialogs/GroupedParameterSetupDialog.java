@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -41,7 +41,8 @@ import org.controlsfx.property.editor.DefaultPropertyEditorFactory;
 public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
 
 
-  private ObservableList<Item> items;
+  private final ObservableList<Item> items;
+  private final PropertySheet propertySheet;
 
   public GroupedParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
@@ -61,15 +62,15 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
     //    for (Parameter p : parameters.getParameters())
     //      items.add(new ParameterItem(p));
 
-    PropertySheet propertySheet = new PropertySheet(items);
+    propertySheet = new PropertySheet(items);
     propertySheet.setMode(Mode.CATEGORY);
     VBox.setVgrow(propertySheet, Priority.ALWAYS);
 
     final DefaultPropertyEditorFactory defaultFactory = new DefaultPropertyEditorFactory();
 
     propertySheet.setPropertyEditorFactory(param -> {
-      if (param instanceof ParameterItem pitem && pitem
-          .getParameter() instanceof UserParameter up) {
+      if (param instanceof ParameterItem pitem
+          && pitem.getParameter() instanceof UserParameter up) {
         final Node editor = up.createEditingComponent();
         parametersAndComponents.put(up.getName(), editor);
         return new ParameterEditorWrapper(up, editor);
@@ -84,6 +85,19 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
     setMinHeight(400.0);
 
     centerOnScreen();
+  }
+
+  public PropertySheet getPropertySheet() {
+    return propertySheet;
+  }
+
+  /**
+   * Set the filter in the top of the property pane
+   *
+   * @param filter filters for the parameter titles
+   */
+  public void setFilterText(String filter) {
+    propertySheet.setTitleFilter(filter);
   }
 
   public void addParameterGroup(String group, Parameter[] parameters) {

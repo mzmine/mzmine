@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -73,7 +73,7 @@ import org.jetbrains.annotations.Nullable;
 public final class MZmineCore {
 
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
-  
+
   private static final MZmineCore instance = new MZmineCore();
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
@@ -226,6 +226,11 @@ public final class MZmineCore {
       logger.log(Level.SEVERE, "Error during MZmine start up", ex);
       exit();
     }
+  }
+
+  public static void openTempPreferences() {
+    MZminePreferences pref = getConfiguration().getPreferences();
+    pref.showSetupDialog(true, "temp");
   }
 
   public static MZmineCore getInstance() {
@@ -428,7 +433,8 @@ public final class MZmineCore {
   }
 
   /**
-   * Simulates Swing's invokeAndWait(). Based on https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
+   * Simulates Swing's invokeAndWait(). Based on
+   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
    */
   public static void runOnFxThreadAndWait(Runnable r) {
     FxThreadUtil.runOnFxThreadAndWait(r);
