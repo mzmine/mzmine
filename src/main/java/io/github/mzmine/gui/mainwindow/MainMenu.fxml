@@ -16,7 +16,8 @@
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
   ~
-  --><?import io.github.mzmine.util.javafx.WindowsMenu?>
+  -->
+<?import io.github.mzmine.util.javafx.WindowsMenu?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -97,7 +98,15 @@
 
     <SeparatorMenuItem/>
     <MenuItem text="Exit" onAction="#exitApplication"/>
+
+    <MenuItem text="Test Network" onAction="#openTestNetworkVis">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="N"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
   </Menu>
+
 
 
   <!-- RAW DATA METHODS -->
