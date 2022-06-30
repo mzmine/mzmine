@@ -26,9 +26,8 @@ public class IntermediateFrame extends IntermediateScan{
   private int driftscancount;
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int driftscancount,int numscan) {
+      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan) {
     super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
-    this.driftscancount=driftscancount;
   }
 
   public SimpleFrame toframe()
