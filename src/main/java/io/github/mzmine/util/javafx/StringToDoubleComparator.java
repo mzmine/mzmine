@@ -24,10 +24,16 @@ public class StringToDoubleComparator implements Comparator<String> {
 
   @Override
   public int compare(String o1, String o2) {
+    if (o1 == null) {
+      return o2 == null ? 0 : -1;
+    }
+    if (o2 == null) {
+      return 1;
+    }
     try {
       return Double.compare(Double.parseDouble(o1), Double.parseDouble(o2));
     } catch (Exception e) {
-      return 0;
+      return o1.compareTo(o2);
     }
   }
 }
