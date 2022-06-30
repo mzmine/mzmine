@@ -97,8 +97,8 @@ public class WatersImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
-    loadRegularFile(filenamepath);
-   // loadIonMobilityFile(filenamepath);
+   // loadRegularFile(filenamepath);
+    loadIonMobilityFile(filenamepath);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -217,16 +217,39 @@ public class WatersImportTask extends AbstractTask {
     try {
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
+      ArrayList<Float> drifttime=new ArrayList<>();
       ArrayList<Integer> driftscancount=new ArrayList<>();
-
+      int framecount=0;
+      IntermediateFrame intermediateframe;
+      int countnumscan=0;
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
       for (int i=0;i<totalfunctioncount;++i) {
-        driftscancount.add(massLynxRawInfoReader.GetDriftScanCount(i));
+       int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(i);
+        driftscancount.add(numdriftscan);
+
+        int total_scanvalue_in_each_function = massLynxRawInfoReader.GetScansInFunction(i);
+
+        //msLevel is calculated as per Function type
+        int mslevel = getMsLevel(massLynxRawInfoReader, i);
+
+        //Range is calculated using AcquisitionMass
+        Range<Double> mzrange = Range.closed(
+            (double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getStart(),
+            (double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getEnd());
+
+
+       for(int j=0;j<total_scanvalue_in_each_function;j++)
+        {
+          intermediateframe=new IntermediateFrame(this.newMZmineFile,massLynxRawInfoReader.IsContinuum(i), mslevel,
+              massLynxRawInfoReader.GetIonMode(i), mzrange,i,
+              massLynxRawInfoReader.GetRetentionTime(i,j),countnumscan++);
+        }
       }
+      System.out.println();
     } catch (MasslynxRawException e) {
       e.printStackTrace();
-      MZmineCore.getDesktop().displayErrorMessage("MasslynxRawException :: " + e.getMessage());
-      logger.log(Level.SEVERE, "MasslynxRawException :: ", e.getMessage());
+     // MZmineCore.getDesktop().displayErrorMessage("MasslynxRawException :: " + e.getMessage());
+     // logger.log(Level.SEVERE, "MasslynxRawException :: ", e.getMessage());
     }
 
   }
