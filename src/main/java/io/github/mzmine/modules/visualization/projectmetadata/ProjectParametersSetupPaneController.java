@@ -66,7 +66,7 @@ public class ProjectParametersSetupPaneController {
     fileList = currentProject.getDataFiles();
 
     // set the run start timestamp of the sample for each file
-    DateMetadataColumn startTimeStamp = new DateMetadataColumn("Run start time stamp",
+    DateMetadataColumn startTimeStamp = new DateMetadataColumn("run_date",
         "Run start time stamp of the sample");
     for (RawDataFile rawFile : fileList) {
       metadataTable.setValue(startTimeStamp, rawFile, rawFile.getStartTimeStamp());
