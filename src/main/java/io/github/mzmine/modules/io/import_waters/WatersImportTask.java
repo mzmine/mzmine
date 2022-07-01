@@ -97,7 +97,8 @@ public class WatersImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
-   // loadRegularFile(filenamepath);
+
+    loadRegularFile(filenamepath);
     loadIonMobilityFile(filenamepath);
     setStatus(TaskStatus.FINISHED);
   }
@@ -191,7 +192,7 @@ public class WatersImportTask extends AbstractTask {
    * @param massLynxRawInfoReader
    * @return bool value
    */
-  private boolean isIonMobilityFile(MassLynxRawInfoReader massLynxRawInfoReader)
+  /*private boolean isIonMobilityFile(MassLynxRawInfoReader massLynxRawInfoReader)
   {
     try {
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
@@ -205,7 +206,7 @@ public class WatersImportTask extends AbstractTask {
    logger.log(Level.WARNING, e.getMessage(), e);
    return false;
     }
-  }
+  }*/
 
   /**
    *
