@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -42,6 +43,8 @@ import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParam
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -72,10 +75,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class reads mzML 1.0 and 1.1.0 files (<a
- * href="http://www.psidev.info/index.php?q=node/257">http://www.psidev.info/index.php?q=node/257</a>)
- * using the jmzml library (<a
- * href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
+ * This class reads mzML 1.0 and 1.1.0 files (<a href="http://www.psidev.info/index.php?q=node/257">http://www.psidev.info/index.php?q=node/257</a>)
+ * using the jmzml library (<a href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
  */
 @SuppressWarnings("UnstableApiUsage")
 public class MSDKmzMLImportTask extends AbstractTask {
@@ -95,6 +96,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private String description;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
+  // we will need it to add a sample's run_date after importing a new file
+  private final MetadataTable metadataTable = MZmineCore.getProjectManager().getCurrentProject()
+      .getProjectMetadata();
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -165,10 +169,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
       }
 
-      // try to set a value of a start time stamp for a sample
+      // try to set a value of a start time stamp parameter for a sample
       try {
         // is usually saved as ZonedDateTime with 2022-06-01T18:36:09Z where the Z stands for UTC
-        newMZmineFile.setStartTimeStamp(DateTimeUtils.parse(msdkTaskRes.getStartTimeStamp()));
+        metadataTable.setValue(
+            new DateMetadataColumn("run_date", "Run start time stamp of the sample"), newMZmineFile,
+            DateTimeUtils.parse(msdkTaskRes.getStartTimeStamp()));
       } catch (Exception ignored) {
       }
 
