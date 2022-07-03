@@ -68,7 +68,7 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     // get the all selected files
-    File[] fileNames = parameters.getParameter(MzMLImportParameters.fileNames).getValue();
+    File[] fileNames = parameters.getParameter(ProjectMetadataImportParameters.fileNames).getValue();
 
     // null check
     if (Arrays.asList(fileNames).contains(null)) {
@@ -76,22 +76,11 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
-    MetadataTable metadataTable = MZmineCore.getProjectManager().getCurrentProject().getProjectMetadata();
-    // try to import parameters from each selected .tsv file
-    for (File fileName : fileNames) {
-      if ((!fileName.exists()) || (!fileName.canRead())) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileName);
-        logger.warning("Cannot read file " + fileName);
-        return ExitCode.ERROR;
-      }
-
-      if (metadataTable.importMetadata(fileName, false)) {
-        logger.info("Successfully imported parameters from " + fileName);
-      } else {
-        MZmineCore.getDesktop().displayErrorMessage("Couldn't import metadata from " + fileName);
-        logger.warning("Error while processing " + fileName);
-        return ExitCode.ERROR;
-      }
+    try {
+      tasks.add(new ProjectMetadataImportTask(fileNames, moduleCallDate));
+    } catch (Exception e) {
+      logger.severe(e.getMessage());
+      return ExitCode.ERROR;
     }
 
     return ExitCode.OK;
