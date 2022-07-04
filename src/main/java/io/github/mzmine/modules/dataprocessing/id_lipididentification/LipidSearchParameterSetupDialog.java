@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidDatabaseTableController;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -47,15 +47,16 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
   private Object[] selectedObjects;
   private CheckBoxTreeItem<Object> items;
 
-  private static Logger logger = Logger.getLogger(LipidSearchParameterSetupDialog.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      LipidSearchParameterSetupDialog.class.getName());
 
   public LipidSearchParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     // Add buttons
     showDatabaseTable = new Button("Show database");
-    showDatabaseTable
-        .setTooltip(new Tooltip("Show a database table for the selected classes and parameters"));
+    showDatabaseTable.setTooltip(
+        new Tooltip("Show a database table for the selected classes and parameters"));
     showDatabaseTable.setOnAction(event -> {
       try {
         updateParameterSetFromComponents();
@@ -64,16 +65,16 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
         selectedObjects = LipidSearchParameters.lipidClasses.getValue();
 
         // Convert Objects to LipidClasses
-        LipidClasses[] selectedLipids =
-            Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
-                .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
+        LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)
+            .filter(o -> o instanceof LipidClasses).map(o -> (LipidClasses) o)
+            .toArray(LipidClasses[]::new);
 
         Platform.runLater(() -> {
-          FXMLLoader loader =
-              new FXMLLoader((getClass().getResource("lipids/LipidDatabaseTable.fxml")));
+          FXMLLoader loader = new FXMLLoader(
+              (getClass().getResource("lipids/LipidDatabaseTable.fxml")));
           Stage stage = new Stage();
           try {
-            BorderPane root = (BorderPane) loader.load();
+            BorderPane root = loader.load();
             Scene scene = new Scene(root, 1200, 800);
 
             // get controller
@@ -100,8 +101,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
       }
     });
 
-
-    pnlButtons.getButtons().add(showDatabaseTable);
+    getButtonBar().getButtons().add(showDatabaseTable);
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -102,10 +102,10 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private boolean applyFit;
 
   public IsotopePatternPreviewDialog(boolean valueCheckRequired, ParameterSet parameters) {
-    super(valueCheckRequired, parameters);
+    super(valueCheckRequired, parameters, true, false, null);
 
     // one delay to add to all listeners
-    listenerDelay = new PauseTransition(Duration.seconds(2));
+    listenerDelay = new PauseTransition(Duration.seconds(1));
     listenerDelay.setOnFinished(event -> delayedHandlingOfParameterChanges());
 
     aboveMin = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
@@ -164,7 +164,6 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     newMainPanel.setCenter(pnSplit);
     newMainPanel.setBottom(paramsPane);
     mainPane.setCenter(newMainPanel);
-    pnlButtons.getButtons().remove(super.btnCancel);
 
     formatChart();
     parametersChanged();
@@ -186,7 +185,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   public void updateWindow() {
     if (!updateParameters()) {
       logger.warning("updateWindow() failed. Could not update parameters or parameters are invalid."
-                     + "\nPlease check the parameters.");
+          + "\nPlease check the parameters.");
       return;
     }
 
@@ -316,7 +315,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   }
 
   /**
-   * https://stackoverflow.com/a/48126059
+   * <a href="https://stackoverflow.com/a/48126059">https://stackoverflow.com/a/48126059</a>
    */
   @SuppressWarnings("rawtypes")
   public void copySelectionToClipboard(final TableView<?> table) {

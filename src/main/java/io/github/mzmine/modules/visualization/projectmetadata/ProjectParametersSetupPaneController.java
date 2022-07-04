@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
@@ -63,6 +64,7 @@ public class ProjectParametersSetupPaneController {
     parameterTable.setEditable(true);
     parameterTable.getSelectionModel().setCellSelectionEnabled(true);
     fileList = currentProject.getDataFiles();
+
     updateParametersToTable();
   }
 
