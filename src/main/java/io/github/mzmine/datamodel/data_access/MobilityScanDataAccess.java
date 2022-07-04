@@ -237,16 +237,18 @@ public class MobilityScanDataAccess implements MobilityScan {
 
     currentSpectrumDatapointIndexOffset = 0;
 
-    for (int i = 0; i < currentMobilityScans.size(); i++) {
-      MobilityScan tmpMobScan = currentMobilityScans.get(i);
-      if (selection.matches(tmpMobScan)) {
-        break;
-      }
+    if (selection != null) {
+      for (int i = 0; i < currentMobilityScans.size(); i++) {
+        MobilityScan tmpMobScan = currentMobilityScans.get(i);
+        if (selection.matches(tmpMobScan)) {
+          break;
+        }
 
-      currentMobilityScanIndex = i;
-      MassSpectrum currentSpec =
-          type == MobilityScanDataType.RAW ? tmpMobScan : tmpMobScan.getMassList();
-      currentSpectrumDatapointIndexOffset += currentSpec.getNumberOfDataPoints();
+        currentMobilityScanIndex = i;
+        MassSpectrum currentSpec =
+            type == MobilityScanDataType.RAW ? tmpMobScan : tmpMobScan.getMassList();
+        currentSpectrumDatapointIndexOffset += currentSpec.getNumberOfDataPoints();
+      }
     }
 
     final MobilityScanStorage storage = currentFrame.getMobilityScanStorage();
