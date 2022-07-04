@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.test_visualizer;
 
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Node;
@@ -35,6 +36,7 @@ import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
+import org.graphstream.ui.layout.Eades84Layout;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.ThreadingModel;
 
@@ -68,7 +70,7 @@ public class NetworkTestVisualizer extends Stage {
       generator.end();
     try {
       viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-      viewer.disableAutoLayout();
+      viewer.enableAutoLayout();
       view = (FxViewPanel) viewer.addDefaultView(false);
       double Mxw = view.getMaxWidth(), Mxh = view.getMaxHeight();
       view.enableMouseOptions();
