@@ -163,6 +163,12 @@ public abstract class MzMLTags {
       "defaultInstrumentConfigurationRef";
   /**
    * Constant
+   * <code>ATTR_START_TIME_STAMP="startTimeStamp"</code>
+   */
+  public static final String ATTR_START_TIME_STAMP =
+      "startTimeStamp";
+  /**
+   * Constant
    * <code>ATTR_DEFAULT_INSTRUMENT_CONFIGURATION_REF="defaultInstrumentConfigurationRef"</code>
    */
   public static final String ATTR_DEFAULT_DATA_PROCESSING_REF = "defaultDataProcessingRef";

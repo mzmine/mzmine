@@ -49,6 +49,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final int totalFrames;
 
   protected final List<Frame> eligibleFrames;
+  private final ScanSelection selection;
   protected final double[] mzs;
   protected final double[] intensities;
   protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
@@ -56,7 +57,6 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
   protected MassSpectrum currentSpectrum;
-  protected List<? extends MassSpectrum> currentSpectra;
   protected List<MobilityScan> currentMobilityScans;
   protected int currentNumberOfDataPoints = -1;
   protected int currentNumberOfMobilityScans = -1;
@@ -74,16 +74,23 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   protected MobilityScanDataAccess(IMSRawDataFile dataFile, MobilityScanDataType type,
       ScanSelection selection) {
-    this(dataFile, type, (List<Frame>) selection.getMatchingScans(dataFile.getFrames()));
+    this(dataFile, type, (List<Frame>) selection.getMatchingScans(dataFile.getFrames()), selection);
   }
 
   public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames) {
+    this(dataFile, type, frames, null);
+  }
+
+  public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
+      @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames,
+      ScanSelection selection) {
     this.dataFile = dataFile;
     this.type = type;
 
     // count matching scans
     eligibleFrames = frames;
+    this.selection = selection;
     totalFrames = eligibleFrames.size();
 
     final int length = getMaxNumberOfDataPoints(eligibleFrames);
@@ -150,7 +157,15 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   public boolean hasNextMobilityScan() {
-    return currentMobilityScanIndex + 1 < currentNumberOfMobilityScans;
+    final int nextNum = currentMobilityScanIndex + 1;
+    if (currentFrame == null || nextNum >= currentNumberOfMobilityScans) {
+      return false;
+    }
+
+    if (selection != null) {
+      return selection.matches(currentFrame.getMobilityScan(nextNum));
+    }
+    return true;
   }
 
   /**
@@ -218,11 +233,23 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentMobilityScan = null;
     currentSpectrum = null;
 
+    currentMobilityScans = currentFrame.getMobilityScans();
+
     currentSpectrumDatapointIndexOffset = 0;
 
-    currentMobilityScans = currentFrame.getMobilityScans();
-    currentSpectra = type == MobilityScanDataType.RAW ? currentMobilityScans
-        : currentMobilityScans.stream().map(MobilityScan::getMassList).toList();
+    if (selection != null) {
+      for (int i = 0; i < currentMobilityScans.size(); i++) {
+        MobilityScan tmpMobScan = currentMobilityScans.get(i);
+        if (selection.matches(tmpMobScan)) {
+          break;
+        }
+
+        currentMobilityScanIndex = i;
+        MassSpectrum currentSpec =
+            type == MobilityScanDataType.RAW ? tmpMobScan : tmpMobScan.getMassList();
+        currentSpectrumDatapointIndexOffset += currentSpec.getNumberOfDataPoints();
+      }
+    }
 
     final MobilityScanStorage storage = currentFrame.getMobilityScanStorage();
     if (type == MobilityScanDataType.RAW) {
@@ -283,9 +310,6 @@ public class MobilityScanDataAccess implements MobilityScan {
     return mobilityScan;
   }
 
-  /**
-   * @return
-   */
   public MassList getMassList() {
     return currentSpectrum instanceof MassList ml ? ml : currentMobilityScan.getMassList();
   }
@@ -294,7 +318,6 @@ public class MobilityScanDataAccess implements MobilityScan {
    * Get mass-to-charge ratio at index
    *
    * @param index data point index
-   * @return
    */
   @Override
   public double getMzValue(int index) {
@@ -307,7 +330,6 @@ public class MobilityScanDataAccess implements MobilityScan {
    * Get intensity at index
    *
    * @param index data point index
-   * @return
    */
   @Override
   public double getIntensityValue(int index) {
@@ -318,8 +340,6 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   /**
    * Number of selected scans
-   *
-   * @return
    */
   public int getNumberOfScans() {
     return totalFrames;
@@ -327,8 +347,6 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   /**
    * Maximum number of data points is used to create the arrays that back the data
-   *
-   * @return
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {

@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
@@ -41,6 +41,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -49,6 +50,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.DateTimeUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -70,8 +72,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class reads mzML 1.0 and 1.1.0 files (<a href="http://www.psidev.info/index.php?q=node/257">http://www.psidev.info/index.php?q=node/257</a>)
- * using the jmzml library (<a href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
+ * This class reads mzML 1.0 and 1.1.0 files (<a
+ * href="http://www.psidev.info/index.php?q=node/257">http://www.psidev.info/index.php?q=node/257</a>)
+ * using the jmzml library (<a
+ * href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
  */
 @SuppressWarnings("UnstableApiUsage")
 public class MSDKmzMLImportTask extends AbstractTask {
@@ -141,7 +145,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         msdkTask = new MzMLFileImportMethod(file);
       }
-      msdkTask.execute();
+      MzMLRawDataFile msdkTaskRes = msdkTask.execute();
       io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
 
       if (msdkFile == null) {
@@ -159,6 +163,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
             storage);
       } else {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
+      }
+      try {
+        // set time
+        if (msdkTaskRes.getStartTimeStamp() != null) {
+          newMZmineFile.setStartTimeStamp(DateTimeUtils.parse(msdkTaskRes.getStartTimeStamp()));
+        }
+      } catch (Exception ingored) {
       }
 
       if (newMZmineFile instanceof IMSRawDataFileImpl) {

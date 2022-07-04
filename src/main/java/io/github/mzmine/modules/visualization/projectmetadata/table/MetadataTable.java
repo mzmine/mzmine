@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.File;
 import java.util.HashMap;
@@ -33,17 +34,10 @@ import javax.annotation.Nullable;
  */
 public class MetadataTable {
 
+  private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
-
   // use GoF "State" pattern where the state will interpret the table format (either long or wide)
   private TableExportUtility tableExportUtility = new WideTableExportUtility(this);
-
-  // define the header fields names of the file with imported metadata
-  private enum HeaderFields {
-    NAME, DESC, TYPE, FILE, VALUE
-  }
-
-  private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
 
   public MetadataTable() {
     this.data = new HashMap<>();
@@ -80,6 +74,22 @@ public class MetadataTable {
    */
   public void removeColumn(MetadataColumn<?> column) {
     data.remove(column);
+  }
+
+  /**
+   * Add file to the table and try to set the date column
+   *
+   * @param newFile
+   */
+  public void addFile(RawDataFile newFile) {
+    // try to set a value of a start time stamp parameter for a sample
+    try {
+      // is usually saved as ZonedDateTime with 2022-06-01T18:36:09Z where the Z stands for UTC
+      setValue(new DateMetadataColumn("run_date", "Run start time stamp of the sample"), newFile,
+          newFile.getStartTimeStamp());
+    } catch (Exception ignored) {
+      logger.warning("Cannot set date " + newFile.getStartTimeStamp().toString());
+    }
   }
 
   /**
@@ -200,5 +210,10 @@ public class MetadataTable {
    */
   public void setTableExportUtility(TableExportUtility tableExportUtility) {
     this.tableExportUtility = tableExportUtility;
+  }
+
+  // define the header fields names of the file with imported metadata
+  private enum HeaderFields {
+    NAME, DESC, TYPE, FILE, VALUE
   }
 }
