@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -25,9 +25,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -208,6 +208,8 @@ public class MZmineProjectImpl implements MZmineProject {
       logger.finest("Adding a new file to the project: " + newFile.getName());
 
       rawDataFiles.add(newFile);
+      projectMetadata.addFile(newFile);
+
       fireDataFilesChangeEvent(List.of(newFile), Type.ADDED);
     } finally {
       rawLock.writeLock().unlock();
