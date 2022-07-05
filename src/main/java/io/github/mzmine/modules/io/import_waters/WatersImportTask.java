@@ -15,7 +15,6 @@
 
 package io.github.mzmine.modules.io.import_waters;
 
-import static org.apache.fop.fonts.type1.AdobeStandardEncoding.i;
 
 import MassLynxSDK.MassLynxFunctionType;
 import MassLynxSDK.MassLynxRawInfoReader;

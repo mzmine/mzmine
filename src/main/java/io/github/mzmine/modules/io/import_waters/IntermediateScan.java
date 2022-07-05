@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleScan;
-import java.util.Comparator;
 import net.csibio.aird.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
