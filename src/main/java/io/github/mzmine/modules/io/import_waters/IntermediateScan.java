@@ -115,29 +115,5 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
 
     return Float.compare(this.retentionTime,retentionTime2);
   }
-
-/*  public static Comparator<IntermediateScan> obj1 = new Comparator<IntermediateScan>() {
-
-    @Override
-    public int compare(IntermediateScan o1, IntermediateScan o2) {
-      {
-
-        float retentiontimeno1 = o1.getRetentionTime();
-        float retentiontimeno2 = o2.getRetentionTime();
-        int compare= Float.compare(retentiontimeno1,retentiontimeno2);
-        if (compare==0) {
-          return 0;
-        }
-        // For ascending order
-        else if (compare > 0) {
-          return 1;
-        } else {
-          return -1;
-        }
-        // For descending order
-        // rollno2-rollno1;
-      }
-    }
-  };*/
 }
 
