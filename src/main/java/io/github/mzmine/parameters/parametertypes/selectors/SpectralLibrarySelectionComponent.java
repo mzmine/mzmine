@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -78,7 +78,8 @@ public class SpectralLibrarySelectionComponent extends GridPane {
   }
 
   public SpectralLibrarySelection getValue() {
-    return new SpectralLibrarySelection(typeCombo.getValue(), List.of(specificFiles));
+    return new SpectralLibrarySelection(typeCombo.getValue(),
+        specificFiles == null ? List.of() : List.of(specificFiles));
   }
 
   void setValue(SpectralLibrarySelection newValue) {

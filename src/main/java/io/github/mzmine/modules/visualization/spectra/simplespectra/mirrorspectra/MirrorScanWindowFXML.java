@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
+import io.github.mzmine.main.MZmineCore;
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -39,7 +40,10 @@ public class MirrorScanWindowFXML extends Stage {
     try {
       Pane mainPane = loader.load();
       controller = loader.getController();
-      this.setScene(new Scene(mainPane));
+      Scene mainScene = new Scene(mainPane);
+      mainScene.getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      this.setScene(mainScene);
     } catch (IOException e) {
       e.printStackTrace();
     }

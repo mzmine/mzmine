@@ -68,6 +68,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
@@ -84,19 +85,18 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    * {@link SpectraItemLabelGenerator}.
    */
   private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
+  private final JFreeChart chart;
+  private final XYPlot plot;
+  private final TextTitle chartTitle;
+  private final TextTitle chartSubTitle;
   /**
    * If true, the labels of the data set will have the same color as the data set itself
    */
   protected BooleanProperty matchLabelColors;
   protected ObjectProperty<SpectrumCursorPosition> cursorPosition;
-
   // Spectra processing
   protected DataPointProcessingController controller;
   protected EStandardChartTheme theme;
-  private final JFreeChart chart;
-  private final XYPlot plot;
-  private final TextTitle chartTitle;
-  private final TextTitle chartSubTitle;
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true, dataPointsVisible = false;
   // We use our own counter, because plot.getDatasetCount() just keeps
   // increasing even when we remove old data sets
@@ -108,6 +108,10 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public SpectraPlot(boolean processingAllowed) {
+    this(processingAllowed, true);
+  }
+
+  public SpectraPlot(boolean processingAllowed, boolean showLegend) {
 
     super(ChartFactory.createXYLineChart("", // title
         "m/z", // x-axis label
@@ -178,7 +182,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
 
-    setMinHeight(100);
+    getChart().getLegend().setVisible(showLegend);
+
+    setMinHeight(50);
 
     // set processingAllowed
     setProcessingAllowed(processingAllowed);
@@ -238,6 +244,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         XYItemRenderer newRenderer;
         if (typeForDataSet == SpectrumPlotType.CENTROID) {
           newRenderer = new PeakRenderer((Color) clr, false);
+          ((PeakRenderer) newRenderer).setBarPainter(new StandardXYBarPainter());
         } else {
           newRenderer = new ContinuousRenderer((Color) clr, false);
           ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -109,6 +109,7 @@ import io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
+import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
@@ -128,6 +129,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataImportModule;
 import java.util.List;
 
 public class BatchModeModulesList {
@@ -158,6 +160,12 @@ public class BatchModeModulesList {
       SpectralLibraryImportModule.class, //
 
       /*
+       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#PROJECT}
+       * {@link io.github.mzmine.modules.MZmineModuleCategory#PROJECTMETADATA}
+       */
+      ProjectMetadataImportModule.class, //
+
+      /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
        * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATA}
        */
@@ -184,6 +192,7 @@ public class BatchModeModulesList {
       ExtractScansModule.class, //
       ExportScansFromRawFilesModule.class, //
       MzMLExportModule.class, //
+      MSnTreeExportModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}

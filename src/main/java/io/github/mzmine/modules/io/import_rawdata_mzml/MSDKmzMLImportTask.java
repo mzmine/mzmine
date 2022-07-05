@@ -41,6 +41,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -49,6 +50,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.DateTimeUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -78,22 +80,21 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("UnstableApiUsage")
 public class MSDKmzMLImportTask extends AbstractTask {
 
+  public static final Pattern watersPattern = Pattern.compile(
+      "function=([1-9]+) process=[\\d]+ scan=[\\d]+");
   private static final Logger logger = Logger.getLogger(MSDKmzMLImportTask.class.getName());
   private final File file;
   private final InputStream fis;
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
-  private MzMLFileImportMethod msdkTask = null;
   private final MZmineProject project;
-  private int totalScans = 0, parsedScans;
-  private String description;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
+  private MzMLFileImportMethod msdkTask = null;
+  private int totalScans = 0, parsedScans;
+  private String description;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
-
-  public static final Pattern watersPattern = Pattern.compile(
-      "function=([1-9]+) process=[\\d]+ scan=[\\d]+");
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -144,7 +145,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         msdkTask = new MzMLFileImportMethod(file);
       }
-      msdkTask.execute();
+      MzMLRawDataFile msdkTaskRes = msdkTask.execute();
       io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
 
       if (msdkFile == null) {
@@ -162,6 +163,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
             storage);
       } else {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
+      }
+      try {
+        // set time
+        if (msdkTaskRes.getStartTimeStamp() != null) {
+          newMZmineFile.setStartTimeStamp(DateTimeUtils.parse(msdkTaskRes.getStartTimeStamp()));
+        }
+      } catch (Exception ingored) {
       }
 
       if (newMZmineFile instanceof IMSRawDataFileImpl) {
@@ -317,7 +325,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
             scan.getRetentionTime() / 60f, null, null,
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-            scan.getScanningRange(), mzMLScan.getMobility().mobilityType(), null);
+            scan.getScanningRange(), mzMLScan.getMobility().mobilityType(), null, null);
         frameNumber++;
 
         description =
