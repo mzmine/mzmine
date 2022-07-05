@@ -15,6 +15,8 @@
 
 package io.github.mzmine.modules.io.import_waters;
 
+import static org.apache.fop.fonts.type1.AdobeStandardEncoding.i;
+
 import MassLynxSDK.MassLynxFunctionType;
 import MassLynxSDK.MassLynxRawInfoReader;
 import MassLynxSDK.MassLynxRawScanReader;
@@ -90,16 +92,19 @@ public class WatersImportTask extends AbstractTask {
   public void run()
   {
     setStatus(TaskStatus.PROCESSING);
-    String filenamepath = this.filepath;
-    if(filenamepath.equals("")||filenamepath==null)
+    if(this.filepath.equals("")||this.filepath==null)
     {
       setErrorMessage("Invalid file");
       setStatus(TaskStatus.ERROR);
       return;
     }
-
-    loadRegularFile(filenamepath);
-    loadIonMobilityFile(filenamepath);
+    if(loading()) {
+      loadIonMobilityFile(this.filepath);
+    }
+    else
+    {
+      loadRegularFile(this.filepath);
+    }
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -115,7 +120,9 @@ public class WatersImportTask extends AbstractTask {
       ArrayList<IntermediateScan> intermediatescanarray = new ArrayList<>();
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
       IntermediateScan intermediatescan = null;
-      int countnumscan=1;
+
+      //int countnumscan=1;
+
       for (int functioncount = 0; functioncount < totalfunctioncount; ++functioncount) {
         //total Scan values in each function
         int total_scanvalue_in_each_function = massLynxRawInfoReader.GetScansInFunction(
@@ -196,6 +203,11 @@ public class WatersImportTask extends AbstractTask {
       int countnumscan=0;
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
       for (int i=0;i<totalfunctioncount;++i) {
+        //Skipping functions which don't have drift Scan
+       if (!isReferenceMeasurement(i))
+       {
+         continue;
+       }
        int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(i);
         driftscancount.add(numdriftscan);
 
@@ -225,5 +237,43 @@ public class WatersImportTask extends AbstractTask {
     }
 
   }
-
+  public boolean isReferenceMeasurement(int functionNumber)
+  {
+    try
+    {
+      MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(this.filepath);
+      int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(functionNumber);
+      if (numdriftscan > 0)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    catch (MasslynxRawException e) {
+      return false;
+    }
+  }
+  public boolean loading()
+  {
+    try
+    {
+      MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(this.filepath);
+      int getfunctioncount=massLynxRawInfoReader.GetFunctionCount();
+      for (int i=0;i<getfunctioncount;i++)
+      {
+        int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(getfunctioncount);
+        if (numdriftscan > 0)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+    catch (MasslynxRawException e) {
+      return false;
+    }
+  }
 }
