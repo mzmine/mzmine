@@ -26,7 +26,7 @@ import java.util.Comparator;
 import net.csibio.aird.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class IntermediateScan {
+public class IntermediateScan implements Comparable<IntermediateScan> {
 
   private boolean iscontinuum;
   private RawDataFile newMZmineFile;
@@ -85,16 +85,16 @@ public class IntermediateScan {
 
   /**
    * for the simplescan
-   * @param numscan
+   * @param mzmine_scan
    * @param rawscanreader
    * @return
    * @throws MasslynxRawException
    */
 
-  public SimpleScan getScan(int numscan, MassLynxRawScanReader rawscanreader)
+  public SimpleScan getScan(int mzmine_scan, MassLynxRawScanReader rawscanreader)
       throws MasslynxRawException {
     PolarityType polarity = PolarityType.UNKNOWN;
-    Scan scan = rawscanreader.ReadScan(this.function_number,numscan);
+    Scan scan = rawscanreader.ReadScan(this.function_number,this.numscan);
 
       //Spectrum type is known as per Continuum function
       MassSpectrumType spectrumType=this.iscontinuum?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
@@ -102,14 +102,21 @@ public class IntermediateScan {
       //Polarity is calculated using Ion mode
       polarity= this.ionmode==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
-      SimpleScan simplescan = new SimpleScan(this.newMZmineFile,this.getNumscan(),this.getMslevel(),
+      SimpleScan simplescan = new SimpleScan(this.newMZmineFile,mzmine_scan,this.getMslevel(),
           this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
           ,spectrumType,polarity,"",
           this.getMZRange());
     return simplescan;
   }
 
-  public static Comparator<IntermediateScan> obj1 = new Comparator<IntermediateScan>() {
+  @Override
+  public int compareTo(@NotNull IntermediateScan obj1) {
+    float retentionTime2 = ((IntermediateScan)obj1).getRetentionTime();
+
+    return Float.compare(this.retentionTime,retentionTime2);
+  }
+
+/*  public static Comparator<IntermediateScan> obj1 = new Comparator<IntermediateScan>() {
 
     @Override
     public int compare(IntermediateScan o1, IntermediateScan o2) {
@@ -117,11 +124,12 @@ public class IntermediateScan {
 
         float retentiontimeno1 = o1.getRetentionTime();
         float retentiontimeno2 = o2.getRetentionTime();
-        if (retentiontimeno1 - retentiontimeno2 == 0) {
+        int compare= Float.compare(retentiontimeno1,retentiontimeno2);
+        if (compare==0) {
           return 0;
         }
         // For ascending order
-        else if (retentiontimeno1 - retentiontimeno2 > 0) {
+        else if (compare > 0) {
           return 1;
         } else {
           return -1;
@@ -130,6 +138,6 @@ public class IntermediateScan {
         // rollno2-rollno1;
       }
     }
-  };
+  };*/
 }
 
