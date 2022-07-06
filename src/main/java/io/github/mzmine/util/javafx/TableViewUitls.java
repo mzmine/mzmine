@@ -18,7 +18,11 @@
 
 package io.github.mzmine.util.javafx;
 
+import com.google.common.collect.Range;
+import java.text.NumberFormat;
+import java.util.logging.Logger;
 import javafx.beans.binding.DoubleExpression;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -28,6 +32,8 @@ import javafx.scene.control.TableView;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class TableViewUitls {
+
+  private static final Logger logger = Logger.getLogger(TableViewUitls.class.getName());
 
   public static void autoFitLastColumn(TableView<?> table) {
     autoFitLastColumn(table, table.widthProperty().subtract(10));
@@ -48,5 +54,62 @@ public class TableViewUitls {
       }
     }
     lastCol.prefWidthProperty().bind(remainingWidth);
+  }
+
+  /**
+   * Use a numberformat to format the content of cells
+   *
+   * @param col    the formatted column
+   * @param format the number format
+   * @param <T>    type of the table data
+   * @param <S>    type of the column data (numbers)
+   */
+  public static <T, S extends Number> void setFormattedCellFactory(TableColumn<T, S> col,
+      NumberFormat format) {
+    col.setCellFactory(column -> new TableCell<>() {
+
+      @Override
+      public void updateItem(S value, boolean empty) {
+        super.updateItem(value, empty);
+        if (empty || value == null) {
+          setText(null);
+          return;
+        }
+        try {
+          setText(format.format(value));
+        } catch (Exception ex) {
+          logger.warning("Cannot format number " + value);
+        }
+      }
+    });
+  }
+
+  /**
+   * Use a numberformat to format the content of cells
+   *
+   * @param col    the formatted column
+   * @param format the number format
+   * @param <T>    type of the table data
+   * @param <S>    type of the column data (numbers)
+   */
+  public static <T, S extends Number & Comparable> void setFormattedRangeCellFactory(
+      TableColumn<T, Range<S>> col, NumberFormat format) {
+    col.setCellFactory(column -> new TableCell<>() {
+
+      @Override
+      public void updateItem(Range<S> value, boolean empty) {
+        super.updateItem(value, empty);
+        if (empty || value == null) {
+          setText(null);
+          return;
+        }
+        try {
+          setText(
+              format.format(value.lowerEndpoint()) + "-" + format.format(value.upperEndpoint()));
+        } catch (Exception ex) {
+          logger.warning("Cannot format number " + value);
+        }
+      }
+    });
   }
 }

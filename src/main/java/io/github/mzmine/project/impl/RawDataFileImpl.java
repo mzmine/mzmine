@@ -31,6 +31,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
@@ -84,6 +85,8 @@ public class RawDataFileImpl implements RawDataFile {
   protected final ObservableList<Scan> scans;
   // maximum number of data points and centroid data points in all scans
   protected int maxRawDataPoints = -1;
+
+  private LocalDateTime startTimeStamp;
 
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods = FXCollections
       .observableArrayList();
@@ -511,6 +514,15 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public StringProperty nameProperty() {
     return nameProperty;
+  }
+
+  @Override
+  public LocalDateTime getStartTimeStamp() {
+    return startTimeStamp;
+  }
+  
+  public void setStartTimeStamp(LocalDateTime startTimeStamp) {
+    this.startTimeStamp = startTimeStamp;
   }
 
   /**

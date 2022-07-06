@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,11 +16,11 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.table.columns;
+package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.util.DateTimeUtils;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 /**
@@ -51,7 +51,7 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
   public LocalDateTime convert(String input, LocalDateTime defaultValue) {
     try {
       //ISO-8601 format
-      return input == null ? defaultValue : LocalDateTime.parse(input.trim());
+      return input == null ? defaultValue : DateTimeUtils.parse(input.trim());
 //      return LocalDateTime.parse(input.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
     } catch (DateTimeParseException ignored) {
       return defaultValue;

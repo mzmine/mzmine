@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2021 The MZmine Development Team
+  ~ Copyright 2006-2022 The MZmine Development Team
+  ~
   ~ This file is part of MZmine.
+  ~
   ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
   ~ General Public License as published by the Free Software Foundation; either version 2 of the
   ~ License, or (at your option) any later version.
+  ~
   ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   ~ General Public License for more details.
+  ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
   -->
-
 <?import io.github.mzmine.util.javafx.WindowsMenu?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
@@ -66,8 +70,8 @@
     </MenuItem>
 
     <SeparatorMenuItem/>
-    <MenuItem text="Set sample parameters"
-      onAction="#setSampleParams">
+    <MenuItem text="Sample metadata"
+      onAction="#setSampleMetadata">
       <accelerator>
         <KeyCodeCombination alt="UP" code="M"
           control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -161,6 +165,8 @@
       <MenuItem text="Extract scans to CSV file"
         onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_scans.ExportScansModule"/>
+      <MenuItem text="Export MSn trees" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule"/>
     </Menu>
     <Menu text="Raw data filtering">
       <MenuItem text="Scan by scan filtering"

@@ -16,12 +16,12 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.table;
+package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
-import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
