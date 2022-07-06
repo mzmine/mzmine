@@ -59,6 +59,7 @@ import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
+import io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule;
@@ -277,6 +278,7 @@ public class BatchModeModulesList {
       ReferenceCCSCalibrationModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
+      MaldiGroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //
       IsotopePeakScannerModule.class, //
       LipidSearchModule.class, //

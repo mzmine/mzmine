@@ -27,14 +27,23 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class MaldiGroupMS2Parameters extends SimpleParameterSet {
 
+  private static final RawDataFilesSelection rawSelection = new RawDataFilesSelection(
+      RawDataFilesSelectionType.NAME_PATTERN);
+
+  static {
+    rawSelection.setNamePattern("*_ce*");
+  }
+
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
-  public static final RawDataFilesParameter files = new RawDataFilesParameter();
+  public static final RawDataFilesParameter files = new RawDataFilesParameter(rawSelection);
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter(
       "MS1 to MS2 precursor tolerance (m/z)",

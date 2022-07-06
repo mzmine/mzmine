@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -34,7 +35,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
-import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
@@ -48,7 +48,9 @@ import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +71,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
   private final List<IMSImagingRawDataFile> files;
   // Processed rows counter
   private int processedRows, totalRows;
-  private FeatureList list;
+  private ModularFeatureList list;
   private MZTolerance mzTol;
   private final boolean lockToFeatureMobilityRange;
 
@@ -93,7 +95,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
     minMs2Intensity = parameterSet.getParameter(MaldiGroupMS2Parameters.outputNoiseLevel).getValue()
         ? parameterSet.getParameter(MaldiGroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
         .getValue() : null;
-    this.list = list;
+    this.list = (ModularFeatureList) list;
     files = Arrays.stream(parameterSet.getParameter(MaldiGroupMS2Parameters.files).getValue()
             .getMatchingRawDataFiles()).filter(file -> file instanceof IMSImagingRawDataFile)
         .map(file -> (IMSImagingRawDataFile) file).toList();
@@ -120,8 +122,18 @@ public class MaldiGroupMS2Task extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
 
       totalRows = list.getNumberOfRows();
+
+      // we need to create a new feature list, because the raw data files cannot be altered.
+      // however, we need to set the raw data files so a project can be loaded/saved
+      final Set<RawDataFile> allFiles = new HashSet<>();
+      allFiles.addAll(list.getRawDataFiles());
+      allFiles.addAll(files);
+      final ModularFeatureList newFlist = list.createCopy(list.getName(), getMemoryMapStorage(),
+          allFiles.stream().toList(), false);
+      files.forEach(file -> newFlist.setSelectedScans(file, file.getScans()));
+
       // for all features
-      for (FeatureListRow row : list.getRows()) {
+      for (FeatureListRow row : newFlist.getRows()) {
         if (isCanceled()) {
           return;
         }
@@ -130,9 +142,13 @@ public class MaldiGroupMS2Task extends AbstractTask {
         processedRows++;
       }
 
-      list.getAppliedMethods().add(
+      newFlist.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(GroupMS2Module.class, parameters,
               getModuleCallDate()));
+
+      project.removeFeatureList(list);
+      project.addFeatureList(newFlist);
+
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished adding all MS2 scans to their features in " + list.getName());
 
@@ -209,7 +225,6 @@ public class MaldiGroupMS2Task extends AbstractTask {
     if (eligibleMsMsInfos.isEmpty()) {
       return;
     }
-    feature.set(MsMsInfoType.class, eligibleMsMsInfos);
 
     List<MergedMsMsSpectrum> msmsSpectra = new ArrayList<>();
     for (MsMsInfo info : eligibleMsMsInfos) {

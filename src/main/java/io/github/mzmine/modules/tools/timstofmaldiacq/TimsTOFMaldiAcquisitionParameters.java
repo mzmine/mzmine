@@ -24,6 +24,7 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.PrecursorSelectionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TopNSelectionModule;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -39,6 +40,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
 
@@ -82,17 +84,22 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
       """, 50);
 
   public static final FileNameParameter acquisitionControl = new FileNameParameter(
-      "Path to msmsmaldi.exe", "", List.of(new ExtensionFilter("executable", ".exe")),
+      "Path to msmsmaldi.exe", "", List.of(new ExtensionFilter("executable", "*.exe")),
       FileSelectionType.OPEN);
 
   public static final OptionalParameter<StringParameter> ceStepping = new OptionalParameter<>(
-      new StringParameter("CE stepping", "Acquire MS2 spectra with multiple collision energies.\n" +
-          "Collision energies may be decimals '.' separated by ','.", "20.0,35.0,45.0"), false);
+      new StringParameter("CE stepping", "Acquire MS2 spectra with multiple collision energies.\n"
+          + "Collision energies may be decimals '.' separated by ','.", "20.0,35.0,45.0"), false);
   public static final BooleanParameter exportOnly = new BooleanParameter("Export MS/MS lists only",
       "Will only export MS/MS lists and not start an acquisition.", false);
 
   public TimsTOFMaldiAcquisitionParameters() {
     super(new Parameter[]{flists, precursorSelectionModule, minMobilityWidth, maxMobilityWidth,
         savePathDir, initialOffsetY, incrementOffsetX, acquisitionControl, ceStepping, exportOnly});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
   }
 }
