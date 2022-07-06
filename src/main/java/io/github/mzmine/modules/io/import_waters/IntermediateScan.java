@@ -93,6 +93,8 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
   public SimpleScan getScan(int mzmine_scan, MassLynxRawScanReader rawscanreader)
       throws MasslynxRawException {
     PolarityType polarity = PolarityType.UNKNOWN;
+
+    //scan Value
     Scan scan = rawscanreader.ReadScan(this.function_number,this.numscan);
 
       //Spectrum type is known as per Continuum function

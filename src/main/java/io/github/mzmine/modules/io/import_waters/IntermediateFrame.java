@@ -40,7 +40,7 @@ public class IntermediateFrame extends IntermediateScan{
 
     SimpleFrame simpleframe=new SimpleFrame(this.getNewMZmineFile(),0,this.getMslevel()
         ,this.getRetentionTime(),null,null,spectrumType,polarity,"",
-        this.getMZRange(), MobilityType.TRAVELING_WAVE,null);
+        this.getMZRange(), MobilityType.TRAVELING_WAVE,null,0f);
 
     return null;
   }
