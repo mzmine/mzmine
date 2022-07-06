@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.math.plot.Plot3DPanel;
 
-public class MassvoltamogramUtils {
+public class MassvoltammogramUtils {
 
 
   /**
@@ -25,6 +25,10 @@ public class MassvoltamogramUtils {
    * @param potentialSpeedRamp Speed of the potential ramp in mV/s.
    * @param stepSize           Potential step size between the individual scans in mV.
    * @return Returns a list of all scans with the given step size inside the potential range.
+   * Thereby every scan is represented by a multidimensional array. Each scans datapoints are
+   * represented as single arrays of the multidimensional array. In every singe array the mz-value
+   * is stored at index 0, the corresponding intensity-value at index 1 and the voltage-value at
+   * index 2.
    */
   public static List<double[][]> getScans(RawDataFile rawDataFile, double delayTime,
       Range<Double> potentialRange, double potentialSpeedRamp, double stepSize) {
@@ -42,7 +46,7 @@ public class MassvoltamogramUtils {
       final Scan scan = rawDataFile.getScanNumberAtRT(rt, 1);
 
       //Breaking the loop if the calculated rt exceeds the max rt of the data file.
-      if(scan == null){
+      if (scan == null) {
         break;
       }
 
@@ -60,7 +64,6 @@ public class MassvoltamogramUtils {
 
     return scans;
   }
-
 
 
   /**
@@ -91,8 +94,7 @@ public class MassvoltamogramUtils {
         final double mz = datapoint[0];
         if (mz == minMzUserInput) {
           break;
-        }
-        else if (mz > minMzUserInput && minMzUserInput > minMZ) {
+        } else if (mz > minMzUserInput && minMzUserInput > minMZ) {
           mzs.add(minMzUserInput);
           intensities.add(datapoint[1]);
           break;
@@ -110,8 +112,7 @@ public class MassvoltamogramUtils {
         //Filling the maximal m/z-value with the last recorded intensity within the m/z-range.
         if (mz == maxMzUserInput) {
           break;
-        }
-        else if (mz > maxMzUserInput) {
+        } else if (mz > maxMzUserInput) {
           mzs.add(maxMzUserInput);
           intensities.add(scan[i - 1][1]);
           break;
@@ -133,23 +134,17 @@ public class MassvoltamogramUtils {
   }
 
 
-
   /**
    * Finds a power of 10 to scale the z-axis by.
+   *
    * @param maxIntensity The max intensity of the dataset.
    * @return Returns the divisor all intensities need to be divided by.
    */
   public static double getDivisor(double maxIntensity) {
 
-    //Scanning for the next smallest power of ten to use as the divisor.
-    double divisor = 0;
-    for (int i = 0; divisor < maxIntensity; i++) {
-      divisor = Math.pow(10, i);
-      if (divisor > maxIntensity) {
-        divisor = Math.pow(10, i - 1);
-        break;
-      }
-    }
+    //Getting for the next smallest power of ten to use as the divisor.
+    double power = Math.log10(maxIntensity);
+    double divisor = Math.pow(10, Math.floor(power));
     return divisor;
   }
 
@@ -193,15 +188,18 @@ public class MassvoltamogramUtils {
 
   /**
    * Removes datapoints with low intensity values.
-   * @param scans Dataset the datapoints will be removed from.
-   * @param maxIntensity  Max intensity of all datapoints in the dataset.
-   * @return  Returns a list of multidimensional double arrays with the filtered scan data.
+   *
+   * @param scans        Dataset the datapoints will be removed from.
+   * @param maxIntensity Max intensity of all datapoints in the dataset.
+   * @return Returns a list of multidimensional double arrays with the filtered scan data. Thereby
+   * all signals lower than 0.1% of the max intensity are considered as irrelevant for the
+   * visualisation and are removed.
    */
-  public static List<double[][]> removeNoise(List<double[][]> scans, double maxIntensity){
+  public static List<double[][]> removeNoise(List<double[][]> scans, double maxIntensity) {
 
     final List<double[][]> filteredScans = new ArrayList<>();
 
-    for (double[][] scan : scans){
+    for (double[][] scan : scans) {
 
       final int numDatapoints = scan.length;
 
@@ -213,15 +211,16 @@ public class MassvoltamogramUtils {
       final double voltage = scan[0][2];
 
       //Initializing the intensity threshold.
-      final double intensityThreshold = maxIntensity * 0.001; // Signals lower than 0.1% of the max intensity will be removed.
+      final double intensityThreshold =
+          maxIntensity * 0.001; // Signals lower than 0.1% of the max intensity will be removed.
 
       //Adding the first value of the scan.
       filteredMZ.add(scan[0][0]);
       filteredIntensities.add(scan[0][1]);
 
       //Adding all other datapoints if the intensity is 0 or bigger than the intensity threshold.
-      for(int i = 1; i < numDatapoints - 1; i++){
-        if(scan[i][1] > intensityThreshold || scan[i][1] == 0){
+      for (int i = 1; i < numDatapoints - 1; i++) {
+        if (scan[i][1] > intensityThreshold || scan[i][1] == 0) {
           filteredMZ.add(scan[i][0]);           //Adding the m/z-value.
           filteredIntensities.add(scan[i][1]);  //Adding the intensity-value.
         }
@@ -237,7 +236,7 @@ public class MassvoltamogramUtils {
       final double[][] filteredScan = new double[numFilteredDatapoints][3];
 
       //Writing the filtered values to the new array.
-      for (int i = 0; i < numFilteredDatapoints; i++){
+      for (int i = 0; i < numFilteredDatapoints; i++) {
         filteredScan[i][0] = filteredMZ.get(i);
         filteredScan[i][1] = filteredIntensities.get(i);
         filteredScan[i][2] = voltage;
@@ -291,32 +290,23 @@ public class MassvoltamogramUtils {
     for (int i = 0; i < input.length(); i++) {
       if (Character.getNumericValue(input.charAt(i)) == 0) {
         output.append("\u2070");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 1) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 1) {
         output.append("\u00B9");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 2) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 2) {
         output.append("\u00B2");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 3) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 3) {
         output.append("\u00B3");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 4) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 4) {
         output.append("\u2074");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 5) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 5) {
         output.append("\u2075");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 6) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 6) {
         output.append("\u2076");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 7) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 7) {
         output.append("\u2077");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 8) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 8) {
         output.append("\u2078");
-      }
-      else if (Character.getNumericValue(input.charAt(i)) == 9) {
+      } else if (Character.getNumericValue(input.charAt(i)) == 9) {
         output.append("\u2079");
       }
     }

@@ -21,7 +21,7 @@ public class MassvoltammogramExport {
     final AtomicReference<File> file = new AtomicReference<>(null);
     final FileChooser.ExtensionFilter extensionFilterPNG = new ExtensionFilter(
         "Portable Network Graphics", ".png");
-    final FileChooser.ExtensionFilter extensionFilterCSV = new ExtensionFilter("XY-File", ".xy");
+    final FileChooser.ExtensionFilter extensionFilterCSV = new ExtensionFilter("CSV-File", ".csv");
     fileChooser.getExtensionFilters().add(extensionFilterCSV);
     fileChooser.getExtensionFilters().add(extensionFilterPNG);
 
@@ -32,7 +32,7 @@ public class MassvoltammogramExport {
     }
     final String selectedFormat = FilenameUtils.getExtension(file.get().getName());
 
-    if (selectedFormat.equals("xy")) {
+    if (selectedFormat.equals("csv")) {
       MassvoltammogramExport.toCSV(plot, file.get());
     } else if (selectedFormat.equals("png")) {
       MassvoltammogramExport.toPNG(plot, file.get());
@@ -70,7 +70,7 @@ public class MassvoltammogramExport {
 
       //Initializing a file writer to export the csv file and naming the file.
       try (FileWriter writer = new FileWriter(
-          folderPath + "\\" + fileName + "_" + scan[0][2] + "_mV.xy")) {
+          folderPath + File.separator + fileName + "_" + scan[0][2] + "_mV.csv")) {
 
         //Filling the csv file with all data from the scan.
         for (double[] dataPoint : scan) {

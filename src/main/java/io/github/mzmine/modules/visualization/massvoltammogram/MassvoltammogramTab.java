@@ -12,6 +12,7 @@ import java.util.List;
 import javafx.embed.swing.SwingNode;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
@@ -35,17 +36,17 @@ public class MassvoltammogramTab extends MZmineTab {
 
   @Override
   public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
-    return null;
+    return List.of();
   }
 
   @Override
   public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return null;
+    return List.of();
   }
 
   @Override
   public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return null;
+    return List.of();
   }
 
   @Override
@@ -65,7 +66,7 @@ public class MassvoltammogramTab extends MZmineTab {
 
   private ExtendedPlot3DPanel plot;
 
-  public MassvoltammogramTab(String title, ExtendedPlot3DPanel plot) {
+  public MassvoltammogramTab(String title, ExtendedPlot3DPanel plot, String filename) {
     super(title);
 
     this.plot = plot;
@@ -123,10 +124,17 @@ public class MassvoltammogramTab extends MZmineTab {
     toolbar.setOrientation(Orientation.VERTICAL);
     toolbar.getItems()
         .addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
+    toolbar.setStyle("-fx-background-color: white;");
+
+    //Adding lable to identify the different massvoltammograms
+    Label fileNameLable = new Label(filename);
+    fileNameLable.setStyle("-fx-background-color: white;");
+    fileNameLable.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
     //Adding the toolbar and the plot to the pane.
     mainPane.setCenter(swingNodePlot);
     mainPane.setRight(toolbar);
+    mainPane.setBottom(fileNameLable);
 
     //Setting the pane as the MassvoltammogramTabs content.
     setContent(mainPane);
@@ -150,18 +158,18 @@ public class MassvoltammogramTab extends MZmineTab {
     final List<double[][]> scans = plot.getRawScans();
 
     //Processing the raw data.
-    List<double[][]> spectra = MassvoltamogramUtils.extractMZRangeFromScan(scans, newMzRange);
+    List<double[][]> spectra = MassvoltammogramUtils.extractMZRangeFromScan(scans, newMzRange);
     final double maxIntensity = ScanUtils.getMaxIntensity(spectra);
-    final List<double[][]> spectraWithoutNoise = MassvoltamogramUtils.removeNoise(spectra,
+    final List<double[][]> spectraWithoutNoise = MassvoltammogramUtils.removeNoise(spectra,
         maxIntensity);
-    final List<double[][]> spectraWithoutZeros = MassvoltamogramUtils.removeExcessZeros(
+    final List<double[][]> spectraWithoutZeros = MassvoltammogramUtils.removeExcessZeros(
         spectraWithoutNoise);
 
     //Adding the new list of scans to the plot for later export.
     plot.addRawScansInMzRange(spectra);
 
     //Getting the divisor and the min and max potential range to set up the axis correctly.
-    final double divisor = MassvoltamogramUtils.getDivisor(maxIntensity);
+    final double divisor = MassvoltammogramUtils.getDivisor(maxIntensity);
     final double[][] firstScan = scans.get(0);
     final double[][] lastScan = scans.get(scans.size() - 1);
     final Range<Double> potentialRange = MassvoltammogramParameters.potentialRange.getValue();
@@ -170,7 +178,7 @@ public class MassvoltammogramTab extends MZmineTab {
     plot.removeAllPlots();
 
     //Adding the new plots and setting the axis up correctly.
-    MassvoltamogramUtils.addSpectraToPlot(spectraWithoutZeros, divisor, plot);
+    MassvoltammogramUtils.addSpectraToPlot(spectraWithoutZeros, divisor, plot);
     plot.setFixedBounds(0, newMzRange.lowerEndpoint(), newMzRange.upperEndpoint());
     plot.setFixedBounds(1, potentialRange.lowerEndpoint(), potentialRange.upperEndpoint());
 

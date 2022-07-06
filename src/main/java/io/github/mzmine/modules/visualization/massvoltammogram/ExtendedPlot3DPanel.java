@@ -11,13 +11,22 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import org.math.plot.Plot3DPanel;
 
+/**
+ * Class used to extend the existing Plot3DPanel by functions to export the massvoltammogram and to
+ * implement the new toolbar.
+ */
 public class ExtendedPlot3DPanel extends Plot3DPanel {
 
   private final ExtendedPlotToolBar extendedPlotToolBar;
 
-  //Data for later export.
+  /**
+   * Data for later export. Thereby every scan needed for the massvoltammogram is represented by a
+   * multidimensional array. Each scans datapoints are represented as single
+   * arrays of the multidimensional array. In every singe array the mz-value is stored at index 0,
+   * the corresponding intensity-value at index 1 and the voltage-value at index 2.
+   */
   private List<double[][]> rawScans;
-  private List<double[][]> rawScnasInMzRange;
+  private List<double[][]> rawScansInMzRange;
 
   public ExtendedPlot3DPanel() {
     removePlotToolBar();
@@ -30,7 +39,7 @@ public class ExtendedPlot3DPanel extends Plot3DPanel {
     super.toGraphicFile(file);
 
     //Extracting the buffered frame as an image.
-     Image image = createImage(getWidth(), getHeight());
+    Image image = createImage(getWidth(), getHeight());
     paint(image.getGraphics());
     image = new ImageIcon(image).getImage();
 
@@ -49,26 +58,45 @@ public class ExtendedPlot3DPanel extends Plot3DPanel {
   }
 
   /**
-   * Method to get the plots ExtendedToolBar to integrate it into the MassvoltammogramTasks toolbar.
+   * Method to get the plots ExtendedToolBar to integrate it into the MassvoltammogramTasks
+   * toolbar.
+   *
    * @return The plots toolbar.
    */
   public ExtendedPlotToolBar getExtendedPlotToolBar() {
     return extendedPlotToolBar;
   }
 
-  //Methods to add the data to the plot for later export.
-  public void addRawScans(List<double[][]> rawScans){
+  /**
+   * Method to add the data to the plot to be able to change the mz-range later.
+   */
+  public void addRawScans(List<double[][]> rawScans) {
     this.rawScans = rawScans;
   }
-  public void addRawScansInMzRange(List<double[][]> rawScansInMzRange){
-    this.rawScnasInMzRange = rawScansInMzRange;
+
+  /**
+   * Method to add the data to the plot for later export.
+   */
+  public void addRawScansInMzRange(List<double[][]> rawScansInMzRange) {
+    this.rawScansInMzRange = rawScansInMzRange;
   }
 
-  //Methods to get the data to export.
-  public List<double[][]> getRawScans(){
-    return  rawScans;
+  /**
+   * Method to get the data from the plot to edit the mz-range.
+   *
+   * @return All raw scans as lists of multidimensional arrays needed to draw the whole
+   * massvoltammogram.
+   */
+  public List<double[][]> getRawScans() {
+    return rawScans;
   }
+
+  /**
+   * Method to get the data to export it.
+   *
+   * @return The raw data of the currently drawn massvoltammogram.
+   */
   public List<double[][]> getRawScansInMzRange() {
-    return rawScnasInMzRange;
+    return rawScansInMzRange;
   }
 }

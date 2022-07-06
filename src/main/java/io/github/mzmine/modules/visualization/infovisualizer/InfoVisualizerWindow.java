@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.ims_featurevisualizer.infovisualizer;
+package io.github.mzmine.modules.visualization.infovisualizer;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
