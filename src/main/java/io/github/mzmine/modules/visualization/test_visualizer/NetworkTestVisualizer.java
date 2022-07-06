@@ -21,8 +21,12 @@ package io.github.mzmine.modules.visualization.test_visualizer;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.graphstream.algorithm.generator.BarabasiAlbertGenerator;
@@ -36,24 +40,52 @@ import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
-import org.graphstream.ui.layout.Eades84Layout;
+import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.ThreadingModel;
 
 public class NetworkTestVisualizer extends Stage {
 
   private static final Logger logger = Logger.getLogger(NetworkTestVisualizer.class.getName());
-  openSetupDialog di= new openSetupDialog();
+  openSetupDialog di = new openSetupDialog();
   protected Graph graph;
   protected Viewer viewer;
   protected FxViewPanel view;
   protected Node node;
   protected Edge edge;
-  int NV=di.getNodeValue();
-  String GA=di.getGeneratingAlgo();
+  protected double viewPercent = 1;
+  private Point2D last;
+  int NV = di.getNodeValue();
+  String GA = di.getGeneratingAlgo();
+
+  public void zoom(boolean zoomOut) {
+    viewPercent += viewPercent * 0.1 * (zoomOut ? -1 : 1);
+    view.getCamera().setViewPercent(viewPercent);
+  }
+
+  public void translate(double dx, double dy) {
+    Point3 c = view.getCamera().getViewCenter();
+    Point3 p0 = view.getCamera().transformPxToGu(0, 0);
+    Point3 p = view.getCamera().transformPxToGu(dx, dy);
+
+    view.getCamera().setViewCenter(c.x + p.x - p0.x, c.y + p.y + p0.y, c.z);
+  }
+
+  public void setCenter(double x, double y) {
+    Point3 c = view.getCamera().getViewCenter();
+    Point3 p = view.getCamera().transformPxToGu(x, y);
+    view.getCamera().setViewCenter(p.x, p.y, c.z);
+  }
+
+  public void resetZoom() {
+    viewPercent = 1;
+    view.getCamera().resetView();
+  }
+
   public NetworkTestVisualizer() {
-    graph=new MultiGraph(GA);
-    graph.setAttribute("ui.stylesheet", "edge { fill-color: blue;shape: angle; arrow-shape: none; size: 3px; } node {fill-color: green;} node:clicked{fill-color: yellow;}");
+    graph = new MultiGraph(GA);
+    graph.setAttribute("ui.stylesheet",
+        "edge { fill-color: blue; shape: angle; arrow-shape: none; size: 2px; } node {fill-color: green;}");
     Generator generator = switch (GA) {
       case "RandomGenerator" -> new RandomGenerator(2);
       case "BarabasiAlbertGenerator" -> new BarabasiAlbertGenerator(3);
@@ -62,12 +94,16 @@ public class NetworkTestVisualizer extends Stage {
       case "DorogovtsevMendesGenerator" -> new DorogovtsevMendesGenerator();
       default -> throw new IllegalStateException("Unexpected value: " + GA);
     };
-      generator.addSink(graph);
-      generator.begin();
-      for (int i = 0; i < NV; i++) {
-        generator.nextEvents();
-      }
-      generator.end();
+    generator.addSink(graph);
+    generator.begin();
+    for (int i = 0; i < NV; i++) {
+      generator.nextEvents();
+    }
+    generator.end();
+    for (org.graphstream.graph.Node node : graph) {
+      node.setAttribute("ui.label", node.getId());
+    }
+
     try {
       viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
       viewer.enableAutoLayout();
@@ -78,6 +114,41 @@ public class NetworkTestVisualizer extends Stage {
       graphpane.setMaxSize(Mxh, Mxw);
       Pane sp = new Pane();
       sp.getChildren().addAll(graphpane);
+      view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
+
+      view.setOnMouseClicked(e -> {
+        if (e.getButton() == MouseButton.PRIMARY) {
+          if (e.getClickCount() == 2) {
+            resetZoom();
+            e.consume();
+          } else if (e.getClickCount() == 1) {
+            setCenter(e.getX(), e.getY());
+          }
+        }
+      });
+
+      view.setOnMousePressed(e -> {
+        if (last == null) {
+          last = new Point2D(e.getX(), e.getY());
+        }
+        if (e.getButton() == MouseButton.SECONDARY) {
+          Alert alert = new Alert(AlertType.INFORMATION);
+          alert.setTitle("Mouse Clicked");
+          alert.setHeaderText("Mouse clicked at coordinates:");
+          alert.setContentText("X: " + e.getX() + ", " + "Y: " + e.getY());
+          alert.showAndWait();
+        }
+      });
+      view.setOnMouseReleased(e -> {
+        last = null;
+      });
+      view.setOnMouseDragged(e -> {
+        if (last != null) {
+          // translate
+          translate(e.getX() - last.getX(), e.getY() - last.getY());
+        }
+        last = new Point2D(e.getX(), e.getY());
+      });
       Scene scene = new Scene(sp, Mxh, Mxw);
       setTitle("Test_Visualizer");
       setScene(scene);
