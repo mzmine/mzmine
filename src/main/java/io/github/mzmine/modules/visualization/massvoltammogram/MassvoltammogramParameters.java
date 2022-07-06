@@ -34,7 +34,7 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       "Tubing length between EC-Cell and ESI-Needle.", new DecimalFormat("0.0"), 750d);
 
   public static final DoubleParameter tubingIdMM = new DoubleParameter("Tubing inner diameter / mm",
-      "Inner diameter of the tubing.", new DecimalFormat("0.000"), 0.127d);
+      "Inner diameter of the tubing.", new DecimalFormat("0.000"), 0.13d);
 
   public static final DoubleParameter flowRateMicroLiterPerMin = new DoubleParameter(
       "Flow rate / μL/min", "Tubing length between EC-Cell and ESI-Needle.", new DecimalFormat("0.0"), 20d);
