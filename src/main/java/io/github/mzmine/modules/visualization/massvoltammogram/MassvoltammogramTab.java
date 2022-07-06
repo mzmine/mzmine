@@ -1,3 +1,20 @@
+/*
+ * Copyright 2006-2022 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package io.github.mzmine.modules.visualization.massvoltammogram;
 
 import com.google.common.collect.Range;
@@ -6,7 +23,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Collection;
 import java.util.List;
 import javafx.embed.swing.SwingNode;
@@ -122,8 +138,7 @@ public class MassvoltammogramTab extends MZmineTab {
     //Creating a new toolbar and adding the buttons.
     final ToolBar toolbar = new ToolBar();
     toolbar.setOrientation(Orientation.VERTICAL);
-    toolbar.getItems()
-        .addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
+    toolbar.getItems().addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
     toolbar.setStyle("-fx-background-color: white;");
 
     //Adding lable to identify the different massvoltammograms
@@ -150,7 +165,9 @@ public class MassvoltammogramTab extends MZmineTab {
 
     //Getting user input for the new m/z-Range.
     final MassvoltammogramMzRangeParameter mzRangeParameter = new MassvoltammogramMzRangeParameter();
-    if(mzRangeParameter.showSetupDialog(true) != ExitCode.OK){return;}
+    if (mzRangeParameter.showSetupDialog(true) != ExitCode.OK) {
+      return;
+    }
     final Range<Double> newMzRange = mzRangeParameter.getValue(
         MassvoltammogramMzRangeParameter.mzRange);
 
@@ -159,7 +176,7 @@ public class MassvoltammogramTab extends MZmineTab {
 
     //Processing the raw data.
     List<double[][]> spectra = MassvoltammogramUtils.extractMZRangeFromScan(scans, newMzRange);
-    final double maxIntensity = ScanUtils.getMaxIntensity(spectra);
+    final double maxIntensity = MassvoltammogramUtils.getMaxIntensity(spectra);
     final List<double[][]> spectraWithoutNoise = MassvoltammogramUtils.removeNoise(spectra,
         maxIntensity);
     final List<double[][]> spectraWithoutZeros = MassvoltammogramUtils.removeExcessZeros(

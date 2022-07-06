@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -13,7 +13,6 @@
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
  */
 
 package io.github.mzmine.util.scans;
@@ -1599,48 +1598,6 @@ public class ScanUtils {
     }
 
     return filteredScan;
-  }
-
-  /**
-   * Scans a list of scans to find the max intensity value.
-   * @param scans The list of scans.
-   * @return The max intensity.
-   */
-  public static double getMaxIntensity(List<double[][]> scans){
-
-    //Getting the maximal intensity from the list of spectra.
-    double maxIntensity = 0;
-    for (double[][] scan : scans) {
-      for (double[] datapoints : scan) {
-        if (datapoints[1] > maxIntensity) {
-          maxIntensity = datapoints[1];
-        }
-      }
-    }
-    return  maxIntensity;
-  }
-
-  /**
-   * Method to get the min m/z-value from a list of scans.
-   * @param scans The scans.
-   * @return Returns the minimal m/z-value.
-   */
-  public static double getMinMZ(List<double[][]> scans){
-
-    //Setting the absolute minimal m/z-value equal to the first scans minimal m/z-value.
-    double[][] firstScan = scans.get(0);
-    double minMZ = firstScan[0][0];
-
-    //Checking all the other scans in the list weather there is an even smaller m/z-value.
-    for(int i = 1; i < scans.size(); i++){
-      double[][] scan = scans.get(i);
-      double minMzScan = scan[0][0];
-      if(minMzScan < minMZ){
-        minMZ = minMzScan;
-      }
-    }
-
-    return minMZ;
   }
 
   /**
