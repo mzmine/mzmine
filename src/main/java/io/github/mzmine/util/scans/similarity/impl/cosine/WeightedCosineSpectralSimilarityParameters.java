@@ -18,14 +18,13 @@
 
 package io.github.mzmine.util.scans.similarity.impl.cosine;
 
-import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
-import java.text.DecimalFormat;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.Weights;
+import java.text.DecimalFormat;
 import javafx.collections.FXCollections;
 
 /**
@@ -40,7 +39,6 @@ public class WeightedCosineSpectralSimilarityParameters extends SimpleParameterS
       "Minimum cosine similarity. (All signals in the masslist against the spectral library entry. "
           + "Considers only signals which were found in both the masslist and the library entry)",
       new DecimalFormat("0.000"), 0.7);
-
 
   public static final ComboParameter<HandleUnmatchedSignalOptions> handleUnmatched =
       new ComboParameter<>("Handle unmatched signals",

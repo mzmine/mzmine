@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -56,11 +57,12 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListOpenHandler {
 
+  private final MemoryMapStorage flistStorage = MemoryMapStorage.forFeatureList();
+  private final MemoryMapStorage rawStorage = MemoryMapStorage.forRawDataFile();
+  private final MemoryMapStorage massListStorage = MemoryMapStorage.forMassList();
   private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private ModularFeatureListRow buildingRow;
   private ModularFeatureList buildingPeakList;
-
   private int numOfMZpeaks;
   private Integer representativeScan;
   private Integer fragmentScan;
@@ -76,31 +78,19 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   private Hashtable<String, String> identityProperties;
   private boolean preferred;
   private String dateCreated;
-
   private Map<String, String> informationProperties;
   private String infoPropertyName;
-
   private StringBuffer charBuffer;
-
   private Vector<String> appliedMethods, appliedMethodParameters;
   private Vector<RawDataFile> currentPeakListDataFiles;
-
   private Vector<DataPoint> currentIsotopes;
   private IsotopePatternStatus currentIsotopePatternStatus;
   private int currentPeakCharge;
   private String currentIsotopePatternDescription;
-
   private Integer parentChromatogramRowID = null;
-
   private Hashtable<String, RawDataFile> dataFilesIDMap;
-
   private int parsedRows, totalRows;
-
   private boolean canceled = false;
-
-  private final MemoryMapStorage flistStorage = MemoryMapStorage.forFeatureList();
-  private final MemoryMapStorage rawStorage = MemoryMapStorage.forRawDataFile();
-  private final MemoryMapStorage massListStorage = MemoryMapStorage.forMassList();
 
   public PeakListOpenHandler_2_5(Hashtable<String, RawDataFile> dataFilesIDMap) {
     this.dataFilesIDMap = dataFilesIDMap;
@@ -143,8 +133,9 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
    * @return the progress of these functions loading the feature list from the zip file.
    */
   public double getProgress() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0;
+    }
     return (double) parsedRows / totalRows;
   }
 
@@ -155,14 +146,15 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String,
-   *      java.lang.String, org.xml.sax.Attributes)
+   * java.lang.String, org.xml.sax.Attributes)
    */
   @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // This will remove any remaining characters from previous elements
     getTextOfElement();
@@ -182,8 +174,8 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     // <PEAK_IDENTITY>
     if (qName.equals(PeakListElementName_2_5.PEAK_IDENTITY.getElementName())) {
       identityProperties = new Hashtable<String, String>();
-      preferred =
-          Boolean.parseBoolean(attrs.getValue(PeakListElementName_2_5.PREFERRED.getElementName()));
+      preferred = Boolean.parseBoolean(
+          attrs.getValue(PeakListElementName_2_5.PREFERRED.getElementName()));
     }
 
     // <IDENTITY_PROPERTY>
@@ -209,17 +201,18 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       // Before MZmine.6 retention time was saved in seconds, but now we
       // use minutes, so we need to divide by 60
       rt = (float) (Double.parseDouble(attrs.getValue(PeakListElementName_2_5.RT.getElementName()))
-          / 60d);
-      height = (float) Double
-          .parseDouble(attrs.getValue(PeakListElementName_2_5.HEIGHT.getElementName()));
-      area =
-          (float) Double.parseDouble(attrs.getValue(PeakListElementName_2_5.AREA.getElementName()));
+                    / 60d);
+      height = (float) Double.parseDouble(
+          attrs.getValue(PeakListElementName_2_5.HEIGHT.getElementName()));
+      area = (float) Double.parseDouble(
+          attrs.getValue(PeakListElementName_2_5.AREA.getElementName()));
       peakStatus = attrs.getValue(PeakListElementName_2_5.STATUS.getElementName());
       String chargeString = attrs.getValue(PeakListElementName_2_5.CHARGE.getElementName());
-      if (chargeString != null)
+      if (chargeString != null) {
         currentPeakCharge = Integer.valueOf(chargeString);
-      else
+      } else {
         currentPeakCharge = 0;
+      }
       try {
         parentChromatogramRowID = Integer.parseInt(
             attrs.getValue(PeakListElementName_2_5.PARENT_CHROMATOGRAM_ROW_ID.getElementName()));
@@ -230,29 +223,30 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
     // <MZPEAK>
     if (qName.equals(PeakListElementName_2_5.MZPEAKS.getElementName())) {
-      numOfMZpeaks =
-          Integer.parseInt(attrs.getValue(PeakListElementName_2_5.QUANTITY.getElementName()));
+      numOfMZpeaks = Integer.parseInt(
+          attrs.getValue(PeakListElementName_2_5.QUANTITY.getElementName()));
     }
 
     // <ISOTOPE_PATTERN>
     if (qName.equals(PeakListElementName_2_5.ISOTOPE_PATTERN.getElementName())) {
       currentIsotopes.clear();
-      currentIsotopePatternStatus = IsotopePatternStatus
-          .valueOf(attrs.getValue(PeakListElementName_2_5.STATUS.getElementName()));
-      currentIsotopePatternDescription =
-          attrs.getValue(PeakListElementName_2_5.DESCRIPTION.getElementName());
+      currentIsotopePatternStatus = IsotopePatternStatus.valueOf(
+          attrs.getValue(PeakListElementName_2_5.STATUS.getElementName()));
+      currentIsotopePatternDescription = attrs.getValue(
+          PeakListElementName_2_5.DESCRIPTION.getElementName());
     }
 
   }
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String,
-   *      java.lang.String)
+   * java.lang.String)
    */
   @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // <NAME>
     if (qName.equals(PeakListElementName_2_5.PEAKLIST_NAME.getElementName())) {
@@ -355,15 +349,19 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       Range<Float> peakRTRange = null, peakIntensityRange = null;
       RawDataFile dataFile = dataFilesIDMap.get(peakColumnID);
 
-      if (dataFile == null)
+      if (dataFile == null) {
         throw new SAXException("Error in project: data file " + peakColumnID + " not found");
+      }
 
-      Scan[] scans =
-          Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
-      Scan[] fragmentScans = currentAllMS2FragmentScans.stream()
-          .map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan[] scans = Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s))
+          .toArray(Scan[]::new);
+      List<Scan> fragmentScans = currentAllMS2FragmentScans.stream()
+          .map(s -> dataFile.getScanAtNumber(s)).toList();
       Scan bestMS1 = dataFile.getScanAtNumber(representativeScan);
       Scan bestMS2 = dataFile.getScanAtNumber(fragmentScan);
+      if (fragmentScans.isEmpty() && bestMS2 != null) {
+        fragmentScans = List.of(bestMS2);
+      }
 
       for (int i = 0; i < numOfMZpeaks; i++) {
         Scan sc = scans[i];
@@ -387,10 +385,11 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
         if (mz > 0.0) {
           mzPeaks[i] = new SimpleDataPoint(mz, intensity);
-          if (peakMZRange == null)
+          if (peakMZRange == null) {
             peakMZRange = Range.singleton(mz);
-          else
+          } else {
             peakMZRange = peakMZRange.span(Range.singleton(mz));
+          }
         }
       }
 
@@ -400,15 +399,16 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       currentAllMS2FragmentScans.clear();
 
       // peakRTRange could be null if the peak consists only of 0 intensity data points
-      if (peakRTRange == null)
+      if (peakRTRange == null) {
         peakRTRange = Range.singleton(rt);
+      }
 
       // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
       // mzPeaks,
       // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
       // peakMZRange, peakIntensityRange);
       ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area,
-          scans, mzPeaks, status, bestMS1, bestMS2, fragmentScans, peakRTRange, peakMZRange,
+          scans, mzPeaks, status, bestMS1, fragmentScans, peakRTRange, peakMZRange,
           peakIntensityRange);
       // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
       // mzPeaks,
@@ -418,7 +418,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       peak.setCharge(currentPeakCharge);
 
       if (currentIsotopes.size() > 0) {
-        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null,
+        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null, -1,
             currentIsotopePatternStatus, currentIsotopePatternDescription);
         peak.setIsotopePattern(newPattern);
         currentIsotopes.clear();

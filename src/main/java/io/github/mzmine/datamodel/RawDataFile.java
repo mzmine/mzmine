@@ -22,7 +22,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -165,8 +167,11 @@ public interface RawDataFile {
 
   String setNameNoChecks(@NotNull String name);
 
-  ObservableList<Scan> getScans();
+  @NotNull ObservableList<Scan> getScans();
 
+  default @NotNull Stream<Scan> stream() {
+    return getScans().stream();
+  }
 
   /**
    * Mass list has changed. reset all precomputed values
@@ -204,4 +209,16 @@ public interface RawDataFile {
    * JavaFX safe copy of the name
    */
   StringProperty nameProperty();
+
+  /**
+   * Get the start time stamp of the sample.
+   *
+   * @return a datetime stamp (or null in case if it wasn't mentioned in the RawDataFile)
+   */
+  default LocalDateTime getStartTimeStamp() { return null; }
+
+  /**
+   * Set the start time stamp of the sample.
+   */
+  default void setStartTimeStamp(LocalDateTime localDateTime) { }
 }

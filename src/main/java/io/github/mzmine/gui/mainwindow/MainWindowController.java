@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.mainwindow;
@@ -104,6 +105,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -121,10 +123,10 @@ import org.controlsfx.control.StatusBar;
 
 public class MainWindowController {
 
-  private static final Image featureListSingleIcon = FxIconUtil
-      .loadImageFromResources("icons/peaklisticon_single.png");
-  private static final Image featureListAlignedIcon = FxIconUtil
-      .loadImageFromResources("icons/peaklisticon_aligned.png");
+  private static final Image featureListSingleIcon = FxIconUtil.loadImageFromResources(
+      "icons/peaklisticon_single.png");
+  private static final Image featureListAlignedIcon = FxIconUtil.loadImageFromResources(
+      "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   @FXML
@@ -155,6 +157,8 @@ public class MainWindowController {
   public ColorPickerMenuItem rawDataFileColorPicker;
   @FXML
   private Scene mainScene;
+  @FXML
+  public VBox bottomBox;
   @FXML
   private GroupableListView<RawDataFile> rawDataList;
   @FXML
@@ -221,8 +225,8 @@ public class MainWindowController {
     spectralLibraryList.setEditable(false);
     spectralLibraryList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-    rawDataList
-        .setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
+    rawDataList.setCellFactory(
+        rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
           @Override
           protected void updateItem(GroupableListViewEntity item, boolean empty) {
@@ -258,8 +262,8 @@ public class MainWindowController {
               return;
             }
 
-            RawDataFileRenameModule
-                .renameFile(((ValueEntity<RawDataFile>) item).getValue(), getText());
+            RawDataFileRenameModule.renameFile(((ValueEntity<RawDataFile>) item).getValue(),
+                getText());
           }
         });
 
@@ -348,9 +352,9 @@ public class MainWindowController {
         change.next();
 
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
-              .isUpdateOnSelection() && !(CollectionUtils
-              .isEqualCollection(((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
+              ((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
             ((MZmineTab) tab).onRawDataFileSelectionChanged(change.getList());
           }
         }
@@ -361,9 +365,9 @@ public class MainWindowController {
       MZmineCore.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
-              .isUpdateOnSelection() && !(CollectionUtils
-              .isEqualCollection(((MZmineTab) tab).getFeatureLists(), change.getList()))) {
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
+              ((MZmineTab) tab).getFeatureLists(), change.getList()))) {
             ((MZmineTab) tab).onFeatureListSelectionChanged(change.getList());
           }
         }
@@ -392,8 +396,7 @@ public class MainWindowController {
 
     taskNameColumn.setCellValueFactory(
         cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getActualTask().getTaskDescription()));
-    taskPriorityColumn.setCellValueFactory(
-        cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getActualTask().getTaskPriority()));
+    taskPriorityColumn.setCellValueFactory(new PropertyValueFactory<>("priority"));
 
     taskStatusColumn.setCellValueFactory(
         cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getActualTask().getStatus()));
@@ -464,11 +467,7 @@ public class MainWindowController {
             }
 
             // Setting color should be enabled only if files are selected
-            if (rawDataList.getSelectedValues().size() > 0) {
-              rawDataSetColorMenu.setDisable(false);
-            } else {
-              rawDataSetColorMenu.setDisable(true);
-            }
+            rawDataSetColorMenu.setDisable(rawDataList.getSelectedValues().size() <= 0);
 
             if (rawDataList.getSelectedValues().size() == 1) {
               rawDataRemoveMenuItem.setText("Remove file");
@@ -854,7 +853,7 @@ public class MainWindowController {
 
   @FXML
   public void handleRemoveFeatureList(Event event) {
-    FeatureList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
+    FeatureList[] selectedFeatureLists = MZmineCore.getDesktop().getSelectedPeakLists();
     for (FeatureList fl : selectedFeatureLists) {
       MZmineCore.getProjectManager().getCurrentProject().removeFeatureList(fl);
     }
@@ -925,6 +924,15 @@ public class MainWindowController {
     return FXCollections.unmodifiableObservableList(getMainTabPane().getTabs());
   }
 
+  /**
+   * Remove tab with matching title
+   *
+   * @param title the matching title
+   */
+  public void removeTab(String title) {
+    getMainTabPane().getTabs().removeIf(t -> title.equals(t.getText()));
+  }
+
   public void addTab(Tab tab) {
     if (tab instanceof MZmineTab) {
       ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
@@ -942,10 +950,8 @@ public class MainWindowController {
       }));
     }
 
-    if (getMainTabPane().getTabs().contains(tab)) {
-      // sometimes we have duplicate tabs, which leads to exceptions. This is a dirty fix for now.
-      getMainTabPane().getTabs().remove(tab);
-    }
+    // sometimes we have duplicate tabs, which leads to exceptions. This is a dirty fix for now.
+    getMainTabPane().getTabs().remove(tab);
     getMainTabPane().getTabs().add(tab);
     getMainTabPane().getSelectionModel().select(tab);
   }
@@ -1015,4 +1021,7 @@ public class MainWindowController {
     }
   }
 
+  public VBox getBottomBox() {
+    return bottomBox;
+  }
 }

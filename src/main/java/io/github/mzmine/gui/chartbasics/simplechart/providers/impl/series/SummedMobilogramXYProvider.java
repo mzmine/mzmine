@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -47,11 +47,11 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   private final ObjectProperty<Color> color;
   private final boolean swapAxes;
 
-  public SummedMobilogramXYProvider(final ModularFeature f) {
+  public SummedMobilogramXYProvider(final Feature f) {
     this(f, false);
   }
 
-  public SummedMobilogramXYProvider(final ModularFeature f, boolean swapAxes) {
+  public SummedMobilogramXYProvider(final Feature f, boolean swapAxes) {
     IonTimeSeries<? extends Scan> series = f.getFeatureData();
     if (!(series instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException(

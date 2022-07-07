@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.spectraldb.parser;
@@ -22,6 +23,14 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonNumber;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
+import jakarta.json.JsonValue.ValueType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -33,17 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
 import org.jetbrains.annotations.Nullable;
 
 // top level json objects/arrays
@@ -55,10 +55,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MonaJsonParser extends SpectralDBTextParser {
 
-  private static final String COMPOUND = "compound", MONA_ID = "id", META_DATA = "metaData",
-      SPECTRUM = "spectrum", SPLASH = "splash", SUBMITTER = "submitter";
+  private static final String COMPOUND = "compound", MONA_ID = "id", META_DATA = "metaData", SPECTRUM = "spectrum", SPLASH = "splash", SUBMITTER = "submitter";
 
-  private static Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
+  private static final Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
 
   public MonaJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
@@ -80,7 +79,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
       String l = br.readLine();
       while (l != null) {
         if (l.length() > 2) {
-          final SpectralDBEntry entry = parseToEntry(correct, error, l);
+          final SpectralDBEntry entry = parseLineToEntry(correct, error, l);
           if (entry != null) {
             results.add(entry);
           }
@@ -95,17 +94,24 @@ public class MonaJsonParser extends SpectralDBTextParser {
       }
 
       if (error.get() > correct.get()) {
-        logger.log(Level.WARNING, "This file was no MONA spectral json library");
+        logger.warning("Stopping to parse file " + dataBaseFile.getName() + " as MoNA library, "
+            + "there were too many entries with mismatching format. This is usually the case when "
+            + "reading GNPS json libraries and just to determine the file type.");
         return false;
       }
 
       // read the rest in parallel
-      final List<SpectralDBEntry> entries = br.lines().parallel().filter(line -> {
-        processedLines.incrementAndGet();
-        return line.length() > 2;
-      }).map(line -> parseToEntry(correct, error, line)).filter(Objects::nonNull)
-          .collect(Collectors.toList());
+      final List<SpectralDBEntry> entries = br.lines().filter(line -> {
+            processedLines.incrementAndGet();
+            return line.length() > 2;
+          }).parallel().map(line -> parseLineToEntry(correct, error, line)).filter(Objects::nonNull)
+          .toList();
 
+      if (error.get() > 0) {
+        logger.warning(
+            String.format("MoNA spectral library %s was imported with %d entries failing.",
+                dataBaseFile.getName(), error.get()));
+      }
       // combine
       results.addAll(entries);
       processor.processNextEntries(results, 0);
@@ -113,22 +119,26 @@ public class MonaJsonParser extends SpectralDBTextParser {
     }
   }
 
-  @Nullable
-  private SpectralDBEntry parseToEntry(AtomicInteger correct, AtomicInteger error,
-      String line) {
-    try (JsonReader reader = Json.createReader(new StringReader(line))) {
-      JsonObject json = reader.readObject();
-      SpectralDBEntry entry = getDBEntry(json);
+  private SpectralDBEntry parseLineToEntry(AtomicInteger correct, AtomicInteger error, String l) {
+    try {
+      final SpectralDBEntry entry = parseToEntry(l);
       if (entry != null) {
         correct.getAndIncrement();
+        return entry;
       } else {
         error.getAndIncrement();
       }
-      return entry;
     } catch (Exception ex) {
       error.getAndIncrement();
-      logger.log(Level.WARNING, "Error for entry", ex);
-      return null;
+    }
+    return null;
+  }
+
+  @Nullable
+  private SpectralDBEntry parseToEntry(String line) {
+    try (JsonReader reader = Json.createReader(new StringReader(line))) {
+      JsonObject json = reader.readObject();
+      return getDBEntry(json);
     }
   }
 

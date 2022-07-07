@@ -89,11 +89,10 @@ public class FeatureShapeType extends LinkedGraphicalType {
   @Nullable
   @Override
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> rawDataFiles) {
+      @NotNull List<RawDataFile> rawDataFiles, DataType<?> superType, @Nullable final Object value) {
 
     return () -> {
       MZmineCore.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     };
   }
-
 }

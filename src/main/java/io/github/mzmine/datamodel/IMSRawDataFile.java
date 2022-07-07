@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,7 +118,11 @@ public interface IMSRawDataFile extends RawDataFile {
   @NotNull
   MobilityType getMobilityType();
 
-//  double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
+  @Nullable CCSCalibration getCCSCalibration();
 
-//  Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
+  void setCCSCalibration(@Nullable CCSCalibration calibration);
+
+  int addMobilityValues(double[] mobilities);
+
+  DoubleImmutableList getSegmentMobilities(int segment);
 }

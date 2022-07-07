@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.identities.iontype;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -98,7 +100,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   }
 
   public Map<IonNetwork, IonNetworkRelation> getRelations() {
-    return relations;
+    return Objects.requireNonNullElse(relations, Map.of());
   }
 
   /**
@@ -109,7 +111,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
    */
   public void addRelation(IonNetwork net, IonNetworkRelation rel) {
     if (relations == null) {
-      relations = new HashMap<>();
+      relations = new TreeMap<>();
     }
     relations.put(net, rel);
   }

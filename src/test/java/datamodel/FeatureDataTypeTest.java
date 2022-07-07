@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
  *  This file is part of MZmine.
  *
@@ -54,12 +54,7 @@ public class FeatureDataTypeTest {
   @Test
   void testSimpleIonTimeSeries() {
     RawDataFile file = null;
-    try {
-      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
@@ -107,12 +102,7 @@ public class FeatureDataTypeTest {
   @Test
   void testIonMobilogramTimeSeries() {
     IMSRawDataFile file = null;
-    try {
-      file = new IMSRawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new IMSRawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
@@ -128,7 +118,7 @@ public class FeatureDataTypeTest {
       }
       SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
-          MobilityType.TIMS, null);
+          MobilityType.TIMS, null, null);
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans, true);
       try {

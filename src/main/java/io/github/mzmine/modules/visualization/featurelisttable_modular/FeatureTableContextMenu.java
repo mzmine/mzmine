@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -29,8 +29,11 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
@@ -43,12 +46,13 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredi
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
+import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
@@ -64,7 +68,7 @@ import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidS
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -81,6 +85,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -98,6 +103,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeatureTableContextMenu extends ContextMenu {
 
+  private static final Logger logger = Logger.getLogger(FeatureTableContextMenu.class.getName());
   final Menu showMenu;
   final Menu searchMenu;
   final Menu idsMenu;
@@ -231,14 +237,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     nistSearchItem.setOnAction(
         e -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.get(0)));
 
-    // Comments from MZmine 2 source:
-    // TODO: what is going on here?
-    // TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1
-    final MenuItem siriusItem = new ConditionalMenuItem("Sirius structure prediction",
-        () -> selectedRows.size() == 1);
-    siriusItem.setOnAction(
-        e -> SiriusIdentificationModule.showSingleRowIdentificationDialog(selectedRows.get(0),
-            Instant.now()));
+    // submit GNPS MASST search job
+    final MenuItem masstSearch = new ConditionalMenuItem(
+        "Submit MASST public data search (on GNPS)",
+        () -> selectedRows.size() == 1 && getNumberOfRowsWithFragmentScans(selectedRows) >= 1);
+    masstSearch.setOnAction(e -> submitMasstGNPSSearch(selectedRows));
 
     final MenuItem formulaPredictionItem = new ConditionalMenuItem("Predict molecular formula",
         () -> selectedRows.size() == 1);
@@ -246,8 +249,8 @@ public class FeatureTableContextMenu extends ContextMenu {
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
     searchMenu.getItems()
-        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, siriusItem,
-            new SeparatorMenuItem(), formulaPredictionItem);
+        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
+            formulaPredictionItem, new SeparatorMenuItem(), masstSearch);
   }
 
   private void initShowMenu() {
@@ -375,8 +378,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
-      MirrorScanWindowFX mirrorScanTab = new MirrorScanWindowFX();
-      mirrorScanTab.setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
+      MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
+      mirrorScanTab.getController().setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
           selectedRows.get(1).getMostIntenseFragmentScan());
       mirrorScanTab.show();
     });
@@ -391,6 +394,10 @@ public class FeatureTableContextMenu extends ContextMenu {
     showIsotopePatternItem.setOnAction(
         e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
             selectedFeature.getRepresentativeScan(), selectedFeature.getIsotopePattern()));
+
+    final MenuItem showCompoundDBResults = new ConditionalMenuItem("Compound DB search results",
+        () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
+    showCompoundDBResults.setOnAction(e -> CompoundDatabaseMatchTab.addNewTab(table));
 
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
         () -> !selectedRows.isEmpty() && rowHasSpectralLibraryMatches(selectedRows));
@@ -412,14 +419,31 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
         /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
+    final MenuItem showNormalizedImage = new ConditionalMenuItem("Show Normalized Image",
+        () -> selectedFeature != null
+            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+    showImageFeatureItem.setOnAction(e -> addNormalizedImageTab());
+
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
             new SeparatorMenuItem(), show2DItem, show3DItem, showIntensityPlotItem,
             showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            showDiaIons, new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
-            showMatchedLipidSignals, new SeparatorMenuItem(), showPeakRowSummaryItem);
+            showDiaIons, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
+            showPeakRowSummaryItem, showNormalizedImage);
+  }
+
+  private void addNormalizedImageTab() {
+    final IonTimeSeries<? extends Scan> featureData = selectedFeature.getFeatureData();
+    final IonTimeSeries<? extends Scan> normalized = IonTimeSeriesUtils.normalizeToAvgTic(
+        featureData, null);
+
+    ModularFeature f = new ModularFeature((ModularFeatureList) selectedFeature.getFeatureList(),
+        selectedFeature.getRawDataFile(), normalized, FeatureStatus.MANUAL);
+    ImageVisualizerTab tab = new ImageVisualizerTab(f);
+    MZmineCore.getDesktop().addTab(tab);
   }
 
   private void onShown() {
@@ -440,6 +464,24 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     for (MenuItem item : getItems()) {
       updateItem(item);
+    }
+  }
+
+  /**
+   * Mass spectrometry search tool job on GNPS
+   */
+  private void submitMasstGNPSSearch(List<ModularFeatureListRow> rows) {
+    // single
+    if (rows.size() == 1) {
+      final ModularFeatureListRow row = rows.get(0);
+      final Scan ms2 = row.getMostIntenseFragmentScan();
+      if (ms2 != null) {
+        if (ms2.getMassList() == null) {
+          logger.warning("Missing mass list. Run mass detection on MS2 scans to run MASST search");
+          return;
+        }
+        GnpsMasstSubmitModule.submitSingleMASSTJob(row, row.getAverageMZ(), ms2.getMassList());
+      }
     }
   }
 

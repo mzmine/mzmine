@@ -1,21 +1,22 @@
 /*
- * Copyright (C) 2016 Du-Lab Team <dulab.binf@gmail.com>
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
-import com.google.common.collect.Range;
 import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Chromatogram;
@@ -26,6 +27,8 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -33,14 +36,17 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
@@ -61,21 +67,23 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   // Feature lists.
   private final MZmineProject project;
   private final ChromatogramPeakPair originalLists;
-  private ModularFeatureList newPeakList;
   private final Decomposition decomposition;
-
+  private final RawDataFile dataFile;
+  private final String suffix;
   // User parameters
   private final ParameterSet parameters;
 
   ADAP3DecompositionV2Task(final MZmineProject project, final ChromatogramPeakPair lists,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+      RawDataFile dataFile, final ParameterSet parameterSet, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     // Initialize.
     this.project = project;
     parameters = parameterSet;
     originalLists = lists;
-    newPeakList = null;
     decomposition = new Decomposition();
+    this.dataFile = dataFile;
+    this.suffix = parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX).getValue();
   }
 
   @Override
@@ -106,7 +114,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
         try {
 
-          newPeakList = decomposePeaks(originalLists);
+          ModularFeatureList newPeakList = decomposePeaks(originalLists);
 
           if (!isCanceled()) {
 
@@ -153,8 +161,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
 
     // Create new feature list.
-    final ModularFeatureList resolvedPeakList = new ModularFeatureList(lists.peaks + " "
-        + parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX).getValue(), getMemoryMapStorage(), dataFile);
+    ModularFeatureList resolvedPeakList = new ModularFeatureList(dataFile + " " + suffix,
+        getMemoryMapStorage(), dataFile);
+    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedPeakList);
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : lists.peaks.getAppliedMethods()) {
@@ -184,7 +193,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       }
 
       // Create a reference peak
-      Feature refPeak = getFeature(dataFile, component);
+      Feature refPeak = getFeature(dataFile, component, resolvedPeakList);
 
       // Add spectrum
       List<DataPoint> dataPoints = new ArrayList<>();
@@ -200,20 +209,16 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         continue;
       }
 
+      // todo: replace this with it's own data type?
       refPeak.setIsotopePattern(
-          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]),
+          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
-      ModularFeatureListRow row = new ModularFeatureListRow((ModularFeatureList) resolvedPeakList,
-          ++rowID);
+      final ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
       row.addFeature(dataFile, refPeak);
+      row.set(FeatureShapeType.class, true);
 
-      // Set row properties
-      row.setAverageMZ(refPeak.getMZ());
-      row.setAverageRT(refPeak.getRT());
-
-      // resolvedPeakList.addRow(row);
       newPeakListRows.add(row);
     }
 
@@ -246,60 +251,42 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
     Decomposition.Parameters params = new Decomposition.Parameters();
 
-    params.prefWindowWidth =
-        parameters.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
-    params.retTimeTolerance =
-        parameters.getParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
-    params.minClusterSize =
-        parameters.getParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-    params.adjustApexRetTimes =
-        parameters.getParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME).getValue();
+    params.prefWindowWidth = parameters.getParameter(
+        ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
+    params.retTimeTolerance = parameters.getParameter(
+        ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
+    params.minClusterSize = parameters.getParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE)
+        .getValue();
+    params.adjustApexRetTimes = parameters.getParameter(
+        ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME).getValue();
 
     return decomposition.run(params, chromatograms, peaks);
   }
 
   @NotNull
-  private Feature getFeature(@NotNull RawDataFile file, @NotNull BetterPeak peak) {
+  private Feature getFeature(@NotNull RawDataFile file, @NotNull BetterPeak peak,
+      ModularFeatureList resolvedFeatureList) {
     Chromatogram chromatogram = peak.chromatogram;
 
+    // todo: can the scans be passed along from the original features so we dont have to go through all scans here?
     // Retrieve scan numbers
-    Scan representativeScan = null;
-    Scan[] scanNumbers = new Scan[chromatogram.length];
-    int count = 0;
+    List<Scan> scans = new ArrayList<>(chromatogram.length);
     for (Scan num : file.getScans()) {
       double retTime = num.getRetentionTime();
       Double intensity = chromatogram.getIntensity(retTime, false);
-      if (intensity != null) {
-        scanNumbers[count++] = num;
-      }
-      if (retTime == peak.getRetTime()) {
-        representativeScan = num;
+      if (intensity != null) { // warning: now it's not guaranteed that the mzs, intensities and scans have the same number of values (required)
+        scans.add(num);
       }
     }
 
-    // Calculate peak area
-    double area = 0.0;
-    for (int i = 1; i < chromatogram.length; ++i) {
-      double base = (chromatogram.xs[i] - chromatogram.xs[i - 1]) * 60d;
-      double height = 0.5 * (chromatogram.ys[i] + chromatogram.ys[i - 1]);
-      area += base * height;
-    }
+    double[] mzs = new double[chromatogram.length];
+    Arrays.fill(mzs, peak.getMZ()); // todo: use mzs from the actual scans (get from original feature?)
 
-    // Create array of DataPoints
-    DataPoint[] dataPoints = new DataPoint[chromatogram.length];
-    count = 0;
-    for (double intensity : chromatogram.ys) {
-      dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
-    }
+    IonTimeSeries<Scan> series = new SimpleIonTimeSeries(resolvedFeatureList.getMemoryMapStorage(),
+        mzs, chromatogram.ys, scans);
 
-    ModularFeature newFeature = new ModularFeature(newPeakList, file, peak.getMZ(),
-        (float) peak.getRetTime(),
-        (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.MANUAL,
-        representativeScan, representativeScan, new Scan[]{},
-        Range.closed((float) peak.getFirstRetTime(),
-            (float) peak.getLastRetTime()), Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
-        Range.closed(0f, (float) peak.getIntensity()));
-    return newFeature;
+    // calculations done in the constructor by FeatureDataUtils
+    return new ModularFeature(resolvedFeatureList, dataFile, series, FeatureStatus.MANUAL);
   }
 
   @Override

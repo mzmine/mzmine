@@ -130,14 +130,10 @@ public class IonMobilityUtils {
 
     final double[] intensities = new double[frame.getNumberOfMobilityScans()];
     final double[] mzs = new double[frame.getNumberOfMobilityScans()];
-    final double[] mobilities = new double[frame.getNumberOfMobilityScans()];
-    frame.getMobilities().get(0, mobilities, 0, mobilities.length);
 
     final List<MobilityScan> mobilityScans = frame.getMobilityScans();
 
-    // todo replace with method introduced in PR mzmine3#238
-    final int maxNumDataPoints = mobilityScans.stream()
-        .mapToInt(MobilityScan::getNumberOfDataPoints).max().orElse(0);
+    final int maxNumDataPoints = frame.getMaxMobilityScanRawDataPoints();
 
     final double[] intensitiesBuffer = new double[maxNumDataPoints];
     final double[] mzsBuffer = new double[maxNumDataPoints];
@@ -148,16 +144,16 @@ public class IonMobilityUtils {
       scan.getIntensityValues(intensitiesBuffer);
 
       if (type == MobilogramType.BASE_PEAK) {
-        DataPoint bp = ScanUtils
-            .findBasePeak(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
+        DataPoint bp = ScanUtils.findBasePeak(mzsBuffer, intensitiesBuffer, mzRange,
+            scan.getNumberOfDataPoints());
         if (bp != null) {
           mzs[i] = bp.getMZ();
           intensities[i] = bp.getIntensity();
         }
       } else if (type == MobilogramType.TIC) {
         mzs[i] = rangeCenter;
-        intensities[i] = ScanUtils
-            .calculateTIC(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
+        intensities[i] = ScanUtils.calculateTIC(mzsBuffer, intensitiesBuffer, mzRange,
+            scan.getNumberOfDataPoints());
       }
     }
 

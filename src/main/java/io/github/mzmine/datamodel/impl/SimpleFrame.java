@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -21,15 +21,15 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import java.nio.DoubleBuffer;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -52,18 +52,18 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private Set<PasefMsMsInfo> precursorInfos;
   private Range<Double> mobilityRange;
 
-  private DoubleBuffer mobilityBuffer;
+  private int mobilitySegment = -1;
   private MobilityScanStorage mobilityScanStorage;
 
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
-      @Nullable Set<PasefMsMsInfo> precursorInfos) {
+      @Nullable Set<PasefMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
          */
-        mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange);
+        mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange, accumulationTime);
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
@@ -129,10 +129,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans,
       boolean useAsMassList) {
-    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().capacity())) {
+    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().size())) {
       throw new IllegalArgumentException(String.format(
           "Number of mobility values (%d) does not match number of mobility scans (%d).",
-          getMobilities().capacity(), originalMobilityScans.size()));
+          getMobilities().size(), originalMobilityScans.size()));
     }
     mobilityScanStorage = new MobilityScanStorage(getDataFile().getMemoryMapStorage(), this,
         originalMobilityScans, useAsMassList);
@@ -140,12 +140,16 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-    return mobilityBuffer.get(mobilityScanIndex);
+    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(
+        mobilitySegment).getDouble(mobilityScanIndex);
   }
 
   @Override
-  public DoubleBuffer getMobilities() {
-    return mobilityBuffer;
+  public @Nullable DoubleImmutableList getMobilities() {
+    if (mobilitySegment == -1) {
+      return null;
+    }
+    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(mobilitySegment);
   }
 
   @NotNull
@@ -172,17 +176,11 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return ImmutableList.copyOf(result);
   }
 
-  public DoubleBuffer setMobilities(double[] mobilities) {
-    if (mobilityScanStorage != null && (getNumberOfMobilityScans() != mobilities.length)) {
-      throw new IllegalArgumentException(String.format(
-          "Number of mobility values (%d) does not match number of mobility scans (%d).",
-          mobilities.length, getNumberOfMobilityScans()));
-    }
-    mobilityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(),
-        mobilities);
+  public int setMobilities(double[] mobilities) {
+    mobilitySegment = ((IMSRawDataFile) getDataFile()).addMobilityValues(mobilities);
     mobilityRange = Range.singleton(mobilities[0]);
     mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
-    return mobilityBuffer;
+    return mobilitySegment;
   }
 
   public void setPrecursorInfos(@Nullable Set<PasefMsMsInfo> precursorInfos) {

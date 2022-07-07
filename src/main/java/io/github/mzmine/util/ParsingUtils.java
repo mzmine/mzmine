@@ -44,6 +44,9 @@ import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Utility functions used during project load/save.
+ */
 public class ParsingUtils {
 
   private static final Logger logger = Logger.getLogger(ParsingUtils.class.getName());
@@ -154,27 +157,25 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      double lower = Double.parseDouble(matcher.group(1));
-      double upper = Double.parseDouble(matcher.group(3));
-      return Range.closed(lower, upper);
+    if (str.isEmpty()) {
+      return null;
     }
-    return null;
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    if (vals.length != 2) {
+      throw new IllegalStateException("Error while parsing double range from string " + str);
+    }
+    return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      float lower = Float.parseFloat(matcher.group(1));
-      float upper = Float.parseFloat(matcher.group(3));
-      return Range.closed(lower, upper);
+    if (str.isEmpty()) {
+      return null;
     }
-    return null;
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    if (vals.length != 2) {
+      throw new IllegalStateException("Error while parsing float range from string " + str);
+    }
+    return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
   }
 
   public static Range<Integer> parseIntegerRange(String str) {
@@ -329,7 +330,7 @@ public class ParsingUtils {
       throws XMLStreamException {
     while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
         .equals(startElement))) {
-      if(reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
+      if (reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
         return false;
       }
       reader.next();
@@ -340,5 +341,58 @@ public class ParsingUtils {
   public static IonType parseIon(String str) {
     Pattern.compile("(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]*)([\\]])?([\\d])?([\\+\\-])");
     return null;
+  }
+
+  /**
+   * @param number A number or null
+   * @return The string representation of the given number. ({@link CONST#XML_NULL_VALUE} for null).
+   */
+  @NotNull
+  public static String numberToString(@Nullable Number number) {
+    if (number == null) {
+      return CONST.XML_NULL_VALUE;
+    } else {
+      return String.valueOf(number);
+    }
+  }
+
+  /**
+   * Converts a string to a double. If the string is equal to {@link CONST#XML_NULL_VALUE}, null is
+   * returned.
+   *
+   * @param str The string.
+   * @return The Double.
+   */
+  @Nullable
+  public static Double stringToDouble(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Double.valueOf(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Converts a string to a float. If the string is equal to {@link CONST#XML_NULL_VALUE}, null is
+   * returned.
+   *
+   * @param str The string.
+   * @return The float.
+   */
+  @Nullable
+  public static Float stringToFloat(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Float.valueOf(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 }

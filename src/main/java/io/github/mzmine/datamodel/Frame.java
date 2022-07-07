@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.StoredMobilityScan;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import java.nio.DoubleBuffer;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +97,7 @@ public interface Frame extends Scan {
   /**
    * @return Mapping of sub scan number <-> mobility
    */
-  @Nullable DoubleBuffer getMobilities();
+  @Nullable DoubleImmutableList getMobilities();
 
   /**
    * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no

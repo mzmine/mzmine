@@ -42,7 +42,6 @@ import io.github.mzmine.taskcontrol.Task;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -93,9 +92,7 @@ public class RawDataFileUtils {
           newTask = new MzDataImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
           break;
         case MZML:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile, module, parameters,moduleCallDate);
+          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters,moduleCallDate, storage);
           break;
         case IMZML:
           newMZmineFile = MZmineCore
@@ -122,9 +119,9 @@ public class RawDataFileUtils {
               .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
           newTask = new WatersRawImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
           break;
-        case ZIP:
-        case GZIP:
-          newTask = new ZipImportTask(project, fileName, fileType, module, parameters, moduleCallDate);
+        case MZML_ZIP:
+        case MZML_GZIP:
+          newTask = new ZipImportTask(project, fileName, module, parameters, moduleCallDate, storage);
           break;
         case BRUKER_TDF:
           newMZmineFile = MZmineCore
@@ -134,10 +131,7 @@ public class RawDataFileUtils {
               parameters, moduleCallDate);
           break;
         case MZML_IMS:
-          newMZmineFile = MZmineCore
-              .createNewIMSFile(fileName.getName(), fileName.getAbsolutePath(),
-                  MemoryMapStorage.forRawDataFile());
-          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters, moduleCallDate, storage);
           break;
         default:
           break;

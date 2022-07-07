@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -356,15 +357,20 @@ public class PeakListOpenHandler_3_0_old extends DefaultHandler implements PeakL
       Range<Float> peakRTRange = null, peakIntensityRange = null;
       RawDataFile dataFile = dataFilesIDMap.get(peakColumnID);
 
-      if (dataFile == null)
+      if (dataFile == null) {
         throw new SAXException("Error in project: data file " + peakColumnID + " not found");
+      }
 
-      Scan[] scans =
-          Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
-      Scan[] fragmentScans = currentAllMS2FragmentScans.stream()
-          .map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan[] scans = Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s))
+          .toArray(Scan[]::new);
+      List<Scan> fragmentScans = currentAllMS2FragmentScans.stream()
+          .map(s -> dataFile.getScanAtNumber(s)).toList();
       Scan bestMS1 = dataFile.getScanAtNumber(representativeScan);
       Scan bestMS2 = dataFile.getScanAtNumber(fragmentScan);
+
+      if (fragmentScans.isEmpty() && bestMS2 != null) {
+        fragmentScans = List.of(bestMS2);
+      }
 
       for (int i = 0; i < numOfMZpeaks; i++) {
 
@@ -410,7 +416,7 @@ public class PeakListOpenHandler_3_0_old extends DefaultHandler implements PeakL
       // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
       // peakMZRange, peakIntensityRange);
       ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area,
-          scans, mzPeaks, status, bestMS1, bestMS2, fragmentScans, peakRTRange, peakMZRange,
+          scans, mzPeaks, status, bestMS1, fragmentScans, peakRTRange, peakMZRange,
           peakIntensityRange);
       // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
       // mzPeaks,
@@ -420,7 +426,7 @@ public class PeakListOpenHandler_3_0_old extends DefaultHandler implements PeakL
       peak.setCharge(currentPeakCharge);
 
       if (currentIsotopes.size() > 0) {
-        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null,
+        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null, -1,
             currentIsotopePatternStatus, currentIsotopePatternDescription);
         peak.setIsotopePattern(newPattern);
         currentIsotopes.clear();

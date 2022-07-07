@@ -43,11 +43,11 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertorIonMobility;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -544,8 +544,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     int featureId = 1;
     for (IIonMobilityTrace ionTrace : ionMobilityTraces) {
       ionTrace.setFeatureList(featureList);
-      ModularFeature modular = FeatureConvertors
-          .IonMobilityIonTraceToModularFeature(ionTrace, rawDataFile, mobilogramBinner);
+      ModularFeature modular = FeatureConvertors.IonMobilityIonTraceToModularFeature(ionTrace,
+          rawDataFile, mobilogramBinner);
       ModularFeatureListRow newRow = new ModularFeatureListRow(featureList, featureId, modular);
 //      newRow.set(MobilityType.class, ionTrace.getMobility());
       featureList.addRow(newRow);
@@ -553,9 +553,13 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       progress += progressStep;
     }
 
+    // sort and reset IDs here to have the same sorting for every feature list
+    FeatureListUtils.sortByDefaultRT(featureList, true);
+
     rawDataFile.getAppliedMethods().forEach(m -> featureList.getAppliedMethods().add(m));
-    featureList.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(IonMobilityTraceBuilderModule.class, parameters, getModuleCallDate()));
+    featureList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(IonMobilityTraceBuilderModule.class, parameters,
+            getModuleCallDate()));
 
     project.addFeatureList(featureList);
   }

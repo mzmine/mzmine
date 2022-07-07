@@ -53,7 +53,6 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
@@ -583,8 +582,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         continue;
       }
 
-      IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED,
-          element + " monoisotopic mass: " + parent.getAverageMZ());
+      IsotopePattern resultPattern = new SimpleIsotopePattern(dp, charge,
+          IsotopePatternStatus.DETECTED, element + " monoisotopic mass: " + parent.getAverageMZ());
       parent.getBestFeature().setIsotopePattern(resultPattern);
 
       for (FeatureListRow row : rowBuffer) {

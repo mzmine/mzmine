@@ -22,10 +22,29 @@ import java.util.Arrays;
 
 public class ArrayUtils {
 
+  /**
+   * Throws out of range exceptions
+   *
+   * @param arrayLength
+   * @param fromIndex
+   * @param toIndex
+   */
+  public static void rangeCheck(int arrayLength, int fromIndex, int toIndex) {
+    if (fromIndex > toIndex) {
+      throw new IllegalArgumentException("fromIndex(" + fromIndex + ") > toIndex(" + toIndex + ")");
+    }
+    if (fromIndex < 0) {
+      throw new ArrayIndexOutOfBoundsException(fromIndex);
+    }
+    if (toIndex > arrayLength) {
+      throw new ArrayIndexOutOfBoundsException(toIndex);
+    }
+  }
+
   public static <T> int indexOf(T needle, T[] haystack) {
     for (int i = 0; i < haystack.length; i++) {
-      if ((haystack[i] != null && haystack[i].equals(needle))
-          || (needle == null && haystack[i] == null)) {
+      if ((haystack[i] != null && haystack[i].equals(needle)) || (needle == null
+                                                                  && haystack[i] == null)) {
         return i;
       }
     }

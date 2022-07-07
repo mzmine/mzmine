@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.FontParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -34,6 +35,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxFontUtil;
+import java.awt.BasicStroke;
+import java.text.DecimalFormat;
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -45,47 +48,53 @@ import javafx.scene.text.FontWeight;
 public class ExportChartThemeParameters extends SimpleParameterSet {
 
   public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", true);
-  public static final OptionalParameter<StringParameter> changeTitle =
-      new OptionalParameter<StringParameter>(new StringParameter("Change title", "", ""));
+  public static final OptionalParameter<StringParameter> changeTitle = new OptionalParameter<>(
+      new StringParameter("Change title", "", ""));
   public static final BooleanParameter showSubtitles = new BooleanParameter("Show subtitle", "",
       true);
-  public static final BooleanParameter showLegends =
-      new BooleanParameter("Show legends", "", true);
+  public static final BooleanParameter showLegends = new BooleanParameter("Show legends", "", true);
 
-  public static final OptionalParameter<StringParameter> xlabel =
-      new OptionalParameter<StringParameter>(new StringParameter("Change x", "", "x"));
-  public static final OptionalParameter<StringParameter> ylabel =
-      new OptionalParameter<StringParameter>(new StringParameter("Change y", "", "y"));
+  public static final OptionalParameter<StringParameter> xlabel = new OptionalParameter<>(
+      new StringParameter("Change x", "", "x"));
+  public static final OptionalParameter<StringParameter> ylabel = new OptionalParameter<>(
+      new StringParameter("Change y", "", "y"));
 
-  public static final ColorParameter color =
-      new ColorParameter("Background", "Background color", Color.WHITE);
+  public static final ColorParameter color = new ColorParameter("Background", "Background color",
+      Color.WHITE);
 
-  public static final FontParameter masterFont =
-      new FontParameter("Master", "Master font changes all fonts",
-          new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
+  public static final FontParameter masterFont = new FontParameter("Master",
+      "Master font changes all fonts",
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
   public static final FontParameter titleFont = new FontParameter("Title", "Title font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
   public static final FontParameter subTitleFont = new FontParameter("Subtitles", "Subtitle font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
-  public static final FontParameter axisLabelFont = new FontParameter("Axis Labels", "Axis label font",
-      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
-  public static final FontParameter itemLabelFont = new FontParameter("Item Labels", "Item label font",
-      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
+  public static final FontParameter axisLabelFont = new FontParameter("Axis Labels",
+      "Axis label font", new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
+  public static final FontParameter itemLabelFont = new FontParameter("Item Labels",
+      "Item label font", new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
 
-  public static final OptionalParameter<ColorParameter> xGridPaint =
-      new OptionalParameter<ColorParameter>(new ColorParameter("X grid",
-          "Enable/Disable the x grid and set the line color", Color.BLACK));
-  public static final OptionalParameter<ColorParameter> yGridPaint =
-      new OptionalParameter<ColorParameter>(new ColorParameter("Y grid",
-          "Enable/Disable the y grid and set the line color", Color.BLACK));
+  public static final OptionalParameter<ColorParameter> xGridPaint = new OptionalParameter<>(
+      new ColorParameter("X grid", "Enable/Disable the x grid and set the line color",
+          Color.BLACK));
+  public static final OptionalParameter<ColorParameter> yGridPaint = new OptionalParameter<>(
+      new ColorParameter("Y grid", "Enable/Disable the y grid and set the line color",
+          Color.BLACK));
 
   public static final BooleanParameter showXAxis = new BooleanParameter("Show x axis", "", true);
   public static final BooleanParameter showYAxis = new BooleanParameter("Show y axis", "", true);
 
+  public static final DoubleParameter dataLineWidth = new DoubleParameter("Data line width",
+      "The line width is used by some but not all charts, e.g., the TIC and spectra plots.",
+      new DecimalFormat("0.00"), 1d, 0.00001, 1000d);
+
   public ExportChartThemeParameters() {
-    super(new Parameter[]{showTitle, changeTitle, showSubtitles, showLegends, xlabel,
-        ylabel, color, masterFont, titleFont, subTitleFont, axisLabelFont, itemLabelFont, xGridPaint, yGridPaint,
-        showXAxis, showYAxis});
+    super(new Parameter[]{
+        // chart specific - e.g., for export
+        showTitle, changeTitle, showSubtitles, showLegends, xlabel, ylabel,
+        // general
+        dataLineWidth, color, masterFont, titleFont, subTitleFont, axisLabelFont, itemLabelFont,
+        xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
     ylabel.setValue(false);
@@ -119,22 +128,23 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
     String newTitle = this.getParameter(ChartThemeParameters.changeTitle).getEmbeddedParameter()
         .getValue();
 
-    Color cxgrid =
-        this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
-    Color cygrid =
-        this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
+    Color cxgrid = this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter()
+        .getValue();
+    Color cygrid = this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter()
+        .getValue();
     boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
     boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
-    String xlabel =
-        this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter().getValue();
-    String ylabel =
-        this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
+    String xlabel = this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter()
+        .getValue();
+    String ylabel = this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter()
+        .getValue();
     FontSpecs master = this.getParameter(ChartThemeParameters.masterFont).getValue();
     FontSpecs titleFont = this.getParameter(ChartThemeParameters.titleFont).getValue();
     FontSpecs subtitleFont = this.getParameter(ChartThemeParameters.subTitleFont).getValue();
     FontSpecs axisLabels = this.getParameter(ChartThemeParameters.axisLabelFont).getValue();
     FontSpecs itemLabels = this.getParameter(ChartThemeParameters.itemLabelFont).getValue();
     Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
+    double dataLineWidth = this.getValue(ChartThemeParameters.dataLineWidth);
 
     theme.setShowTitle(showTitle);
     theme.getShowSubtitles(showSubtitles);
@@ -173,5 +183,7 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
     theme.setYlabel(ylabel);
     theme.setClrXGrid(FxColorUtil.fxColorToAWT(cxgrid));
     theme.setClrYGrid(FxColorUtil.fxColorToAWT(cygrid));
+
+    theme.setDefaultDataStroke(new BasicStroke((float) dataLineWidth));
   }
 }

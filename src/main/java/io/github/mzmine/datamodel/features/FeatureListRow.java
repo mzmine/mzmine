@@ -26,14 +26,16 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,13 +70,36 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns feature for given raw data file
    */
-  @Nullable
-  Feature getFeature(RawDataFile rawData);
+  @Nullable Feature getFeature(RawDataFile rawData);
 
   /**
-   * Add a feature
+   * Add a feature and update all row bindings
    */
-  void addFeature(RawDataFile rawData, Feature feature);
+  default void addFeature(RawDataFile rawData, Feature feature) {
+    addFeature(rawData, feature, true);
+  }
+
+  /**
+   * add feature and choose to update values by row bindings.
+   *
+   * @param rawData             associated raw data file
+   * @param feature             added feature
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple features
+   *                            are added, this option may be set to false. Remember to call {@link
+   *                            #applyRowBindings()}.
+   */
+  void addFeature(RawDataFile rawData, Feature feature, boolean updateByRowBindings);
+
+
+  /**
+   * apply row bindings of the feature list (if available) to this row
+   */
+  default void applyRowBindings() {
+    final FeatureList featureList = getFeatureList();
+    if (featureList != null) {
+      featureList.applyRowBindings(this);
+    }
+  }
 
   /**
    * Remove a feature
@@ -148,45 +173,60 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param identity  New feature identity
    * @param preffered boolean value to define this identity as preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
 
   /**
    * Remove identity candidate
    *
    * @param identity Feature identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void removeFeatureIdentity(FeatureIdentity identity);
-
-  void addCompoundAnnotation(CompoundDBAnnotation id);
 
   /**
    * Returns all candidates for this feature's identity
    *
    * @return Identity candidates
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   List<FeatureIdentity> getPeakIdentities();
 
   /**
    * Returns preferred feature identity among candidates
    *
    * @return Preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   FeatureIdentity getPreferredFeatureIdentity();
 
   /**
    * Sets a preferred feature identity among candidates
    *
    * @param identity Preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void setPreferredFeatureIdentity(FeatureIdentity identity);
 
   /**
    * Returns FeatureInformation
-   *
-   * @return
    */
-
   FeatureInformation getFeatureInformation();
 
   /**
@@ -232,11 +272,27 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFeatureList(@NotNull FeatureList flist);
 
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
-
+  /**
+   *
+   * @return A list of all compound annotations.
+   */
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
-  void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
+  /**
+   * Appends a compound annotation.
+   * @param id
+   */
+  void addCompoundAnnotation(CompoundDBAnnotation id);
+
+  /**
+   *
+   * @param annotations sets all compound annotations.
+   */
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+
+  void addSpectralLibraryMatch(SpectralDBAnnotation id);
+
+  boolean isIdentified();
 
   /**
    * Correlated features grouped
@@ -376,7 +432,8 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default boolean hasMs2Fragmentation() {
     // should be faster. Best fragmentation loops through all spectra to find best
-    return getAllFragmentScans() != null && !getAllFragmentScans().isEmpty();
+    final List<Scan> ms2 = getAllFragmentScans();
+    return ms2 != null && !ms2.isEmpty();
   }
 
   /**
@@ -395,14 +452,14 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param matches new list of matches
    */
-  void setSpectralLibraryMatch(List<SpectralDBFeatureIdentity> matches);
+  void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches);
 
   /**
    * List of library matches sorted from best (index 0) to last match
    *
    * @return list of library matches or an empty list
    */
-  @NotNull List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
+  @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches();
 
   /**
    * Add annotations from lipid search
@@ -414,7 +471,14 @@ public interface FeatureListRow extends ModularDataModel {
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();
 
-  void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches);
+  void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches);
 
   @Nullable Range<Float> getMobilityRange();
+
+  /**
+   * Checks for an isotope pattern with >1 data points (main signal plus 1)
+   *
+   * @return true if isotope pattern available with at least two signals
+   */
+  boolean hasIsotopePattern();
 }

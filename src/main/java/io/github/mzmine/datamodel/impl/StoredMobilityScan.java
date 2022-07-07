@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
  *  This file is part of MZmine.
  *
@@ -122,7 +122,11 @@ public class StoredMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getTIC() {
-    throw new UnsupportedOperationException("Intentionally unimplemented to safe RAM.");
+    double tic = 0d;
+    for (int i = 0; i < getNumberOfDataPoints(); i++) {
+      tic += getIntensityValue(i);
+    }
+    return tic;
   }
 
   @NotNull
@@ -243,5 +247,10 @@ public class StoredMobilityScan implements MobilityScan {
   @Override
   public int hashCode() {
     return Objects.hash(index, getFrame().getFrameId(), getDataFile());
+  }
+
+  @Override
+  public @Nullable Float getInjectionTime() {
+    return getFrame().getInjectionTime();
   }
 }

@@ -175,24 +175,22 @@ class Gap {
         double intensityEnd = bestPeakDataPoints.get(i + 1).getIntensity();
 
         // calculate area of the interval
-        area += (float)(rtDifference * (intensityStart + intensityEnd) / 2);
+        area += (float) (rtDifference * (intensityStart + intensityEnd) / 2);
 
       }
 
       // Calculate average m/z value
       mz /= bestPeakDataPoints.size();
 
-      // Find the best fragmentation scan, if available
-      Scan fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
-
       // Find all MS2 fragment scans, if available
-      Scan[] allMS2fragmentScanNumbers =
-          ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
+      List<Scan> allMS2fragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(rawDataFile,
+          finalRTRange, finalMZRange).toList();
 
       // Is intensity above the noise level?
       if (height >= noiseLevel) {
-        ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area, scanNumbers,
-            finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
+        ModularFeature newPeak = new ModularFeature(
+            (ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area,
+            scanNumbers, finalDataPoint, FeatureStatus.ESTIMATED, representativeScan,
             allMS2fragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 
         // Fill the gap

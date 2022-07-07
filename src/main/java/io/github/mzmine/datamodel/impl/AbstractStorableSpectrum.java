@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -64,8 +65,11 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
     assert mzValues.length == intensityValues.length;
     // values shall not be reset, but can be set at a later stage
-    assert this.mzValues == null;
-    assert this.intensityValues == null;
+    if(!(this instanceof Frame)) {
+      // allow re-generation of frame spectra
+      assert this.mzValues == null;
+      assert this.intensityValues == null;
+    }
 
     for (int i = 0; i < mzValues.length - 1; i++) {
       if (mzValues[i] > mzValues[i + 1]) {

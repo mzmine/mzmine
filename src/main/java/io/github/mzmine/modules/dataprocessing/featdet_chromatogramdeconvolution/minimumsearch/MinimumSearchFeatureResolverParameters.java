@@ -29,7 +29,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
@@ -42,8 +41,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
       "Chromatographic threshold", "Percentile threshold for removing noise.\n"
       + "The algorithm will remove the lowest abundant X % data points from a chromatogram and only consider\n"
-      + "the remaining (highest) values. Important filter for noisy chromatograms.",
-      0.85d, 0d, 1d);
+      + "the remaining (highest) values. Important filter for noisy chromatograms.", 0.85d, 0d, 1d);
 
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
       "Minimum search range RT/Mobility (absolute)",
@@ -68,16 +66,12 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       "Peak duration range (min/mobility)", "Range of acceptable peak lengths",
       MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
-  public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
-      "Min # of data points", "Minimum number of data points on a feature", 3, true);
-
-
   public MinimumSearchFeatureResolverParameters() {
-    super(createParams(Setup.FULL));
+    super(createParams(Setup.FULL), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
   }
 
   public MinimumSearchFeatureResolverParameters(Setup setup) {
-    super(createParams(setup));
+    super(createParams(setup), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
   }
 
   private static Parameter[] createParams(Setup setup) {

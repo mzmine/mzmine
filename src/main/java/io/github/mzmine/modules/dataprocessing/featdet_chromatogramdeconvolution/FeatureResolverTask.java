@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
@@ -131,7 +132,12 @@ public class FeatureResolverTask extends AbstractTask {
           } else {
             legacyResolve();
           }
+          // resolving finished
 
+          // sort and reset IDs here to ahve the same sorting for every feature list
+          FeatureListUtils.sortByDefaultRT(newPeakList, true);
+
+          // group MS2 with features
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
             GroupMS2SubParameters ms2params = parameters.getParameter(
                 GeneralResolverParameters.groupMS2Parameters).getEmbeddedParameters();
@@ -419,6 +425,7 @@ public class FeatureResolverTask extends AbstractTask {
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
+    final Integer minNumDp = parameters.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
 
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
@@ -429,6 +436,9 @@ public class FeatureResolverTask extends AbstractTask {
           mzCenterFunction, msmsRange, RTRangeMSMS);
 
       for (final ResolvedPeak peak : peaks) {
+        if(peak.getScanNumbers().length < minNumDp) {
+          continue;
+        }
         peak.setParentChromatogramRowID(originalRow.getID());
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);

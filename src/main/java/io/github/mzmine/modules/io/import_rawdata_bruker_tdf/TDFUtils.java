@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
@@ -42,6 +42,8 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMe
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -89,10 +91,14 @@ public class TDFUtils {
    * @param size The size
    * @return the array
    */
-  public static int[] createPopulatedArray(final int size) {
+  public static int[] createPopulatedArrayFrom1(final int size) {
+    return createPopulatedArray(size, 1); // scannums start at 1
+  }
+
+  public static int[] createPopulatedArray(final int size, int startOffset) {
     int[] array = new int[size];
     for (int i = 0; i < size; i++) {
-      array[i] = i + 1; // scannums start at 1
+      array[i] = i + startOffset;
     }
     return array;
   }
@@ -311,6 +317,9 @@ public class TDFUtils {
       }
       Arrays.fill(buffer, (byte) 0);
     }
+    if (dataPoints.get(0)[0].length != 0) {
+      logger.finest("data");
+    }
     return dataPoints;
   }
 
@@ -430,6 +439,8 @@ public class TDFUtils {
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
 
     double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
@@ -440,7 +451,7 @@ public class TDFUtils {
     }
 
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArray(numScans));
+        createPopulatedArrayFrom1(numScans));
 
     Range<Double> mzRange = metaDataTable.getMzRange();
 
@@ -449,12 +460,12 @@ public class TDFUtils {
       frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
+          MobilityType.TIMS, null, accumulationTime);
     } else {
       frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
+          MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
@@ -466,7 +477,7 @@ public class TDFUtils {
   }
 
   @Nullable
-  public ProfileData extractProfileForFrame(final long frameId, final long startScanNum,
+  public int[] extractProfileForFrame(final long frameId, final long startScanNum,
       final long endScanNum) {
 
     final ProfileData data = new ProfileData();
@@ -479,41 +490,88 @@ public class TDFUtils {
         return null;
       }
 
-      return data;
+      return data.getIntensities();
     }
   }
 
   /**
-   * @param handle
-   * @param frameId
-   * @param scanNum
-   * @param metaDataTable
-   * @param frameTable
-   * @return
-   * @deprecated not ready yet, yields to wrong m/z values. How does bruker distribute them?
+   * @return A pseudo profile spectrum
    */
-  /*
-   * @Deprecated public static Scan extractProfileScanForFrame(final long handle, final long
-   * frameId, final int scanNum, final TDFMetaDataTable metaDataTable, final TDFFrameTable
-   * frameTable) {
-   *
-   * final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId); final int numScans =
-   * frameTable.getNumScansColumn().get(frameIndex).intValue(); final ProfileData data =
-   * extractProfileForFrame(handle, frameId, 0, numScans); final String scanDefinition =
-   * metaDataTable.getInstrumentType() + " - " +
-   * BrukerScanMode.fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue()); final
-   * int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-   * frameTable.getMsMsTypeColumn().get(frameIndex).intValue()); final PolarityType polarity =
-   * PolarityType .fromSingleChar((String)
-   * frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
-   *
-   * final DataPoint[] dps = data.toDataPoints(metaDataTable.getMzRange().lowerEndpoint(),
-   * metaDataTable.getMzRange().upperEndpoint());
-   *
-   * return new SimpleScan(null, scanNum, msLevel, (float)
-   * (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes 0.d, 0, dps,
-   * MassSpectrumType.CENTROIDED, polarity, scanDefinition, metaDataTable.getMzRange()); }
-   */
+  public SimpleFrame extractProfileScanForFrame(IMSRawDataFile newFile, final long frameId,
+      @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
+      @NotNull final FramePrecursorTable framePrecursorTable,
+      @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
+      @Nullable final MassDetector ms1Detector, @Nullable final ParameterSet ms1Param,
+      @Nullable final MassDetector ms2Detector, @Nullable final ParameterSet ms2Param) {
+
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue());
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final PolarityType polarity = PolarityType.fromSingleChar(
+        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final Range<Double> mzRange = metaDataTable.getMzRange();
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
+
+    final int[] intensityData = extractProfileForFrame(frameId, 0, numScans);
+
+    // remove all extra zeros
+    final IntArrayList filteredMzIndices = new IntArrayList();
+    final DoubleArrayList filteredIntensities = new DoubleArrayList();
+    filteredMzIndices.add(0);
+    filteredIntensities.add(intensityData[0]);
+    for (int i = 1; i < intensityData.length - 1;
+        i++) { // previous , this and next are zero --> do not add this data point
+      if (intensityData[i - 1] != 0 || intensityData[i] != 0 || intensityData[i + 1] != 0) {
+        filteredMzIndices.add(i);
+        filteredIntensities.add(intensityData[i]);
+      }
+    }
+    filteredMzIndices.add(intensityData.length - 1);
+    filteredIntensities.add(intensityData[intensityData.length - 1]);
+
+    final double[] profileMzs = convertIndicesToMZ(handle, frameId, filteredMzIndices.toIntArray());
+
+    final double data[][];
+    boolean massesDetected = false;
+    if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
+      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms1Param);
+      massesDetected = true;
+    } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
+      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms2Param);
+      massesDetected = true;
+    } else {
+      data = new double[2][];
+      data[0] = profileMzs;
+      data[1] = filteredIntensities.toDoubleArray();
+    }
+
+    SimpleFrame frame;
+    if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
+          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
+          data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
+          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+    } else {
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
+          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
+          data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
+          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+      Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
+          maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
+      ((SimpleImagingFrame) frame).setCoordinates(coords);
+    }
+
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
+        createPopulatedArrayFrom1(numScans));
+    frame.setMobilities(mobilities);
+
+    return frame;
+  }
 
   // ---------------------------------------------------------------------------------------------
   // PASEF MS MS FUNCTIONS
@@ -565,14 +623,24 @@ public class TDFUtils {
   // UTILITY FUNCTIONS
   // -----------------------------------------------------------------------------------------------
 
-  public Double calculateCCS(double ook0, long charge, double mz) {
+  public Float calculateCCS(double ook0, long charge, double mz) {
     if (tdfLib == null) {
       boolean loaded = loadLibrary();
       if (!loaded) {
         return null;
       }
     }
-    return tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
+    return (float) tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
+  }
+
+  public Float calculateOok0(double ccs, long charge, double mz) {
+    if (tdfLib == null) {
+      boolean loaded = loadLibrary();
+      if (!loaded) {
+        return null;
+      }
+    }
+    return (float) tdfLib.tims_ccs_to_oneoverk0_for_mz(ccs, charge, mz);
   }
 
   /**
@@ -587,8 +655,11 @@ public class TDFUtils {
         final String errorMessage = new String(errorBuffer, "UTF-8");
         logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
             + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
+        if (errorMessage.contains("CorruptFrameDataError")) {
+          throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
+        }
       } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
+        logger.log(Level.WARNING, e.getMessage(), e);
       }
       return true;
     } else {

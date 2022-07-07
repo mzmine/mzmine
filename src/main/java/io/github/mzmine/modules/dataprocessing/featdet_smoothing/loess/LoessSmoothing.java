@@ -44,6 +44,13 @@ public class LoessSmoothing implements SmoothingAlgorithm {
     this.smoothMobility = true;
   }
 
+  public  LoessSmoothing(boolean smoothRt, int rtWidth, boolean smoothMobility, int mobilityWidth) {
+    this.smoothRt = smoothRt;
+    this.rtWidth = rtWidth;
+    this.smoothMobility = smoothMobility;
+    this.mobilityWidth = mobilityWidth;
+  }
+
   public LoessSmoothing(ParameterSet parameters) {
     this.mobilityWidth = parameters.getParameter(LoessSmoothingParameters.mobilitySmoothing)
         .getEmbeddedParameter().getValue();
@@ -70,7 +77,8 @@ public class LoessSmoothing implements SmoothingAlgorithm {
       return null;
     }
 
-    final double rtBandwidth = (((double) this.rtWidth) / series.getNumberOfValues());
+    // bandwidth: fraction of source points, cannot be greater than 1
+    final double rtBandwidth = Math.min((((double) this.rtWidth) / series.getNumberOfValues()), 1);
     final LoessInterpolator interpolator = new LoessInterpolator(rtBandwidth, 0);
 
     double[] intensities;
@@ -104,8 +112,9 @@ public class LoessSmoothing implements SmoothingAlgorithm {
       return null;
     }
 
-    final double mobilityBandwidth = (((double) this.mobilityWidth) / mobilogram
-        .getNumberOfValues());
+    // bandwidth: fraction of source points, cannot be greater than 1
+    final double mobilityBandwidth = Math.min((((double) this.mobilityWidth) / mobilogram
+        .getNumberOfValues()), 1);
     final LoessInterpolator interpolator = new LoessInterpolator(mobilityBandwidth, 0);
 
     double[] intensities = new double[mobilogram.getNumberOfValues()];

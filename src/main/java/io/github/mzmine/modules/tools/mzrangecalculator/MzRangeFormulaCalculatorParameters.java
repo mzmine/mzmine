@@ -23,7 +23,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.FormulaParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class MzRangeFormulaCalculatorParameters extends SimpleParameterSet {
@@ -34,13 +33,10 @@ public class MzRangeFormulaCalculatorParameters extends SimpleParameterSet {
       new ComboParameter<IonizationType>("Ionization type",
           "Please choose the type of ion to produce from the formula", IonizationType.values());
 
-  static final IntegerParameter charge =
-      new IntegerParameter("Charge", "Charge of the ion", 1, 1, null);
-
   static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public MzRangeFormulaCalculatorParameters() {
-    super(new Parameter[] {formula, ionType, charge, mzTolerance});
+    super(new Parameter[] {formula, ionType, mzTolerance});
   }
 
 }

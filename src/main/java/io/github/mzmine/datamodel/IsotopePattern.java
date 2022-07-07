@@ -28,6 +28,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface IsotopePattern extends MassSpectrum {
 
+  /**
+   * The charge state for the detected pattern
+   *
+   * @return charge or -1 if not defined
+   */
+  int getCharge();
 
   /**
    * Returns the isotope pattern status.
@@ -49,7 +55,7 @@ public interface IsotopePattern extends MassSpectrum {
    *
    * @return copy with relative intensities
    */
-  default IsotopePattern getRelativeIntensity() {
+  default IsotopePattern getRelativeIntensityCopy() {
     final int size = getNumberOfDataPoints();
     double[] mzs = new double[size];
     double[] intensities = new double[size];
@@ -65,7 +71,7 @@ public interface IsotopePattern extends MassSpectrum {
       mzs[i] = getMzValue(i);
     }
 
-    return new SimpleIsotopePattern(mzs, intensities, getStatus(), getDescription());
+    return new SimpleIsotopePattern(mzs, intensities, getCharge(), getStatus(), getDescription());
   }
 
   public enum IsotopePatternStatus {

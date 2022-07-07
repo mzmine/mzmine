@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2021 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement;
@@ -48,8 +48,8 @@ public class IonNetworkRefinementParameters extends SimpleParameterSet {
           "links>=true threshold, then delete all other occurance in annotation networks", 4));
 
   public static final BooleanParameter DELETE_SMALL_NO_MAJOR = new BooleanParameter(
-      "Delete small networks without major",
-      "Delete small networks without H, Na or NH4 adduct (H and NH4 with minor modifcations allowed); no fragments for Na",
+      "Delete small networks without major ion",
+      "Delete small networks without H+, Na+, NH4+, H-, Cl-, formic acid- adduct. \nMaximum allowed in-source modifications: H+(3, e.g., -H2O), Na(0), NH4(1), H-(2), Cl(0), FA(0).",
       false);
   public static final BooleanParameter DELETE_ROWS_WITHOUT_ID =
       new BooleanParameter("Delete rows witout ion id", "Keeps only rows with ion ids", false);

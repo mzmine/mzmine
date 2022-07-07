@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -67,6 +68,8 @@ public interface Resolver {
    */
   @NotNull <T extends IonTimeSeries<? extends Scan>> List<T> resolve(@NotNull T series,
       @Nullable MemoryMapStorage storage);
+
+  public RawDataFile getRawDataFile();
 
   @NotNull Class<? extends MZmineModule> getModuleClass();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -29,6 +29,7 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
@@ -36,6 +37,7 @@ import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
@@ -54,13 +56,14 @@ import java.io.File;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -104,6 +107,8 @@ public class MZmineGUI extends Application implements Desktop {
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
+  private static WindowLocation currentTaskManagerLocation = WindowLocation.MAIN;
+  private static Stage currentTaskWindow;
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
@@ -156,7 +161,7 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
-  public static void addWindow(Node node, String title) {
+  public static Stage addWindow(Node node, String title) {
 
     BorderPane parent = new BorderPane();
     parent.setCenter(node);
@@ -170,7 +175,7 @@ public class MZmineGUI extends Application implements Desktop {
     newStage.getIcons().add(mzMineIcon);
     newStage.setScene(newScene);
     newStage.show();
-
+    return newStage;
   }
 
   public static void activateProject(MZmineProject project) {
@@ -290,12 +295,17 @@ public class MZmineGUI extends Application implements Desktop {
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
 
+      final List<String> rawExtensions = List.of("mzml", "mzxml", "raw", "cdf", "netcdf", "nc",
+          "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
+      final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
+
       final List<File> rawDataFiles = new ArrayList<>();
+      final List<File> libraryFiles = new ArrayList<>();
+
       for (File selectedFile : dragboard.getFiles()) {
-        final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rawDataFile = {"cdf", "netcdf", "nc", "mzData", "mzML", "imzML", "mzXML", "raw",
-            "tdf", "d", "tsf"};
-        final boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
+        final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
+        final boolean isRawDataFile = rawExtensions.contains(extension);
+        final boolean isLibraryFile = libraryExtensions.contains(extension);
         final boolean isMZmineProject = extension.equals("mzmine");
 
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;
@@ -312,17 +322,33 @@ public class MZmineGUI extends Application implements Desktop {
           // add to raw files list
           rawDataFiles.add(selectedFile);
         }
+
+        // in case a library format is also supported as raw data format - import as both
+        if (isLibraryFile) {
+          libraryFiles.add(selectedFile);
+        }
       }
 
-      if (!rawDataFiles.isEmpty()) {
-        logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                            + Arrays.toString(
-            rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
+      if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
+        if (!rawDataFiles.isEmpty()) {
+          logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+        }
+        if (!libraryFiles.isEmpty()) {
+          logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+        }
+
+        // set raw and library files to parameter
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
         param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
-        param.getParameter(AllSpectralDataImportParameters.fileNames)
-            .setValue(rawDataFiles.toArray(File[]::new));
+        param.setParameter(AllSpectralDataImportParameters.fileNames,
+            rawDataFiles.toArray(File[]::new));
+        param.setParameter(SpectralLibraryImportParameters.dataBaseFiles,
+            libraryFiles.toArray(File[]::new));
+
+        // start import task for libraries and raw data files
         AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
             AllSpectralDataImportModule.class);
         if (module != null) {
@@ -335,6 +361,20 @@ public class MZmineGUI extends Application implements Desktop {
     }
     event.setDropCompleted(hasFileDropped);
     event.consume();
+  }
+
+  public static TableView<WrappedTask> removeTasksFromBottom() {
+    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+    mainWindowController.getBottomBox().getChildren().remove(tasksView);
+    return tasksView;
+  }
+
+  public static void addTasksToBottom() {
+    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+    ObservableList<Node> children = mainWindowController.getBottomBox().getChildren();
+    if (!children.contains(tasksView)) {
+      children.add(0, tasksView);
+    }
   }
 
   @Override
@@ -465,8 +505,13 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void openWebPage(URL url) {
+    openWebPage(String.valueOf(url));
+  }
+
+  @Override
+  public void openWebPage(String url) {
     HostServices openWPService = getHostServices();
-    openWPService.showDocument(String.valueOf(url));
+    openWPService.showDocument(url);
   }
 
   @Override
@@ -697,5 +742,46 @@ public class MZmineGUI extends Application implements Desktop {
       e.printStackTrace();
     }
     return ButtonType.NO;
+  }
+
+
+  public static void handleTaskManagerLocationChange(WindowLocation loc) {
+    if (Objects.equals(loc, currentTaskManagerLocation)) {
+      return;
+    }
+
+    String title = "Tasks";
+    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+
+    // remove
+    switch (currentTaskManagerLocation) {
+      case TAB -> mainWindowController.removeTab(title);
+      case MAIN -> removeTasksFromBottom();
+      case HIDDEN -> {
+      }
+      case EXTERNAL -> {
+        if (currentTaskWindow != null) {
+          currentTaskWindow.close();
+          currentTaskWindow = null;
+        }
+      }
+    }
+
+    // add
+    switch (loc) {
+      case TAB -> {
+        MZmineTab tab = new SimpleTab(title);
+        tab.setContent(tasksView);
+        MZmineCore.getDesktop().addTab(tab);
+      }
+      case EXTERNAL -> {
+        currentTaskWindow = addWindow(tasksView, title);
+      }
+      case MAIN -> addTasksToBottom();
+      case HIDDEN -> {
+      }
+    }
+
+    currentTaskManagerLocation = loc;
   }
 }

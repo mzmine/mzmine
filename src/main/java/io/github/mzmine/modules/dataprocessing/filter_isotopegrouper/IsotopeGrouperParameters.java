@@ -42,20 +42,26 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "deisotoped");
+  public static final StringParameter suffix = new StringParameter("Name suffix",
+      "Suffix to be added to feature list name", "deisotoped");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerace =
-      new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerace = new OptionalParameter<>(
+      new MobilityToleranceParameter("Mobility tolerance",
           "If enabled (and mobility dimension was recorded), "
               + "isotopic peaks will only be grouped if they fit within the given tolerance."));
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
       "If true, then monotonically decreasing height of isotope pattern is required");
+
+
+  public static final BooleanParameter keepAllMS2 = new BooleanParameter(
+      "Never remove feature with MS2",
+      "If checked, all rows with MS2 are retained without applying any further filters on them.",
+      true);
 
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns");
@@ -73,7 +79,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
   public IsotopeGrouperParameters() {
     super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, mobilityTolerace,
-        monotonicShape, maximumCharge, representativeIsotope, handleOriginal});
+            monotonicShape, maximumCharge, representativeIsotope, keepAllMS2, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_filter/isotope_filter.html");
   }
 
   @Override
