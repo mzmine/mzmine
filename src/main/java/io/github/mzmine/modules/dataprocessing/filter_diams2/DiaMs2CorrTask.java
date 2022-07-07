@@ -63,10 +63,9 @@ import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -314,7 +313,6 @@ public class DiaMs2CorrTask extends AbstractTask {
           closestMs2.getMSLevel(),
           mergedMobilityScan != null ? mergedMobilityScan.getSourceSpectra() : ms2sInRtRange,
           MergingType.MAXIMUM, FeatureDataUtils.DEFAULT_CENTER_FUNCTION);
-      feature.setFragmentScan(ms2);
       feature.setAllMS2FragmentScans(new ArrayList<>(List.of(ms2)));
     }
 
