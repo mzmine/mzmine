@@ -240,7 +240,7 @@ public class IsotopesUtils {
           for (int j = i + 1; j < abundantIsotopes.size(); j++) {
             final double deltaMZ =
                 (abundantIsotopes.get(j).getExactMass() - abundantIsotopes.get(i).getExactMass())
-                / charge;
+                    / charge;
             currentChargeDiffs.add(deltaMZ);
           }
         }
@@ -423,8 +423,12 @@ public class IsotopesUtils {
     int dp = spectrum.getNumberOfDataPoints() - 1;
 
     List<DataPoint> candidates = new ArrayList<>();
-    candidates.add(target);
-    double mz = target.getMZ();
+    // add the actual data point in the scan so we don't end up with duplicates.
+    final int targetIndex = spectrum.binarySearch(target.getMZ(), true);
+    candidates.add(new SimpleDataPoint(spectrum.getMzValue(targetIndex),
+        spectrum.getIntensityValue(targetIndex)));
+
+    double mz = spectrum.getMzValue(targetIndex);
     double lastMZ = mz;
 
     // first try to find preceeding isotope signals
@@ -443,7 +447,7 @@ public class IsotopesUtils {
     // sort list of candidates
     candidates.sort(mzSorter);
 
-    mz = target.getMZ();
+    mz = spectrum.getMzValue(targetIndex);
     double maxMZ = mz;
     // find all isotopes in + range
     // start at last dp spot
@@ -454,7 +458,7 @@ public class IsotopesUtils {
         final var dataPoint = new SimpleDataPoint(mz, spectrum.getIntensityValue(dp));
         if (mz > maxMZ) {
           candidates.add(dataPoint);
-          maxMZ = mz;
+          maxMZ = Math.max(mz, maxMZ);
         } else {
           // insert sort
           insertIfNew(candidates, dataPoint);
