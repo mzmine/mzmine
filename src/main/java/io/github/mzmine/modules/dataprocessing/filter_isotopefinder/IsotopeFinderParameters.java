@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
@@ -49,8 +50,14 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
           + " or within all scans in full-width at half maximum range.", ScanRange.values(),
       ScanRange.SINGLE_MOST_INTENSE);
 
+  public static final BooleanParameter removeRedundantRows = new BooleanParameter(
+      "Remove redundant",
+      "Removes features that are not the most intense or the monoisotopic peak in an isotope pattern.",
+      false);
+
   public IsotopeFinderParameters() {
-    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange},
+    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange,
+            removeRedundantRows},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 
