@@ -76,6 +76,7 @@ class IsotopeFinderTask extends AbstractTask {
   private final List<Element> isotopeElements;
   private final String isotopes;
   private final ScanRange scanRange;
+  private final boolean removeRedundantRows;
   private int processedRows, totalRows;
 
 
@@ -90,6 +91,7 @@ class IsotopeFinderTask extends AbstractTask {
     scanRange = parameters.getValue(IsotopeFinderParameters.scanRange);
     isotopeMaxCharge = parameters.getValue(IsotopeFinderParameters.maxCharge);
     isoMzTolerance = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
+    removeRedundantRows = parameters.getValue(IsotopeFinderParameters.removeRedundantRows);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
   }
 
@@ -151,6 +153,8 @@ class IsotopeFinderTask extends AbstractTask {
 
     int missingValues = 0;
     int detected = 0;
+
+    final List<FeatureListRow> rowsToRemove = new ArrayList<>();
 
     // find for all rows the isotope pattern
     for (FeatureListRow row : featureList.getRows()) {
@@ -219,14 +223,15 @@ class IsotopeFinderTask extends AbstractTask {
         Float mobility = feature.getMobility();
         MobilityType mobilityType = feature.getMobilityUnit();
         if (data instanceof IMSRawDataFile imsfile) {
-            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
-                && mobilityType != null) {
-              Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
-              if (ccs != null) {
-                feature.setCCS(ccs);
-              }
+          if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
+              && mobilityType != null) {
+            Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
+            if (ccs != null) {
+              feature.setCCS(ccs);
             }
+          }
         }//end
+        processRemoveRedundantRows(row, pattern, rowsToRemove);
         detected++;
       } else {
         // find pattern in FWHM
@@ -265,6 +270,10 @@ class IsotopeFinderTask extends AbstractTask {
         //      }
       }
       processedRows++;
+    }
+
+    if (removeRedundantRows) {
+      rowsToRemove.forEach(featureList::removeRow);
     }
 
     if (missingValues > 0) {
@@ -361,4 +370,16 @@ class IsotopeFinderTask extends AbstractTask {
     return scan != null && Math.abs(scan.getRetentionTime() - maxRT) <= fwhmDiff;
   }
 
+  private void processRemoveRedundantRows(FeatureListRow row, IsotopePattern pattern,
+      List<FeatureListRow> rowsToRemove) {
+    if (!removeRedundantRows) {
+      return;
+    }
+    final int featureDpIndex = pattern.binarySearch(row.getAverageMZ(), true);
+
+    if (featureDpIndex != 0 && featureDpIndex != Objects.requireNonNullElse(
+        pattern.getBasePeakIndex(), -1)) {
+      rowsToRemove.add(row);
+    }
+  }
 }
