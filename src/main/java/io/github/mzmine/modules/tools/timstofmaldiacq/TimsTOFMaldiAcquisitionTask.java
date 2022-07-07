@@ -71,7 +71,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
   private final CeSteppingTables ceSteppingTables;
 
   private String desc = "Running MAlDI acquisition";
-  private double progress;
+  private double progress = 0d;
   private File currentCeFile = null;
 
   protected TimsTOFMaldiAcquisitionTask(@Nullable MemoryMapStorage storage,
@@ -129,6 +129,8 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
     for (int ceCounter = 0; ceCounter < numCes; ceCounter++) {
 
+      final double ceStepProgress = 1 / (double) numCes;
+
       if (enableCeStepping) {
         assert ceSteppingTables != null;
         currentCeFile = new File(savePathDir,
@@ -142,14 +144,15 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
         }
       }
 
-      for (int j = 0; j < flists.length; j++) {
+      for (int flistCounter = 0; flistCounter < flists.length; flistCounter++) {
+        final double flistStepProgress = 1 / (double) flists.length;
 
         if (isCanceled()) {
           return;
         }
 
-        final FeatureList flist = flists[j];
-        progress = j / (double) Math.max((flists.length - 1), 1);
+        final FeatureList flist = flists[flistCounter];
+        progress = flistCounter / (double) Math.max((flists.length - 1), 1);
 
         if (flist.getNumberOfRows() == 0) {
           continue;
@@ -192,9 +195,17 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
             precursors, precursorSelectionParameters);
 
         for (int i = 0; i < precursorLists.size(); i++) {
+          if (isCanceled()) {
+            return;
+          }
+
+          final double precursorListProgress = i / (double) precursorLists.size();
+          progress = ceCounter * ceStepProgress + (ceStepProgress * flistStepProgress
+              * precursorListProgress);
+
           List<MaldiTimsPrecursor> precursorList = precursorLists.get(i);
           final String fileName =
-              spotName + "_msms_" + (i + 1) + (enableCeStepping ? "_" + ceSteppingTables.getCE(
+              spotName + "_msms_" + (i + 1) + (enableCeStepping ? "_ce_" + ceSteppingTables.getCE(
                   ceCounter) + "eV" : "");
           desc = "Acquiring " + fileName;
 
