@@ -479,8 +479,6 @@ public class MZmineGUI extends Application implements Desktop {
     ShutDownHook shutDownHook = new ShutDownHook();
     Runtime.getRuntime().addShutdownHook(shutDownHook);
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
-
-    MZmineCore.getDesktop().displayErrorMessage("test");
   }
 
   @Override
