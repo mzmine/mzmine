@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.test_visualizer;
 
-
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Point2D;
@@ -43,6 +43,7 @@ import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.ThreadingModel;
+import org.graphstream.ui.view.util.InteractiveElement;
 
 public class NetworkTestVisualizer extends Stage {
 
@@ -126,17 +127,19 @@ public class NetworkTestVisualizer extends Stage {
           }
         }
       });
-
       view.setOnMousePressed(e -> {
         if (last == null) {
           last = new Point2D(e.getX(), e.getY());
         }
         if (e.getButton() == MouseButton.SECONDARY) {
+          String nid = view.findGraphicElementAt(EnumSet.of(InteractiveElement.NODE), e.getX(),
+              e.getY()).getId();
           Alert alert = new Alert(AlertType.INFORMATION);
-          alert.setTitle("Mouse Clicked");
-          alert.setHeaderText("Mouse clicked at coordinates:");
-          alert.setContentText("X: " + e.getX() + ", " + "Y: " + e.getY());
-          alert.showAndWait();
+          if (nid != null) {
+            alert.setTitle("Node Identifier");
+            alert.setContentText("You have clicked on Node Number: " + nid);
+            alert.showAndWait();
+          }
         }
       });
       view.setOnMouseReleased(e -> {
