@@ -1,0 +1,129 @@
+<html>
+<head>
+  <title>Feature detection - MSn - Diagnostic FeatureList Builder (DFBuilder)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" type="text/css"
+        href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Diagnostic FeatureList Builder (DFBuilder)</h1>
+
+<h2>Description</h2>
+
+<p>
+  The DFBuilder module is feature detection and chromatogram building tool that identifies precursor
+  ions that exhibit diagnostic fragmentation patterns in observed MSn spectra. A feature list for
+  each screened data file is produced containing the precursor ion chromatogram in the specified
+  MZ tolerances and RT ranges for the identified scan.
+</p>
+
+<p>
+  The module utilizes an input CSV file of one or more diagnostic fragmentation patterns and
+  screens the MSn of each data file for the occurrence of these patterns. Fragmentation patterns may
+  include product ions, precursor-product neutral loss transitions, or a combination of both. For
+  precursor ions exhibiting a diagnostic fragmentation pattern, a feature chromatogram is built in
+  the retention time region of interest. To limit false discovery rates, the minimum ion intensity
+  of product ions may be specified to prevent matching to low abundant, noise peaks. A retention
+  time tolerance may be specified to ensure that entirety of the target peak of interest is retained
+  without included neighboring peaks. An optional exclusion list may be specified to exclude
+  previously defined ions from consideration. An optional precursor list export may be obtained that
+  includes the precursor m/z, retention time, and target name matches for each MSn spectra
+  exhibiting a diagnostic loss.
+</p>
+
+<p>
+  The resulting feature list peaks may be further curated using the chromatogram deconvolution tools
+  in the feature list methods to ensure optimal integration bounds are chosen for prospective
+  chromatographic features.
+</p>
+
+<p>
+  For fragment ion filtering and visualization, please use the <b><i>MS/MS Scatter Plot</i></b>
+  visualization tool.
+</p>
+
+<h4>Method parameters</h4>
+
+<dl>
+
+  <dt>Diagnostic feature list file</dt>
+  <dd>Path of the CSV file containing the diagnostic targets to be screened.</dd>
+
+  <dt>Minimum ion intensity (%base peak)</dt>
+  <dd>Minimum product ion intensity to be considered during screening, scaled to base peak.
+  </dd>
+
+  <dt>Retention Time Tolerance</dt>
+  <dd>The retention time tolerance for the chromatogram built for precursor ions exhibiting a
+    diagnostic pattern.
+
+  <dt>Exclusion feature list file</dt>
+  <dd>Optional parameter. Path to the CSV file containing the precursors ions with retention time to
+    be excluded during screening.
+  </dd>
+
+  <dt>Export detected precursor list</dt>
+  <dd>Optional parameter. Export path for CSV file containing all precursor ions exhibiting
+    diagnostic fragment patterns.
+  </dd>
+
+</dl>
+
+<h4>Diagnostic feature list file</h4>
+
+<p>
+  The diagnostic feature list is a CSV file with three columns and no headers. The first column
+  should contain the target name. The second column should contain any diagnostic
+  product ions. The third column should contain any diagnostic precursor-product neutral loss
+  transitions. A valid target may include only product ions, only neutral losses, or
+  a combination of both. Multiple product ions-neutral loss may be simultaneously assessed, use a
+  semi-colon ';' to separate multiple entries. Each diagnostic feature list entry
+  should occur on a new line. An example of a diagnostic feature list is below:
+</p>
+
+<pre>
+"Target A - Product Ion Only", 136.0618,
+"Target B - Neutral Loss Only", ,135.0545
+"Target C - Combined Search", 136.0618, 135.0545
+"Target D - Multiple Targets", 136.0618; 152.0567, 135.0545; 151.0494
+</pre>
+
+<h4>Exclusion feature list file</h4>
+
+<p>
+  The exclusion feature list is an optional CSV files with three columns and no headers. The first
+  column should contain the m/z of the excluded ion. The second column should contain
+  the left retention time (minutes) bound for exclusion. The third column should contain the right
+  retention time (minutes) bound for exclusion. Each exclusion list entry should
+  occur on a new line. An example of an exclusion feature list is below:
+</p>
+
+<pre>
+"252.1091, 0, 55"
+"385.1344, 0, 55"
+"432.1029, 8, 14"
+"516.1813, 30, 33"
+</pre>
+
+<h4>References</h4>
+
+<p>If you use the Diagnostic FeatureList Builder (DFBuilder) module, please cite the the following
+  articles:</p>
+
+<p>[1] Pluskal, T.; Castillo, S.; Villar-Briones, A.; Orešič, M. MZmine 2: Modular Framework for
+  Processing, Visualizing, and Analyzing Mass Spectrometry-Based Molecular
+  Profile Data. BMC Bioinformatics 2010, 11 (1), 395. https://doi.org/10.1186/1471-2105-11-395.</p>
+
+<p>[2] Murray, K. J.; Carlson, E. S.; Stornetta, A.; Balskus, E. P.; Villalta, P. W.; Balbo, S.
+  Extension of Diagnostic Fragmentation Filtering for Automated Discovery in DNA Adductomics.
+  Analytical Chemistry 2021, 93 (14), 5754-5762. https://doi.org/10.1021/acs.analchem.0c04895.</p>
+
+<p>[3] Walsh, J. P.; Renaud, J. B.; Hoogstra, S.; McMullin, D. R.; Ibrahim, A.; Visagie, C. M.;
+  Tanney, J. B.; Yeung, K. K. ‐C.; Sumarah, M. W. Diagnostic Fragmentation
+  Filtering for the Discovery of New Chaetoglobosins and Cytochalasins. Rapid Commun. Mass Spectrom.
+  2019, 33 (1), 133–139. https://doi.org/10.1002/rcm.8306.</p>
+
+</body>
+</html>

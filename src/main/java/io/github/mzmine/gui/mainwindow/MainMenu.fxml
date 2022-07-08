@@ -233,6 +233,9 @@
       <MenuItem onAction="#runModule"
         text="MSn feature list builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
+      <MenuItem onAction="#runModule"
+        text="Diagnostic FeatureList Builder (DFBuilder)"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_dfbuilder.DiagnosticFilterModule"/>
     </Menu>
     <Menu text="SRM">
       <MenuItem onAction="#runModule"

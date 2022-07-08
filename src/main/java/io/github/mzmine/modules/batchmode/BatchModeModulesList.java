@@ -42,6 +42,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalib
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_dfbuilder.DiagnosticFilterModule;
 import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
@@ -204,6 +205,7 @@ public class BatchModeModulesList {
       RecursiveIMSBuilderModule.class, //
       ImageBuilderModule.class, //
       MsnFeatureDetectionModule.class, //
+      DiagnosticFilterModule.class, //
       TargetedFeatureDetectionModule.class, //
       ADAPHierarchicalClusteringModule.class, //
       ADAPMultivariateCurveResolutionModule.class, //
