@@ -50,6 +50,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,11 +67,14 @@ public class TDFUtils {
   public static final int SCAN_PACKAGE_SIZE = 50;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+
+  private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
   private final int numThreads;
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
+
 
   /**
    * the handle of the currently opened file
@@ -439,8 +443,8 @@ public class TDFUtils {
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
     final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue()) + "Frame #" + frameId
-            + " RT: " + rt;
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
+            + " RT: " + rtFormat.format(rt);
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
 
@@ -515,8 +519,8 @@ public class TDFUtils {
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
     final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue()) + "Frame #" + frameId
-            + " RT: " + rt;
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
+            + " RT: " + rtFormat.format(rt);
     final Range<Double> mzRange = metaDataTable.getMzRange();
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();

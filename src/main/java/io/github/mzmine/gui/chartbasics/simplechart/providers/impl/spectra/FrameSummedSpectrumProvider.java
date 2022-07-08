@@ -71,8 +71,7 @@ public class FrameSummedSpectrumProvider implements PlotXYDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " "
-        + rtFormat.format(frame.getRetentionTime()) + " min";
+    return frame.getScanDefinition();
   }
 
   @Override
