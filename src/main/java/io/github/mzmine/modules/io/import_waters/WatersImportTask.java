@@ -195,10 +195,9 @@ public class WatersImportTask extends AbstractTask {
     try {
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
-      ArrayList<Float> drifttime=new ArrayList<>();
-      ArrayList<Integer> driftscancount=new ArrayList<>();
+      ArrayList<IntermediateFrame> intermediateFrameArrayList=new ArrayList<>();
       int framecount=0;
-      IntermediateFrame intermediateframe;
+      IntermediateFrame intermediateframe=null;
       int countnumscan=0;
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
       for (int i=0;i<totalfunctioncount;++i) {
@@ -207,10 +206,8 @@ public class WatersImportTask extends AbstractTask {
        {
          continue;
        }
+       //Drift Scan Value
        int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(i);
-        driftscancount.add(numdriftscan);
-
-        int total_scanvalue_in_each_function = massLynxRawInfoReader.GetScansInFunction(i);
 
         //msLevel is calculated as per Function type
         int mslevel = getMsLevel(massLynxRawInfoReader, i);
@@ -221,14 +218,16 @@ public class WatersImportTask extends AbstractTask {
             (double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getEnd());
 
 
-       for(int j=0;j<total_scanvalue_in_each_function;j++)
+       for(int j=0;j<numdriftscan;j++)
         {
           intermediateframe=new IntermediateFrame(this.newMZmineFile,massLynxRawInfoReader.IsContinuum(i), mslevel,
               massLynxRawInfoReader.GetIonMode(i), mzrange,i,
-              massLynxRawInfoReader.GetRetentionTime(i,j),countnumscan++);
+              massLynxRawInfoReader.GetRetentionTime(i,j),j);
+          intermediateFrameArrayList.add(intermediateframe);
         }
       }
-      System.out.println();
+
+
     } catch (MasslynxRawException e) {
       e.printStackTrace();
       MZmineCore.getDesktop().displayErrorMessage("MasslynxRawException :: " + e.getMessage());
