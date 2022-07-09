@@ -22,26 +22,28 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import java.util.ArrayList;
 import net.csibio.aird.util.ArrayUtil;
 
 public class IntermediateFrame extends IntermediateScan{
-  private int driftscancount;
 
-  public int getDriftscancount() {
-    return driftscancount;
-  }
+
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int driftscancount) {
-    super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,driftscancount);
-    this.driftscancount=driftscancount;
+      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan) {
+    super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
   }
 
-  public SimpleFrame toframe(int numscan, MassLynxRawScanReader rawscanreader)
+  public SimpleFrame toframe(MassLynxRawScanReader rawscanreader,int driftscan)
       throws MasslynxRawException {
     //scan Value
-    Scan scan = rawscanreader.ReadScan(this.getFunction_number(),this.driftscancount);
+    Scan scan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(),driftscan);
+
+
+    //ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
+    //mobilityscanlist.add()
 
     PolarityType polarity = PolarityType.UNKNOWN;
 
@@ -49,9 +51,10 @@ public class IntermediateFrame extends IntermediateScan{
 
     polarity= this.getIonmode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
-    SimpleFrame simpleframe=new SimpleFrame(this.getNewMZmineFile(),numscan,this.getMslevel()
+    SimpleFrame simpleframe=new SimpleFrame(this.getNewMZmineFile(),0,this.getMslevel()
         ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities()),spectrumType,polarity,"",
         this.getMZRange(), MobilityType.TRAVELING_WAVE,null,0f);
+    //simpleframe.setMobilityScans();
 
     return simpleframe;
   }

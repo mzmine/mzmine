@@ -23,6 +23,7 @@ import MassLynxSDK.MasslynxRawException;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -195,17 +196,17 @@ public class WatersImportTask extends AbstractTask {
     try {
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
-      ArrayList<IntermediateFrame> intermediateFrameArrayList=new ArrayList<>();
-      int framecount=0;
       IntermediateFrame intermediateframe=null;
-      int countnumscan=0;
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
+      SimpleFrame simpleFrame=null;
+
       for (int i=0;i<totalfunctioncount;++i) {
         //Skipping functions which don't have drift Scan
        if (!isReferenceMeasurement(i))
        {
          continue;
        }
+       int totalscanvalue_in_eachfunction=massLynxRawInfoReader.GetScansInFunction(i);
        //Drift Scan Value
        int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(i);
 
@@ -218,15 +219,19 @@ public class WatersImportTask extends AbstractTask {
             (double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getEnd());
 
 
-       for(int j=0;j<numdriftscan;j++)
-        {
-          intermediateframe=new IntermediateFrame(this.newMZmineFile,massLynxRawInfoReader.IsContinuum(i), mslevel,
-              massLynxRawInfoReader.GetIonMode(i), mzrange,i,
-              massLynxRawInfoReader.GetRetentionTime(i,j),j);
-          intermediateFrameArrayList.add(intermediateframe);
-        }
-      }
+        for (int j=0;j<totalscanvalue_in_eachfunction;++j) {
 
+          intermediateframe=new IntermediateFrame(this.newMZmineFile,
+              massLynxRawInfoReader.IsContinuum(i), mslevel,
+              massLynxRawInfoReader.GetIonMode(i), mzrange, i,
+              massLynxRawInfoReader.GetRetentionTime(i, j), j);
+        }
+        for (int k=0;k<numdriftscan;++k)
+        {
+          simpleFrame=intermediateframe.toframe(rawscanreader,k);
+        }
+
+      }
 
     } catch (MasslynxRawException e) {
       e.printStackTrace();
