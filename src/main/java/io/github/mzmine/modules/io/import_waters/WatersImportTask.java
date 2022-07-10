@@ -198,7 +198,9 @@ public class WatersImportTask extends AbstractTask {
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       IntermediateFrame intermediateframe=null;
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
+      ArrayList<IntermediateFrame> intermediateFrameArrayList= new ArrayList<>();
       SimpleFrame simpleFrame=null;
+      int arraycount=0;
 
       for (int i=0;i<totalfunctioncount;++i) {
         //Skipping functions which don't have drift Scan
@@ -225,10 +227,11 @@ public class WatersImportTask extends AbstractTask {
               massLynxRawInfoReader.IsContinuum(i), mslevel,
               massLynxRawInfoReader.GetIonMode(i), mzrange, i,
               massLynxRawInfoReader.GetRetentionTime(i, j), j);
+          intermediateFrameArrayList.add(intermediateframe);
         }
         for (int k=0;k<numdriftscan;++k)
         {
-          simpleFrame=intermediateframe.toframe(rawscanreader,k);
+          simpleFrame=intermediateFrameArrayList.get(arraycount++).toframe(rawscanreader,k);
         }
 
       }
