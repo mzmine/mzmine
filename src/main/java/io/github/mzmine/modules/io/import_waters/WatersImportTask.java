@@ -262,22 +262,25 @@ public class WatersImportTask extends AbstractTask {
   //for IMS Files
   public boolean loading()
   {
-    try
-    {
+    try{
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(this.filepath);
       int getfunctioncount=massLynxRawInfoReader.GetFunctionCount();
-      for (int i=0;i<getfunctioncount;i++)
-      {
-        int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(getfunctioncount);
-        if (numdriftscan > 0)
+      for (int i=0;i<getfunctioncount;i++) {
+        try {
+          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(getfunctioncount);
+          if (numdriftscan > 0) {
+            return true;
+          }
+        }
+        catch (MasslynxRawException e)
         {
-          return true;
+          continue;
         }
       }
-      return false;
     }
     catch (MasslynxRawException e) {
-      return false;
+      e.printStackTrace();
     }
+    return false;
   }
 }
