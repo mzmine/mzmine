@@ -2,7 +2,7 @@ name: Test Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, macos_signing ]
   pull_request:
     branches: [ master ]
 
