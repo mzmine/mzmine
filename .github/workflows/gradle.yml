@@ -91,6 +91,12 @@ jobs:
           path: build/jpackage/*.dmg
           retention-days: 7  # store for 7 days
 
+      - name: Remove dmg File and Make .app executable
+        if: matrix.os == 'macos-latest'
+        run: |
+          find ./build/jpackage/ -name '*.dmg' -delete
+          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
+
       # Sign MZmine.app with ČVUT developer ID
       - name: Codesign executable for MacOS
         if: matrix.os == 'macos-latest'
@@ -104,13 +110,8 @@ jobs:
           security unlock-keychain -p abc123 build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
-          /usr/bin/codesign --force -s 'Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)' build/jpackage/MZmine.app -v
+          /usr/bin/codesign -s 'Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)' build/jpackage/MZmine.app -v
 
-      - name: Remove dmg File and Make .app executable
-        if: matrix.os == 'macos-latest'
-        run: |
-          find ./build/jpackage/ -name '*.dmg' -delete
-          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
       - name: Zip portable macos
         if: matrix.os == 'macos-latest'
         uses: papeloto/action-zip@v1

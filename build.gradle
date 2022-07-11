@@ -309,11 +309,11 @@ runtime {
         if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"
             // additional options for jpackage
-            imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns"]
+            imageOptions = ["--mac-sign", "--icon", "src/main/resources/MZmineIcon.icns"]
             installerOptions = [
                     "--license-file", "LICENSE.txt",
-                    "--mac-sign",
-                    "--mac-signing-key-user-name", "Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)",
+//                    "--mac-sign",
+//                    "--mac-signing-key-user-name", "Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)",
             ]
             installerName = "MZmine_macOS_installer"
         }
