@@ -109,19 +109,19 @@ jobs:
           chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
 
       # Sign MZmine.app with ČVUT developer ID
-      - name: Codesign executable for MacOS
-        if: matrix.os == 'macos-latest'
-        env:
-          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-        run: |
-          echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
-          security create-keychain -p abc123 build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p abc123 build.keychain
-          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
-          /usr/bin/codesign -s 'Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)' build/jpackage/MZmine.app -v
+#      - name: Codesign executable for MacOS
+#        if: matrix.os == 'macos-latest'
+#        env:
+#          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+#          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+#        run: |
+#          echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
+#          security create-keychain -p abc123 build.keychain
+#          security default-keychain -s build.keychain
+#          security unlock-keychain -p abc123 build.keychain
+#          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+#          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
+#          /usr/bin/codesign -s 'Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)' build/jpackage/MZmine.app -v
 
       - name: Zip portable macos
         if: matrix.os == 'macos-latest'
