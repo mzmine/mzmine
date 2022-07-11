@@ -11,7 +11,8 @@ jobs:
     name: test and build
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        #os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ macos-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -23,7 +24,17 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Execute Gradle build
-        run: ./gradlew --stacktrace --info
+        run: |
+          echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p abc123 build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p abc123 build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
+          ./gradlew --stacktrace --info
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
