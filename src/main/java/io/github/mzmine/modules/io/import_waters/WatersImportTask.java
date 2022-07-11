@@ -200,7 +200,7 @@ public class WatersImportTask extends AbstractTask {
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
       ArrayList<IntermediateFrame> intermediateFrameArrayList= new ArrayList<>();
       SimpleFrame simpleFrame=null;
-      int arraycount=0;
+      //int arraycount=0;
 
       for (int i=0;i<totalfunctioncount;++i) {
         //Skipping functions which don't have drift Scan
@@ -231,7 +231,7 @@ public class WatersImportTask extends AbstractTask {
         }
         for (int k=0;k<numdriftscan;++k)
         {
-          simpleFrame=intermediateFrameArrayList.get(arraycount++).toframe(rawscanreader,k);
+          //simpleFrame=intermediateFrameArrayList.get(arraycount++).toframe(rawscanreader,k);
         }
 
       }
@@ -243,6 +243,7 @@ public class WatersImportTask extends AbstractTask {
     }
 
   }
+
   public boolean isReferenceMeasurement(int functionNumber)
   {
     try
@@ -277,7 +278,7 @@ public class WatersImportTask extends AbstractTask {
         }
         catch (MasslynxRawException e)
         {
-          continue;
+          e.printStackTrace();
         }
       }
     }
