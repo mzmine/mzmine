@@ -18,11 +18,12 @@
 
 package io.github.mzmine.modules.visualization.test_visualizer;
 
+import java.awt.Color;
 import java.util.EnumSet;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Point2D;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -52,8 +53,6 @@ public class NetworkTestVisualizer extends Stage {
   protected Graph graph;
   protected Viewer viewer;
   protected FxViewPanel view;
-  protected Node node;
-  protected Edge edge;
   protected double viewPercent = 1;
   private Point2D last;
   int NV = di.getNodeValue();
@@ -116,7 +115,22 @@ public class NetworkTestVisualizer extends Stage {
       Pane sp = new Pane();
       sp.getChildren().addAll(graphpane);
       view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
+      view.setOnKeyPressed(event -> {
+        int r = new Random().nextInt(0, 255);
+        int g = new Random().nextInt(0, 255);
+        int b = new Random().nextInt(0, 255);
+        String style_up =
+            "edge { size:" + (int) Math.floor(Math.random() * 20) + "px;" + "fill-color: rgb(" + r
+                + "," + g + "," + b + "); }";
+        String style_down =
+            "edge { size:" + (int) Math.floor(Math.random() * 10) + "px;" + "fill-color: rgb(" + r
+                + "," + g + "," + b + "); }";
+        switch (event.getCode()) {
+          case I -> graph.setAttribute("ui.stylesheet", style_up);
+          case D -> graph.setAttribute("ui.stylesheet", style_down);
+        }
 
+      });
       view.setOnMouseClicked(e -> {
         if (e.getButton() == MouseButton.PRIMARY) {
           if (e.getClickCount() == 2) {
