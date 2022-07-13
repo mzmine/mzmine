@@ -44,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
 
-
   public static final PrecursorSelectionModule topNModule = MZmineCore.getModuleInstance(
       TopNSelectionModule.class);
   public static final MZmineProcessingStep<PrecursorSelectionModule> topNModuleStep = new MZmineProcessingStepImpl<>(
@@ -90,12 +89,17 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
   public static final OptionalParameter<StringParameter> ceStepping = new OptionalParameter<>(
       new StringParameter("CE stepping", "Acquire MS2 spectra with multiple collision energies.\n"
           + "Collision energies may be decimals '.' separated by ','.", "20.0,35.0,45.0"), false);
+
+  public static final DoubleParameter isolationWidth = new DoubleParameter("Isolation width",
+      "The isolation width for precursors", new DecimalFormat("0.0"), 1.5d);
+
   public static final BooleanParameter exportOnly = new BooleanParameter("Export MS/MS lists only",
       "Will only export MS/MS lists and not start an acquisition.", false);
 
   public TimsTOFMaldiAcquisitionParameters() {
     super(new Parameter[]{flists, precursorSelectionModule, minMobilityWidth, maxMobilityWidth,
-        savePathDir, initialOffsetY, incrementOffsetX, acquisitionControl, ceStepping, exportOnly});
+        savePathDir, initialOffsetY, incrementOffsetX, acquisitionControl, ceStepping,
+        isolationWidth, exportOnly});
   }
 
   @Override

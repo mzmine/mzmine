@@ -20,9 +20,6 @@ package io.github.mzmine.modules.tools.timstofmaldiacq;
 
 import com.google.common.collect.Range;
 import com.google.common.io.Files;
-import com.opencsv.CSVWriter;
-import com.opencsv.CSVWriterBuilder;
-import com.opencsv.ICSVWriter;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -41,7 +38,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -69,6 +65,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
   private final Boolean exportOnly;
   private final Boolean enableCeStepping;
   private final CeSteppingTables ceSteppingTables;
+  private final Double isolationWidth;
 
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
@@ -88,6 +85,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     incrementOffsetX = parameters.getValue(TimsTOFMaldiAcquisitionParameters.incrementOffsetX);
     savePathDir = parameters.getValue(TimsTOFMaldiAcquisitionParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFMaldiAcquisitionParameters.exportOnly);
+    isolationWidth = parameters.getValue(TimsTOFMaldiAcquisitionParameters.isolationWidth);
     precursorSelectionModule = parameters.getValue(
         TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getModule();
     precursorSelectionParameters = parameters.getValue(
@@ -96,7 +94,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     if (enableCeStepping) {
       ceSteppingTables = new CeSteppingTables(
           parameters.getParameter(TimsTOFMaldiAcquisitionParameters.ceStepping)
-              .getEmbeddedParameter().getValue());
+              .getEmbeddedParameter().getValue(), isolationWidth);
     } else {
       ceSteppingTables = null;
     }
@@ -127,72 +125,71 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
     final int numCes = ceSteppingTables != null ? ceSteppingTables.getNumberOfCEs() : 1;
 
-    for (int ceCounter = 0; ceCounter < numCes; ceCounter++) {
+    for (int flistCounter = 0; flistCounter < flists.length; flistCounter++) {
+      final double flistStepProgress = 1 / (double) flists.length;
 
-      final double ceStepProgress = 1 / (double) numCes;
-
-      if (enableCeStepping) {
-        assert ceSteppingTables != null;
-        currentCeFile = new File(savePathDir,
-            "ce_table_" + ceSteppingTables.getCE(ceCounter) + "eV.csv");
-        final boolean success = ceSteppingTables.writeCETable(ceCounter, currentCeFile);
-        if (!success) {
-          setErrorMessage("Cannot write CE table.");
-          ;
-          setStatus(TaskStatus.ERROR);
-          return;
-        }
+      if (isCanceled()) {
+        return;
       }
 
-      for (int flistCounter = 0; flistCounter < flists.length; flistCounter++) {
-        final double flistStepProgress = 1 / (double) flists.length;
+      final FeatureList flist = flists[flistCounter];
+      progress = flistCounter / (double) Math.max((flists.length - 1), 1);
 
-        if (isCanceled()) {
-          return;
-        }
+      if (flist.getNumberOfRows() == 0) {
+        continue;
+      }
 
-        final FeatureList flist = flists[flistCounter];
-        progress = flistCounter / (double) Math.max((flists.length - 1), 1);
+      final List<MaldiTimsPrecursor> precursors = flist.getRows().stream().filter(
+          row -> row.getBestFeature() != null
+              && row.getBestFeature().getFeatureStatus() != FeatureStatus.UNKNOWN
+              && row.getBestFeature().getMobility() != null
+              && row.getBestFeature().getMobilityRange() != null).map(row -> {
+        final Feature f = row.getBestFeature();
+        Range<Float> mobilityRange = adjustMobilityRange(f.getMobility(), f.getMobilityRange(),
+            minMobilityWidth, maxMobilityWidth);
 
-        if (flist.getNumberOfRows() == 0) {
-          continue;
-        }
+        return new MaldiTimsPrecursor(f, f.getMZ(), mobilityRange, null);
+      }).toList();
 
-        final List<MaldiTimsPrecursor> precursors = flist.getRows().stream().filter(
-            row -> row.getBestFeature() != null
-                && row.getBestFeature().getFeatureStatus() != FeatureStatus.UNKNOWN
-                && row.getBestFeature().getMobility() != null
-                && row.getBestFeature().getMobilityRange() != null).map(row -> {
-          final Feature f = row.getBestFeature();
-          Range<Float> mobilityRange = adjustMobilityRange(f.getMobility(), f.getMobilityRange(),
-              minMobilityWidth, maxMobilityWidth);
-
-          return new MaldiTimsPrecursor(f, f.getMZ(), mobilityRange, null);
-        }).toList();
-
-        final List<String> spotNames = precursors.stream().map(precursor -> {
-          final Scan scan = precursor.feature().getRepresentativeScan();
-          if (!(scan instanceof ImagingFrame imgFrame)) {
-            throw new IllegalStateException("Representative scan of feature " + precursor.toString()
-                + " is not an ImagingFrame");
-          }
-          final MaldiSpotInfo maldiSpotInfo = imgFrame.getMaldiSpotInfo();
-          if (maldiSpotInfo == null) {
-            throw new IllegalStateException(
-                "Maldi spot info for frame " + imgFrame.toString() + " is null.");
-          }
-          return maldiSpotInfo.spotName();
-        }).distinct().toList();
-
-        if (spotNames.size() != 1) {
+      final List<String> spotNames = precursors.stream().map(precursor -> {
+        final Scan scan = precursor.feature().getRepresentativeScan();
+        if (!(scan instanceof ImagingFrame imgFrame)) {
           throw new IllegalStateException(
-              "No or more than one spot in feature list " + flist.getName());
+              "Representative scan of feature " + precursor.toString() + " is not an ImagingFrame");
         }
+        final MaldiSpotInfo maldiSpotInfo = imgFrame.getMaldiSpotInfo();
+        if (maldiSpotInfo == null) {
+          throw new IllegalStateException(
+              "Maldi spot info for frame " + imgFrame.toString() + " is null.");
+        }
+        return maldiSpotInfo.spotName();
+      }).distinct().toList();
 
-        var spotName = spotNames.get(0);
+      if (spotNames.size() != 1) {
+        throw new IllegalStateException(
+            "No or more than one spot in feature list " + flist.getName());
+      }
 
-        final List<List<MaldiTimsPrecursor>> precursorLists = precursorSelectionModule.getPrecursorList(
-            precursors, precursorSelectionParameters);
+      var spotName = spotNames.get(0);
+
+      final List<List<MaldiTimsPrecursor>> precursorLists = precursorSelectionModule.getPrecursorList(
+          precursors, precursorSelectionParameters);
+
+      int spotIncrement = 1;
+      for (int ceCounter = 0; ceCounter < numCes; ceCounter++) {
+        final double ceStepProgress = 1 / (double) numCes;
+
+        if (enableCeStepping) {
+          assert ceSteppingTables != null;
+          currentCeFile = new File(savePathDir,
+              "ce_table_" + ceSteppingTables.getCE(ceCounter) + "eV.csv");
+          final boolean success = ceSteppingTables.writeCETable(ceCounter, currentCeFile);
+          if (!success) {
+            setErrorMessage("Cannot write CE table.");
+            setStatus(TaskStatus.ERROR);
+            return;
+          }
+        }
 
         for (int i = 0; i < precursorLists.size(); i++) {
           if (isCanceled()) {
@@ -210,7 +207,9 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
           desc = "Acquiring " + fileName;
 
           acquire(acqControl, spotName, precursorList, initialOffsetY, incrementOffsetX, (i + 1),
-              savePathDir, fileName, currentCeFile);
+              spotIncrement, savePathDir, fileName, currentCeFile);
+
+          spotIncrement++;
         }
       }
     }
@@ -220,8 +219,8 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
   private boolean acquire(final File acqControl, final String spot,
       final List<MaldiTimsPrecursor> precursorList, final int initialOffsetY,
-      final int incrementOffsetX, int incrementCounter, final File savePathDir, String name,
-      File currentCeFile) {
+      final int incrementOffsetX, int precursorListCounter, int spotIncrement,
+      final File savePathDir, String name, File currentCeFile) {
     List<String> cmdLine = new ArrayList<>();
 
     cmdLine.add(acqControl.toString());
@@ -229,7 +228,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     cmdLine.add(spot);
 
     cmdLine.add("--xoffset");
-    cmdLine.add(String.valueOf(incrementOffsetX * incrementCounter));
+    cmdLine.add(String.valueOf(incrementOffsetX * spotIncrement));
     cmdLine.add("--yoffset");
     cmdLine.add(String.valueOf(initialOffsetY));
 
@@ -247,7 +246,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
       cmdLine.add(currentCeFile.toPath().toString());
     }
 
-    replacePrecursorCsv(precursorList, true, spot, incrementCounter);
+    replacePrecursorCsv(precursorList, true, spot, precursorListCounter);
 
     if (!exportOnly) {
       final ProcessBuilder builder = new ProcessBuilder(cmdLine).inheritIO();
@@ -289,23 +288,21 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
     try (var writer = new FileWriter(csv)) {
 
-      Writer w = new BufferedWriter(writer);
-      w.write("1\n");  // activate CE settings from the MALDI MS/MS tab
-      w.flush();
-
-      ICSVWriter csvWriter = new CSVWriterBuilder(w).withSeparator(',')
-          .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER).build();
+      BufferedWriter w = new BufferedWriter(writer);
+      w.write("1");  // activate CE settings from the MALDI MS/MS tab
+      w.newLine();
 
       // make sure the precursors are sorted
       precursorList.sort(Comparator.comparingDouble(p -> p.oneOverK0().lowerEndpoint()));
 
       for (final MaldiTimsPrecursor precursor : precursorList) {
-        csvWriter.writeNext(new String[]{String.format("%.4f", precursor.mz()), //
-            String.format("%.3f", precursor.oneOverK0().lowerEndpoint()), //
-            String.format("%.3f", precursor.oneOverK0().upperEndpoint())});
+        w.write(
+            String.format("%.4f,%.3f,%.3f", precursor.mz(), precursor.oneOverK0().lowerEndpoint(),
+                precursor.oneOverK0().upperEndpoint()));
+        w.newLine();
       }
 
-      csvWriter.close();
+      w.flush();
       w.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
