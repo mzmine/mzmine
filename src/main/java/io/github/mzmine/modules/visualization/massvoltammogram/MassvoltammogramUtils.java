@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -37,8 +38,10 @@ public class MassvoltammogramUtils {
    * Extracts all scans needed to draw the massvoltammogram.
    *
    * @param rawDataFile        Raw data file the scans will be drawn from.
+   * @param scanSelection      The scan selection filter.
    * @param delayTime          Delay time between EC-cell and MS in min.
-   * @param potentialRange     Range of the potential ramp in mV.
+   * @param startPotential     The potential the ramp starts at in mV.
+   * @param endPotential       The potential the ramp ends at in mV.
    * @param potentialSpeedRamp Speed of the potential ramp in mV/s.
    * @param stepSize           Potential step size between the individual scans in mV.
    * @return Returns a list of all scans with the given step size inside the potential range.
@@ -47,20 +50,21 @@ public class MassvoltammogramUtils {
    * is stored at index 0, the corresponding intensity-value at index 1 and the voltage-value at
    * index 2.
    */
-  public static List<double[][]> getScans(RawDataFile rawDataFile, double delayTime,
-      Range<Double> potentialRange, double potentialSpeedRamp, double stepSize) {
+  public static List<double[][]> getScans(RawDataFile rawDataFile, ScanSelection scanSelection,
+      double delayTime, double startPotential, double endPotential, double potentialSpeedRamp,
+      double stepSize) {
 
     final List<double[][]> scans = new ArrayList<>();
 
     final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
     //Setting the starting potential
-    double potential = potentialRange.lowerEndpoint();
+    double potential = /*potentialRange.lowerEndpoint()*/startPotential;
 
     //Adding scans with the given step size until the maximal potential is reached.
-    for (int i = 0; potential <= potentialRange.upperEndpoint(); i++) {
+    for (int i = 0; Math.abs(potential) <= Math.abs(endPotential); i++) {
       final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialSpeedRamp, potential);
-      final Scan scan = rawDataFile.getScanNumberAtRT(rt, 1);
+      final Scan scan = scanSelection.getScanAtRt(rawDataFile, rt);
 
       //Breaking the loop if the calculated rt exceeds the max rt of the data file.
       if (scan == null) {

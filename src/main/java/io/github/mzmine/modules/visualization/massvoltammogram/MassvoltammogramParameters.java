@@ -17,18 +17,28 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram;
 
+import static io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.correctors.LocMinLoessCorrectorParameters.choices;
+
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import java.awt.Button;
 import java.text.DecimalFormat;
+import javolution.lang.ValueType;
 
 public class MassvoltammogramParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
+
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
 
   public static final DoubleParameter tubingLengthMM = new DoubleParameter("Tubing length / mm",
       "Tubing length between EC-Cell and ESI-Needle.", new DecimalFormat("0.0"), 750d);
@@ -37,7 +47,8 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       "Inner diameter of the tubing.", new DecimalFormat("0.000"), 0.13d);
 
   public static final DoubleParameter flowRateMicroLiterPerMin = new DoubleParameter(
-      "Flow rate / μL/min", "Tubing length between EC-Cell and ESI-Needle.", new DecimalFormat("0.0"), 20d);
+      "Flow rate / μL/min", "Tubing length between EC-Cell and ESI-Needle.",
+      new DecimalFormat("0.0"), 20d);
 
   public static final DoubleParameter potentialRampSpeed = new DoubleParameter(
       "Potential ramp / mV/s", "Potential ramp speed in mV/s.", new DecimalFormat("0.0"), 10d);
@@ -48,12 +59,17 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
   public static final DoubleRangeParameter potentialRange = new DoubleRangeParameter(
       "Potential range / mV", "Minimal and maximal potential of ramp.", new DecimalFormat("0.0"));
 
-  public static final MZRangeParameter mzRange = new MZRangeParameter("m/z Range", "Minimal and maximal m/z");
+  public static final MZRangeParameter mzRange = new MZRangeParameter("m/z Range",
+      "Minimal and maximal m/z.");
 
+  public static final ComboParameter<ReactionMode> reactionMode = new ComboParameter<>(
+      "Reaction mode", "Reaction mode of the experiment.", ReactionMode.values(),
+      ReactionMode.OXIDATIVE);
 
   public MassvoltammogramParameters() {
-    super(new Parameter[]{files, tubingLengthMM, tubingIdMM, flowRateMicroLiterPerMin,
-        potentialRampSpeed, potentialRange, stepSize, mzRange,});
+    super(
+        new Parameter[]{files, scanSelection, tubingLengthMM, tubingIdMM, flowRateMicroLiterPerMin,
+            reactionMode, potentialRampSpeed, potentialRange, stepSize, mzRange});
   }
 }
 

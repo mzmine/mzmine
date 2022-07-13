@@ -22,6 +22,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
@@ -58,7 +60,22 @@ public class MassvoltammogramTask extends AbstractTask {
    * m/z range of drawn spectra
    */
   private final Range<Double> mzRange;
-
+  /**
+   * Mode of the EC/MS experiment.
+   */
+  private final ReactionMode reactionMode;
+  /**
+   * The scan selection filter.
+   */
+  private final ScanSelection scanSelection;
+  /**
+   * The beginning of the potential ramp.
+   */
+  private double startPotential;
+  /**
+   * The end of the potential ramp.
+   */
+  private double endPotential;
 
   public MassvoltammogramTask(@NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -69,6 +86,8 @@ public class MassvoltammogramTask extends AbstractTask {
     stepSize = parameters.getValue(MassvoltammogramParameters.stepSize);
     potentialRange = parameters.getValue(MassvoltammogramParameters.potentialRange);
     mzRange = parameters.getValue(MassvoltammogramParameters.mzRange);
+    reactionMode = parameters.getValue(MassvoltammogramParameters.reactionMode);
+    scanSelection = parameters.getValue(MassvoltammogramParameters.scanSelection);
   }
 
   @Override
@@ -86,20 +105,30 @@ public class MassvoltammogramTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     //Getting raw data file.
-    final RawDataFile file = MassvoltammogramParameters.files.getValue().getMatchingRawDataFiles()[0];
+    final RawDataFile file = MassvoltammogramParameters.files.getValue()
+        .getMatchingRawDataFiles()[0];
 
-    //Calculating delay time between EC-cell and MS.
+    //Calculating the delay time between EC-cell and MS.
     final double tubingVolumeMicroL = EcmsUtils.getTubingVolume(tubingLength, tubingId);
     final double delayTimeMin = EcmsUtils.getDelayTime(flowRate, tubingVolumeMicroL);
 
+    //Checking which reaction mode was selected by the user.
+    if (reactionMode.equals(ReactionMode.OXIDATIVE)) {
+      startPotential = potentialRange.lowerEndpoint();
+      endPotential = potentialRange.upperEndpoint();
+    } else if (reactionMode.equals(ReactionMode.REDUCTIVE)) {
+      startPotential = potentialRange.upperEndpoint();
+      endPotential = potentialRange.lowerEndpoint();
+    }
     //Creating a list with all needed scans.
-    final List<double[][]> scans = MassvoltammogramUtils.getScans(file, delayTimeMin, potentialRange,
-        potentialRampSpeed, stepSize);
+    final List<double[][]> scans = MassvoltammogramUtils.getScans(file, scanSelection, delayTimeMin,
+        startPotential, endPotential, potentialRampSpeed, stepSize);
 
     //Checking weather the scans were extracted correctly.
-    if(scans.size() == 0){
+    if (scans.size() == 0) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("The entered parameters do not match the selected data file!\nThe massvolatammogarm cannot be created.\nCheck the entered parameters for plausibility.");
+      setErrorMessage(
+          "The entered parameters do not match the selected data file!\nThe massvolatammogarm cannot be created.\nCheck the entered parameters for plausibility.");
       return;
     }
 
@@ -110,10 +139,12 @@ public class MassvoltammogramTask extends AbstractTask {
     final double maxIntensity = MassvoltammogramUtils.getMaxIntensity(spectra);
 
     //Removing all datapoints with low intensity values.
-    final List<double[][]> spectraWithoutNoise = MassvoltammogramUtils.removeNoise(spectra, maxIntensity);
+    final List<double[][]> spectraWithoutNoise = MassvoltammogramUtils.removeNoise(spectra,
+        maxIntensity);
 
     //Removing excess zeros from the dataset.
-    final List<double[][]> spectraWithoutZeros = MassvoltammogramUtils.removeExcessZeros(spectraWithoutNoise);
+    final List<double[][]> spectraWithoutZeros = MassvoltammogramUtils.removeExcessZeros(
+        spectraWithoutNoise);
 
     //Creating new 3D Plot.
     final ExtendedPlot3DPanel plot = new ExtendedPlot3DPanel();
@@ -135,7 +166,8 @@ public class MassvoltammogramTask extends AbstractTask {
     plot.setFixedBounds(0, mzRange.lowerEndpoint(), mzRange.upperEndpoint());
 
     //Adding the plot to a new MZmineTab.
-    final MassvoltammogramTab mvTab = new MassvoltammogramTab("Massvoltammogram", plot, file.getName());
+    final MassvoltammogramTab mvTab = new MassvoltammogramTab("Massvoltammogram", plot,
+        file.getName());
     MZmineCore.getDesktop().addTab(mvTab);
 
     setStatus(TaskStatus.FINISHED);
