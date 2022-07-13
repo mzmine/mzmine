@@ -15,15 +15,14 @@ jobs:
         os: [ macos-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-#      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 #      - uses: actions/setup-java@v2
 #        with:
 #          distribution: 'zulu'
 #          java-version: '17'
 
       - name: 'Set up latest Oracle JDK 17'
-      - uses: actions/checkout@v2
-      - uses: oracle-actions/setup-java@v1
+        uses: oracle-actions/setup-java@v1
         with:
           website: oracle.com
           release: 17
