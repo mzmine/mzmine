@@ -164,6 +164,9 @@ public class ThermoRawImportTask extends AbstractTask {
       io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
 
       if (msdkFile == null) {
+        bufStream.close();
+        errorStream.close();
+        dumper.destroy();
         setStatus(TaskStatus.ERROR);
         setErrorMessage("MSDK returned null");
         return;
@@ -174,7 +177,9 @@ public class ThermoRawImportTask extends AbstractTask {
 
         if (isCanceled()) {
           bufStream.close();
+          errorStream.close();
           dumper.destroy();
+          FileUtils.deleteDirectory(thermoRawFileParserDir);
           return;
         }
 
@@ -199,11 +204,13 @@ public class ThermoRawImportTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(errMsg);
         dumper.destroy();
+        FileUtils.deleteDirectory(thermoRawFileParserDir);
         return;
       }
 
       errorStream.close();
       dumper.destroy();
+      FileUtils.deleteDirectory(thermoRawFileParserDir);
 
       if (parsedScans == 0) {
         String errMsg = "Parsing completed, but no scans were found.";
@@ -252,24 +259,8 @@ public class ThermoRawImportTask extends AbstractTask {
   }
 
   private File unzipThermoRawFileParser() throws IOException {
-    final String tmpPath = System.getProperty("java.io.tmpdir");
-    File thermoRawFileParserFolder = new File(tmpPath, "mzmine_thermo_raw_parser");
-    final File thermoRawFileParserExe = new File(thermoRawFileParserFolder,
-        "ThermoRawFileParser.exe");
 
-    // Check if it has already been unzipped
-    if (thermoRawFileParserFolder.exists() && thermoRawFileParserFolder.isDirectory()
-        && thermoRawFileParserFolder.canRead() && thermoRawFileParserExe.exists()
-        && thermoRawFileParserExe.isFile() && thermoRawFileParserExe.canExecute()) {
-      logger.finest("ThermoRawFileParser found in folder " + thermoRawFileParserFolder);
-      return thermoRawFileParserFolder;
-    }
-
-    // In case the folder already exists, unzip to a different folder
-    if (thermoRawFileParserFolder.exists()) {
-      logger.finest("Folder " + thermoRawFileParserFolder + " exists, creating a new one");
-      thermoRawFileParserFolder = Files.createTempDirectory("mzmine_thermo_raw_parser").toFile();
-    }
+    File thermoRawFileParserFolder = Files.createTempDirectory("mzmine_thermo_raw_parser").toFile();
 
     logger.finest("Unpacking ThermoRawFileParser to folder " + thermoRawFileParserFolder);
     InputStream zipStream = getClass()
