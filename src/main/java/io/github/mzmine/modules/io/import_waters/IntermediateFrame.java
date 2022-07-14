@@ -14,6 +14,7 @@
 package io.github.mzmine.modules.io.import_waters;
 
 import MassLynxSDK.MassLynxIonMode;
+import MassLynxSDK.MassLynxRawInfoReader;
 import MassLynxSDK.MassLynxRawScanReader;
 import MassLynxSDK.MasslynxRawException;
 import MassLynxSDK.Scan;
@@ -27,34 +28,43 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import java.util.ArrayList;
 import net.csibio.aird.util.ArrayUtil;
 
-public class IntermediateFrame extends IntermediateScan{
-
-
+public class IntermediateFrame extends IntermediateScan {
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
       MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan) {
     super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
   }
 
-  public SimpleFrame toframe(MassLynxRawScanReader rawscanreader,int driftscan)
+  public SimpleFrame toframe(MassLynxRawScanReader rawscanreader,int driftScanCount, int mzmine_scannum,
+      MassLynxRawInfoReader massLynxRawInfoReader)
       throws MasslynxRawException {
     //scan Value
-    Scan scan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(),driftscan);
+    Scan framescan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan());
+    //For loo
 
 
-    //ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
-    //mobilityscanlist.add()
+    double[] mobilities = new double[driftScanCount];
 
-    PolarityType polarity = PolarityType.UNKNOWN;
+    ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
+    for (int driftScanNum = 0; driftScanNum < driftScanCount; driftScanNum++) {
+      Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(), driftScanNum);
+      mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
+          ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
+      mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);
+    }
+
+    PolarityType polarity;
 
     MassSpectrumType spectrumType=this.isIscontinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
 
     polarity= this.getIonmode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
-    SimpleFrame simpleframe=new SimpleFrame(this.getNewMZmineFile(),0,this.getMslevel()
-        ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities()),spectrumType,polarity,"",
-        this.getMZRange(), MobilityType.TRAVELING_WAVE,null,0f);
-    //simpleframe.setMobilityScans();
+    SimpleFrame simpleframe=new SimpleFrame(this.getNewMZmineFile(),mzmine_scannum,this.getMslevel()
+        ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(framescan.GetMasses()),ArrayUtil.fromFloatToDouble(framescan.GetIntensities()),spectrumType,polarity,"",
+        this.getMZRange(), MobilityType.TRAVELING_WAVE,null,null);
+
+    simpleframe.setMobilityScans(mobilityscanlist, false);
+    simpleframe.setMobilities(mobilities);
 
     return simpleframe;
   }

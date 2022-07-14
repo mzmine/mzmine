@@ -92,7 +92,7 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
 
   public SimpleScan getScan(int mzmine_scan, MassLynxRawScanReader rawscanreader)
       throws MasslynxRawException {
-    PolarityType polarity = PolarityType.UNKNOWN;
+    PolarityType polarity;
 
     //scan Value
     Scan scan = rawscanreader.ReadScan(this.function_number,this.numscan);
@@ -112,7 +112,7 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
 
   @Override
   public int compareTo(@NotNull IntermediateScan obj1) {
-    float retentionTime2 = ((IntermediateScan)obj1).getRetentionTime();
+    float retentionTime2 = obj1.getRetentionTime();
 
     return Float.compare(this.retentionTime,retentionTime2);
   }
