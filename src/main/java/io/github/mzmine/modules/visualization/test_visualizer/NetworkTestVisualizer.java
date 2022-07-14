@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.visualization.test_visualizer;
 
-import java.awt.Color;
 import java.util.EnumSet;
 import java.util.Random;
 import java.util.logging.Level;
@@ -36,12 +35,13 @@ import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.algorithm.generator.GridGenerator;
 import org.graphstream.algorithm.generator.RandomEuclideanGenerator;
 import org.graphstream.algorithm.generator.RandomGenerator;
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.geom.Point3;
+import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.ThreadingModel;
 import org.graphstream.ui.view.util.InteractiveElement;
@@ -53,6 +53,7 @@ public class NetworkTestVisualizer extends Stage {
   protected Graph graph;
   protected Viewer viewer;
   protected FxViewPanel view;
+  protected SpriteManager sprites;
   protected double viewPercent = 1;
   private Point2D last;
   int NV = di.getNodeValue();
@@ -82,10 +83,17 @@ public class NetworkTestVisualizer extends Stage {
     view.getCamera().resetView();
   }
 
+  public Node randomNode(Graph graph) {
+    int min = 0;
+    int max = (int) graph.nodes().count();
+    int rand = (int) (min + (Math.random() * (max - min)));
+    return graph.getNode(rand);
+  }
+
   public NetworkTestVisualizer() {
     graph = new MultiGraph(GA);
     graph.setAttribute("ui.stylesheet",
-        "edge { fill-color: blue; shape: angle; arrow-shape: none; size: 2px; } node {fill-color: green;}");
+        "edge { fill-mode: dyn-plain;fill-color: red,yellow,green,blue,pink,orange,purple,brown,black,violet; shape: angle; arrow-shape: none; size-mode:dyn-size; size: 2px; } node {fill-color: green;}sprite { shape: pie-chart; fill-color: #FC0, #F00, #03F, #A0F; size: 20px; }");
     Generator generator = switch (GA) {
       case "RandomGenerator" -> new RandomGenerator(2);
       case "BarabasiAlbertGenerator" -> new BarabasiAlbertGenerator(3);
@@ -100,10 +108,23 @@ public class NetworkTestVisualizer extends Stage {
       generator.nextEvents();
     }
     generator.end();
-    for (org.graphstream.graph.Node node : graph) {
-      node.setAttribute("ui.label", node.getId());
+    graph.edges().forEach(edge -> {
+      edge.setAttribute("ui.label", new Random().nextFloat(0, 1));
+      edge.setAttribute("ui.color", new Random().nextFloat(0, 1));
+      edge.setAttribute("ui.size", new Random().nextInt(1, 20));
+    });
+    int NODE_COUNT = (int) graph.nodes().count();
+    sprites = new SpriteManager(graph);
+    for (int i = 0; i < NODE_COUNT; i++) {
+      sprites.addSprite(i + "");
     }
-
+    float[] values = new float[4];
+    values[0] = new Random().nextFloat(0, 0.5f);
+    values[1] = new Random().nextFloat(0, 0.5f);
+    values[2] = new Random().nextFloat(0, 0.5f);
+    values[3] = new Random().nextFloat(0, 0.5f);
+    sprites.forEach(s -> s.attachToNode(randomNode(graph).getId()));
+    sprites.forEach(s -> s.setAttribute("ui.pie-values", values));
     try {
       viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
       viewer.enableAutoLayout();
@@ -115,22 +136,6 @@ public class NetworkTestVisualizer extends Stage {
       Pane sp = new Pane();
       sp.getChildren().addAll(graphpane);
       view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
-      view.setOnKeyPressed(event -> {
-        int r = new Random().nextInt(0, 255);
-        int g = new Random().nextInt(0, 255);
-        int b = new Random().nextInt(0, 255);
-        String style_up =
-            "edge { size:" + (int) Math.floor(Math.random() * 20) + "px;" + "fill-color: rgb(" + r
-                + "," + g + "," + b + "); }";
-        String style_down =
-            "edge { size:" + (int) Math.floor(Math.random() * 10) + "px;" + "fill-color: rgb(" + r
-                + "," + g + "," + b + "); }";
-        switch (event.getCode()) {
-          case I -> graph.setAttribute("ui.stylesheet", style_up);
-          case D -> graph.setAttribute("ui.stylesheet", style_down);
-        }
-
-      });
       view.setOnMouseClicked(e -> {
         if (e.getButton() == MouseButton.PRIMARY) {
           if (e.getClickCount() == 2) {
