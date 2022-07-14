@@ -18,7 +18,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.collect.Range;
+import com.google.common.io.CharStreams;
 import com.sun.jna.Platform;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -39,12 +42,16 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -80,7 +87,8 @@ public class ThermoRawImportTask extends AbstractTask {
   private MzMLFileImportMethod msdkTask;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
@@ -143,11 +151,13 @@ public class ThermoRawImportTask extends AbstractTask {
 
       // Create a separate process and execute ThermoRawFileParser.
       // Use thermoRawFileParserDir as working directory; this is essential, otherwise the process will fail.
+      logger.finest("Starting a separate process with cmdline " + Arrays.toString(cmdLine));
       dumper = Runtime.getRuntime().exec(cmdLine, null, thermoRawFileParserDir);
 
       // Get the stdout of ThermoRawFileParser process as InputStream
       InputStream mzMLStream = dumper.getInputStream();
       BufferedInputStream bufStream = new BufferedInputStream(mzMLStream);
+      InputStream errorStream = dumper.getErrorStream();
 
       msdkTask = new MzMLFileImportMethod(bufStream);
       msdkTask.execute();
@@ -179,19 +189,40 @@ public class ThermoRawImportTask extends AbstractTask {
 
       // Finish
       bufStream.close();
+
+      if (errorStream.available() > 0) {
+        String errMsg =
+            "ThermoRawFileParser returned error output: " + IOUtils.toString(errorStream,
+                StandardCharsets.UTF_8);
+        errorStream.close();
+        logger.warning(errMsg);
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(errMsg);
+        dumper.destroy();
+        return;
+      }
+
+      errorStream.close();
       dumper.destroy();
 
       if (parsedScans == 0) {
-        throw (new Exception("No scans found"));
+        String errMsg = "Parsing completed, but no scans were found.";
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(errMsg);
+        return;
       }
 
       if (parsedScans != totalScans) {
-        throw (new Exception(
+        String errMsg =
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-                + " out of " + totalScans + ")"));
+                + " out of " + totalScans + ")";
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(errMsg);
+        return;
       }
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
