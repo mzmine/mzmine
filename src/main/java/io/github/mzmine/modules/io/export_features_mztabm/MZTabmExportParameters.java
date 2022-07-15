@@ -44,8 +44,15 @@ public class MZTabmExportParameters extends SimpleParameterSet {
 
   public static final BooleanParameter exportAll = new BooleanParameter("Include all peaks"//
       , "Include peaks with unknown identity");
+  
+  public static final BooleanParameter validateOnWrite = new BooleanParameter(
+      "Validate mzTab-M on write ",
+      "If \"true\", disable validation of mzTab-M file during writing. "
+      + "This may lead to inconsistent broken files that may not be "
+      + "recoverable by other tools. Set to \"false\" to debug issues with "
+      + "feature export only!", true);
 
   public MZTabmExportParameters() {
-    super(new Parameter[]{featureLists, filename, exportAll});
+    super(new Parameter[]{featureLists, filename, exportAll, validateOnWrite});
   }
 }
