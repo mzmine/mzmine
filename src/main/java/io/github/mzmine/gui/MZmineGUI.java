@@ -479,7 +479,6 @@ public class MZmineGUI extends Application implements Desktop {
     ShutDownHook shutDownHook = new ShutDownHook();
     Runtime.getRuntime().addShutdownHook(shutDownHook);
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
-
   }
 
   @Override
@@ -569,6 +568,8 @@ public class MZmineGUI extends Application implements Desktop {
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
       final Text text = new Text();
+      text.getStyleClass().add("text-id");
+
       text.setWrappingWidth(400);
       text.setText(msg);
       final FlowPane pane = new FlowPane(text);

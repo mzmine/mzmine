@@ -135,7 +135,7 @@ public class RawDataOverviewWindowController {
               // in that case we just select the table.
               return;
             }
-            visualizer.setFocusedScan(raw, newValue.scan());
+            visualizer.setFocusedScan(raw, newValue);
           }));
 
       Tab rawDataFileTab = new Tab(raw.getName());
@@ -190,13 +190,13 @@ public class RawDataOverviewWindowController {
         return;
       }
 
-      TableView<ScanDescription> rawDataTableView = con.getRawDataTableView();
+      TableView<Scan> rawDataTableView = con.getRawDataTableView();
       tpRawDataInfo.getSelectionModel().select(rawDataFilesAndTabs.get(selectedRawDataFile));
 
       if (rawDataTableView.getItems() != null) {
         try {
           Scan scan = pos.getScan();
-          rawDataTableView.getItems().stream().filter(item -> item.scan().equals(scan)).findFirst()
+          rawDataTableView.getItems().stream().filter(item -> item.equals(scan)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
                 if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
