@@ -152,6 +152,7 @@ public class WatersImportTask extends AbstractTask {
       {
         SimpleScan simpleScan = intermediatescanarray.get(i).getScan(i+1, rawscanreader);
         this.newMZmineFile.addScan(simpleScan);
+        //System.out.println("Output "+ i);
       }
 
     }
@@ -244,10 +245,6 @@ public class WatersImportTask extends AbstractTask {
               mzmine_scannum+1,massLynxRawInfoReader);
           this.newMZmineFile.addScan(simpleFrame);
         }
-/*
-          simpleFrame=intermediateFrameArrayList.get(arraycount++).toframe(rawscanreader,numdriftscan,
-              arraycount++,massLynxRawInfoReader);
-          this.newMZmineFile.addScan(simpleFrame);*/
       }
     } catch (MasslynxRawException e) {
       e.printStackTrace();
@@ -272,14 +269,14 @@ public class WatersImportTask extends AbstractTask {
       int getfunctioncount=massLynxRawInfoReader.GetFunctionCount();
       for (int i=0;i<getfunctioncount;i++) {
         try {
-          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(getfunctioncount);
+          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(3);
           if (numdriftscan > 0) {
             return true;
           }
         }
         catch (MasslynxRawException e)
         {
-          e.printStackTrace();
+          logger.log(Level.INFO,"Not a ION Mobility Function");
         }
       }
     }
