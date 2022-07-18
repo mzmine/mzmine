@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.modules.visualization.msms.MsMsZAxisType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.io.File;
 import java.util.Collection;
@@ -85,6 +86,10 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       new OptionalParameter<>(new ComboParameter<IntegerMode>("Integer m/z",
           "Merging mode for fractional m/z to unit mass", IntegerMode.values()), false);
 
+  public static final ComboParameter<ImportOption> IMPORT_PARAMETER =
+      new ComboParameter<>("Spectrum Import", "Import Options", ImportOption
+          .values(), ImportOption.OVERWRITE);
+
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
 
@@ -93,7 +98,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    */
   public NistMsSearchParameters() {
     super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MIN_MATCH_FACTOR,
-        MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER, INTEGER_MZ});
+        MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER, INTEGER_MZ, IMPORT_PARAMETER});
   }
 
   @Override

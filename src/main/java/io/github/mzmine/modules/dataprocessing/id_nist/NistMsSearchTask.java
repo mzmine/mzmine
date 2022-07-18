@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.IMPORT_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_MATCH_FACTOR;
@@ -131,6 +132,9 @@ public class NistMsSearchTask extends AbstractTask {
   private final MsMsSpectraMergeParameters mergeParameters;
   private final IntegerMode integerMZ;
 
+  // Import Options.
+  private static ImportOption importOption;
+
   // NIST MS Search directory and executable.
   private final File nistMsSearchDir;
   private final File nistMsSearchExe;
@@ -171,6 +175,7 @@ public class NistMsSearchTask extends AbstractTask {
     msLevel = params.getParameter(MS_LEVEL).getValue();
     nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
     nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
+    importOption = params.getParameter(IMPORT_PARAMETER).getValue();
 
     // Optional parameters.
     if (params.getParameter(MERGE_PARAMETER).getValue()) {
@@ -568,7 +573,7 @@ public class NistMsSearchTask extends AbstractTask {
     final BufferedWriter writer = new BufferedWriter(new FileWriter(locatorFile));
     try {
 
-      writer.write(spectraFile.getCanonicalPath() + " Append");
+      writer.write(spectraFile.getCanonicalPath() + " " + importOption.toString());
       writer.newLine();
     } finally {
 
