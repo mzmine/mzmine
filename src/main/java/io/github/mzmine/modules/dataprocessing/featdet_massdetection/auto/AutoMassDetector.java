@@ -50,7 +50,7 @@ public class AutoMassDetector implements MassDetector {
 
   @Override
   public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
-    if (spectrum.getSpectrumType() != MassSpectrumType.CENTROIDED) {
+    if (spectrum.getSpectrumType() == MassSpectrumType.PROFILE) {
       return exactMassDetector.getMassValues(spectrum, getExactParam(parameters));
     } else {
       return centroidDetector.getMassValues(spectrum, getCentroidParam(parameters));
