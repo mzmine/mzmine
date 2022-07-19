@@ -129,7 +129,6 @@ public class ScanSelection {
     }
 
     Scan[] matchingScans = getMatchingScans(file);
-    // Range<Float> range = Range.closed(retentionTime - 2, retentionTime + 2);
     double minDiff = 10E6;
 
     for (int i = 0; i < matchingScans.length; i++) {

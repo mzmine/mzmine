@@ -19,6 +19,7 @@ package io.github.mzmine.modules.visualization.massvoltammogram;
 
 import static io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.correctors.LocMinLoessCorrectorParameters.choices;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -38,7 +39,8 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
 
-  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
+  public static final ComboParameter<String> polarity = new ComboParameter<>("Polarity",
+      "Polarity of the data to be used.", new String[]{"+", "-"});
 
   public static final DoubleParameter tubingLengthMM = new DoubleParameter("Tubing length / mm",
       "Tubing length between EC-Cell and ESI-Needle.", new DecimalFormat("0.0"), 750d);
@@ -67,9 +69,8 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       ReactionMode.OXIDATIVE);
 
   public MassvoltammogramParameters() {
-    super(
-        new Parameter[]{files, scanSelection, tubingLengthMM, tubingIdMM, flowRateMicroLiterPerMin,
-            reactionMode, potentialRampSpeed, potentialRange, stepSize, mzRange});
+    super(new Parameter[]{files, polarity, tubingLengthMM, tubingIdMM, flowRateMicroLiterPerMin,
+        reactionMode, potentialRampSpeed, potentialRange, stepSize, mzRange});
   }
 }
 

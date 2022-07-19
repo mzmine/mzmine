@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.massvoltammogram;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
@@ -47,11 +48,11 @@ public class MassvoltammogramTask extends AbstractTask {
   /**
    * potential ramp speed in mV/s
    */
-  private final double potentialRampSpeed;
+  private double potentialRampSpeed;
   /**
    * step size between drawn spectra in mV
    */
-  private final double stepSize;
+  private double stepSize;
   /**
    * potential range of mass voltammogram in mV
    */
@@ -65,10 +66,6 @@ public class MassvoltammogramTask extends AbstractTask {
    */
   private final ReactionMode reactionMode;
   /**
-   * The scan selection filter.
-   */
-  private final ScanSelection scanSelection;
-  /**
    * The beginning of the potential ramp.
    */
   private double startPotential;
@@ -76,6 +73,10 @@ public class MassvoltammogramTask extends AbstractTask {
    * The end of the potential ramp.
    */
   private double endPotential;
+  /**
+   * Polarity of the data used.
+   */
+  private String polarity;
 
   public MassvoltammogramTask(@NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -87,7 +88,7 @@ public class MassvoltammogramTask extends AbstractTask {
     potentialRange = parameters.getValue(MassvoltammogramParameters.potentialRange);
     mzRange = parameters.getValue(MassvoltammogramParameters.mzRange);
     reactionMode = parameters.getValue(MassvoltammogramParameters.reactionMode);
-    scanSelection = parameters.getValue(MassvoltammogramParameters.scanSelection);
+    polarity = parameters.getValue((MassvoltammogramParameters.polarity));
   }
 
   @Override
@@ -112,14 +113,23 @@ public class MassvoltammogramTask extends AbstractTask {
     final double tubingVolumeMicroL = EcmsUtils.getTubingVolume(tubingLength, tubingId);
     final double delayTimeMin = EcmsUtils.getDelayTime(flowRate, tubingVolumeMicroL);
 
-    //Checking which reaction mode was selected by the user.
+    //Setting up the parameters correctly depending on the selected reaction type.
     if (reactionMode.equals(ReactionMode.OXIDATIVE)) {
       startPotential = potentialRange.lowerEndpoint();
       endPotential = potentialRange.upperEndpoint();
+      potentialRampSpeed = Math.abs(potentialRampSpeed);
+      stepSize = Math.abs(stepSize);
     } else if (reactionMode.equals(ReactionMode.REDUCTIVE)) {
       startPotential = potentialRange.upperEndpoint();
       endPotential = potentialRange.lowerEndpoint();
+      potentialRampSpeed = Math.abs(potentialRampSpeed) * -1;
+      stepSize = Math.abs(stepSize) * -1;
     }
+
+    //Creating a scan selection filter.
+    ScanSelection scanSelection = new ScanSelection(null, null, null, null,
+        PolarityType.fromSingleChar(polarity), null, 1, null);
+
     //Creating a list with all needed scans.
     final List<double[][]> scans = MassvoltammogramUtils.getScans(file, scanSelection, delayTimeMin,
         startPotential, endPotential, potentialRampSpeed, stepSize);
