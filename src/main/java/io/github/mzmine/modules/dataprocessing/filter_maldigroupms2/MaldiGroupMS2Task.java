@@ -48,7 +48,7 @@ import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -125,9 +125,11 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
       // we need to create a new feature list, because the raw data files cannot be altered.
       // however, we need to set the raw data files so a project can be loaded/saved
-      final Set<RawDataFile> allFiles = new HashSet<>();
+      // LinkedHashSet to keep the current files at the front
+      final Set<RawDataFile> allFiles = new LinkedHashSet<>();
       allFiles.addAll(list.getRawDataFiles());
       allFiles.addAll(files);
+
       final ModularFeatureList newFlist = list.createCopy(list.getName(), getMemoryMapStorage(),
           allFiles.stream().toList(), false);
       files.forEach(file -> newFlist.setSelectedScans(file, file.getScans()));

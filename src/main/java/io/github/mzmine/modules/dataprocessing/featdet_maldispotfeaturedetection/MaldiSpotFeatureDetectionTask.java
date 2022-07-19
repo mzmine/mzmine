@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection;
 
+import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -52,6 +53,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,10 +64,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MaldiSpotFeatureDetectionTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(
+      MaldiSpotFeatureDetectionTask.class.getName());
 
   private final IMSImagingRawDataFile file;
   private final BinningMobilogramDataAccess binningMobilogramDataAccess;
@@ -210,4 +219,28 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
   }
+
+  private Map<String, String> parseSpotSampleName(final File file) {
+    Map<String, String> spotNameMap = new HashMap<>();
+    try {
+      final String[][] spotSampleNames = CSVParser.parse(new FileReader(file));
+
+      final String[] firstLine = spotSampleNames[0];
+      int spotIndex = 0;
+      int nameIndex = 1;
+      if (firstLine[1].toLowerCase().equals("spot")) {
+        spotIndex = 1;
+        nameIndex = 0;
+      }
+
+      for (int i = 1; i < spotSampleNames.length; i++) {
+        spotNameMap.put(spotSampleNames[i][spotIndex], spotSampleNames[i][nameIndex]);
+      }
+    } catch (IOException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+
+    return spotNameMap;
+  }
+
 }
