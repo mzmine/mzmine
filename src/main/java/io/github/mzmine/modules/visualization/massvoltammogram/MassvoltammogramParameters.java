@@ -40,17 +40,11 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
 
   public static final ComboParameter<String> polarity = new ComboParameter<>("Polarity",
-      "Polarity of the data to be used.", new String[]{"+", "-"});
+      "Polarity of the MS data to be used.", new String[]{"+", "-"});
 
-  public static final DoubleParameter tubingLengthMM = new DoubleParameter("Tubing length / mm",
-      "Tubing length between EC-Cell and ESI-Needle.", new DecimalFormat("0.0"), 750d);
-
-  public static final DoubleParameter tubingIdMM = new DoubleParameter("Tubing inner diameter / mm",
-      "Inner diameter of the tubing.", new DecimalFormat("0.000"), 0.13d);
-
-  public static final DoubleParameter flowRateMicroLiterPerMin = new DoubleParameter(
-      "Flow rate / μL/min", "Tubing length between EC-Cell and ESI-Needle.",
-      new DecimalFormat("0.0"), 20d);
+  public static final DoubleParameter delayTime = new DoubleParameter("Delay Time / s",
+      "Delay time before analytes from the EC cell reach the mass spectrometer",
+      new DecimalFormat("0.0"), 30d);
 
   public static final DoubleParameter potentialRampSpeed = new DoubleParameter(
       "Potential ramp / mV/s", "Potential ramp speed in mV/s.", new DecimalFormat("0.0"), 10d);
@@ -69,8 +63,8 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       ReactionMode.OXIDATIVE);
 
   public MassvoltammogramParameters() {
-    super(new Parameter[]{files, polarity, tubingLengthMM, tubingIdMM, flowRateMicroLiterPerMin,
-        reactionMode, potentialRampSpeed, potentialRange, stepSize, mzRange});
+    super(new Parameter[]{files, polarity, reactionMode, delayTime, potentialRampSpeed,
+        potentialRange, stepSize, mzRange});
   }
 }
 

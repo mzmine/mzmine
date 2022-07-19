@@ -32,22 +32,6 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class MassvoltammogramTask extends AbstractTask {
-
-  /**
-   * tubing length in mm
-   */
-  private final double tubingLength;
-  /**
-   * tubing id in mm
-   */
-  private final double tubingId;
-  /**
-   * flow rate in uL/min
-   */
-  private final double flowRate;
-  /**
-   * potential ramp speed in mV/s
-   */
   private double potentialRampSpeed;
   /**
    * step size between drawn spectra in mV
@@ -77,18 +61,20 @@ public class MassvoltammogramTask extends AbstractTask {
    * Polarity of the data used.
    */
   private String polarity;
+  /**
+   * Delay time between the EC cell and the MS in s.
+   */
+  private final double delayTime;
 
   public MassvoltammogramTask(@NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
-    tubingLength = parameters.getValue(MassvoltammogramParameters.tubingLengthMM);
-    tubingId = parameters.getValue(MassvoltammogramParameters.tubingIdMM);
-    flowRate = parameters.getValue(MassvoltammogramParameters.flowRateMicroLiterPerMin);
     potentialRampSpeed = parameters.getValue(MassvoltammogramParameters.potentialRampSpeed);
     stepSize = parameters.getValue(MassvoltammogramParameters.stepSize);
     potentialRange = parameters.getValue(MassvoltammogramParameters.potentialRange);
     mzRange = parameters.getValue(MassvoltammogramParameters.mzRange);
     reactionMode = parameters.getValue(MassvoltammogramParameters.reactionMode);
     polarity = parameters.getValue((MassvoltammogramParameters.polarity));
+    delayTime = parameters.getValue(MassvoltammogramParameters.delayTime);
   }
 
   @Override
@@ -109,10 +95,6 @@ public class MassvoltammogramTask extends AbstractTask {
     final RawDataFile file = MassvoltammogramParameters.files.getValue()
         .getMatchingRawDataFiles()[0];
 
-    //Calculating the delay time between EC-cell and MS.
-    final double tubingVolumeMicroL = EcmsUtils.getTubingVolume(tubingLength, tubingId);
-    final double delayTimeMin = EcmsUtils.getDelayTime(flowRate, tubingVolumeMicroL);
-
     //Setting up the parameters correctly depending on the selected reaction type.
     if (reactionMode.equals(ReactionMode.OXIDATIVE)) {
       startPotential = potentialRange.lowerEndpoint();
@@ -131,8 +113,8 @@ public class MassvoltammogramTask extends AbstractTask {
         PolarityType.fromSingleChar(polarity), null, 1, null);
 
     //Creating a list with all needed scans.
-    final List<double[][]> scans = MassvoltammogramUtils.getScans(file, scanSelection, delayTimeMin,
-        startPotential, endPotential, potentialRampSpeed, stepSize);
+    final List<double[][]> scans = MassvoltammogramUtils.getScans(file, scanSelection,
+        delayTime / 60, startPotential, endPotential, potentialRampSpeed, stepSize);
 
     //Checking weather the scans were extracted correctly.
     if (scans.size() == 0) {

@@ -138,7 +138,8 @@ public class MassvoltammogramTab extends MZmineTab {
     //Creating a new toolbar and adding the buttons.
     final ToolBar toolbar = new ToolBar();
     toolbar.setOrientation(Orientation.VERTICAL);
-    toolbar.getItems().addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
+    toolbar.getItems()
+        .addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
     toolbar.setStyle("-fx-background-color: white;");
 
     //Adding lable to identify the different massvoltammograms
@@ -185,11 +186,12 @@ public class MassvoltammogramTab extends MZmineTab {
     //Adding the new list of scans to the plot for later export.
     plot.addRawScansInMzRange(spectra);
 
-    //Getting the divisor and the min and max potential range to set up the axis correctly.
+    //Getting the divisor and the min and max potential to set up the axis correctly.
     final double divisor = MassvoltammogramUtils.getDivisor(maxIntensity);
     final double[][] firstScan = scans.get(0);
     final double[][] lastScan = scans.get(scans.size() - 1);
-    final Range<Double> potentialRange = MassvoltammogramParameters.potentialRange.getValue();
+    final double maxPotential = Math.max(firstScan[0][2], lastScan[0][2]);
+    final double minPotential = Math.min(firstScan[0][2], lastScan[0][2]);
 
     //Removing the old line plots from the plot panel
     plot.removeAllPlots();
@@ -197,7 +199,7 @@ public class MassvoltammogramTab extends MZmineTab {
     //Adding the new plots and setting the axis up correctly.
     MassvoltammogramUtils.addSpectraToPlot(spectraWithoutZeros, divisor, plot);
     plot.setFixedBounds(0, newMzRange.lowerEndpoint(), newMzRange.upperEndpoint());
-    plot.setFixedBounds(1, potentialRange.lowerEndpoint(), potentialRange.upperEndpoint());
+    plot.setFixedBounds(1, minPotential, maxPotential);
 
     this.plot = plot;
   }
