@@ -79,6 +79,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
   private final double minSummedIntensity;
   private final MZTolerance mzTolerance;
   private final ScanSelection selection = new ScanSelection(1);
+  private final File spotNameFile;
   private ParameterSet parameters;
   private MZmineProject project;
   private String currentDesc = "";
@@ -94,12 +95,17 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     binningMobilogramDataAccess = new BinningMobilogramDataAccess(file,
         BinningMobilogramDataAccess.getRecommendedBinWidth(file));
     mzTolerance = parameters.getValue(MaldiSpotFeatureDetectionParameters.mzTolerance);
+
+    spotNameFile = parameters.getValue(MaldiSpotFeatureDetectionParameters.spotNameFile)
+        ? parameters.getParameter(MaldiSpotFeatureDetectionParameters.spotNameFile)
+        .getEmbeddedParameter().getValue() : null;
     minSummedIntensity = parameters.getValue(MaldiSpotFeatureDetectionParameters.minIntensity);
   }
 
   @Override
   public String getTaskDescription() {
-    return "Detection of features on MALDI dried droplet plates for file " + file.getName() + ": " + currentDesc;
+    return "Detection of features on MALDI dried droplet plates for file " + file.getName() + ": "
+        + currentDesc;
   }
 
   @Override
@@ -129,16 +135,20 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     // create traces for every spot
     while (frameAccess.hasNextScan()) {
 
-      progress = 0.2 * processedFrames / (double)totalFrames;
+      progress = 0.2 * processedFrames / (double) totalFrames;
 
       final ImagingFrame frame = (ImagingFrame) frameAccess.nextScan();
       final String spot = frame.getMaldiSpotInfo().spotName();
 
       currentDesc = "Detecting traces in spot " + spot;
 
+      final Map<String, String> spotSampleNameMap = parseSpotSampleName(spotNameFile);
+
       var traceMap = spotTracesMap.computeIfAbsent(spot, k -> TreeRangeMap.create());
       final ModularFeatureList flist = spotFlistMap.computeIfAbsent(spot,
-          s -> new ModularFeatureList(file.getName() + " - " + s, getMemoryMapStorage(), file));
+          s -> new ModularFeatureList(
+              spotSampleNameMap.getOrDefault(spot, file.getName() + " - " + s),
+              getMemoryMapStorage(), file));
 
       final List<Scan> selectedScans =
           flist.getSeletedScans(file) != null ? (List<Scan>) flist.getSeletedScans(file)
@@ -171,7 +181,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     int processedSpots = 0;
     // expand the traces
     for (Entry<String, ModularFeatureList> spotFlistEntry : spotFlistMap.entrySet()) {
-      progress = 0.2 + 0.8 * processedSpots / (double)totalSpots;
+      progress = 0.2 + 0.8 * processedSpots / (double) totalSpots;
 
       final String spot = spotFlistEntry.getKey();
       final ModularFeatureList flist = spotFlistEntry.getValue();
@@ -195,7 +205,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
       task.run();
 
       for (ExpandingTrace trace : traces) {
-        if(trace.getNumberOfMobilityScans() == 0) {
+        if (trace.getNumberOfMobilityScans() == 0) {
           continue;
         }
         final IonMobilogramTimeSeries imts = trace.toIonMobilogramTimeSeries(getMemoryMapStorage(),
@@ -220,8 +230,11 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private Map<String, String> parseSpotSampleName(final File file) {
+  private Map<String, String> parseSpotSampleName(@Nullable final File file) {
     Map<String, String> spotNameMap = new HashMap<>();
+    if (file == null) {
+      return spotNameMap;
+    }
     try {
       final String[][] spotSampleNames = CSVParser.parse(new FileReader(file));
 
