@@ -18,18 +18,23 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.renderer.PaintScale;
+import io.github.mzmine.datamodel.Scan;
 
 /**
- * Used to color XYZ plots based on their z values.
+ * Scans connected to each XYItem in an XY dataset and chart
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public interface PaintScaleProvider {
+public non-sealed interface XYItemScanProvider extends XYItemObjectProvider<Scan> {
 
-  /**
-   * The {@link PaintScale} this data will be drawn with.
-   *
-   * @return A paint scale. If null, a default paint scale will be used.
-   */
-  @Nullable PaintScale getPaintScale();
+  Scan getScan(int series, int item);
+
+  default Scan getScan(int item) {
+    return getScan(0, item);
+  }
+
+  @Override
+  default Scan getItemObject(int series, int item) {
+    return getScan(series, item);
+  }
 }

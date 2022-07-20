@@ -18,18 +18,24 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.renderer.PaintScale;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 
 /**
- * Used to color XYZ plots based on their z values.
+ * Feature list rows connected to each XYItem in an XY dataset and chart
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public interface PaintScaleProvider {
+public abstract non-sealed class XYItemFeatureProvider implements
+    XYItemObjectProvider<FeatureListRow> {
 
-  /**
-   * The {@link PaintScale} this data will be drawn with.
-   *
-   * @return A paint scale. If null, a default paint scale will be used.
-   */
-  @Nullable PaintScale getPaintScale();
+  public abstract FeatureListRow getRow(int series, int item);
+
+  public FeatureListRow getRow(int item) {
+    return getRow(0, item);
+  }
+
+  @Override
+  public FeatureListRow getItemObject(int series, int item) {
+    return getRow(series, item);
+  }
 }
