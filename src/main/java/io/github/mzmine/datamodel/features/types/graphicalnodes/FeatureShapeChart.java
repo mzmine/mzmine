@@ -56,15 +56,20 @@ public class FeatureShapeChart extends StackPane {
 
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
+    boolean skipRow = false;
     for (Feature f : row.getFeatures()) {
       if(f.getRawDataFile() instanceof ImagingRawDataFile) {
         continue;
       }
       IonTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
       if (dpSeries != null) {
-        ColoredXYDataset dataset = new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider((ModularFeature) f), RunOption.THIS_THREAD);
-        datasets.add(dataset);
+          try {
+            ColoredXYDataset dataset = new ColoredXYDataset(
+                new IonTimeSeriesToXYProvider((ModularFeature) f), RunOption.THIS_THREAD);
+            datasets.add(dataset);
+          } catch(NullPointerException npe) {
+              skipRow = true;
+          }
       }
       if (progress != null) {
         progress.addAndGet(1.0 / size);
@@ -76,7 +81,7 @@ public class FeatureShapeChart extends StackPane {
 
     final ModularFeature bestFeature = row.getBestFeature();
     final org.jfree.data.Range defaultRange;
-    if (bestFeature != null) {
+    if (bestFeature != null && !skipRow) {
       final Float rt = bestFeature.getRT();
 
       if (bestFeature.getFWHM() != null && !Float.isNaN(bestFeature.getFWHM())
