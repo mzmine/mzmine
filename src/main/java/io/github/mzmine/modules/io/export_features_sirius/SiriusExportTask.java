@@ -169,7 +169,13 @@ public class SiriusExportTask extends AbstractTask {
             .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         tmpFile = new File(newFilename);
       }
-      final File curFile = FileAndPathUtil.getRealFilePath(tmpFile, ".mgf");
+      curFile = FileAndPathUtil.getRealFilePath(tmpFile, "mgf");
+      
+      if (!FileAndPathUtil.createDirectory(curFile.getParentFile())) {
+        setErrorMessage("Could not create directories for file " + curFile + " for writing.");
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
 
       // Open file
       try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
