@@ -152,6 +152,14 @@ public class ProjectSavingTask extends AbstractTask {
       // Prepare a temporary ZIP file. We create this file in the same
       // directory as the final saveFile to avoid moving between
       // filesystems in the last stage (renameTo)
+      
+      // checking if directory exists first
+      if (!FileAndPathUtil.createDirectory(saveFile.getParentFile())) {
+        setErrorMessage("Could not create directories for file " + saveFile + " for writing.");
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
+
       File tempFile = File.createTempFile(saveFile.getName(), ".tmp", saveFile.getParentFile());
       tempFile.deleteOnExit();
 
