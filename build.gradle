@@ -337,6 +337,14 @@ runtime {
                    /*"--enable-preview"*/]
     }
 }
+def JLINK_DIR = "$buildDir/jpackage/MZmine"
+
+tasks.jpackage.doFirst {
+    copy {
+        from "${projectDir}/external_tools"
+        into JLINK_DIR + "/external_tools"
+    }
+}
 
 /*
  * This is important in order to copy all .java, .fxml, and help files into the final MZmine jar.
