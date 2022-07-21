@@ -48,15 +48,14 @@ import org.graphstream.ui.view.Viewer.ThreadingModel;
 public class NetworkTestVisualizer extends Stage {
 
   private static final Logger logger = Logger.getLogger(NetworkTestVisualizer.class.getName());
-  openSetupDialog di = new openSetupDialog();
   protected Graph graph;
   protected Viewer viewer;
   protected FxViewPanel view;
   protected SpriteManager sprites;
   protected double viewPercent = 1;
   private Point2D last;
-  int NV = di.getNodeValue();
-  String GA = di.getGeneratingAlgo();
+  int numberOfEdges;
+  NetworkGenerators generator;
 
   public void zoom(boolean zoomOut) {
     viewPercent += viewPercent * 0.1 * (zoomOut ? -1 : 1);
@@ -89,21 +88,23 @@ public class NetworkTestVisualizer extends Stage {
     return graph.getNode(rand);
   }
 
-  public NetworkTestVisualizer() {
-    graph = new MultiGraph(GA);
+  public NetworkTestVisualizer(TestNetworkParameters params) {
+    numberOfEdges = params.getValue(TestNetworkParameters.edges);
+    generator = params.getValue(TestNetworkParameters.generator);
+
+    graph = new MultiGraph(generator.toString());
     graph.setAttribute("ui.stylesheet",
         "edge { fill-mode: dyn-plain;fill-color: red,yellow,green,blue,pink,orange,purple,brown,black,violet; shape: angle; arrow-shape: none; size-mode:dyn-size; size: 2px; } node {fill-color: green;}sprite { shape: pie-chart; fill-color: #FC0, #F00, #03F, #A0F; size: 20px; }");
-    Generator generator = switch (GA) {
-      case "RandomGenerator" -> new RandomGenerator(2);
-      case "BarabasiAlbertGenerator" -> new BarabasiAlbertGenerator(3);
-      case "SquareGridGenerator" -> new GridGenerator();
-      case "RandomEuclideanGenerator" -> new RandomEuclideanGenerator();
-      case "DorogovtsevMendesGenerator" -> new DorogovtsevMendesGenerator();
-      default -> throw new IllegalStateException("Unexpected value: " + GA);
+    Generator generator = switch (this.generator) {
+      case RandomGenerator -> new RandomGenerator(2);
+      case BarabasiAlbertGenerator -> new BarabasiAlbertGenerator(3);
+      case SquareGridGenerator -> new GridGenerator();
+      case RandomEuclideanGenerator -> new RandomEuclideanGenerator();
+      case DorogovtsevMendesGenerator -> new DorogovtsevMendesGenerator();
     };
     generator.addSink(graph);
     generator.begin();
-    for (int i = 0; i < NV; i++) {
+    for (int i = 0; i < numberOfEdges; i++) {
       generator.nextEvents();
     }
     generator.end();

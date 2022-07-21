@@ -33,6 +33,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.test_visualizer.NetworkTestVisualizer;
+import io.github.mzmine.modules.visualization.test_visualizer.TestNetworkParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
@@ -254,8 +255,11 @@ public class MainMenuController {
   }
 
   public void openTestNetworkVis(ActionEvent e) {
-    NetworkTestVisualizer dialog = new NetworkTestVisualizer();
-    dialog.show();
+    TestNetworkParameters params = new TestNetworkParameters();
+    if (params.showSetupDialog(true) == ExitCode.OK) {
+      NetworkTestVisualizer dialog = new NetworkTestVisualizer(params);
+      dialog.show();
+    }
   }
 }
 
