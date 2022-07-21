@@ -23,10 +23,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 import org.graphstream.algorithm.generator.BarabasiAlbertGenerator;
 import org.graphstream.algorithm.generator.DorogovtsevMendesGenerator;
@@ -34,6 +34,7 @@ import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.algorithm.generator.GridGenerator;
 import org.graphstream.algorithm.generator.RandomEuclideanGenerator;
 import org.graphstream.algorithm.generator.RandomGenerator;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -130,10 +131,13 @@ public class NetworkTestVisualizer extends Stage {
       view = (FxViewPanel) viewer.addDefaultView(false);
       double Mxw = view.getMaxWidth(), Mxh = view.getMaxHeight();
       view.enableMouseOptions();
-      Pane graphpane = new Pane(view);
-      graphpane.setMaxSize(Mxh, Mxw);
-      Pane sp = new Pane();
-      sp.getChildren().addAll(graphpane);
+
+      Label clickLabel = new Label("");
+      FlowPane topPane = new FlowPane(clickLabel);
+      BorderPane mainPane = new BorderPane(view);
+      mainPane.setTop(topPane);
+
+//      graphpane.setMaxSize(Mxh, Mxw);
       view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
       view.setOnMouseClicked(e -> {
         if (e.getButton() == MouseButton.PRIMARY) {
@@ -149,13 +153,10 @@ public class NetworkTestVisualizer extends Stage {
         if (last == null) {
           last = new Point2D(e.getX(), e.getY());
         }
-        if (e.getButton() == MouseButton.SECONDARY) {
-          Alert alert = new Alert(AlertType.INFORMATION);
-          alert.setTitle("Node Identifier");
-          alert.setContentText("You have clicked on Edge: " + NetworkMouseManager.findEdgeAt(view,
-              view.getViewer().getGraphicGraph(), e.getX(), e.getY()).getId());
-          alert.showAndWait();
-        }
+        // show clicked edge in label
+        Edge edge = NetworkMouseManager.findEdgeAt(view, view.getViewer().getGraphicGraph(),
+            e.getX(), e.getY());
+        clickLabel.setText("You have clicked on Edge: " + (edge == null ? "NONE" : edge.getId()));
       });
       view.setOnMouseReleased(e -> {
         last = null;
@@ -167,7 +168,8 @@ public class NetworkTestVisualizer extends Stage {
         }
         last = new Point2D(e.getX(), e.getY());
       });
-      Scene scene = new Scene(sp, Mxh, Mxw);
+
+      Scene scene = new Scene(mainPane, Mxh, Mxw);
       setTitle("Test_Visualizer");
       setScene(scene);
       setResizable(false);
