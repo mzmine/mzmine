@@ -287,6 +287,16 @@ application {
     ]
 }
 
+def JLINK_DIR = "${getLayout().getBuildDirectory().dir("/jpackage/mzmine").get()}"
+
+tasks.jpackage.doFirst {
+    copy {
+        from "${projectDir}/../external_tools"
+        into JLINK_DIR + "/external_tools"
+    }
+}
+
+
 /*
  * Build the JVM runtime using jlink
  */
