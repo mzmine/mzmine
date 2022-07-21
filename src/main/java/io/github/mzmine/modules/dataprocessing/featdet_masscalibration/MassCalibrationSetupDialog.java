@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -173,13 +173,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     chartsPane.visibleProperty().addListener((c, o, n) -> {
       if (n) {
         mainPane.setCenter(chartsPane);
-        mainPane.setLeft(mainScrollPane);
+        mainPane.setLeft(getParamPane());
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
         parametersChanged(false);
       } else {
         mainPane.setLeft(null);
-        mainPane.setCenter(mainScrollPane);
+        mainPane.setCenter(getParamPane());
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
       }
@@ -219,7 +219,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
         previewTask.cancel();
       }
 
-      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true, Instant.now());
+      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true,
+          Instant.now());
 
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
       MZmineCore.getTaskController().addTask(previewTask);
@@ -232,8 +233,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected void updatePreviewAfterTaskRun(boolean rerun) {
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
-        MZmineCore.getDesktop().displayMessage("Mass calibration error message",
-            previewTask.getErrorMessage());
+        MZmineCore.getDesktop()
+            .displayMessage("Mass calibration error message", previewTask.getErrorMessage());
       }
       return;
     }

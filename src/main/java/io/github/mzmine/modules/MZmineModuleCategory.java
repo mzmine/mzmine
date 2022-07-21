@@ -22,6 +22,7 @@ public enum MZmineModuleCategory {
 
   PROJECTIO("Project I/O"), //
   PROJECT("Project"), //
+  PROJECTMETADATA("Project metadata"), //
   RAWDATAIMPORT("Raw data import"), //
   RAWDATA("Raw data methods"), //
   RAWDATAFILTERING("Raw data filtering"), //
@@ -59,11 +60,11 @@ public enum MZmineModuleCategory {
 
   public MainCategory getMainCategory() {
     return switch (this) {
-      case PROJECT, PROJECTIO -> MainCategory.PROJECT;
+      case PROJECT, PROJECTIO, PROJECTMETADATA -> MainCategory.PROJECT;
       case RAWDATAIMPORT, RAWDATAEXPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
-      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST-> MainCategory.FEATURE_DETECTION;
+      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST -> MainCategory.FEATURE_DETECTION;
       case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
-      case NORMALIZATION, ANNOTATION, DATAANALYSIS,FEATURE_GROUPING, ION_IDENTITY_NETWORKS -> MainCategory.FEATURE_PROCESSING;
+      case NORMALIZATION, ANNOTATION, DATAANALYSIS, FEATURE_GROUPING, ION_IDENTITY_NETWORKS -> MainCategory.FEATURE_PROCESSING;
       case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
       case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST -> MainCategory.VISUALIZATION;
       // no main category
@@ -79,8 +80,7 @@ public enum MZmineModuleCategory {
     FEATURE_FILTERING("Feature filtering"), //
     FEATURE_PROCESSING("Feature processing"), //
     FEATURE_IO("Feature IO"), //
-    VISUALIZATION("Visualization"),
-    OTHER("Other");
+    VISUALIZATION("Visualization"), OTHER("Other");
 
     private final String name;
 

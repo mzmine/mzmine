@@ -121,7 +121,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
       return;
     }
 
-    SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Inject time",
+    SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("1/Inject time",
         "Lowest intensity");
 
     SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
