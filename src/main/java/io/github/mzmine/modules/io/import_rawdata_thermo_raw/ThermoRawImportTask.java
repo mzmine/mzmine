@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.main.ExternalTool;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
@@ -34,17 +35,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.ZipUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.time.Instant;
-import java.util.Date;
 import java.util.logging.Logger;
-import java.util.zip.ZipInputStream;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -54,14 +49,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ThermoRawImportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private File fileToOpen;
-  private MZmineProject project;
-  private RawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final File fileToOpen;
+  private final MZmineProject project;
+  private final RawDataFile newMZmineFile;
   private Process dumper = null;
 
   private String taskDescription;
@@ -70,17 +63,21 @@ public class ThermoRawImportTask extends AbstractTask {
   /*
    * These variables are used during parsing of the RAW dump.
    */
-  private int scanNumber = 0, msLevel = 0, precursorCharge = 0, numOfDataPoints;
+  private final int scanNumber = 0;
+  private final int msLevel = 0;
+  private final int precursorCharge = 0;
+  private final float retentionTime = 0;
   private String scanId;
   private PolarityType polarity;
   private Range<Double> mzRange;
-  private float retentionTime = 0;
-  private double precursorMZ = 0;
+  private final double precursorMZ = 0;
+  private int numOfDataPoints;
 
   private MzMLFileImportMethod msdkTask;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
@@ -90,9 +87,6 @@ public class ThermoRawImportTask extends AbstractTask {
     this.module = module;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (msdkTask == null || msdkTask.getFinishedPercentage() == null) {
@@ -102,9 +96,6 @@ public class ThermoRawImportTask extends AbstractTask {
     }
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
 
@@ -113,7 +104,8 @@ public class ThermoRawImportTask extends AbstractTask {
 
     // Unzip ThermoRawFileParser
     try {
-      final File thermoRawFileParserDir = unzipThermoRawFileParser();
+      final File thermoRawFileParserDir = ExternalTool.THERMO_RAW_PARSER.getExternalToolPath();
+
       String thermoRawFileParserCommand;
 
       if (Platform.isWindows()) {
@@ -131,7 +123,7 @@ public class ThermoRawImportTask extends AbstractTask {
         return;
       }
 
-      final String cmdLine[] = new String[]{ //
+      final String[] cmdLine = new String[]{ //
           thermoRawFileParserCommand, // program to run
           "-s", // output mzML to stdout
           "-p", // no peak picking
@@ -140,6 +132,8 @@ public class ThermoRawImportTask extends AbstractTask {
           "-i", // input RAW file name coming next
           fileToOpen.getPath() // input RAW file name
       };
+
+      logger.fine("Running raw file parser as: " + String.join(" ", cmdLine));
 
       // Create a separate process and execute ThermoRawFileParser.
       // Use thermoRawFileParserDir as working directory; this is essential, otherwise the process will fail.
@@ -191,7 +185,8 @@ public class ThermoRawImportTask extends AbstractTask {
                 + " out of " + totalScans + ")"));
       }
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -218,43 +213,6 @@ public class ThermoRawImportTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return taskDescription;
-  }
-
-  private File unzipThermoRawFileParser() throws IOException {
-    final String tmpPath = System.getProperty("java.io.tmpdir");
-    File thermoRawFileParserFolder = new File(tmpPath, "mzmine_thermo_raw_parser");
-    final File thermoRawFileParserExe = new File(thermoRawFileParserFolder,
-        "ThermoRawFileParser.exe");
-
-    // Check if it has already been unzipped
-    if (thermoRawFileParserFolder.exists() && thermoRawFileParserFolder.isDirectory()
-        && thermoRawFileParserFolder.canRead() && thermoRawFileParserExe.exists()
-        && thermoRawFileParserExe.isFile() && thermoRawFileParserExe.canExecute()) {
-      logger.finest("ThermoRawFileParser found in folder " + thermoRawFileParserFolder);
-      return thermoRawFileParserFolder;
-    }
-
-    // In case the folder already exists, unzip to a different folder
-    if (thermoRawFileParserFolder.exists()) {
-      logger.finest("Folder " + thermoRawFileParserFolder + " exists, creating a new one");
-      thermoRawFileParserFolder = Files.createTempDirectory("mzmine_thermo_raw_parser").toFile();
-    }
-
-    logger.finest("Unpacking ThermoRawFileParser to folder " + thermoRawFileParserFolder);
-    InputStream zipStream = getClass()
-        .getResourceAsStream("/vendorlib/thermo/ThermoRawFileParser.zip");
-    if (zipStream == null) {
-      throw new IOException(
-          "Failed to open the resource /vendorlib/thermo/ThermoRawFileParser.zip");
-    }
-    ZipInputStream zipInputStream = new ZipInputStream(zipStream);
-    ZipUtils.unzipStream(zipInputStream, thermoRawFileParserFolder);
-    zipInputStream.close();
-
-    // Delete the temporary folder on application exit
-    FileUtils.forceDeleteOnExit(thermoRawFileParserFolder);
-
-    return thermoRawFileParserFolder;
   }
 
 
