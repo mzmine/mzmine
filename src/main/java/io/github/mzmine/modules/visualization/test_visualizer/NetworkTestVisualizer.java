@@ -34,16 +34,12 @@ import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.algorithm.generator.GridGenerator;
 import org.graphstream.algorithm.generator.RandomEuclideanGenerator;
 import org.graphstream.algorithm.generator.RandomGenerator;
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.geom.Point3;
-import org.graphstream.ui.graphicGraph.GraphicEdge;
-import org.graphstream.ui.graphicGraph.GraphicGraph;
-import org.graphstream.ui.graphicGraph.GraphicNode;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.ThreadingModel;
@@ -90,55 +86,6 @@ public class NetworkTestVisualizer extends Stage {
     int max = (int) graph.nodes().count();
     int rand = (int) (min + (Math.random() * (max - min)));
     return graph.getNode(rand);
-  }
-
-  public Edge getClickedEdge(double px, double py) {
-    double ld = 5; // Max distance mouse click can be from line to be a click
-    GraphicEdge se = null; // Current closest edge to mouse click that is withing max distance
-    GraphicGraph gg = viewer.getGraphicGraph();
-    Iterable<GraphicEdge> ie = gg.getEachEdge();
-    for (GraphicEdge ge : ie) {
-      // Nodes of current edge
-      GraphicNode gn0 = (GraphicNode) ge.getNode0();
-      GraphicNode gn1 = (GraphicNode) ge.getNode1();
-      // Coordinates of node 0 and node 1
-      Point3 gn0p = view.getCamera().transformGuToPx(gn0.getX(), gn0.getY(), gn0.getZ());
-      Point3 gn1p = view.getCamera().transformGuToPx(gn1.getX(), gn1.getY(), gn1.getZ());
-      // Values for equation of the line
-      double m = (gn1p.y - gn0p.y) / (gn1p.x - gn0p.x); // slope
-      double b = gn1p.y - m * gn1p.x; // y intercept
-      // Distance of mouse click from the line
-      double d = Math.abs(m * px - py + b) / Math.sqrt(Math.pow(m, 2) + 1);
-
-      System.out.println(
-          "Mouse Point: " + px + "," + py + ", GN0Point: " + gn0p.toString() + ", GN1Point: "
-              + gn1p.toString() + ". Distance: " + d);
-
-      // Determine lowest x (lnx), hishest x (hnx), lowest y (lny), highest y (hny)
-      double lnx = gn0p.x;
-      double lny = gn0p.y;
-      double hnx = gn1p.x;
-      double hny = gn1p.y;
-      if (hnx < lnx) {
-        lnx = gn1p.x;
-        hnx = gn0p.x;
-      }
-      if (hny < lny) {
-        lny = gn1p.y;
-        hny = gn0p.y;
-      }
-      // Determine if click is close enough to line (d < ld), and click is within edge bounds (lnx <= px && lny <= py && hnx >= px && hny >= py)
-      if (d < ld && lnx <= px && lny <= py && hnx >= px && hny >= py) {
-        se = ge; // store edge
-        ld = d; // update max distance to get the closest edge to the mouse click
-      }
-    }
-    // Determine if edge clicked and return the edge
-    if (se != null) {
-      System.out.println("Selected edge: " + se.getId());
-      return graph.getEdge(se.getId());
-    }
-    return null;
   }
 
   public NetworkTestVisualizer() {
@@ -205,8 +152,8 @@ public class NetworkTestVisualizer extends Stage {
         if (e.getButton() == MouseButton.SECONDARY) {
           Alert alert = new Alert(AlertType.INFORMATION);
           alert.setTitle("Node Identifier");
-          alert.setContentText(
-              "You have clicked on Edge: " + getClickedEdge(e.getX(), e.getY()).getId());
+          alert.setContentText("You have clicked on Edge: " + NetworkMouseManager.findEdgeAt(view,
+              view.getViewer().getGraphicGraph(), e.getX(), e.getY()).getId());
           alert.showAndWait();
         }
       });
