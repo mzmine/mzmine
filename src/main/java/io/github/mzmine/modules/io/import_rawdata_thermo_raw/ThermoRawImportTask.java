@@ -36,9 +36,11 @@ import io.github.mzmine.util.ExceptionUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -127,6 +129,7 @@ public class ThermoRawImportTask extends AbstractTask {
       // Get the stdout of ThermoRawFileParser process as InputStream
       InputStream mzMLStream = dumper.getInputStream();
       BufferedInputStream bufStream = new BufferedInputStream(mzMLStream);
+      InputStream errorStream = dumper.getErrorStream();
 
       msdkTask = new MzMLFileImportMethod(bufStream);
       msdkTask.execute();
@@ -158,16 +161,36 @@ public class ThermoRawImportTask extends AbstractTask {
 
       // Finish
       bufStream.close();
+
+      if (errorStream.available() > 0) {
+        String errMsg =
+            "ThermoRawFileParser returned error output: " + IOUtils.toString(errorStream,
+                StandardCharsets.UTF_8);
+        errorStream.close();
+        logger.log(Level.WARNING, errMsg);
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(errMsg);
+        dumper.destroy();
+        return;
+      }
+
+      errorStream.close();
       dumper.destroy();
 
       if (parsedScans == 0) {
-        throw (new Exception("No scans found"));
+        String errMsg = "Parsing completed, but no scans were found.";
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(errMsg);
+        return;
       }
 
       if (parsedScans != totalScans) {
-        throw (new Exception(
+        String errMsg =
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-                + " out of " + totalScans + ")"));
+                + " out of " + totalScans + ")";
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(errMsg);
+        return;
       }
 
       newMZmineFile.getAppliedMethods()
