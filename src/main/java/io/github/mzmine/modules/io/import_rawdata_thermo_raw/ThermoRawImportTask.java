@@ -18,11 +18,9 @@
 
 package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 
-import com.google.common.collect.Range;
 import com.sun.jna.Platform;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -39,6 +37,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,28 +50,14 @@ public class ThermoRawImportTask extends AbstractTask {
 
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ThermoRawImportTask.class.getName());
   private final File fileToOpen;
   private final MZmineProject project;
   private final RawDataFile newMZmineFile;
   private Process dumper = null;
 
   private String taskDescription;
-  private int totalScans = 0, parsedScans = 0;
-
-  /*
-   * These variables are used during parsing of the RAW dump.
-   */
-  private final int scanNumber = 0;
-  private final int msLevel = 0;
-  private final int precursorCharge = 0;
-  private final float retentionTime = 0;
-  private String scanId;
-  private PolarityType polarity;
-  private Range<Double> mzRange;
-  private final double precursorMZ = 0;
-  private int numOfDataPoints;
-
+  private int parsedScans = 0;
   private MzMLFileImportMethod msdkTask;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
@@ -152,7 +137,7 @@ public class ThermoRawImportTask extends AbstractTask {
         setErrorMessage("MSDK returned null");
         return;
       }
-      totalScans = msdkFile.getScans().size();
+      int totalScans = msdkFile.getScans().size();
 
       for (MsScan scan : msdkFile.getScans()) {
 
@@ -190,8 +175,7 @@ public class ThermoRawImportTask extends AbstractTask {
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
-
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
 
       if (dumper != null) {
         dumper.destroy();
