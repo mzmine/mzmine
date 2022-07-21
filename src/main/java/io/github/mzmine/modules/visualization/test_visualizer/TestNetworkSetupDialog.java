@@ -28,13 +28,12 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class openSetupDialog extends Stage {
-  static int NodeValue=0;
-  static String GeneratingAlgo="";
-  private  enum GA {
-    RandomGenerator, BarabasiAlbertGenerator, SquareGridGenerator, RandomEuclideanGenerator, DorogovtsevMendesGenerator
-  }
-  public openSetupDialog() {
+public class TestNetworkSetupDialog extends Stage {
+
+  static int NodeValue = 0;
+  static String GeneratingAlgo = "";
+
+  public TestNetworkSetupDialog() {
     Stage s = new Stage();
     s.initModality(Modality.APPLICATION_MODAL);
     TextField tf = new TextField();
@@ -44,7 +43,7 @@ public class openSetupDialog extends Stage {
     Button btn = new Button("Generate Graph");
     btn.setOnAction(e -> {
       NodeValue = Integer.parseInt(tf.getText());
-      GeneratingAlgo = cb.getValue()+"";
+      GeneratingAlgo = cb.getValue() + "";
       s.close();
     });
     Label lb1 = new Label("Enter the minimum no. of nodes:");
@@ -64,12 +63,16 @@ public class openSetupDialog extends Stage {
     s.setResizable(false);
     s.showAndWait();
   }
-  public String getGeneratingAlgo()
-  {
+
+  public String getGeneratingAlgo() {
     return GeneratingAlgo;
   }
-  public int getNodeValue()
-  {
+
+  public int getNodeValue() {
     return NodeValue;
+  }
+
+  private enum GA {
+    RandomGenerator, BarabasiAlbertGenerator, SquareGridGenerator, RandomEuclideanGenerator, DorogovtsevMendesGenerator
   }
 }
