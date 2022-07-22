@@ -72,6 +72,10 @@ repositories {
     maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
+    //Added for water dev
+    flatDir {
+        dirs  "$rootProject.projectDir\\src\\main\\lib\\waters"
+    }
 }
 
 ext {
@@ -200,6 +204,9 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
     testImplementation "org.mockito:mockito-inline:$mockitoversion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoversion"
+    //Added for water development
+    implementation name: "MassLynxSDK"
+    implementation name: "jna"
 
 //    https://blog.gradle.org/log4j-vulnerability
     constraints {
