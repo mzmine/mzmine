@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -73,7 +73,7 @@ import org.jetbrains.annotations.Nullable;
 public final class MZmineCore {
 
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
-  
+
   private static final MZmineCore instance = new MZmineCore();
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
@@ -100,7 +100,8 @@ public final class MZmineCore {
    */
   public static void main(final String[] args) {
     try {
-      logger.info("Starting MZmine " + getMZmineVersion());
+      Semver version = getMZmineVersion();
+      logger.info("Starting MZmine " + version);
       /*
        * Dump the MZmine and JVM arguments for debugging purposes
        */
@@ -183,6 +184,10 @@ public final class MZmineCore {
       File batchFile = argsParser.getBatchFile();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
+      // track version use
+      String versionString = "MZmine version " + version;
+      GoogleAnalyticsTracker.track(versionString, versionString);
+
       getInstance().headLessMode = (batchFile != null || keepRunningInHeadless);
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
       if (!getInstance().headLessMode) {
@@ -198,11 +203,7 @@ public final class MZmineCore {
         getInstance().desktop = getInstance().defaultHeadlessDesktop;
 
         // Tracker
-        GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)",
-            "/JAVA/Main/GUI");
-        Thread gatThread = new Thread(GAT);
-        gatThread.setPriority(Thread.MIN_PRIORITY);
-        gatThread.start();
+        GoogleAnalyticsTracker.track("MZmine Loaded (Headless mode)", "/JAVA/Main/HEADLESS");
 
         if (batchFile != null) {
           // load batch
@@ -363,11 +364,7 @@ public final class MZmineCore {
     MZmineRunnableModule module = getModuleInstance(moduleClass);
 
     // Usage Tracker
-    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(module.getName(),
-        "/JAVA/" + module.getName());
-    Thread gatThread = new Thread(GAT);
-    gatThread.setPriority(Thread.MIN_PRIORITY);
-    gatThread.start();
+    GoogleAnalyticsTracker.trackModule(module);
 
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
@@ -428,7 +425,8 @@ public final class MZmineCore {
   }
 
   /**
-   * Simulates Swing's invokeAndWait(). Based on https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
+   * Simulates Swing's invokeAndWait(). Based on
+   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
    */
   public static void runOnFxThreadAndWait(Runnable r) {
     FxThreadUtil.runOnFxThreadAndWait(r);
