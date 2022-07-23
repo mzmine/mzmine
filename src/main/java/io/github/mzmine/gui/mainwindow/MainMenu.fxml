@@ -15,7 +15,6 @@
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  ~
   -->
 <?import io.github.mzmine.util.javafx.WindowsMenu?>
 <?import javafx.scene.control.Menu?>
@@ -218,6 +217,9 @@
       <MenuItem onAction="#runModule"
         text="Ims expander"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Ims expander2"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander2.ImsExpanderModule2"/>
     </Menu>
     <Menu text="Imaging">
       <MenuItem onAction="#runModule"
