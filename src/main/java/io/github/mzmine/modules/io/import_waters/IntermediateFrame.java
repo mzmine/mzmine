@@ -40,7 +40,6 @@ public class IntermediateFrame extends IntermediateScan {
       throws MasslynxRawException {
     //scan Value
     Scan framescan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan());
-    //For loo
 
 
     double[] mobilities = new double[driftScanCount];

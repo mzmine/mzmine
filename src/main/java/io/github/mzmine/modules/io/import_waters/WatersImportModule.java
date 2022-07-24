@@ -68,7 +68,7 @@ public class WatersImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate)
   {
 
-    File fileNames[] = parameters.getParameter(TDFImportParameters.fileNames).getValue();
+    File fileNames[] = parameters.getParameter(WatersImportParameters.fileNames).getValue();
 
     if (Arrays.asList(fileNames).contains(null)) {
       logger.warning("List of filenames contains null");

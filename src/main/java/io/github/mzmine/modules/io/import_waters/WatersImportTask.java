@@ -21,6 +21,7 @@ import MassLynxSDK.MassLynxRawInfoReader;
 import MassLynxSDK.MassLynxRawScanReader;
 import MassLynxSDK.MasslynxRawException;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -30,6 +31,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -44,7 +46,7 @@ public class WatersImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(WatersImportTask.class.getName());
 
-  private File fileNameToOpen;
+  private File fileToOpen;
   private String filepath;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
@@ -71,8 +73,8 @@ public class WatersImportTask extends AbstractTask {
       @NotNull Instant moduleCallDate)
   {
     super(newMZmineFile.getMemoryMapStorage(),moduleCallDate);
-    this.fileNameToOpen=file;
-    this.filepath=this.fileNameToOpen.getAbsolutePath();
+    this.fileToOpen =file;
+    this.filepath=file.getAbsolutePath();
     this.project = project;
     this.newMZmineFile = newMZmineFile;
     this.parameters = parameters;
@@ -115,15 +117,16 @@ public class WatersImportTask extends AbstractTask {
    * @param filepath
    */
   private void loadRegularFile(String filepath){
-    setDescription("Reading metadata from " + this.fileNameToOpen.getName());
+    setDescription("Reading metadata from " + this.fileToOpen.getName());
     try {
+      final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
+      RawDataFile newMZmineFile = MZmineCore.createNewFile(this.fileToOpen.getName(),filepath,storage);
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       ArrayList<IntermediateScan> intermediatescanarray = new ArrayList<>();
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
       IntermediateScan intermediatescan = null;
 
-      //int countnumscan=1;
 
       for (int functioncount = 0; functioncount < totalfunctioncount; ++functioncount) {
         //total Scan values in each function
@@ -151,10 +154,8 @@ public class WatersImportTask extends AbstractTask {
       for (int i=0;i<intermediatescanarray.size();i++)
       {
         SimpleScan simpleScan = intermediatescanarray.get(i).getScan(i+1, rawscanreader);
-        this.newMZmineFile.addScan(simpleScan);
-        //System.out.println("Output "+ i);
+        newMZmineFile.addScan(simpleScan);
       }
-
     }
     catch (MasslynxRawException e)
     {
@@ -164,6 +165,7 @@ public class WatersImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
+    project.addFile(newMZmineFile);
   }
 
   /**
@@ -177,11 +179,11 @@ public class WatersImportTask extends AbstractTask {
       throws MasslynxRawException {
     if(masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.MS)
     {
-      return MassLynxFunctionType.MS.getValue();
+      return 1;
     }
     else if (masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.MS2)
     {
-      return MassLynxFunctionType.MS2.getValue();
+      return 2;
     }
     else if (masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.TOFM)
     {
@@ -199,8 +201,11 @@ public class WatersImportTask extends AbstractTask {
    */
   public void loadIonMobilityFile(String filepath)
   {
-    setDescription("Reading metadata from " + this.fileNameToOpen.getName());
+    setDescription("Reading metadata from " + this.fileToOpen.getName());
     try {
+      final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
+      IMSRawDataFile IMSnewMZmineFile = MZmineCore.createNewIMSFile(this.fileToOpen.getName(),filepath,storage);
+
       MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       IntermediateFrame intermediateframe;
@@ -236,15 +241,15 @@ public class WatersImportTask extends AbstractTask {
               massLynxRawInfoReader.GetRetentionTime(i, j), j);
           intermediateFrameArrayList.add(intermediateframe);
         }
-        //Sorting of Array by retention time
-        Collections.sort(intermediateFrameArrayList);
+      }
+      //Sorting of Array by retention time
+      Collections.sort(intermediateFrameArrayList);
 
-        for (int mzmine_scannum = 0; mzmine_scannum < intermediateFrameArrayList.size(); mzmine_scannum++) {
+      for (int mzmine_scannum = 0; mzmine_scannum < intermediateFrameArrayList.size(); mzmine_scannum++) {
 
-          simpleFrame=intermediateFrameArrayList.get(mzmine_scannum).toframe(rawscanreader,numdriftscan,
-              mzmine_scannum+1,massLynxRawInfoReader);
-          this.newMZmineFile.addScan(simpleFrame);
-        }
+        simpleFrame=intermediateFrameArrayList.get(mzmine_scannum).toframe(rawscanreader,0,
+            mzmine_scannum+1,massLynxRawInfoReader);
+        IMSnewMZmineFile.addScan(simpleFrame);
       }
     } catch (MasslynxRawException e) {
       e.printStackTrace();
@@ -253,7 +258,7 @@ public class WatersImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
+    //project.
   }
 
   //Change the function return true if func num is 2
@@ -261,7 +266,6 @@ public class WatersImportTask extends AbstractTask {
   {
     return functionNumber >= 2;
     }
-  //for IMS Files
   public boolean imsFiles()
   {
     try{
