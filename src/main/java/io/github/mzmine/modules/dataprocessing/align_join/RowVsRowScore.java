@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -26,7 +26,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 public class RowVsRowScore implements Comparable<RowVsRowScore> {
 
   double score;
-  private FeatureListRow peakListRow, alignedRow;
+  private final FeatureListRow peakListRow;
+  private final FeatureListRow alignedRow;
 
   public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
       double mzWeight, double rtMaxDiff, double rtWeight) {
@@ -88,18 +89,10 @@ public class RowVsRowScore implements Comparable<RowVsRowScore> {
   }
 
   /**
-   * @see Comparable#compareTo(Object)
+   * Sorts in descending order
    */
   public int compareTo(RowVsRowScore object) {
-
-    // We must never return 0, because the TreeSet in JoinAlignerTask would
-    // treat such elements as equal
-    if (score < object.getScore()) {
-      return 1;
-    } else {
-      return -1;
-    }
-
+    return Double.compare(object.getScore(), score);
   }
 
 }

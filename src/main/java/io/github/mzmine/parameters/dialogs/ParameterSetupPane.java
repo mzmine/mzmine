@@ -55,6 +55,7 @@ import org.jetbrains.annotations.NotNull;
  * not used. All added parameters and their components in {@link #parametersAndComponents}
  * <p>
  */
+@SuppressWarnings("rawtypes")
 public class ParameterSetupPane extends BorderPane {
 
   public static final Logger logger = Logger.getLogger(ParameterSetupPane.class.getName());
@@ -63,6 +64,7 @@ public class ParameterSetupPane extends BorderPane {
   protected final ParameterSet parameterSet;
   protected final Map<String, Node> parametersAndComponents = new HashMap<>();
   protected final Button btnHelp;
+  protected Button btnCancel;
   // Button panel - added here so it is possible to move buttons as a whole,
   // if needed.
   protected final ButtonBar pnlButtons;
@@ -77,7 +79,7 @@ public class ParameterSetupPane extends BorderPane {
   // setup dialog, where some parameters need to be set in advance according
   // to values that are not yet imported etc.
   private final boolean valueCheckRequired;
-  private final @NotNull GridPane paramsPane;
+  private GridPane paramsPane;
   // Buttons
   protected Button btnOK;
   /**
@@ -87,7 +89,7 @@ public class ParameterSetupPane extends BorderPane {
 
   public ParameterSetupPane(boolean valueCheckRequired, boolean addOkButton,
       ParameterSet parameters) {
-    this(valueCheckRequired, parameters, addOkButton, null);
+    this(valueCheckRequired, parameters, addOkButton, false, null, true);
   }
 
   /**
@@ -95,9 +97,18 @@ public class ParameterSetupPane extends BorderPane {
    *
    * @param message: html-formatted text
    */
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
       boolean addOkButton, String message) {
+    this(valueCheckRequired, parameters, addOkButton, false, message, true);
+  }
+
+  /**
+   * Method to display setup dialog with a html-formatted footer message at the bottom.
+   *
+   * @param message: html-formatted text
+   */
+  public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
+      boolean addOkButton, boolean addCancelButton, String message, boolean addParamComponents) {
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
     this.helpURL = parameters.getClass().getResource("help/help.html");
@@ -127,14 +138,17 @@ public class ParameterSetupPane extends BorderPane {
       btnOK.setOnAction(e -> callOkButton());
       pnlButtons.getButtons().addAll(btnOK);
       ButtonBar.setButtonData(btnOK, ButtonData.OK_DONE);
-      ButtonBar.setButtonData(btnOK, ButtonData.LEFT);
+    }
+    if (addCancelButton) {
+      btnCancel = new Button("Cancel");
+      btnCancel.setOnAction(e -> callCancelButton());
+      pnlButtons.getButtons().addAll(btnCancel);
+      ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
     }
 
     if (parameters.getOnlineHelpUrl() != null) { // if we have online docs, use those
       btnHelp = new Button("Help");
-      btnHelp.setOnAction(e -> {
-        MZmineCore.getDesktop().openWebPage(parameters.getOnlineHelpUrl());
-      });
+      btnHelp.setOnAction(e -> MZmineCore.getDesktop().openWebPage(parameters.getOnlineHelpUrl()));
 
       ButtonBar.setButtonData(btnHelp, ButtonData.HELP);
       pnlButtons.getButtons().add(btnHelp);
@@ -165,17 +179,36 @@ public class ParameterSetupPane extends BorderPane {
       mainPane.setTop(label);
     }
 
-    paramsPane = createParameterPane(parameterSet.getParameters());
-    centerPane.setCenter(paramsPane);
-
+    if (addParamComponents) {
+      paramsPane = createParameterPane(parameterSet.getParameters());
+      centerPane.setCenter(paramsPane);
+    }
 //    setMinWidth(500.0);
 //    setMinHeight(400.0);
+  }
+
+  public BorderPane getCenterPane() {
+    return centerPane;
+  }
+
+  public Map<String, Node> getParametersAndComponents() {
+    return parametersAndComponents;
+  }
+
+  public ButtonBar getButtonBar() {
+    return pnlButtons;
   }
 
   /**
    * ok button was clicked
    */
   protected void callOkButton() {
+  }
+
+  /**
+   * cancel button was clicked
+   */
+  protected void callCancelButton() {
   }
 
   /**
@@ -202,10 +235,9 @@ public class ParameterSetupPane extends BorderPane {
     // Create labels and components for each parameter
     for (Parameter<?> p : parameters) {
 
-      if (!(p instanceof UserParameter)) {
+      if (!(p instanceof UserParameter up)) {
         continue;
       }
-      UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
       //      addToolTipToControls(comp, up.getDescription());
@@ -234,9 +266,11 @@ public class ParameterSetupPane extends BorderPane {
       label.minWidthProperty().bind(label.widthProperty());
       label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
 
-      final Tooltip tooltip = new Tooltip(up.getDescription());
-      tooltip.setShowDuration(new Duration(20_000));
-      label.setTooltip(tooltip);
+      if (!up.getDescription().isEmpty()) {
+        final Tooltip tooltip = new Tooltip(up.getDescription());
+        tooltip.setShowDuration(new Duration(20_000));
+        label.setTooltip(tooltip);
+      }
 
       label.setStyle("-fx-font-weight: bold");
       paramsPane.add(label, 0, rowCounter);
@@ -325,15 +359,16 @@ public class ParameterSetupPane extends BorderPane {
     return paramsPane;
   }
 
+  public ParameterSet getParameterSet() {
+    return parameterSet;
+  }
+
   protected void addListenersToNode(Node node) {
-    if (node instanceof TextField) {
-      TextField textField = (TextField) node;
-      textField.textProperty().addListener(((observable, oldValue, newValue) -> {
-        parametersChanged();
-      }));
+    if (node instanceof TextField textField) {
+      textField.textProperty()
+          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
-    if (node instanceof ComboBox) {
-      ComboBox<?> comboComp = (ComboBox<?>) node;
+    if (node instanceof ComboBox<?> comboComp) {
       comboComp.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
@@ -342,13 +377,11 @@ public class ParameterSetupPane extends BorderPane {
       choiceBox.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
-    if (node instanceof CheckBox) {
-      CheckBox checkBox = (CheckBox) node;
+    if (node instanceof CheckBox checkBox) {
       checkBox.selectedProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
-    if (node instanceof Region) {
-      Region panelComp = (Region) node;
+    if (node instanceof Region panelComp) {
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
         Node child = panelComp.getChildrenUnmodifiable().get(i);
         addListenersToNode(child);
@@ -364,8 +397,7 @@ public class ParameterSetupPane extends BorderPane {
     if (node instanceof Control) {
       ((Control) node).setTooltip(new Tooltip(toolTipText));
     }
-    if (node instanceof Region) {
-      Region panelComp = (Region) node;
+    if (node instanceof Region panelComp) {
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
         Node child = panelComp.getChildrenUnmodifiable().get(i);
         addToolTipToControls(child, toolTipText);
