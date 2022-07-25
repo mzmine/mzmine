@@ -19,6 +19,7 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import io.github.mzmine.modules.visualization.test_visualizer.NetworkMouseManager;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +30,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.geometry.Point2D;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
@@ -62,95 +65,94 @@ import org.jetbrains.annotations.Nullable;
 public class NetworkPane extends BorderPane {
 
   public static final String DEFAULT_STYLE_FILE = "/themes/graph_network_style.css";
-  public static final String STYLE_SHEET =
-      """
-          graph {
-             fill-color: white;
-           }
-           
-           edge {
-             text-visibility-mode: under-zoom;
-             text-visibility: 0.3;
-             text-alignment: along;
-             fill-mode: none;
-             stroke-color: rgb(108, 108, 108);
-             stroke-width: 1px;
-             stroke-mode: plain;
-           }
-           
-           edge.medium {
-             stroke-color: rgb(108, 108, 108);
-             stroke-width: 2.5px;
-           }
-           edge.IIN {
-             stroke-color: rgb(227, 116, 30);
-             stroke-width: 1.5px;
-             stroke-mode: dashes;
-           }
-           edge.FEATURECORR {
-             stroke-color: rgb(151, 124, 70);
-             stroke-width: 1px;
-           }
-           edge.COSINE {
-             stroke-color: rgb(30, 86, 227);
-             size-mode: dyn-size;
-           }
-           edge.GNPS {
-             stroke-color: rgb(77, 108, 187);
-             size-mode: dyn-size;
-           }
-           
-           edge.IINREL {
-             stroke-color: rgb(31, 173, 152);
-             stroke-mode: dots;
-           }
-           
-           node {
-             shape: circle;
-             text-visibility-mode: under-zoom;
-             text-visibility: 0.3;
-             text-alignment: at-right;
-             text-offset: 2;
-             text-size: 12;
-             fill-color: #636363;
-             size-mode: dyn-size;
-             size: 11px;
-             stroke-mode: plain;
-             stroke-color: #636363;
-             stroke-width: 1px;
-           }
-           
-           node:clicked {
-             fill-color: #f8ec02;
-           }
-           
-           /* node.setAttribute("ui.class", "big, important"); */
-           /* node.removeAttribute("ui.class"); // go back to default */
-           node.important {
-             fill-color: red;
-           }
-           
-           node.big {
-             size: 15px;
-           }
-           
-           node.MOL {
-             text-visibility-mode: under-zoom;
-             text-visibility: 0.99;
-             fill-color: cyan;
-             size: 15px;
-           }
-           
-           node.NEUTRAL {
-             fill-color: violet;
-           }
-           
-           /* add gradient to node: node1.setAttribute("ui.color", 0); from 0 - 1 */
-           node.GRADIENT {
-             fill-mode: dyn-plain;
-             fill-color: yellow, orange, #c10000;
-           }
-          """;
+  public static final String STYLE_SHEET = """
+      graph {
+         fill-color: white;
+       }
+       
+       edge {
+         text-visibility-mode: under-zoom;
+         text-visibility: 0.3;
+         text-alignment: along;
+         fill-mode: none;
+         stroke-color: rgb(108, 108, 108);
+         stroke-width: 1px;
+         stroke-mode: plain;
+       }
+       
+       edge.medium {
+         stroke-color: rgb(108, 108, 108);
+         stroke-width: 2.5px;
+       }
+       edge.IIN {
+         stroke-color: rgb(227, 116, 30);
+         stroke-width: 1.5px;
+         stroke-mode: dashes;
+       }
+       edge.FEATURECORR {
+         stroke-color: rgb(151, 124, 70);
+         stroke-width: 1px;
+       }
+       edge.COSINE {
+         stroke-color: rgb(30, 86, 227);
+         size-mode: dyn-size;
+       }
+       edge.GNPS {
+         stroke-color: rgb(77, 108, 187);
+         size-mode: dyn-size;
+       }
+       
+       edge.IINREL {
+         stroke-color: rgb(31, 173, 152);
+         stroke-mode: dots;
+       }
+       
+       node {
+         shape: circle;
+         text-visibility-mode: under-zoom;
+         text-visibility: 0.3;
+         text-alignment: at-right;
+         text-offset: 2;
+         text-size: 12;
+         fill-color: #636363;
+         size-mode: dyn-size;
+         size: 11px;
+         stroke-mode: plain;
+         stroke-color: #636363;
+         stroke-width: 1px;
+       }
+       
+       node:clicked {
+         fill-color: #f8ec02;
+       }
+       
+       /* node.setAttribute("ui.class", "big, important"); */
+       /* node.removeAttribute("ui.class"); // go back to default */
+       node.important {
+         fill-color: red;
+       }
+       
+       node.big {
+         size: 15px;
+       }
+       
+       node.MOL {
+         text-visibility-mode: under-zoom;
+         text-visibility: 0.99;
+         fill-color: cyan;
+         size: 15px;
+       }
+       
+       node.NEUTRAL {
+         fill-color: violet;
+       }
+       
+       /* add gradient to node: node1.setAttribute("ui.color", 0); from 0 - 1 */
+       node.GRADIENT {
+         fill-mode: dyn-plain;
+         fill-color: yellow, orange, #c10000;
+       }
+      """;
   //      "edge {text-visibility-mode: under-zoom; text-visibility: 0.3; fill-color: rgb(100,160,100); stroke-color: rgb(50,100,50); stroke-width: 1px; text-alignment: along;} "
 //      + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 2.5px;} "
 //      + "node {text-visibility-mode: under-zoom; text-visibility: 0.3; text-alignment: at-right; text-offset: 2; text-size: 12; fill-color: black; "
@@ -160,8 +162,8 @@ public class NetworkPane extends BorderPane {
 //      + "node.NEUTRAL{fill-color: violet;}";
   public static final String EXPORT_STYLE_SHEET =
       "edge {fill-color: rgb(25,85,25); stroke-color: rgb(50,100,50); stroke-width: 2px;}  node {text-size: 16; fill-color: black; size: 16px; stroke-mode: plain; stroke-color: rgb(50,100,50); stroke-width: 2px;} "
-      + "node.important{fill-color: red;} node.big{size: 20px;} node.MOL{fill-color: cyan; size: 20px;}  node.NEUTRAL{fill-color: violet; }"
-      + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 5px;}";
+          + "node.important{fill-color: red;} node.big{size: 20px;} node.MOL{fill-color: cyan; size: 20px;}  node.NEUTRAL{fill-color: violet; }"
+          + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 5px;}";
   private static final Logger LOG = Logger.getLogger(NetworkPane.class.getName());
   private final HBox pnSettings;
   // selected node
@@ -169,8 +171,7 @@ public class NetworkPane extends BorderPane {
   private final Label lbTitle;
   private final FileChooser saveDialog;
   private final ExtensionFilter graphmlExt = new ExtensionFilter(
-      "Export network to graphml (*.graphml)",
-      "*.graphml");
+      "Export network to graphml (*.graphml)", "*.graphml");
   private final ExtensionFilter pngExt = new ExtensionFilter("PNG pixel graphics file (*.png)",
       "*.png");
   private final ExtensionFilter svgExt = new ExtensionFilter("SVG vector graphics file (*.svg)",
@@ -250,12 +251,10 @@ public class NetworkPane extends BorderPane {
     // Might be confused by other components in the same pane
     StackPane graphpane = new StackPane(view);
     this.setCenter(graphpane);
-
     // enable selection of edges by mouse
     if (enableMouseOnEdges) {
       view.enableMouseOptions();
     }
-
     viewer.newViewerPipe().addViewerListener(new ViewerListener() {
       @Override
       public void viewClosed(String viewName) {
@@ -286,27 +285,30 @@ public class NetworkPane extends BorderPane {
     view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
 
     view.setOnMouseClicked(e -> {
-      if (e.getButton() == MouseButton.PRIMARY) {
-        if (e.getClickCount() == 2) {
-          resetZoom();
-          e.consume();
-        } else if (e.getClickCount() == 1) {
-          setCenter(e.getX(), e.getY());
-        }
+      Edge edge = NetworkMouseManager.findEdgeAt(view, view.getViewer().getGraphicGraph(), e.getX(),
+          e.getY());
+      if (edge.getId() != null) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Edge Identifier");
+        alert.setContentText(edge.getNode0() + " " + edge.getNode1());
+        alert.showAndWait();
+      }
+      if (e.getClickCount() == 2) {
+        resetZoom();
+        e.consume();
+      } else if (e.getClickCount() == 1) {
+        setCenter(e.getX(), e.getY());
       } else if (e.getButton() == MouseButton.SECONDARY) {
         openSaveDialog();
         e.consume();
       }
     });
-
     view.setOnMousePressed(e -> {
       if (last == null) {
         last = new Point2D(e.getX(), e.getY());
       }
     });
-    view.setOnMouseReleased(e -> {
-      last = null;
-    });
+    view.setOnMouseReleased(e -> last = null);
     view.setOnMouseDragged(e -> {
       if (last != null) {
         // translate
@@ -324,8 +326,8 @@ public class NetworkPane extends BorderPane {
   private String loadDefaultStyle() {
     try {
       File file = new File(getClass().getResource(DEFAULT_STYLE_FILE).toExternalForm());
-      String style =
-          Files.readLines(file, Charsets.UTF_8).stream().collect(Collectors.joining(" "));
+      String style = Files.readLines(file, Charsets.UTF_8).stream()
+          .collect(Collectors.joining(" "));
       LOG.info("Default style from file: " + style);
       return style;
     } catch (IOException e) {
@@ -338,8 +340,8 @@ public class NetworkPane extends BorderPane {
     if (graph != null && graph.getNodeCount() > 0) {
       File f = saveDialog.showSaveDialog(null);
       if (f != null) {
-        if (saveDialog.getSelectedExtensionFilter() == pngExt ||
-            FileAndPathUtil.getExtension(f).equalsIgnoreCase("png")) {
+        if (saveDialog.getSelectedExtensionFilter() == pngExt || FileAndPathUtil.getExtension(f)
+            .equalsIgnoreCase("png")) {
           savePNG = new FxFileSinkImages();
           savePNG.setResolution(2500, 2500);
           savePNG.setOutputType(OutputType.png);
@@ -348,12 +350,12 @@ public class NetworkPane extends BorderPane {
           savePNG.setQuality(Quality.HIGH);
           f = FileAndPathUtil.getRealFilePath(f, "png");
           saveToFile(savePNG, f);
-        } else if (saveDialog.getSelectedExtensionFilter().equals(svgExt) ||
-                   FileAndPathUtil.getExtension(f).equalsIgnoreCase("svg")) {
+        } else if (saveDialog.getSelectedExtensionFilter().equals(svgExt)
+            || FileAndPathUtil.getExtension(f).equalsIgnoreCase("svg")) {
           f = FileAndPathUtil.getRealFilePath(f, "svg");
           saveToFile(saveSVG, f);
-        } else if (saveDialog.getSelectedExtensionFilter().equals(graphmlExt) ||
-                   FileAndPathUtil.getExtension(f).equalsIgnoreCase("graphml")) {
+        } else if (saveDialog.getSelectedExtensionFilter().equals(graphmlExt)
+            || FileAndPathUtil.getExtension(f).equalsIgnoreCase("graphml")) {
           f = FileAndPathUtil.getRealFilePath(f, "graphml");
           saveToFile(saveGraphML, f);
         }

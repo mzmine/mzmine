@@ -154,14 +154,14 @@ public class NetworkTestVisualizer extends Stage {
         if (last == null) {
           last = new Point2D(e.getX(), e.getY());
         }
-        // show clicked edge in label
-        Edge edge = NetworkMouseManager.findEdgeAt(view, view.getViewer().getGraphicGraph(),
-            e.getX(), e.getY());
-        clickLabel.setText("You have clicked on Edge: " + (edge == null ? "NONE" : edge.getId()));
+        if (e.getButton() == MouseButton.SECONDARY) {
+          // show clicked edge in label
+          Edge edge = NetworkMouseManager.findEdgeAt(view, view.getViewer().getGraphicGraph(),
+              e.getX(), e.getY());
+          clickLabel.setText("You have clicked on Edge: " + (edge == null ? "NONE" : edge.getId()));
+        }
       });
-      view.setOnMouseReleased(e -> {
-        last = null;
-      });
+      view.setOnMouseReleased(e -> last = null);
       view.setOnMouseDragged(e -> {
         if (last != null) {
           // translate
