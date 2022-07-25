@@ -15,7 +15,6 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-
 package io.github.mzmine.main;
 
 import io.github.mzmine.gui.Desktop;
@@ -48,13 +47,12 @@ public class GoogleAnalyticsTracker {
   // Parameters
   private static final String trackingUrl = "http://www.google-analytics.com/__utm.gif";
   private static final String trackingCode = "UA-63013892-4"; // Google Analytics Tracking Code
-  final String systemLocale; // Language
-  final boolean sendGUIinfo;
-  String hostName = "localhost"; // Host name
-  String userAgent = null; // User Agent name
-  String os = "Unknown"; // Operating System
-  Dimension screenSize; // Screen Size
-  Random random = new Random();
+  private final String systemLocale; // Language
+  private final boolean sendGUIinfo;
+  private final Random random;
+  private final String userAgent; // User Agent name
+  private String hostName = "localhost"; // Host name
+  private Dimension screenSize; // Screen Size
 
   private GoogleAnalyticsTracker() {
     // Parameters
@@ -63,12 +61,8 @@ public class GoogleAnalyticsTracker {
     this.sendGUIinfo = !(desktop instanceof HeadLessDesktop);
     if (this.sendGUIinfo) {
       screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    }
-    systemLocale = Locale.getDefault().toString().replace("_", "-");
-    random = new Random();
 
-    // Find screen size for multiple screen setup
-    if (this.sendGUIinfo) {
+      // Find screen size for multiple screen setup
       GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
       GraphicsDevice[] devices = g.getScreenDevices();
       if (devices.length > 1) {
@@ -79,35 +73,37 @@ public class GoogleAnalyticsTracker {
         screenSize = new Dimension(totalWidth, (int) screenSize.getHeight());
       }
     }
+    systemLocale = Locale.getDefault().toString().replace("_", "-");
+    random = new Random(System.currentTimeMillis());
 
     if (hostName.equals("localhost")) {
       try {
         hostName = InetAddress.getLocalHost().getHostName();
       } catch (UnknownHostException e) {
-        e.printStackTrace();
+        // silent
       }
     }
 
-    if (userAgent == null) {
-      // userAgent = "Java/" + System.getProperty("java.version");
-      os = System.getProperty("os.arch");
-      if (os == null || os.length() < 1) {
-        userAgent = "UNKNOWN";
-      } else {
+    // userAgent = "Java/" + System.getProperty("java.version");
+    // Operating System
+    String os = System.getProperty("os.arch");
+    if (os == null || os.length() < 1) {
+      userAgent = "UNKNOWN";
+    } else {
 
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-          userAgent = "Mozilla/5.0 (Windows NT " + System.getProperty("os.version") + ")";
-        } else if (System.getProperty("os.name").toLowerCase().contains("macintosh")) {
-          userAgent = "Mozilla/5.0 (Mozilla/5.0 (Macintosh)";
-        } else if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-          userAgent = "Mozilla/5.0 (Macintosh; Intel " + System.getProperty("os.name") + " "
-              + System.getProperty("os.version").replace(".", "_") + ")";
-        } else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
-          userAgent = "Mozilla/5.0 (Mozilla/5.0 (Linux)";
-        } else {
-          userAgent = "Mozilla/5.0 (" + System.getProperty("os.name") + " " + System.getProperty(
-              "os.version") + ")";
-        }
+      if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        userAgent = "Mozilla/5.0 (Windows NT " + System.getProperty("os.version") + ")";
+      } else if (System.getProperty("os.name").toLowerCase().contains("macintosh")) {
+        userAgent = "Mozilla/5.0 (Mozilla/5.0 (Macintosh)";
+      } else if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+        userAgent = "Mozilla/5.0 (Macintosh; Intel " + System.getProperty("os.name") + " "
+            + System.getProperty("os.version").replace(".", "_") + ")";
+      } else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+        userAgent = "Mozilla/5.0 (Mozilla/5.0 (Linux)";
+      } else {
+        userAgent =
+            "Mozilla/5.0 (" + System.getProperty("os.name") + " " + System.getProperty("os.version")
+                + ")";
       }
     }
   }
