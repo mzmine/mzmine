@@ -92,6 +92,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
@@ -488,7 +489,9 @@ public class MZmineGUI extends Application implements Desktop {
     // show message that temp folder should be setup
     if (preferences.getValue(MZminePreferences.showTempFolderAlert)) {
       File tmpPath = preferences.getValue(MZminePreferences.tempDirectory);
-      if (tmpPath == null || tmpPath.getAbsolutePath().toLowerCase().contains("users")) {
+      File userDir = FileUtils.getUserDirectory();
+      if (tmpPath == null || !tmpPath.exists() || tmpPath.getAbsolutePath().toLowerCase()
+          .contains("users") || tmpPath.equals(userDir)) {
         MZmineCore.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
                 MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
