@@ -127,7 +127,6 @@ public class WatersImportTask extends AbstractTask {
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount(); // massLynxRawInfoReader.GetFunctionCount() Gets the number of function in Raw file
       IntermediateScan intermediatescan = null;
 
-
       for (int functioncount = 0; functioncount < totalfunctioncount; ++functioncount) {
         //total Scan values in each function
         int functionscanval = massLynxRawInfoReader.GetScansInFunction(
@@ -166,6 +165,7 @@ public class WatersImportTask extends AbstractTask {
       e.printStackTrace();
     }
     project.addFile(newMZmineFile);
+    setFinishedPercentage(1.0);
   }
 
   /**
@@ -210,6 +210,8 @@ public class WatersImportTask extends AbstractTask {
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       IntermediateFrame intermediateframe;
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
+      //Drift Scan Value
+      int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(0);
       ArrayList<IntermediateFrame> intermediateFrameArrayList= new ArrayList<>();
       SimpleFrame simpleFrame;
 
@@ -221,8 +223,6 @@ public class WatersImportTask extends AbstractTask {
        }
         //Rename
        int functionscanval=massLynxRawInfoReader.GetScansInFunction(i);
-       //Drift Scan Value
-       int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(i);
 
         //msLevel is calculated as per Function type
         int mslevel = getMsLevel(massLynxRawInfoReader, i);
@@ -247,7 +247,7 @@ public class WatersImportTask extends AbstractTask {
 
       for (int mzmine_scannum = 0; mzmine_scannum < intermediateFrameArrayList.size(); mzmine_scannum++) {
 
-        simpleFrame=intermediateFrameArrayList.get(mzmine_scannum).toframe(rawscanreader,0,
+        simpleFrame=intermediateFrameArrayList.get(mzmine_scannum).toframe(rawscanreader,numdriftscan,
             mzmine_scannum+1,massLynxRawInfoReader);
         IMSnewMZmineFile.addScan(simpleFrame);
       }
@@ -258,7 +258,6 @@ public class WatersImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    //project.
   }
 
   //Change the function return true if func num is 2

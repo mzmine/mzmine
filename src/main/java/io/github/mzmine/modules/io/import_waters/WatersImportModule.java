@@ -78,11 +78,11 @@ public class WatersImportModule implements MZmineProcessingModule {
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
-    for (int i = 0; i < fileNames.length; i++) {
+    //for (int i = 0; i < fileNames.length; i++) {
 
-      if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileNames[i]);
-        logger.warning("Cannot read file " + fileNames[i]);
+      if ((!fileNames[0].exists()) || (!fileNames[0].canRead())) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileNames[0]);
+        logger.warning("Cannot read file " + fileNames[0]);
         return ExitCode.ERROR;
       }
 
@@ -90,9 +90,9 @@ public class WatersImportModule implements MZmineProcessingModule {
       String newName;
       if (!Strings.isNullOrEmpty(commonPrefix)) {
         final String regex = "^" + Pattern.quote(commonPrefix);
-        newName = fileNames[i].getName().replaceFirst(regex, "");
+        newName = fileNames[0].getName().replaceFirst(regex, "");
       } else {
-        newName = fileNames[i].getName();
+        newName = fileNames[0].getName();
       }
 
       try {
@@ -100,8 +100,8 @@ public class WatersImportModule implements MZmineProcessingModule {
         final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
         RawDataFile newMZmineFile = MZmineCore.createNewFile(newName,
-            fileNames[i].getAbsolutePath(), storage);
-        Task newTask = new WatersImportTask(project, fileNames[i], newMZmineFile,
+            fileNames[0].getAbsolutePath(), storage);
+        Task newTask = new WatersImportTask(project, fileNames[0], newMZmineFile,
             WatersImportModule.class, parameters, moduleCallDate);
         tasks.add(newTask);
 
@@ -111,7 +111,6 @@ public class WatersImportModule implements MZmineProcessingModule {
         MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e.getMessage());
         logger.log(Level.SEVERE, "Could not create a new temporary file ", e.getMessage());
         return ExitCode.ERROR;
-      }
       }
     return ExitCode.OK;
   }
