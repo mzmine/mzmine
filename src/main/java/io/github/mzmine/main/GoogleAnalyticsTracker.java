@@ -39,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GoogleAnalyticsTracker {
@@ -48,14 +47,14 @@ public class GoogleAnalyticsTracker {
   private static final Logger logger = Logger.getLogger(GoogleAnalyticsTracker.class.getName());
   // Parameters
   private static final String trackingUrl = "http://www.google-analytics.com/__utm.gif";
+  private static final String trackingCode = "UA-63013892-4"; // Google Analytics Tracking Code
+  final String systemLocale; // Language
+  final boolean sendGUIinfo;
   String hostName = "localhost"; // Host name
   String userAgent = null; // User Agent name
   String os = "Unknown"; // Operating System
   Dimension screenSize; // Screen Size
-  private static final String trackingCode = "UA-63013892-4"; // Google Analytics Tracking Code
   Random random = new Random();
-  final String systemLocale; // Language
-  final boolean sendGUIinfo;
 
   private GoogleAnalyticsTracker() {
     // Parameters
@@ -137,7 +136,6 @@ public class GoogleAnalyticsTracker {
   public void send(String pageTitle, String pageUrl) {
     pageUrl = pageUrl.replaceAll(" ", "_");
 
-    logger.info("Sending stats???");
     // Only send data if sendStatistics variable is not set to 0
     Boolean sendStatistics = MZmineCore.getConfiguration().getSendStatistics();
 
@@ -172,10 +170,9 @@ public class GoogleAnalyticsTracker {
               + cookie);
 
       try {
-        logger.info("Sending stats");
 
         URI uri = new URI(url.toString());
-        logger.info("Sending " + uri);
+//        logger.info("Sending stats " + uri);
 
         HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
 
@@ -184,10 +181,11 @@ public class GoogleAnalyticsTracker {
 
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 
-        logger.info(response.body() + "  CODE:" + response.statusCode());
+//        logger.info(response.body() + "  CODE:" + response.statusCode());
 
       } catch (Exception e) {
-        logger.log(Level.WARNING, "Error during connection. " + e.getMessage(), e);
+        // silent
+//        logger.log(Level.WARNING, "Error during connection. " + e.getMessage(), e);
       }
     }
   }
