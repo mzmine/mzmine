@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -26,6 +26,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
@@ -50,6 +51,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
+  public static final FactorOfLowestMassDetector factorOfLowest = MZmineCore.getModuleInstance(
+      FactorOfLowestMassDetector.class);
   public static final CentroidMassDetector centroid = MZmineCore.getModuleInstance(
       CentroidMassDetector.class);
   public static final ExactMassDetector exact = MZmineCore.getModuleInstance(
@@ -62,8 +65,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
       WaveletMassDetector.class);
   public static final AutoMassDetector auto = MZmineCore.getModuleInstance(AutoMassDetector.class);
 
-  public static final MassDetector[] massDetectors = {centroid, exact, localmax, recursive, wavelet,
-      auto};
+  public static final MassDetector[] massDetectors = {factorOfLowest, centroid, exact, localmax,
+      recursive, wavelet, auto};
 
   public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
       "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors,
@@ -107,7 +110,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public boolean checkParameterValues(Collection<String> errorMessages) {
     final boolean superCheck = super.checkParameterValues(errorMessages);
 
-    RawDataFile selectedFiles[] = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
+    RawDataFile[] selectedFiles = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
     getParameter(dataFiles).getValue().resetSelection(); // reset selection after evaluation.
 
     // If no file selected (e.g. in batch mode setup), just return
@@ -121,7 +124,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
     ScanSelection scanSel = getParameter(scanSelection).getValue();
 
     for (RawDataFile file : selectedFiles) {
-      Scan scans[] = scanSel.getMatchingScans(file);
+      Scan[] scans = scanSel.getMatchingScans(file);
       for (Scan s : scans) {
         if (s.getSpectrumType() == MassSpectrumType.CENTROIDED) {
           numCentroided++;
@@ -144,10 +147,11 @@ public class MassDetectionParameters extends SimpleParameterSet {
     // Check the selected mass detector
     String massDetectorName = getParameter(massDetector).getValue().toString();
     if (!massDetectorName.contains("Auto")) {
-      if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
+      if (mostlyCentroided && !(massDetectorName.startsWith("Centroid")
+          || massDetectorName.startsWith("Factor"))) {
         String msg =
             "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans.\n"
-                + "This will likely produce wrong results. Try the Centroid mass detector instead.\n"
+                + "This will likely produce wrong results. Try the Centroid mass detector or Factor of lowest signal mass detector instead.\n"
                 + "Continue anyway?";
         if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
             == ButtonType.NO) {
@@ -155,9 +159,10 @@ public class MassDetectionParameters extends SimpleParameterSet {
         }
       }
 
-      if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
+      if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid")
+          || massDetectorName.startsWith("Factor"))) {
         String msg =
-            "MZmine thinks you are running the centroid mass detector on (mostly) profile scans.\n"
+            "MZmine thinks you are running the centroid or factor mass detector on (mostly) profile scans.\n"
                 + "This will likely produce wrong results.\nContinue anyway?";
         if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
             == ButtonType.NO) {
@@ -173,7 +178,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
           "The scan types selection is set to \"" + types
               + "\" but there are non IMS files selected."
               + "This will not add a mass list to the files " + Arrays.stream(selectedFiles)
-              .map(RawDataFile::getName).toList().toString() + ".\nDo you want to continue anyway?",
+              .map(RawDataFile::getName).toList() + ".\nDo you want to continue anyway?",
           ButtonType.YES, ButtonType.NO);
       if (buttonType == ButtonType.NO) {
         return false;
