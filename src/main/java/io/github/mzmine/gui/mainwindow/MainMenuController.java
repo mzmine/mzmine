@@ -29,7 +29,6 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
-import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotTab;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
@@ -48,6 +47,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import org.apache.commons.io.FileUtils;
 
 /**
  * The controller class for MainMenu.fxml
@@ -82,7 +82,7 @@ public class MainMenuController {
      * it is hard-coded here for now
      */
     final Path logFilePath = Paths.get(
-        System.getProperty("user.home") + File.separator + "mzmine_0_0.log");
+        FileUtils.getUserDirectory() + File.separator + "mzmine_0_0.log");
 
     try {
       Desktop gui = MZmineCore.getDesktop();

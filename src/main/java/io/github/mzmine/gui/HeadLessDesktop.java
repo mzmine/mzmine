@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -57,7 +57,8 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void setStatusBarText(String text, Color textColor) {}
+  public void setStatusBarText(String text, Color textColor) {
+  }
 
   @Override
   public void displayMessage(String msg) {
@@ -151,6 +152,12 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void displayNotification(String msg, String buttonText, Runnable action,
+      Runnable hideForeverAction) {
+    logger.log(Level.INFO, msg);
   }
 
   @Override

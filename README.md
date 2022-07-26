@@ -8,6 +8,8 @@ covering the entire MS data analysis workflow.
 
 More information about the software can be found on the [MZmine](http://mzmine.github.io) website.
 
+Getting started with the [Documentation](https://mzmine.github.io/mzmine_documentation/index.html)
+
 ## License
 
 MZmine is a free software; you can redistribute it and/or modify it under the terms of the GNU

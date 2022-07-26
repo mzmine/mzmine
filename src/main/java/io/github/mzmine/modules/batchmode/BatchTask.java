@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -21,6 +21,7 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -50,9 +51,10 @@ import org.jetbrains.annotations.NotNull;
 public class BatchTask extends AbstractTask {
 
   private final BatchQueue queue;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private int totalSteps, processedSteps;
-  private MZmineProject project;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final int totalSteps;
+  private final MZmineProject project;
+  private int processedSteps;
   private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
   private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
 
@@ -121,12 +123,12 @@ public class BatchTask extends AbstractTask {
     for (Parameter<?> p : batchStepParameters.getParameters()) {
       if (p instanceof RawDataFilesParameter) {
         RawDataFilesParameter rdp = (RawDataFilesParameter) p;
-        RawDataFile createdFiles[] = createdDataFiles.toArray(new RawDataFile[0]);
+        RawDataFile[] createdFiles = createdDataFiles.toArray(new RawDataFile[0]);
         final RawDataFilesSelection selectedFiles = rdp.getValue();
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -157,6 +159,9 @@ public class BatchTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not start batch step " + method.getName());
       return;
+    } else {
+      // track step by module
+      GoogleAnalyticsTracker.trackModule(method);
     }
 
     // If current step didn't produce any tasks, continue with next step
@@ -254,12 +259,12 @@ public class BatchTask extends AbstractTask {
     // state of the batch
     for (Parameter<?> p : batchStepParameters.getParameters()) {
       if (p instanceof FeatureListsParameter featureListsParameter) {
-        FeatureList createdFlists[] = createdFeatureLists.toArray(new FeatureList[0]);
+        FeatureList[] createdFlists = createdFeatureLists.toArray(new FeatureList[0]);
         final FeatureListsSelection selectedFeatureLists = featureListsParameter.getValue();
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
