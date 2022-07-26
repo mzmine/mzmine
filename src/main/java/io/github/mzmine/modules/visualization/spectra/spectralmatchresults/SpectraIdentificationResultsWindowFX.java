@@ -172,12 +172,15 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     // add all
     for (SpectralDBAnnotation match : matches) {
       if (!totalMatches.contains(match)) {
-        // add
-        totalMatches.add(match);
-        SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
-        pn.setCoupleZoomY(isCouplingZoomY);
-        pn.prefWidthProperty().bind(this.widthProperty());
-        matchPanels.put(match, pn);
+
+        // add and skip matches without datapoints
+        if(match.getEntry().getDataPoints() != null){
+          totalMatches.add(match);
+          SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
+          pn.setCoupleZoomY(isCouplingZoomY);
+          pn.prefWidthProperty().bind(this.widthProperty());
+          matchPanels.put(match, pn);
+        }
       }
     }
     // sort and show
