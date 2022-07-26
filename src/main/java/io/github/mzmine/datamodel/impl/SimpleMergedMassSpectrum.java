@@ -30,7 +30,8 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -48,7 +49,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   private static final Logger logger = Logger.getLogger(SimpleMergedMsMsSpectrum.class.getName());
 
   protected final List<MassSpectrum> sourceSpectra;
-  protected final MergingType mergingType;
+  protected final IntensityMergingType intensityMergingType;
   protected final CenterFunction centerFunction;
   protected final RawDataFile rawDataFile;
   protected final float retentionTime;
@@ -62,18 +63,18 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
    * Construncts a new SimpleMergedMassSpectrum. A {@link ScanPointerMassList} will be created by
    * default.
    *
-   * @param storage         The storage to use. may be null.
-   * @param mzValues        The merged mz values
-   * @param intensityValues The merged intensities
-   * @param msLevel         The ms level
-   * @param sourceSpectra   The source spectra used to create this spectrum
-   * @param mergingType     The merging type this spectrum was created with.
-   * @param centerFunction  The center function this spectrum was created with.
+   * @param storage              The storage to use. may be null.
+   * @param mzValues             The merged mz values
+   * @param intensityValues      The merged intensities
+   * @param msLevel              The ms level
+   * @param sourceSpectra        The source spectra used to create this spectrum
+   * @param intensityMergingType The merging type this spectrum was created with.
+   * @param centerFunction       The center function this spectrum was created with.
    */
   public SimpleMergedMassSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, int msLevel,
-      @NotNull List<? extends MassSpectrum> sourceSpectra, @NotNull MergingType mergingType,
-      @NotNull CenterFunction centerFunction) {
+      @NotNull List<? extends MassSpectrum> sourceSpectra,
+      @NotNull SpectraMerging.IntensityMergingType intensityMergingType, @NotNull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues);
 
     assert !sourceSpectra.isEmpty();
@@ -103,7 +104,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     this.polarity = tempPolarity;
     this.scanningMzRange = tempScanningMzRange;
     this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
-    this.mergingType = mergingType;
+    this.intensityMergingType = intensityMergingType;
     this.centerFunction = centerFunction;
     this.msLevel = msLevel;
     this.scanDefinition = ScanUtils.scanToString(this, true);
@@ -116,8 +117,8 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   }
 
   @Override
-  public MergingType getMergingType() {
-    return mergingType;
+  public IntensityMergingType getMergingType() {
+    return intensityMergingType;
   }
 
   @Override

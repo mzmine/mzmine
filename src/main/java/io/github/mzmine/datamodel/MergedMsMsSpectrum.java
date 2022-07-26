@@ -25,5 +25,7 @@ public interface MergedMsMsSpectrum extends MergedMassSpectrum {
 
   float getCollisionEnergy();
 
+  MsMsMergeType getSpectrumMergingType();
+
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 }

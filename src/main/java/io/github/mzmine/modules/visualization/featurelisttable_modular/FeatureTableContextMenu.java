@@ -26,6 +26,9 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.MsMsMergeType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -52,10 +55,10 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
+import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -68,6 +71,7 @@ import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidS
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -78,6 +82,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -372,8 +377,18 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ions",
-        () -> selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null);
+        () -> selectedFeature != null
+            && selectedFeature.getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum merged
+            && (merged.getSpectrumMergingType() == MsMsMergeType.DIA
+            || merged.getSpectrumMergingType() == MsMsMergeType.IMS_DIA));
     showDiaIons.setOnAction(e -> showDiaMsMsIons());
+
+    final MenuItem showDiaMirror = new ConditionalMenuItem("Mirror uncleaned DIA spectrum",
+        () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
+            && selectedFeature.getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum merged
+            && merged.getSpectrumMergingType() == MsMsMergeType.IMS_DIA);
+    showDiaMirror.setOnAction(e -> showDiaMirror());
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
@@ -430,9 +445,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            showDiaIons, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
-            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem, showNormalizedImage);
+            showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
+            showCompoundDBResults, showSpectralDBResults, showMatchedLipidSignals,
+            new SeparatorMenuItem(), showPeakRowSummaryItem, showNormalizedImage);
   }
 
   private void addNormalizedImageTab() {
@@ -566,5 +581,41 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
 
     MZmineCore.getDesktop().addTab(window);
+  }
+
+  private void showDiaMirror() {
+    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
+    final RawDataFile file = selectedFeature.getRawDataFile();
+
+    final MirrorScanWindowFXML window = new MirrorScanWindowFXML();
+    final MirrorScanWindowController controller = window.getController();
+
+    final IonTimeSeries<? extends Scan> featureData = selectedFeature.getFeatureData();
+    if (!(featureData instanceof IonMobilogramTimeSeries ims)
+        || !(selectedFeature.getRawDataFile() instanceof IMSRawDataFile imsFile)) {
+      return;
+    }
+
+    final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(ims.getSummedMobilogram());
+    ScanSelection scanSelection = new ScanSelection(selectedFeature.getRawDataPointsRTRange(), 2);
+    List<Scan> ms2Scans = scanSelection.getMatchingScans(imsFile.getScans());
+
+    final List<MobilityScan> mobilityScans = ms2Scans.stream().<MobilityScan>mapMulti((f, c) -> {
+      Frame frame = (Frame) f;
+      for (MobilityScan ms : frame.getMobilityScans()) {
+        if (mobilityFWHM.contains((float) ms.getMobility())) {
+          c.accept(ms);
+        }
+      }
+    }).toList();
+
+    final MergedMassSpectrum uncleanedSpectrum = SpectraMerging.mergeSpectra(mobilityScans,
+        SpectraMerging.pasefMS2MergeTol, null);
+
+    controller.setScans(selectedFeature.getMZ(), ScanUtils.extractDataPoints(msms),
+        selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncleanedSpectrum)/*, "RT shape & mobility window cleaned MS/MS",
+        "Mobility window only (along rt)"*/);
+
+    window.show();
   }
 }

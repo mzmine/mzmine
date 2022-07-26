@@ -37,7 +37,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.scans.SpectraMerging;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -111,14 +111,14 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     updateParameterSetFromComponents();
     double noiseLevel = parameterSet.getParameter(MobilityScanMergerParameters.noiseLevel)
         .getValue();
-    MergingType mergingType = parameterSet.getParameter(MobilityScanMergerParameters.mergingType)
-        .getValue();
+    IntensityMergingType intensityMergingType = parameterSet.getParameter(
+        MobilityScanMergerParameters.mergingType).getValue();
     MZTolerance mzTolerance = parameterSet.getParameter(MobilityScanMergerParameters.mzTolerance)
         .getValue();
     Weighting weighting = parameterSet.getParameter(MobilityScanMergerParameters.weightingType)
         .getValue();
 
-    if (mergingType == null || mzTolerance == null || frameComboBox.getValue() == null) {
+    if (intensityMergingType == null || mzTolerance == null || frameComboBox.getValue() == null) {
       return;
     }
 
@@ -126,8 +126,8 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     try {
       merged = SpectraMerging.calculatedMergedMzsAndIntensities(
           frameComboBox.getValue().getMobilityScans().stream().map(MobilityScan::getMassList)
-              .toList(), mzTolerance, mergingType, new CenterFunction(CenterMeasure.AVG, weighting),
-          noiseLevel, null);
+              .toList(), mzTolerance, intensityMergingType,
+          new CenterFunction(CenterMeasure.AVG, weighting), noiseLevel, null);
     } catch (NullPointerException e) {
       MZmineCore.getDesktop().displayErrorMessage(
           "No mass list present in " + frameComboBox.getValue().getDataFile().getName()

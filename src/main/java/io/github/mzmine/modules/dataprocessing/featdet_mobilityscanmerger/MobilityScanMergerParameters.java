@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.maths.Weighting;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import org.jetbrains.annotations.NotNull;
 
 public class MobilityScanMergerParameters extends SimpleParameterSet {
@@ -40,8 +40,8 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
       "Data points below this threshold will be ignored.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, 1E12);
 
-  public static final ComboParameter<MergingType> mergingType = new ComboParameter<>("Merging type",
-      "merging type", MergingType.values(), MergingType.SUMMED);
+  public static final ComboParameter<IntensityMergingType> mergingType = new ComboParameter<>(
+      "Merging type", "merging type", IntensityMergingType.values(), IntensityMergingType.SUMMED);
 
   public static final ComboParameter<Weighting> weightingType = new ComboParameter<>(
       "m/z weighting", "Weights m/z values by their intensities with the given function.",
