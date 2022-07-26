@@ -31,15 +31,21 @@ import net.csibio.aird.util.ArrayUtil;
 public class IntermediateFrame extends IntermediateScan {
 
  private int driftScanCount;
+ private int scanInFunction;
+
+  public int getScanInFunction() {
+    return scanInFunction;
+  }
 
   public int getDriftScanCount() {
     return driftScanCount;
   }
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount) {
+      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount,int scanInFunction) {
     super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
     this.driftScanCount=driftScanCount;
+    this.scanInFunction= scanInFunction;
   }
 
   public SimpleFrame toframe(MassLynxRawScanReader rawscanreader, int mzmine_scannum,
@@ -53,7 +59,7 @@ public class IntermediateFrame extends IntermediateScan {
 
     ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
     for (int driftScanNum = 0; driftScanNum < this.getDriftScanCount(); driftScanNum++) {
-      Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(),driftScanNum);
+      Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
       mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
           ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
       mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);
