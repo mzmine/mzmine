@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -61,6 +62,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
   protected final IntervalWidthProvider intervalWidthProvider;
+
+  protected final XYItemObjectProvider xyItemObjectProvider;
   private final RunOption runOption;
   // dataset stuff
   private final int seriesCount = 1;
@@ -80,7 +83,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
       ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
-      @NotNull final RunOption runOption) {
+      XYItemObjectProvider xyItemObjectProvider, @NotNull final RunOption runOption) {
 
     // Task stuff
     this.computed = false;
@@ -93,6 +96,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     this.seriesKeyProvider = seriesKeyProvider;
     this.labelTextProvider = labelTextProvider;
     this.toolTipTextProvider = toolTipTextProvider;
+    this.xyItemObjectProvider = xyItemObjectProvider;
     if (xyValueProvider instanceof IntervalWidthProvider) {
       this.intervalWidthProvider = (IntervalWidthProvider) xyValueProvider;
     } else {
@@ -107,6 +111,14 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     handleRunOption(runOption);
   }
 
+  private ColoredXYDataset(XYValueProvider xyValueProvider,
+      SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
+      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
+      @NotNull final RunOption runOption) {
+    this(xyValueProvider, seriesKeyProvider, labelTextProvider, toolTipTextProvider, colorProvider,
+        xyValueProvider instanceof XYItemObjectProvider objProv ? objProv : null, runOption);
+  }
+
   /**
    * Can be called by extending classes to not start the computation thread before their constructor
    * finished.
@@ -115,12 +127,11 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    */
   public ColoredXYDataset(PlotXYDataProvider datasetProvider, @NotNull final RunOption runOption) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        runOption);
+        datasetProvider instanceof XYItemObjectProvider objProv ? objProv : null, runOption);
   }
 
   public ColoredXYDataset(@NotNull PlotXYDataProvider datasetProvider) {
-    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        RunOption.NEW_THREAD);
+    this(datasetProvider, RunOption.NEW_THREAD);
   }
 
   /**

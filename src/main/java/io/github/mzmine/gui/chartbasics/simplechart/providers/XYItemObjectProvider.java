@@ -18,18 +18,15 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.renderer.PaintScale;
-
 /**
- * Used to color XYZ plots based on their z values.
+ * This provider holds objects (scans or features) that are connected to the XYItems in an XYDataSet
+ * and chart.
+ *
+ * @param <T>
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public interface PaintScaleProvider {
+public sealed interface XYItemObjectProvider<T> permits XYItemScanProvider, XYItemFeatureProvider {
 
-  /**
-   * The {@link PaintScale} this data will be drawn with.
-   *
-   * @return A paint scale. If null, a default paint scale will be used.
-   */
-  @Nullable PaintScale getPaintScale();
+  T getItemObject(int item);
+
 }
