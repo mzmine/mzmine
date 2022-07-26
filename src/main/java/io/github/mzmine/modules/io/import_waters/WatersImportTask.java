@@ -20,6 +20,7 @@ import MassLynxSDK.MassLynxFunctionType;
 import MassLynxSDK.MassLynxRawInfoReader;
 import MassLynxSDK.MassLynxRawScanReader;
 import MassLynxSDK.MasslynxRawException;
+import MassLynxSDK.Scan;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -132,6 +133,11 @@ public class WatersImportTask extends AbstractTask {
         int functionscanval = massLynxRawInfoReader.GetScansInFunction(
             functioncount);
 
+        //Test
+        //Scan scan = rawscanreader.ReadScan(functioncount,massLynxRawInfoReader.GetScansInFunction(functioncount)-1);
+        //float x = massLynxRawInfoReader.GetRetentionTime(functioncount,massLynxRawInfoReader.GetScansInFunction(functioncount)-1 );
+        //end
+
         //msLevel is calculated as per Function type
         int mslevel = getMsLevel(massLynxRawInfoReader, functioncount);
 
@@ -220,7 +226,7 @@ public class WatersImportTask extends AbstractTask {
        {
          continue;
        }
-        //Rename
+        //rawscanreader.ReadScan(i,massLynxRawInfoReader.GetScansInFunction(i)-1,massLynxRawInfoReader.GetDriftScanCount(i)-1);
        int functionScanValue=massLynxRawInfoReader.GetScansInFunction(i);
 
         //Drift Scan Value
@@ -240,7 +246,7 @@ public class WatersImportTask extends AbstractTask {
           intermediateframe=new IntermediateFrame(this.newMZmineFile,
               massLynxRawInfoReader.IsContinuum(i), mslevel,
               massLynxRawInfoReader.GetIonMode(i), mzrange, i,
-              massLynxRawInfoReader.GetRetentionTime(i, j), j,numdriftscan);
+              massLynxRawInfoReader.GetRetentionTime(i, j), j,numdriftscan,functionScanValue);
           intermediateFrameArrayList.add(intermediateframe);
         }
       }
@@ -275,7 +281,7 @@ public class WatersImportTask extends AbstractTask {
       int getfunctioncount=massLynxRawInfoReader.GetFunctionCount();
       for (int i=0;i<getfunctioncount;i++) {
         try {
-          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(i);
+          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(3);
           if (numdriftscan > 0) {
             return true;
           }
