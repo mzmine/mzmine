@@ -17,7 +17,9 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.io.File;
 import java.util.Collection;
@@ -60,8 +62,10 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   /**
    * Match factor cut-off.
    */
-  public static final IntegerParameter DOT_PRODUCT = new IntegerParameter("Min. Dot Product",
-      "The minimum cosine dot product (0 .. 1000) that search hits must have", 700, 0, 1000);
+  public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
+      "The minimum cosine similarity score (dot product) for identification",
+      MZmineCore.getConfiguration().getScoreFormat(),
+      700.0, 0.0, 1000.0);
 
   /**
    * Optional MS/MS merging parameters.

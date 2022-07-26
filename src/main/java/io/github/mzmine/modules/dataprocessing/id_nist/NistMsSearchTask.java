@@ -127,7 +127,7 @@ public class NistMsSearchTask extends AbstractTask {
   private int progressMax;
 
   // Dot Product cut-offs.
-  private final int minDotProduct;
+  private final Double minDotProduct;
 
   // MS Level.
   private final int msLevel;
