@@ -30,23 +30,30 @@ import net.csibio.aird.util.ArrayUtil;
 
 public class IntermediateFrame extends IntermediateScan {
 
-  public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan) {
-    super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
+ private int driftScanCount;
+
+  public int getDriftScanCount() {
+    return driftScanCount;
   }
 
-  public SimpleFrame toframe(MassLynxRawScanReader rawscanreader,int driftScanCount, int mzmine_scannum,
+  public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
+      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount) {
+    super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
+    this.driftScanCount=driftScanCount;
+  }
+
+  public SimpleFrame toframe(MassLynxRawScanReader rawscanreader, int mzmine_scannum,
       MassLynxRawInfoReader massLynxRawInfoReader)
       throws MasslynxRawException {
     //scan Value
     Scan framescan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan());
 
 
-    double[] mobilities = new double[driftScanCount];
+    double[] mobilities = new double[this.getDriftScanCount()];
 
     ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
-    for (int driftScanNum = 0; driftScanNum < driftScanCount; driftScanNum++) {
-      Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(), driftScanNum);
+    for (int driftScanNum = 0; driftScanNum < this.getDriftScanCount(); driftScanNum++) {
+      Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(),driftScanNum);
       mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
           ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
       mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);

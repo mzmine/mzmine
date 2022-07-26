@@ -78,14 +78,14 @@ public class WatersImportModule implements MZmineProcessingModule {
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
-    //for (int i = 0; i < fileNames.length; i++) {
+    for (int i = 0; i < fileNames.length; i++) {
 
       if ((!fileNames[0].exists()) || (!fileNames[0].canRead())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileNames[0]);
         logger.warning("Cannot read file " + fileNames[0]);
         return ExitCode.ERROR;
       }
-
+    }
       // Set the new name by removing the common prefix
       String newName;
       if (!Strings.isNullOrEmpty(commonPrefix)) {
@@ -94,6 +94,7 @@ public class WatersImportModule implements MZmineProcessingModule {
       } else {
         newName = fileNames[0].getName();
       }
+
 
       try {
         // IMS files are big, reserve a single storage for each file

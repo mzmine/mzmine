@@ -155,6 +155,7 @@ public class WatersImportTask extends AbstractTask {
         SimpleScan simpleScan = intermediatescanarray.get(i).getScan(i+1, rawscanreader);
         newMZmineFile.addScan(simpleScan);
       }
+      this.project.addFile(newMZmineFile);
     }
     catch (MasslynxRawException e)
     {
@@ -164,7 +165,6 @@ public class WatersImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    project.addFile(newMZmineFile);
     setFinishedPercentage(1.0);
   }
 
@@ -210,19 +210,21 @@ public class WatersImportTask extends AbstractTask {
       MassLynxRawScanReader rawscanreader = new MassLynxRawScanReader(filepath);
       IntermediateFrame intermediateframe;
       int totalfunctioncount = massLynxRawInfoReader.GetFunctionCount();
-      //Drift Scan Value
-      int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(0);
+
       ArrayList<IntermediateFrame> intermediateFrameArrayList= new ArrayList<>();
       SimpleFrame simpleFrame;
 
       for (int i=0;i<totalfunctioncount;++i) {
         //Skipping functions which don't have drift Scan
-       if (!isReferenceMeasurement(i))
+       if (isReferenceMeasurement(i))
        {
          continue;
        }
         //Rename
-       int functionscanval=massLynxRawInfoReader.GetScansInFunction(i);
+       int functionScanValue=massLynxRawInfoReader.GetScansInFunction(i);
+
+        //Drift Scan Value
+        int numdriftscan= massLynxRawInfoReader.GetDriftScanCount(i);
 
         //msLevel is calculated as per Function type
         int mslevel = getMsLevel(massLynxRawInfoReader, i);
@@ -233,12 +235,12 @@ public class WatersImportTask extends AbstractTask {
             (double) massLynxRawInfoReader.GetAcquisitionMassRange(i).getEnd());
 
 
-        for (int j=0;j<functionscanval;++j) {
+        for (int j=0;j<functionScanValue;++j) {
 
           intermediateframe=new IntermediateFrame(this.newMZmineFile,
               massLynxRawInfoReader.IsContinuum(i), mslevel,
               massLynxRawInfoReader.GetIonMode(i), mzrange, i,
-              massLynxRawInfoReader.GetRetentionTime(i, j), j);
+              massLynxRawInfoReader.GetRetentionTime(i, j), j,numdriftscan);
           intermediateFrameArrayList.add(intermediateframe);
         }
       }
@@ -247,10 +249,11 @@ public class WatersImportTask extends AbstractTask {
 
       for (int mzmine_scannum = 0; mzmine_scannum < intermediateFrameArrayList.size(); mzmine_scannum++) {
 
-        simpleFrame=intermediateFrameArrayList.get(mzmine_scannum).toframe(rawscanreader,numdriftscan,
+        simpleFrame=intermediateFrameArrayList.get(mzmine_scannum).toframe(rawscanreader,
             mzmine_scannum+1,massLynxRawInfoReader);
         IMSnewMZmineFile.addScan(simpleFrame);
       }
+      this.project.addFile(IMSnewMZmineFile);
     } catch (MasslynxRawException e) {
       e.printStackTrace();
       MZmineCore.getDesktop().displayErrorMessage("MasslynxRawException :: " + e.getMessage());
@@ -272,7 +275,7 @@ public class WatersImportTask extends AbstractTask {
       int getfunctioncount=massLynxRawInfoReader.GetFunctionCount();
       for (int i=0;i<getfunctioncount;i++) {
         try {
-          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(3);
+          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(i);
           if (numdriftscan > 0) {
             return true;
           }
