@@ -102,7 +102,8 @@ public class NistMsSearchTask extends AbstractTask {
   private static final Pattern RI_REGEX = Pattern.compile("RI:\\s*(\\d+)");
   private static final Pattern MF_REGEX = Pattern.compile("MF:\\s*(\\d+)");
   private static final Pattern RMF_REGEX = Pattern.compile("RMF:\\s*(\\d+)");
-  private static final Pattern ION_REGEX = Pattern.compile("  \\[(.*?)\\]");
+  //private static final Pattern ION_REGEX = Pattern.compile("  \\[.*?)\\]");
+  private static final Pattern ION_REGEX = Pattern.compile("  (\\[.*?\\].*? )");
   private static final Pattern CAS_REGEX = Pattern.compile("CAS:\\s*([^;]*);");
   private static final Pattern MW_REGEX = Pattern.compile("Mw:\\s*(\\d+)");
   private static final Pattern ID_REGEX = Pattern.compile("Id:\\s*(\\d+)");
