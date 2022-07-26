@@ -62,6 +62,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Application;
@@ -91,9 +92,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
+import org.controlsfx.control.action.Action;
 import org.jetbrains.annotations.NotNull;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * MZmine JavaFX Application class
@@ -377,6 +382,46 @@ public class MZmineGUI extends Application implements Desktop {
     }
   }
 
+  public static void handleTaskManagerLocationChange(WindowLocation loc) {
+    if (Objects.equals(loc, currentTaskManagerLocation)) {
+      return;
+    }
+
+    String title = "Tasks";
+    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+
+    // remove
+    switch (currentTaskManagerLocation) {
+      case TAB -> mainWindowController.removeTab(title);
+      case MAIN -> removeTasksFromBottom();
+      case HIDDEN -> {
+      }
+      case EXTERNAL -> {
+        if (currentTaskWindow != null) {
+          currentTaskWindow.close();
+          currentTaskWindow = null;
+        }
+      }
+    }
+
+    // add
+    switch (loc) {
+      case TAB -> {
+        MZmineTab tab = new SimpleTab(title);
+        tab.setContent(tasksView);
+        MZmineCore.getDesktop().addTab(tab);
+      }
+      case EXTERNAL -> {
+        currentTaskWindow = addWindow(tasksView, title);
+      }
+      case MAIN -> addTasksToBottom();
+      case HIDDEN -> {
+      }
+    }
+
+    currentTaskManagerLocation = loc;
+  }
+
   @Override
   public void start(Stage stage) {
 
@@ -385,6 +430,7 @@ public class MZmineGUI extends Application implements Desktop {
 
     logger.finest("Initializing MZmine main window");
 
+    MZminePreferences preferences = MZmineCore.getConfiguration().getPreferences();
     try {
       // Load the main window
       URL mainFXML = this.getClass().getResource(mzMineFXML);
@@ -396,8 +442,7 @@ public class MZmineGUI extends Application implements Desktop {
       rootScene.getStylesheets()
           .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
 
-      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.darkMode).getValue();
+      Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
       if (darkMode != null && darkMode == true) {
         rootScene.getStylesheets()
             .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
@@ -441,6 +486,19 @@ public class MZmineGUI extends Application implements Desktop {
 
     stage.show();
 
+    // show message that temp folder should be setup
+    if (preferences.getValue(MZminePreferences.showTempFolderAlert)) {
+      File tmpPath = preferences.getValue(MZminePreferences.tempDirectory);
+      File userDir = FileUtils.getUserDirectory();
+      if (tmpPath == null || !tmpPath.exists() || tmpPath.getAbsolutePath().toLowerCase()
+          .contains("users") || tmpPath.equals(userDir)) {
+        MZmineCore.runLater(() -> displayNotification("""
+                Set temp folder to a fast local drive (prefer a public folder over a user folder).
+                MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
+                """, "Change", MZmineCore::openTempPreferences,
+            () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
+      }
+    }
     // update the size and position of the main window
     /*
      * ParameterSet paramSet = configuration.getPreferences(); WindowSettingsParameter settings =
@@ -618,6 +676,33 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
+  public void displayNotification(String msg, String buttonText, Runnable action,
+      Runnable hideForeverAction) {
+    logger.log(Level.INFO, msg);
+    NotificationPane pane = mainWindowController.getNotificationPane();
+    pane.getActions().clear();
+    if (hideForeverAction != null) {
+      pane.getActions().add(new Action("Hide ∞", ae -> {
+        hideForeverAction.run();
+        pane.hide();
+      }));
+    }
+
+    Action buttonAction = new Action(buttonText, ae -> {
+      action.run();
+      pane.hide();
+    });
+    FontIcon fontIcon = null;
+    try {
+      fontIcon = new FontIcon("bi-exclamation-triangle:30");
+      fontIcon.setOnMouseClicked(event -> buttonAction.handle(null));
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot load icon from Ikonli" + ex.getMessage(), ex);
+    }
+    pane.show(msg, fontIcon, buttonAction);
+  }
+
+  @Override
   public RawDataFile[] getSelectedDataFiles() {
     return getSelectedRawDataFiles().toArray(new RawDataFile[0]);
   }
@@ -739,46 +824,5 @@ public class MZmineGUI extends Application implements Desktop {
       e.printStackTrace();
     }
     return ButtonType.NO;
-  }
-
-
-  public static void handleTaskManagerLocationChange(WindowLocation loc) {
-    if (Objects.equals(loc, currentTaskManagerLocation)) {
-      return;
-    }
-
-    String title = "Tasks";
-    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
-
-    // remove
-    switch (currentTaskManagerLocation) {
-      case TAB -> mainWindowController.removeTab(title);
-      case MAIN -> removeTasksFromBottom();
-      case HIDDEN -> {
-      }
-      case EXTERNAL -> {
-        if (currentTaskWindow != null) {
-          currentTaskWindow.close();
-          currentTaskWindow = null;
-        }
-      }
-    }
-
-    // add
-    switch (loc) {
-      case TAB -> {
-        MZmineTab tab = new SimpleTab(title);
-        tab.setContent(tasksView);
-        MZmineCore.getDesktop().addTab(tab);
-      }
-      case EXTERNAL -> {
-        currentTaskWindow = addWindow(tasksView, title);
-      }
-      case MAIN -> addTasksToBottom();
-      case HIDDEN -> {
-      }
-    }
-
-    currentTaskManagerLocation = loc;
   }
 }

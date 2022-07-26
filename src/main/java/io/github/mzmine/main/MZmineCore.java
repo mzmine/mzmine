@@ -230,6 +230,11 @@ public final class MZmineCore {
     }
   }
 
+  public static void openTempPreferences() {
+    MZminePreferences pref = getConfiguration().getPreferences();
+    pref.showSetupDialog(true, "temp");
+  }
+
   public static MZmineCore getInstance() {
     return instance;
   }

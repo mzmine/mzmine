@@ -119,6 +119,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
 
 public class MainWindowController {
@@ -155,6 +156,9 @@ public class MainWindowController {
   @FXML
   public MenuItem featureListsRemoveMenuItem;
   public ColorPickerMenuItem rawDataFileColorPicker;
+
+  @FXML
+  public NotificationPane notificationPane;
   @FXML
   private Scene mainScene;
   @FXML
@@ -1019,6 +1023,10 @@ public class MainWindowController {
     } else if (rawDataList.onlyItemsSelected()) {
       rawDataList.groupSelectedItems();
     }
+  }
+
+  public NotificationPane getNotificationPane() {
+    return notificationPane;
   }
 
   public VBox getBottomBox() {
