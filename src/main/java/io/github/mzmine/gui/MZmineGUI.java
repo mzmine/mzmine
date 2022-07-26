@@ -468,11 +468,7 @@ public class MZmineGUI extends Application implements Desktop {
     nvcThread.start();
 
     // Tracker
-    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)",
-        "/JAVA/Main/GUI");
-    Thread gatThread = new Thread(GAT);
-    gatThread.setPriority(Thread.MIN_PRIORITY);
-    gatThread.start();
+    GoogleAnalyticsTracker.track("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch
@@ -482,7 +478,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public String getName() {
+  public @NotNull String getName() {
     return "MZmine desktop";
   }
 
