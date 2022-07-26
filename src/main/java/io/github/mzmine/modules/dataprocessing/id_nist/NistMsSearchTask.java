@@ -427,6 +427,9 @@ public class NistMsSearchTask extends AbstractTask {
               dotProduct = rmfMatcher.find() ? Double.parseDouble(rmfMatcher.group(1)) : Double.NaN;
             }
 
+            // NIST cosine similarity scores range between 0 and 1000. Make compatible with MZmine.
+            dotProduct = dotProduct / 1000;
+
             // Parse compound meta data and make SprectralDBAnnotation.
             if (dotProduct >= minDotProduct) {
 

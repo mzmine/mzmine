@@ -65,7 +65,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
       "The minimum cosine similarity score (dot product) for identification",
       MZmineCore.getConfiguration().getScoreFormat(),
-      700.0, 0.0, 1000.0);
+      0.7, 0.0, 1.0);
 
   /**
    * Optional MS/MS merging parameters.
