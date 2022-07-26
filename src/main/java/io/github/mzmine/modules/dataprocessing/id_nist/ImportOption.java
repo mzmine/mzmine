@@ -19,7 +19,7 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 
 public enum ImportOption {
 
-  PREPEND("Append"),
+  APPEND("Append"),
   OVERWRITE("Overwrite");
 
   private final String type;
