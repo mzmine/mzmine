@@ -54,7 +54,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * MS Level for search.
    */
   public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
-      "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP-GC Cluster Spectra.",
+      "Choose MS level for spectal matching. Enter \"1\" for MS1 spectra or ADAP-GC Cluster Spectra.",
       2, 1, 1000);
 
   /**
