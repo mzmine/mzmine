@@ -187,6 +187,7 @@ public final class MZmineCore {
       // track version use
       String versionString = "MZmine version " + version;
       GoogleAnalyticsTracker.track(versionString, versionString);
+      GoogleAnalyticsTracker.track("MZmine3_start", "MZmine3_start");
 
       getInstance().headLessMode = (batchFile != null || keepRunningInHeadless);
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
