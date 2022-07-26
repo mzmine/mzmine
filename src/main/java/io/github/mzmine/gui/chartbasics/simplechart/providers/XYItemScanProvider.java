@@ -27,14 +27,10 @@ import io.github.mzmine.datamodel.Scan;
  */
 public non-sealed interface XYItemScanProvider extends XYItemObjectProvider<Scan> {
 
-  Scan getScan(int series, int item);
+  Scan getScan(int item);
 
-  default Scan getScan(int item) {
-    return getScan(0, item);
+  default Scan getItemObject(int item) {
+    return getScan(item);
   }
 
-  @Override
-  default Scan getItemObject(int series, int item) {
-    return getScan(series, item);
-  }
 }

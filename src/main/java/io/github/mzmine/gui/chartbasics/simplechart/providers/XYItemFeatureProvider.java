@@ -28,14 +28,10 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 public abstract non-sealed class XYItemFeatureProvider implements
     XYItemObjectProvider<FeatureListRow> {
 
-  public abstract FeatureListRow getRow(int series, int item);
-
-  public FeatureListRow getRow(int item) {
-    return getRow(0, item);
-  }
+  abstract FeatureListRow getRow(int item);
 
   @Override
-  public FeatureListRow getItemObject(int series, int item) {
-    return getRow(series, item);
+  public FeatureListRow getItemObject(int item) {
+    return getRow(item);
   }
 }

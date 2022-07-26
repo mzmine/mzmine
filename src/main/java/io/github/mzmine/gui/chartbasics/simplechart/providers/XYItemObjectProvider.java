@@ -27,9 +27,6 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
  */
 public sealed interface XYItemObjectProvider<T> permits XYItemScanProvider, XYItemFeatureProvider {
 
-  default T getItemObject(int item) {
-    return getItemObject(0, item);
-  }
+  T getItemObject(int item);
 
-  T getItemObject(int series, int item);
 }

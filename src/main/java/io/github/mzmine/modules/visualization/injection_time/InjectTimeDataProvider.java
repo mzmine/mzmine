@@ -73,11 +73,6 @@ class InjectTimeDataProvider extends SimpleXYProvider implements XYItemScanProvi
     return super.getToolTipText(itemIndex);
   }
 
-  @Override
-  public Scan getScan(int series, int item) {
-    return getScan(item);
-  }
-
   public Scan getScan(int item) {
     return item >= 0 && item < scans.length ? scans[item] : null;
   }
