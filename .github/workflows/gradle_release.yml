@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.MZMINE_BOT_ACTIONS_TOKEN }}
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Execute Gradle to increment version
