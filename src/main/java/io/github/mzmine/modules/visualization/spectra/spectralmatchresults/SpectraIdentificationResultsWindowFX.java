@@ -146,19 +146,15 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
   public synchronized void addMatches(SpectralDBAnnotation match) {
     if (!totalMatches.contains(match)) {
       // add
-      if (match.getEntry().getDataPoints() != null) {
-        totalMatches.add(match);
-        SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
-        pn.setCoupleZoomY(isCouplingZoomY);
-        pn.prefWidthProperty().bind(this.widthProperty());
-        matchPanels.put(match, pn);
+      totalMatches.add(match);
+      SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
+      pn.setCoupleZoomY(isCouplingZoomY);
+      pn.prefWidthProperty().bind(this.widthProperty());
+      matchPanels.put(match, pn);
 
-        //pnGrid.add(pn, 0, matchPanels.size() - 1);
+      //pnGrid.add(pn, 0, matchPanels.size() - 1);
 
-        // sort and show
-
-      }
-
+      // sort and show
       sortTotalMatches();
     }
   }
@@ -178,13 +174,12 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
       if (!totalMatches.contains(match)) {
 
         // add and skip matches without datapoints
-        if(match.getEntry().getDataPoints() != null){
-          totalMatches.add(match);
-          SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
-          pn.setCoupleZoomY(isCouplingZoomY);
-          pn.prefWidthProperty().bind(this.widthProperty());
-          matchPanels.put(match, pn);
-        }
+        totalMatches.add(match);
+        SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
+        pn.setCoupleZoomY(isCouplingZoomY);
+        pn.prefWidthProperty().bind(this.widthProperty());
+        matchPanels.put(match, pn);
+
       }
     }
     // sort and show
