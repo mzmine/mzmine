@@ -462,7 +462,8 @@ public class NistMsSearchTask extends AbstractTask {
                 id = idMatcher.group(1);
               }
               if (libMatcher.find()) {
-                lib = "Library: " + libMatcher.group(1);
+                lib = "Library: " + libMatcher.group(1) + "\n" +
+                "NIST results only viewable in NIST MS Search";
               }
 
               // Compound ion_type is combined with name field for LC-MS/MS field.
