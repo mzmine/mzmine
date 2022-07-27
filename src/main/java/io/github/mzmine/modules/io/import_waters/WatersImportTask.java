@@ -277,7 +277,7 @@ public class WatersImportTask extends AbstractTask {
       int getfunctioncount=massLynxRawInfoReader.GetFunctionCount();
       for (int i=0;i<getfunctioncount;i++) {
         try {
-          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(3);
+          int numdriftscan = massLynxRawInfoReader.GetDriftScanCount(i);
           if (numdriftscan > 0) {
             return true;
           }
