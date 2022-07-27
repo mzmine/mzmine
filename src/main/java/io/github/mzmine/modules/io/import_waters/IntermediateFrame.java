@@ -19,6 +19,7 @@ import MassLynxSDK.MassLynxRawScanReader;
 import MassLynxSDK.MasslynxRawException;
 import MassLynxSDK.Scan;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -33,6 +34,8 @@ public class IntermediateFrame extends IntermediateScan {
  private int driftScanCount;
  private int scanInFunction;
 
+ private IMSRawDataFile imsRawDataFile;
+
   public int getScanInFunction() {
     return scanInFunction;
   }
@@ -42,10 +45,11 @@ public class IntermediateFrame extends IntermediateScan {
   }
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount,int scanInFunction) {
+      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount,int scanInFunction,IMSRawDataFile imsRawDataFile) {
     super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
     this.driftScanCount=driftScanCount;
     this.scanInFunction= scanInFunction;
+    this.imsRawDataFile=imsRawDataFile;
   }
 
   public SimpleFrame toframe(MassLynxRawScanReader rawscanreader, int mzmine_scannum,
@@ -54,12 +58,15 @@ public class IntermediateFrame extends IntermediateScan {
     //scan Value
     Scan framescan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan());
 
-
+    //Mobilities
     double[] mobilities = new double[this.getDriftScanCount()];
+
+    //driftScan
+    Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
 
     ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
     for (int driftScanNum = 0; driftScanNum < this.getDriftScanCount(); driftScanNum++) {
-      Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
+      //Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
       mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
           ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
       mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);
@@ -71,7 +78,7 @@ public class IntermediateFrame extends IntermediateScan {
 
     polarity= this.getIonmode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
-    SimpleFrame simpleframe=new SimpleFrame(this.getNewMZmineFile(),mzmine_scannum,this.getMslevel()
+    SimpleFrame simpleframe=new SimpleFrame(this.imsRawDataFile,mzmine_scannum,this.getMslevel()
         ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(framescan.GetMasses()),ArrayUtil.fromFloatToDouble(framescan.GetIntensities()),spectrumType,polarity,"",
         this.getMZRange(), MobilityType.TRAVELING_WAVE,null,null);
 

@@ -133,10 +133,6 @@ public class WatersImportTask extends AbstractTask {
         int functionscanval = massLynxRawInfoReader.GetScansInFunction(
             functioncount);
 
-        //Test
-        //Scan scan = rawscanreader.ReadScan(functioncount,massLynxRawInfoReader.GetScansInFunction(functioncount)-1);
-        //float x = massLynxRawInfoReader.GetRetentionTime(functioncount,massLynxRawInfoReader.GetScansInFunction(functioncount)-1 );
-        //end
 
         //msLevel is calculated as per Function type
         int mslevel = getMsLevel(massLynxRawInfoReader, functioncount);
@@ -147,7 +143,7 @@ public class WatersImportTask extends AbstractTask {
             (double) massLynxRawInfoReader.GetAcquisitionMassRange(functioncount).getEnd());
 
         for (int numscan = 0; numscan < functionscanval; ++numscan) {
-          intermediatescan = new IntermediateScan(this.newMZmineFile,
+          intermediatescan = new IntermediateScan(newMZmineFile,
               massLynxRawInfoReader.IsContinuum(functioncount), mslevel,
               massLynxRawInfoReader.GetIonMode(functioncount), mzrange, functioncount,
               massLynxRawInfoReader.GetRetentionTime(functioncount, numscan), numscan);
@@ -226,7 +222,7 @@ public class WatersImportTask extends AbstractTask {
        {
          continue;
        }
-        //rawscanreader.ReadScan(i,massLynxRawInfoReader.GetScansInFunction(i)-1,massLynxRawInfoReader.GetDriftScanCount(i)-1);
+
        int functionScanValue=massLynxRawInfoReader.GetScansInFunction(i);
 
         //Drift Scan Value
@@ -246,7 +242,7 @@ public class WatersImportTask extends AbstractTask {
           intermediateframe=new IntermediateFrame(this.newMZmineFile,
               massLynxRawInfoReader.IsContinuum(i), mslevel,
               massLynxRawInfoReader.GetIonMode(i), mzrange, i,
-              massLynxRawInfoReader.GetRetentionTime(i, j), j,numdriftscan,functionScanValue);
+              massLynxRawInfoReader.GetRetentionTime(i, j), j,numdriftscan,functionScanValue,IMSnewMZmineFile);
           intermediateFrameArrayList.add(intermediateframe);
         }
       }
