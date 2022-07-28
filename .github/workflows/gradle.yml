@@ -3,6 +3,8 @@ name: Test Build
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - 'src/main/resources/mzmineversion.properties'
   pull_request:
     branches: [ master ]
 
