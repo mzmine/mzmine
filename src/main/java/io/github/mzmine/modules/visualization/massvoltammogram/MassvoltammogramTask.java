@@ -58,9 +58,9 @@ public class MassvoltammogramTask extends AbstractTask {
    */
   private double endPotential;
   /**
-   * Polarity of the data used.
+   * The scan selection filter.
    */
-  private String polarity;
+  private final ScanSelection scanSelection;
   /**
    * Delay time between the EC cell and the MS in s.
    */
@@ -73,8 +73,8 @@ public class MassvoltammogramTask extends AbstractTask {
     potentialRange = parameters.getValue(MassvoltammogramParameters.potentialRange);
     mzRange = parameters.getValue(MassvoltammogramParameters.mzRange);
     reactionMode = parameters.getValue(MassvoltammogramParameters.reactionMode);
-    polarity = parameters.getValue((MassvoltammogramParameters.polarity));
     delayTime = parameters.getValue(MassvoltammogramParameters.delayTime);
+    scanSelection = parameters.getValue(MassvoltammogramParameters.scanSelection);
   }
 
   @Override
@@ -107,10 +107,6 @@ public class MassvoltammogramTask extends AbstractTask {
       potentialRampSpeed = Math.abs(potentialRampSpeed) * -1;
       stepSize = Math.abs(stepSize) * -1;
     }
-
-    //Creating a scan selection filter.
-    ScanSelection scanSelection = new ScanSelection(null, null, null, null,
-        PolarityType.fromSingleChar(polarity), null, 1, null);
 
     //Creating a list with all needed scans.
     final List<double[][]> scans = MassvoltammogramUtils.getScans(file, scanSelection,

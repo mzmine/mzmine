@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import java.awt.Button;
 import java.text.DecimalFormat;
@@ -39,8 +40,8 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
 
-  public static final ComboParameter<String> polarity = new ComboParameter<>("Polarity",
-      "Polarity of the MS data to be used.", new String[]{"+", "-"});
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      "Scan Selection", "Filter to choose the scans to be used.", new ScanSelection());
 
   public static final DoubleParameter delayTime = new DoubleParameter("Delay Time / s",
       "Delay time before analytes from the EC cell reach the mass spectrometer",
@@ -63,7 +64,7 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       ReactionMode.OXIDATIVE);
 
   public MassvoltammogramParameters() {
-    super(new Parameter[]{files, polarity, reactionMode, delayTime, potentialRampSpeed,
+    super(new Parameter[]{files, scanSelection, reactionMode, delayTime, potentialRampSpeed,
         potentialRange, stepSize, mzRange});
   }
 }
