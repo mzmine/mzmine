@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,6 +22,7 @@ import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
+import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -40,12 +41,12 @@ import java.util.logging.Logger;
  */
 public class TaskControllerImpl implements TaskController, Runnable {
 
+  private static final Logger logger = Logger.getLogger(TaskControllerImpl.class.getName());
   /**
    * Update the task progress window every 300 ms
    */
   private final int TASKCONTROLLER_THREAD_SLEEP = 300;
-  ArrayList<TaskControlListener> listeners = new ArrayList<TaskControlListener>();
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  ArrayList<TaskControlListener> listeners = new ArrayList<>();
   private Thread taskControllerThread;
 
   private TaskQueue taskQueue;
@@ -64,7 +65,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
     logger.finest("Starting task controller thread");
     taskQueue = new TaskQueue();
 
-    runningThreads = new Vector<WorkerThread>();
+    runningThreads = new Vector<>();
 
     // Create a low-priority thread that will manage the queue and start
     // worker threads for tasks
@@ -93,7 +94,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
   }
 
   @Override
-  public WrappedTask[] addTasks(Task tasks[]) {
+  public WrappedTask[] addTasks(Task[] tasks) {
     if (tasks == null || tasks.length == 0) {
       return new WrappedTask[0];
     }
@@ -104,7 +105,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
   }
 
   @Override
-  public WrappedTask[] addTasks(Task tasks[], TaskPriority[] priorities) {
+  public WrappedTask[] addTasks(Task[] tasks, TaskPriority[] priorities) {
     // It can sometimes happen during a batch that no tasks are actually
     // executed --> tasks[] array may be empty
     if ((tasks == null) || (tasks.length == 0)) {
@@ -131,8 +132,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
   /**
    * Task controller thread main method.
-   *
-   * @see java.lang.Runnable#run()
    */
   @Override
   public void run() {
@@ -206,6 +205,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
             < maxRunningThreads)) {
           WorkerThread newThread = new WorkerThread(task);
 
+          // track task use
+          GoogleAnalyticsTracker.trackTaskRun(task.getActualTask());
+
           if (task.getPriority() == TaskPriority.NORMAL) {
             runningThreads.add(newThread);
           }
@@ -235,7 +237,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
   public void setTaskPriority(Task task, TaskPriority priority) {
 
     // Get a snapshot of current task queue
-    WrappedTask currentQueue[] = taskQueue.getQueueSnapshot();
+    WrappedTask[] currentQueue = taskQueue.getQueueSnapshot();
 
     // Find the requested task
     for (WrappedTask wrappedTask : currentQueue) {

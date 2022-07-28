@@ -5,7 +5,7 @@ inputs:
   args:
     description: "hercules command line arguments"
     required: false
-    default: "--burndown --burndown-people --devs --couples"
+    default: "--burndown --burndown-people --devs --couples --languages java"
 runs:
   using: "docker"
   image: "docker://srcd/hercules:latest"

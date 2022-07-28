@@ -81,6 +81,20 @@
 	-fx-padding : 1;
 }
 
+.notification-pane .notification-bar > .pane {
+  -fx-font-size : 13.0;
+  -fx-background-color: -menu-bg;
+  -fx-effect: dropshadow(three-pass-box, -selection-highlight-outline, 6, 0.0, 0, 3);
+}
+
+.notification-pane .notification-bar > .pane .label {
+  -fx-font-size : 14.0;
+}
+
+.ikonli-font-icon {
+  -fx-icon-color:-selection-highlight-outline;
+}
+
 /** ScrollPane **/
 .scroll-bar:horizontal .thumb,
 .scroll-bar:vertical .thumb {
