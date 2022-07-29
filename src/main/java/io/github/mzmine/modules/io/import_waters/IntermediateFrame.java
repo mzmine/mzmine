@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import java.util.ArrayList;
 import net.csibio.aird.util.ArrayUtil;
+import org.apache.poi.util.SystemOutLogger;
 
 public class IntermediateFrame extends IntermediateScan {
 
@@ -56,20 +57,41 @@ public class IntermediateFrame extends IntermediateScan {
       MassLynxRawInfoReader massLynxRawInfoReader)
       throws MasslynxRawException {
     //scan Value
-    Scan framescan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan());
+    Scan framescan=null;
+    Scan driftScan;
+    try {
+      framescan = rawscanreader.ReadScan(this.getFunction_number(), this.getNumscan());
+    }
+    catch(MasslynxRawException e)
+    {
+      System.out.println("Value of framescan :: "+ e.getMessage());
+      //Automatically null by readscan if it fails
+    }
 
     //Mobilities
     double[] mobilities = new double[this.getDriftScanCount()];
 
     //driftScan
-    Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
+    //Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
 
     ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
     for (int driftScanNum = 0; driftScanNum < this.getDriftScanCount(); driftScanNum++) {
-      //Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
+      try{
+        driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,driftScanNum);
+        mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
+            ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
+      }
+      catch(MasslynxRawException e)
+      {
+      System.out.println("Value of driftscan :: "+ e.getMessage());
+        mobilityscanlist.add(new BuildingMobilityScan(driftScanNum,new double[0],
+            new double[0]));
+      }
+      mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);
+      /*
       mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
           ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
-      mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);
+      mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);*/
     }
 
     PolarityType polarity;
