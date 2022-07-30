@@ -19,6 +19,7 @@ package io.github.mzmine.modules.io.import_waters;
 import MassLynxSDK.MassLynxFunctionType;
 import MassLynxSDK.MassLynxRawInfoReader;
 import MassLynxSDK.MassLynxRawScanReader;
+import MassLynxSDK.MassLynxScanItem;
 import MassLynxSDK.MasslynxRawException;
 import MassLynxSDK.Scan;
 import com.google.common.collect.Range;
@@ -189,7 +190,7 @@ public class WatersImportTask extends AbstractTask {
     }
     else if (masslynxrawinforeader.GetFunctionType(value)==MassLynxFunctionType.TOFM)
     {
-      return MassLynxFunctionType.TOFM.getValue();
+      return value>0?2:1;
     }
     else
     {
@@ -242,7 +243,7 @@ public class WatersImportTask extends AbstractTask {
           intermediateframe=new IntermediateFrame(this.newMZmineFile,
               massLynxRawInfoReader.IsContinuum(i), mslevel,
               massLynxRawInfoReader.GetIonMode(i), mzrange, i,
-              massLynxRawInfoReader.GetRetentionTime(i, j), j,numdriftscan,functionScanValue,IMSnewMZmineFile);
+              massLynxRawInfoReader.GetRetentionTime(i, j), j,numdriftscan,IMSnewMZmineFile);
           intermediateFrameArrayList.add(intermediateframe);
         }
       }
@@ -293,4 +294,22 @@ public class WatersImportTask extends AbstractTask {
     }
     return false;
   }
+  /*public void trial(String filepath)
+  {
+    try
+    {
+      //ScanItem
+      MassLynxRawInfoReader massLynxRawInfoReader = new MassLynxRawInfoReader(filepath);
+      massLynxRawInfoReader.GetScanItem(0,0,new MassLynxScanItem[10]);
+      //
+
+      //
+    }
+    catch(MasslynxRawException e)
+    {
+      e.printStackTrace();
+    }
+
+
+  }*/
 }

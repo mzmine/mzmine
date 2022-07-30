@@ -33,23 +33,17 @@ import org.apache.poi.util.SystemOutLogger;
 public class IntermediateFrame extends IntermediateScan {
 
  private int driftScanCount;
- private int scanInFunction;
 
  private IMSRawDataFile imsRawDataFile;
-
-  public int getScanInFunction() {
-    return scanInFunction;
-  }
 
   public int getDriftScanCount() {
     return driftScanCount;
   }
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount,int scanInFunction,IMSRawDataFile imsRawDataFile) {
+      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount,IMSRawDataFile imsRawDataFile) {
     super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
     this.driftScanCount=driftScanCount;
-    this.scanInFunction= scanInFunction;
     this.imsRawDataFile=imsRawDataFile;
   }
 
@@ -65,19 +59,15 @@ public class IntermediateFrame extends IntermediateScan {
     catch(MasslynxRawException e)
     {
       System.out.println("Value of framescan :: "+ e.getMessage());
-      //Automatically null by readscan if it fails
     }
 
     //Mobilities
     double[] mobilities = new double[this.getDriftScanCount()];
 
-    //driftScan
-    //Scan driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,this.getDriftScanCount()-1);
-
     ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
     for (int driftScanNum = 0; driftScanNum < this.getDriftScanCount(); driftScanNum++) {
       try{
-        driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getScanInFunction()-1,driftScanNum);
+        driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(),driftScanNum);
         mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
             ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
       }
@@ -88,17 +78,10 @@ public class IntermediateFrame extends IntermediateScan {
             new double[0]));
       }
       mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);
-      /*
-      mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
-          ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
-      mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);*/
     }
-
-    PolarityType polarity;
-
     MassSpectrumType spectrumType=this.isIscontinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
 
-    polarity= this.getIonmode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
+    PolarityType polarity= this.getIonmode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
     SimpleFrame simpleframe=new SimpleFrame(this.imsRawDataFile,mzmine_scannum,this.getMslevel()
         ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(framescan.GetMasses()),ArrayUtil.fromFloatToDouble(framescan.GetIntensities()),spectrumType,polarity,"",
