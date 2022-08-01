@@ -40,7 +40,8 @@ public class RecursiveMassDetectorParameters extends SimpleParameterSet {
       "Maximum acceptable peak width in m/z", MZmineCore.getConfiguration().getMZFormat());
 
   public RecursiveMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth});
+    super(new UserParameter[] {noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#recursive-threshold");
   }
 
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
