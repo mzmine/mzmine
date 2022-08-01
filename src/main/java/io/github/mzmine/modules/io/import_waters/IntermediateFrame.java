@@ -27,11 +27,13 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.csibio.aird.util.ArrayUtil;
-import org.apache.poi.util.SystemOutLogger;
 
 public class IntermediateFrame extends IntermediateScan {
 
+  private static final Logger logger = Logger.getLogger(IntermediateFrame.class.getName());
  private int driftScanCount;
 
  private IMSRawDataFile imsRawDataFile;
@@ -59,7 +61,10 @@ public class IntermediateFrame extends IntermediateScan {
     catch(MasslynxRawException e)
     {
       System.out.println("Value of framescan :: "+ e.getMessage());
+      logger.log(Level.WARNING, "MasslynxRawException :: ", e.getMessage());
     }
+    String frameLogValue=String.valueOf(this.getFunction_number())+" :: "+String.valueOf(this.getNumscan());
+    logger.log(Level.INFO,frameLogValue);
 
     //Mobilities
     double[] mobilities = new double[this.getDriftScanCount()];
@@ -70,10 +75,14 @@ public class IntermediateFrame extends IntermediateScan {
         driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(),driftScanNum);
         mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
             ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
+        String driftLogValue=String.valueOf(this.getFunction_number())+" :: "
+            +String.valueOf(this.getNumscan())+" :: "+String.valueOf(driftScanNum);
+        logger.log(Level.INFO,driftLogValue);
       }
       catch(MasslynxRawException e)
       {
       System.out.println("Value of driftscan :: "+ e.getMessage());
+        logger.log(Level.WARNING, "MasslynxRawException :: ", e.getMessage());
         mobilityscanlist.add(new BuildingMobilityScan(driftScanNum,new double[0],
             new double[0]));
       }
