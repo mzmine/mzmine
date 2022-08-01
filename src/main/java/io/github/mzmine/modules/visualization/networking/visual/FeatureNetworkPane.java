@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -146,48 +147,60 @@ public class FeatureNetworkPane extends NetworkPane {
       setAttributeForAllEdges(GraphStyleAttribute.LABEL, selectedItem);
     });
 
+    menu.setStyle("-fx-padding: 15; -fx-spacing: 15;");
+
     // #######################################################
     // add buttons
     ToggleButton toggleCollapseIons = new ToggleButton("Collapse ions");
+    toggleCollapseIons.setMaxWidth(Double.MAX_VALUE);
     toggleCollapseIons.setSelected(collapse);
     toggleCollapseIons.selectedProperty()
         .addListener((o, old, value) -> collapseIonNodes(toggleCollapseIons.isSelected()));
 
     ToggleButton toggleShowMS2SimEdges = new ToggleButton("Show MS2 sim");
+    toggleShowMS2SimEdges.setMaxWidth(Double.MAX_VALUE);
     toggleShowMS2SimEdges.setSelected(true);
     toggleShowMS2SimEdges.selectedProperty()
         .addListener((o, old, value) -> setShowMs2SimEdges(toggleShowMS2SimEdges.isSelected()));
 
     ToggleButton toggleShowRelations = new ToggleButton("Show relational edges");
+    toggleShowRelations.setMaxWidth(Double.MAX_VALUE);
     toggleShowRelations.setSelected(true);
     toggleShowRelations.selectedProperty()
         .addListener((o, old, value) -> setConnectByNetRelations(toggleShowRelations.isSelected()));
 
     ToggleButton toggleShowIonIdentityEdges = new ToggleButton("Show ion edges");
+    toggleShowIonIdentityEdges.setMaxWidth(Double.MAX_VALUE);
     toggleShowIonIdentityEdges.setSelected(true);
     toggleShowIonIdentityEdges.selectedProperty().addListener(
         (o, old, value) -> showIonIdentityEdges(toggleShowIonIdentityEdges.isSelected()));
 
     ToggleButton toggleShowEdgeLabel = new ToggleButton("Show edge label");
+    toggleShowEdgeLabel.setMaxWidth(Double.MAX_VALUE);
     toggleShowEdgeLabel.setSelected(showEdgeLabels);
     toggleShowEdgeLabel.selectedProperty()
         .addListener((o, old, value) -> showEdgeLabels(toggleShowEdgeLabel.isSelected()));
 
     ToggleButton toggleShowNodeLabel = new ToggleButton("Show node label");
+    toggleShowNodeLabel.setMaxWidth(Double.MAX_VALUE);
     toggleShowNodeLabel.setSelected(showNodeLabels);
     toggleShowNodeLabel.selectedProperty()
         .addListener((o, old, value) -> showNodeLabels(toggleShowNodeLabel.isSelected()));
 
     Button showGNPSMatches = new Button("GNPS matches");
+    showGNPSMatches.setMaxWidth(Double.MAX_VALUE);
     showGNPSMatches.setOnAction(e -> showGNPSMatches());
 
     Button showLibraryMatches = new Button("Library matches");
+    showLibraryMatches.setMaxWidth(Double.MAX_VALUE);
     showLibraryMatches.setOnAction(e -> showLibraryMatches());
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
         toggleShowIonIdentityEdges, toggleShowEdgeLabel, toggleShowNodeLabel, showGNPSMatches,
         showLibraryMatches);
+    pnRightMenu.setSpacing(10);
+    pnRightMenu.setPadding(new Insets(0, 20, 10, 20));
     this.setRight(pnRightMenu);
   }
 
@@ -269,19 +282,12 @@ public class FeatureNetworkPane extends NetworkPane {
       EdgeType type = (EdgeType) edge.getAttribute(EdgeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
-          case ION_IDENTITY:
-            setVisible(edge, !collapse && showIonEdges);
-            break;
-          case MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE:
-          case MS2_SIMILARITY_NEUTRAL_M:
-          case MS2_SIMILARITY:
-            setVisible(edge, showMs2SimEdges);
-            break;
-          case NETWORK_RELATIONS:
-            setVisible(edge, showNetRelationsEdges);
-            break;
-          default:
-            break;
+          case ION_IDENTITY -> setVisible(edge, !collapse && showIonEdges);
+          case MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE, MS2_SIMILARITY_NEUTRAL_M, MS2_SIMILARITY ->
+              setVisible(edge, showMs2SimEdges);
+          case NETWORK_RELATIONS -> setVisible(edge, showNetRelationsEdges);
+          default -> {
+          }
         }
       }
       // only if both nodes are visible
@@ -342,12 +348,13 @@ public class FeatureNetworkPane extends NetworkPane {
   private void applyNodeSizeStyle() {
     NodeAtt nodeAttSize = dynamicNodeStyle.get(GraphStyleAttribute.SIZE);
     // min / max values of the specific attributes
-    final Range<Float> sizeValueRange = nodeAttSize.isNumber() ? attributeRanges
-        .computeIfAbsent(nodeAttSize, nodeAtt -> computeValueRange(rows, nodeAttSize)) : null;
+    final Range<Float> sizeValueRange =
+        nodeAttSize.isNumber() ? attributeRanges.computeIfAbsent(nodeAttSize,
+            nodeAtt -> computeValueRange(rows, nodeAttSize)) : null;
     // for non numeric values - give each Object an index
     final Map<String, Integer> sizeValueMap = nodeAttSize.isNumber() ? null
-        : attributeCategoryValuesMap
-            .computeIfAbsent(nodeAttSize, att -> indexAllValues(nodeAttSize));
+        : attributeCategoryValuesMap.computeIfAbsent(nodeAttSize,
+            att -> indexAllValues(nodeAttSize));
     final int numSizeValues = sizeValueMap == null ? 0 : sizeValueMap.size();
 
     for (Node node : graph) {
@@ -363,8 +370,7 @@ public class FeatureNetworkPane extends NetworkPane {
           float size = 0;
           if (sizeValueRange != null) {
             size = interpolateIntensity(Float.parseFloat(sizeValue.toString()),
-                sizeValueRange.lowerEndpoint(),
-                sizeValueRange.upperEndpoint());
+                sizeValueRange.lowerEndpoint(), sizeValueRange.upperEndpoint());
           } else if (sizeValueMap != null) {
             // non numeric values - use index
             int index = sizeValueMap.getOrDefault(sizeValue.toString(), 0);
@@ -383,12 +389,13 @@ public class FeatureNetworkPane extends NetworkPane {
 
   private void applyNodeColorStyle() {
     NodeAtt nodeAttColor = dynamicNodeStyle.get(GraphStyleAttribute.COLOR);
-    final Range<Float> colorValueRange = nodeAttColor.isNumber() ? attributeRanges
-        .computeIfAbsent(nodeAttColor, nodeAtt -> computeValueRange(rows, nodeAttColor)) : null;
+    final Range<Float> colorValueRange =
+        nodeAttColor.isNumber() ? attributeRanges.computeIfAbsent(nodeAttColor,
+            nodeAtt -> computeValueRange(rows, nodeAttColor)) : null;
 
-    final Map<String, Integer> colorValueMap =
-        nodeAttColor.isNumber() ? null : attributeCategoryValuesMap
-            .computeIfAbsent(nodeAttColor, att -> indexAllValues(nodeAttColor));
+    final Map<String, Integer> colorValueMap = nodeAttColor.isNumber() ? null
+        : attributeCategoryValuesMap.computeIfAbsent(nodeAttColor,
+            att -> indexAllValues(nodeAttColor));
     final int numColorValues = colorValueMap == null ? 0 : colorValueMap.size();
 
     for (Node node : graph) {
@@ -407,8 +414,8 @@ public class FeatureNetworkPane extends NetworkPane {
             // differentiate between numeric values and a list of discrete values
             if (colorValueRange != null) {
               final float interpolated = interpolateIntensity(
-                  Float.parseFloat(colorValue.toString()),
-                  colorValueRange.lowerEndpoint(), colorValueRange.upperEndpoint());
+                  Float.parseFloat(colorValue.toString()), colorValueRange.lowerEndpoint(),
+                  colorValueRange.upperEndpoint());
               node.setAttribute("ui.color", interpolated);
             } else if (colorValueMap != null) {
               // non numeric values - use index
