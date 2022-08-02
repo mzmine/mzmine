@@ -1630,4 +1630,72 @@ public class ScanUtils {
       return this.intMode;
     }
   }
+
+
+  /**
+   * Return the closest MSn scan to the most intense MS2 fragment scan.
+   *
+   * I would recommend using PrecursorIonTree caller for iterative uses to avoid repeated
+   * MSn Fragment Tree building.
+   *
+   * @param row Feature list row
+   * @param msLevel MSn level
+   * @return MSn scan
+   */
+  public static Scan getClosestMSnScan(FeatureListRow row, int msLevel){
+
+    Scan ms2Scan = row.getMostIntenseFragmentScan();
+    List<PrecursorIonTree> tree = getMSnFragmentTrees(ms2Scan.getDataFile());
+
+    return getClosestMSnScan(tree, msLevel, ms2Scan);
+  }
+
+  /**
+   * Return the closest MSn scan to the most intense MS2 fragment scan.
+   *
+   * @param msNFragmentTrees PrecursorIonTree of raw data file
+   * @param msLevel MSn level
+   * @param ms2Scan Most intense fragment scan
+   * @return MSn scan
+   */
+  public static Scan getClosestMSnScan(List<PrecursorIonTree> msNFragmentTrees, int msLevel,
+      Scan ms2Scan) {
+
+    int ms2ScanNum = ms2Scan.getScanNumber();
+
+    // Loop through each tree
+    for (PrecursorIonTree tree : msNFragmentTrees) {
+
+      PrecursorIonTreeNode root = tree.getRoot();
+
+      // check if tree has MSLevel and root m/z matches MS2 Scan
+      if (root.getMaxMSLevel() >= msLevel && root.matches(ms2Scan.getPrecursorMz())) {
+
+        List<PrecursorIonTreeNode> child = root.getChildPrecursors();
+
+        // Get scans associated with MS Level
+        List<Scan> fragmentScans = root.getFragmentScans(msLevel - 2);
+
+        if (fragmentScans != null) {
+
+          Scan closestScan = null;
+          int closest = ms2ScanNum;
+
+          // Get scan closest (by scan number) to origin scan
+          for(Scan msn : fragmentScans){
+
+            int dist = msn.getScanNumber() - ms2ScanNum;
+
+            if(dist > 0 && dist < closest){
+              closest = dist;
+              closestScan = msn;
+            }
+          }
+
+          return closestScan;
+        }
+      }
+    }
+    return null;
+  }
 }
