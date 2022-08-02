@@ -1635,33 +1635,36 @@ public class ScanUtils {
   /**
    * Return the closest MSn scan to the most intense MS2 fragment scan.
    *
-   * I would recommend using PrecursorIonTree caller for iterative uses to avoid repeated
-   * MSn Fragment Tree building.
+   * Use PrecursorIonTree caller for iterative uses to avoid repeated MSn Fragment Tree building.
    *
    * @param row Feature list row
    * @param msLevel MSn level
    * @return MSn scan
    */
-  public static Scan getClosestMSnScan(FeatureListRow row, int msLevel){
+  public static Scan getMostIntenseMSnScan(FeatureListRow row, int msLevel){
 
     Scan ms2Scan = row.getMostIntenseFragmentScan();
     List<PrecursorIonTree> tree = getMSnFragmentTrees(ms2Scan.getDataFile());
 
-    return getClosestMSnScan(tree, msLevel, ms2Scan);
+    return getMostIntenseMSnScan(row, msLevel, tree);
   }
 
   /**
-   * Return the closest MSn scan to the most intense MS2 fragment scan.
+   * Get most intense MSn scan for feature list row
    *
-   * @param msNFragmentTrees PrecursorIonTree of raw data file
-   * @param msLevel MSn level
-   * @param ms2Scan Most intense fragment scan
-   * @return MSn scan
+   * @param row Feature List row
+   * @param msLevel MSn scan level
+   * @param msNFragmentTrees PrecursorIonTree for raw data file of most intense fragment scan.
+   * @return
    */
-  public static Scan getClosestMSnScan(List<PrecursorIonTree> msNFragmentTrees, int msLevel,
-      Scan ms2Scan) {
+  public static Scan getMostIntenseMSnScan(FeatureListRow row, int msLevel,
+      List<PrecursorIonTree> msNFragmentTrees) {
 
-    int ms2ScanNum = ms2Scan.getScanNumber();
+    Scan ms2Scan = row.getMostIntenseFragmentScan();
+
+    List<Scan> scanRange = row.getFeature(ms2Scan.getDataFile()).getScanNumbers();
+    int firstScanNum = scanRange.get(0).getScanNumber();
+    int lastScanNum = scanRange.get(scanRange.size() - 1).getScanNumber();
 
     // Loop through each tree
     for (PrecursorIonTree tree : msNFragmentTrees) {
@@ -1671,31 +1674,32 @@ public class ScanUtils {
       // check if tree has MSLevel and root m/z matches MS2 Scan
       if (root.getMaxMSLevel() >= msLevel && root.matches(ms2Scan.getPrecursorMz())) {
 
-        List<PrecursorIonTreeNode> child = root.getChildPrecursors();
-
         // Get scans associated with MS Level
         List<Scan> fragmentScans = root.getFragmentScans(msLevel - 2);
 
         if (fragmentScans != null) {
 
-          Scan closestScan = null;
-          int closest = ms2ScanNum;
+          Scan msnScan = null;
+          double intensity = 0;
 
-          // Get scan closest (by scan number) to origin scan
           for(Scan msn : fragmentScans){
 
-            int dist = msn.getScanNumber() - ms2ScanNum;
+            Double value = msn.getTIC();
 
-            if(dist > 0 && dist < closest){
-              closest = dist;
-              closestScan = msn;
+            // Get most intense MSn scan in feature scan range
+            if(msn.getScanNumber() > firstScanNum &&
+                msn.getScanNumber() < lastScanNum &&
+                value > intensity){
+              msnScan = msn;
+              intensity = value;
             }
           }
-
-          return closestScan;
+          return msnScan;
         }
       }
     }
+
+    // No MSn scans found
     return null;
   }
 }
