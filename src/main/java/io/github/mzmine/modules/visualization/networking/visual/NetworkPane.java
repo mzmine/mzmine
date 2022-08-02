@@ -242,7 +242,7 @@ public class NetworkPane extends BorderPane {
     graph.setAutoCreate(true);
     graph.setStrict(false);
 
-    viewer = new FxViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
+    viewer = new FxViewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
     viewer.enableAutoLayout();
     graph.setAttribute("Layout.frozen"); //Block the layout algorithm
     view = (FxViewPanel) viewer.addDefaultView(false);
