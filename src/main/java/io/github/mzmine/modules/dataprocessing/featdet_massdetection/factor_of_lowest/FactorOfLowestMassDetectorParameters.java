@@ -32,7 +32,8 @@ public class FactorOfLowestMassDetectorParameters extends SimpleParameterSet {
       MZmineCore.getConfiguration().getScoreFormat(), 2.5);
 
   public FactorOfLowestMassDetectorParameters() {
-    super(new UserParameter[]{noiseFactor});
+    super(new UserParameter[]{noiseFactor},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#factor-of-the-lowest-signal");
   }
 
   @Override
