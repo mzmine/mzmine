@@ -34,7 +34,8 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public LocalMaxMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel});
+    super(new UserParameter[] {noiseLevel},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#local-maxima");
   }
 
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
