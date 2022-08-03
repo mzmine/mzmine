@@ -35,9 +35,7 @@ import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import io.github.mzmine.parameters.ParameterSet;
 import java.awt.Color;
-import java.awt.Image;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -163,11 +161,12 @@ public class ImageVisualizerTab extends MZmineTab {
           Scan selectedScan = rawDataFile.getScan(xValue, yValue);
           AnchorPane pane = controller.getSpectrumPlotPane();
           Node spectrum = addSpectra(rawDataFile, selectedScan);
+          pane.getChildren().clear();
+          pane.getChildren().add(spectrum);
           AnchorPane.setTopAnchor(spectrum, 0.0);
           AnchorPane.setRightAnchor(spectrum, 0.0);
           AnchorPane.setLeftAnchor(spectrum, 0.0);
           AnchorPane.setBottomAnchor(spectrum, 0.0);
-          pane.getChildren().add(spectrum);
         }
       }
     });
