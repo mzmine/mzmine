@@ -143,10 +143,10 @@ public class TimsTOFAcquisitionUtils {
     return true;
   }
 
-  public static boolean acquireAbsOffset(final File acqControl, final String spot,
-      final List<MaldiTimsPrecursor> precursorList, final int yOffset, final int xOffset,
+  public static boolean acquireLaserOffset(final File acqControl, final String spot,
+      final List<MaldiTimsPrecursor> precursorList, final int laserOffsetX, final int laserOffsetY,
       int precursorListCounter, final File savePathDir, String name, File currentCeFile,
-      boolean enableCeStepping, boolean exportOnly) {
+      boolean enableCeStepping, boolean exportOnly, String geometry) {
     List<String> cmdLine = new ArrayList<>();
 
     cmdLine.add(acqControl.toString());
@@ -154,9 +154,14 @@ public class TimsTOFAcquisitionUtils {
     cmdLine.add(spot);
 
     cmdLine.add("--xoffset");
-    cmdLine.add(String.valueOf(xOffset));
+    cmdLine.add(String.valueOf(0));
     cmdLine.add("--yoffset");
-    cmdLine.add(String.valueOf(yOffset));
+    cmdLine.add(String.valueOf(0));
+
+    cmdLine.add("--laseroffsetx");
+    cmdLine.add(String.valueOf(laserOffsetX));
+    cmdLine.add("--laseroffsety");
+    cmdLine.add(String.valueOf(laserOffsetY));
 
     cmdLine.add("--path");
     cmdLine.add(savePathDir.toString().replace(File.separatorChar, '/'));
@@ -164,8 +169,8 @@ public class TimsTOFAcquisitionUtils {
     cmdLine.add("--name");
     cmdLine.add(name);
 
-    cmdLine.add("--acqtype");
-    cmdLine.add("accumulate");
+    cmdLine.add("--geometry");
+    cmdLine.add(geometry);
 
     if (enableCeStepping && currentCeFile != null && currentCeFile.exists()) {
       cmdLine.add("--cetable");

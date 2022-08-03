@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
+import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
@@ -26,7 +27,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
-import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionTask;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
@@ -60,8 +60,6 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final Integer incrementOffsetX;
   private final File savePathDir;
   private final Boolean exportOnly;
-  private final Boolean enableCeStepping;
-  private final CeSteppingTables ceSteppingTables;
   private final Double isolationWidth;
 
   private String desc = "Running MAlDI acquisition";
@@ -78,18 +76,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     minMobilityWidth = parameters.getValue(TimsTOFImageMsMsParameters.minMobilityWidth);
     acqControl = parameters.getValue(TimsTOFImageMsMsParameters.acquisitionControl);
     initialOffsetY = parameters.getValue(TimsTOFImageMsMsParameters.initialOffsetY);
-    incrementOffsetX = parameters.getValue(TimsTOFImageMsMsParameters.incrementOffsetX);
+    incrementOffsetX = parameters.getValue(TimsTOFImageMsMsParameters.laserOffsetX);
     savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
     isolationWidth = parameters.getValue(TimsTOFImageMsMsParameters.isolationWidth);
-    enableCeStepping = parameters.getValue(TimsTOFImageMsMsParameters.ceStepping);
-    if (enableCeStepping) {
-      ceSteppingTables = new CeSteppingTables(
-          parameters.getParameter(TimsTOFImageMsMsParameters.ceStepping).getEmbeddedParameter()
-              .getValue(), isolationWidth);
-    } else {
-      ceSteppingTables = null;
-    }
   }
 
   @Override
@@ -110,18 +100,12 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       savePathDir.mkdirs();
     }
 
-    // todo: - ce ramp
-    //       - export only
-
-    // we can (in the future) acquire multiple spots in one file, but not multiple CEs in one file
-
-    final double flistStepProgress = 1 / (double) flists.length;
-
     if (isCanceled()) {
       return;
     }
 
     final FeatureList flist = flists[0];
+    final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
 
     if (flist.getNumberOfRows() == 0) {
       setStatus(TaskStatus.FINISHED);
@@ -175,6 +159,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
     }
 
+    // sort the spots by line, so we limit the movement that we have to do
     final List<ImagingSpot> sortedSpots = frameSpotMap.entrySet().stream().sorted((e1, e2) -> {
       int xCompare = Integer.compare(e1.getKey().getMaldiSpotInfo().xIndexPos(),
           e2.getValue().spotInfo().xIndexPos());
@@ -201,9 +186,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
           if (x == 0 && y == 0 || spot.getPrecursorList(x, y).isEmpty()) {
             continue;
           }
-          TimsTOFAcquisitionUtils.acquireAbsOffset(acqControl, spotInfo.spotName(),
+          TimsTOFAcquisitionUtils.acquireLaserOffset(acqControl, spotInfo.spotName(),
               spot.getPrecursorList(x, y), x * initialOffsetY, y * incrementOffsetX, counter++,
-              savePathDir, spotInfo.spotName() + "_" + counter, null, false, exportOnly);
+              savePathDir, spotInfo.spotName() + "_" + counter, null, false, exportOnly,
+              "Imaging_" + file.getName().replace(".d", ""));
         }
       }
     }
