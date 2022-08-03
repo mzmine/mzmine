@@ -185,7 +185,7 @@ public class NetworkPane extends BorderPane {
   protected Graph graph;
   protected Viewer viewer;
   protected FxViewPanel view;
-  protected Node selectedNode;
+  protected Node selectedNodeOrNodes;
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;

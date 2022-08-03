@@ -31,15 +31,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
@@ -70,6 +75,8 @@ public class FeatureNetworkPane extends NetworkPane {
 
   // currently set values
   private boolean onlyBest;
+
+  private int neighbours = 0;
   private boolean showNetRelationsEdges;
   private boolean collapse = true;
   private boolean showIonEdges = true;
@@ -195,10 +202,17 @@ public class FeatureNetworkPane extends NetworkPane {
     showLibraryMatches.setMaxWidth(Double.MAX_VALUE);
     showLibraryMatches.setOnAction(e -> showLibraryMatches());
 
+    Spinner nodeNeighbours = new Spinner(3, 50, 3, 1);
+    Label l = new Label("No. of node neighbours:");
+    neighbours = Integer.parseInt(nodeNeighbours.getValue().toString());
+
+    Button updateGraphButton = new Button("Update graph");
+    updateGraphButton.setMaxWidth(Double.MAX_VALUE);
+
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
         toggleShowIonIdentityEdges, toggleShowEdgeLabel, toggleShowNodeLabel, showGNPSMatches,
-        showLibraryMatches);
+        showLibraryMatches, l, nodeNeighbours, updateGraphButton);
     pnRightMenu.setSpacing(10);
     pnRightMenu.setPadding(new Insets(0, 20, 10, 20));
     this.setRight(pnRightMenu);
@@ -429,6 +443,33 @@ public class FeatureNetworkPane extends NetworkPane {
         logger.log(Level.SEVERE, ex.getMessage(), ex);
       }
     }
+  }
+
+  public Stream<Node> streamNodeNeighborsBreadthFirst(Node node, int edgeDistance) {
+    if (edgeDistance < 0) {
+      throw new IllegalArgumentException("Distance cannot be negative, value=" + edgeDistance);
+    }
+    return switch (edgeDistance) {
+      case 0 -> Stream.of();
+      case 1 -> node.neighborNodes();
+      default -> {
+        Stream<Node> stream = node.neighborNodes();
+        Stream<Node> nextLevel = node.neighborNodes().flatMap(
+            neighbor -> streamNodeNeighborsBreadthFirst(neighbor, edgeDistance - 1).distinct());
+        yield Stream.concat(stream, nextLevel);
+      }
+    };
+  }
+
+  private void updateGraph()
+  {
+    if(getSelectedNode()==null)
+    {
+      Alert alert = new Alert(AlertType.INFORMATION);
+      alert.setContentText("Please select the node(s) from the graph first!!");
+      alert.showAndWait();
+    }
+
   }
 
   private void applyLabelStyle(GraphObject target) {

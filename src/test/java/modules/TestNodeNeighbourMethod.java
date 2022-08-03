@@ -12,15 +12,28 @@ public class TestNodeNeighbourMethod {
   public Graph CreateGraph()
   {
     Graph graph = new MultiGraph("Test-Graph");
-    Generator gen = new FullGenerator();
-    gen.addSink(graph);
-    gen.begin();
-    while (graph.getNodeCount() < 50 && gen.nextEvents());
-    gen.end();
-    int i=0;
+    graph.setStrict(false);
+    graph.setAutoCreate(true);
+    graph.addEdge("AB", "A", "B");
+    graph.addEdge("AC", "A", "C");
+    graph.addEdge("CD", "C", "D");
+    graph.addEdge("BD", "B", "D");
+    graph.addEdge("BE", "B", "E");
+    graph.addEdge("BF", "B", "F");
+    graph.addEdge("BC", "B", "C");
+    graph.addEdge("GF", "G", "F");
+    graph.addEdge("HI", "H", "I");
+    graph.addEdge("FE", "F", "E");
+    graph.addEdge("FK", "F", "K");
+    graph.addEdge("FI", "F", "I");
+    graph.addEdge("KL", "K", "L");
+    graph.addEdge("JL", "J", "L");
+    graph.addEdge("IJ", "I", "J");
+    graph.addEdge("FJ", "F", "J");
+    graph.addEdge("CJ", "C", "J");
+    graph.addEdge("KJ", "K", "J");
     for (Node node : graph) {
-      node.setAttribute("ui.label",(i+1)+"");
-      i++;
+      node.setAttribute("ui.label", node.getId());
     }
     return graph;
   }
@@ -41,8 +54,10 @@ public class TestNodeNeighbourMethod {
     };
   }
   @Test
-  public void printNodes()
+  public void testmethod()
   {
-    streamNodeNeighborsBreadthFirst(CreateGraph().getNode("1"),3).forEach(s -> System.out.println(s.getId()));
+    System.setProperty("org.graphstream.ui","javafx");
+    TestNodeNeighbourMethod t = new TestNodeNeighbourMethod();
+    t.streamNodeNeighborsBreadthFirst(t.CreateGraph().getNode("A"),2).forEach(s -> System.out.print(s.getId()));
   }
 }
