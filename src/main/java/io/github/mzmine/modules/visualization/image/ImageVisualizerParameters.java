@@ -42,6 +42,7 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
       new MZRangeParameter("m/z range", "Select m/z range");
 
   public ImageVisualizerParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzRange});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzRange},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/image_raw_data/image_viewer.html");
   }
 }
