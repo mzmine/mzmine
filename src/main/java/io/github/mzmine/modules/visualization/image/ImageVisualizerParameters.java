@@ -20,7 +20,10 @@ package io.github.mzmine.modules.visualization.image;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.MobilityRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
@@ -39,8 +42,12 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
 
   public static final MZRangeParameter mzRange = new MZRangeParameter("m/z range",
       "Select m/z range");
+  public static final OptionalParameter<MobilityRangeParameter> mobilityRange = new OptionalParameter<>(
+      new MobilityRangeParameter());
+  public static final BooleanParameter normalize = new BooleanParameter("TIC normalize",
+      "Normalize each value by the scans TIC", false);
 
   public ImageVisualizerParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzRange});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzRange, mobilityRange, normalize});
   }
 }
