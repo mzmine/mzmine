@@ -108,7 +108,7 @@
                         </GridPane>
                      </children>
                   </VBox>
-                <BorderPane fx:id="spectrumPlotPane"/>
+                <BorderPane fx:id="spectrumPlotPane" />
               </items>
             </SplitPane>
         </items>

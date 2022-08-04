@@ -129,7 +129,7 @@ public class ImageVisualizerTab extends MZmineTab {
     // add empty spectrum plot
     spectraTab = new SpectraVisualizerTab(rawDataFile);
     BorderPane pane = controller.getSpectrumPlotPane();
-    pane.setCenter(spectraTab.getTabPane());
+    pane.setCenter(spectraTab.getMainPane());
 
     setContent(mainPane);
   }

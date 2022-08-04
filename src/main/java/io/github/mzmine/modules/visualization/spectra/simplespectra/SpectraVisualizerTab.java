@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -281,6 +281,11 @@ public class SpectraVisualizerTab extends MZmineTab {
     this(dataFile, null, false);
   }
 
+
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
   private void loadColorSettings() {
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     scanColor = FxColorUtil.fxColorToAWT(palette.get(0));
@@ -338,7 +343,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
       // TODO: Search fragment scans
       // Add all fragment scans to MS/MS selector combo
-      Scan fragmentScans[] = null; // currentScan.getFragmentScanNumbers();
+      Scan[] fragmentScans = null; // currentScan.getFragmentScanNumbers();
       if (fragmentScans != null) {
         for (Scan fragmentScan : fragmentScans) {
           if (fragmentScan == null) {
@@ -358,7 +363,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       String massListTitle = "";
       String windowTitle =
           "Spectrum: [" + dataFile.getName() + "; scan #" + currentScan.getScanNumber()
-          + massListTitle + "]";
+              + massListTitle + "]";
 
       String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
@@ -366,7 +371,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
       if (basePeak != null) {
         spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz()) + " m/z ("
-                         + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
+            + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
       }
       String spectrumSubtitle = null;
       if (!Strings.isNullOrEmpty(currentScan.getScanDefinition())) {
@@ -654,7 +659,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     if (newScan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Raw data file " + dataFile + " does not contain scan at retention time "
-          + currentScan.getRetentionTime());
+              + currentScan.getRetentionTime());
       return;
     }
 
