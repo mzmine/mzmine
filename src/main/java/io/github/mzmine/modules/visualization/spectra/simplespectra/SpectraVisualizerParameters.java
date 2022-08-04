@@ -37,7 +37,8 @@ public class SpectraVisualizerParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public SpectraVisualizerParameters() {
-    super(new Parameter[] {dataFiles, scanNumber, windowSettings});
+    super(new Parameter[] {dataFiles, scanNumber, windowSettings},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ms_raw_data_overview/raw_data_additional.html#ms-spectrum");
   }
 
 }

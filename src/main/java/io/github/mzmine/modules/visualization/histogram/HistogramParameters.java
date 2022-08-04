@@ -48,7 +48,8 @@ public class HistogramParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public HistogramParameters() {
-    super(new Parameter[] {featureList, dataFiles, dataRange, numOfBins, windowSettings});
+    super(new Parameter[] {featureList, dataFiles, dataRange, numOfBins, windowSettings},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/feature_histograms/feature_hist#feature-list-histogram");
   }
 
   @Override
