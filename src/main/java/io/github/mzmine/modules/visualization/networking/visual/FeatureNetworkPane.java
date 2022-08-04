@@ -29,17 +29,13 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -48,7 +44,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
@@ -493,8 +488,9 @@ public class FeatureNetworkPane extends NetworkPane {
   public void updateGraph() {
     graph.removeAttribute("Layout.frozen");
     graph.nodes().forEach(node -> {
-      if(!(mouseSelectedNodes.contains(node)))
-      graph.removeNode(node.getId());
+      if(!(mouseSelectedNodes.contains(node))) {
+        graph.removeNode(node.getId());
+      }
     });
     viewer.enableAutoLayout();
   }
