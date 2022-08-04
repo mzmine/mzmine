@@ -25,8 +25,12 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -296,12 +300,19 @@ public class FeatureNetworkPane extends NetworkPane {
       EdgeType type = (EdgeType) edge.getAttribute(EdgeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
-          case ION_IDENTITY -> setVisible(edge, !collapse && showIonEdges);
-          case MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE, MS2_SIMILARITY_NEUTRAL_M, MS2_SIMILARITY ->
-              setVisible(edge, showMs2SimEdges);
-          case NETWORK_RELATIONS -> setVisible(edge, showNetRelationsEdges);
-          default -> {
-          }
+          case ION_IDENTITY:
+            setVisible(edge, !collapse && showIonEdges);
+            break;
+          case MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE:
+          case MS2_SIMILARITY_NEUTRAL_M:
+          case MS2_SIMILARITY:
+            setVisible(edge, showMs2SimEdges);
+            break;
+          case NETWORK_RELATIONS:
+            setVisible(edge, showNetRelationsEdges);
+            break;
+          default:
+            break;
         }
       }
       // only if both nodes are visible
@@ -310,7 +321,6 @@ public class FeatureNetworkPane extends NetworkPane {
       }
     });
   }
-
   /**
    * Array of rows
    *
@@ -445,33 +455,49 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
-  public Stream<Node> streamNodeNeighborsBreadthFirst(Node node, int edgeDistance) {
-    if (edgeDistance < 0) {
-      throw new IllegalArgumentException("Distance cannot be negative, value=" + edgeDistance);
-    }
-    return switch (edgeDistance) {
-      case 0 -> Stream.of();
-      case 1 -> node.neighborNodes();
-      default -> {
-        Stream<Node> stream = node.neighborNodes();
-        Stream<Node> nextLevel = node.neighborNodes().flatMap(
-            neighbor -> streamNodeNeighborsBreadthFirst(neighbor, edgeDistance - 1).distinct());
-        yield Stream.concat(stream, nextLevel);
+
+  /**
+   * Unique list of node neighbors within edge distance
+   *
+   * @param node         node to visit and all its neighbors
+   * @param edgeDistance number of consecutive edges connecting neighbors
+   * @return list of all neighbors + the initial node
+   */
+  public List<Node> getNodeNeighbors(Node node, int edgeDistance) {
+    Object2IntOpenHashMap<Node> visited = new Object2IntOpenHashMap<>();
+    visited.put(node, edgeDistance);
+    addNodeNeighbors(visited, node, edgeDistance);
+    return new ArrayList<>(visited.keySet());
+  }
+
+  /**
+   * Add all neighbors to the visited list and check for higher edgeDistance to really capture all
+   * neighbors
+   *
+   * @param visited map that tracks visited nodes and their edgeDistance
+   * @param node
+   * @param edgeDistance
+   */
+  private void addNodeNeighbors(Object2IntOpenHashMap<Node> visited, Node node, int edgeDistance) {
+    final int nextDistance = edgeDistance-1;
+    node.neighborNodes().forEach(neighbor -> {
+      if (visited.getOrDefault(neighbor, -1) < edgeDistance) {
+        // was never visited or was visited with lower edgeDistance - visit this time
+        visited.put(neighbor, nextDistance);
+        if (edgeDistance > 1) {
+          addNodeNeighbors(visited, neighbor, nextDistance);
+        }
       }
-    };
+    });
   }
-
-  private void updateGraph()
-  {
-    if(getSelectedNode()==null)
-    {
-      Alert alert = new Alert(AlertType.INFORMATION);
-      alert.setContentText("Please select the node(s) from the graph first!!");
-      alert.showAndWait();
-    }
-
+  public void updateGraph() {
+    graph.removeAttribute("Layout.frozen");
+    graph.nodes().forEach(node -> {
+      if(!(mouseSelectedNodes.contains(node)))
+      graph.removeNode(node.getId());
+    });
+    viewer.enableAutoLayout();
   }
-
   private void applyLabelStyle(GraphObject target) {
     final String att = getStyleAttribute(target, GraphStyleAttribute.LABEL);
     target.stream(graph).forEach(node -> {

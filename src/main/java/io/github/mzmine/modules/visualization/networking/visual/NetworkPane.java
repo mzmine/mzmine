@@ -23,7 +23,6 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -56,7 +55,6 @@ import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.javafx.util.FxFileSinkImages;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
-import org.graphstream.ui.view.util.InteractiveElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -185,7 +183,7 @@ public class NetworkPane extends BorderPane {
   protected Graph graph;
   protected Viewer viewer;
   protected FxViewPanel view;
-  protected Node selectedNodeOrNodes;
+  protected List<Node> mouseSelectedNodes;
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
@@ -236,6 +234,7 @@ public class NetworkPane extends BorderPane {
     setShowTitle(showTitle);
 
     selectedNodes = new ArrayList<>();
+    mouseSelectedNodes = new ArrayList<>();
 
     graph = new MultiGraph(title);
     setStyleSheet(this.styleSheet);
@@ -287,8 +286,6 @@ public class NetworkPane extends BorderPane {
     view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
 
     view.setOnMouseClicked(e -> {
-      selectedNode = (Node) view.findGraphicElementAt(EnumSet.of(InteractiveElement.NODE), e.getX(),
-          e.getY());
       if (e.getButton() == MouseButton.PRIMARY) {
         if (e.getClickCount() == 2) {
           resetZoom();
@@ -409,6 +406,11 @@ public class NetworkPane extends BorderPane {
         edge.removeAttribute("ui.label");
       }
     });
+  }
+
+  public void setSelectedNodes(@Nullable Node mouseSelectedNodes)
+  {
+
   }
 
   public void setStyleSheet(String styleSheet) {
@@ -536,8 +538,8 @@ public class NetworkPane extends BorderPane {
     return pnSettings;
   }
 
-  public Node getSelectedNode() {
-    return selectedNode;
+  public List<Node> getmouseSelectedNode() {
+    return mouseSelectedNodes;
   }
 
   /**
