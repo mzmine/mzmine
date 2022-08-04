@@ -23,11 +23,11 @@
   ~
   -->
 
-<BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.image.ImageVisualizerPaneController">
+<?import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot?><BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.image.ImageVisualizerPaneController">
    <center>
-      <SplitPane dividerPositions="0.6638795986622074" prefHeight="400.0" prefWidth="600.0">
+      <SplitPane dividerPositions="0.7">
         <items>
-            <BorderPane fx:id="plotPane" prefHeight="398.0" prefWidth="481.0" />
+            <BorderPane fx:id="plotPane"  />
             <SplitPane dividerPositions="0.4" orientation="VERTICAL">
               <items>
                   <VBox prefHeight="95.0" prefWidth="158.0">
@@ -45,12 +45,12 @@
                         </Label>
                         <GridPane fx:id="rawDataInfoGridPane" vgap="2.0" VBox.vgrow="SOMETIMES">
                           <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
+                            <ColumnConstraints hgrow="SOMETIMES"  />
                           </columnConstraints>
                           <rowConstraints>
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints vgrow="SOMETIMES" />
+                            <RowConstraints vgrow="SOMETIMES" />
                           </rowConstraints>
                            <VBox.margin>
                               <Insets bottom="2.0" left="5.0" right="2.0" top="2.0" />
@@ -72,15 +72,15 @@
                         </Label>
                         <GridPane fx:id="imagingParameterInfoGridPane" vgap="2.0" VBox.vgrow="SOMETIMES">
                           <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
                           </columnConstraints>
                           <rowConstraints>
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints vgrow="SOMETIMES" />
+                            <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
                           </rowConstraints>
                            <VBox.margin>
                               <Insets bottom="2.0" left="5.0" right="2.0" top="2.0" />
@@ -91,13 +91,13 @@
                         </GridPane>
                         <GridPane fx:id="plotSettingsInfoGridPane" vgap="2.0" VBox.vgrow="SOMETIMES">
                           <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
                           </columnConstraints>
                           <rowConstraints>
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints vgrow="SOMETIMES" />
+                            <RowConstraints vgrow="SOMETIMES" />
+                            <RowConstraints vgrow="SOMETIMES" />
                           </rowConstraints>
                            <VBox.margin>
                               <Insets bottom="2.0" left="5.0" right="2.0" top="2.0" />
@@ -108,7 +108,7 @@
                         </GridPane>
                      </children>
                   </VBox>
-                <AnchorPane fx:id="spectrumPlotPane" />
+                <BorderPane fx:id="spectrumPlotPane"/>
               </items>
             </SplitPane>
         </items>

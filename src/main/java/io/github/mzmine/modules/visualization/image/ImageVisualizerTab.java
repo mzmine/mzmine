@@ -40,10 +40,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +56,10 @@ import org.jfree.chart.plot.XYPlot;
  */
 public class ImageVisualizerTab extends MZmineTab {
 
-  private final ImageVisualizerPaneController controller;
+  private ImageVisualizerPaneController controller;
   private final EChartViewer imageHeatMapPlot;
   private final ImagingRawDataFile rawDataFile;
+  private SpectraVisualizerTab spectraTab;
 
   public ImageVisualizerTab(ModularFeature feature) {
     super("Image viewer", true, false);
@@ -97,22 +96,8 @@ public class ImageVisualizerTab extends MZmineTab {
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
     this.imageHeatMapPlot = chart;
     this.rawDataFile = imagingFile;
-    AnchorPane root = null;
-    FXMLLoader loader = new FXMLLoader((getClass().getResource("ImageVisualizerPane.fxml")));
-    try {
-      root = loader.load();
-      logger.finest(
-          "Root element of Image visualizer tab has been successfully loaded from the FXML loader.");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
 
-    // Get controller
-    controller = loader.getController();
-    updateHeatMapPlot();
-    addRawDataInfo(rawDataFile);
-    addImagingInfo(imagingParameters);
-    setContent(root);
+    loadGUI(rawDataFile, imagingParameters);
   }
 
   public ImageVisualizerTab(EChartViewer imageHeatMapPlot, ImagingRawDataFile rawDataFile,
@@ -121,10 +106,14 @@ public class ImageVisualizerTab extends MZmineTab {
 
     this.imageHeatMapPlot = imageHeatMapPlot;
     this.rawDataFile = rawDataFile;
-    AnchorPane root = null;
+    loadGUI(rawDataFile, imagingParameters);
+  }
+
+  private void loadGUI(ImagingRawDataFile rawDataFile, ImagingParameters imagingParameters) {
+    BorderPane mainPane = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("ImageVisualizerPane.fxml")));
     try {
-      root = loader.load();
+      mainPane = loader.load();
       logger.finest(
           "Root element of Image visualizer tab has been successfully loaded from the FXML loader.");
     } catch (IOException e) {
@@ -136,7 +125,13 @@ public class ImageVisualizerTab extends MZmineTab {
     updateHeatMapPlot();
     addRawDataInfo(rawDataFile);
     addImagingInfo(imagingParameters);
-    setContent(root);
+
+    // add empty spectrum plot
+    spectraTab = new SpectraVisualizerTab(rawDataFile);
+    BorderPane pane = controller.getSpectrumPlotPane();
+    pane.setCenter(spectraTab.getTabPane());
+
+    setContent(mainPane);
   }
 
 
@@ -160,22 +155,14 @@ public class ImageVisualizerTab extends MZmineTab {
         double yValue = plot.getRangeCrosshairValue();
         if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))) {
           Scan selectedScan = rawDataFile.getScan(xValue, yValue);
-          AnchorPane pane = controller.getSpectrumPlotPane();
-          Node spectrum = addSpectra(rawDataFile, selectedScan);
-          AnchorPane.setTopAnchor(spectrum, 0.0);
-          AnchorPane.setRightAnchor(spectrum, 0.0);
-          AnchorPane.setLeftAnchor(spectrum, 0.0);
-          AnchorPane.setBottomAnchor(spectrum, 0.0);
-          pane.getChildren().add(spectrum);
+          addSpectra(rawDataFile, selectedScan);
         }
       }
     });
   }
 
-  private Node addSpectra(ImagingRawDataFile rawDataFile, Scan selectedScan) {
-    SpectraVisualizerTab spectraTab = new SpectraVisualizerTab(rawDataFile);
+  private void addSpectra(ImagingRawDataFile rawDataFile, Scan selectedScan) {
     spectraTab.loadRawData(selectedScan);
-    return spectraTab.getContent();
   }
 
   private void addRawDataInfo(ImagingRawDataFile rawDataFile) {

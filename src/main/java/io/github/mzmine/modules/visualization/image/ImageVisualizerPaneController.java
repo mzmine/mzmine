@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.visualization.image;
 
 import javafx.fxml.FXML;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
@@ -32,7 +31,7 @@ public class ImageVisualizerPaneController {
   private BorderPane plotPane;
 
   @FXML
-  private AnchorPane spectrumPlotPane;
+  private BorderPane spectrumPlotPane;
 
   @FXML
   private GridPane rawDataInfoGridPane;
@@ -55,7 +54,7 @@ public class ImageVisualizerPaneController {
     return imagingParameterInfoGridPane;
   }
 
-  public AnchorPane getSpectrumPlotPane() {
+  public BorderPane getSpectrumPlotPane() {
     return spectrumPlotPane;
   }
 
