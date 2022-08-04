@@ -137,6 +137,8 @@ public class ImageVisualizerTab extends MZmineTab {
 
   public void updateHeatMapPlot() {
     BorderPane plotPane = controller.getPlotPane();
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(imageHeatMapPlot);
+
     plotPane.setCenter(imageHeatMapPlot);
     addListenerToImage(imageHeatMapPlot, rawDataFile);
   }
