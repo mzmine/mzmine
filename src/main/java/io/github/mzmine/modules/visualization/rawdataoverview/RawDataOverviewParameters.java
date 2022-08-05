@@ -33,7 +33,8 @@ public class RawDataOverviewParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
   public RawDataOverviewParameters() {
-    super(new Parameter[] {rawDataFiles});
+    super(new Parameter[] {rawDataFiles},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ms_raw_data_overview/raw_data_visualization.html");
   }
 
   @Override

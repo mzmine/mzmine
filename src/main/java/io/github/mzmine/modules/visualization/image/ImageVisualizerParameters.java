@@ -48,6 +48,7 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
       "Normalize each value by the scans TIC", false);
 
   public ImageVisualizerParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzRange, mobilityRange, normalize});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzRange, mobilityRange, normalize},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/image_raw_data/image_viewer.html");
   }
 }
