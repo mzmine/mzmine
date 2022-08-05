@@ -82,6 +82,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
           + "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
           + "calibrants list) depending on which list you used. References are available in the help file.";
 
+
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
     // super(valueCheckRequired, parameters);
@@ -89,10 +90,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     super(valueCheckRequired, parameters, universalCalibrantsMessage);
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-
-    if (dataFiles.length == 0) {
-      // throw new RuntimeException("No datafiles");
-    }
 
     RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
 
@@ -104,6 +101,18 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       previewDataFile = null;
     }
 
+    //TODO: Improve handling of ComboBox in case no raw files are loaded
+    if (previewDataFile != null) {
+      comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+      comboDataFileName.setOnAction(e -> {
+        parametersChanged(true);
+      });
+      comboDataFileName.getSelectionModel().select(previewDataFile);
+    } else {
+      comboDataFileName = new ComboBox<>();
+    }
+
     previewCheckBox = new CheckBox("Show preview");
 
     paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
@@ -112,13 +121,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     // Elements of pnlLab
     pnlDataFile = new FlowPane();
     pnlDataFile.getChildren().add(new Label("Data file "));
-
-    comboDataFileName = new ComboBox<>(FXCollections.observableList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
-    comboDataFileName.setOnAction(e -> {
-      parametersChanged(false);
-    });
-    comboDataFileName.getSelectionModel().select(previewDataFile);
 
     pnlDataFile.getChildren().add(comboDataFileName);
 
@@ -185,7 +187,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       }
     });
 
-    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
+    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 1, 1);
     this.setOnCloseRequest(event -> cancelRunningPreviewTask());
   }
 
@@ -210,6 +212,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     }
 
     RawDataFile previewDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
+
     if (previewDataFile == null) {
       return;
     }
