@@ -239,11 +239,10 @@ public class SpectraVisualizerTab extends MZmineTab {
             isotopePeakButton, axesButton, exportButton, createLibraryEntryButton, dbOnlineButton,
             dbCustomButton, dbLipidsButton, dbSpectraButton, sumFormulaButton);
 
-    Accordion rightAccordion = new Accordion(new TitledPane("", toolBar));
-    mainPane.setRight(rightAccordion);
+    mainPane.setRight(toolBar);
 
     bottomPanel = new SpectraBottomPanel(this, dataFile);
-    Accordion bottomAccordion = new Accordion(new TitledPane("", bottomPanel));
+    Accordion bottomAccordion = new Accordion(new TitledPane("Spectrum options", bottomPanel));
     mainPane.setBottom(bottomAccordion);
     setContent(mainPane);
 
