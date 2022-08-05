@@ -226,7 +226,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private Range<Double> getMzRange(SpectrumCursorPosition pos, MZTolerance tolerance) {
     logger.info("get range for " + pos + " and tol " + tolerance.toString());
     if (pos == null) {
-      return Range.all();
+      return null;
     }
     if (tolerance == null) {
       return Range.singleton(pos.mz);

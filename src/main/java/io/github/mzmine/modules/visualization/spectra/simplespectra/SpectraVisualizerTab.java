@@ -240,7 +240,6 @@ public class SpectraVisualizerTab extends MZmineTab {
             dbCustomButton, dbLipidsButton, dbSpectraButton, sumFormulaButton);
 
     Accordion rightAccordion = new Accordion(new TitledPane("", toolBar));
-    rightAccordion.setRotate(270);
     mainPane.setRight(rightAccordion);
 
     bottomPanel = new SpectraBottomPanel(this, dataFile);
@@ -254,6 +253,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     MZTolerance mzTolerance = specParams.getValue(SpectraVisualizerParameters.mzTolerance);
     setMzTolerance(mzTolerance);
+    mzToleranceProperty.bindBidirectional(spectrumPlot.mzToleranceProperty());
 
   }
 
@@ -266,6 +266,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   public void setMzTolerance(MZTolerance mzTolerance) {
+    logger.info("Set mz tolerance from component " + mzTolerance);
     this.mzToleranceProperty.set(mzTolerance);
   }
 
