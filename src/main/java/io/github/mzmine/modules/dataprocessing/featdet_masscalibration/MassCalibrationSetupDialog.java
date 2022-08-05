@@ -90,10 +90,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
-    if (dataFiles.length == 0) {
-      // throw new RuntimeException("No datafiles");
-    }
-
     RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
 
     if (selectedFiles.length > 0) {
@@ -104,6 +100,18 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       previewDataFile = null;
     }
 
+    //TODO: Improve handling of ComboBox in case no raw files are loaded
+    if (previewDataFile != null) {
+      comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+      comboDataFileName.setOnAction(e -> {
+        parametersChanged(true);
+      });
+      comboDataFileName.getSelectionModel().select(previewDataFile);
+    } else {
+      comboDataFileName = new ComboBox<>();
+    }
+
     previewCheckBox = new CheckBox("Show preview");
 
     paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
@@ -112,13 +120,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     // Elements of pnlLab
     pnlDataFile = new FlowPane();
     pnlDataFile.getChildren().add(new Label("Data file "));
-
-    comboDataFileName = new ComboBox<>(FXCollections.observableList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
-    comboDataFileName.setOnAction(e -> {
-      parametersChanged(false);
-    });
-    comboDataFileName.getSelectionModel().select(previewDataFile);
 
     pnlDataFile.getChildren().add(comboDataFileName);
 
@@ -185,7 +186,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       }
     });
 
-    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
+    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 1, 1);
     this.setOnCloseRequest(event -> cancelRunningPreviewTask());
   }
 
