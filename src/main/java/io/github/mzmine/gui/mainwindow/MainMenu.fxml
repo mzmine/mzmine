@@ -217,9 +217,6 @@
       <MenuItem onAction="#runModule"
         text="Ims expander"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule"/>
-      <MenuItem onAction="#runModule"
-        text="Ims expander2"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander2.ImsExpanderModule2"/>
     </Menu>
     <Menu text="Imaging">
       <MenuItem onAction="#runModule"
