@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.image;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -29,6 +30,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import java.awt.Color;
+import java.util.logging.Logger;
 import javafx.scene.layout.BorderPane;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -38,6 +40,7 @@ import org.jfree.chart.axis.NumberAxis;
  */
 public class ImagingPlot extends BorderPane {
 
+  private static final Logger logger = Logger.getLogger(ImagingPlot.class.getName());
   private final SimpleXYZScatterPlot<FeatureImageProvider> chart;
   private ParameterSet parameters;
 
@@ -66,6 +69,12 @@ public class ImagingPlot extends BorderPane {
     RawImageProvider prov = new RawImageProvider(raw, parameters);
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.NEW_THREAD);
     setData(ds);
+  }
+
+  public void setData(ImagingRawDataFile raw, Range<Double> mzRange) {
+    logger.info("Show image with mz range " + mzRange.toString());
+    parameters.setParameter(ImageVisualizerParameters.mzRange, mzRange);
+    setData(raw);
   }
 
   private void setData(ColoredXYZDataset ds) {

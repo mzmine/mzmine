@@ -28,11 +28,13 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
@@ -46,15 +48,16 @@ import org.jfree.chart.plot.XYPlot;
 /**
  * Combines the ImagingPlot with a spectrum
  *
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de), Robin Schmid <a
+ * href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class ImageVisualizerTab extends MZmineTab {
 
   private final ParameterSet parameters;
   private final ImageVisualizerPaneController controller;
   private final ImagingPlot imagingPlot;
-  private SpectraVisualizerTab spectraTab;
   private final EChartViewer imageHeatMapPlot;
+  private SpectraVisualizerTab spectraTab;
   private ImagingRawDataFile rawDataFile;
 
   public ImageVisualizerTab(ParameterSet parameters) {
@@ -67,7 +70,7 @@ public class ImageVisualizerTab extends MZmineTab {
       logger.finest(
           "Root element of Image visualizer tab has been successfully loaded from the FXML loader.");
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
 
     // Get controller
@@ -95,12 +98,16 @@ public class ImageVisualizerTab extends MZmineTab {
     setData(rawDataFile, true);
   }
 
-  public void setData(ImagingRawDataFile rawDataFile, boolean createImage) {
+  public synchronized void setData(ImagingRawDataFile rawDataFile, boolean createImage) {
     if (spectraTab == null) {
       // spectrum plot
       spectraTab = new SpectraVisualizerTab(rawDataFile);
+      getSpectrumPlot().setShowCursor(true);
       BorderPane pane = controller.getSpectrumPlotPane();
       pane.setCenter(spectraTab.getMainPane());
+      // add listener to spectrum property
+      getSpectrumPlot().selectedMzRangeProperty()
+          .addListener((o, ov, nv) -> imagingPlot.setData(rawDataFile, nv));
     }
 
     this.rawDataFile = rawDataFile;
@@ -142,6 +149,10 @@ public class ImageVisualizerTab extends MZmineTab {
         }
       }
     });
+  }
+
+  private SpectraPlot getSpectrumPlot() {
+    return spectraTab.getSpectrumPlot();
   }
 
   private void showSpectrum(Scan selectedScan) {
