@@ -387,7 +387,7 @@ public class TDFUtils {
     final CentroidData data = new CentroidData();
 
     synchronized (tdfLib) {
-      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame(handle, frameId,
+      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId,
           startScanNum, endScanNum, data, Pointer.NULL);
 
       if (error == 0) {
