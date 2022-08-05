@@ -27,54 +27,54 @@ import org.jetbrains.annotations.NotNull;
 
 public class IntermediateScan implements Comparable<IntermediateScan> {
 
-  private boolean iscontinuum;
+  private boolean isContinuum;
   private RawDataFile newMZmineFile;
-  private int mslevel;
-  private MassLynxIonMode ionmode;
+  private int msLevel;
+  private MassLynxIonMode ionMode;
   private Range<Double> MZRange;
-  private int function_number;
+  private int functionNumber;
   private float retentionTime;
-  private int numscan;
+  private int numScan;
 
-  public IntermediateScan(RawDataFile newMZmineFile,boolean iscontinuum,int mslevel, MassLynxIonMode ionmode,
-      Range<Double> MZRange, int function_number,float retentionTime,int numscan)
+  public IntermediateScan(RawDataFile newMZmineFile,boolean isContinuum,int msLevel, MassLynxIonMode ionMode,
+      Range<Double> MZRange, int functionNumber,float retentionTime,int numScan)
   {
     this.newMZmineFile=newMZmineFile;
-    this.function_number=function_number;
+    this.functionNumber = functionNumber;
     this.retentionTime=retentionTime;
     this.MZRange=MZRange;
-    this.ionmode=ionmode;
-    this.iscontinuum=iscontinuum;
-    this.mslevel=mslevel;
-    this.numscan=numscan;
+    this.ionMode = ionMode;
+    this.isContinuum = isContinuum;
+    this.msLevel = msLevel;
+    this.numScan = numScan;
   }
 
-  public boolean isIscontinuum() {
-    return iscontinuum;
+  public boolean isContinuum() {
+    return isContinuum;
   }
 
   public RawDataFile getNewMZmineFile() {
     return newMZmineFile;
   }
 
-  public int getNumscan() {
-    return numscan;
+  public int getNumScan() {
+    return numScan;
   }
 
-  public int getMslevel() {
-    return mslevel;
+  public int getMsLevel() {
+    return msLevel;
   }
 
-  public MassLynxIonMode getIonmode() {
-    return ionmode;
+  public MassLynxIonMode getIonMode() {
+    return ionMode;
   }
 
   public Range<Double> getMZRange() {
     return MZRange;
   }
 
-  public int getFunction_number() {
-    return function_number;
+  public int getFunctionNumber() {
+    return functionNumber;
   }
 
   public float getRetentionTime() {
@@ -95,15 +95,15 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
 
 
     //scan Value
-    Scan scan = rawscanreader.ReadScan(this.function_number,this.numscan);
+    Scan scan = rawscanreader.ReadScan(this.functionNumber,this.numScan);
 
       //Spectrum type is known as per Continuum function
-      MassSpectrumType spectrumType=this.iscontinuum?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
+      MassSpectrumType spectrumType=this.isContinuum ?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
 
       //Polarity is calculated using Ion mode
-    PolarityType  polarity= this.ionmode==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
+    PolarityType  polarity= this.ionMode ==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
-      SimpleScan simplescan = new SimpleScan(this.newMZmineFile,mzmine_scan,this.getMslevel(),
+      SimpleScan simplescan = new SimpleScan(this.newMZmineFile,mzmine_scan,this.getMsLevel(),
           this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
           ,spectrumType,polarity,"",
           this.getMZRange());

@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.csibio.aird.util.ArrayUtil;
@@ -42,9 +43,9 @@ public class IntermediateFrame extends IntermediateScan {
     return driftScanCount;
   }
 
-  public IntermediateFrame(RawDataFile newMZmineFile, boolean iscontinuum, int mslevel,
-      MassLynxIonMode ionmode, Range<Double> MZRange, int function_number, float retentionTime,int numscan,int driftScanCount,IMSRawDataFile imsRawDataFile) {
-    super(newMZmineFile, iscontinuum, mslevel, ionmode, MZRange, function_number, retentionTime,numscan);
+  public IntermediateFrame(RawDataFile newMZmineFile, boolean isContinuum, int msLevel,
+      MassLynxIonMode ionMode, Range<Double> MZRange, int functionNumber, float retentionTime,int numScan,int driftScanCount,IMSRawDataFile imsRawDataFile) {
+    super(newMZmineFile, isContinuum, msLevel, ionMode, MZRange, functionNumber, retentionTime,numScan);
     this.driftScanCount=driftScanCount;
     this.imsRawDataFile=imsRawDataFile;
   }
@@ -52,54 +53,92 @@ public class IntermediateFrame extends IntermediateScan {
   public SimpleFrame toframe(MassLynxRawScanReader rawscanreader, int mzmine_scannum,
       MassLynxRawInfoReader massLynxRawInfoReader)
       throws MasslynxRawException {
+    //String for Logs
+    StringBuilder stringForLogs = new StringBuilder();
     //scan Value
-    Scan framescan=null;
+    Scan frameScan=null;
     Scan driftScan;
+    //Frame
+    SimpleFrame simpleFrame;
+
     try {
-      framescan = rawscanreader.ReadScan(this.getFunction_number(), this.getNumscan());
+      frameScan = rawscanreader.ReadScan(this.getFunctionNumber(), this.getNumScan());
+
+      stringForLogs.append("Value of framescan :: "+ frameScan+" :: Function number "+this.getFunctionNumber()
+          +" :: Numscan number "+this.getNumScan());
+
+      stringForLogs.append(System.getProperty("line.separator"));
+      logger.log(Level.INFO,stringForLogs.toString());
     }
     catch(MasslynxRawException e)
     {
-      System.out.println("Value of framescan :: "+ e.getMessage());
+      stringForLogs.append("error in framescan :: "+ e.getMessage()+" :: Function number "+this.getFunctionNumber()
+          +" :: Numscan number "+this.getNumScan());
+
+      stringForLogs.append(System.getProperty("line.separator"));
+
       logger.log(Level.WARNING, "MasslynxRawException :: ", e.getMessage());
+      logger.log(Level.WARNING, "Framscan :: ", stringForLogs.toString());
     }
-    String frameLogValue=String.valueOf(this.getFunction_number())+" :: "+String.valueOf(this.getNumscan());
-    logger.log(Level.INFO,frameLogValue);
 
     //Mobilities
     double[] mobilities = new double[this.getDriftScanCount()];
 
     ArrayList<BuildingMobilityScan> mobilityscanlist=new ArrayList<>();
+
     for (int driftScanNum = 0; driftScanNum < this.getDriftScanCount(); driftScanNum++) {
+
       try{
-        driftScan = rawscanreader.ReadScan(this.getFunction_number(),this.getNumscan(),driftScanNum);
+
+        driftScan = rawscanreader.ReadScan(this.getFunctionNumber(),this.getNumScan(),driftScanNum);
+
         mobilityscanlist.add(new BuildingMobilityScan(driftScanNum, ArrayUtil.fromFloatToDouble(driftScan.GetMasses()),
             ArrayUtil.fromFloatToDouble(driftScan.GetIntensities())));
-        String driftLogValue=String.valueOf(this.getFunction_number())+" :: "
-            +String.valueOf(this.getNumscan())+" :: "+String.valueOf(driftScanNum);
-        logger.log(Level.INFO,driftLogValue);
+
+        stringForLogs.append("Success response :: "+driftScan+" :: Function number "+this.getFunctionNumber()
+            +" :: Numscan number "+this.getNumScan()+" :: driftscan "+driftScanNum);
+        stringForLogs.append(System.getProperty("line.separator"));
+
+        logger.log(Level.INFO,stringForLogs.toString());
       }
       catch(MasslynxRawException e)
       {
-      System.out.println("Value of driftscan :: "+ e.getMessage());
         logger.log(Level.WARNING, "MasslynxRawException :: ", e.getMessage());
+
         mobilityscanlist.add(new BuildingMobilityScan(driftScanNum,new double[0],
             new double[0]));
+
+        stringForLogs.append("Function Number in fail response:: "+this.getFunctionNumber()+" Numscan :: "
+            +this.getNumScan()+" DrfitscanNumber :: "+driftScanNum+" error in driftscan :: "+ e.getMessage());
+        stringForLogs.append(System.getProperty("line.separator"));
+
+        logger.log(Level.INFO,stringForLogs.toString());
       }
-      mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunction_number(), driftScanNum);
+      mobilities[driftScanNum] = massLynxRawInfoReader.GetDriftTime(getFunctionNumber(), driftScanNum);
     }
-    MassSpectrumType spectrumType=this.isIscontinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
+    //Thread.sleep(5000L);
 
-    PolarityType polarity= this.getIonmode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
+    MassSpectrumType spectrumType=this.isContinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
 
-    SimpleFrame simpleframe=new SimpleFrame(this.imsRawDataFile,mzmine_scannum,this.getMslevel()
-        ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(framescan.GetMasses()),ArrayUtil.fromFloatToDouble(framescan.GetIntensities()),spectrumType,polarity,"",
-        this.getMZRange(), MobilityType.TRAVELING_WAVE,null,null);
+    PolarityType polarity= this.getIonMode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
 
-    simpleframe.setMobilityScans(mobilityscanlist, false);
-    simpleframe.setMobilities(mobilities);
+    if(Objects.isNull(frameScan))
+    {
+      simpleFrame=new SimpleFrame(this.imsRawDataFile,mzmine_scannum,this.getMsLevel()
+          ,this.getRetentionTime(),null,null,spectrumType,polarity,"",
+          this.getMZRange(), MobilityType.TRAVELING_WAVE,null,null);
+    }
+    else
+    {
+      simpleFrame=new SimpleFrame(this.imsRawDataFile,mzmine_scannum,this.getMsLevel()
+          ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(frameScan.GetMasses()),ArrayUtil.fromFloatToDouble(frameScan.GetIntensities()),spectrumType,polarity,"",
+          this.getMZRange(), MobilityType.TRAVELING_WAVE,null,null);
+    }
+    simpleFrame.setMobilityScans(mobilityscanlist, false);
 
-    return simpleframe;
+    simpleFrame.setMobilities(mobilities);
+
+    return simpleFrame;
   }
 
 }
