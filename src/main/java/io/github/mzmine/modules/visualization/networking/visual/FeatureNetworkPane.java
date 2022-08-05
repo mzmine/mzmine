@@ -201,12 +201,13 @@ public class FeatureNetworkPane extends NetworkPane {
     showLibraryMatches.setMaxWidth(Double.MAX_VALUE);
     showLibraryMatches.setOnAction(e -> showLibraryMatches());
 
-    Spinner nodeNeighbours = new Spinner(3, 50, 3, 1);
+    Spinner<Integer> nodeNeighbours = new Spinner<>(1, Integer.MAX_VALUE,3,1);
     Label l = new Label("No. of node neighbours:");
-    neighbours = Integer.parseInt(nodeNeighbours.getValue().toString());
+    neighbours = nodeNeighbours.getValue();
 
     Button updateGraphButton = new Button("Update graph");
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
+    updateGraphButton.setOnAction(e-> updateGraph());
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
@@ -486,9 +487,10 @@ public class FeatureNetworkPane extends NetworkPane {
     });
   }
   public void updateGraph() {
+    List<Node> NeighboringNodes=getNodeNeighbors(getMouseClickedNode(),neighbours);
     graph.removeAttribute("Layout.frozen");
     graph.nodes().forEach(node -> {
-      if(!(mouseSelectedNodes.contains(node))) {
+      if(!(NeighboringNodes.contains(node))) {
         graph.removeNode(node.getId());
       }
     });

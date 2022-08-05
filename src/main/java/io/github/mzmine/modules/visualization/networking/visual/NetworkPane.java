@@ -23,6 +23,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -30,7 +31,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -55,6 +55,7 @@ import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.javafx.util.FxFileSinkImages;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
+import org.graphstream.ui.view.util.InteractiveElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -184,6 +185,8 @@ public class NetworkPane extends BorderPane {
   protected Viewer viewer;
   protected FxViewPanel view;
   protected List<Node> mouseSelectedNodes;
+
+  protected Node mouseClickedNode;
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
@@ -286,17 +289,8 @@ public class NetworkPane extends BorderPane {
     view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
 
     view.setOnMouseClicked(e -> {
-      if (e.getButton() == MouseButton.PRIMARY) {
-        if (e.getClickCount() == 2) {
-          resetZoom();
-          e.consume();
-        } else if (e.getClickCount() == 1) {
-          setCenter(e.getX(), e.getY());
-        }
-      } else if (e.getButton() == MouseButton.SECONDARY) {
-        openSaveDialog();
-        e.consume();
-      }
+      mouseClickedNode = (Node)view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)), e.getX(),
+          e.getY()); //for getting mouse-clicked node by the user
     });
 
     view.setOnMousePressed(e -> {
@@ -408,8 +402,7 @@ public class NetworkPane extends BorderPane {
     });
   }
 
-  public void setSelectedNodes(@Nullable Node mouseSelectedNodes)
-  {
+  public void setSelectedNodes(@Nullable Node mouseSelectedNodes) {
 
   }
 
@@ -538,8 +531,8 @@ public class NetworkPane extends BorderPane {
     return pnSettings;
   }
 
-  public List<Node> getmouseSelectedNode() {
-    return mouseSelectedNodes;
+  public Node getMouseClickedNode() {
+    return mouseClickedNode;
   }
 
   /**
