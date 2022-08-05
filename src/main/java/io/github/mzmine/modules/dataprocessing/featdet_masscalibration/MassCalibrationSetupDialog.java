@@ -82,7 +82,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
           + "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
           + "calibrants list) depending on which list you used. References are available in the help file.";
 
-
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
     // super(valueCheckRequired, parameters);
@@ -212,7 +211,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     }
 
     RawDataFile previewDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
-
     if (previewDataFile == null) {
       return;
     }
