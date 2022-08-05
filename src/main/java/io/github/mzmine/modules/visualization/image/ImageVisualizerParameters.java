@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -32,16 +32,16 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter("Scan " + "selection",
-          "Filter scans based on their properties. Different noise levels ( -> mass "
-              + "lists) are recommended for MS1 and MS/MS scans",
-          new ScanSelection());
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      "Scan " + "selection",
+      "Filter scans based on their properties. Different noise levels are recommended for MS1 and MS/MS scans",
+      new ScanSelection());
 
-  public static final MZRangeParameter mzRange =
-      new MZRangeParameter("m/z range", "Select m/z range");
+  public static final MZRangeParameter mzRange = new MZRangeParameter("m/z range",
+      "Select m/z range");
 
   public ImageVisualizerParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzRange});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzRange},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/image_raw_data/image_viewer.html");
   }
 }

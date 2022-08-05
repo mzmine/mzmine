@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,21 +15,20 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+package io.github.mzmine.modules.dataprocessing.id_nist;
 
-package io.github.mzmine.modules.visualization.image;
+public enum ImportOption {
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
+  APPEND("Append"),
+  OVERWRITE("Overwrite");
 
-/*
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- */
-public record ImagingRawDataInfo(ImagingRawDataFile rawDataFile, String name, Integer numberOfScans,
-                                 Range<Double> dataMzRange) {
+  private final String type;
 
-  public ImagingRawDataInfo(ImagingRawDataFile rawDataFile) {
-    this(rawDataFile, rawDataFile.getName(), rawDataFile.getNumOfScans(),
-        rawDataFile.getDataMZRange());
+  ImportOption(String type) {
+    this.type = type;
   }
 
+  public String toString() {
+    return type;
+  }
 }

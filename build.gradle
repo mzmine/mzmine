@@ -70,12 +70,8 @@ repositories {
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
     maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
-    // For jimzml
-    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
-    //Added for water dev
-    flatDir {
-        dirs  "$rootProject.projectDir\\src\\main\\lib\\waters"
-    }
+//    // For jimzml
+//    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
 
 ext {
@@ -199,16 +195,13 @@ dependencies {
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
-    implementation "com.alanmrace:jimzmlparser:1.0.5"
+    implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
     implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
     testImplementation "org.mockito:mockito-inline:$mockitoversion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoversion"
-    //Added for water development
-    implementation name: "MassLynxSDK"
-    implementation name: "jna"
 
 //    https://blog.gradle.org/log4j-vulnerability
     constraints {

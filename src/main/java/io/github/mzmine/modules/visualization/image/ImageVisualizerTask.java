@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -76,8 +75,8 @@ public class ImageVisualizerTask extends AbstractTask {
     this.parameters = parameters;
     this.rawDataFile = (ImagingRawDataFile) rawDataFile;
     this.imagingParameters = ((ImagingRawDataFile) rawDataFile).getImagingParam();
-    this.scanSelection =
-        parameters.getParameter(ImageVisualizerParameters.scanSelection).getValue();
+    this.scanSelection = parameters.getParameter(ImageVisualizerParameters.scanSelection)
+        .getValue();
     this.mzRange = parameters.getParameter(ImageVisualizerParameters.mzRange).getValue();
     setStatus(TaskStatus.WAITING);
   }
@@ -100,13 +99,11 @@ public class ImageVisualizerTask extends AbstractTask {
     }
     progress = 0.0;
     List<DataPoint> imageDataPoints = extractAllDataPointsFromScans();
-    SimpleIonTimeSeries timeSeries = extractIonTimeSeries(
-        imageDataPoints);
+    SimpleIonTimeSeries timeSeries = extractIonTimeSeries(imageDataPoints);
 
     ModularFeature feature = new ModularFeature(
         new ModularFeatureList("Raw data feature", rawDataFile.getMemoryMapStorage(), rawDataFile),
-        rawDataFile, timeSeries,
-        FeatureStatus.DETECTED);
+        rawDataFile, timeSeries, FeatureStatus.DETECTED);
 
     FeatureImageProvider prov = new FeatureImageProvider(feature);
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
@@ -116,8 +113,8 @@ public class ImageVisualizerTask extends AbstractTask {
     chart.setDomainAxisLabel("µm");
 
     final boolean hideAxes = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class).getParameter(
-            FeatureTableFXParameters.hideImageAxes).getValue();
+        .getModuleParameters(FeatureTableFXModule.class)
+        .getParameter(FeatureTableFXParameters.hideImageAxes).getValue();
 
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
     chart.setDataset(ds);
@@ -135,13 +132,12 @@ public class ImageVisualizerTask extends AbstractTask {
     axis.setVisible(!hideAxes);
 
     final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class).getParameter(
-            FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+        .getModuleParameters(FeatureTableFXModule.class)
+        .getParameter(FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
     MZmineCore.runLater(() -> {
-      ImageVisualizerTab newTab =
-          new ImageVisualizerTab(chart, rawDataFile, imagingParameters);
+      ImageVisualizerTab newTab = new ImageVisualizerTab(chart, rawDataFile, imagingParameters);
       MZmineCore.getDesktop().addTab(newTab);
     });
 
@@ -164,13 +160,12 @@ public class ImageVisualizerTask extends AbstractTask {
       i++;
     }
 
-    return new SimpleIonTimeSeries(null, mzs,
-        intensities, scansList);
+    return new SimpleIonTimeSeries(null, mzs, intensities, scansList);
   }
 
   private List<DataPoint> extractAllDataPointsFromScans() {
     logger.info("Start data point extraction");
-    taskDescription = "Get data points from scans";
+    taskDescription = "ImageViewer: Get data points from scans";
     int processedScans = 1;
     List<DataPoint> allDataPoints = new ArrayList<>();
     Scan[] scans = scanSelection.getMatchingScans(rawDataFile);
@@ -178,8 +173,8 @@ public class ImageVisualizerTask extends AbstractTask {
       if (!(scan instanceof ImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
-      double intensitySum = Arrays
-          .stream(ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange))
+      double intensitySum = Arrays.stream(
+              ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange))
           .mapToDouble(DataPoint::getIntensity).sum();
       allDataPoints.add(new SimpleDataPoint(0.0, intensitySum));
       progress = (processedScans / (double) scans.length);
