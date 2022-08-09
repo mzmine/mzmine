@@ -184,7 +184,6 @@ public class NetworkPane extends BorderPane {
   protected Graph graph;
   protected Viewer viewer;
   protected FxViewPanel view;
-  protected List<Node> mouseSelectedNodes;
 
   protected Node mouseClickedNode;
   protected double viewPercent = 1;
@@ -237,7 +236,6 @@ public class NetworkPane extends BorderPane {
     setShowTitle(showTitle);
 
     selectedNodes = new ArrayList<>();
-    mouseSelectedNodes = new ArrayList<>();
 
     graph = new MultiGraph(title);
     setStyleSheet(this.styleSheet);
@@ -400,10 +398,6 @@ public class NetworkPane extends BorderPane {
         edge.removeAttribute("ui.label");
       }
     });
-  }
-
-  public void setSelectedNodes(@Nullable Node mouseSelectedNodes) {
-
   }
 
   public void setStyleSheet(String styleSheet) {

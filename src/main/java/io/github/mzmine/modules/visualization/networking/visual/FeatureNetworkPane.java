@@ -18,6 +18,8 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 
+import static io.github.mzmine.util.GraphStreamUtils.getNodeNeighbors;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -25,8 +27,6 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +44,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
@@ -81,6 +82,8 @@ public class FeatureNetworkPane extends NetworkPane {
   private boolean showIonEdges = true;
   private boolean showMs2SimEdges;
   private boolean ms1FeatureShapeEdges = false;
+
+  private Graph filteredGraph;
 
 
   /**
@@ -201,13 +204,13 @@ public class FeatureNetworkPane extends NetworkPane {
     showLibraryMatches.setMaxWidth(Double.MAX_VALUE);
     showLibraryMatches.setOnAction(e -> showLibraryMatches());
 
-    Spinner<Integer> nodeNeighbours = new Spinner<>(1, Integer.MAX_VALUE,3,1);
+    Spinner<Integer> nodeNeighbours = new Spinner<>(1, Integer.MAX_VALUE, 3, 1);
     Label l = new Label("No. of node neighbours:");
     neighbours = nodeNeighbours.getValue();
 
     Button updateGraphButton = new Button("Update graph");
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
-    updateGraphButton.setOnAction(e-> updateGraph());
+    updateGraphButton.setOnAction(e -> updatedGraph().display());
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
@@ -317,6 +320,7 @@ public class FeatureNetworkPane extends NetworkPane {
       }
     });
   }
+
   /**
    * Array of rows
    *
@@ -451,51 +455,30 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
-
-  /**
-   * Unique list of node neighbors within edge distance
-   *
-   * @param node         node to visit and all its neighbors
-   * @param edgeDistance number of consecutive edges connecting neighbors
-   * @return list of all neighbors + the initial node
-   */
-  public List<Node> getNodeNeighbors(Node node, int edgeDistance) {
-    Object2IntOpenHashMap<Node> visited = new Object2IntOpenHashMap<>();
-    visited.put(node, edgeDistance);
-    addNodeNeighbors(visited, node, edgeDistance);
-    return new ArrayList<>(visited.keySet());
-  }
-
-  /**
-   * Add all neighbors to the visited list and check for higher edgeDistance to really capture all
-   * neighbors
-   *
-   * @param visited map that tracks visited nodes and their edgeDistance
-   * @param node
-   * @param edgeDistance
-   */
-  private void addNodeNeighbors(Object2IntOpenHashMap<Node> visited, Node node, int edgeDistance) {
-    final int nextDistance = edgeDistance-1;
-    node.neighborNodes().forEach(neighbor -> {
-      if (visited.getOrDefault(neighbor, -1) < edgeDistance) {
-        // was never visited or was visited with lower edgeDistance - visit this time
-        visited.put(neighbor, nextDistance);
-        if (edgeDistance > 1) {
-          addNodeNeighbors(visited, neighbor, nextDistance);
-        }
+  public Graph updatedGraph() {
+    filteredGraph = getGraph();
+    List<Node> neighboringNodes=getNodeNeighbors(getMouseClickedNode(),neighbours);
+    filteredGraph.removeAttribute("Layout.frozen");
+    filteredGraph.clear();
+    filteredGraph.setAttribute("ui.class",STYLE_SHEET);
+    for (Node node : neighboringNodes) {
+      filteredGraph.addNode(node.getId());
+      if (node.getId().startsWith("Net")) {
+        node.setAttribute("ui.class", "MOL");
       }
-    });
-  }
-  public void updateGraph() {
-    List<Node> NeighboringNodes=getNodeNeighbors(getMouseClickedNode(),neighbours);
-    graph.removeAttribute("Layout.frozen");
-    graph.nodes().forEach(node -> {
-      if(!(NeighboringNodes.contains(node))) {
-        graph.removeNode(node.getId());
+      if (node.getId().equals("NEUTRAL LOSSES")) {
+        node.setAttribute("ui.class", "NEUTRAL");
       }
-    });
-    viewer.enableAutoLayout();
+
+      String l = (String) node.getAttribute(NodeAtt.LABEL.toString());
+      if (l != null) {
+        node.setAttribute("ui.label", l);
+      }
+    }
+    filteredGraph.setAttribute("Layout.frozen");
+    return filteredGraph;
   }
+
   private void applyLabelStyle(GraphObject target) {
     final String att = getStyleAttribute(target, GraphStyleAttribute.LABEL);
     target.stream(graph).forEach(node -> {
