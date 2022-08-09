@@ -121,6 +121,7 @@ public class IntermediateFrame extends IntermediateScan {
     MassSpectrumType spectrumType=this.isContinuum()?MassSpectrumType.PROFILE:MassSpectrumType.CENTROIDED;
 
     PolarityType polarity= this.getIonMode()==MassLynxIonMode.ES_POS? PolarityType.POSITIVE:PolarityType.NEGATIVE;
+    String scanDefination=WatersImportTask.scanDefinationFunction(this.getMsLevel(),this.getNumScan(),polarity,this.getRetentionTime(),this.isContinuum());
 
     if(Objects.isNull(frameScan))
     {
@@ -131,7 +132,8 @@ public class IntermediateFrame extends IntermediateScan {
     else
     {
       simpleFrame=new SimpleFrame(this.imsRawDataFile,mzmine_scannum,this.getMsLevel()
-          ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(frameScan.GetMasses()),ArrayUtil.fromFloatToDouble(frameScan.GetIntensities()),spectrumType,polarity,"",
+          ,this.getRetentionTime(),ArrayUtil.fromFloatToDouble(frameScan.GetMasses()),ArrayUtil.fromFloatToDouble(frameScan.GetIntensities()),
+          spectrumType,polarity,scanDefination,
           this.getMZRange(), MobilityType.TRAVELING_WAVE,null,null);
     }
     simpleFrame.setMobilityScans(mobilityscanlist, false);

@@ -93,7 +93,6 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
   public SimpleScan getScan(int mzmine_scan, MassLynxRawScanReader rawscanreader)
       throws MasslynxRawException {
 
-
     //scan Value
     Scan scan = rawscanreader.ReadScan(this.functionNumber,this.numScan);
 
@@ -102,10 +101,11 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
 
       //Polarity is calculated using Ion mode
     PolarityType  polarity= this.ionMode ==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
+    String scanDefination=WatersImportTask.scanDefinationFunction(this.getMsLevel(),this.getNumScan(),polarity,this.getRetentionTime(),this.isContinuum());
 
       SimpleScan simplescan = new SimpleScan(this.newMZmineFile,mzmine_scan,this.getMsLevel(),
           this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
-          ,spectrumType,polarity,"",
+          ,spectrumType,polarity,scanDefination,
           this.getMZRange());
     return simplescan;
   }

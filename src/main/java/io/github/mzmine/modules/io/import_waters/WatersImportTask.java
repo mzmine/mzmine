@@ -23,6 +23,7 @@ import MassLynxSDK.MasslynxRawException;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -32,8 +33,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
+import java.text.Format;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -180,6 +183,7 @@ public class WatersImportTask extends AbstractTask {
    */
   private int getMsLevel(MassLynxRawInfoReader masslynxrawinforeader,int functionCount)
       throws MasslynxRawException {
+    MassLynxFunctionType val = masslynxrawinforeader.GetFunctionType(functionCount);
     if(masslynxrawinforeader.GetFunctionType(functionCount)==MassLynxFunctionType.MS)
     {
       return 1;
@@ -219,7 +223,7 @@ public class WatersImportTask extends AbstractTask {
 
       for (int functionCount=0;functionCount<totalFunctionCount;++functionCount) {
         //Skipping functions which don't have drift Scan
-       if (isReferenceMeasurement(functionCount))
+       if (isReferenceMeasurement(functionCount,totalFunctionCount))
        {
          continue;
        }
@@ -270,9 +274,9 @@ public class WatersImportTask extends AbstractTask {
   }
 
   //Change the function return true if func num is 2
-  public boolean isReferenceMeasurement(int functionNumber)
+  public boolean isReferenceMeasurement(int functionNumber,int totalFunctionCount)
   {
-    return functionNumber >= 2;
+    return functionNumber >= totalFunctionCount-1;
     }
   public boolean imsFiles()
   {
@@ -297,4 +301,52 @@ public class WatersImportTask extends AbstractTask {
     }
     return false;
   }
+  //Working for Precursor
+  public void precursorImplemet(int functionCount,MassLynxRawInfoReader massLynxRawInfoReader,int msLevel){
+    try {
+      if(msLevel<2)
+      {
+        return;
+      }
+        int[] scanItemArray=massLynxRawInfoReader.GetAvailableScanItems(functionCount);
+        int arraySize=scanItemArray.length;
+      //Implement Binary Search or Interpolation Search in the future. now using Linear Search just for Building Logic
+      for (int i = 0; i < arraySize; i++) {
+
+
+      }
+
+
+      }
+    catch (MasslynxRawException e)
+    {
+      e.printStackTrace();
+      System.out.println(e.getMessage());
+    }
+  }
+  public static String scanDefinationFunction(int msLevel,int numScan, PolarityType polarity, float retentionTime,boolean isContinum)
+  {
+    StringBuilder sb = new StringBuilder();
+    Format retentionTimeFormat = MZmineCore.getConfiguration().getRTFormat();
+    sb.append("Scan Number= "+numScan+" ;"+"MSLevel= "+msLevel+" ;");
+    if(PolarityType.POSITIVE==polarity)
+    {
+      sb.append("Polarity= Positive; ");
+    }
+    else
+    {
+      sb.append("Polarity= Negative; ");
+    }
+    if (isContinum)
+    {
+      sb.append("Spectrumtype= p; ");
+    }
+    else
+    {
+      sb.append("Spectrumtype= c; ");
+    }
+     sb.append("Retention Time= ").append(retentionTimeFormat.format(retentionTime)).append("min");
+    return sb.toString();
+  }
+
 }
