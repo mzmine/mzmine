@@ -17,7 +17,6 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
-
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -109,6 +108,24 @@ public class FeatureNetworkGenerator {
       }
       logger.info("Added " + added.get() + " connections");
     }
+  }
+
+  public void createGraphwithNeighboringNodes(Graph graph, List<Node> neighboringNodes) {
+    graph.removeAttribute("Layout.frozen");
+    List<String> updatedList= new ArrayList<>();
+    for(int k=0;k<neighboringNodes.size();k++)
+    {
+      updatedList.add(k,neighboringNodes.get(k).getId());
+    }
+    int j = 0;
+    for (int i = 0; i < graph.getNodeCount(); i++) {
+      if (!(updatedList.contains(graph.getNode(i).getId()))) {
+        graph.removeNode(i);
+      } else {
+        j++;
+      }
+    }
+    logger.info("Added " + j + " neighboring nodes");
   }
 
   /**
@@ -289,10 +306,10 @@ public class FeatureNetworkGenerator {
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
     edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
     switch (type) {
-      case MS2_SIMILARITY, MS2_GNPS_COSINE_SIM -> edge
-          .setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
-      case FEATURE_CORRELATION -> edge
-          .setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
+      case MS2_SIMILARITY, MS2_GNPS_COSINE_SIM ->
+          edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
+      case FEATURE_CORRELATION ->
+          edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
     }
   }
 
@@ -303,9 +320,8 @@ public class FeatureNetworkGenerator {
   private String getUIClass(EdgeType type) {
     return switch (type) {
       case ION_IDENTITY -> "IIN";
-      case MS2_SIMILARITY,
-          MS2_SIMILARITY_NEUTRAL_M,
-          MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE -> "COSINE";
+      case MS2_SIMILARITY, MS2_SIMILARITY_NEUTRAL_M, MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE ->
+          "COSINE";
       case MS2_GNPS_COSINE_SIM -> "GNPS";
       case FEATURE_CORRELATION -> "FEATURECORR";
       case NETWORK_RELATIONS -> "IINREL";
@@ -446,13 +462,14 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), intensityForm.format(net.getHeightSum()));
 
       final SpectralDBAnnotation bestMatch = net.keySet().stream()
-          .map(FeatureListRow::getSpectralLibraryMatches).flatMap(List::stream).max(
-              Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
+          .map(FeatureListRow::getSpectralLibraryMatches).flatMap(List::stream)
+          .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getCompoundName());
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
-            DBEntryField.NAME, ""));
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
+            bestMatch.getCompoundName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(),
+            bestMatch.getEntry().getOrElse(DBEntryField.NAME, ""));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
             scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
@@ -461,8 +478,9 @@ public class FeatureNetworkGenerator {
       // add best GNPS match to node
       final GNPSLibraryMatch bestGNPS = net.keySet().stream()
           .map(row -> row.get(GNPSSpectralLibraryMatchesType.class)).filter(Objects::nonNull)
-          .flatMap(List::stream).max(Comparator.comparingDouble(a -> a.getResultOr(
-              ATT.LIBRARY_MATCH_SCORE, 0d))).orElse(null);
+          .flatMap(List::stream)
+          .max(Comparator.comparingDouble(a -> a.getResultOr(ATT.LIBRARY_MATCH_SCORE, 0d)))
+          .orElse(null);
       if (bestGNPS != null) {
         final Node thisNode = node;
         bestGNPS.getResults().entrySet().stream().filter(e -> e.getValue() != null).forEach(e -> {
@@ -543,13 +561,14 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.CHARGE.toString(), row.getRowCharge());
       node.setAttribute(NodeAtt.GROUP_ID.toString(), row.getGroupID());
 
-      final SpectralDBAnnotation bestMatch = row.getSpectralLibraryMatches().stream().max(
-          Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
+      final SpectralDBAnnotation bestMatch = row.getSpectralLibraryMatches().stream()
+          .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getCompoundName());
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
-            DBEntryField.NAME, ""));
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
+            bestMatch.getCompoundName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(),
+            bestMatch.getEntry().getOrElse(DBEntryField.NAME, ""));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
             scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
@@ -565,8 +584,9 @@ public class FeatureNetworkGenerator {
         node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(),
             mzForm.format(esi.getIonType().getMass(row.getAverageMZ())));
         node.setAttribute(NodeAtt.NET_ID.toString(), esi.getNetID());
-        String ms2Veri = (esi.getMSMSMultimerCount() > 0 ? "xmer_verified" : "")
-                         + (esi.getMSMSModVerify() > 0 ? " modification_verified" : "");
+        String ms2Veri =
+            (esi.getMSMSMultimerCount() > 0 ? "xmer_verified" : "") + (esi.getMSMSModVerify() > 0
+                ? " modification_verified" : "");
         node.setAttribute(NodeAtt.MS2_VERIFICATION.toString(), ms2Veri);
 
         MolecularFormulaIdentity formula = esi.getBestMolFormula();
@@ -595,8 +615,7 @@ public class FeatureNetworkGenerator {
     return e;
   }
 
-  public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label,
-      boolean directed) {
+  public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label, boolean directed) {
     String uiClass = getUIClass(type);
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);

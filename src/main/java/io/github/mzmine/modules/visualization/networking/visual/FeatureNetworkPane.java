@@ -17,7 +17,6 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
-
 import static io.github.mzmine.util.GraphStreamUtils.getNodeNeighbors;
 
 import com.google.common.collect.Range;
@@ -29,13 +28,14 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -44,7 +44,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
@@ -82,8 +81,6 @@ public class FeatureNetworkPane extends NetworkPane {
   private boolean showIonEdges = true;
   private boolean showMs2SimEdges;
   private boolean ms1FeatureShapeEdges = false;
-
-  private Graph filteredGraph;
 
 
   /**
@@ -210,7 +207,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     Button updateGraphButton = new Button("Update graph");
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
-    updateGraphButton.setOnAction(e -> updatedGraph().display());
+    updateGraphButton.setOnAction(e -> updateGraph());
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
@@ -239,7 +236,19 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
-
+  private void updateGraph()
+  {
+    if(getMouseClickedNode()==null)
+    {
+      Alert alert = new Alert(AlertType.INFORMATION);
+      alert.setContentText("Please click on any node First!!");
+      alert.showAndWait();
+    }
+    else {
+      generator.createGraphwithNeighboringNodes(graph,
+          getNodeNeighbors(getMouseClickedNode(), neighbours));
+    }
+  }
   /**
    * Show GNPS library match
    */
@@ -454,31 +463,6 @@ public class FeatureNetworkPane extends NetworkPane {
       }
     }
   }
-
-  public Graph updatedGraph() {
-    filteredGraph = getGraph();
-    List<Node> neighboringNodes=getNodeNeighbors(getMouseClickedNode(),neighbours);
-    filteredGraph.removeAttribute("Layout.frozen");
-    filteredGraph.clear();
-    filteredGraph.setAttribute("ui.class",STYLE_SHEET);
-    for (Node node : neighboringNodes) {
-      filteredGraph.addNode(node.getId());
-      if (node.getId().startsWith("Net")) {
-        node.setAttribute("ui.class", "MOL");
-      }
-      if (node.getId().equals("NEUTRAL LOSSES")) {
-        node.setAttribute("ui.class", "NEUTRAL");
-      }
-
-      String l = (String) node.getAttribute(NodeAtt.LABEL.toString());
-      if (l != null) {
-        node.setAttribute("ui.label", l);
-      }
-    }
-    filteredGraph.setAttribute("Layout.frozen");
-    return filteredGraph;
-  }
-
   private void applyLabelStyle(GraphObject target) {
     final String att = getStyleAttribute(target, GraphStyleAttribute.LABEL);
     target.stream(graph).forEach(node -> {
