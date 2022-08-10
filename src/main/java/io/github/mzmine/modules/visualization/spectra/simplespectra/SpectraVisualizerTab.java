@@ -289,6 +289,11 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   public void loadRawData(Scan scan) {
+    if (scan == null) {
+      clearPlot();
+      logger.finest("Clearing spectra plot as scan was null");
+      return;
+    }
     logger.finest(
         "Loading scan #" + scan.getScanNumber() + " from " + dataFile + " for spectra visualizer");
 
@@ -385,6 +390,14 @@ public class SpectraVisualizerTab extends MZmineTab {
       }
 
     });
+  }
+
+  private void clearPlot() {
+    spectrumPlot.setTitle("", "");
+
+    // Set plot data set
+    spectrumPlot.removeAllDataSets();
+    spectrumPlot.getXYPlot().clearDomainMarkers();
   }
 
   public void loadPeaks(FeatureList selectedPeakList) {
