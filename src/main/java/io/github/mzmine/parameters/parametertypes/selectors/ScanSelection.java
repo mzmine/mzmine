@@ -122,6 +122,13 @@ public class ScanSelection {
     return streamMatchingScans(dataFile).toArray(Scan[]::new);
   }
 
+  /**
+   * Returns the closest scan to the given retention time matching this scan selection.
+   *
+   * @param file          The raw data file.
+   * @param retentionTime The retention time of the wanted scan.
+   * @return
+   */
   public Scan getScanAtRt(RawDataFile file, float retentionTime) {
 
     if (retentionTime > file.getDataRTRange().upperEndpoint()) {
