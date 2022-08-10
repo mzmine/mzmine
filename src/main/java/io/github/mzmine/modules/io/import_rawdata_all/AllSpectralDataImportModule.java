@@ -298,13 +298,15 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return the task or null if the data format is not supported for direct mass detection
    */
   private AbstractTask createAdvancedTask(RawDataFileType fileType, MZmineProject project,
-      File file, RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam,
-      Class<? extends MZmineModule> module, ParameterSet parameters,
-      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
+      File file, @Nullable RawDataFile newMZmineFile,
+      @NotNull AdvancedSpectraImportParameters advancedParam, Class<? extends MZmineModule> module,
+      ParameterSet parameters, @NotNull Instant moduleCallDate,
+      @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, null, advancedParam, module, parameters,
-          moduleCallDate, storage);
+      case MZML, MZML_IMS ->
+          new MSDKmzMLImportTask(project, file, null, advancedParam, module, parameters,
+              moduleCallDate, storage);
       case MZXML ->
           new MzXMLImportTask(project, file, newMZmineFile, advancedParam, module, parameters,
               moduleCallDate);
@@ -314,7 +316,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case AIRD ->
           new AirdImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML, MZML_IMS ->
+      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, advancedParam, module,
               parameters, moduleCallDate, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
@@ -334,6 +336,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
             storage), advancedParam, moduleCallDate);
   }
 
+  @Nullable
   private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {

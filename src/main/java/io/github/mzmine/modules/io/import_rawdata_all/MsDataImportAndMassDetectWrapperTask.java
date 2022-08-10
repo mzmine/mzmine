@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -25,11 +25,11 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,10 +42,9 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
   private final AbstractTask importTask;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
-  private Logger logger = Logger.getLogger(MsDataImportAndMassDetectWrapperTask.class.getName());
 
   private int totalScans = 1;
-  private int parsedScans = 0;
+  private final int parsedScans = 0;
 
   /**
    * This import task wraps other data import tasks that do not support application of mass
@@ -60,8 +59,8 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    * @param advancedParam    advanced parameters to apply mass detection
    */
   public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists,
-      RawDataFile newMZmineFile, AbstractTask importTask,
-      @NotNull AdvancedSpectraImportParameters advancedParam, @NotNull Instant moduleCallDate) {
+      RawDataFile newMZmineFile, AbstractTask importTask, @NotNull ParameterSet advancedParam,
+      @NotNull Instant moduleCallDate) {
     super(storageMassLists, moduleCallDate);
     this.newMZmineFile = newMZmineFile;
     this.importTask = importTask;
@@ -89,6 +88,12 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
   }
 
   @Override
+  public void cancel() {
+    super.cancel();
+    importTask.cancel();
+  }
+
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     try {
@@ -99,34 +104,9 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
       if (importTask.isFinished()) {
         totalScans = newMZmineFile.getNumOfScans();
 
-        // uses only a single array for each (mz and intensity) to loop over all scans
-        ScanDataAccess data = EfficientDataAccess.of(newMZmineFile,
-            EfficientDataAccess.ScanDataType.RAW);
-        totalScans = data.getNumberOfScans();
-
-        // all scans
-        while (data.hasNextScan()) {
-          if (isCanceled()) {
-            return;
-          }
-
-          Scan scan = data.nextScan();
-
-          double[][] mzIntensities = null;
-          if (ms1Detector != null && scan.getMSLevel() <= 1) {
-            mzIntensities = ms1Detector.getModule()
-                .getMassValues(data, ms1Detector.getParameterSet());
-          } else if (ms2Detector != null && scan.getMSLevel() >= 2) {
-            mzIntensities = ms2Detector.getModule()
-                .getMassValues(data, ms2Detector.getParameterSet());
-          }
-
-          if (mzIntensities != null) {
-            // uses a different storage for mass lists then the one defined for the MS data import
-            SimpleMassList newMassList = new SimpleMassList(storage, mzIntensities[0],
-                mzIntensities[1]);
-            scan.addMassList(newMassList);
-          }
+        if (!applyMassDetection()) {
+          // cancelled
+          return;
         }
       }
 
@@ -139,4 +119,42 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
     this.setStatus(TaskStatus.FINISHED);
   }
+
+  /**
+   * apply mass detection to all scans and sets the mass lists
+   *
+   * @return true if succeed and false if cancelled
+   */
+  public boolean applyMassDetection() {
+    // uses only a single array for each (mz and intensity) to loop over all scans
+    ScanDataAccess data = EfficientDataAccess.of(newMZmineFile,
+        EfficientDataAccess.ScanDataType.RAW);
+    totalScans = data.getNumberOfScans();
+
+    // all scans
+    while (data.hasNextScan()) {
+      if (isCanceled() || (importTask != null && importTask.isCanceled())) {
+        return false;
+      }
+
+      Scan scan = data.nextScan();
+
+      double[][] mzIntensities = null;
+      if (ms1Detector != null && scan.getMSLevel() <= 1) {
+        mzIntensities = ms1Detector.getModule().getMassValues(data, ms1Detector.getParameterSet());
+      } else if (ms2Detector != null && scan.getMSLevel() >= 2) {
+        mzIntensities = ms2Detector.getModule().getMassValues(data, ms2Detector.getParameterSet());
+      }
+
+      if (mzIntensities != null) {
+        // uses a different storage for mass lists then the one defined for the MS data import
+        SimpleMassList newMassList = new SimpleMassList(storage, mzIntensities[0],
+            mzIntensities[1]);
+        scan.addMassList(newMassList);
+      }
+    }
+    return true;
+  }
+
+
 }

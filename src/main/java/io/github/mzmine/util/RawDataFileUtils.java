@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -82,56 +82,60 @@ public class RawDataFileUtils {
       Task newTask = null;
       switch (fileType) {
         case ICPMSMS_CSV:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new IcpMsCVSImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new IcpMsCVSImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case MZDATA:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new MzDataImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new MzDataImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
-        case MZML:
-          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters,moduleCallDate, storage);
+        case MZML, MZML_IMS:
+          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters, moduleCallDate,
+              storage);
           break;
         case IMZML:
-          newMZmineFile = MZmineCore
-              .createNewImagingFile(fileName.getName(), fileName.getAbsolutePath(), storage);
+          newMZmineFile = MZmineCore.createNewImagingFile(fileName.getName(),
+              fileName.getAbsolutePath(), storage);
           newTask = new ImzMLImportTask(project, fileName, (ImagingRawDataFile) newMZmineFile,
               module, parameters, moduleCallDate);
           break;
         case MZXML:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case NETCDF:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new NetCDFImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new NetCDFImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case THERMO_RAW:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
         case WATERS_RAW:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new WatersRawImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new WatersRawImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case MZML_ZIP:
         case MZML_GZIP:
-          newTask = new ZipImportTask(project, fileName, module, parameters, moduleCallDate, storage);
+          newTask = new ZipImportTask(project, fileName, module, parameters, moduleCallDate,
+              storage);
           break;
         case BRUKER_TDF:
-          newMZmineFile = MZmineCore
-              .createNewIMSFile(fileName.getName(), fileName.getAbsolutePath(),
-                  MemoryMapStorage.forRawDataFile());
+          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(),
+              fileName.getAbsolutePath(), MemoryMapStorage.forRawDataFile());
           newTask = new TDFImportTask(project, fileName, (IMSRawDataFile) newMZmineFile, module,
               parameters, moduleCallDate);
-          break;
-        case MZML_IMS:
-          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters, moduleCallDate, storage);
           break;
         default:
           break;
@@ -151,9 +155,9 @@ public class RawDataFileUtils {
    * <p>
    * Assumes that fileNames doesn't contain null entries.
    */
-  public static @Nullable String askToRemoveCommonPrefix(@NotNull File fileNames[]) {
+  public static @Nullable String askToRemoveCommonPrefix(@NotNull File[] fileNames) {
 
-    if(true) {
+    if (true) {
       // currently this will break project load/save, because the files are renamed before they
       // exist. So let's just deactivate it for now.
       return null;
@@ -226,7 +230,7 @@ public class RawDataFileUtils {
     return null;
   }
 
-  public static @NotNull Range<Float> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
+  public static @NotNull Range<Float> findTotalRTRange(RawDataFile[] dataFiles, int msLevel) {
     Range<Float> rtRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Float> dfRange = file.getDataRTRange(msLevel);
@@ -245,7 +249,7 @@ public class RawDataFileUtils {
     return rtRange;
   }
 
-  public static @NotNull Range<Double> findTotalMZRange(RawDataFile dataFiles[], int msLevel) {
+  public static @NotNull Range<Double> findTotalMZRange(RawDataFile[] dataFiles, int msLevel) {
     Range<Double> mzRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Double> dfRange = file.getDataMZRange(msLevel);
