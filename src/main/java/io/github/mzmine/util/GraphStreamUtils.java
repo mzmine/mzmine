@@ -1,8 +1,25 @@
+/*
+ * Copyright 2006-2022 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
 package io.github.mzmine.util;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 import org.graphstream.graph.Node;
 
 public class GraphStreamUtils {
@@ -14,11 +31,11 @@ public class GraphStreamUtils {
    * @param edgeDistance number of consecutive edges connecting neighbors
    * @return list of all neighbors + the initial node
    */
-  public static List<Node> getNodeNeighbors(Node node, int edgeDistance) {
+  public static Set<Node> getNodeNeighbors(Node node, int edgeDistance) {
     Object2IntOpenHashMap<Node> visited = new Object2IntOpenHashMap<>();
     visited.put(node, edgeDistance);
     addNodeNeighbors(visited, node, edgeDistance);
-    return new ArrayList<>(visited.keySet());
+    return visited.keySet();
   }
 
   /**

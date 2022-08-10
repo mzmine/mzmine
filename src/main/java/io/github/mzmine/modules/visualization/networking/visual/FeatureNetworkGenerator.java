@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.networking.visual;
@@ -42,8 +43,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
@@ -110,22 +113,21 @@ public class FeatureNetworkGenerator {
     }
   }
 
-  public void createGraphwithNeighboringNodes(Graph graph, List<Node> neighboringNodes) {
+  /**
+   * only show neighboring nodes
+   *
+   * @param graph
+   * @param neighboringNodes a set for fast contains query
+   */
+  public void createGraphWithNeighboringNodes(Graph graph, Set<Node> neighboringNodes) {
     graph.removeAttribute("Layout.frozen");
-    List<String> updatedList= new ArrayList<>();
-    for(int k=0;k<neighboringNodes.size();k++)
-    {
-      updatedList.add(k,neighboringNodes.get(k).getId());
+    Set<String> neighborIDS = neighboringNodes.stream().map(Element::getId)
+        .collect(Collectors.toSet());
+    List<Node> removeNodes = graph.nodes().filter(n -> !neighborIDS.contains(n.getId())).toList();
+
+    for (Node n : removeNodes) {
+      graph.removeNode(n);
     }
-    int j = 0;
-    for (int i = 0; i < graph.getNodeCount(); i++) {
-      if (!(updatedList.contains(graph.getNode(i).getId()))) {
-        graph.removeNode(i);
-      } else {
-        j++;
-      }
-    }
-    logger.info("Added " + j + " neighboring nodes");
   }
 
   /**

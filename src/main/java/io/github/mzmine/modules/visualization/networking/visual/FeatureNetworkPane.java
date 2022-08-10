@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.networking.visual;
@@ -32,6 +33,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
@@ -75,7 +78,7 @@ public class FeatureNetworkPane extends NetworkPane {
   // currently set values
   private boolean onlyBest;
 
-  private int neighbours = 0;
+  private final IntegerProperty bNeighbors = new SimpleIntegerProperty(1);
   private boolean showNetRelationsEdges;
   private boolean collapse = true;
   private boolean showIonEdges = true;
@@ -203,7 +206,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     Spinner<Integer> nodeNeighbours = new Spinner<>(1, Integer.MAX_VALUE, 3, 1);
     Label l = new Label("No. of node neighbours:");
-    neighbours = nodeNeighbours.getValue();
+    bNeighbors.bind(nodeNeighbours.valueProperty());
 
     Button updateGraphButton = new Button("Update graph");
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
@@ -236,19 +239,17 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
-  private void updateGraph()
-  {
-    if(getMouseClickedNode()==null)
-    {
+  private void updateGraph() {
+    if (getMouseClickedNode() == null) {
       Alert alert = new Alert(AlertType.INFORMATION);
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
-    }
-    else {
-      generator.createGraphwithNeighboringNodes(graph,
-          getNodeNeighbors(getMouseClickedNode(), neighbours));
+    } else {
+      generator.createGraphWithNeighboringNodes(graph,
+          getNodeNeighbors(getMouseClickedNode(), bNeighbors.get()));
     }
   }
+
   /**
    * Show GNPS library match
    */
@@ -463,6 +464,7 @@ public class FeatureNetworkPane extends NetworkPane {
       }
     }
   }
+
   private void applyLabelStyle(GraphObject target) {
     final String att = getStyleAttribute(target, GraphStyleAttribute.LABEL);
     target.stream(graph).forEach(node -> {
