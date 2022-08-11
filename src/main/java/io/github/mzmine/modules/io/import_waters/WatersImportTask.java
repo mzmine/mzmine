@@ -253,6 +253,7 @@ public class WatersImportTask extends AbstractTask {
 
 
         for (int numScan=0;numScan<scanValueInFunction;++numScan) {
+          //Collision Energy and Set Mass
           Double SetMass=Double.parseDouble(massLynxRawInfoReader.GetScanItem(functionCount,numScan,MassLynxScanItem.SET_MASS));
           Float collision_energy=Float.parseFloat(massLynxRawInfoReader.GetScanItem(functionCount,numScan,MassLynxScanItem.COLLISION_ENERGY));
 

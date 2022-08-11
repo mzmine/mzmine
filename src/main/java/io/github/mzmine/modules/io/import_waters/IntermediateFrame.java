@@ -148,6 +148,7 @@ public class IntermediateFrame extends IntermediateScan {
     simpleFrame.setMobilityScans(mobilityscanlist, false);
 
     simpleFrame.setMobilities(mobilities);
+    //MsMsInfo Implemented
 
     DDAMsMsInfo ddaMsMsInfo=this.getSetMass()>0?getDDAMsMsInfo(simpleFrame):null;
     if(this.getMsLevel()>1)

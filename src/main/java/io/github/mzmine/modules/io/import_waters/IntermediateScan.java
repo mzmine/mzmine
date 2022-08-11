@@ -125,6 +125,8 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
           this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
           ,spectrumType,polarity,scanDefination,
           this.getMZRange());
+
+      //MsMsInfo Implemented
     DDAMsMsInfo ddaMsMsInfo=this.getSetMass()>0?getDDAMsMsInfo(simplescan):null;
     if(this.getMsLevel()>1)
     {
