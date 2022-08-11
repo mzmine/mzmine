@@ -82,7 +82,8 @@ public class GridMassParameters extends SimpleParameterSet {
 
   public GridMassParameters() {
     super(new Parameter[] {dataFiles, scanSelection, suffix, minimumHeight, mzTolerance, timeSpan,
-        smoothingTimeSpan, smoothingTimeMZ, intensitySimilarity, ignoreTimes, showDebug});
+        smoothingTimeSpan, smoothingTimeMZ, intensitySimilarity, ignoreTimes, showDebug},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_gridmass/gridmass.html");
   }
 
 }
