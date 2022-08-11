@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -35,17 +35,13 @@ import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import io.github.mzmine.parameters.ParameterSet;
 import java.awt.Color;
-import java.awt.Image;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
@@ -60,11 +56,12 @@ import org.jfree.chart.plot.XYPlot;
  */
 public class ImageVisualizerTab extends MZmineTab {
 
-  private final ImageVisualizerPaneController controller;
+  private ImageVisualizerPaneController controller;
   private final EChartViewer imageHeatMapPlot;
   private final ImagingRawDataFile rawDataFile;
+  private SpectraVisualizerTab spectraTab;
 
-  public ImageVisualizerTab(ModularFeature feature){
+  public ImageVisualizerTab(ModularFeature feature) {
     super("Image viewer", true, false);
     FeatureImageProvider prov = new FeatureImageProvider(feature);
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
@@ -75,8 +72,8 @@ public class ImageVisualizerTab extends MZmineTab {
     ImagingRawDataFile imagingFile = (ImagingRawDataFile) feature.getRawDataFile();
     ImagingParameters imagingParameters = imagingFile.getImagingParam();
     final boolean hideAxes = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class).getParameter(
-            FeatureTableFXParameters.hideImageAxes).getValue();
+        .getModuleParameters(FeatureTableFXModule.class)
+        .getParameter(FeatureTableFXParameters.hideImageAxes).getValue();
 
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
     chart.setDataset(ds);
@@ -94,38 +91,29 @@ public class ImageVisualizerTab extends MZmineTab {
     axis.setVisible(!hideAxes);
 
     final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class).getParameter(
-            FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+        .getModuleParameters(FeatureTableFXModule.class)
+        .getParameter(FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
     this.imageHeatMapPlot = chart;
     this.rawDataFile = imagingFile;
-    AnchorPane root = null;
-    FXMLLoader loader = new FXMLLoader((getClass().getResource("ImageVisualizerPane.fxml")));
-    try {
-      root = loader.load();
-      logger.finest(
-          "Root element of Image visualizer tab has been successfully loaded from the FXML loader.");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
 
-    // Get controller
-    controller = loader.getController();
-    updateHeatMapPlot();
-    addRawDataInfo(rawDataFile);
-    addImagingInfo(imagingParameters);
-    setContent(root);
+    loadGUI(rawDataFile, imagingParameters);
   }
-  public ImageVisualizerTab(EChartViewer imageHeatMapPlot,
-      ImagingRawDataFile rawDataFile, ImagingParameters imagingParameters) {
+
+  public ImageVisualizerTab(EChartViewer imageHeatMapPlot, ImagingRawDataFile rawDataFile,
+      ImagingParameters imagingParameters) {
     super("Image viewer", true, false);
 
     this.imageHeatMapPlot = imageHeatMapPlot;
     this.rawDataFile = rawDataFile;
-    AnchorPane root = null;
+    loadGUI(rawDataFile, imagingParameters);
+  }
+
+  private void loadGUI(ImagingRawDataFile rawDataFile, ImagingParameters imagingParameters) {
+    BorderPane mainPane = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("ImageVisualizerPane.fxml")));
     try {
-      root = loader.load();
+      mainPane = loader.load();
       logger.finest(
           "Root element of Image visualizer tab has been successfully loaded from the FXML loader.");
     } catch (IOException e) {
@@ -137,7 +125,13 @@ public class ImageVisualizerTab extends MZmineTab {
     updateHeatMapPlot();
     addRawDataInfo(rawDataFile);
     addImagingInfo(imagingParameters);
-    setContent(root);
+
+    // add empty spectrum plot
+    spectraTab = new SpectraVisualizerTab(rawDataFile);
+    BorderPane pane = controller.getSpectrumPlotPane();
+    pane.setCenter(spectraTab.getMainPane());
+
+    setContent(mainPane);
   }
 
 
@@ -161,51 +155,42 @@ public class ImageVisualizerTab extends MZmineTab {
         double yValue = plot.getRangeCrosshairValue();
         if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))) {
           Scan selectedScan = rawDataFile.getScan(xValue, yValue);
-          AnchorPane pane = controller.getSpectrumPlotPane();
-          Node spectrum = addSpectra(rawDataFile, selectedScan);
-          AnchorPane.setTopAnchor(spectrum, 0.0);
-          AnchorPane.setRightAnchor(spectrum, 0.0);
-          AnchorPane.setLeftAnchor(spectrum, 0.0);
-          AnchorPane.setBottomAnchor(spectrum, 0.0);
-          pane.getChildren().add(spectrum);
+          addSpectra(rawDataFile, selectedScan);
         }
       }
     });
   }
 
-  private Node addSpectra(ImagingRawDataFile rawDataFile, Scan selectedScan) {
-    SpectraVisualizerTab spectraTab = new SpectraVisualizerTab(rawDataFile);
+  private void addSpectra(ImagingRawDataFile rawDataFile, Scan selectedScan) {
     spectraTab.loadRawData(selectedScan);
-    return spectraTab.getContent();
   }
 
   private void addRawDataInfo(ImagingRawDataFile rawDataFile) {
     ImagingRawDataInfo rawDataInfo = new ImagingRawDataInfo(rawDataFile);
     GridPane rawDataInfoPane = controller.getRawDataInfoGridPane();
     rawDataInfoPane.add(new Label("File name:"), 0, 0);
-    rawDataInfoPane.add(new Label(rawDataInfo.getName()), 1, 0);
+    rawDataInfoPane.add(new Label(rawDataInfo.name()), 1, 0);
     rawDataInfoPane.add(new Label("Number of scans:"), 0, 1);
-    rawDataInfoPane.add(new Label(rawDataInfo.getNumberOfScans().toString()), 1, 1);
+    rawDataInfoPane.add(new Label(rawDataInfo.numberOfScans().toString()), 1, 1);
     rawDataInfoPane.add(new Label("Range m/z:"), 0, 2);
     rawDataInfoPane.add(new Label(
-            MZminePreferences.mzFormat.getValue().format(rawDataInfo.getDataMzRange().lowerEndpoint())
-                + "-" + MZminePreferences.mzFormat.getValue()
-                .format(rawDataInfo.getDataMzRange().upperEndpoint())),
-        1, 2);
+        MZminePreferences.mzFormat.getValue().format(rawDataInfo.dataMzRange().lowerEndpoint())
+            + "-" + MZminePreferences.mzFormat.getValue()
+            .format(rawDataInfo.dataMzRange().upperEndpoint())), 1, 2);
   }
 
   private void addImagingInfo(ImagingParameters imagingParameters) {
     GridPane imagingParametersInfoPane = controller.getImagingParameterInfoGridPane();
-    imagingParametersInfoPane.add(new Label("Image dimension [\u00B5m]:"), 0, 0);
+    imagingParametersInfoPane.add(new Label("Image dimension [μm]:"), 0, 0);
     imagingParametersInfoPane.add(new Label("X " + imagingParameters.getLateralWidth() + "  x  Y "
         + imagingParameters.getLateralHeight()), 1, 0);
     imagingParametersInfoPane.add(new Label("Total number of pixels:"), 0, 1);
-    Integer totalNumberOfPixel =
+    int totalNumberOfPixel =
         imagingParameters.getMaxNumberOfPixelX() * imagingParameters.getMaxNumberOfPixelY();
-    imagingParametersInfoPane.add(new Label(totalNumberOfPixel.toString()), 1, 1);
+    imagingParametersInfoPane.add(new Label(Integer.toString(totalNumberOfPixel)), 1, 1);
     imagingParametersInfoPane.add(new Label("Spectra per pixel:"), 0, 2);
-    Integer spectraPerPixel = imagingParameters.getSpectraPerPixel();
-    imagingParametersInfoPane.add(new Label(spectraPerPixel.toString()), 1, 2);
+    int spectraPerPixel = imagingParameters.getSpectraPerPixel();
+    imagingParametersInfoPane.add(new Label(Integer.toString(spectraPerPixel)), 1, 2);
     imagingParametersInfoPane.add(new Label("Imaging patter:"), 0, 3);
     imagingParametersInfoPane.add(new Label(imagingParameters.getPattern().toString()), 1, 3);
     imagingParametersInfoPane.add(new Label("Scan direction:"), 0, 4);
@@ -219,35 +204,30 @@ public class ImageVisualizerTab extends MZmineTab {
   @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
   }
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
   }
 
   @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    // TODO Auto-generated method stub
-    return null;
+    return List.of(rawDataFile);
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    // TODO Auto-generated method stub
-    return null;
+    return List.of();
   }
 }
