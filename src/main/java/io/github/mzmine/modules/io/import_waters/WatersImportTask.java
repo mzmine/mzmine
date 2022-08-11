@@ -17,16 +17,20 @@ package io.github.mzmine.modules.io.import_waters;
 
 
 import MassLynxSDK.MassLynxFunctionType;
+import MassLynxSDK.MassLynxParameters;
 import MassLynxSDK.MassLynxRawInfoReader;
 import MassLynxSDK.MassLynxRawScanReader;
+import MassLynxSDK.MassLynxScanItem;
 import MassLynxSDK.MasslynxRawException;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,6 +44,8 @@ import java.text.Format;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -104,6 +110,7 @@ public class WatersImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
+
     if(imsFiles())
     {
       loadIonMobilityFile(this.filePath);
@@ -145,10 +152,14 @@ public class WatersImportTask extends AbstractTask {
             (double) massLynxRawInfoReader.GetAcquisitionMassRange(functionCount).getEnd());
 
         for (int numScan = 0; numScan < scanValueInFunction; ++numScan) {
+
+          Double SetMass=Double.parseDouble(massLynxRawInfoReader.GetScanItem(functionCount,numScan,MassLynxScanItem.SET_MASS));
+          Float collision_energy=Float.parseFloat(massLynxRawInfoReader.GetScanItem(functionCount,numScan,MassLynxScanItem.COLLISION_ENERGY));
+
           intermediatescan = new IntermediateScan(newMZmineFile,
               massLynxRawInfoReader.IsContinuum(functionCount), msLevel,
               massLynxRawInfoReader.GetIonMode(functionCount), mzRange, functionCount,
-              massLynxRawInfoReader.GetRetentionTime(functionCount, numScan), numScan);
+              massLynxRawInfoReader.GetRetentionTime(functionCount, numScan), numScan,SetMass,collision_energy);
           intermediateScanArray.add(intermediatescan);
         }
       }
@@ -183,7 +194,6 @@ public class WatersImportTask extends AbstractTask {
    */
   private int getMsLevel(MassLynxRawInfoReader masslynxrawinforeader,int functionCount)
       throws MasslynxRawException {
-    MassLynxFunctionType val = masslynxrawinforeader.GetFunctionType(functionCount);
     if(masslynxrawinforeader.GetFunctionType(functionCount)==MassLynxFunctionType.MS)
     {
       return 1;
@@ -243,20 +253,24 @@ public class WatersImportTask extends AbstractTask {
 
 
         for (int numScan=0;numScan<scanValueInFunction;++numScan) {
+          Double SetMass=Double.parseDouble(massLynxRawInfoReader.GetScanItem(functionCount,numScan,MassLynxScanItem.SET_MASS));
+          Float collision_energy=Float.parseFloat(massLynxRawInfoReader.GetScanItem(functionCount,numScan,MassLynxScanItem.COLLISION_ENERGY));
 
           intermediateframe=new IntermediateFrame(this.newMZmineFile,
               massLynxRawInfoReader.IsContinuum(functionCount), msLevel,
               massLynxRawInfoReader.GetIonMode(functionCount), mzRange, functionCount,
-              massLynxRawInfoReader.GetRetentionTime(functionCount, numScan), numScan,driftScanInFunction,IMSnewMZmineFile);
+              massLynxRawInfoReader.GetRetentionTime(functionCount, numScan), numScan,driftScanInFunction,IMSnewMZmineFile
+              ,SetMass,collision_energy);
           intermediateFrameArrayList.add(intermediateframe);
         }
       }
-      //Sorting of Array by retention time
+//      Sorting of Array by retention time
       Collections.sort(intermediateFrameArrayList);
 
       int arraySize=intermediateFrameArrayList.size();
 
       for (int mzmineScan = 0; mzmineScan < arraySize; mzmineScan++) {
+
 
         simpleFrame=intermediateFrameArrayList.get(mzmineScan).toframe(rawScanReader,
             mzmineScan+1,massLynxRawInfoReader);
@@ -301,29 +315,6 @@ public class WatersImportTask extends AbstractTask {
     }
     return false;
   }
-  //Working for Precursor
-  public void precursorImplemet(int functionCount,MassLynxRawInfoReader massLynxRawInfoReader,int msLevel){
-    try {
-      if(msLevel<2)
-      {
-        return;
-      }
-        int[] scanItemArray=massLynxRawInfoReader.GetAvailableScanItems(functionCount);
-        int arraySize=scanItemArray.length;
-      //Implement Binary Search or Interpolation Search in the future. now using Linear Search just for Building Logic
-      for (int i = 0; i < arraySize; i++) {
-
-
-      }
-
-
-      }
-    catch (MasslynxRawException e)
-    {
-      e.printStackTrace();
-      System.out.println(e.getMessage());
-    }
-  }
   public static String scanDefinationFunction(int msLevel,int numScan, PolarityType polarity, float retentionTime,boolean isContinum)
   {
     StringBuilder sb = new StringBuilder();
@@ -345,7 +336,7 @@ public class WatersImportTask extends AbstractTask {
     {
       sb.append("Spectrumtype= c; ");
     }
-     sb.append("Retention Time= ").append(retentionTimeFormat.format(retentionTime)).append("min");
+     sb.append("RT= ").append(retentionTimeFormat.format(retentionTime)).append("min");
     return sb.toString();
   }
 

@@ -21,7 +21,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import net.csibio.aird.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +39,20 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
   private float retentionTime;
   private int numScan;
 
+  private Double SetMass;
+
+  private Float collision_energy;
+
+  public Double getSetMass() {
+    return SetMass;
+  }
+
+  public Float getCollision_energy() {
+    return collision_energy;
+  }
+
   public IntermediateScan(RawDataFile newMZmineFile,boolean isContinuum,int msLevel, MassLynxIonMode ionMode,
-      Range<Double> MZRange, int functionNumber,float retentionTime,int numScan)
+      Range<Double> MZRange, int functionNumber,float retentionTime,int numScan,Double SetMass,Float collision_energy)
   {
     this.newMZmineFile=newMZmineFile;
     this.functionNumber = functionNumber;
@@ -47,6 +62,8 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
     this.isContinuum = isContinuum;
     this.msLevel = msLevel;
     this.numScan = numScan;
+    this.collision_energy=collision_energy;
+    this.SetMass=SetMass;
   }
 
   public boolean isContinuum() {
@@ -103,10 +120,16 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
     PolarityType  polarity= this.ionMode ==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
     String scanDefination=WatersImportTask.scanDefinationFunction(this.getMsLevel(),this.getNumScan(),polarity,this.getRetentionTime(),this.isContinuum());
 
+
       SimpleScan simplescan = new SimpleScan(this.newMZmineFile,mzmine_scan,this.getMsLevel(),
           this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
           ,spectrumType,polarity,scanDefination,
           this.getMZRange());
+    DDAMsMsInfo ddaMsMsInfo=this.getSetMass()>0?getDDAMsMsInfo(simplescan):null;
+    if(this.getMsLevel()>1)
+    {
+      simplescan.setMsMsInfo(ddaMsMsInfo);
+    }
     return simplescan;
   }
 
@@ -115,6 +138,14 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
     float retentionTime2 = obj1.getRetentionTime();
 
     return Float.compare(this.retentionTime,retentionTime2);
+  }
+  //MsMsInfo Function
+  public DDAMsMsInfo getDDAMsMsInfo(io.github.mzmine.datamodel.Scan msmsScan)
+  {
+    DDAMsMsInfoImpl ddaMsMsInfo = new DDAMsMsInfoImpl(this.getSetMass(),
+        null,this.getCollision_energy(),msmsScan,null,
+        this.getMsLevel(), ActivationMethod.CID,null);
+    return ddaMsMsInfo;
   }
 }
 

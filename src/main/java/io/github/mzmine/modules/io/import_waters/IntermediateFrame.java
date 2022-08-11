@@ -25,7 +25,10 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -39,15 +42,21 @@ public class IntermediateFrame extends IntermediateScan {
 
  private IMSRawDataFile imsRawDataFile;
 
+  private Double SetMass;
+
+  private Float collision_energy;
+
   public int getDriftScanCount() {
     return driftScanCount;
   }
 
   public IntermediateFrame(RawDataFile newMZmineFile, boolean isContinuum, int msLevel,
-      MassLynxIonMode ionMode, Range<Double> MZRange, int functionNumber, float retentionTime,int numScan,int driftScanCount,IMSRawDataFile imsRawDataFile) {
-    super(newMZmineFile, isContinuum, msLevel, ionMode, MZRange, functionNumber, retentionTime,numScan);
+      MassLynxIonMode ionMode, Range<Double> MZRange, int functionNumber, float retentionTime,int numScan,int driftScanCount,IMSRawDataFile imsRawDataFile,Double SetMass,Float collision_energy) {
+    super(newMZmineFile, isContinuum, msLevel, ionMode, MZRange, functionNumber, retentionTime,numScan,SetMass,collision_energy);
     this.driftScanCount=driftScanCount;
     this.imsRawDataFile=imsRawDataFile;
+    this.collision_energy=collision_energy;
+    this.SetMass=SetMass;
   }
 
   public SimpleFrame toframe(MassLynxRawScanReader rawscanreader, int mzmine_scannum,
@@ -140,7 +149,20 @@ public class IntermediateFrame extends IntermediateScan {
 
     simpleFrame.setMobilities(mobilities);
 
+    DDAMsMsInfo ddaMsMsInfo=this.getSetMass()>0?getDDAMsMsInfo(simpleFrame):null;
+    if(this.getMsLevel()>1)
+    {
+      simpleFrame.setMsMsInfo(ddaMsMsInfo);
+    }
     return simpleFrame;
+  }
+  //MsMsInfo Function
+  public DDAMsMsInfo getDDAMsMsInfo(io.github.mzmine.datamodel.Scan msmsScan)
+  {
+    DDAMsMsInfoImpl ddaMsMsInfo = new DDAMsMsInfoImpl(this.getSetMass(),
+        null,this.getCollision_energy(),msmsScan,null,
+        this.getMsLevel(), ActivationMethod.CID,null);
+    return ddaMsMsInfo;
   }
 
 }
