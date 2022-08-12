@@ -39,20 +39,20 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
   private float retentionTime;
   private int numScan;
 
-  private Double SetMass;
+  private Double setMass;
 
-  private Float collision_energy;
+  private Float collisionEnergy;
 
   public Double getSetMass() {
-    return SetMass;
+    return setMass;
   }
 
-  public Float getCollision_energy() {
-    return collision_energy;
+  public Float getCollisionEnergy() {
+    return collisionEnergy;
   }
 
   public IntermediateScan(RawDataFile newMZmineFile,boolean isContinuum,int msLevel, MassLynxIonMode ionMode,
-      Range<Double> MZRange, int functionNumber,float retentionTime,int numScan,Double SetMass,Float collision_energy)
+      Range<Double> MZRange, int functionNumber,float retentionTime,int numScan,Double SetMass,Float collisionEnergy)
   {
     this.newMZmineFile=newMZmineFile;
     this.functionNumber = functionNumber;
@@ -62,8 +62,8 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
     this.isContinuum = isContinuum;
     this.msLevel = msLevel;
     this.numScan = numScan;
-    this.collision_energy=collision_energy;
-    this.SetMass=SetMass;
+    this.collisionEnergy = collisionEnergy;
+    this.setMass =SetMass;
   }
 
   public boolean isContinuum() {
@@ -118,12 +118,12 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
 
       //Polarity is calculated using Ion mode
     PolarityType  polarity= this.ionMode ==MassLynxIonMode.ES_POS?PolarityType.POSITIVE:PolarityType.NEGATIVE;
-    String scanDefination=WatersImportTask.scanDefinationFunction(this.getMsLevel(),this.getNumScan(),polarity,this.getRetentionTime(),this.isContinuum());
+    String scanDefinition=WatersImportTask.scanDefinitionFunction(this.getMsLevel(),this.getNumScan(),polarity,this.getRetentionTime(),this.isContinuum());
 
 
       SimpleScan simplescan = new SimpleScan(this.newMZmineFile,mzmine_scan,this.getMsLevel(),
           this.getRetentionTime(),null, ArrayUtil.fromFloatToDouble(scan.GetMasses()),ArrayUtil.fromFloatToDouble(scan.GetIntensities())
-          ,spectrumType,polarity,scanDefination,
+          ,spectrumType,polarity,scanDefinition,
           this.getMZRange());
 
       //MsMsInfo Implemented
@@ -145,7 +145,7 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
   public DDAMsMsInfo getDDAMsMsInfo(io.github.mzmine.datamodel.Scan msmsScan)
   {
     DDAMsMsInfoImpl ddaMsMsInfo = new DDAMsMsInfoImpl(this.getSetMass(),
-        null,this.getCollision_energy(),msmsScan,null,
+        null,this.getCollisionEnergy(),msmsScan,null,
         this.getMsLevel(), ActivationMethod.CID,null);
     return ddaMsMsInfo;
   }
