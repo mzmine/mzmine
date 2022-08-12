@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -34,9 +34,12 @@ import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,8 +63,12 @@ import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.MouseHandlerFX;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.IntervalMarker;
+import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.Layer;
 import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.general.DatasetChangeEvent;
@@ -88,7 +95,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
-  private Menu exportMenu;
+  private final Menu exportMenu;
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
@@ -265,8 +272,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       // set sticky zero
       if (stickyZeroForRangeAxis) {
         ValueAxis rangeAxis = chartPanel.getChart().getXYPlot().getRangeAxis();
-        if (rangeAxis instanceof NumberAxis) {
-          NumberAxis axis = (NumberAxis) rangeAxis;
+        if (rangeAxis instanceof NumberAxis axis) {
           axis.setAutoRangeIncludesZero(true);
           axis.setAutoRange(true);
           axis.setAutoRangeStickyZero(true);
@@ -276,7 +282,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
       Plot p = getChart().getPlot();
       if (addZoomHistory && p instanceof XYPlot && !(p instanceof CombinedDomainXYPlot
-                                                     || p instanceof CombinedRangeXYPlot)) {
+          || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -395,8 +401,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
         for (int d = 0; d < getChart().getXYPlot().getDatasetCount(); d++) {
           XYDataset data = getChart().getXYPlot().getDataset(d);
-          if (data instanceof XYZDataset) {
-            XYZDataset xyz = (XYZDataset) data;
+          if (data instanceof XYZDataset xyz) {
             int series = data.getSeriesCount();
             Object[][] model = new Object[series * 3][];
             for (int s = 0; s < series; s++) {
@@ -424,9 +429,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
               model[s * 3 + 2] = z;
             }
 
-            for (Object[] o : model) {
-              modelList.add(o);
-            }
+            Collections.addAll(modelList, model);
           } else if (data != null) {
             int series = data.getSeriesCount();
             Object[][] model = new Object[series * 2][];
@@ -450,9 +453,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
               model[s * 2 + 1] = y;
             }
 
-            for (Object[] o : model) {
-              modelList.add(o);
-            }
+            Collections.addAll(modelList, model);
           }
         }
 
@@ -547,7 +548,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * Notifies about chart changes and updates the chart on any change
    */
   public boolean isNotifyChange() {
-    return getChart() == null ? true : getChart().isNotify();
+    return getChart() == null || getChart().isNotify();
   }
 
   /**
@@ -606,5 +607,30 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
         MZmineCore.runLater(() -> fireChangeEvent());
       }
     }
+  }
+
+  public Marker addDomainMarker(com.google.common.collect.Range<Double> valueRange, Color color,
+      float alpha) {
+    return addDomainMarker(valueRange.lowerEndpoint(), valueRange.upperEndpoint(), color, alpha);
+  }
+
+  public Marker addDomainMarker(double value, Color color, float alpha) {
+    final ValueMarker marker = new ValueMarker(value);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    getChart().getXYPlot().addDomainMarker(marker, Layer.BACKGROUND);
+    return marker;
+  }
+
+  public Marker addDomainMarker(double lowerValue, double upperValue, Color color, float alpha) {
+    final IntervalMarker marker = new IntervalMarker(lowerValue, upperValue);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    getChart().getXYPlot().addDomainMarker(marker, Layer.BACKGROUND);
+    return marker;
   }
 }
