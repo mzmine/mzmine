@@ -28,27 +28,42 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 public class RawFileMergeParameters extends SimpleParameterSet {
 
   public enum MODE {
-    MERGE_SELECTED, MERGE_PATTERN;
+    MERGE_SELECTED("Merge selected"),
+    MERGE_PATTERN("Merge pattern");
+
+    private String label;
+
+    MODE(String label) {
+      this.label = label;
+    }
 
     @Override
     public String toString() {
-      return super.toString().replaceAll("_", " ");
+//      return super.toString().replaceAll("_", " ");
+      return this.label;
     }
   }
 
   public enum POSITION {
-    BEFORE_FIRST, AFTER_LAST;
+    BEFORE_FIRST ("Before first"),
+    AFTER_LAST("After last");
 
+    private String label;
+
+    POSITION(String label) {
+      this.label=label;
+    }
     @Override
     public String toString() {
-      return super.toString().replaceAll("_", " ");
+//      return super.toString().replaceAll("_", " ");
+      return this.label;
     }
   }
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
   public static final ComboParameter<MODE> mode = new ComboParameter<MODE>("Mode",
-      "Merge all selected to one or all file that have a matching suffix or prefixs", MODE.values(),
+      "Merge all selected to one or all file that have a matching suffix or prefix", MODE.values(),
       MODE.MERGE_PATTERN);
 
   public static final ComboParameter<POSITION> position =
@@ -68,18 +83,8 @@ public class RawFileMergeParameters extends SimpleParameterSet {
       new StringParameter("Suffix to new name", "The suffix to describe the new file", "_merged");
 
   public RawFileMergeParameters() {
-    super(new Parameter[] {dataFiles, mode, position, posMarker, MS2_marker, suffix});
+    super(new Parameter[] {dataFiles, mode, position, posMarker, MS2_marker, suffix},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_file_merging/raw-files-merging.html");
   }
-
-  /*
-   * @Override public ExitCode showSetupDialog( boolean valueCheckRequired) { if ((getParameters()
-   * == null) || (getParameters().length == 0)) return ExitCode.OK; ParameterSetupDialog dialog =
-   * new ParameterSetupDialog(valueCheckRequired, this); ((ComboBox)
-   * dialog.getComponentForParameter(mode)).addItemListener(e -> { boolean pattern =
-   * (e.getItem().equals(MODE.MERGE_PATTERN));
-   * dialog.getComponentForParameter(position).setVisible(pattern);
-   * dialog.getComponentForParameter(posMarker).setVisible(pattern); }); dialog.showAndWait();
-   * return dialog.getExitCode(); }
-   */
 
 }
