@@ -114,9 +114,6 @@ public class ImagingPlot extends BorderPane {
     return chart;
   }
 
-  public void addDataset(ColoredXYZDataset ds) {
-  }
-
   public SimpleXYZScatterPlot<FeatureImageProvider> getChart() {
     return chart;
   }

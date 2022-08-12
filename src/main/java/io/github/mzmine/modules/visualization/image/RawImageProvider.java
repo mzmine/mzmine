@@ -213,6 +213,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
     int finished = 0;
     while (scanAccess.hasNextScan()) {
       finishedPercentage = finished / numberOfScans;
+      finished++;
       Scan scan = scanAccess.nextScan();
       if (!(scan instanceof ImagingScan)) {
         continue;
@@ -244,7 +245,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
       intensities.add(sum);
       scans.add(scan);
     }
-    finished = 1;
+    finishedPercentage = 1d;
     return new SimpleIonTimeSeries(null, mzs.toDoubleArray(), intensities.toDoubleArray(), scans);
   }
 

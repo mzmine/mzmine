@@ -39,6 +39,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -271,8 +272,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       // set sticky zero
       if (stickyZeroForRangeAxis) {
         ValueAxis rangeAxis = chartPanel.getChart().getXYPlot().getRangeAxis();
-        if (rangeAxis instanceof NumberAxis) {
-          NumberAxis axis = (NumberAxis) rangeAxis;
+        if (rangeAxis instanceof NumberAxis axis) {
           axis.setAutoRangeIncludesZero(true);
           axis.setAutoRange(true);
           axis.setAutoRangeStickyZero(true);
@@ -401,8 +401,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
         for (int d = 0; d < getChart().getXYPlot().getDatasetCount(); d++) {
           XYDataset data = getChart().getXYPlot().getDataset(d);
-          if (data instanceof XYZDataset) {
-            XYZDataset xyz = (XYZDataset) data;
+          if (data instanceof XYZDataset xyz) {
             int series = data.getSeriesCount();
             Object[][] model = new Object[series * 3][];
             for (int s = 0; s < series; s++) {
@@ -430,9 +429,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
               model[s * 3 + 2] = z;
             }
 
-            for (Object[] o : model) {
-              modelList.add(o);
-            }
+            Collections.addAll(modelList, model);
           } else if (data != null) {
             int series = data.getSeriesCount();
             Object[][] model = new Object[series * 2][];
@@ -456,9 +453,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
               model[s * 2 + 1] = y;
             }
 
-            for (Object[] o : model) {
-              modelList.add(o);
-            }
+            Collections.addAll(modelList, model);
           }
         }
 
@@ -614,13 +609,13 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     }
   }
 
-  public Marker addDomainMarker(com.google.common.collect.Range<Double> mzRange, Color color,
+  public Marker addDomainMarker(com.google.common.collect.Range<Double> valueRange, Color color,
       float alpha) {
-    return addDomainMarker(mzRange.lowerEndpoint(), mzRange.upperEndpoint(), color, alpha);
+    return addDomainMarker(valueRange.lowerEndpoint(), valueRange.upperEndpoint(), color, alpha);
   }
 
-  public Marker addDomainMarker(double precursorMz, Color color, float alpha) {
-    final ValueMarker marker = new ValueMarker(precursorMz);
+  public Marker addDomainMarker(double value, Color color, float alpha) {
+    final ValueMarker marker = new ValueMarker(value);
     marker.setStroke(
         new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
     marker.setPaint(color);
@@ -629,8 +624,8 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     return marker;
   }
 
-  public Marker addDomainMarker(double lowerMZ, double upperMZ, Color color, float alpha) {
-    final IntervalMarker marker = new IntervalMarker(lowerMZ, upperMZ);
+  public Marker addDomainMarker(double lowerValue, double upperValue, Color color, float alpha) {
+    final IntervalMarker marker = new IntervalMarker(lowerValue, upperValue);
     marker.setStroke(
         new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
     marker.setPaint(color);
