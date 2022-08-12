@@ -63,9 +63,16 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
       new OriginalFeatureListHandlingParameter(false);
 
+  public static final OptionalParameter<IntegerParameter> maxNumTraces = new OptionalParameter<>(
+      new IntegerParameter("Maximum features per thread", """
+          Sets the maximum number of features to be processed per thread.
+          For LC-IMS-MS measurements, this is typically not required (deactivate).
+          However, it can be beneficial for imaging experiments to reduce the memory consumption during this step.""",
+          2_000), false);
+
   public ImsExpanderParameters() {
-    super(
-        new Parameter[]{featureLists, mzTolerance, useRawData, mobilogramBinWidth, handleOriginal},
+    super(new Parameter[]{featureLists, mzTolerance, useRawData, mobilogramBinWidth, maxNumTraces,
+            handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ims_expander/ims-expander.html");
   }
 
