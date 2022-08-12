@@ -117,8 +117,8 @@ public class RawDataFileTypeDetector {
             .contains(TDF_BIN_SUFFIX)) {
           return RawDataFileType.BRUKER_TDF;
         }
-        if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName()
-            .contains(TDF_BIN_SUFFIX)) {
+        if (fileName.getName().contains(TSF_SUFFIX) || fileName.getName()
+            .contains(TSF_BIN_SUFFIX)) {
           return RawDataFileType.BRUKER_TSF;
         }
 
