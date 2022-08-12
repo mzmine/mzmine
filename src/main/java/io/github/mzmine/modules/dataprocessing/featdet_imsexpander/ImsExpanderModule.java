@@ -37,7 +37,7 @@ public class ImsExpanderModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "Ims expander2";
+    return "Ims expander";
   }
 
   @Override

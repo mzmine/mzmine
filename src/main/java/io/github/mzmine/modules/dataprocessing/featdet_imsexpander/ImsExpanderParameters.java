@@ -64,9 +64,9 @@ public class ImsExpanderParameters extends SimpleParameterSet {
       new OriginalFeatureListHandlingParameter(false);
 
   public static final OptionalParameter<IntegerParameter> maxNumTraces = new OptionalParameter<>(
-      new IntegerParameter("Maximum traces per thread", """
-          Sets the maximum number of traces to be processed per thread.
-          For LC-IMS-MS measurements, this is typically not required.
+      new IntegerParameter("Maximum features per thread", """
+          Sets the maximum number of features to be processed per thread.
+          For LC-IMS-MS measurements, this is typically not required (deactivate).
           However, it can be beneficial for imaging experiments to reduce the memory consumption during this step.""",
           2_000), false);
 

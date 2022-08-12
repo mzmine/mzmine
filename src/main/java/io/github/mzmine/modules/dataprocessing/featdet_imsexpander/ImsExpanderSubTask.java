@@ -39,6 +39,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +116,7 @@ public class ImsExpanderSubTask extends AbstractTask {
         useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.CENTROID, frames);
 
     totalFrames = access.getNumberOfScans();
+    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
     final int numTraces = expandingTraces.size();
     try {
@@ -162,8 +164,7 @@ public class ImsExpanderSubTask extends AbstractTask {
         processedFrames.getAndIncrement();
 
         desc = flist.getName() + ": expanding traces for frame " + processedFrames.get() + "/"
-            + totalFrames + " m/z range: " + RangeUtils.formatRange(traceMzRange,
-            MZmineCore.getConfiguration().getMZFormat());
+            + totalFrames + " m/z range: " + RangeUtils.formatRange(traceMzRange, mzFormat);
       }
     } catch (MissingMassListException e) {
       // allow traces to be released
