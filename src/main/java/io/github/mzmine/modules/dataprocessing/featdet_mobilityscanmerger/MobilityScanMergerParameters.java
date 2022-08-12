@@ -44,7 +44,7 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
       "Spectra merging algorithm", MergingType.values(), MergingType.SUMMED);
 
   public static final ComboParameter<Weighting> weightingType = new ComboParameter<>(
-      "m/z weighing", "Weights m/z values by their intensities with the given function.",
+      "m/z weighting", "Weights m/z values by their intensities with the given function.",
       Weighting.values(), Weighting.LINEAR);
 
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
