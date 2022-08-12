@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,9 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima;
-
-import java.awt.Window;
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorSetupDialog;
@@ -27,21 +25,23 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.ExitCode;
 
-public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
+public class FactorOfLowestMassDetectorParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Intensities less than this value are interpreted as noise.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+  public static final DoubleParameter noiseFactor = new DoubleParameter("Noise factor",
+      "Signals less than lowest intensity x noiseFactor are removed",
+      MZmineCore.getConfiguration().getScoreFormat(), 2.5);
 
-  public LocalMaxMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#local-maxima");
+  public FactorOfLowestMassDetectorParameters() {
+    super(new UserParameter[]{noiseFactor},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#factor-of-the-lowest-signal");
   }
 
+  @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    MassDetectorSetupDialog dialog =
-        new MassDetectorSetupDialog(valueCheckRequired, LocalMaxMassDetector.class, this);
+    MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(valueCheckRequired,
+        FactorOfLowestMassDetector.class, this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
+
 }

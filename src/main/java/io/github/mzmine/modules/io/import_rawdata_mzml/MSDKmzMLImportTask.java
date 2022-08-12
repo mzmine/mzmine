@@ -39,6 +39,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
@@ -88,6 +89,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
   private final MZmineProject project;
+  private final ParameterSet advancedParam;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private MzMLFileImportMethod msdkTask = null;
@@ -103,14 +105,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, InputStream fisToOpen,
-      AdvancedSpectraImportParameters advancedParam,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
+      ParameterSet advancedParam, @NotNull final Class<? extends MZmineModule> module,
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
+      @Nullable final MemoryMapStorage storage) {
     super(storage, moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
     this.fis = fisToOpen;
     this.project = project;
     description = "Importing raw data file: " + fileToOpen.getName();
+    this.advancedParam = advancedParam;
     this.parameters = parameters;
     this.module = module;
 
@@ -145,8 +148,17 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         msdkTask = new MzMLFileImportMethod(file);
       }
+      addTaskStatusListener((task, newStatus, oldStatus) -> {
+        if (newStatus == TaskStatus.CANCELED) {
+          msdkTask.cancel();
+        }
+      });
       MzMLRawDataFile msdkTaskRes = msdkTask.execute();
       io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
+
+      if (isCanceled()) {
+        return;
+      }
 
       if (msdkFile == null) {
         setStatus(TaskStatus.ERROR);
@@ -185,6 +197,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       return;
     }
 
+    if (isCanceled()) {
+      return;
+    }
+
     if (parsedScans == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("No scans found");
@@ -198,7 +214,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
     project.addFile(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
-
   }
 
   private double[][] applyMassDetection(MZmineProcessingStep<MassDetector> msDetector,
@@ -219,6 +234,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
   public void buildLCMSFile(io.github.msdk.datamodel.RawDataFile file, RawDataFile newMZmineFile)
       throws IOException {
     for (MsScan scan : file.getScans()) {
+      if (isCanceled()) {
+        return;
+      }
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
 
       Scan newScan = null;
@@ -280,6 +298,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
 //    int previousFunction = 1;
     for (MsScan scan : file.getScans()) {
+      if (isCanceled()) {
+        return;
+      }
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       if (mzMLScan.getMobility() == null) {
         continue;
@@ -352,6 +373,17 @@ public class MSDKmzMLImportTask extends AbstractTask {
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;
       parsedScans++;
+    }
+
+    // apply mass detection to frames and mobility scans
+    if (advancedParam != null) {
+      logger.warning("""
+          Applying the advanced import (with mass detection) to an IMS mzML file only performs mass
+           detection on the summed frame level. Better to perform individual steps of mass detection
+            to the mobility scans and the summed frames.""");
+      MsDataImportAndMassDetectWrapperTask massDetector = new MsDataImportAndMassDetectWrapperTask(
+          storage, newMZmineFile, this, parameters, moduleCallDate);
+      massDetector.applyMassDetection();
     }
   }
 

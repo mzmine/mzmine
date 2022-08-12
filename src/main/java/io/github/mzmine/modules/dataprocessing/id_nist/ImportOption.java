@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,21 +15,20 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+package io.github.mzmine.modules.dataprocessing.id_nist;
 
-package io.github.mzmine.gui.chartbasics.simplechart.providers;
+public enum ImportOption {
 
-import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.renderer.PaintScale;
+  APPEND("Append"),
+  OVERWRITE("Overwrite");
 
-/**
- * Used to color XYZ plots based on their z values.
- */
-public interface PaintScaleProvider {
+  private final String type;
 
-  /**
-   * The {@link PaintScale} this data will be drawn with.
-   *
-   * @return A paint scale. If null, a default paint scale will be used.
-   */
-  @Nullable PaintScale getPaintScale();
+  ImportOption(String type) {
+    this.type = type;
+  }
+
+  public String toString() {
+    return type;
+  }
 }

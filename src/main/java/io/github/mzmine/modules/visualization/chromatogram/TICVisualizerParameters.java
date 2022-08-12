@@ -80,7 +80,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
    */
   public TICVisualizerParameters() {
     super(new Parameter[] {DATA_FILES, scanSelection, PLOT_TYPE, MZ_RANGE, PEAKS,
-        WINDOWSETTINGSPARAMETER});
+        WINDOWSETTINGSPARAMETER},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_additional.html#chromatogram-plot");
     peakLabelMap = null;
   }
 

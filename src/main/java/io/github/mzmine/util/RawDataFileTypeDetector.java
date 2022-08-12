@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -32,44 +32,39 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RawDataFileTypeDetector {
 
-  private static Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
-
   /*
    * See "https://unidata.ucar.edu/software/netcdf/docs/netcdf_introduction.html#netcdf_format"
    */
   private static final String CDF_HEADER = "CDF";
   private static final String HDF_HEADER = "HDF";
-
   /*
    * mzML files with index start with <indexedmzML><mzML>tags, but files with no index contain only
    * the <mzML> tag. See
    * "http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/schema/mzML1.1.0.xsd"
    */
   private static final String MZML_HEADER = "<mzML";
-
   /*
    * mzXML files with index start with <mzXML><msRun> tags, but files with no index contain only the
    * <msRun> tag. See "http://sashimi.sourceforge.net/schema_revision/mzXML_3.2/mzXML_3.2.xsd"
    */
   private static final String MZXML_HEADER = "<msRun";
-
   // See "http://www.psidev.info/sites/default/files/mzdata.xsd.txt"
   private static final String MZDATA_HEADER = "<mzData";
-
   // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
   private static final String THERMO_HEADER = String.valueOf(
       new char[]{0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
-
   private static final String GZIP_HEADER = String.valueOf(new char[]{0x1f, 0x8b});
-
   private static final String ZIP_HEADER = String.valueOf(new char[]{'P', 'K', 0x03, 0x04});
-
   private static final String TDF_SUFFIX = ".tdf";
   private static final String TDF_BIN_SUFFIX = ".tdf_bin";
   private static final String TSF_BIN_SUFFIX = ".tsf_bin";
   private static final String TSF_SUFFIX = ".tsf_bin";
   private static final String BRUKER_FOLDER_SUFFIX = ".d";
   private static final String AIRD_SUFFIX = ".aird";
+  private static final String MZML_SUFFIX = ".mzml";
+  private static final String IMZML_SUFFIX = ".imzml";
+
+  private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
 
   /**
    * @return Detected file type or null if the file is not of any supported type
@@ -99,31 +94,38 @@ public class RawDataFileTypeDetector {
       return null;
     }
 
-    if (fileName.isFile()) {
-      //the suffix is json and have a .aird file with same name
-      if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
-        String airdIndexFilePath = AirdScanUtil.getIndexPathByAirdPath(fileName.getPath());
-        if (airdIndexFilePath != null) {
-          File airdIndexFile = new File(airdIndexFilePath);
-          if (airdIndexFile.exists()) {
-            return RawDataFileType.AIRD;
-          }
+    try {
+      if (fileName.isFile()) {
+        if (fileName.getName().toLowerCase().endsWith(MZML_SUFFIX)) {
+          return RawDataFileType.MZML;
         }
-        logger.info("It's not an aird format file or the aird index file not exist");
-      }
-      if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName().contains(TDF_BIN_SUFFIX)) {
-        return RawDataFileType.BRUKER_TDF;
-      }
-      if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName().contains(TDF_BIN_SUFFIX)) {
-        return RawDataFileType.BRUKER_TSF;
-      }
-
-      try {
+        if (fileName.getName().toLowerCase().endsWith(IMZML_SUFFIX)) {
+          return RawDataFileType.IMZML;
+        }
+        //the suffix is json and have a .aird file with same name
+        if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
+          String airdIndexFilePath = AirdScanUtil.getIndexPathByAirdPath(fileName.getPath());
+          if (airdIndexFilePath != null) {
+            File airdIndexFile = new File(airdIndexFilePath);
+            if (airdIndexFile.exists()) {
+              return RawDataFileType.AIRD;
+            }
+          }
+          logger.info("It's not an aird format file or the aird index file not exist");
+        }
+        if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName()
+            .contains(TDF_BIN_SUFFIX)) {
+          return RawDataFileType.BRUKER_TDF;
+        }
+        if (fileName.getName().contains(TSF_SUFFIX) || fileName.getName()
+            .contains(TSF_BIN_SUFFIX)) {
+          return RawDataFileType.BRUKER_TSF;
+        }
 
         // Read the first 1kB of the file into a String
         InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName),
             StandardCharsets.ISO_8859_1);
-        char buffer[] = new char[1024];
+        char[] buffer = new char[1024];
         reader.read(buffer);
         reader.close();
         String fileHeader = new String(buffer);
@@ -160,7 +162,7 @@ public class RawDataFileTypeDetector {
         }
 
         if (fileHeader.contains(MZML_HEADER)) {
-          return getMzmlType(fileName);
+          return RawDataFileType.MZML;
         }
 
         if (fileHeader.contains(MZDATA_HEADER)) {
@@ -171,15 +173,22 @@ public class RawDataFileTypeDetector {
           return RawDataFileType.MZXML;
         }
 
-      } catch (Exception e) {
-        e.printStackTrace();
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
 
     return null;
 
   }
 
+  /**
+   * Currently not used because the import task takes care of everything. Only here as reference
+   *
+   * @param fileName
+   * @return
+   * @throws IOException
+   */
   @NotNull
   public static RawDataFileType getMzmlType(File fileName) throws IOException {
     if (fileName.getName().toLowerCase().endsWith("imzml")) {
@@ -187,10 +196,10 @@ public class RawDataFileTypeDetector {
     } else {
       InputStreamReader reader2 = new InputStreamReader(new FileInputStream(fileName),
           StandardCharsets.ISO_8859_1);
-      char buffer2[] = new char[4096 * 3];
+      char[] buffer2 = new char[4096 * 3];
       String content = new String(buffer2);
       boolean containsScan = false, containsAccession = false;
-      while (containsScan == false && containsAccession == false) {
+      while (!containsScan && !containsAccession) {
         reader2.read(buffer2);
         content = new String(buffer2);
         content.replaceAll("[^\\x00-\\x7F]", "");

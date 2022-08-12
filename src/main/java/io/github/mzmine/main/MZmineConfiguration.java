@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,21 +39,20 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface MZmineConfiguration {
 
-  public static final File CONFIG_FILE = new File(System.getProperty("user.home"), ".mzmine3.conf");
+  File CONFIG_FILE = new File(FileUtils.getUserDirectory(), ".mzmine3.conf");
 
-  public ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
+  ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
 
-  public void setModuleParameters(Class<? extends MZmineModule> module, ParameterSet parameters);
+  void setModuleParameters(Class<? extends MZmineModule> module, ParameterSet parameters);
 
-  public MZminePreferences getPreferences();
+  MZminePreferences getPreferences();
 
   /**
    * List of last loaded projects
    *
    * @return
    */
-  @NotNull
-  public List<File> getLastProjects();
+  @NotNull List<File> getLastProjects();
 
 
   /**
@@ -65,43 +65,42 @@ public interface MZmineConfiguration {
    *
    * @return
    */
-  @NotNull
-  public FileNameListSilentParameter getLastProjectsParameter();
+  @NotNull FileNameListSilentParameter getLastProjectsParameter();
 
-  public NumberFormat getMZFormat();
+  NumberFormat getMZFormat();
 
-  public NumberFormat getRTFormat();
+  NumberFormat getRTFormat();
 
-  public NumberFormat getMobilityFormat();
+  NumberFormat getMobilityFormat();
 
   /**
    * @return The default collision cross section format
    * @see io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule
    */
-  public NumberFormat getCCSFormat();
+  NumberFormat getCCSFormat();
 
   /**
    * A format for scores, e.g., Pearson correlation, cosine scores, etc. Default 0.000.
    *
    * @return
    */
-  public NumberFormat getScoreFormat();
+  NumberFormat getScoreFormat();
 
-  public NumberFormat getIntensityFormat();
+  NumberFormat getIntensityFormat();
 
-  public NumberFormat getPPMFormat();
+  NumberFormat getPPMFormat();
 
-  public NumberFormat getPercentFormat();
+  NumberFormat getPercentFormat();
 
-  public UnitFormat getUnitFormat();
+  UnitFormat getUnitFormat();
 
-  public void loadConfiguration(File file) throws IOException;
+  void loadConfiguration(File file) throws IOException;
 
-  public void saveConfiguration(File file) throws IOException;
+  void saveConfiguration(File file) throws IOException;
 
-  public String getRexecPath();
+  String getRexecPath();
 
-  public Boolean getSendStatistics();
+  Boolean getSendStatistics();
 
   /**
    * For color blindness or "normal vision"
@@ -109,15 +108,15 @@ public interface MZmineConfiguration {
    * @return
    */
   // public Vision getColorVision();
-  public SimpleColorPalette getDefaultColorPalette();
+  SimpleColorPalette getDefaultColorPalette();
 
-  public SimpleColorPalette getDefaultPaintScalePalette();
+  SimpleColorPalette getDefaultPaintScalePalette();
 
-  public ChartThemeParameters getDefaultChartThemeParameters();
+  ChartThemeParameters getDefaultChartThemeParameters();
 
-  public EStandardChartTheme getDefaultChartTheme();
+  EStandardChartTheme getDefaultChartTheme();
 
-  public StringCrypter getEncrypter();
+  StringCrypter getEncrypter();
 
-  public boolean isDarkMode();
+  boolean isDarkMode();
 }

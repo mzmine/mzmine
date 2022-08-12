@@ -80,8 +80,15 @@ public class MirrorChartFactory {
   public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBAnnotation db) {
 
     Scan scan = db.getQueryScan();
-    if (scan == null) {
-      return null;
+    if (scan == null || db.getEntry().getDataPoints() == null) {
+      EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + db.getCompoundName(),
+          0, 0, null, "Library: " + db.getDatabase(),
+          0, 0, null, true, true);
+      mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
+      EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+      theme.apply(mirrorSpecrumPlot.getChart());
+
+      return mirrorSpecrumPlot;
     }
 
     // get highest data intensity to calc relative intensity

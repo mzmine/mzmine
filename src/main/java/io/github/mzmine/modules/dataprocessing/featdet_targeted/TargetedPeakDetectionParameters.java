@@ -55,6 +55,7 @@ public class TargetedPeakDetectionParameters extends SimpleParameterSet {
 
   public TargetedPeakDetectionParameters() {
     super(new Parameter[] {rawDataFile, msLevel, suffix, peakListFile, fieldSeparator,
-        ignoreFirstLine, intTolerance, noiseLevel, MZTolerance, RTTolerance});
+        ignoreFirstLine, intTolerance, noiseLevel, MZTolerance, RTTolerance},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/targeted_featdet/targeted-featdet.html");
   }
 }
