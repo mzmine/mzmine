@@ -185,8 +185,8 @@ public class WatersImportTask extends AbstractTask {
         return;
       }
 
-      boolean importConfirmation=importConfirmation();
-      if(!importConfirmation)
+      boolean isImportConfirmation=importConfirmation();
+      if(!isImportConfirmation)
       {
         newMZmineFile.close();
         return;
@@ -258,7 +258,7 @@ public class WatersImportTask extends AbstractTask {
       int percentValue=0;
 
       for (int functionCount=0;functionCount<totalFunctionCount;++functionCount) {
-        //Skipping functions which don't have drift Scan
+        //Skipping Reference functions
        if (isReferenceMeasurement(functionCount,totalFunctionCount))
        {
          continue;
@@ -316,8 +316,8 @@ public class WatersImportTask extends AbstractTask {
         return;
       }
 
-      boolean importConfirmation=importConfirmation();
-      if(!importConfirmation)
+      boolean isImportConfirmation=importConfirmation();
+      if(!isImportConfirmation)
       {
         IMSnewMZmineFile.close();
         return;
