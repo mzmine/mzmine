@@ -22,15 +22,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17.0.4'
           cache: 'gradle'
-
-      - name: Build with Gradle
-        run: gradle build
-
       
-#      - name: Setup Gradle
-#        uses: gradle/gradle-build-action@v2
-#      - name: Execute Gradle build
-#        run: ./gradlew --stacktrace --info
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Execute Gradle build
+        run: ./gradlew --stacktrace --info
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
