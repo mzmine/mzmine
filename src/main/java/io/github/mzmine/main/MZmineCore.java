@@ -346,10 +346,7 @@ public final class MZmineCore {
       if ((versionString == null) || (versionString.startsWith("$"))) {
         return new Semver("3-SNAPSHOT", SemverType.LOOSE);
       }
-      Semver version = new Semver(versionString, SemverType.LOOSE);
-      // for now add beta here - jpackage does not work with -beta at version
-      version = version.withSuffix("beta");
-      return version;
+      return new Semver(versionString, SemverType.LOOSE);
     } catch (Exception e) {
       e.printStackTrace();
       return new Semver("3-SNAPSHOT", SemverType.LOOSE);
@@ -446,7 +443,7 @@ public final class MZmineCore {
     return getInstance().storageList;
   }
 
-  protected void init() {
+  private void init() {
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
     // be . or , depending on the locale)
