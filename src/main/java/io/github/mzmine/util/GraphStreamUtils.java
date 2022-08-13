@@ -21,12 +21,9 @@ package io.github.mzmine.util;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Set;
-import org.graphstream.graph.Edge;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.MultiGraph;
 
-public class GraphUtils {
+public class GraphStreamUtils {
 
   /**
    * Unique list of node neighbors within edge distance
@@ -62,31 +59,5 @@ public class GraphUtils {
         }
       }
     });
-  }
-
-  /**
-   * Creates a copy of the graph
-   *
-   * @param theGraph the original Graph
-   */
-
-  public static MultiGraph getCopyOfGraph(Graph theGraph) {
-    MultiGraph aGraphCopy = new MultiGraph("Graph");
-
-    theGraph.nodes().forEach(aNode -> {
-      Node n = aGraphCopy.addNode(aNode.getId());
-      aNode.attributeKeys().forEach(attribute -> {
-        n.setAttribute(attribute, aNode.getAttribute(attribute));
-      });
-    });
-    theGraph.edges().forEach(anEdge -> {
-      Edge e;
-      e = aGraphCopy.addEdge(anEdge.getId(), anEdge.getSourceNode().getId(),
-          anEdge.getTargetNode().getId(), anEdge.isDirected());
-      anEdge.attributeKeys().forEach(attribute -> {
-        e.setAttribute(attribute, anEdge.getAttribute(attribute));
-      });
-    });
-    return aGraphCopy;
   }
 }

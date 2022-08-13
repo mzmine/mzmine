@@ -41,7 +41,6 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.stream.file.FileSink;
 import org.graphstream.stream.file.FileSinkGraphML;
 import org.graphstream.stream.file.FileSinkImages;
@@ -62,6 +61,7 @@ import org.jetbrains.annotations.Nullable;
 public class NetworkPane extends BorderPane {
 
   public static final String DEFAULT_STYLE_FILE = "/themes/graph_network_style.css";
+
   public static final String STYLE_SHEET = """
       graph {
          fill-color: white;
@@ -181,11 +181,9 @@ public class NetworkPane extends BorderPane {
   protected FileSinkSVG saveSVG = new FileSinkSVG();
   protected FileSinkImages savePNG = FileSinkImages.createDefault();
   // visual
-  protected static Graph graph;
+  protected Graph graph;
   protected Viewer viewer;
-  protected static FxViewPanel view;
-  protected static StackPane graphpane;
-
+  protected FxViewPanel view;
   protected Node mouseClickedNode;
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
@@ -238,7 +236,8 @@ public class NetworkPane extends BorderPane {
 
     selectedNodes = new ArrayList<>();
 
-    graph = new MultiGraph(title);
+    FilteredGraph fg = new FilteredGraph("Filtered-Graph");
+    graph = fg.getFilteredGraph();
     setStyleSheet(this.styleSheet);
     graph.setAutoCreate(true);
     graph.setStrict(false);
@@ -249,7 +248,7 @@ public class NetworkPane extends BorderPane {
     view = (FxViewPanel) viewer.addDefaultView(false);
     // wrap in stackpane to make sure coordinates work properly.
     // Might be confused by other components in the same pane
-    graphpane = new StackPane(view);
+    StackPane graphpane = new StackPane(view);
     this.setCenter(graphpane);
 
     // enable selection of edges by mouse
@@ -413,19 +412,6 @@ public class NetworkPane extends BorderPane {
     setStyleSheet(styleSheet);
   }
 
-  public static Graph getGraph() {
-    return graph;
-  }
-
-  public static FxViewPanel getView() {
-    return view;
-  }
-
-  public Viewer getViewer() {
-    return viewer;
-  }
-
-  public static StackPane getGraphPane() { return graphpane;}
   public void setVisible(Node node, boolean visible) {
     if (!visible) {
       node.setAttribute("ui.hide");
@@ -469,35 +455,7 @@ public class NetworkPane extends BorderPane {
     }
     selectedNodes.clear();
   }
-
-  public String addNewEdge(Node node1, Node node2, String edgeNameSuffix) {
-    String edge = node1.getId() + node2.getId() + edgeNameSuffix;
-    graph.addEdge(edge, node1, node2);
-    return edge;
-  }
-
-  public String addNewEdge(String node1, String node2, String edgeNameSuffix) {
-    String edge = node1 + node2 + edgeNameSuffix;
-    graph.addEdge(edge, node1, node2);
-    return edge;
-  }
-
-  public String addNewEdge(Node node1, Node node2, String edgeNameSuffix, Object edgeLabel) {
-    String edge = node1.getId() + node2.getId() + edgeNameSuffix;
-    graph.addEdge(edge, node1, node2);
-    graph.getEdge(edge).setAttribute("ui.label", edgeLabel);
-    graph.getEdge(edge).setAttribute("LABEL", edgeLabel);
-    return edge;
-  }
-
-  public String addNewEdge(String node1, String node2, String edgeNameSuffix, Object edgeLabel) {
-    String edge = node1 + node2 + edgeNameSuffix;
-    graph.addEdge(edge, node1, node2);
-    graph.getEdge(edge).setAttribute("ui.label", edgeLabel);
-    graph.getEdge(edge).setAttribute("LABEL", edgeLabel);
-    return edge;
-  }
-
+  
   public void zoom(boolean zoomOut) {
     viewPercent += viewPercent * 0.1 * (zoomOut ? -1 : 1);
     view.getCamera().setViewPercent(viewPercent);

@@ -25,6 +25,8 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
+import io.github.mzmine.util.FilteredGraphUtils;
+import io.github.mzmine.util.GraphStreamUtils;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +49,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
 
 public class FeatureNetworkPane extends NetworkPane {
 
@@ -84,6 +87,7 @@ public class FeatureNetworkPane extends NetworkPane {
   private boolean showMs2SimEdges;
   private boolean ms1FeatureShapeEdges = false;
 
+  private Graph fullGraph;
 
   /**
    * Create the panel.
@@ -94,9 +98,10 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public FeatureNetworkPane(boolean showTitle) {
     super("Ion identity networks (IINs)", showTitle);
+    fullGraph = new MultiGraph("Multi-Graph");
+    setFilteredGraph();
     addMenu();
   }
-
   private void addMenu() {
     Pane menu = getPnSettings();
     menu.setVisible(true);
@@ -213,7 +218,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     Button showOriginalGraphButton = new Button("Show original graph");
     showOriginalGraphButton.setMaxWidth(Double.MAX_VALUE);
-    updateGraphButton.setOnAction(e -> showOriginalGraph());
+
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
@@ -248,18 +253,19 @@ public class FeatureNetworkPane extends NetworkPane {
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
     }
+    else
+    {
+      generator.createGraphWithNeighboringNodes(graph, GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(),bNeighbors.get()));
+    }
   }
 
-  private void showOriginalGraph() {
-    setGraph(graph);
-  }
 
   /**
    * Show GNPS library match
    */
   private void showGNPSMatches() {
     int n = 0;
-    for (Node node : graph) {
+    for (Node node : fullGraph) {
       String name = (String) node.getAttribute(GNPSLibraryMatch.ATT.COMPOUND_NAME.getKey());
       if (name != null) {
         node.setAttribute("ui.label", name);
@@ -274,7 +280,7 @@ public class FeatureNetworkPane extends NetworkPane {
    */
   private void showLibraryMatches() {
     int n = 0;
-    for (Node node : graph) {
+    for (Node node : fullGraph) {
       String name = (String) node.getAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString());
       if (name != null) {
         node.setAttribute("ui.label", name);
@@ -291,7 +297,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public void collapseIonNodes(boolean collapse) {
     this.collapse = collapse;
-    for (Node node : graph) {
+    for (Node node : fullGraph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
@@ -309,7 +315,7 @@ public class FeatureNetworkPane extends NetworkPane {
       }
     }
 
-    graph.edges().forEach(edge -> {
+    fullGraph.edges().forEach(edge -> {
       EdgeType type = (EdgeType) edge.getAttribute(EdgeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
@@ -335,21 +341,6 @@ public class FeatureNetworkPane extends NetworkPane {
     });
   }
 
-  /**
-   * Array of rows
-   *
-   * @param rows the new network rows
-   */
-  public void setFeatureListRows(FeatureListRow[] rows, R2RMap<RowsRelationship> ms2SimMap) {
-    featureList = null;
-    this.rows = rows;
-    if (rows != null) {
-      createNewGraph(rows);
-    } else {
-      clear();
-    }
-  }
-
   @Override
   public void clear() {
     super.clear();
@@ -361,7 +352,7 @@ public class FeatureNetworkPane extends NetworkPane {
     attributeCategoryValuesMap.clear();
 
     clear();
-    generator.createNewGraph(rows, graph, onlyBest, relationMaps, ms1FeatureShapeEdges);
+    generator.createNewGraph(rows, fullGraph, onlyBest, relationMaps, ms1FeatureShapeEdges);
     clearSelections();
     showEdgeLabels(showEdgeLabels);
     showNodeLabels(showNodeLabels);
@@ -395,7 +386,7 @@ public class FeatureNetworkPane extends NetworkPane {
             att -> indexAllValues(nodeAttSize));
     final int numSizeValues = sizeValueMap == null ? 0 : sizeValueMap.size();
 
-    for (Node node : graph) {
+    for (Node node : fullGraph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
       if (type == NodeType.NEUTRAL_M || type == NodeType.NEUTRAL_LOSS_CENTER) {
         continue;
@@ -436,7 +427,7 @@ public class FeatureNetworkPane extends NetworkPane {
             att -> indexAllValues(nodeAttColor));
     final int numColorValues = colorValueMap == null ? 0 : colorValueMap.size();
 
-    for (Node node : graph) {
+    for (Node node : fullGraph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
       if (type == NodeType.NEUTRAL_M || type == NodeType.NEUTRAL_LOSS_CENTER) {
         continue;
@@ -471,7 +462,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
   private void applyLabelStyle(GraphObject target) {
     final String att = getStyleAttribute(target, GraphStyleAttribute.LABEL);
-    target.stream(graph).forEach(node -> {
+    target.stream(fullGraph).forEach(node -> {
       try {
         node.setAttribute("ui.label", getOrElseString(node, att, ""));
       } catch (Exception ex) {
@@ -513,7 +504,7 @@ public class FeatureNetworkPane extends NetworkPane {
   private Map<String, Integer> indexAllValues(NodeAtt attribute) {
     Map<String, Integer> map = new HashMap<>();
     int currentIndex = 0;
-    for (Node node : graph) {
+    for (Node node : fullGraph) {
       try {
         String object = Objects.requireNonNullElse(node.getAttribute(attribute.toString()), "")
             .toString();
@@ -572,27 +563,6 @@ public class FeatureNetworkPane extends NetworkPane {
     return (float) Math.min(1.0, Math.max(0.0, (value - min) / (max - min)));
   }
 
-  public void setSelectedRow(FeatureListRow row) {
-    String node = generator.toNodeName(row);
-    // set selected
-    Node n = graph.getNode(node);
-    setSelectedNode(n);
-  }
-
-  private FeatureListRow findRowByID(int id, FeatureListRow[] rows) {
-    if (rows == null) {
-      return null;
-    } else {
-      for (FeatureListRow r : rows) {
-        if (r.getID() == id) {
-          return r;
-        }
-      }
-
-      return null;
-    }
-  }
-
   public void setConnectByNetRelations(boolean connectByNetRelations) {
     this.showNetRelationsEdges = connectByNetRelations;
     collapseIonNodes(collapse);
@@ -603,7 +573,7 @@ public class FeatureNetworkPane extends NetworkPane {
   }
 
   public void dispose() {
-    graph.clear();
+    fullGraph.clear();
   }
 
   public void setShowMs2SimEdges(boolean ms2SimEdges) {
@@ -631,8 +601,14 @@ public class FeatureNetworkPane extends NetworkPane {
   public void setUseMs1FeatureShapeEdges(boolean ms1FeatureShapeEdges) {
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
   }
-  public Graph setGraph(Graph graph)
-  {
-    return graph;
-  }
+ public void setFilteredGraph()
+ {
+   FilteredGraphUtils fgu = new FilteredGraphUtils();
+   fgu.addContentsOfFullGraph(fullGraph,graph);
+ }
+
+ public Graph getFullGraph()
+ {
+   return fullGraph;
+ }
 }

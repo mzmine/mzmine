@@ -1,6 +1,6 @@
 package modules;
 
-import io.github.mzmine.util.GraphUtils;
+import io.github.mzmine.util.GraphStreamUtils;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -41,7 +41,7 @@ public class GraphUtilsTest {
 
   @Test
   public void testMethod() {
-    String traversingSequence = GraphUtils.getNodeNeighbors(graph.getNode("A"), 2)
+    String traversingSequence = GraphStreamUtils.getNodeNeighbors(graph.getNode("A"), 2)
         .toString();
     Assertions.assertEquals("[F, A, B, J, C, E, D]", traversingSequence);
   }
