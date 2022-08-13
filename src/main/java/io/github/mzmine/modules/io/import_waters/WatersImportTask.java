@@ -134,7 +134,8 @@ public class WatersImportTask extends AbstractTask {
       MassLynxRawScanReader rawScanReader = new MassLynxRawScanReader(filepath);
       ArrayList<IntermediateScan> intermediateScanArray = new ArrayList<>();
       int totalFunctionCount = massLynxRawInfoReader.GetFunctionCount();
-      IntermediateScan intermediatescan = null;
+      IntermediateScan intermediatescan;
+      int percentValue=0;
 
       for (int functionCount = 0; functionCount < totalFunctionCount; ++functionCount) {
         //total Scan values in each function
@@ -161,26 +162,36 @@ public class WatersImportTask extends AbstractTask {
               massLynxRawInfoReader.GetRetentionTime(functionCount, numScan), numScan,setMass,collisionEnergy);
           intermediateScanArray.add(intermediatescan);
         }
+        percentValue++;
       }
+
+      double setPercent=(0.1*(totalFunctionCount+1))-(0.1*percentValue);
+      this.setFinishedPercentage(setPercent);
+
       //Sorting w.r.t Retentiontime
       Collections.sort(intermediateScanArray);
-      //this.setFinishedPercentage(0.01);
+
       int arraySize=intermediateScanArray.size();
       for (int mzmineScan=0;mzmineScan<arraySize;mzmineScan++)
       {
         SimpleScan simpleScan = intermediateScanArray.get(mzmineScan).getScan(mzmineScan+1, rawScanReader);
         newMZmineFile.addScan(simpleScan);
-        this.setFinishedPercentage(0.01 * (mzmineScan+1/arraySize));
       }
+
+      this.setFinishedPercentage(setPercent+0.9);
       if(isCanceled())
       {
+        newMZmineFile.close();
         return;
       }
+
       boolean importConfirmation=importConfirmation();
       if(!importConfirmation)
       {
+        newMZmineFile.close();
         return;
       }
+
       this.project.addFile(newMZmineFile);
     }
     catch (MasslynxRawException e)
@@ -244,6 +255,7 @@ public class WatersImportTask extends AbstractTask {
 
       ArrayList<IntermediateFrame> intermediateFrameArrayList= new ArrayList<>();
       SimpleFrame simpleFrame;
+      int percentValue=0;
 
       for (int functionCount=0;functionCount<totalFunctionCount;++functionCount) {
         //Skipping functions which don't have drift Scan
@@ -278,8 +290,12 @@ public class WatersImportTask extends AbstractTask {
               ,setMass,collisionEnergy);
           intermediateFrameArrayList.add(intermediateframe);
         }
+        percentValue++;
       }
-//      Sorting of Array by retention time
+      double setPercent=(0.1*(totalFunctionCount))-(0.1*percentValue);
+      this.setFinishedPercentage(setPercent);
+
+      //Sorting of Array by retention time
       Collections.sort(intermediateFrameArrayList);
 
       int arraySize=intermediateFrameArrayList.size();
@@ -290,18 +306,25 @@ public class WatersImportTask extends AbstractTask {
         simpleFrame=intermediateFrameArrayList.get(mzmineScan).toframe(rawScanReader,
             mzmineScan+1,massLynxRawInfoReader);
         IMSnewMZmineFile.addScan(simpleFrame);
-        this.setFinishedPercentage(0.01 * (mzmineScan+1/arraySize));
       }
+
+      this.setFinishedPercentage(setPercent+0.9);
+
       if(isCanceled())
       {
+        IMSnewMZmineFile.close();
         return;
       }
+
       boolean importConfirmation=importConfirmation();
       if(!importConfirmation)
       {
+        IMSnewMZmineFile.close();
         return;
       }
+
       this.project.addFile(IMSnewMZmineFile);
+
     } catch (MasslynxRawException e) {
       e.printStackTrace();
       MZmineCore.getDesktop().displayErrorMessage("MasslynxRawException for IonMobilityFile :: " + e.getMessage());
