@@ -181,9 +181,10 @@ public class NetworkPane extends BorderPane {
   protected FileSinkSVG saveSVG = new FileSinkSVG();
   protected FileSinkImages savePNG = FileSinkImages.createDefault();
   // visual
-  protected Graph graph;
+  protected static Graph graph;
   protected Viewer viewer;
-  protected FxViewPanel view;
+  protected static FxViewPanel view;
+  protected static StackPane graphpane;
 
   protected Node mouseClickedNode;
   protected double viewPercent = 1;
@@ -248,8 +249,7 @@ public class NetworkPane extends BorderPane {
     view = (FxViewPanel) viewer.addDefaultView(false);
     // wrap in stackpane to make sure coordinates work properly.
     // Might be confused by other components in the same pane
-    StackPane graphpane = new StackPane(view);
-    view.setStyle("-fx-effect: innershadow(three-pass-box, gray, 12 , 0.5, 1, 1);");
+    graphpane = new StackPane(view);
     this.setCenter(graphpane);
 
     // enable selection of edges by mouse
@@ -413,11 +413,11 @@ public class NetworkPane extends BorderPane {
     setStyleSheet(styleSheet);
   }
 
-  public Graph getGraph() {
+  public static Graph getGraph() {
     return graph;
   }
 
-  public FxViewPanel getView() {
+  public static FxViewPanel getView() {
     return view;
   }
 
@@ -425,6 +425,7 @@ public class NetworkPane extends BorderPane {
     return viewer;
   }
 
+  public static StackPane getGraphPane() { return graphpane;}
   public void setVisible(Node node, boolean visible) {
     if (!visible) {
       node.setAttribute("ui.hide");

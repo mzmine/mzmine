@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
-import static io.github.mzmine.util.GraphStreamUtils.getNodeNeighbors;
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -47,6 +45,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
@@ -212,10 +211,14 @@ public class FeatureNetworkPane extends NetworkPane {
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
     updateGraphButton.setOnAction(e -> updateGraph());
 
+    Button showOriginalGraphButton = new Button("Show original graph");
+    showOriginalGraphButton.setMaxWidth(Double.MAX_VALUE);
+    updateGraphButton.setOnAction(e -> showOriginalGraph());
+
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
         toggleShowIonIdentityEdges, toggleShowEdgeLabel, toggleShowNodeLabel, showGNPSMatches,
-        showLibraryMatches, l, nodeNeighbours, updateGraphButton);
+        showLibraryMatches, l, nodeNeighbours, updateGraphButton, showOriginalGraphButton);
     pnRightMenu.setSpacing(10);
     pnRightMenu.setPadding(new Insets(0, 20, 10, 20));
     this.setRight(pnRightMenu);
@@ -244,10 +247,11 @@ public class FeatureNetworkPane extends NetworkPane {
       Alert alert = new Alert(AlertType.INFORMATION);
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
-    } else {
-      generator.createGraphWithNeighboringNodes(graph,
-          getNodeNeighbors(getMouseClickedNode(), bNeighbors.get()));
     }
+  }
+
+  private void showOriginalGraph() {
+    setGraph(graph);
   }
 
   /**
@@ -626,5 +630,9 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public void setUseMs1FeatureShapeEdges(boolean ms1FeatureShapeEdges) {
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
+  }
+  public Graph setGraph(Graph graph)
+  {
+    return graph;
   }
 }

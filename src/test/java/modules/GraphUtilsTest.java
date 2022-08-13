@@ -1,6 +1,6 @@
 package modules;
 
-import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.GraphUtils;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -8,11 +8,12 @@ import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class GraphStreamUtilsTest {
+public class GraphUtilsTest {
+  private Graph graph;
 
   @Before
-  public static Graph createGraph() {
-    Graph graph = new MultiGraph("Test-Graph");
+  public void init() {
+    graph = new MultiGraph("Test-Graph");
     graph.setStrict(false);
     graph.setAutoCreate(true);
     graph.addEdge("AB", "A", "B");
@@ -36,12 +37,11 @@ public class GraphStreamUtilsTest {
     for (Node node : graph) {
       node.setAttribute("ui.label", node.getId());
     }
-    return graph;
   }
 
   @Test
   public void testMethod() {
-    String traversingSequence = GraphStreamUtils.getNodeNeighbors(createGraph().getNode("A"), 2)
+    String traversingSequence = GraphUtils.getNodeNeighbors(graph.getNode("A"), 2)
         .toString();
     Assertions.assertEquals("[F, A, B, J, C, E, D]", traversingSequence);
   }
