@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -63,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
 public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
-
+  private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
   protected final String absolutePath;
   protected final ObservableList<Scan> scans;
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods = FXCollections.observableArrayList();
@@ -294,6 +295,13 @@ public class RawDataFileImpl implements RawDataFile {
       for (double v : intensities) {
         if (v <= 0) {
           containsZeroIntensity = true;
+          if (spectraType.isCentroided()) {
+            logger.warning("""
+                Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert. 
+                Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
+                a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
+                This leads to degraded mass accuracies.""");
+          }
           break;
         }
       }

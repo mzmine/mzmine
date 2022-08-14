@@ -46,6 +46,14 @@ public enum MassSpectrumType {
   /**
    * Mixed is only used to describe multiple spectra
    */
-  MIXED
+  MIXED;
 
+  public boolean isCentroided() {
+    return switch (this) {
+      case PROFILE -> false;
+      // mixed means that at least one is centroided
+      // thresholding is usually applied after centroiding
+      case THRESHOLDED, MIXED, CENTROIDED -> true;
+    };
+  }
 }
