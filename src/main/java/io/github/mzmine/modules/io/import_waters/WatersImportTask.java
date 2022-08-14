@@ -123,7 +123,8 @@ public class WatersImportTask extends AbstractTask {
 
   /**
    * @param filepath
-   * used for loading regular RawDataFile for water File
+   * Used for loading regular RawDataFile of water File
+   * Implemented intermediateScan to Store the required reading and then implement SimpleScan via getScan function.
    */
   private void loadRegularFile(String filepath){
     setDescription("Reading metadata from " + this.fileToOpen.getName());
@@ -240,6 +241,7 @@ public class WatersImportTask extends AbstractTask {
   /**
    * @param filepath
    * Used for loading IonMobility file containing Driftscan
+   * Implemented intermediateFrame to store the required reading and then implement SimpleFrame via toFrame function
    */
   public void loadIonMobilityFile(String filepath)
   {
@@ -306,7 +308,7 @@ public class WatersImportTask extends AbstractTask {
           IMSnewMZmineFile.close();
           return;
         }
-        simpleFrame=intermediateFrameArrayList.get(mzmineScan).toframe(rawScanReader,
+        simpleFrame=intermediateFrameArrayList.get(mzmineScan).toFrame(rawScanReader,
             mzmineScan+1,massLynxRawInfoReader);
         IMSnewMZmineFile.addScan(simpleFrame);
       }

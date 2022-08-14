@@ -60,7 +60,7 @@ public class IntermediateFrame extends IntermediateScan {
     this.setMass =setMass;
   }
 
-  public SimpleFrame toframe(MassLynxRawScanReader rawscanreader, int mzmine_scannum,
+  public SimpleFrame toFrame(MassLynxRawScanReader rawscanreader, int mzmine_scannum,
       MassLynxRawInfoReader massLynxRawInfoReader)
       throws MasslynxRawException {
     //scan Value
