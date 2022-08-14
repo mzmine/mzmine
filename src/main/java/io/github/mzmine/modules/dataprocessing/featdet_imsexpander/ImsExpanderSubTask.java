@@ -22,9 +22,16 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -32,8 +39,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.text.NumberFormat;
 import java.time.Instant;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -48,7 +56,7 @@ public class ImsExpanderSubTask extends AbstractTask {
   protected final ParameterSet parameters;
   private final List<Frame> frames;
   private final ModularFeatureList flist;
-  private final List<ExpandingTrace> expandingTraces;
+  private List<ExpandingTrace> expandingTraces;
 
   private final AtomicInteger processedFrames = new AtomicInteger(0);
   private final Boolean useRawData;
@@ -56,11 +64,15 @@ public class ImsExpanderSubTask extends AbstractTask {
   private final Range<Double> traceMzRange;
 
   private long totalFrames = 1;
+  private String desc;
+  private final BinningMobilogramDataAccess mobilogramDataAccess;
+  private final ModularFeatureList newFlist;
+  private double createdRows = 0;
 
   public ImsExpanderSubTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final List<Frame> frames,
-      @NotNull final ModularFeatureList flist,
-      @NotNull final List<ExpandingTrace> expandingTraces) {
+      @NotNull final ModularFeatureList flist, @NotNull final List<ExpandingTrace> expandingTraces,
+      BinningMobilogramDataAccess mobilogramDataAccess, ModularFeatureList newFlist) {
     super(storage, Instant.now()); // just a subtask, date irrelevant
     this.parameters = parameters;
     this.frames = frames;
@@ -69,20 +81,30 @@ public class ImsExpanderSubTask extends AbstractTask {
     this.useRawData = parameters.getParameter(ImsExpanderParameters.useRawData).getValue();
     this.customNoiseLevel = parameters.getParameter(ImsExpanderParameters.useRawData)
         .getEmbeddedParameter().getValue();
-    traceMzRange = expandingTraces.size() > 0 ?  Range.closed(expandingTraces.get(0).getMzRange().lowerEndpoint(), expandingTraces.get(
-        expandingTraces.size() - 1).getMzRange().upperEndpoint()) : Range.singleton(0d);
+    traceMzRange = expandingTraces.size() > 0 ? Range.closed(
+        expandingTraces.get(0).getMzRange().lowerEndpoint(),
+        expandingTraces.get(expandingTraces.size() - 1).getMzRange().upperEndpoint())
+        : Range.singleton(0d);
+
+    desc = flist.getName() + ": expanding traces for frame " + processedFrames.get() + "/"
+        + totalFrames + " m/z range: " + RangeUtils.formatRange(traceMzRange,
+        MZmineCore.getConfiguration().getMZFormat());
+    this.mobilogramDataAccess = mobilogramDataAccess;
+    this.newFlist = newFlist;
   }
 
   @Override
   public String getTaskDescription() {
-    String range = " m/z range: " + RangeUtils.formatRange(traceMzRange, MZmineCore.getConfiguration().getMZFormat());
-    return flist.getName() + ": expanding traces for frame " + processedFrames.get() + "/"
-        + totalFrames + range;
+    return desc;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return (processedFrames.get() / (double) totalFrames);
+    if (expandingTraces == null) {
+      return 1.0d;
+    }
+    return (processedFrames.get() / (double) totalFrames) * 0.5
+        + createdRows / (double) expandingTraces.size();
   }
 
   @Override
@@ -94,12 +116,15 @@ public class ImsExpanderSubTask extends AbstractTask {
         useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.CENTROID, frames);
 
     totalFrames = access.getNumberOfScans();
+    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
     final int numTraces = expandingTraces.size();
     try {
 
       for (int i = 0; i < access.getNumberOfScans(); i++) {
         if (isCanceled()) {
+          // allow traces to be released
+          expandingTraces = null;
           return;
         }
 
@@ -137,12 +162,51 @@ public class ImsExpanderSubTask extends AbstractTask {
           }
         }
         processedFrames.getAndIncrement();
+
+        desc = flist.getName() + ": expanding traces for frame " + processedFrames.get() + "/"
+            + totalFrames + " m/z range: " + RangeUtils.formatRange(traceMzRange, mzFormat);
       }
     } catch (MissingMassListException e) {
+      // allow traces to be released
+      expandingTraces = null;
       e.printStackTrace();
       logger.log(Level.WARNING, e.getMessage(), e);
       setErrorMessage(e.getMessage());
       setStatus(TaskStatus.ERROR);
+    }
+
+    // create the new rows here, so the memory can be released after
+    final List<FeatureListRow> newRows = new ArrayList<>(expandingTraces.size());
+    for (var expandingTrace : expandingTraces) {
+      desc = "Creating new features " + createdRows + "/" + expandingTraces.size();
+
+      if (expandingTrace.getNumberOfMobilityScans() > 1) {
+        final IonMobilogramTimeSeries series = expandingTrace.toIonMobilogramTimeSeries(
+            getMemoryMapStorage(), mobilogramDataAccess);
+        final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
+            expandingTrace.getRow(), false);
+        final ModularFeature f = new ModularFeature(newFlist,
+            expandingTrace.getRow().getFeature(imsFile));
+        f.set(FeatureDataType.class, series);
+        row.addFeature(imsFile, f);
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+        newRows.add(row);
+      }
+
+      createdRows++;
+
+      if (isCanceled()) {
+        // allow traces to be released
+        expandingTraces = null;
+        return;
+      }
+    }
+
+    // allow traces to be released
+    expandingTraces = null;
+
+    synchronized (newFlist) {
+      newRows.forEach(newFlist::addRow);
     }
 
     setStatus(TaskStatus.FINISHED);
