@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -41,6 +41,11 @@ public enum MassSpectrumType {
   /**
    * Centroided mass spectrum = discrete data points, one for each detected ion.
    */
-  CENTROIDED;
+  CENTROIDED,
+
+  /**
+   * Mixed is only used to describe multiple spectra
+   */
+  MIXED
 
 }
