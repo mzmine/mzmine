@@ -174,16 +174,16 @@ public class WatersImportTask extends AbstractTask {
       int arraySize=intermediateScanArray.size();
       for (int mzmineScan=0;mzmineScan<arraySize;mzmineScan++)
       {
+        if(isCanceled())
+        {
+          newMZmineFile.close();
+          return;
+        }
         SimpleScan simpleScan = intermediateScanArray.get(mzmineScan).getScan(mzmineScan+1, rawScanReader);
         newMZmineFile.addScan(simpleScan);
       }
 
       this.setFinishedPercentage(setPercent+0.9);
-      if(isCanceled())
-      {
-        newMZmineFile.close();
-        return;
-      }
 
       boolean isImportConfirmation=importConfirmation();
       if(!isImportConfirmation)
@@ -301,8 +301,11 @@ public class WatersImportTask extends AbstractTask {
       int arraySize=intermediateFrameArrayList.size();
 
       for (int mzmineScan = 0; mzmineScan < arraySize; mzmineScan++) {
-
-
+        if(isCanceled())
+        {
+          IMSnewMZmineFile.close();
+          return;
+        }
         simpleFrame=intermediateFrameArrayList.get(mzmineScan).toframe(rawScanReader,
             mzmineScan+1,massLynxRawInfoReader);
         IMSnewMZmineFile.addScan(simpleFrame);
@@ -310,11 +313,6 @@ public class WatersImportTask extends AbstractTask {
 
       this.setFinishedPercentage(setPercent+0.9);
 
-      if(isCanceled())
-      {
-        IMSnewMZmineFile.close();
-        return;
-      }
 
       boolean isImportConfirmation=importConfirmation();
       if(!isImportConfirmation)
