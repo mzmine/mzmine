@@ -127,9 +127,9 @@ public class IntermediateScan implements Comparable<IntermediateScan> {
           this.getMZRange());
 
       //MsMsInfo Implemented
-    DDAMsMsInfo ddaMsMsInfo=this.getSetMass()>0?getDDAMsMsInfo(simplescan):null;
     if(this.getMsLevel()>1)
     {
+      DDAMsMsInfo ddaMsMsInfo=this.getSetMass()>0?getDDAMsMsInfo(simplescan):null;
       simplescan.setMsMsInfo(ddaMsMsInfo);
     }
     return simplescan;
