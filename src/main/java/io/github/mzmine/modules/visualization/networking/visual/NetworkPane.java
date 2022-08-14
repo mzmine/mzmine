@@ -39,8 +39,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.stream.file.FileSink;
 import org.graphstream.stream.file.FileSinkGraphML;
 import org.graphstream.stream.file.FileSinkImages;
@@ -181,7 +181,7 @@ public class NetworkPane extends BorderPane {
   protected FileSinkSVG saveSVG = new FileSinkSVG();
   protected FileSinkImages savePNG = FileSinkImages.createDefault();
   // visual
-  protected Graph graph;
+  protected MultiGraph filteredGraph, fullGraph;
   protected Viewer viewer;
   protected FxViewPanel view;
   protected Node mouseClickedNode;
@@ -199,6 +199,8 @@ public class NetworkPane extends BorderPane {
   }
 
   public NetworkPane(String title, String styleSheet2, boolean showTitle) {
+    fullGraph = new MultiGraph("Full-Graph");
+    filteredGraph = new MultiGraph("Filtered-Graph");
     System.setProperty("org.graphstream.ui", "javafx");
 //    System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 //    System.setProperty("org.graphstream.ui.renderer",
@@ -235,16 +237,13 @@ public class NetworkPane extends BorderPane {
     setShowTitle(showTitle);
 
     selectedNodes = new ArrayList<>();
-
-    FilteredGraph fg = new FilteredGraph("Filtered-Graph");
-    graph = fg.getFilteredGraph();
     setStyleSheet(this.styleSheet);
-    graph.setAutoCreate(true);
-    graph.setStrict(false);
+    filteredGraph.setAutoCreate(true);
+    filteredGraph.setStrict(false);
 
-    viewer = new FxViewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+    viewer = new FxViewer(filteredGraph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
     viewer.enableAutoLayout();
-    graph.setAttribute("Layout.frozen"); //Block the layout algorithm
+    filteredGraph.setAttribute("Layout.frozen"); //Block the layout algorithm
     view = (FxViewPanel) viewer.addDefaultView(false);
     // wrap in stackpane to make sure coordinates work properly.
     // Might be confused by other components in the same pane
@@ -286,8 +285,8 @@ public class NetworkPane extends BorderPane {
     view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
 
     view.setOnMouseClicked(e -> {
-      mouseClickedNode = (Node)view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)), e.getX(),
-          e.getY()); //for getting mouse-clicked node by the user
+      mouseClickedNode = (Node) view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)),
+          e.getX(), e.getY()); //for getting mouse-clicked node by the user
     });
 
     view.setOnMousePressed(e -> {
@@ -324,7 +323,7 @@ public class NetworkPane extends BorderPane {
   }
 
   public void openSaveDialog() {
-    if (graph != null && graph.getNodeCount() > 0) {
+    if (filteredGraph != null && filteredGraph.getNodeCount() > 0) {
       File f = saveDialog.showSaveDialog(null);
       if (f != null) {
         if (saveDialog.getSelectedExtensionFilter() == pngExt || FileAndPathUtil.getExtension(f)
@@ -352,8 +351,8 @@ public class NetworkPane extends BorderPane {
 
   public void saveToFile(FileSink sink, File f) {
     try {
-      if (graph != null && graph.getNodeCount() > 0) {
-        sink.writeAll(graph, f.getAbsolutePath());
+      if (filteredGraph != null && filteredGraph.getNodeCount() > 0) {
+        sink.writeAll(filteredGraph, f.getAbsolutePath());
       }
     } catch (Exception e) {
       LOG.log(Level.SEVERE, "File of network not saved", e);
@@ -370,7 +369,7 @@ public class NetworkPane extends BorderPane {
 
   public void showNodeLabels(boolean show) {
     this.showNodeLabels = show;
-    for (Node node : graph) {
+    for (Node node : filteredGraph) {
       if (show) {
         Object label = node.getAttribute("LABEL");
         if (label == null) {
@@ -386,7 +385,7 @@ public class NetworkPane extends BorderPane {
   public void showEdgeLabels(boolean show) {
     this.showEdgeLabels = show;
 
-    graph.edges().forEach(edge -> {
+    filteredGraph.edges().forEach(edge -> {
       if (show) {
         Object label = edge.getAttribute("LABEL");
         if (label == null) {
@@ -401,14 +400,14 @@ public class NetworkPane extends BorderPane {
 
   public void setStyleSheet(String styleSheet) {
     this.styleSheet = styleSheet;
-    graph.setAttribute("ui.stylesheet", styleSheet);
+    filteredGraph.setAttribute("ui.stylesheet", styleSheet);
     // was at 3 but slow?
-    graph.setAttribute("ui.quality", 2);
-    graph.setAttribute("ui.antialias");
+    filteredGraph.setAttribute("ui.quality", 2);
+    filteredGraph.setAttribute("ui.antialias");
   }
 
   public void clear() {
-    graph.clear();
+    filteredGraph.clear();
     setStyleSheet(styleSheet);
   }
 
@@ -455,7 +454,7 @@ public class NetworkPane extends BorderPane {
     }
     selectedNodes.clear();
   }
-  
+
   public void zoom(boolean zoomOut) {
     viewPercent += viewPercent * 0.1 * (zoomOut ? -1 : 1);
     view.getCamera().setViewPercent(viewPercent);

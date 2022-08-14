@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
-import io.github.mzmine.util.FilteredGraphUtils;
 import io.github.mzmine.util.GraphStreamUtils;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -47,9 +46,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.graphstream.graph.Graph;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.MultiGraph;
 
 public class FeatureNetworkPane extends NetworkPane {
 
@@ -87,8 +85,6 @@ public class FeatureNetworkPane extends NetworkPane {
   private boolean showMs2SimEdges;
   private boolean ms1FeatureShapeEdges = false;
 
-  private Graph fullGraph;
-
   /**
    * Create the panel.
    */
@@ -98,10 +94,9 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public FeatureNetworkPane(boolean showTitle) {
     super("Ion identity networks (IINs)", showTitle);
-    fullGraph = new MultiGraph("Multi-Graph");
-    setFilteredGraph();
     addMenu();
   }
+
   private void addMenu() {
     Pane menu = getPnSettings();
     menu.setVisible(true);
@@ -218,7 +213,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     Button showOriginalGraphButton = new Button("Show original graph");
     showOriginalGraphButton.setMaxWidth(Double.MAX_VALUE);
-
+    showOriginalGraphButton.setOnAction(e -> setFilteredGraph());
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
@@ -252,10 +247,9 @@ public class FeatureNetworkPane extends NetworkPane {
       Alert alert = new Alert(AlertType.INFORMATION);
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
-    }
-    else
-    {
-      generator.createGraphWithNeighboringNodes(graph, GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(),bNeighbors.get()));
+    } else {
+      generator.createGraphWithNeighboringNodes(filteredGraph,
+          GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(), bNeighbors.get()));
     }
   }
 
@@ -593,22 +587,31 @@ public class FeatureNetworkPane extends NetworkPane {
     if (featureList != null) {
       relationMaps = featureList.getRowMaps();
       createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new));
+      setFilteredGraph();
     } else {
       clear();
     }
   }
 
+
   public void setUseMs1FeatureShapeEdges(boolean ms1FeatureShapeEdges) {
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
   }
- public void setFilteredGraph()
- {
-   FilteredGraphUtils fgu = new FilteredGraphUtils();
-   fgu.addContentsOfFullGraph(fullGraph,graph);
- }
 
- public Graph getFullGraph()
- {
-   return fullGraph;
- }
+  public void setFilteredGraph() {
+    fullGraph.nodes().forEach(aNode -> {
+      Node n = filteredGraph.addNode(aNode.getId());
+      aNode.attributeKeys().forEach(attribute -> {
+        n.setAttribute(attribute, aNode.getAttribute(attribute));
+      });
+    });
+    fullGraph.edges().forEach(anEdge -> {
+      Edge e;
+      e = filteredGraph.addEdge(anEdge.getId(), anEdge.getSourceNode().getId(),
+          anEdge.getTargetNode().getId(), anEdge.isDirected());
+      anEdge.attributeKeys().forEach(attribute -> {
+        e.setAttribute(attribute, anEdge.getAttribute(attribute));
+      });
+    });
+  }
 }
