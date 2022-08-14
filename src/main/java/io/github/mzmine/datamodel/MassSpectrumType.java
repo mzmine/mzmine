@@ -48,6 +48,10 @@ public enum MassSpectrumType {
    */
   MIXED;
 
+  public static boolean isCentroided(MassSpectrumType spectraType) {
+    return spectraType != null && spectraType.isCentroided();
+  }
+
   public boolean isCentroided() {
     return switch (this) {
       case PROFILE -> false;

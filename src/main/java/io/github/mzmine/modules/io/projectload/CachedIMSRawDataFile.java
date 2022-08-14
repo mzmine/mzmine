@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -205,6 +206,16 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   @Override
   public @NotNull Range<Double> getDataMZRange() {
     return originalFile.getDataMZRange();
+  }
+
+  @Override
+  public boolean isContainsZeroIntensity() {
+    throw new UnsupportedOperationException("Unsupported during project load.");
+  }
+
+  @Override
+  public MassSpectrumType getSpectraType() {
+    throw new UnsupportedOperationException("Unsupported during project load.");
   }
 
   @Override
