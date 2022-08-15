@@ -40,7 +40,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.stream.file.FileSink;
 import org.graphstream.stream.file.FileSinkGraphML;
 import org.graphstream.stream.file.FileSinkImages;
@@ -165,6 +164,7 @@ public class NetworkPane extends BorderPane {
   private final HBox pnSettings;
   // selected node
   private final List<Node> selectedNodes;
+  protected FilteredGraph graph;
   private final Label lbTitle;
   private final FileChooser saveDialog;
   private final ExtensionFilter graphmlExt = new ExtensionFilter(
@@ -181,7 +181,6 @@ public class NetworkPane extends BorderPane {
   protected FileSinkSVG saveSVG = new FileSinkSVG();
   protected FileSinkImages savePNG = FileSinkImages.createDefault();
   // visual
-  protected MultiGraph filteredGraph, fullGraph;
   protected Viewer viewer;
   protected FxViewPanel view;
   protected Node mouseClickedNode;
@@ -199,8 +198,6 @@ public class NetworkPane extends BorderPane {
   }
 
   public NetworkPane(String title, String styleSheet2, boolean showTitle) {
-    fullGraph = new MultiGraph("Full-Graph");
-    filteredGraph = new MultiGraph("Filtered-Graph");
     System.setProperty("org.graphstream.ui", "javafx");
 //    System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 //    System.setProperty("org.graphstream.ui.renderer",
@@ -235,15 +232,15 @@ public class NetworkPane extends BorderPane {
     HBox pn = new HBox(lbTitle);
     this.setTop(pn);
     setShowTitle(showTitle);
-
+    graph = new FilteredGraph(title);
     selectedNodes = new ArrayList<>();
     setStyleSheet(this.styleSheet);
-    filteredGraph.setAutoCreate(true);
-    filteredGraph.setStrict(false);
+    graph.setAutoCreate(true);
+    graph.setStrict(false);
 
-    viewer = new FxViewer(filteredGraph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+    viewer = new FxViewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
     viewer.enableAutoLayout();
-    filteredGraph.setAttribute("Layout.frozen"); //Block the layout algorithm
+    graph.setAttribute("Layout.frozen"); //Block the layout algorithm
     view = (FxViewPanel) viewer.addDefaultView(false);
     // wrap in stackpane to make sure coordinates work properly.
     // Might be confused by other components in the same pane
@@ -323,7 +320,7 @@ public class NetworkPane extends BorderPane {
   }
 
   public void openSaveDialog() {
-    if (filteredGraph != null && filteredGraph.getNodeCount() > 0) {
+    if (graph != null && graph.getNodeCount() > 0) {
       File f = saveDialog.showSaveDialog(null);
       if (f != null) {
         if (saveDialog.getSelectedExtensionFilter() == pngExt || FileAndPathUtil.getExtension(f)
@@ -351,8 +348,8 @@ public class NetworkPane extends BorderPane {
 
   public void saveToFile(FileSink sink, File f) {
     try {
-      if (filteredGraph != null && filteredGraph.getNodeCount() > 0) {
-        sink.writeAll(filteredGraph, f.getAbsolutePath());
+      if (graph != null && graph.getNodeCount() > 0) {
+        sink.writeAll(graph, f.getAbsolutePath());
       }
     } catch (Exception e) {
       LOG.log(Level.SEVERE, "File of network not saved", e);
@@ -369,7 +366,7 @@ public class NetworkPane extends BorderPane {
 
   public void showNodeLabels(boolean show) {
     this.showNodeLabels = show;
-    for (Node node : filteredGraph) {
+    for (Node node : graph) {
       if (show) {
         Object label = node.getAttribute("LABEL");
         if (label == null) {
@@ -385,7 +382,7 @@ public class NetworkPane extends BorderPane {
   public void showEdgeLabels(boolean show) {
     this.showEdgeLabels = show;
 
-    filteredGraph.edges().forEach(edge -> {
+    graph.edges().forEach(edge -> {
       if (show) {
         Object label = edge.getAttribute("LABEL");
         if (label == null) {
@@ -400,14 +397,14 @@ public class NetworkPane extends BorderPane {
 
   public void setStyleSheet(String styleSheet) {
     this.styleSheet = styleSheet;
-    filteredGraph.setAttribute("ui.stylesheet", styleSheet);
+    graph.setAttribute("ui.stylesheet", styleSheet);
     // was at 3 but slow?
-    filteredGraph.setAttribute("ui.quality", 2);
-    filteredGraph.setAttribute("ui.antialias");
+    graph.setAttribute("ui.quality", 2);
+    graph.setAttribute("ui.antialias");
   }
 
   public void clear() {
-    filteredGraph.clear();
+    graph.clear();
     setStyleSheet(styleSheet);
   }
 

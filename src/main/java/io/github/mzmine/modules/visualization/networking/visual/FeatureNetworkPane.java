@@ -46,7 +46,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
@@ -213,7 +212,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     Button showOriginalGraphButton = new Button("Show original graph");
     showOriginalGraphButton.setMaxWidth(Double.MAX_VALUE);
-    showOriginalGraphButton.setOnAction(e -> setFilteredGraph());
+    showOriginalGraphButton.setOnAction(e -> graph.setInitialGraph(graph.getFullGraph(),graph));
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
@@ -248,7 +247,7 @@ public class FeatureNetworkPane extends NetworkPane {
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
     } else {
-      generator.createGraphWithNeighboringNodes(filteredGraph,
+      generator.createGraphWithNeighboringNodes(graph,
           GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(), bNeighbors.get()));
     }
   }
@@ -259,7 +258,7 @@ public class FeatureNetworkPane extends NetworkPane {
    */
   private void showGNPSMatches() {
     int n = 0;
-    for (Node node : fullGraph) {
+    for (Node node : graph) {
       String name = (String) node.getAttribute(GNPSLibraryMatch.ATT.COMPOUND_NAME.getKey());
       if (name != null) {
         node.setAttribute("ui.label", name);
@@ -274,7 +273,7 @@ public class FeatureNetworkPane extends NetworkPane {
    */
   private void showLibraryMatches() {
     int n = 0;
-    for (Node node : fullGraph) {
+    for (Node node : graph) {
       String name = (String) node.getAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString());
       if (name != null) {
         node.setAttribute("ui.label", name);
@@ -291,7 +290,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public void collapseIonNodes(boolean collapse) {
     this.collapse = collapse;
-    for (Node node : fullGraph) {
+    for (Node node : graph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
@@ -309,7 +308,7 @@ public class FeatureNetworkPane extends NetworkPane {
       }
     }
 
-    fullGraph.edges().forEach(edge -> {
+    graph.edges().forEach(edge -> {
       EdgeType type = (EdgeType) edge.getAttribute(EdgeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
@@ -346,7 +345,7 @@ public class FeatureNetworkPane extends NetworkPane {
     attributeCategoryValuesMap.clear();
 
     clear();
-    generator.createNewGraph(rows, fullGraph, onlyBest, relationMaps, ms1FeatureShapeEdges);
+    generator.createNewGraph(rows, graph, onlyBest, relationMaps, ms1FeatureShapeEdges);
     clearSelections();
     showEdgeLabels(showEdgeLabels);
     showNodeLabels(showNodeLabels);
@@ -356,6 +355,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     // apply dynamic style
     applyDynamicStyles();
+    graph.setInitialGraph(graph,graph.getFullGraph());
   }
 
   private void applyDynamicStyles() {
@@ -380,7 +380,7 @@ public class FeatureNetworkPane extends NetworkPane {
             att -> indexAllValues(nodeAttSize));
     final int numSizeValues = sizeValueMap == null ? 0 : sizeValueMap.size();
 
-    for (Node node : fullGraph) {
+    for (Node node : graph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
       if (type == NodeType.NEUTRAL_M || type == NodeType.NEUTRAL_LOSS_CENTER) {
         continue;
@@ -421,7 +421,7 @@ public class FeatureNetworkPane extends NetworkPane {
             att -> indexAllValues(nodeAttColor));
     final int numColorValues = colorValueMap == null ? 0 : colorValueMap.size();
 
-    for (Node node : fullGraph) {
+    for (Node node : graph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
       if (type == NodeType.NEUTRAL_M || type == NodeType.NEUTRAL_LOSS_CENTER) {
         continue;
@@ -456,7 +456,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
   private void applyLabelStyle(GraphObject target) {
     final String att = getStyleAttribute(target, GraphStyleAttribute.LABEL);
-    target.stream(fullGraph).forEach(node -> {
+    target.stream(graph).forEach(node -> {
       try {
         node.setAttribute("ui.label", getOrElseString(node, att, ""));
       } catch (Exception ex) {
@@ -498,7 +498,7 @@ public class FeatureNetworkPane extends NetworkPane {
   private Map<String, Integer> indexAllValues(NodeAtt attribute) {
     Map<String, Integer> map = new HashMap<>();
     int currentIndex = 0;
-    for (Node node : fullGraph) {
+    for (Node node : graph) {
       try {
         String object = Objects.requireNonNullElse(node.getAttribute(attribute.toString()), "")
             .toString();
@@ -567,7 +567,7 @@ public class FeatureNetworkPane extends NetworkPane {
   }
 
   public void dispose() {
-    fullGraph.clear();
+    graph.clear();
   }
 
   public void setShowMs2SimEdges(boolean ms2SimEdges) {
@@ -587,7 +587,6 @@ public class FeatureNetworkPane extends NetworkPane {
     if (featureList != null) {
       relationMaps = featureList.getRowMaps();
       createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new));
-      setFilteredGraph();
     } else {
       clear();
     }
@@ -596,22 +595,5 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public void setUseMs1FeatureShapeEdges(boolean ms1FeatureShapeEdges) {
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
-  }
-
-  public void setFilteredGraph() {
-    fullGraph.nodes().forEach(aNode -> {
-      Node n = filteredGraph.addNode(aNode.getId());
-      aNode.attributeKeys().forEach(attribute -> {
-        n.setAttribute(attribute, aNode.getAttribute(attribute));
-      });
-    });
-    fullGraph.edges().forEach(anEdge -> {
-      Edge e;
-      e = filteredGraph.addEdge(anEdge.getId(), anEdge.getSourceNode().getId(),
-          anEdge.getTargetNode().getId(), anEdge.isDirected());
-      anEdge.attributeKeys().forEach(attribute -> {
-        e.setAttribute(attribute, anEdge.getAttribute(attribute));
-      });
-    });
   }
 }
