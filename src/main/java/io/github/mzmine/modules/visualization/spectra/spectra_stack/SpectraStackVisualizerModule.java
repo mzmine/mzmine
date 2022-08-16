@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.spectra.multimsms;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -41,7 +41,7 @@ public class SpectraStackVisualizerModule implements MZmineModule {
   public static void addMsMsStackVisualizer(List<ModularFeatureListRow> rows,
       Collection<RawDataFile> rawDataFiles, RawDataFile selectedFile) {
 
-    MultiMSMSPane content = new MultiMSMSPane();
+    SpectraStackVisualizerPane content = new SpectraStackVisualizerPane();
     content.setData(rows.toArray(new FeatureListRow[0]), rawDataFiles.toArray(new RawDataFile[0]),
         selectedFile, true, SortingProperty.MZ, SortingDirection.Ascending);
     SimpleTab tab = new SimpleTab("Multiple MS/MS (" + rows.size() + ")", content);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra;
 
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
@@ -34,9 +34,9 @@ public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
    */
   public static final int POINTS_RESERVE_X = 100;
 
-  private ChartViewer plot;
+  private final ChartViewer plot;
 
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
   public PseudoSpectraItemLabelGenerator(ChartViewer plot) {
     this.plot = plot;
@@ -44,7 +44,7 @@ public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
 
   /**
    * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-   *      int, int)
+   * int, int)
    */
   @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
@@ -69,20 +69,24 @@ public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
     for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
 
       // If we get out of the limit we can stop searching
-      if ((item - i > 0) && (dataset.getXValue(series, item - i) < limitLeft)
-          && ((item + i >= itemCount) || (dataset.getXValue(series, item + i) > limitRight)))
+      if ((item - i > 0) && (dataset.getXValue(series, item - i) < limitLeft) && (
+          (item + i >= itemCount) || (dataset.getXValue(series, item + i) > limitRight))) {
         break;
+      }
 
-      if ((item + i < itemCount) && (dataset.getXValue(series, item + i) > limitRight)
-          && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
+      if ((item + i < itemCount) && (dataset.getXValue(series, item + i) > limitRight) && (
+          (item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft))) {
         break;
+      }
 
       // If we find higher data point, bail out
-      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i)))
+      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i))) {
         return null;
+      }
 
-      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i)))
+      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i))) {
         return null;
+      }
 
     }
 
@@ -92,8 +96,9 @@ public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
       double mzValue = dataset.getXValue(series, item);
       label = mzFormat.format(mzValue);
       String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(series, item);
-      if (ann != null)
+      if (ann != null) {
         label = label + "\n" + ann;
+      }
       return label;
     }
     if (label == null) {

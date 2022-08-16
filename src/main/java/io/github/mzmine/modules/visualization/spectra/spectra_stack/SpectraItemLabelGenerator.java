@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,14 +16,13 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.spectra.multimsms;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrumDataSet;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 
 /**
  * Label generator for spectra visualizer. Only used to generate labels for the raw data
@@ -36,15 +35,16 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
    */
   public static final int POINTS_RESERVE_X = 100;
 
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  public SpectraItemLabelGenerator() {}
+  public SpectraItemLabelGenerator() {
+  }
 
   /**
    * Labels for mz signals
-   * 
+   *
    * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-   *      int, int)
+   * int, int)
    */
   @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
@@ -54,8 +54,9 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
       double mzValue = dataset.getXValue(series, item);
       label = mzFormat.format(mzValue);
       String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(series, item);
-      if (ann != null)
+      if (ann != null) {
         label = label + "\n" + ann;
+      }
       return label;
     }
     if (label == null) {

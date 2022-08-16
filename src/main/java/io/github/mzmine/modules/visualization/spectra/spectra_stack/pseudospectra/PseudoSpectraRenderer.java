@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra;
 
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
@@ -47,17 +47,14 @@ import org.jfree.data.xy.XYDataset;
 
 public class PseudoSpectraRenderer extends XYBarRenderer {
 
+  public static final float TRANSPARENCY = 0.8f;
+  public static final AlphaComposite alphaComp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+      TRANSPARENCY);
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-
-  public static final float TRANSPARENCY = 0.8f;
-
-  public static final AlphaComposite alphaComp =
-      AlphaComposite.getInstance(AlphaComposite.SRC_OVER, TRANSPARENCY);
-
-  private boolean isTransparent;
+  private final boolean isTransparent;
 
   public PseudoSpectraRenderer(Color color, boolean isTransparent) {
 
@@ -82,8 +79,7 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
 
         Paint itemPaint = renderer.getItemPaint(row, column);
         g2.setPaint(itemPaint);
-        g2.fill(new Rectangle2D.Double(
-            bar.getX() - 1.5d / 2d, bar.getY(), 1.5, bar.getHeight()));
+        g2.fill(new Rectangle2D.Double(bar.getX() - 1.5d / 2d, bar.getY(), 1.5, bar.getHeight()));
       }
     });
     setDefaultBarPainter(new StandardXYBarPainter() {
@@ -93,8 +89,7 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
 
         Paint itemPaint = renderer.getItemPaint(row, column);
         g2.setPaint(itemPaint);
-        g2.fill(new Rectangle2D.Double(
-            bar.getX() - 1.5 / 2d, bar.getY(), 1.5, bar.getHeight()));
+        g2.fill(new Rectangle2D.Double(bar.getX() - 1.5 / 2d, bar.getY(), 1.5, bar.getHeight()));
       }
     });
 
@@ -106,8 +101,9 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
       PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
       XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
 
-    if (isTransparent)
+    if (isTransparent) {
       g2.setComposite(alphaComp);
+    }
 
     super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataset, series, item,
         crosshairState, pass);
@@ -138,8 +134,8 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
         }
 
         // work out the label anchor point...
-        Point2D anchorPoint =
-            calculateLabelAnchorPoint(position.getItemLabelAnchor(), bar, plot.getOrientation());
+        Point2D anchorPoint = calculateLabelAnchorPoint(position.getItemLabelAnchor(), bar,
+            plot.getOrientation());
 
         // split by \n
         String symbol = "\n";
@@ -170,10 +166,9 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
   /**
    * Calculates the item label anchor point.
    *
-   * @param anchor the anchor.
-   * @param bar the bar.
+   * @param anchor      the anchor.
+   * @param bar         the bar.
    * @param orientation the plot orientation.
-   *
    * @return The anchor point.
    */
   private Point2D calculateLabelAnchorPoint(ItemLabelAnchor anchor, Rectangle2D bar,

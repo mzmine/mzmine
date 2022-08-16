@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.spectra.multimsms;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;

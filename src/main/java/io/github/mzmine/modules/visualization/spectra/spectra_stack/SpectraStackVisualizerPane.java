@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-package io.github.mzmine.modules.visualization.spectra.multimsms;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -26,8 +26,8 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrum;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrum;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -60,7 +60,7 @@ import org.jfree.chart.axis.ValueAxis;
  *
  * @author Robin Schmid
  */
-public class MultiMSMSPane extends BorderPane {
+public class SpectraStackVisualizerPane extends BorderPane {
 
   private final ParameterSet parameters;
   private final ParameterSetupPane paramPane;
@@ -87,7 +87,7 @@ public class MultiMSMSPane extends BorderPane {
   /**
    * Create the frame.
    */
-  public MultiMSMSPane() {
+  public SpectraStackVisualizerPane() {
     parameters = MZmineCore.getConfiguration()
         .getModuleParameters(SpectraStackVisualizerModule.class).cloneParameterSet();
 
