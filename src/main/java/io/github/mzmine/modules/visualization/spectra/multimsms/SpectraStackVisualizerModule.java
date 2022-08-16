@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,59 +19,45 @@
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class MultiMsMsTab extends MZmineTab {
+/**
+ * Spectrum visualizer
+ */
+public class SpectraStackVisualizerModule implements MZmineModule {
 
-  public MultiMsMsTab(List<ModularFeatureListRow> rows, Collection<RawDataFile> rawDataFiles,
-      RawDataFile rawDataFile) {
-    super("Multiple MS/MS (" + rows.size() + ")", false, false);
+  private static final String MODULE_NAME = "Spectra stack visualizer";
+
+  public static void addMsMsStackVisualizer(List<ModularFeatureListRow> rows,
+      Collection<RawDataFile> rawDataFiles, RawDataFile selectedFile) {
+    ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(this.getClass())
+        .cloneParameterSet();
 
     MultiMSMSPane content = new MultiMSMSPane();
     content.setData(rows.toArray(new FeatureListRow[0]), rawDataFiles.toArray(new RawDataFile[0]),
-        rawDataFile, true, SortingProperty.MZ, SortingDirection.Ascending);
-    setContent(content);
-  }
-
-  @NotNull
-  @Override
-  public Collection<? extends RawDataFile> getRawDataFiles() {
-    return Collections.EMPTY_LIST;
-  }
-
-  @NotNull
-  @Override
-  public Collection<? extends FeatureList> getFeatureLists() {
-    return Collections.EMPTY_LIST;
-  }
-
-  @NotNull
-  @Override
-  public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.EMPTY_LIST;
+        selectedFile, true, SortingProperty.MZ, SortingDirection.Ascending);
+    SimpleTab tab = new SimpleTab("Multiple MS/MS (" + rows.size() + ")", content);
+    MZmineCore.getDesktop().addTab(tab);
   }
 
   @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
+  public @NotNull String getName() {
+    return MODULE_NAME;
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return SpectraStackVisualizerParameters.class;
   }
 
-  @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
 }
