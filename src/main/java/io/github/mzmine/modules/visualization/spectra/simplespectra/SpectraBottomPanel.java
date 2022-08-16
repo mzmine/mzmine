@@ -118,7 +118,6 @@ class SpectraBottomPanel extends VBox {
   }
 
   public void setMzTolerance(MZTolerance mzTol) {
-    logger.info("Setting mz tol to " + mzTol.toString());
     mzTolerance.setValue(mzTol);
   }
 }
