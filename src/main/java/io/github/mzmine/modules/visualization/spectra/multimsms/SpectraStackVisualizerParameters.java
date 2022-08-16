@@ -23,7 +23,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 /**
  * Holds all parameters for the multi msms visualizer
@@ -31,8 +30,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class SpectraStackVisualizerParameters extends SimpleParameterSet {
-
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
   public static final OptionalParameter<IntegerParameter> columns = new OptionalParameter<>(
       new IntegerParameter("Specify columns", "Number of columns, otherwise auto detect", 2),
@@ -47,15 +44,15 @@ public class SpectraStackVisualizerParameters extends SimpleParameterSet {
 
 
   public static final BooleanParameter showCrosshair = new BooleanParameter("Crosshair", "", true);
-  public static final BooleanParameter showOneDomainAxis = new BooleanParameter("All axes",
+  public static final BooleanParameter showAllAxes = new BooleanParameter("All axes",
       "Show all or only bottom axis", false);
   public static final BooleanParameter showTitle = new BooleanParameter("Titles", "", false);
   public static final BooleanParameter showLegend = new BooleanParameter("Legends", "", false);
 
 
   public SpectraStackVisualizerParameters() {
-    super(new Parameter[]{dataFiles, columns, useBestForEach, useBestMissingRaw, showCrosshair,
-        showOneDomainAxis, showTitle, showLegend});
+    super(new Parameter[]{columns, useBestForEach, useBestMissingRaw, showCrosshair, showAllAxes,
+        showTitle, showLegend});
   }
 
 }

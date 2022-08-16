@@ -40,8 +40,6 @@ public class SpectraStackVisualizerModule implements MZmineModule {
 
   public static void addMsMsStackVisualizer(List<ModularFeatureListRow> rows,
       Collection<RawDataFile> rawDataFiles, RawDataFile selectedFile) {
-    ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(this.getClass())
-        .cloneParameterSet();
 
     MultiMSMSPane content = new MultiMSMSPane();
     content.setData(rows.toArray(new FeatureListRow[0]), rawDataFiles.toArray(new RawDataFile[0]),

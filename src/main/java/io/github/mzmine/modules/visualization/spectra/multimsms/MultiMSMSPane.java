@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -25,8 +25,11 @@ import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrum;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MirrorChartFactory;
@@ -37,14 +40,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import javafx.geometry.Insets;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -60,111 +60,140 @@ import org.jfree.chart.axis.ValueAxis;
  */
 public class MultiMSMSPane extends BorderPane {
 
-  // annotations for MSMS
-  private List<AbstractMSMSIdentity> msmsAnnotations;
-  // to flag annotations in spectra
-
+  private final ParameterSet parameters;
+  private final ParameterSetupPane paramPane;
+  private final Label lbRawIndex;
+  //
+  private final GridPane pnCharts;
   private boolean exchangeTolerance = true;
   private MZTolerance mzTolerance = new MZTolerance(0.0015, 2.5d);
-
   // MS 1
   private ChartViewWrapper msone;
-
   // MS 2
   private ChartGroup group;
-  //
-  private BorderPane contentPane;
-  private GridPane pnCharts;
-  private int col = 4;
-  private int realCol = col;
-  private boolean autoCol = true;
-  private boolean alwaysShowBest = false;
-  private boolean showTitle = false;
-  private boolean showLegend = false;
-  // only the last doamin axis
-  private boolean onlyShowOneAxis = true;
-  // click marker in all of the group
-  private boolean showCrosshair = true;
-
-  private Label lbRawIndex;
-  private Pane pnTopMenu;
-  private Label lbRawName;
-  private Button nextRaw, prevRaw;
-  private CheckBox cbBestRaw;
-  private CheckBox cbUseBestForMissingRaw;
-
+  private final Label lbRawName;
+  // to flag annotations in spectra
+  // annotations for MSMS
+  private List<AbstractMSMSIdentity> msmsAnnotations;
+  private int currentColumns = 1;
   private FeatureListRow[] rows;
-  private RawDataFile raw;
+  private RawDataFile selectedRaw;
   private RawDataFile[] allRaw;
   private boolean createMS1;
   private int rawIndex;
-  private boolean useBestForMissingRaw;
 
   /**
    * Create the frame.
    */
   public MultiMSMSPane() {
-//    setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-//    setBounds(100, 100, 853, 586);
-    contentPane = new BorderPane();
-    contentPane.setPadding(new Insets(5));
-//    contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-//    contentPane.setLayout(new BorderLayout(0, 0));
-//    setContentPane(contentPane);
-    setCenter(contentPane);
+    parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraStackVisualizerModule.class).cloneParameterSet();
 
-    pnTopMenu = new FlowPane();
-    contentPane.setTop(pnTopMenu);
+//    contentPane.setPadding(new Insets(5));
 
-    prevRaw = new Button("<");
-    pnTopMenu.getChildren().add(prevRaw);
-    prevRaw.setOnAction(e -> {
-      prevRaw();
+    paramPane = new ParameterSetupPane(true, true, parameters) {
+      @Override
+      protected void callOkButton() {
+        updateAllCharts();
+      }
+    };
+    Accordion paramAccordion = new Accordion(new TitledPane("Options", paramPane));
+    setBottom(paramAccordion);
+
+    // top
+    // reset zoom
+    Button resetZoom = new Button("Reset zoom");
+    resetZoom.setOnAction(e -> {
+      if (group != null) {
+        group.resetZoom();
+      }
     });
 
-    nextRaw = new Button(">");
-    pnTopMenu.getChildren().add(nextRaw);
-    nextRaw.setOnAction(e -> {
-      nextRaw();
-    });
+    Button prevRaw = new Button("<");
+    prevRaw.setOnAction(e -> prevRaw());
+
+    Button nextRaw = new Button(">");
+    nextRaw.setOnAction(e -> nextRaw());
 
     lbRawIndex = new Label("");
-    pnTopMenu.getChildren().add(lbRawIndex);
     lbRawName = new Label("");
-    pnTopMenu.getChildren().add(lbRawName);
 
-    cbBestRaw = new CheckBox("use best for each");
-    pnTopMenu.getChildren().add(cbBestRaw);
-    cbBestRaw.selectedProperty().addListener((observable, oldValue, newValue) -> {
-      setAlwaysShowBest(newValue);
-    });
-
-    cbUseBestForMissingRaw = new CheckBox("use best missing raw");
-    pnTopMenu.getChildren().add(cbUseBestForMissingRaw);
-    cbUseBestForMissingRaw.selectedProperty().addListener((observable, oldValue, newValue) -> {
-      setUseBestForMissing(newValue);
-    });
+    Pane pnTopMenu = new FlowPane(3, 3, resetZoom, prevRaw, nextRaw, lbRawIndex, lbRawName);
+    setTop(pnTopMenu);
 
     pnCharts = new GridPane();
-    contentPane.setCenter(pnCharts);
+    setCenter(pnCharts);
 
-    var colCon = new ColumnConstraints();
-    colCon.setFillWidth(true);
-    colCon.setPercentWidth(100);
-    pnCharts.getColumnConstraints().add(colCon);
-//    pnCharts.setLayout(new GridLayout(0, 4));
+    // listeners
+    paramPane.getComponentForParameter(
+            parameters.getParameter(SpectraStackVisualizerParameters.showLegend)).selectedProperty()
+        .addListener((observable, oldValue, newValue) -> updateChartStyle());
 
-    addMenu();
+    paramPane.getComponentForParameter(
+            parameters.getParameter(SpectraStackVisualizerParameters.showTitle)).selectedProperty()
+        .addListener((observable, oldValue, newValue) -> updateChartStyle());
+
+    paramPane.getComponentForParameter(
+            parameters.getParameter(SpectraStackVisualizerParameters.showCrosshair)).selectedProperty()
+        .addListener((observable, oldValue, newValue) -> updateChartStyle());
+
+    paramPane.getComponentForParameter(
+            parameters.getParameter(SpectraStackVisualizerParameters.showAllAxes)).selectedProperty()
+        .addListener((observable, oldValue, newValue) -> updateChartStyle());
   }
 
   /**
-   * Show best for missing MSMS in raw (if not selected none is shown)
-   *
-   * @param selected
+   * Update chart style, everything that does not trigger an update of all charts
    */
-  public void setUseBestForMissing(boolean selected) {
-    useBestForMissingRaw = selected;
-    updateAllCharts();
+  private void updateChartStyle() {
+    paramPane.updateParameterSetFromComponents();
+    final boolean showAllAxes = parameters.getValue(SpectraStackVisualizerParameters.showAllAxes);
+    final boolean showTitle = parameters.getValue(SpectraStackVisualizerParameters.showTitle);
+    final boolean showLegend = parameters.getValue(SpectraStackVisualizerParameters.showLegend);
+    final boolean showCrosshair = parameters.getValue(
+        SpectraStackVisualizerParameters.showCrosshair);
+    if (group != null) {
+      group.setShowCrosshair(showCrosshair, showCrosshair);
+
+      int rows = group.size() / currentColumns;
+      for (int i = 0; i < group.getList().size(); i++) {
+        JFreeChart chart = group.getList().get(i).getChart();
+        chart.getLegend().setVisible(showLegend);
+        chart.getTitle().setVisible(showTitle);
+
+        // show only the last domain axes
+        ValueAxis axis = chart.getXYPlot().getDomainAxis();
+        // last in column, last overall, or all
+        axis.setVisible(showAllAxes || (i + 1) % rows == 0 || i == group.size() - 1);
+      }
+    }
+  }
+
+
+  /**
+   * ensures the correct number of columns
+   */
+  private void addColumns() {
+    boolean userCol = parameters.getValue(SpectraStackVisualizerParameters.columns);
+    currentColumns = userCol ? parameters.getParameter(SpectraStackVisualizerParameters.columns)
+        .getEmbeddedParameter().getValue() : autoDetectNumberOfColumns();
+
+    ObservableList<ColumnConstraints> columns = pnCharts.getColumnConstraints();
+    if (currentColumns == columns.size()) {
+      return;
+    }
+
+    columns.clear();
+    for (int i = 0; i < currentColumns; i++) {
+      var colCon = new ColumnConstraints();
+      colCon.setFillWidth(true);
+      colCon.setPercentWidth(100);
+      columns.add(colCon);
+    }
+  }
+
+  private int autoDetectNumberOfColumns() {
+    return group == null ? 1 : Math.max(1, (int) (Math.floor(Math.sqrt(group.size())) - 1));
   }
 
   private void nextRaw() {
@@ -174,7 +203,7 @@ public class MultiMSMSPane extends BorderPane {
     while (rawIndex + 1 < allRaw.length) {
       rawIndex++;
       if (rawContainsFragmentation(allRaw[rawIndex])) {
-        setRaw(allRaw[rawIndex]);
+        setSelectedRaw(allRaw[rawIndex]);
         break;
       }
     }
@@ -184,14 +213,10 @@ public class MultiMSMSPane extends BorderPane {
     if (allRaw == null) {
       return;
     }
-    if (rawIndex > 0) {
-      rawIndex--;
-      setRaw(allRaw[rawIndex]);
-    }
     while (rawIndex - 1 >= 0) {
       rawIndex--;
       if (rawContainsFragmentation(allRaw[rawIndex])) {
-        setRaw(allRaw[rawIndex]);
+        setSelectedRaw(allRaw[rawIndex]);
         break;
       }
     }
@@ -199,9 +224,6 @@ public class MultiMSMSPane extends BorderPane {
 
   /**
    * any row contains fragment scan in raw data file
-   *
-   * @param raw
-   * @return
    */
   private boolean rawContainsFragmentation(RawDataFile raw) {
     for (FeatureListRow row : rows) {
@@ -215,145 +237,36 @@ public class MultiMSMSPane extends BorderPane {
 
   /**
    * set raw data file and update
-   *
-   * @param raw
    */
-  public void setRaw(RawDataFile raw) {
-    this.raw = raw;
+  public void setSelectedRaw(RawDataFile selectedRaw) {
+    this.selectedRaw = selectedRaw;
 
     this.rawIndex = 0;
-    if (raw != null) {
+    if (selectedRaw != null) {
       for (int i = 0; i < allRaw.length; i++) {
-        if (raw.equals(allRaw[i])) {
+        if (selectedRaw.equals(allRaw[i])) {
           rawIndex = i;
           break;
         }
       }
     }
 
-    lbRawName.setText(raw == null ? "" : raw.getName());
+    lbRawName.setText(selectedRaw == null ? "" : selectedRaw.getName());
     lbRawIndex.setText("(" + rawIndex + ") ");
     updateAllCharts();
   }
 
-  public void setAlwaysShowBest(boolean alwaysShowBest) {
-    this.alwaysShowBest = alwaysShowBest;
-    updateAllCharts();
-  }
-
-  private void addMenu() {
-    MenuBar menu = new MenuBar();
-    Menu settings = new Menu("Settings");
-    menu.getMenus().add(settings);
-
-    // set columns
-    Menu setCol = new Menu("set columns");
-    menu.getMenus().add(setCol);
-    setCol.setOnAction(e -> {
-      try {
-        TextInputDialog inputDialog = new TextInputDialog(String.valueOf(col));
-        inputDialog.setContentText("Columns");
-        var result = inputDialog.showAndWait();
-        if (result.isPresent()) {
-          col = Integer.parseInt(result.get());
-          setAutoColumns(false);
-          setColumns(col);
-        }
-      } catch (Exception e2) {
-        e2.printStackTrace();
-      }
-    });
-
-    // reset zoom
-    Menu resetZoom = new Menu("reset zoom");
-    menu.getMenus().add(resetZoom);
-    resetZoom.setOnAction(e -> {
-      if (group != null) {
-        group.resetZoom();
-      }
-    });
-
-    //
-    CheckMenuItem autoColumns = new CheckMenuItem("auto columns");
-    autoColumns.setSelected(autoCol);
-    autoColumns.setOnAction(e -> setAutoColumns(autoColumns.isSelected()));
-
-    CheckMenuItem oneAxisOnly = new CheckMenuItem("show one axis only");
-    oneAxisOnly.setSelected(onlyShowOneAxis);
-    oneAxisOnly.setOnAction(e -> setOnlyShowOneAxis(oneAxisOnly.isSelected()));
-
-    CheckMenuItem toggleLegend = new CheckMenuItem("show legend");
-    toggleLegend.setSelected(showLegend);
-    toggleLegend.setOnAction(e -> setShowLegend(toggleLegend.isSelected()));
-
-    CheckMenuItem toggleTitle = new CheckMenuItem("show title");
-    toggleTitle.setSelected(showTitle);
-    toggleTitle.setOnAction(e -> setShowTitle(toggleTitle.isSelected()));
-
-    CheckMenuItem toggleCrosshair = new CheckMenuItem("show crosshair");
-    oneAxisOnly.setSelected(showCrosshair);
-    oneAxisOnly.setOnAction(e -> setShowCrosshair(oneAxisOnly.isSelected()));
-
-    settings.getItems().addAll(autoColumns, oneAxisOnly, toggleLegend, toggleTitle, toggleCrosshair);
-    setTop(menu);
-  }
-
-  public void setColumns(int col2) {
-    col = col2;
-    renewCharts(group);
-  }
-
-  public void setAutoColumns(boolean selected) {
-    this.autoCol = selected;
-  }
-
-  public void setShowCrosshair(boolean showCrosshair) {
-    this.showCrosshair = showCrosshair;
-    if (group != null) {
-      group.setShowCrosshair(showCrosshair, showCrosshair);
-    }
-  }
-
-  public void setShowLegend(boolean showLegend) {
-    this.showLegend = showLegend;
-    forAllCharts(c -> c.getLegend().setVisible(showLegend));
-  }
-
-  public void setShowTitle(boolean showTitle) {
-    this.showTitle = showTitle;
-    forAllCharts(c -> c.getTitle().setVisible(showTitle));
-  }
-
-  public void setOnlyShowOneAxis(boolean onlyShowOneAxis) {
-    this.onlyShowOneAxis = onlyShowOneAxis;
-    int i = 0;
-    forAllCharts(c -> {
-      // show only the last domain axes
-      ValueAxis axis = c.getXYPlot().getDomainAxis();
-      axis.setVisible(!onlyShowOneAxis || i >= group.size() - realCol);
-    });
-  }
-
   /**
    * Sort rows
-   *
-   * @param rows
-   * @param raw
-   * @param sorting
-   * @param direction
    */
   public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw,
-      boolean createMS1,
-      SortingProperty sorting, SortingDirection direction) {
+      boolean createMS1, SortingProperty sorting, SortingDirection direction) {
     Arrays.sort(rows, new FeatureListRowSorter(sorting, direction));
     setData(rows, allRaw, raw, createMS1);
   }
 
   /**
    * Create charts and show
-   *
-   * @param rows
-   * @param raw
    */
   public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw,
       boolean createMS1) {
@@ -363,18 +276,22 @@ public class MultiMSMSPane extends BorderPane {
 
     // check raw
     if (raw != null && !rawContainsFragmentation(raw)) {
-      // change to best of highest row
-      raw = Arrays.stream(rows).map(FeatureListRow::getMostIntenseFragmentScan).filter(Objects::nonNull)
-          .findFirst().get().getDataFile();
+      // change to best of the highest row
+      raw = Arrays.stream(rows).map(FeatureListRow::getMostIntenseFragmentScan)
+          .filter(Objects::nonNull).findFirst().get().getDataFile();
     }
     // set raw and update
-    setRaw(raw);
+    setSelectedRaw(raw);
   }
 
   /**
    * Create new charts
    */
   public void updateAllCharts() {
+    paramPane.updateParameterSetFromComponents();
+    final boolean showCrosshair = parameters.getValue(
+        SpectraStackVisualizerParameters.showCrosshair);
+
     msone = null;
     group = new ChartGroup(showCrosshair, showCrosshair, true, false);
     // MS1
@@ -382,27 +299,27 @@ public class MultiMSMSPane extends BorderPane {
       Scan scan = null;
       Feature best = null;
       for (FeatureListRow r : rows) {
-        Feature f = raw == null ? r.getBestFeature() : r.getFeature(raw);
+        Feature f = selectedRaw == null ? r.getBestFeature() : r.getFeature(selectedRaw);
         if (f != null && (best == null || f.getHeight() > best.getHeight())) {
           best = f;
         }
       }
       if (best != null) {
         scan = best.getRepresentativeScan();
-        EChartViewer cp = SpectrumChartFactory.createScanChartViewer(scan, showTitle, showLegend);
+        EChartViewer cp = SpectrumChartFactory.createScanChartViewer(scan, false, false);
         if (cp != null) {
-          cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
+          cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length + 1));
           msone = new ChartViewWrapper(cp);
         }
       }
     } else {
       // pseudo MS1 from all rows and isotope pattern
-      EChartViewer cp = PseudoSpectrum.createChartViewer(rows, raw, false, "pseudo");
+      EChartViewer cp = PseudoSpectrum.createChartViewer(rows, selectedRaw, false, "pseudo");
       if (cp != null) {
         cp.setMinHeight(200);
-        cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
-        cp.getChart().getLegend().setVisible(showLegend);
-        cp.getChart().getTitle().setVisible(showTitle);
+        cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length + 1));
+        cp.getChart().getLegend().setVisible(false);
+        cp.getChart().getTitle().setVisible(false);
         msone = new ChartViewWrapper(cp);
       }
     }
@@ -411,45 +328,44 @@ public class MultiMSMSPane extends BorderPane {
       group.add(msone);
     }
 
+    final boolean bestForEach = parameters.getValue(
+        SpectraStackVisualizerParameters.useBestForEach);
+    final boolean useBestMissingRaw = parameters.getValue(
+        SpectraStackVisualizerParameters.useBestMissingRaw);
+
     // COMMON
     // MS2 of all rows
     for (FeatureListRow row : rows) {
-      EChartViewer c = MirrorChartFactory.createMSMSChartViewer(row, raw, showTitle, showLegend,
-          alwaysShowBest, useBestForMissingRaw);
+      EChartViewer c = MirrorChartFactory.createMSMSChartViewer(row, selectedRaw, false, false,
+          bestForEach, useBestMissingRaw);
       if (c != null) {
-        c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
+        c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length + 1));
         group.add(new ChartViewWrapper(c));
       }
     }
 
-    renewCharts(group);
+    renewGridLayout(group);
   }
 
-  /**
-   * @param group
-   */
-  public void renewCharts(ChartGroup group) {
+  public void renewGridLayout(ChartGroup group) {
+    paramPane.updateParameterSetFromComponents();
     pnCharts.getChildren().clear();
+    addColumns();
     if (group != null && group.size() > 0) {
-      /*realCol = autoCol ? (int) Math.floor(Math.sqrt(group.size())) - 1 : col;
-      if (realCol < 1) {
-        realCol = 1;
-      }
-      GridLayout layout = new GridLayout(0, realCol);
-      pnCharts.setLayout(layout);*/
       // add to layout
-      int i = 0;
+      int maxRows = group.size() / currentColumns;
+      int row = 0;
+      int col = 0;
       for (ChartViewWrapper cp : group.getList()) {
-        // show only the last domain axes
-        ValueAxis axis = cp.getChart().getXYPlot().getDomainAxis();
-        axis.setVisible(!onlyShowOneAxis || i >= group.size() - realCol);
-
-        pnCharts.add(new BorderPane(cp.getChartFX()), 0, i);
-        i++;
+        pnCharts.add(new BorderPane(cp.getChartFX()), col, row);
+        row++;
+        if (row == maxRows) {
+          col++;
+          row = 0;
+        }
       }
+      updateChartStyle();
     }
-//    pnCharts.revalidate();
-//    pnCharts.repaint();
   }
 
   // ANNOTATIONS
@@ -488,27 +404,6 @@ public class MultiMSMSPane extends BorderPane {
     }
   }
 
-  /**
-   * To flag annotations in spectra
-   *
-   * @param mzTolerance
-   */
-  public void setMzTolerance(MZTolerance mzTolerance) {
-    if (mzTolerance == null && this.mzTolerance == null) {
-      return;
-    }
-
-    boolean changed =
-        mzTolerance != this.mzTolerance || (this.mzTolerance == null && mzTolerance != null)
-            || !this.mzTolerance.equals(mzTolerance);
-    this.mzTolerance = mzTolerance;
-    exchangeTolerance = false;
-
-    if (changed) {
-      addAllAnnotationsToCharts();
-    }
-  }
-
   private void addAllAnnotationsToCharts() {
     if (msmsAnnotations == null) {
       return;
@@ -541,9 +436,28 @@ public class MultiMSMSPane extends BorderPane {
   }
 
   /**
-   * all charts (ms1 and MS2)
+   * To flag annotations in spectra
    *
-   * @param op
+   * @param mzTolerance
+   */
+  public void setMzTolerance(MZTolerance mzTolerance) {
+    if (mzTolerance == null && this.mzTolerance == null) {
+      return;
+    }
+
+    boolean changed =
+        mzTolerance != this.mzTolerance || (this.mzTolerance == null && mzTolerance != null)
+            || !this.mzTolerance.equals(mzTolerance);
+    this.mzTolerance = mzTolerance;
+    exchangeTolerance = false;
+
+    if (changed) {
+      addAllAnnotationsToCharts();
+    }
+  }
+
+  /**
+   * all charts (ms1 and MS2)
    */
   public void forAllCharts(Consumer<JFreeChart> op) {
     if (group != null) {
@@ -553,8 +467,6 @@ public class MultiMSMSPane extends BorderPane {
 
   /**
    * only ms2 charts
-   *
-   * @param op
    */
   public void forAllMSMSCharts(Consumer<JFreeChart> op) {
     if (group == null || group.getList() == null) {
