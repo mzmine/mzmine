@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -50,19 +50,23 @@ public class SpectrumChartFactory {
     return createChartPanel(chart);
   }*/
 
-  public static EChartViewer createScanChartViewer(Scan scan, boolean showTitle, boolean showLegend) {
-    if (scan == null)
+  public static EChartViewer createScanChartViewer(Scan scan, boolean showTitle,
+      boolean showLegend) {
+    if (scan == null) {
       return null;
+    }
     PseudoSpectrumDataSet dataset = MirrorChartFactory.createMSMSDataSet(scan, "");
-    double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
-    JFreeChart chart =
-        createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), precursorMz);
+    double precursorMz =
+        scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
+    JFreeChart chart = createChart(dataset, showTitle, showLegend, scan.getRetentionTime(),
+        precursorMz);
     return createChartViewer(chart);
   }
 
   public static EChartViewer createChartViewer(JFreeChart chart) {
-    if (chart == null)
+    if (chart == null) {
       return null;
+    }
     //
     EChartViewer pn = new EChartViewer(chart);
     XYItemRenderer renderer = chart.getXYPlot().getRenderer();
@@ -89,19 +93,21 @@ public class SpectrumChartFactory {
   public static JFreeChart createChart(PseudoSpectrumDataSet dataset, boolean showTitle,
       boolean showLegend, double rt, double precursorMZ) {
     //
-    if (dataset == null)
+    if (dataset == null) {
       return null;
+    }
     //
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     String title = "";
-    if (precursorMZ == 0)
+    if (precursorMZ == 0) {
       title = "RT=" + mzForm.format(precursorMZ);
-    else
+    } else {
       title = MessageFormat.format("MSMS for m/z={0} RT={1}", mzForm.format(precursorMZ),
           rtForm.format(rt));
+    }
 
     JFreeChart chart = ChartFactory.createXYLineChart(title, // title
         "m/z", // x-axis label
@@ -131,7 +137,7 @@ public class SpectrumChartFactory {
     xAxis.setNumberFormatOverride(mzForm);
     xAxis.setUpperMargin(0.08);
     xAxis.setLowerMargin(0.00);
-    xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
+//    xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
     xAxis.setAutoRangeIncludesZero(true);
     xAxis.setMinorTickCount(5);
 
@@ -150,8 +156,9 @@ public class SpectrumChartFactory {
     chart.getTitle().setVisible(showTitle);
     chart.getLegend().setVisible(showLegend);
     //
-    if (precursorMZ != 0)
+    if (precursorMZ != 0) {
       addPrecursorMarker(chart, precursorMZ);
+    }
     return chart;
   }
 

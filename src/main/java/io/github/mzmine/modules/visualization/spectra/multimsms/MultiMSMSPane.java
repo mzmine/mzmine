@@ -50,6 +50,8 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 
@@ -65,13 +67,13 @@ public class MultiMSMSPane extends BorderPane {
   private final Label lbRawIndex;
   //
   private final GridPane pnCharts;
+  private final Label lbRawName;
   private boolean exchangeTolerance = true;
   private MZTolerance mzTolerance = new MZTolerance(0.0015, 2.5d);
   // MS 1
   private ChartViewWrapper msone;
   // MS 2
   private ChartGroup group;
-  private final Label lbRawName;
   // to flag annotations in spectra
   // annotations for MSMS
   private List<AbstractMSMSIdentity> msmsAnnotations;
@@ -155,7 +157,7 @@ public class MultiMSMSPane extends BorderPane {
     if (group != null) {
       group.setShowCrosshair(showCrosshair, showCrosshair);
 
-      int rows = group.size() / currentColumns;
+      int rows = currentRows();
       for (int i = 0; i < group.getList().size(); i++) {
         JFreeChart chart = group.getList().get(i).getChart();
         chart.getLegend().setVisible(showLegend);
@@ -173,23 +175,36 @@ public class MultiMSMSPane extends BorderPane {
   /**
    * ensures the correct number of columns
    */
-  private void addColumns() {
+  private void addColumnsAndRows() {
     boolean userCol = parameters.getValue(SpectraStackVisualizerParameters.columns);
     currentColumns = userCol ? parameters.getParameter(SpectraStackVisualizerParameters.columns)
         .getEmbeddedParameter().getValue() : autoDetectNumberOfColumns();
 
-    ObservableList<ColumnConstraints> columns = pnCharts.getColumnConstraints();
-    if (currentColumns == columns.size()) {
-      return;
+    ObservableList<RowConstraints> rows = pnCharts.getRowConstraints();
+    rows.clear();
+    double maxRows = currentRows();
+    for (int i = rows.size(); i < maxRows; i++) {
+      RowConstraints rc = new RowConstraints();
+      rc.setVgrow(Priority.ALWAYS);
+      rc.setPercentHeight(100);
+      rows.add(rc);
     }
 
-    columns.clear();
-    for (int i = 0; i < currentColumns; i++) {
-      var colCon = new ColumnConstraints();
-      colCon.setFillWidth(true);
-      colCon.setPercentWidth(100);
-      columns.add(colCon);
+    ObservableList<ColumnConstraints> columns = pnCharts.getColumnConstraints();
+    if (currentColumns != columns.size()) {
+      columns.clear();
+      for (int i = 0; i < currentColumns; i++) {
+        var colCon = new ColumnConstraints();
+        colCon.setFillWidth(true);
+        colCon.setPercentWidth(100);
+        columns.add(colCon);
+      }
     }
+  }
+
+  public int currentRows() {
+    return currentColumns == 0 || group == null ? 0
+        : (int) Math.ceil(group.size() / (double) currentColumns);
   }
 
   private int autoDetectNumberOfColumns() {
@@ -308,7 +323,6 @@ public class MultiMSMSPane extends BorderPane {
         scan = best.getRepresentativeScan();
         EChartViewer cp = SpectrumChartFactory.createScanChartViewer(scan, false, false);
         if (cp != null) {
-          cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length + 1));
           msone = new ChartViewWrapper(cp);
         }
       }
@@ -316,8 +330,7 @@ public class MultiMSMSPane extends BorderPane {
       // pseudo MS1 from all rows and isotope pattern
       EChartViewer cp = PseudoSpectrum.createChartViewer(rows, selectedRaw, false, "pseudo");
       if (cp != null) {
-        cp.setMinHeight(200);
-        cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length + 1));
+        cp.setMinHeight(100);
         cp.getChart().getLegend().setVisible(false);
         cp.getChart().getTitle().setVisible(false);
         msone = new ChartViewWrapper(cp);
@@ -339,7 +352,7 @@ public class MultiMSMSPane extends BorderPane {
       EChartViewer c = MirrorChartFactory.createMSMSChartViewer(row, selectedRaw, false, false,
           bestForEach, useBestMissingRaw);
       if (c != null) {
-        c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length + 1));
+//        c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length + 1));
         group.add(new ChartViewWrapper(c));
       }
     }
@@ -350,10 +363,10 @@ public class MultiMSMSPane extends BorderPane {
   public void renewGridLayout(ChartGroup group) {
     paramPane.updateParameterSetFromComponents();
     pnCharts.getChildren().clear();
-    addColumns();
+    addColumnsAndRows();
     if (group != null && group.size() > 0) {
       // add to layout
-      int maxRows = group.size() / currentColumns;
+      int maxRows = currentRows();
       int row = 0;
       int col = 0;
       for (ChartViewWrapper cp : group.getList()) {
