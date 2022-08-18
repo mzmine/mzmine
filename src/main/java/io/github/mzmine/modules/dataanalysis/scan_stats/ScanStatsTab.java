@@ -65,12 +65,12 @@ public class ScanStatsTab extends SimpleTab {
 
       int allScans = raw.getNumOfScans();
       int selectedScans = scans.length;
-      int mobilityScans = Arrays.stream(scans).filter(s -> s instanceof Frame).map(s -> (Frame) s)
-          .mapToInt(Frame::getNumberOfMobilityScans).sum();
-      int dataPoints = Arrays.stream(scans).mapToInt(this::getDataPointsGreaterZero).sum();
-      int dataPointsInMobilityScans = Arrays.stream(scans).filter(s -> s instanceof Frame)
+      long mobilityScans = Arrays.stream(scans).filter(s -> s instanceof Frame).map(s -> (Frame) s)
+          .mapToLong(Frame::getNumberOfMobilityScans).sum();
+      long dataPoints = Arrays.stream(scans).mapToLong(this::getDataPointsGreaterZero).sum();
+      long dataPointsInMobilityScans = Arrays.stream(scans).filter(s -> s instanceof Frame)
           .map(s -> (Frame) s).map(Frame::getMobilityScans).flatMap(List::stream)
-          .mapToInt(this::getDataPointsGreaterZero).sum();
+          .mapToLong(this::getDataPointsGreaterZero).sum();
 
       data.add(new RawFileStats(raw.getName(), allScans, selectedScans, dataPoints, mobilityScans,
           dataPointsInMobilityScans));
@@ -79,9 +79,9 @@ public class ScanStatsTab extends SimpleTab {
     // sum stats
     int allScans = 0;
     int selectedScans = 0;
-    int dataPoints = 0;
-    int mobilityScans = 0;
-    int dataPointsInMobilityScans = 0;
+    long dataPoints = 0;
+    long mobilityScans = 0;
+    long dataPointsInMobilityScans = 0;
 
     for (RawFileStats d : data) {
       allScans += d.allScans;
@@ -109,8 +109,8 @@ public class ScanStatsTab extends SimpleTab {
   }
 
 
-  private record RawFileStats(String name, int allScans, int selectedScans, int dataPoints,
-                              int mobilityScans, int dataPointsInMobilityScans) {
+  private record RawFileStats(String name, int allScans, int selectedScans, long dataPoints,
+                              long mobilityScans, long dataPointsInMobilityScans) {
 
     public static String getTitle() {
       return Arrays.stream(RawFileStats.class.getRecordComponents()).map(RecordComponent::getName)
