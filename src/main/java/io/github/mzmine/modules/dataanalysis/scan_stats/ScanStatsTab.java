@@ -33,6 +33,11 @@ import java.util.stream.Collectors;
 import javafx.scene.control.TextArea;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This module collects simple statistics on the raw data files, scans, data points
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
 public class ScanStatsTab extends SimpleTab {
 
   public ScanStatsTab(ParameterSet parameters) {

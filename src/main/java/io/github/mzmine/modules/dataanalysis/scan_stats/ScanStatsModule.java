@@ -30,6 +30,11 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * This module collects simple statistics on the raw data files, scans, data points
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
 public class ScanStatsModule implements MZmineRunnableModule {
 
   private final static String NAME = "Datafiles / scan statistics";
