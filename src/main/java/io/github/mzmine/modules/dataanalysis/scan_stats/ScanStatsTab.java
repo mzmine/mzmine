@@ -59,8 +59,7 @@ public class ScanStatsTab extends SimpleTab {
 
   @NotNull
   private List<RawFileStats> analyzeDataFiles(RawDataFile[] raws, ScanSelection scanSelection) {
-    List<RawFileStats> data = new ArrayList<>();
-    for (RawDataFile raw : raws) {
+    List<RawFileStats> data = Arrays.stream(raws).parallel().map(raw -> {
       Scan[] scans = scanSelection.getMatchingScans(raw);
 
       int allScans = raw.getNumOfScans();
@@ -72,9 +71,9 @@ public class ScanStatsTab extends SimpleTab {
           .map(s -> (Frame) s).map(Frame::getMobilityScans).flatMap(List::stream)
           .mapToLong(this::getDataPointsGreaterZero).sum();
 
-      data.add(new RawFileStats(raw.getName(), allScans, selectedScans, dataPoints, mobilityScans,
-          dataPointsInMobilityScans));
-    }
+      return new RawFileStats(raw.getName(), allScans, selectedScans, dataPoints, mobilityScans,
+          dataPointsInMobilityScans);
+    }).collect(Collectors.toCollection(ArrayList::new));
 
     // sum stats
     int allScans = 0;
