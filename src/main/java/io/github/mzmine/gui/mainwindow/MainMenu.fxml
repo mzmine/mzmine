@@ -15,8 +15,8 @@
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  -->
-<?import io.github.mzmine.util.javafx.WindowsMenu?>
+  ~
+  --><?import io.github.mzmine.util.javafx.WindowsMenu?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -193,6 +193,9 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
     </Menu>
 
+    <SeparatorMenuItem/>
+      <MenuItem text="Datafiles / scan statistics" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataanalysis.scan_stats.ScanStatsModule"/>
   </Menu>
 
 
