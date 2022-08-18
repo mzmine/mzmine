@@ -108,7 +108,8 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
     super(
         new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE, MIN_CLUSTER_INTENSITY,
             USE_ISSHARED, EDGE_TO_HEIGHT_RATIO, DELTA_TO_HEIGHT_RATIO, MIN_MODEL_SHARPNESS,
-            SHAPE_SIM_THRESHOLD, MODEL_PEAK_CHOICE, MZ_VALUES, SUFFIX, AUTO_REMOVE});
+            SHAPE_SIM_THRESHOLD, MODEL_PEAK_CHOICE, MZ_VALUES, SUFFIX, AUTO_REMOVE},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_hierarch_clustering/featdet_hierarch_clustering.html");
   }
 
   @Override
