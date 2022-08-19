@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
@@ -39,8 +39,10 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -49,6 +51,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.DateTimeUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -70,8 +73,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class reads mzML 1.0 and 1.1.0 files (<a href="http://www.psidev.info/index.php?q=node/257">http://www.psidev.info/index.php?q=node/257</a>)
- * using the jmzml library (<a href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
+ * This class reads mzML 1.0 and 1.1.0 files (<a
+ * href="http://www.psidev.info/index.php?q=node/257">http://www.psidev.info/index.php?q=node/257</a>)
+ * using the jmzml library (<a
+ * href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
  */
 @SuppressWarnings("UnstableApiUsage")
 public class MSDKmzMLImportTask extends AbstractTask {
@@ -84,6 +89,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
   private final MZmineProject project;
+  private final ParameterSet advancedParam;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private MzMLFileImportMethod msdkTask = null;
@@ -99,14 +105,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, InputStream fisToOpen,
-      AdvancedSpectraImportParameters advancedParam,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
+      ParameterSet advancedParam, @NotNull final Class<? extends MZmineModule> module,
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
+      @Nullable final MemoryMapStorage storage) {
     super(storage, moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
     this.fis = fisToOpen;
     this.project = project;
     description = "Importing raw data file: " + fileToOpen.getName();
+    this.advancedParam = advancedParam;
     this.parameters = parameters;
     this.module = module;
 
@@ -141,8 +148,17 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         msdkTask = new MzMLFileImportMethod(file);
       }
-      msdkTask.execute();
+      addTaskStatusListener((task, newStatus, oldStatus) -> {
+        if (newStatus == TaskStatus.CANCELED) {
+          msdkTask.cancel();
+        }
+      });
+      MzMLRawDataFile msdkTaskRes = msdkTask.execute();
       io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
+
+      if (isCanceled()) {
+        return;
+      }
 
       if (msdkFile == null) {
         setStatus(TaskStatus.ERROR);
@@ -160,6 +176,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
       }
+      try {
+        // set time
+        if (msdkTaskRes.getStartTimeStamp() != null) {
+          newMZmineFile.setStartTimeStamp(DateTimeUtils.parse(msdkTaskRes.getStartTimeStamp()));
+        }
+      } catch (Exception ingored) {
+      }
 
       if (newMZmineFile instanceof IMSRawDataFileImpl) {
         buildIonMobilityFile(msdkFile, newMZmineFile);
@@ -171,6 +194,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Error parsing mzML: " + ExceptionUtils.exceptionToString(e));
+      return;
+    }
+
+    if (isCanceled()) {
       return;
     }
 
@@ -187,7 +214,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
     project.addFile(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
-
   }
 
   private double[][] applyMassDetection(MZmineProcessingStep<MassDetector> msDetector,
@@ -208,6 +234,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
   public void buildLCMSFile(io.github.msdk.datamodel.RawDataFile file, RawDataFile newMZmineFile)
       throws IOException {
     for (MsScan scan : file.getScans()) {
+      if (isCanceled()) {
+        return;
+      }
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
 
       Scan newScan = null;
@@ -269,6 +298,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
 //    int previousFunction = 1;
     for (MsScan scan : file.getScans()) {
+      if (isCanceled()) {
+        return;
+      }
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       if (mzMLScan.getMobility() == null) {
         continue;
@@ -341,6 +373,17 @@ public class MSDKmzMLImportTask extends AbstractTask {
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;
       parsedScans++;
+    }
+
+    // apply mass detection to frames and mobility scans
+    if (advancedParam != null) {
+      logger.warning("""
+          Applying the advanced import (with mass detection) to an IMS mzML file only performs mass
+           detection on the summed frame level. Better to perform individual steps of mass detection
+            to the mobility scans and the summed frames.""");
+      MsDataImportAndMassDetectWrapperTask massDetector = new MsDataImportAndMassDetectWrapperTask(
+          storage, newMZmineFile, this, parameters, moduleCallDate);
+      massDetector.applyMassDetection();
     }
   }
 

@@ -80,6 +80,10 @@
   -fx-prompt-text-fill: gray;
 }
 
+.text-id {
+  -fx-fill: -fx-font-color;
+}
+
 /** Controls **/
 .button, .combo-box, .choice-box, .check-box > .box  {
   -fx-background-color: -control-bg;

@@ -508,6 +508,19 @@ public class SpectraMerging {
   }
 
   public enum MergingType {
-    SUMMED, MAXIMUM, AVERAGE
+    SUMMED("Summed"),
+    MAXIMUM("Maximum value"),
+    AVERAGE("Average value");
+
+    private String label;
+
+    @Override
+    public String toString() {
+      return this.label;
+    }
+
+    MergingType(String label) {
+      this.label = label;
+    }
   }
 }

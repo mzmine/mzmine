@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -41,9 +41,13 @@ public class ParameterSetupDialog extends EmptyParameterSetupDialogBase {
    *
    * @param message: html-formatted text
    */
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, String message) {
-    super(valueCheckRequired, parameters, message);
+    this(valueCheckRequired, parameters, true, true, message);
+  }
+
+  public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+      boolean addOkButton, boolean addCancelButton, String message) {
+    super(valueCheckRequired, parameters, addOkButton, addCancelButton, message);
 
     this.paramsPane = createParameterPane(parameters.getParameters());
     centerPane.setCenter(paramsPane);

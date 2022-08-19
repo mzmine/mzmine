@@ -37,7 +37,7 @@ public class SpectralLibraryImportParameters extends SimpleParameterSet {
 
   public static final FileNamesParameter dataBaseFiles = new FileNamesParameter(
       "Spectral library files",
-      "(GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx) Name of file that contains information for peak identification",
+      "Name of file that contains information for peak identification\n(GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)",
       extensions);
 
   public SpectralLibraryImportParameters() {

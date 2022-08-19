@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -45,14 +45,14 @@ public interface Desktop extends MZmineModule {
    *
    * @return Main window
    */
-  public Stage getMainWindow();
+  Stage getMainWindow();
 
   /**
    * Displays a given text on the application status bar in black color
    *
    * @param text Text to show
    */
-  public void setStatusBarText(String text);
+  void setStatusBarText(String text);
 
   /**
    * Displays a given text on the application status bar in a given color
@@ -60,14 +60,15 @@ public interface Desktop extends MZmineModule {
    * @param text      Text to show
    * @param textColor Text color
    */
-  public void setStatusBarText(String text, Color textColor);
+  void setStatusBarText(String text, Color textColor);
 
   /**
    * Displays a message box with a given text
    *
    * @param msg Text to show
    */
-  public void displayMessage(String msg);
+  void displayMessage(String msg);
+
 
   /**
    * Displays a message box with a given text
@@ -75,24 +76,47 @@ public interface Desktop extends MZmineModule {
    * @param title Message box title
    * @param msg   Text to show
    */
-  public void displayMessage(String title, String msg);
+  void displayMessage(String title, String msg);
 
   /**
    * Displays an error message box with a given text
    *
    * @param msg Text to show
    */
-  public void displayErrorMessage(String msg);
+  void displayErrorMessage(String msg);
 
   /**
    * Displays an error message
    */
-  public void displayException(Exception e);
+  void displayException(Exception e);
 
   /**
    * Displays a confirmation Yes/No alert. Can be called from any thread.
    */
-  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes);
+  ButtonType displayConfirmation(String msg, ButtonType... buttonTypes);
+
+
+  /**
+   * Use notification pane to display a notification on the top of the screen.
+   *
+   * @param msg        message to display
+   * @param buttonText button text
+   * @param action     button action
+   */
+  default void displayNotification(String msg, String buttonText, Runnable action) {
+    displayNotification(msg, buttonText, action, null);
+  }
+
+  /**
+   * Use notification pane to display a notification on the top of the screen.
+   *
+   * @param msg               message to display
+   * @param buttonText        button text
+   * @param action            button action
+   * @param hideForeverAction hide forever button was pressed handle this option to not show again
+   */
+  void displayNotification(String msg, String buttonText, Runnable action,
+      Runnable hideForeverAction);
 
   /**
    * Displays an opt-out yes/no dialog. Can be called from any thread.
@@ -105,22 +129,23 @@ public interface Desktop extends MZmineModule {
    * @return {@link ButtonType#YES} or {@link ButtonType#NO}. In headless mode, YES is always
    * returned and the message is logged at warning level.
    */
-  public ButtonType createAlertWithOptOut(String title, String headerText,
-      String message, String optOutMessage, Consumer<Boolean> optOutAction);
+  ButtonType createAlertWithOptOut(String title, String headerText, String message,
+      String optOutMessage, Consumer<Boolean> optOutAction);
+
 
   /**
    * Returns array of currently selected raw data files in GUI
    *
    * @return Array of selected raw data files
    */
-  public RawDataFile[] getSelectedDataFiles();
+  RawDataFile[] getSelectedDataFiles();
 
   /**
    * Returns array of currently selected feature lists in GUI
    *
    * @return Array of selected feature lists
    */
-  public FeatureList[] getSelectedPeakLists();
+  FeatureList[] getSelectedPeakLists();
 
   /**
    * Returns array of currently selected spectral libraries in GUI
@@ -129,39 +154,36 @@ public interface Desktop extends MZmineModule {
    */
   SpectralLibrary[] getSelectedSpectralLibraries();
 
-  @NotNull
-  public ExitCode exitMZmine();
+  @NotNull ExitCode exitMZmine();
 
-  public TableView<WrappedTask> getTasksView();
+  TableView<WrappedTask> getTasksView();
 
-  public void openWebPage(@NotNull URL url);
+  void openWebPage(@NotNull URL url);
 
   void openWebPage(String url);
 
   /**
-   * Adds a tab to the main window. Does not have to be called in a {@link
-   * io.github.mzmine.main.MZmineCore#runLater(Runnable)} environment.
+   * Adds a tab to the main window. Does not have to be called in a
+   * {@link io.github.mzmine.main.MZmineCore#runLater(Runnable)} environment.
    *
    * @param tab The tab {@link MZmineTab}
    */
-  public void addTab(MZmineTab tab);
+  void addTab(MZmineTab tab);
 
   /**
    * @return A list of the currently opened {@link MZmineWindow}s. If there are no such windows the
    * list is empty.
    */
-  public List<MZmineWindow> getWindows();
+  List<MZmineWindow> getWindows();
 
   /**
    * @return A list of all currently opened tabs in all windows.
    */
-  @NotNull
-  public List<MZmineTab> getAllTabs();
+  @NotNull List<MZmineTab> getAllTabs();
 
   /**
    * @return A list of tabs in the main window.
    */
-  @NotNull
-  public List<MZmineTab> getTabsInMainWindow();
+  @NotNull List<MZmineTab> getTabsInMainWindow();
 
 }

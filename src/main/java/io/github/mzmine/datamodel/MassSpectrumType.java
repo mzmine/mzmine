@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -41,6 +41,23 @@ public enum MassSpectrumType {
   /**
    * Centroided mass spectrum = discrete data points, one for each detected ion.
    */
-  CENTROIDED;
+  CENTROIDED,
 
+  /**
+   * Mixed is only used to describe multiple spectra
+   */
+  MIXED;
+
+  public static boolean isCentroided(MassSpectrumType spectraType) {
+    return spectraType != null && spectraType.isCentroided();
+  }
+
+  public boolean isCentroided() {
+    return switch (this) {
+      case PROFILE -> false;
+      // mixed means that at least one is centroided
+      // thresholding is usually applied after centroiding
+      case THRESHOLDED, MIXED, CENTROIDED -> true;
+    };
+  }
 }

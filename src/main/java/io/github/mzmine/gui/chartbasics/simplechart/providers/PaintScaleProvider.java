@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -31,6 +31,5 @@ public interface PaintScaleProvider {
    *
    * @return A paint scale. If null, a default paint scale will be used.
    */
-  @Nullable
-  public PaintScale getPaintScale();
+  @Nullable PaintScale getPaintScale();
 }

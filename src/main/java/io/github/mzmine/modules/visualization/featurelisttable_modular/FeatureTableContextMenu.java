@@ -56,6 +56,7 @@ import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
@@ -68,6 +69,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -268,8 +270,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
         () -> !selectedRows.isEmpty() && selectedFeature != null
             && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
-    showImageFeatureItem.setOnAction(
-        e -> MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature)));
+    showImageFeatureItem.setOnAction(e -> {
+      ParameterSet params = MZmineCore.getConfiguration()
+          .getModuleParameters(ImageToCsvExportModule.class);
+      MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature, params));
+    });
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
         () -> selectedFeature != null);
@@ -432,7 +437,9 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     ModularFeature f = new ModularFeature((ModularFeatureList) selectedFeature.getFeatureList(),
         selectedFeature.getRawDataFile(), normalized, FeatureStatus.MANUAL);
-    ImageVisualizerTab tab = new ImageVisualizerTab(f);
+    ImageVisualizerParameters params = new ImageVisualizerParameters();
+    params.setParameter(ImageVisualizerParameters.normalize, true);
+    ImageVisualizerTab tab = new ImageVisualizerTab(f, params);
     MZmineCore.getDesktop().addTab(tab);
   }
 

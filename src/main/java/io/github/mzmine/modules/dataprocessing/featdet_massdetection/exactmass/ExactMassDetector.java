@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,13 +19,13 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
 import com.google.common.primitives.Doubles;
-import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IsotopesUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,8 +53,8 @@ public class ExactMassDetector implements MassDetector {
       boolean detectIsotopes, MZTolerance isotopesMzTolerance, List<Double> isotopesMzDiffs,
       double maxIsotopeMzDiff) {
     // lists of primitive doubles
-    TDoubleArrayList mzs = new TDoubleArrayList(100);
-    TDoubleArrayList intensities = new TDoubleArrayList(100);
+    DoubleArrayList mzs = new DoubleArrayList(128);
+    DoubleArrayList intensities = new DoubleArrayList(128);
 
     // First get all candidate peaks (local maximum)
     int localMaximumIndex = 0;
@@ -95,11 +95,11 @@ public class ExactMassDetector implements MassDetector {
         // Add the m/z peak if it is above the noise level or m/z value corresponds to isotope mass
         if (spectrum.getIntensityValue(localMaximumIndex) > noiseLevel || //
             (detectIsotopes
-             // If the difference between current m/z and last detected m/z is greater than maximum
-             // possible isotope m/z difference do not call isPossibleIsotopeMz
-             && (mzs.isEmpty()
-                 || Doubles.compare(exactMz - mzs.get(mzs.size() - 1), maxIsotopeMzDiff) <= 0)
-             && IsotopesUtils.isPossibleIsotopeMz(exactMz, mzs, isotopesMzDiffs,
+                // If the difference between current m/z and last detected m/z is greater than maximum
+                // possible isotope m/z difference do not call isPossibleIsotopeMz
+                && (mzs.isEmpty()
+                || Doubles.compare(exactMz - mzs.getDouble(mzs.size() - 1), maxIsotopeMzDiff) <= 0)
+                && IsotopesUtils.isPossibleIsotopeMz(exactMz, mzs, isotopesMzDiffs,
                 isotopesMzTolerance))) {
 
           // Add data point to lists
@@ -114,7 +114,7 @@ public class ExactMassDetector implements MassDetector {
     }
 
     // Return an array of detected MzPeaks sorted by MZ
-    return new double[][]{mzs.toArray(), intensities.toArray()};
+    return new double[][]{mzs.toDoubleArray(), intensities.toDoubleArray()};
   }
 
   /**
@@ -146,7 +146,7 @@ public class ExactMassDetector implements MassDetector {
       // Left side of the curve
       if ((spectrum.getIntensityValue(rangeDataPoints.get(i)) <= halfIntensity) && (
           spectrum.getMzValue(rangeDataPoints.get(i)) < spectrum.getMzValue(topIndex)) && (
-              spectrum.getIntensityValue(rangeDataPoints.get(i + 1)) >= halfIntensity)) {
+          spectrum.getIntensityValue(rangeDataPoints.get(i + 1)) >= halfIntensity)) {
 
         // First point with intensity just less than half of total
         // intensity
@@ -178,7 +178,7 @@ public class ExactMassDetector implements MassDetector {
       // Right side of the curve
       if ((spectrum.getIntensityValue(rangeDataPoints.get(i)) >= halfIntensity) && (
           spectrum.getMzValue(rangeDataPoints.get(i)) > spectrum.getMzValue(topIndex)) && (
-              spectrum.getIntensityValue(rangeDataPoints.get(i + 1)) <= halfIntensity)) {
+          spectrum.getIntensityValue(rangeDataPoints.get(i + 1)) <= halfIntensity)) {
 
         // First point with intensity just bigger than half of total
         // intensity

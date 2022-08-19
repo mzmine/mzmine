@@ -62,7 +62,7 @@ public class RubberBandCorrectorParameters extends SimpleParameterSet {
    * Bend additional feature.
    */
   public static final DoubleParameter BEND_FACTOR = new DoubleParameter("bend factor",
-      "Does nothing if equals to zero. Helps fitting better with low \"df\". Try with 5^4, to start palying with...",
+      "Does nothing if equals to zero. Helps fitting better with low \"df\". Try with 5E4, to start palying with...",
       DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
 
   public RubberBandCorrectorParameters() {
