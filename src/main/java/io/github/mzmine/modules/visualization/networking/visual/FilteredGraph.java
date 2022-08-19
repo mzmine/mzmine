@@ -6,25 +6,26 @@ import org.graphstream.graph.implementations.MultiGraph;
 
 public class FilteredGraph extends MultiGraph {
 
-  private final MultiGraph fullGraph;
+  private MultiGraph fullGraph;
 
   public FilteredGraph(String id) {
     super(id);
-    this.fullGraph = new MultiGraph("Full-Graph");
+    this.fullGraph=new MultiGraph(id);
   }
 
-  public void setInitialGraph(MultiGraph graph1,MultiGraph graph2) {
-    graph1.nodes().forEach(aNode -> {
-      Node n = graph2.addNode(aNode.getId());
+  public void setFullGraph(MultiGraph Graph) {
+    Graph.nodes().forEach(aNode -> {
+      Node n = this.fullGraph.addNode(aNode.getId());
       aNode.attributeKeys().forEach(attribute -> n.setAttribute(attribute, aNode.getAttribute(attribute)));
     });
-    graph1.edges().forEach(anEdge -> {
+    Graph.edges().forEach(anEdge -> {
       Edge e;
-      e = graph2.addEdge(anEdge.getId(), anEdge.getSourceNode().getId(),
+      e = this.fullGraph.addEdge(anEdge.getId(), anEdge.getSourceNode().getId(),
           anEdge.getTargetNode().getId(), anEdge.isDirected());
       anEdge.attributeKeys().forEach(attribute -> e.setAttribute(attribute, anEdge.getAttribute(attribute)));
     });
   }
+
   public MultiGraph getFullGraph() {
     return fullGraph;
   }

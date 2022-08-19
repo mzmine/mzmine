@@ -57,6 +57,8 @@ public class FeatureNetworkPane extends NetworkPane {
   public static final float MIN_NODE_WIDTH_GU = 0.02f;
   private static final Logger logger = Logger.getLogger(FeatureNetworkPane.class.getName());
 
+  private final FilteredGraph fg = new FilteredGraph("Filtered-Graph");
+
   // currently set dynamic node styles like color, size, label
   private final EnumMap<GraphStyleAttribute, NodeAtt> dynamicNodeStyle = new EnumMap<>(
       GraphStyleAttribute.class);
@@ -210,14 +212,10 @@ public class FeatureNetworkPane extends NetworkPane {
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
     updateGraphButton.setOnAction(e -> updateGraph());
 
-    Button showOriginalGraphButton = new Button("Show original graph");
-    showOriginalGraphButton.setMaxWidth(Double.MAX_VALUE);
-    showOriginalGraphButton.setOnAction(e -> graph.setInitialGraph(graph.getFullGraph(),graph));
-
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
         toggleShowIonIdentityEdges, toggleShowEdgeLabel, toggleShowNodeLabel, showGNPSMatches,
-        showLibraryMatches, l, nodeNeighbours, updateGraphButton, showOriginalGraphButton);
+        showLibraryMatches, l, nodeNeighbours, updateGraphButton);
     pnRightMenu.setSpacing(10);
     pnRightMenu.setPadding(new Insets(0, 20, 10, 20));
     this.setRight(pnRightMenu);
@@ -346,6 +344,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     clear();
     generator.createNewGraph(rows, graph, onlyBest, relationMaps, ms1FeatureShapeEdges);
+    fg.setFullGraph(graph); //setting the full-graph generated to the filtered-graph
     clearSelections();
     showEdgeLabels(showEdgeLabels);
     showNodeLabels(showNodeLabels);
@@ -355,7 +354,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     // apply dynamic style
     applyDynamicStyles();
-    graph.setInitialGraph(graph,graph.getFullGraph());
+
   }
 
   private void applyDynamicStyles() {

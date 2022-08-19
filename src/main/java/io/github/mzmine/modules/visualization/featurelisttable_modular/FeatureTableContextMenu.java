@@ -102,6 +102,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu searchMenu;
   final Menu idsMenu;
   final Menu exportMenu;
+
   private final FeatureTableFX table;
   @Nullable ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
@@ -167,6 +168,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     idsMenu.getItems().addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem);
   }
+
 
   private void initExportMenu() {
     final MenuItem exportIsotopesItem = new ConditionalMenuItem("Export isotope pattern",
@@ -248,6 +250,9 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void initShowMenu() {
+
+    final MenuItem showInNetworkVisualizerItem = new MenuItem("Show in Network Visualizer");
+
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
     showXICItem.setOnAction(
@@ -422,7 +427,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem, showNormalizedImage);
+            showPeakRowSummaryItem, showNormalizedImage, showInNetworkVisualizerItem);
   }
 
   private void addNormalizedImageTab() {

@@ -29,8 +29,11 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.geometry.Point2D;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -52,6 +55,7 @@ import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.javafx.util.FxFileSinkImages;
 import org.graphstream.ui.view.Viewer;
+import org.graphstream.ui.view.Viewer.ThreadingModel;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.util.InteractiveElement;
 import org.jetbrains.annotations.NotNull;
@@ -167,6 +171,9 @@ public class NetworkPane extends BorderPane {
   protected FilteredGraph graph;
   private final Label lbTitle;
   private final FileChooser saveDialog;
+
+  private final ContextMenu rightClickMenu;
+  private final MenuItem exportGraphItem;
   private final ExtensionFilter graphmlExt = new ExtensionFilter(
       "Export network to graphml (*.graphml)", "*.graphml");
   private final ExtensionFilter pngExt = new ExtensionFilter("PNG pixel graphics file (*.png)",
@@ -187,7 +194,6 @@ public class NetworkPane extends BorderPane {
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
-  private Point2D last;
 
 
   /**
@@ -238,13 +244,14 @@ public class NetworkPane extends BorderPane {
     graph.setAutoCreate(true);
     graph.setStrict(false);
 
-    viewer = new FxViewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+    viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
     viewer.enableAutoLayout();
     graph.setAttribute("Layout.frozen"); //Block the layout algorithm
     view = (FxViewPanel) viewer.addDefaultView(false);
     // wrap in stackpane to make sure coordinates work properly.
     // Might be confused by other components in the same pane
     StackPane graphpane = new StackPane(view);
+    graphpane.setStyle("-fx-border-color: black");
     this.setCenter(graphpane);
 
     // enable selection of edges by mouse
@@ -279,26 +286,44 @@ public class NetworkPane extends BorderPane {
       }
     });
 
-    view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
+    rightClickMenu = new ContextMenu();
+    exportGraphItem = new MenuItem("Export Graph");
+    rightClickMenu.getItems().add(exportGraphItem);
+
+    view.setOnScroll(this::setZoomOnMouseScroll);
 
     view.setOnMouseClicked(e -> {
-      mouseClickedNode = (Node) view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)),
-          e.getX(), e.getY()); //for getting mouse-clicked node by the user
+      if (e.getButton() == MouseButton.PRIMARY) {
+        if (e.getClickCount() == 2) {
+          resetZoom();
+          e.consume();
+        } else if (e.getClickCount() == 1) {
+          mouseClickedNode = (Node) view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)),
+              e.getX(), e.getY()); //for getting mouse-clicked node by the user
+          setCenter(e.getX(), e.getY());
+        }
+      } else if (e.getButton() == MouseButton.SECONDARY) {
+        if (rightClickMenu.isShowing()) {
+          rightClickMenu.hide();
+        } else {
+          rightClickMenu.show(view, e.getScreenX(), e.getScreenY());
+          exportGraphItem.setOnAction(event -> openSaveDialog());
+          e.consume();
+        }
+      }
     });
+  }
 
-    view.setOnMousePressed(e -> {
-      if (last == null) {
-        last = new Point2D(e.getX(), e.getY());
+  private void setZoomOnMouseScroll(ScrollEvent e) {
+    if (e.getDeltaY() < 0) {
+      double new_view_percent = view.getCamera().getViewPercent() + 0.05;
+      view.getCamera().setViewPercent(new_view_percent);
+    } else if (e.getDeltaY() > 0) {
+      double current_view_percent = view.getCamera().getViewPercent();
+      if (current_view_percent > 0.05) {
+        view.getCamera().setViewPercent(current_view_percent - 0.05);
       }
-    });
-    view.setOnMouseReleased(e -> last = null);
-    view.setOnMouseDragged(e -> {
-      if (last != null) {
-        // translate
-        translate(e.getX() - last.getX(), e.getY() - last.getY());
-      }
-      last = new Point2D(e.getX(), e.getY());
-    });
+    }
   }
 
   /**
@@ -450,19 +475,6 @@ public class NetworkPane extends BorderPane {
       n.removeAttribute("ui.class");
     }
     selectedNodes.clear();
-  }
-
-  public void zoom(boolean zoomOut) {
-    viewPercent += viewPercent * 0.1 * (zoomOut ? -1 : 1);
-    view.getCamera().setViewPercent(viewPercent);
-  }
-
-  public void translate(double dx, double dy) {
-    Point3 c = view.getCamera().getViewCenter();
-    Point3 p0 = view.getCamera().transformPxToGu(0, 0);
-    Point3 p = view.getCamera().transformPxToGu(dx, dy);
-
-    view.getCamera().setViewCenter(c.x + p.x - p0.x, c.y + p.y + p0.y, c.z);
   }
 
   public void setCenter(double x, double y) {
