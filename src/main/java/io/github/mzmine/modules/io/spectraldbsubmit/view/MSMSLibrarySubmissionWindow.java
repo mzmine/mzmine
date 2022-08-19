@@ -77,6 +77,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -367,7 +368,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
       }
 
       Node comp = up.createEditingComponent();
-      // comp.setToolTip(new Tooltip(up.getDescription()));
+      Tooltip.install(comp, new Tooltip(up.getDescription()));
 
       // Set the initial value
       Object value = up.getValue();
@@ -375,13 +376,8 @@ public class MSMSLibrarySubmissionWindow extends Stage {
         up.setValueToComponent(comp, value);
       }
 
-      // By calling this we make sure the components will never be resized
-      // smaller than their optimal size
-      // comp.setMinimumSize(comp.getPreferredSize());
-
       // add separator
       if (p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())) {
-//        pnSubmitParam.addSeparator(0, rowCounter, 2);
         pnSubmitParam.add(new Separator(), 0, rowCounter, 2, 1);
         rowCounter++;
       }
@@ -392,11 +388,6 @@ public class MSMSLibrarySubmissionWindow extends Stage {
 
       parametersAndComponents.put(p.getName(), comp);
 
-      ComboBox t = new ComboBox();
-      // int comboh = t.getPreferredSize().height;
-      // int comph = comp.getPreferredSize().height;
-
-      // int verticalWeight = comph > 2 * comboh ? 1 : 0;
       pnSubmitParam.add(comp, 1, rowCounter);
       rowCounter++;
     }
@@ -420,7 +411,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
       }
 
       Node comp = up.createEditingComponent();
-      // comp.setToolTipText(up.getDescription());
+      Tooltip.install(comp, new Tooltip(up.getDescription()));
 
       // Set the initial value
       Object value = up.getValue();
@@ -428,23 +419,9 @@ public class MSMSLibrarySubmissionWindow extends Stage {
         up.setValueToComponent(comp, value);
       }
 
-      // By calling this we make sure the components will never be resized
-      // smaller than their optimal size
-      // comp.setMinimumSize(comp.getPreferredSize());
-
       Label label = new Label(p.getName());
       pnMetaData.add(label, 0, rowCounter);
-      // label.setLabelFor(comp);
-
       parametersAndComponents.put(p.getName(), comp);
-
-//      JComboBox t = new JComboBox();
-      // int comboh = t.getPreferredSize().height;
-      // int comph = comp.getPreferredSize().height;
-
-      // Multiple selection will be expandable, other components not
-      // int verticalWeight = comph > 2 * comboh ? 1 : 0;
-      // vertWeightSum += verticalWeight;
 
       pnMetaData.add(comp, 1, rowCounter);
       rowCounter++;
