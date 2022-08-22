@@ -303,8 +303,12 @@ public class NetworkPane extends BorderPane {
           e.consume();
         } else if (e.getClickCount() == 1) {
           mouseClickedNode = (Node) view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)),
-              e.getX(), e.getY()); //for getting mouse-clicked node by the user
+              e.getX(), e.getY()); //for retrieving mouse-clicked node
           setCenter(e.getX(), e.getY());
+          mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
+              view.getViewer().getGraphicGraph(), e.getX(),
+              e.getY()); //for retrieving mouse-clicked edge
+          showMSMSMirrorScanModule();
         }
       } else if (e.getButton() == MouseButton.SECONDARY) {
         if (rightClickMenu.isShowing()) {
@@ -318,15 +322,6 @@ public class NetworkPane extends BorderPane {
     });
   }
 
-  private void showMirrorScanModule(Node a, Node b) {
-    MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
-    FeatureListRow Row1 = (FeatureListRow) a.getAttribute("FeatureListOnNode");
-    FeatureListRow Row2 = (FeatureListRow) b.getAttribute("FeatureListOnNode");
-    mirrorScanTab.getController()
-        .setScans(Row1.getMostIntenseFragmentScan(), Row2.getMostIntenseFragmentScan());
-    mirrorScanTab.show();
-  }
-
   private void setZoomOnMouseScroll(ScrollEvent e) {
     if (e.getDeltaY() < 0) {
       double new_view_percent = view.getCamera().getViewPercent() + 0.05;
@@ -337,6 +332,21 @@ public class NetworkPane extends BorderPane {
         view.getCamera().setViewPercent(current_view_percent - 0.05);
       }
     }
+  }
+
+  /**
+   * Run the MSMS-MirrorScan module whenever user clicks on edges
+   */
+
+  public void showMSMSMirrorScanModule() {
+    Node a = mouseClickedEdge.getNode0();
+    Node b = mouseClickedEdge.getNode1();
+    MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
+    FeatureListRow Row1 = a.getAttribute(NodeAtt.ROW.toString(), FeatureListRow.class);
+    FeatureListRow Row2 = b.getAttribute(NodeAtt.ROW.toString(), FeatureListRow.class);
+    mirrorScanTab.getController()
+        .setScans(Row1.getMostIntenseFragmentScan(), Row2.getMostIntenseFragmentScan());
+    mirrorScanTab.show();
   }
 
   /**
