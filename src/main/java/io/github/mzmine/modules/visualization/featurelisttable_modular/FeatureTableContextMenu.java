@@ -60,6 +60,7 @@ import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkTab;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
@@ -251,7 +252,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private void initShowMenu() {
 
-    final MenuItem showInNetworkVisualizerItem = new MenuItem("Show in Network Visualizer");
+    final MenuItem showInFeatureNetworkItem = new MenuItem("Show in Feature Network");
+    showInFeatureNetworkItem.setOnAction(e -> showNetworkVisualizer());
 
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
@@ -427,7 +429,13 @@ public class FeatureTableContextMenu extends ContextMenu {
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem, showNormalizedImage, showInNetworkVisualizerItem);
+            showPeakRowSummaryItem, showNormalizedImage, showInFeatureNetworkItem);
+  }
+
+  private void showNetworkVisualizer()
+  {
+    FeatureNetworkTab fnt = new FeatureNetworkTab(selectedRows.get(0).getFeatureList());
+    MZmineCore.getDesktop().addTab(fnt);
   }
 
   private void addNormalizedImageTab() {

@@ -57,8 +57,6 @@ public class FeatureNetworkPane extends NetworkPane {
   public static final float MIN_NODE_WIDTH_GU = 0.02f;
   private static final Logger logger = Logger.getLogger(FeatureNetworkPane.class.getName());
 
-  private final FilteredGraph fg = new FilteredGraph("Filtered-Graph");
-
   // currently set dynamic node styles like color, size, label
   private final EnumMap<GraphStyleAttribute, NodeAtt> dynamicNodeStyle = new EnumMap<>(
       GraphStyleAttribute.class);
@@ -245,11 +243,9 @@ public class FeatureNetworkPane extends NetworkPane {
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
     } else {
-      generator.createGraphWithNeighboringNodes(graph,
-          GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(), bNeighbors.get()));
+      graph.setNodeFilter(GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(),bNeighbors.get()));
     }
   }
-
 
   /**
    * Show GNPS library match
@@ -341,10 +337,8 @@ public class FeatureNetworkPane extends NetworkPane {
     this.rows = rows;
     attributeRanges.clear();
     attributeCategoryValuesMap.clear();
-
     clear();
     generator.createNewGraph(rows, graph, onlyBest, relationMaps, ms1FeatureShapeEdges);
-    fg.setFullGraph(graph); //setting the full-graph generated to the filtered-graph
     clearSelections();
     showEdgeLabels(showEdgeLabels);
     showNodeLabels(showNodeLabels);
@@ -354,7 +348,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     // apply dynamic style
     applyDynamicStyles();
-
+    graph.setFullGraph(graph);
   }
 
   private void applyDynamicStyles() {

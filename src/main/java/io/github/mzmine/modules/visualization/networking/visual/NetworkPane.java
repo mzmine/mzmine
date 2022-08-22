@@ -19,6 +19,8 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -191,6 +193,8 @@ public class NetworkPane extends BorderPane {
   protected Viewer viewer;
   protected FxViewPanel view;
   protected Node mouseClickedNode;
+
+  protected Edge mouseClickedEdge;
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
@@ -312,6 +316,15 @@ public class NetworkPane extends BorderPane {
         }
       }
     });
+  }
+
+  private void showMirrorScanModule(Node a, Node b) {
+    MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
+    FeatureListRow Row1 = (FeatureListRow) a.getAttribute("FeatureListOnNode");
+    FeatureListRow Row2 = (FeatureListRow) b.getAttribute("FeatureListOnNode");
+    mirrorScanTab.getController()
+        .setScans(Row1.getMostIntenseFragmentScan(), Row2.getMostIntenseFragmentScan());
+    mirrorScanTab.show();
   }
 
   private void setZoomOnMouseScroll(ScrollEvent e) {

@@ -1,29 +1,33 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
-import org.graphstream.graph.Edge;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 
 public class FilteredGraph extends MultiGraph {
 
-  private MultiGraph fullGraph;
+  MultiGraph fullGraph;
 
   public FilteredGraph(String id) {
     super(id);
-    this.fullGraph=new MultiGraph(id);
+    this.fullGraph= new MultiGraph("Full-Graph");
   }
 
-  public void setFullGraph(MultiGraph Graph) {
-    Graph.nodes().forEach(aNode -> {
-      Node n = this.fullGraph.addNode(aNode.getId());
-      aNode.attributeKeys().forEach(attribute -> n.setAttribute(attribute, aNode.getAttribute(attribute)));
-    });
-    Graph.edges().forEach(anEdge -> {
-      Edge e;
-      e = this.fullGraph.addEdge(anEdge.getId(), anEdge.getSourceNode().getId(),
-          anEdge.getTargetNode().getId(), anEdge.isDirected());
-      anEdge.attributeKeys().forEach(attribute -> e.setAttribute(attribute, anEdge.getAttribute(attribute)));
-    });
+  public void setFullGraph(MultiGraph graph) {
+    this.fullGraph = graph;
+  }
+
+  public void setNodeFilter(Set<Node> neighboringNodes) {
+    Set<String> neighborIDS = neighboringNodes.stream().map(Element::getId)
+        .collect(Collectors.toSet());
+    List<Node> removeNodes = fullGraph.nodes().filter(n -> !neighborIDS.contains(n.getId()))
+        .toList();
+    for (Node n : removeNodes) {
+      fullGraph.removeNode(n);
+    }
   }
 
   public MultiGraph getFullGraph() {
