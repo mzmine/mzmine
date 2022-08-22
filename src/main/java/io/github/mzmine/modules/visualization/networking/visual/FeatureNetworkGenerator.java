@@ -43,10 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
@@ -113,22 +111,6 @@ public class FeatureNetworkGenerator {
     }
   }
 
-  /**
-   * only show neighboring nodes
-   *
-   * @param graph
-   * @param neighboringNodes a set for fast contains query
-   */
-  public void createGraphWithNeighboringNodes(Graph graph, Set<Node> neighboringNodes) {
-    graph.removeAttribute("Layout.frozen");
-    Set<String> neighborIDS = neighboringNodes.stream().map(Element::getId)
-        .collect(Collectors.toSet());
-    List<Node> removeNodes = graph.nodes().filter(n -> !neighborIDS.contains(n.getId())).toList();
-
-    for (Node n : removeNodes) {
-      graph.removeNode(n);
-    }
-  }
 
   /**
    * Last step to add consensus edges for each EdgeType to the neutral molecule node of each IIN.
@@ -153,6 +135,7 @@ public class FeatureNetworkGenerator {
         //
         for (FeatureListRow row : net.keySet()) {
           Node rowNode = getRowNode(row, false);
+          rowNode.setAttribute("FeatureListNode",row);
           rowNode.edges().forEach(edge -> {
             EdgeType edgeType = edge.getAttribute(EdgeAtt.TYPE.toString(), EdgeType.class);
             if (edgeType != null && edgeType != EdgeType.ION_IDENTITY) {

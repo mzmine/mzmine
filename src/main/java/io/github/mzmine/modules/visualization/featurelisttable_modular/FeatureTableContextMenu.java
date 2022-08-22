@@ -252,7 +252,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private void initShowMenu() {
 
-    final MenuItem showNetworkVisualizerItem = new MenuItem("Feature Network");
+    final MenuItem showNetworkVisualizerItem = new MenuItem("Feature network");
     showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
 
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
