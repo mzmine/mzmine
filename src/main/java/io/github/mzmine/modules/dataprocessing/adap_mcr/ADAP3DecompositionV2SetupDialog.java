@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javafx.scene.layout.Background;
 import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Sets;
 import dulab.adap.datamodel.BetterComponent;
@@ -117,6 +119,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         // no 100). Also, we set the weight to 10, so the chkPreview
         // component will consume most of the extra available space.
         paramsPane.add(pnlPlots, 3, 0);
+        pnlUIElements.getChildren().add(pnlComboBoxes);
         pnlUIElements.setCenter(pnlComboBoxes);
 
         refresh();
@@ -161,31 +164,31 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     // ----- Panel with plots --------------------------------------
     // --------------------------------------------------------------------
 
-    pnlPlots = new HBox();
+
     // pnlPlots.setLayout(new BoxLayout(pnlPlots, BoxLayout.Y_AXIS));
 
     // Plot with retention-time clusters
     retTimeMZPlot = new SimpleScatterPlot("Retention time", "m/z");
-    // retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
-    // retTimeMZPlot.setPreferredSize(MIN_DIMENSIONS);
+    retTimeMZPlot.setMinSize(400,300);
+    retTimeMZPlot.setPrefSize(400,300);
 
     final BorderPane pnlPlotRetTimeClusters = new BorderPane();
-    // pnlPlotRetTimeClusters.setBackground(Color.white);
+    pnlPlotRetTimeClusters.setStyle("-fx-background-color: #FFFFFF;");
     pnlPlotRetTimeClusters.setCenter(retTimeMZPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
 
     // Plot with chromatograms
     retTimeIntensityPlot = new EICPlot();
-    // retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
-    // retTimeIntensityPlot.setPreferredSize(MIN_DIMENSIONS);
+    retTimeIntensityPlot.setMinSize(400,300);
+    retTimeIntensityPlot.setPrefSize(400,300);
 
     BorderPane pnlPlotShapeClusters = new BorderPane();
-    // pnlPlotShapeClusters.setBackground(Color.white);
+    pnlPlotShapeClusters.setStyle("-fx-background-color: #FFFFFF;");
     pnlPlotShapeClusters.setCenter(retTimeIntensityPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
 
-    pnlPlots.getChildren().add(pnlPlotRetTimeClusters);
-    pnlPlots.getChildren().add(pnlPlotShapeClusters);
+
+    pnlPlots = new HBox(pnlPlotRetTimeClusters,pnlPlotShapeClusters);
 
     super.paramsPane.add(pnlUIElements, 0, super.getNumberOfParameters() + 3);
   }
