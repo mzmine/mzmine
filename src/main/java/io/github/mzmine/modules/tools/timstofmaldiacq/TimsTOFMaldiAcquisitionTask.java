@@ -33,6 +33,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
@@ -117,6 +118,9 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
     final int numCes = ceSteppingTables != null ? ceSteppingTables.getNumberOfCEs() : 1;
 
+    final File acqFile = new File(savePathDir, "acquisition.txt");
+    acqFile.delete();
+
     for (int flistCounter = 0; flistCounter < flists.length; flistCounter++) {
       final double flistStepProgress = 1 / (double) flists.length;
 
@@ -198,17 +202,22 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
                   ceCounter) + "eV" : "");
           desc = "Acquiring " + fileName;
 
-          TimsTOFAcquisitionUtils.acquire(acqControl, spotName, precursorList, initialOffsetY,
-              incrementOffsetX, (i + 1), spotIncrement, savePathDir, fileName, currentCeFile,
-              enableCeStepping, exportOnly);
+          try {
+            TimsTOFAcquisitionUtils.appendToCommandFile(acqFile, spotName, precursorList,
+                initialOffsetY, incrementOffsetX, null, null, (i + 1), spotIncrement, savePathDir,
+                fileName, currentCeFile, enableCeStepping);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
 
           spotIncrement++;
         }
       }
+
+      TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
     }
 
     setStatus(TaskStatus.FINISHED);
   }
-
 
 }

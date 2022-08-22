@@ -35,6 +35,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -56,8 +57,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final Double maxMobilityWidth;
   private final Double minMobilityWidth;
   private final File acqControl;
-  private final Integer initialOffsetY;
-  private final Integer incrementOffsetX;
+  private final Integer laserOffsetY;
+  private final Integer laserOffsetX;
   private final File savePathDir;
   private final Boolean exportOnly;
   private final Double isolationWidth;
@@ -75,8 +76,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     maxMobilityWidth = parameters.getValue(TimsTOFImageMsMsParameters.maxMobilityWidth);
     minMobilityWidth = parameters.getValue(TimsTOFImageMsMsParameters.minMobilityWidth);
     acqControl = parameters.getValue(TimsTOFImageMsMsParameters.acquisitionControl);
-    initialOffsetY = parameters.getValue(TimsTOFImageMsMsParameters.initialOffsetY);
-    incrementOffsetX = parameters.getValue(TimsTOFImageMsMsParameters.laserOffsetX);
+    laserOffsetY = parameters.getValue(TimsTOFImageMsMsParameters.laserOffsetY);
+    laserOffsetX = parameters.getValue(TimsTOFImageMsMsParameters.laserOffsetX);
     savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
     isolationWidth = parameters.getValue(TimsTOFImageMsMsParameters.isolationWidth);
@@ -159,6 +160,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
     }
 
+    File acqFile = new File(savePathDir, "acquisition.txt");
+    acqFile.delete();
+
     // sort the spots by line, so we limit the movement that we have to do
     final List<ImagingSpot> sortedSpots = frameSpotMap.entrySet().stream().sorted((e1, e2) -> {
       int xCompare = Integer.compare(e1.getKey().getMaldiSpotInfo().xIndexPos(),
@@ -186,13 +190,18 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
           if (x == 0 && y == 0 || spot.getPrecursorList(x, y).isEmpty()) {
             continue;
           }
-          TimsTOFAcquisitionUtils.acquireLaserOffset(acqControl, spotInfo.spotName(),
-              spot.getPrecursorList(x, y), x * initialOffsetY, y * incrementOffsetX, counter++,
-              savePathDir, spotInfo.spotName() + "_" + counter, null, false, exportOnly,
-              "Imaging_" + file.getName().replace(".d", ""));
+          try {
+            TimsTOFAcquisitionUtils.appendToCommandFile(acqFile, spotInfo.spotName(),
+                spot.getPrecursorList(x, y), null, null, x * laserOffsetX, y * laserOffsetY,
+                counter++, 0, savePathDir, spotInfo.spotName() + "_" + counter, null, false);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
         }
       }
     }
+
+    TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
 
     setStatus(TaskStatus.FINISHED);
   }

@@ -34,7 +34,7 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
       "Path to where acquired measurements shall be saved.",
       "D:" + File.separator + "Data" + File.separator + "User" + File.separator + "MZmine_3");
 
-  public static final IntegerParameter initialOffsetY = new IntegerParameter("Laser offset Y / µm",
+  public static final IntegerParameter laserOffsetY = new IntegerParameter("Laser offset Y / µm",
       "Initial offset that is added when moving to a spot.", 0);
 
   public static final IntegerParameter laserOffsetX = new IntegerParameter("Laser offset X / µm",
@@ -69,7 +69,7 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
       "Will only export MS/MS lists and not start an acquisition.", false);
 
   public TimsTOFImageMsMsParameters() {
-    super(new Parameter[]{flists, minMobilityWidth, maxMobilityWidth, savePathDir, initialOffsetY,
+    super(new Parameter[]{flists, minMobilityWidth, maxMobilityWidth, savePathDir, laserOffsetY,
         laserOffsetX, acquisitionControl, isolationWidth, numMsMs, minimumDistance,
         minimumIntensity, exportOnly});
   }

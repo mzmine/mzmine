@@ -27,7 +27,8 @@ public class MaldiSpotFeatureDetectionParameters extends SimpleParameterSet {
   public static final OptionalParameter<FileNameParameter> spotNameFile = new OptionalParameter<>(
       new FileNameParameter("Spot sample names",
           "Path to a file containing two labelled columns (spot and name) with column headers separated by ','.",
-          List.of(new ExtensionFilter(".csv, *.csv")), FileSelectionType.OPEN), false);
+          List.of(new ExtensionFilter("comma separated values", "*.csv")), FileSelectionType.OPEN),
+      false);
 
   public MaldiSpotFeatureDetectionParameters() {
     super(new Parameter[]{files, mzTolerance, minIntensity, spotNameFile});
