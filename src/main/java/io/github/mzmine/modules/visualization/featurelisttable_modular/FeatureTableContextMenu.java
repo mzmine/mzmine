@@ -252,8 +252,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private void initShowMenu() {
 
-    final MenuItem showInFeatureNetworkItem = new MenuItem("Show in Feature Network");
-    showInFeatureNetworkItem.setOnAction(e -> showNetworkVisualizer());
+    final MenuItem showNetworkVisualizerItem = new MenuItem("Feature Network");
+    showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
 
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
@@ -429,7 +429,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem, showNormalizedImage, showInFeatureNetworkItem);
+            showPeakRowSummaryItem, showNormalizedImage, showNetworkVisualizerItem);
   }
 
   private void showNetworkVisualizer()
