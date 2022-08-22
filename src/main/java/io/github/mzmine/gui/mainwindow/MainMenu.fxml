@@ -92,10 +92,6 @@
       userData=""/>
 
     <SeparatorMenuItem/>
-    <MenuItem text="Export audit log" onAction="#runModule"
-      userData="io.github.mzmine.modules.auditlogexport.AuditLogExportModule"/>
-
-    <SeparatorMenuItem/>
     <MenuItem text="Exit" onAction="#exitApplication"/>
   </Menu>
 
@@ -114,8 +110,6 @@
 
       <MenuItem onAction="#runModule" text="mzML"
         userData="io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule"/>
-      <!-- *Obsolete* MenuItem onAction="#runModule" text="mzML via jmzml"
-        userData="io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule"/ -->
       <MenuItem onAction="#runModule" text="imzML"
         userData="io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule"/>
       <MenuItem onAction="#runModule" text="netCDF"

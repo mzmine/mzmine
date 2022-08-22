@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,10 +18,7 @@
 
 package io.github.mzmine.modules.visualization.image;
 
-import java.util.logging.Logger;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
@@ -30,13 +27,11 @@ import javafx.scene.layout.GridPane;
  */
 public class ImageVisualizerPaneController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
   @FXML
   private BorderPane plotPane;
 
   @FXML
-  private AnchorPane spectrumPlotPane;
+  private BorderPane spectrumPlotPane;
 
   @FXML
   private GridPane rawDataInfoGridPane;
@@ -47,47 +42,20 @@ public class ImageVisualizerPaneController {
   @FXML
   private GridPane plotSettingsInfoGridPane;
 
-  @FXML
-  private Button backgroundButton;
-
   public BorderPane getPlotPane() {
     return plotPane;
-  }
-
-  public void setPlotPane(BorderPane plotPane) {
-    this.plotPane = plotPane;
   }
 
   public GridPane getRawDataInfoGridPane() {
     return rawDataInfoGridPane;
   }
 
-  public void setRawDataInfoGridPane(GridPane rawDataInfoGridPane) {
-    this.rawDataInfoGridPane = rawDataInfoGridPane;
-  }
-
   public GridPane getImagingParameterInfoGridPane() {
     return imagingParameterInfoGridPane;
   }
 
-  public void setImagingParameterInfoGridPane(GridPane imagingParameterInfoGridPane) {
-    this.imagingParameterInfoGridPane = imagingParameterInfoGridPane;
-  }
-
-  public GridPane getPlotSettingsInfoGridPane() {
-    return plotSettingsInfoGridPane;
-  }
-
-  public void setPlotSettingsInfoGridPane(GridPane plotSettingsInfoGridPane) {
-    this.plotSettingsInfoGridPane = plotSettingsInfoGridPane;
-  }
-
-  public AnchorPane getSpectrumPlotPane() {
+  public BorderPane getSpectrumPlotPane() {
     return spectrumPlotPane;
-  }
-
-  public void setSpectrumPlotPane(AnchorPane spectrumPlotPane) {
-    this.spectrumPlotPane = spectrumPlotPane;
   }
 
 }

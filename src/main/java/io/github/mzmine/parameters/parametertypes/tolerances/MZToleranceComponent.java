@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -68,4 +68,8 @@ public class MZToleranceComponent extends FlowPane {
     ppmToleranceField.setTooltip(new Tooltip(toolTip));
   }
 
+  public void setListener(Runnable listener) {
+    mzToleranceField.textProperty().addListener((o, oldValue, newValue) -> listener.run());
+    ppmToleranceField.textProperty().addListener((o, oldValue, newValue) -> listener.run());
+  }
 }

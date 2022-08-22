@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -43,13 +44,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class is used during project import to cache {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s.
- * Since mobility scans are created on demand of every call to {@link Frame#getMobilityScans()},
- * multiple duplicate instances would be created during project import, for every loaded {@link
- * io.github.mzmine.datamodel.featuredata.IonSpectrumSeries}, every {@link
- * io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType}, and so on. This class
- * contains {@link CachedIMSFrame}s over regular frames. These cached frames will once create and
- * retain instances of {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s so the same
+ * This class is used during project import to cache
+ * {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s. Since mobility scans are created on
+ * demand of every call to {@link Frame#getMobilityScans()}, multiple duplicate instances would be
+ * created during project import, for every loaded
+ * {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries}, every
+ * {@link io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType}, and so on. This
+ * class contains {@link CachedIMSFrame}s over regular frames. These cached frames will once create
+ * and retain instances of {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s so the same
  * instance can be used throughout the loading process.
  *
  * @author SteffenHeu https://github.com/SteffenHeu
@@ -207,6 +209,16 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
+  public boolean isContainsZeroIntensity() {
+    throw new UnsupportedOperationException("Unsupported during project load.");
+  }
+
+  @Override
+  public MassSpectrumType getSpectraType() {
+    throw new UnsupportedOperationException("Unsupported during project load.");
+  }
+
+  @Override
   public @NotNull Range<Float> getDataRTRange() {
     return originalFile.getDataRTRange();
   }
@@ -272,17 +284,7 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
-  public void setRTRange(int msLevel, Range<Float> rtRange) {
-    throw new UnsupportedOperationException("Unsupported during project load.");
-  }
-
-  @Override
-  public void setMZRange(int msLevel, Range<Double> mzRange) {
-    throw new UnsupportedOperationException("Unsupported during project load.");
-  }
-
-  @Override
-  public ObservableList<Scan> getScans() {
+  public @NotNull ObservableList<Scan> getScans() {
     return (ObservableList<Scan>) (ObservableList<? extends Scan>) cachedFrames;
   }
 

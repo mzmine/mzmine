@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -58,7 +58,7 @@ public class TSFUtils {
 
   private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
-  private static Logger logger = Logger.getLogger(TSFUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(TSFUtils.class.getName());
   private final int numThreads;
   private TSFLibrary tsfdata = null;
   private int BUFFER_SIZE = 50_000;
@@ -181,13 +181,12 @@ public class TSFUtils {
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
     final Range<Double> mzRange = metaDataTable.getMzRange();
 
-    final Coordinates coords = new Coordinates(
-        maldiTable.getTransformedXIndexPos((int) (frameIndex)),
-        maldiTable.getTransformedYIndexPos((int) (frameIndex)), 0);
+    final Coordinates coords = new Coordinates(maldiTable.getTransformedXIndexPos(frameIndex),
+        maldiTable.getTransformedYIndexPos(frameIndex), 0);
 
     double[][] mzIntensities = switch (spectrumType) {
       case PROFILE -> loadProfileSpectrum(handle, frameId);
-      case CENTROIDED, THRESHOLDED -> loadCentroidSpectrum(handle, frameId);
+      case CENTROIDED, THRESHOLDED, MIXED -> loadCentroidSpectrum(handle, frameId);
     };
 
     return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,
@@ -228,9 +227,8 @@ public class TSFUtils {
       return new SimpleScan(file, (int) frameId, msLevel, rt, null, mzIntensities[0],
           mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange);
     } else {
-      final Coordinates coords = new Coordinates(
-          maldiTable.getTransformedXIndexPos((int) (frameIndex)),
-          maldiTable.getTransformedYIndexPos((int) (frameIndex)), 0);
+      final Coordinates coords = new Coordinates(maldiTable.getTransformedXIndexPos(frameIndex),
+          maldiTable.getTransformedYIndexPos(frameIndex), 0);
 
       return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), 0, 0, mzIntensities[0],

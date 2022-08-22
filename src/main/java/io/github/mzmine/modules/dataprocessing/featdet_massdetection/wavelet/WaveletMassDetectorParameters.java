@@ -42,7 +42,8 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
       "Wavelet window size (%)", "Size in % of wavelet window to apply in m/z feature detection");
 
   public WaveletMassDetectorParameters() {
-    super(new Parameter[] {noiseLevel, scaleLevel, waveletWindow});
+    super(new Parameter[] {noiseLevel, scaleLevel, waveletWindow},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#wavelet-transform");
   }
 
   public ExitCode showSetupDialog(boolean valueCheckRequired) {

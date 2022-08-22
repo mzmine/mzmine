@@ -172,12 +172,14 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     // add all
     for (SpectralDBAnnotation match : matches) {
       if (!totalMatches.contains(match)) {
-        // add
+
+        // add and skip matches without datapoints
         totalMatches.add(match);
         SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
         pn.setCoupleZoomY(isCouplingZoomY);
         pn.prefWidthProperty().bind(this.widthProperty());
         matchPanels.put(match, pn);
+
       }
     }
     // sort and show
@@ -189,6 +191,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
    */
   public void sortTotalMatches() {
     if (totalMatches.isEmpty()) {
+      setMatchingFinished();
       return;
     }
 
@@ -203,7 +206,8 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
 
   public void setMatchingFinished() {
     if (totalMatches.isEmpty()) {
-      noMatchesFound.setText("Sorry no matches found");
+      noMatchesFound.setText("Sorry no matches found.\n"
+          + "Please visualize NIST spectral search results through NIST MS Search software.");
       noMatchesFound.setTextFill(Color.RED);
     }
   }

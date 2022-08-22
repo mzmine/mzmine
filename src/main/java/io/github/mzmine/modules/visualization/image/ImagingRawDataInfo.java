@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -24,54 +24,12 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class ImagingRawDataInfo {
-
-  private ImagingRawDataFile rawDataFile;
-  private String name;
-  private Integer numberOfScans;
-  private Range<Double> dataMzRange;
+public record ImagingRawDataInfo(ImagingRawDataFile rawDataFile, String name, Integer numberOfScans,
+                                 Range<Double> dataMzRange) {
 
   public ImagingRawDataInfo(ImagingRawDataFile rawDataFile) {
-    this.rawDataFile = rawDataFile;
-    init();
-  }
-
-  private void init() {
-    name = rawDataFile.getName();
-    numberOfScans = rawDataFile.getNumOfScans();
-    dataMzRange = rawDataFile.getDataMZRange();
-  }
-
-  public ImagingRawDataFile getRawDataFile() {
-    return rawDataFile;
-  }
-
-  public void setRawDataFile(ImagingRawDataFile rawDataFile) {
-    this.rawDataFile = rawDataFile;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public Integer getNumberOfScans() {
-    return numberOfScans;
-  }
-
-  public void setNumberOfScans(Integer numberOfScans) {
-    this.numberOfScans = numberOfScans;
-  }
-
-  public Range<Double> getDataMzRange() {
-    return dataMzRange;
-  }
-
-  public void setDataMzRange(Range<Double> dataMzRange) {
-    this.dataMzRange = dataMzRange;
+    this(rawDataFile, rawDataFile.getName(), rawDataFile.getNumOfScans(),
+        rawDataFile.getDataMZRange());
   }
 
 }

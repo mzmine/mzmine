@@ -19,20 +19,17 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsexpander;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
-import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -75,6 +72,8 @@ public class ImsExpanderTask extends AbstractTask {
   private long totalFrames = 1;
   private long totalRows = 1;
 
+  private final int maxNumTraces;
+
   public ImsExpanderTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final ModularFeatureList flist,
       MZmineProject project, final int allowedThreads, @NotNull Instant moduleCallDate) {
@@ -85,6 +84,10 @@ public class ImsExpanderTask extends AbstractTask {
     useMzToleranceRange = parameters.getParameter(ImsExpanderParameters.mzTolerance).getValue();
     mzTolerance = parameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
         .getValue();
+    maxNumTraces =
+        parameters.getValue(ImsExpanderParameters.maxNumTraces) ? parameters.getParameter(
+            ImsExpanderParameters.maxNumTraces).getEmbeddedParameter().getValue()
+            : Integer.MAX_VALUE;
     binWidth = parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue()
         ? parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getEmbeddedParameter()
         .getValue() : BinningMobilogramDataAccess.getRecommendedBinWidth(
@@ -100,7 +103,7 @@ public class ImsExpanderTask extends AbstractTask {
   public double getFinishedPercentage() {
     return
         0.5 * tasks.stream().mapToDouble(AbstractTask::getFinishedPercentage).sum() / tasks.size()
-        + 0.5 * (processedRows.get() / (double) totalRows);
+            + 0.5 * (processedRows.get() / (double) totalRows);
   }
 
   @Override
@@ -109,38 +112,60 @@ public class ImsExpanderTask extends AbstractTask {
     if (flist.getNumberOfRawDataFiles() != 1 || !(flist.getRawDataFile(
         0) instanceof IMSRawDataFile imsFile)) {
       setErrorMessage("More than one raw data file in feature list " + flist.getName()
-                      + " or no mobility dimension in raw data file.");
+          + " or no mobility dimension in raw data file.");
       setStatus(TaskStatus.ERROR);
       return;
     }
 
     totalRows = flist.getNumberOfRows();
 
+    final ModularFeatureList newFlist = new ModularFeatureList(flist.getName() + SUFFIX,
+        getMemoryMapStorage(), imsFile);
+    newFlist.setSelectedScans(imsFile, flist.getSeletedScans(imsFile));
+    newFlist.getAppliedMethods().addAll(flist.getAppliedMethods());
+    DataTypeUtils.addDefaultIonMobilityTypeColumns(newFlist);
+
     final List<? extends FeatureListRow> rows = new ArrayList<>(flist.getRows());
     rows.sort((Comparator.comparingDouble(FeatureListRow::getAverageMZ)));
 
     // either we use the row m/z + tolerance range, or we use the mz range of the feature.
-    final List<ExpandingTrace> expandingTraces = rows.stream().map(
+    final List<ExpandingTrace> expandingTraces = new ArrayList<>(rows.stream().map(
         row -> new ExpandingTrace((ModularFeatureListRow) row,
             useMzToleranceRange ? mzTolerance.getToleranceRange(row.getAverageMZ())
-                : row.getFeature(imsFile).getRawDataPointsMZRange())).toList();
+                : row.getFeature(imsFile).getRawDataPointsMZRange())).toList());
 
     final List<Frame> frames = (List<Frame>) flist.getSeletedScans(flist.getRawDataFile(0));
     assert frames != null;
 
-    // we partition the frames so we can use multiple MobilityScanDataAccesses on the same raw data
-    // file and don't have to extract the data points multiple times for each frame, if we use
-    // a TdfRawDataFileImpl (no memory mapped data points)
-    final List<List<Frame>> subLists = Lists.partition(frames, frames.size() / NUM_THREADS);
+    // we partition the traces (sorted by rt) so we can start and end at specific frames. By splitting
+    // the traces and not frames, we can also directly store the raw data on the SSD/HDD as soon as
+    // a thread finishes. Thereby we can reduce the memory consumption, especially in images.
+    final int tracesPerList = Math.min(expandingTraces.size() / NUM_THREADS, maxNumTraces);
+    expandingTraces.sort(
+        (a, b) -> Float.compare(a.getRtRange().lowerEndpoint(), b.getRtRange().lowerEndpoint()));
+    final List<List<ExpandingTrace>> subLists = Lists.partition(expandingTraces, tracesPerList);
 
-    for (final List<Frame> subList : subLists) {
-      final Frame first = subList.get(0);
-      final Frame last = subList.get(subList.size() - 1);
-      Range<Float> rtRange = Range.closed(first.getRetentionTime(), last.getRetentionTime());
-      final List<ExpandingTrace> eligibleTraces = expandingTraces.stream()
-          .filter(trace -> trace.getRtRange().isConnected(rtRange)).toList();
-      tasks.add(new ImsExpanderSubTask(getMemoryMapStorage(), parameters, subList, flist,
-          eligibleTraces));
+    for (final List<ExpandingTrace> subList : subLists) {
+      final Frame firstFrame = (Frame) subList.get(0).getRow().getBestFeature().getFeatureData()
+          .getSpectrum(0);
+      final ExpandingTrace lastFrameTrace = subList.stream().max(
+              (a, b) -> Float.compare(a.getRtRange().upperEndpoint(), b.getRtRange().upperEndpoint()))
+          .orElseThrow(() -> new IllegalStateException("Cannot determine last frame."));
+      final IonTimeSeries<? extends Scan> lastTraceData = lastFrameTrace.getRow().getBestFeature()
+          .getFeatureData();
+      final Frame lastFrame = (Frame) lastTraceData.getSpectrum(
+          lastTraceData.getNumberOfValues() - 1);
+      final List<Frame> framesSubList = frames.subList(frames.indexOf(firstFrame),
+          frames.indexOf(lastFrame) + 1);
+
+      final ArrayList<ExpandingTrace> traces = new ArrayList<>(subList);
+      traces.sort(Comparator.comparingDouble(a -> a.getRow().getAverageMZ()));
+
+      final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess.of(imsFile,
+          binWidth);
+      tasks.add(
+          new ImsExpanderSubTask(getMemoryMapStorage(), parameters, framesSubList, flist, traces,
+              mobilogramDataAccess, newFlist));
     }
 
     final AtomicBoolean allThreadsFinished = new AtomicBoolean(false);
@@ -172,36 +197,6 @@ public class ImsExpanderTask extends AbstractTask {
     if (!mayContinue.get() || getStatus() == TaskStatus.CANCELED) {
       setStatus(TaskStatus.CANCELED);
       return;
-    }
-
-    final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess.of(imsFile,
-        binWidth);
-
-    final ModularFeatureList newFlist = new ModularFeatureList(flist.getName() + SUFFIX,
-        getMemoryMapStorage(), imsFile);
-    newFlist.setSelectedScans(imsFile, flist.getSeletedScans(imsFile));
-    newFlist.getAppliedMethods().addAll(flist.getAppliedMethods());
-    DataTypeUtils.addDefaultIonMobilityTypeColumns(newFlist);
-
-    for (ExpandingTrace expandingTrace : expandingTraces) {
-      desc = "Creating new features " + processedRows.getAndIncrement() + "/" + totalRows;
-
-      if (expandingTrace.getNumberOfMobilityScans() > 1) {
-        final IonMobilogramTimeSeries series = expandingTrace.toIonMobilogramTimeSeries(
-            getMemoryMapStorage(), mobilogramDataAccess);
-        final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
-            expandingTrace.getRow(), false);
-        final ModularFeature f = new ModularFeature(newFlist,
-            expandingTrace.getRow().getFeature(imsFile));
-        f.set(FeatureDataType.class, series);
-        row.addFeature(imsFile, f);
-        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
-        newFlist.addRow(row);
-      }
-
-      if (isCanceled()) {
-        return;
-      }
     }
 
     // explicitly don't renumber, IDs are kept from the old flist.

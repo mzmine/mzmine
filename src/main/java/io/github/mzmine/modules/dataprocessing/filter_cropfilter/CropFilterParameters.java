@@ -43,7 +43,8 @@ public class CropFilterParameters extends SimpleParameterSet {
           "If checked, original file will be removed and only filtered version remains");
 
   public CropFilterParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, mzRange, suffix, autoRemove});
+    super(new Parameter[] {dataFiles, scanSelection, mzRange, suffix, autoRemove},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_raw_data/crop-filter.html");
   }
 
 }

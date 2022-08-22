@@ -17,7 +17,9 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.io.File;
 import java.util.Collection;
@@ -54,24 +56,19 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * MS Level for search.
    */
   public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
-      "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
+      "Choose MS level for spectal matching. Enter \"1\" for MS1 spectra or ADAP-GC Cluster Spectra.",
       2, 1, 1000);
 
   /**
    * Match factor cut-off.
    */
-  public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter("Min. match factor",
-      "The minimum match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
+  public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
+      "The minimum cosine similarity score (dot product) for identification",
+      MZmineCore.getConfiguration().getScoreFormat(),
+      0.7, 0.0, 1.0);
 
   /**
-   * Reverse match factor cut-off.
-   */
-  public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR =
-      new IntegerParameter("Min. reverse match factor",
-          "The minimum reverse match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
-
-  /**
-   * Optional MSMS merging parameters.
+   * Optional MS/MS merging parameters.
    */
   public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
       new OptionalModuleParameter<>("Merge MS/MS (experimental)",
@@ -82,8 +79,16 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Optional MZ rounding.
    */
   public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ =
-      new OptionalParameter<>(new ComboParameter<IntegerMode>("Integer m/z",
-          "Merging mode for fractional m/z to unit mass", IntegerMode.values()), false);
+      new OptionalParameter<>(
+          new ComboParameter<>("Integer m/z", "Merging mode for fractional m/z to unit mass",
+              IntegerMode.values()), false);
+
+  /**
+   * Spectrum import option: Overwrite or Append.
+   */
+  public static final ComboParameter<ImportOption> IMPORT_PARAMETER =
+      new ComboParameter<>("Spectrum Import", "Import Options", ImportOption
+          .values(), ImportOption.OVERWRITE);
 
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
@@ -92,8 +97,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MIN_MATCH_FACTOR,
-        MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER, INTEGER_MZ});
+    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, DOT_PRODUCT,
+        MERGE_PARAMETER, INTEGER_MZ, IMPORT_PARAMETER});
   }
 
   @Override
