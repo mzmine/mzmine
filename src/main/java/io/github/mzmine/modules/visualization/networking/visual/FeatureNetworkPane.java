@@ -28,6 +28,7 @@ import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryM
 import io.github.mzmine.util.GraphStreamUtils;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -210,10 +211,14 @@ public class FeatureNetworkPane extends NetworkPane {
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
     updateGraphButton.setOnAction(e -> updateGraph());
 
+    Button showOnlyConnectedNodesButton = new Button("Show only connected nodes");
+    showOnlyConnectedNodesButton.setMaxWidth(Double.MAX_VALUE);
+    showOnlyConnectedNodesButton.setOnAction(e -> visualizeConnectedNodesOnly());
+
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
         toggleShowIonIdentityEdges, toggleShowEdgeLabel, toggleShowNodeLabel, showGNPSMatches,
-        showLibraryMatches, l, nodeNeighbours, updateGraphButton);
+        showLibraryMatches, l, nodeNeighbours, updateGraphButton, showOnlyConnectedNodesButton);
     pnRightMenu.setSpacing(10);
     pnRightMenu.setPadding(new Insets(0, 20, 10, 20));
     this.setRight(pnRightMenu);
@@ -243,7 +248,20 @@ public class FeatureNetworkPane extends NetworkPane {
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
     } else {
-      graph.setNodeFilter(GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(),bNeighbors.get()));
+      graph.setNodeFilter(
+          GraphStreamUtils.getNodeNeighbors(getMouseClickedNode(), bNeighbors.get()));
+    }
+  }
+
+  /**
+   * Visualize only the cluster (all connected nodes)
+   */
+  private void visualizeConnectedNodesOnly()
+  {
+    List<Node> isolatedNodes = graph.nodes().filter(n -> (n.getInDegree()==0 || n.getOutDegree()==0))
+        .toList();
+    for (Node n : isolatedNodes) {
+      graph.removeNode(n);
     }
   }
 
