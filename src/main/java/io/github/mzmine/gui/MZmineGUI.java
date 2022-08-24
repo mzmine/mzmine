@@ -40,7 +40,6 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
@@ -151,12 +150,8 @@ public class MZmineGUI extends Application implements Desktop {
         // Close all windows related to previous project
         GUIUtils.closeAllWindows();
 
-        // Create a new, empty project
-        MZmineProject newProject = new MZmineProjectImpl();
-
-        // Replace the current project with the new one
-        ProjectManager projectManager = MZmineCore.getProjectManager();
-        projectManager.setCurrentProject(newProject);
+        // Set a new project clears the old
+        MZmineCore.getProjectManager().clearProject();
 
         MZmineCore.getDesktop().setStatusBarText("Project space cleaned");
 
@@ -443,7 +438,7 @@ public class MZmineGUI extends Application implements Desktop {
           .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
 
       Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
-      if (darkMode != null && darkMode == true) {
+      if (darkMode != null && darkMode) {
         rootScene.getStylesheets()
             .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
       } else {
