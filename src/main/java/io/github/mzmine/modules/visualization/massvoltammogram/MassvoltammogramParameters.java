@@ -48,19 +48,19 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       new DecimalFormat("0.0"), 30d);
 
   public static final DoubleParameter potentialRampSpeed = new DoubleParameter(
-      "Potential ramp / mV/s", "Potential ramp speed in mV/s.", new DecimalFormat("0.0"), 10d);
+      "Potential Ramp / mV/s", "Potential ramp speed in mV/s.", new DecimalFormat("0.0"), 10d);
 
-  public static final DoubleParameter stepSize = new DoubleParameter("Potential steps / mV",
+  public static final DoubleParameter stepSize = new DoubleParameter("Potential Steps / mV",
       "Potential step between drawn Spectra.", new DecimalFormat("0.0"), 100d);
 
   public static final DoubleRangeParameter potentialRange = new DoubleRangeParameter(
-      "Potential range / mV", "Minimal and maximal potential of ramp.", new DecimalFormat("0.0"));
+      "Potential Range / mV", "Minimal and maximal potential of ramp.", new DecimalFormat("0.0"));
 
   public static final MZRangeParameter mzRange = new MZRangeParameter("m/z Range",
       "Minimal and maximal m/z.");
 
   public static final ComboParameter<ReactionMode> reactionMode = new ComboParameter<>(
-      "Reaction mode", "Reaction mode of the experiment.", ReactionMode.values(),
+      "Reaction Mode", "Reaction mode of the experiment.", ReactionMode.values(),
       ReactionMode.OXIDATIVE);
 
   public MassvoltammogramParameters() {
