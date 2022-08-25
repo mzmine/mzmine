@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -41,9 +41,9 @@ import org.w3c.dom.Document;
  */
 public class BatchModeModule implements MZmineProcessingModule {
 
+  private static final Logger logger = Logger.getLogger(BatchModeModule.class.getName());
   private static final String MODULE_NAME = "Batch mode";
   private static final String MODULE_DESCRIPTION = "This module allows execution of multiple processing tasks in a batch.";
-  private static Logger logger = Logger.getLogger(BatchModeModule.class.getName());
 
   public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {

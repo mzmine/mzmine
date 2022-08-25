@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -25,10 +25,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
 /**
+ *
  */
 public class OptionalModuleComponent extends FlowPane {
 
-  private CheckBox checkBox;
+  private final CheckBox checkBox;
   private Button setButton;
 
   public OptionalModuleComponent(ParameterSet embeddedParameters) {
@@ -67,8 +68,5 @@ public class OptionalModuleComponent extends FlowPane {
     return checkBox;
   }
 
-  /*
-   * public void addItemListener(ItemListener il) { checkBox.addItemListener(il); }
-   */
 
 }

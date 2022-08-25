@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -16,11 +16,6 @@
  *
  */
 
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 
@@ -33,6 +28,7 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 
 /**
+ *
  */
 public class DirectoryComponent extends BorderPane {
 
@@ -78,8 +74,9 @@ public class DirectoryComponent extends BorderPane {
 
       // Open chooser.
       File selectedFile = fileChooser.showDialog(null);
-      if (selectedFile == null)
+      if (selectedFile == null) {
         return;
+      }
       txtDirectory.setText(selectedFile.getPath());
 
     });
@@ -94,7 +91,7 @@ public class DirectoryComponent extends BorderPane {
   }
 
   public void setValue(final File value) {
-    txtDirectory.setText(value.getPath());
+    txtDirectory.setText(value == null ? "" : value.getPath());
   }
 
   public void setToolTipText(final String text) {

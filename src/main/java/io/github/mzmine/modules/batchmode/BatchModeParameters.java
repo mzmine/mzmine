@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,31 +19,27 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class BatchModeParameters extends SimpleParameterSet {
 
-  public static final FileNameListSilentParameter lastFiles =
-      new FileNameListSilentParameter("Last used files");
+  public static final FileNameListSilentParameter lastFiles = new FileNameListSilentParameter(
+      "Last used files");
   public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
 
+  public static final AdvancedParametersParameter<AdvancedBatchModeParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedBatchModeParameters());
+
   public BatchModeParameters() {
-    super(new Parameter[] {batchQueue, lastFiles});
+    super(new Parameter[]{batchQueue, advanced, lastFiles});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
-
-    // set lastUsed files list
-    final BatchComponentController batchController = this.getParameter(batchQueue).getController();
-
-    // new last used files are inserted to this list in the component
-    batchController.setLastFiles(lastFiles.getValue());
-
+    BatchModeParameterSetupDialog dialog = new BatchModeParameterSetupDialog(this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

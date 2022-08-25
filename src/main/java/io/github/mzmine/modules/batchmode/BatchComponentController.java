@@ -489,6 +489,7 @@ public class BatchComponentController implements LastFilesComponent {
     return item;
   }
 
+
   // Queue operations.
   private enum QueueOperations {
     Replace, Prepend, Insert, Append

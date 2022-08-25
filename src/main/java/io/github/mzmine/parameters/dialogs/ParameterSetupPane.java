@@ -24,6 +24,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersComponent;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import java.net.URL;
 import java.util.HashMap;
@@ -45,7 +46,9 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.web.WebView;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +67,6 @@ public class ParameterSetupPane extends BorderPane {
   protected final ParameterSet parameterSet;
   protected final Map<String, Node> parametersAndComponents = new HashMap<>();
   protected final Button btnHelp;
-  protected Button btnCancel;
   // Button panel - added here so it is possible to move buttons as a whole,
   // if needed.
   protected final ButtonBar pnlButtons;
@@ -79,17 +81,18 @@ public class ParameterSetupPane extends BorderPane {
   // setup dialog, where some parameters need to be set in advance according
   // to values that are not yet imported etc.
   private final boolean valueCheckRequired;
-  private GridPane paramsPane;
+  protected Button btnCancel;
   // Buttons
   protected Button btnOK;
   /**
    * Help window for this setup dialog. Initially null, until the user clicks the Help button.
    */
   protected HelpWindow helpWindow = null;
+  private GridPane paramsPane;
 
   public ParameterSetupPane(boolean valueCheckRequired, boolean addOkButton,
       ParameterSet parameters) {
-    this(valueCheckRequired, parameters, addOkButton, false, null, true);
+    this(valueCheckRequired, parameters, addOkButton, false, null, true, true);
   }
 
   /**
@@ -99,7 +102,7 @@ public class ParameterSetupPane extends BorderPane {
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
       boolean addOkButton, String message) {
-    this(valueCheckRequired, parameters, addOkButton, false, message, true);
+    this(valueCheckRequired, parameters, addOkButton, false, message, true, true);
   }
 
   /**
@@ -109,6 +112,18 @@ public class ParameterSetupPane extends BorderPane {
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
       boolean addOkButton, boolean addCancelButton, String message, boolean addParamComponents) {
+    this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
+        true);
+  }
+
+  /**
+   * Method to display setup dialog with a html-formatted footer message at the bottom.
+   *
+   * @param message: html-formatted text
+   */
+  public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
+      boolean addOkButton, boolean addCancelButton, String message, boolean addParamComponents,
+      boolean addHelp) {
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
     this.helpURL = parameters.getClass().getResource("help/help.html");
@@ -146,30 +161,34 @@ public class ParameterSetupPane extends BorderPane {
       ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
     }
 
-    if (parameters.getOnlineHelpUrl() != null) { // if we have online docs, use those
-      btnHelp = new Button("Help");
-      btnHelp.setOnAction(e -> MZmineCore.getDesktop().openWebPage(parameters.getOnlineHelpUrl()));
+    if (addHelp) {
+      if (parameters.getOnlineHelpUrl() != null) { // if we have online docs, use those
+        btnHelp = new Button("Help");
+        btnHelp.setOnAction(
+            e -> MZmineCore.getDesktop().openWebPage(parameters.getOnlineHelpUrl()));
 
-      ButtonBar.setButtonData(btnHelp, ButtonData.HELP);
-      pnlButtons.getButtons().add(btnHelp);
-    } else if (helpURL != null) { // otherwise use old help url
-      btnHelp = new Button("Help");
-      btnHelp.setOnAction(e -> {
-        if (helpWindow != null) {
-          helpWindow.show();
-          helpWindow.toFront();
-        } else {
-          helpWindow = new HelpWindow(helpURL.toString());
-          helpWindow.show();
-        }
-      });
+        ButtonBar.setButtonData(btnHelp, ButtonData.HELP);
+        pnlButtons.getButtons().add(btnHelp);
+      } else if (helpURL != null) { // otherwise use old help url
+        btnHelp = new Button("Help");
+        btnHelp.setOnAction(e -> {
+          if (helpWindow != null) {
+            helpWindow.show();
+            helpWindow.toFront();
+          } else {
+            helpWindow = new HelpWindow(helpURL.toString());
+            helpWindow.show();
+          }
+        });
 
-      ButtonBar.setButtonData(btnHelp, ButtonData.HELP);
-      pnlButtons.getButtons().add(btnHelp);
+        ButtonBar.setButtonData(btnHelp, ButtonData.HELP);
+        pnlButtons.getButtons().add(btnHelp);
+      } else {
+        btnHelp = null;
+      }
     } else {
       btnHelp = null;
     }
-
     mainPane.setBottom(pnlButtons);
 
     if (!Strings.isNullOrEmpty(footerMessage)) {
@@ -273,7 +292,6 @@ public class ParameterSetupPane extends BorderPane {
       }
 
       label.setStyle("-fx-font-weight: bold");
-      paramsPane.add(label, 0, rowCounter);
       label.setLabelFor(comp);
 
       parametersAndComponents.put(p.getName(), comp);
@@ -285,8 +303,15 @@ public class ParameterSetupPane extends BorderPane {
        * vertWeightSum += verticalWeight;
        */
 
-      paramsPane.add(comp, 1, rowCounter, 1, 1);
-
+      RowConstraints rowConstraints = new RowConstraints();
+      if (comp instanceof AdvancedParametersComponent) {
+        paramsPane.add(comp, 0, rowCounter, 2, 1);
+        rowConstraints.setVgrow(Priority.SOMETIMES);
+      } else {
+        paramsPane.add(label, 0, rowCounter);
+        paramsPane.add(comp, 1, rowCounter, 1, 1);
+      }
+      paramsPane.getRowConstraints().add(rowConstraints);
       rowCounter++;
     }
     return paramsPane;

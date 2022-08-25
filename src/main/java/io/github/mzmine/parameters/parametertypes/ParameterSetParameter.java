@@ -1,44 +1,42 @@
 /*
- * Copyright (C) 2016 Du-Lab Team <dulab.binf@gmail.com>
+ * Copyright 2006-2022 The MZmine Development Team
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
- *
  * @author aleksandrsmirnov
  */
-public class ParameterSetParameter
-    implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer, EmbeddedParameterSet {
-  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+public class ParameterSetParameter implements UserParameter<ParameterSet, ParameterSetComponent>,
+    ParameterContainer, EmbeddedParameterSet {
 
-  private String name;
-  private String description;
+  private static final Logger logger = Logger.getLogger(ParameterSetParameter.class.getName());
+  private final String name;
+  private final String description;
   private ParameterSet value;
 
   private static final String parameterElement = "parameter";
@@ -95,8 +93,9 @@ public class ParameterSetParameter
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (this.value == null)
+    if (this.value == null) {
       return;
+    }
 
     xmlElement.setAttribute("type", this.name);
     Document parent = xmlElement.getOwnerDocument();
@@ -131,8 +130,9 @@ public class ParameterSetParameter
   public boolean checkValue(Collection<String> errorMessages) {
 
     boolean result = true;
-    for (final Parameter p : this.value.getParameters())
+    for (final Parameter p : this.value.getParameters()) {
       result &= p.checkValue(errorMessages);
+    }
 
     return result;
   }
