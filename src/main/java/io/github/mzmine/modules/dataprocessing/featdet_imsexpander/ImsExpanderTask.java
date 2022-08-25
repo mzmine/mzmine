@@ -41,6 +41,7 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class ImsExpanderTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ImsExpanderTask.class.getName());
   private static final int NUM_THREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
-  private static final String SUFFIX = " expanded ";
+  private static final String SUFFIX = " expanded";
   protected final ParameterSet parameters;
   protected final ModularFeatureList flist;
   final List<AbstractTask> tasks = new ArrayList<>();
@@ -125,7 +126,8 @@ public class ImsExpanderTask extends AbstractTask {
     newFlist.getAppliedMethods().addAll(flist.getAppliedMethods());
     DataTypeUtils.addDefaultIonMobilityTypeColumns(newFlist);
 
-    final List<? extends FeatureListRow> rows = new ArrayList<>(flist.getRows());
+    final List<? extends FeatureListRow> rows = new ArrayList<>(FeatureUtils.copyFeatureRows(
+        (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) flist.getRows()));
     rows.sort((Comparator.comparingDouble(FeatureListRow::getAverageMZ)));
 
     // either we use the row m/z + tolerance range, or we use the mz range of the feature.
