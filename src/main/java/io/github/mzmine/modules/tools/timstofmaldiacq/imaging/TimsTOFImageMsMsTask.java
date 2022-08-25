@@ -1,27 +1,30 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -31,8 +34,10 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionTask;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +67,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final File savePathDir;
   private final Boolean exportOnly;
   private final Double isolationWidth;
+  private final MZTolerance isolationWindow;
 
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
@@ -81,6 +87,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
     isolationWidth = parameters.getValue(TimsTOFImageMsMsParameters.isolationWidth);
+    isolationWindow = new MZTolerance(isolationWidth / 1.7,
+        0d); // isolation window typically wider than set
   }
 
   @Override
@@ -107,6 +115,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
     final FeatureList flist = flists[0];
     final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
+
+    final MobilityScanDataAccess access = new MobilityScanDataAccess(file,
+        MobilityScanDataType.CENTROID, (List<Frame>) file.getFrames(1));
 
     if (flist.getNumberOfRows() == 0) {
       setStatus(TaskStatus.FINISHED);
@@ -142,8 +153,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       final IonTimeSeries<? extends ImagingFrame> imagingData = (IonTimeSeries<? extends ImagingFrame>) data;
 
       // check existing msms spots first
-      int createdMsMsEntries = addEntriesToExistingSpots(minMsMsIntensity, frameSpotMap, precursor,
-          imagingData, numMsMs, featureSpotMap, minDistance);
+      int createdMsMsEntries = addEntriesToExistingSpots(access, minMsMsIntensity, frameSpotMap,
+          precursor, imagingData, numMsMs, featureSpotMap, minDistance);
 
       // we have all needed entries
       if (createdMsMsEntries >= numMsMs) {
@@ -151,7 +162,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
 
       // find new entries
-      createdMsMsEntries = createNewMsMsSpots(frameSpotMap, minMsMsIntensity, imagingData,
+      createdMsMsEntries = createNewMsMsSpots(access, frameSpotMap, minMsMsIntensity, imagingData,
           precursor, numMsMs, createdMsMsEntries, featureSpotMap, minDistance);
 
       if (createdMsMsEntries < numMsMs) {
@@ -206,7 +217,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private int createNewMsMsSpots(Map<ImagingFrame, ImagingSpot> spotMap, double minMsMsIntensity,
+  private int createNewMsMsSpots(MobilityScanDataAccess access,
+      Map<ImagingFrame, ImagingSpot> spotMap, double minMsMsIntensity,
       IonTimeSeries<? extends ImagingFrame> imagingData, MaldiTimsPrecursor precursor, int numMsMs,
       int currentNumSpots, Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance) {
     final IntensitySortedSeries<IonTimeSeries<? extends ImagingFrame>> imagingSorted = new IntensitySortedSeries<>(
@@ -228,6 +240,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
         continue;
       }
 
+      final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
+          access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
+      logger.finest(() -> String.valueOf(chimerityScore));
+
       final MaldiSpotInfo spotInfo = frame.getMaldiSpotInfo();
       if (spotInfo == null) {
         continue;
@@ -242,7 +258,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     return currentNumSpots;
   }
 
-  private int addEntriesToExistingSpots(double minMsMsIntensity,
+  private int addEntriesToExistingSpots(MobilityScanDataAccess access, double minMsMsIntensity,
       Map<ImagingFrame, ImagingSpot> spotMap, MaldiTimsPrecursor precursor,
       IonTimeSeries<? extends ImagingFrame> imagingData, final int numMsMs,
       Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance) {
@@ -259,6 +275,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       if (!checkDistanceForSpots(minDistance, spots, imagingSpot.spotInfo())) {
         continue;
       }
+
+      final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
+          access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
+      logger.finest(() -> String.valueOf(chimerityScore));
 
       // check if the entry fits into the precursor ramp at that spot
       if (imagingSpot.addPrecursor(precursor)) {
@@ -293,7 +313,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       MaldiSpotInfo maldiSpotInfo) {
     for (MaldiSpotInfo spot : spots) {
       if (!checkDistanceForSpot(spot, maldiSpotInfo, minDistance)) {
-        logger.finest("distance too low");
+//        logger.finest("distance too low");
         return false;
       }
     }

@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -49,10 +49,10 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final int totalFrames;
 
   protected final List<Frame> eligibleFrames;
-  private final ScanSelection selection;
   protected final double[] mzs;
   protected final double[] intensities;
   protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
+  private final ScanSelection selection;
   // current data
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
@@ -70,7 +70,7 @@ public class MobilityScanDataAccess implements MobilityScan {
    *
    * @param dataFile  target data file to loop over all scans or mass lists
    * @param type      processed or raw data
-   * @param selection processed or raw data
+   * @param selection Scan selection, can be used to filter specific mobility scans.
    */
   protected MobilityScanDataAccess(IMSRawDataFile dataFile, MobilityScanDataType type,
       ScanSelection selection) {
@@ -82,6 +82,13 @@ public class MobilityScanDataAccess implements MobilityScan {
     this(dataFile, type, frames, null);
   }
 
+  /**
+   * @param dataFile  target data file to loop over all scans or mass lists
+   * @param type      processed or raw data
+   * @param frames    the frames to use.
+   * @param selection Scan selection, can be used to filter specific mobility scans of the given
+   *                  frames.
+   */
   public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames,
       ScanSelection selection) {
@@ -216,8 +223,8 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   /**
-   * Sets the next frame. The mobility scan index is reset to -1, therefore
-   * {@link #nextMobilityScan} has to be called before accessing new scan data.
+   * Sets the next frame. The mobility scan index is reset to -1, therefore {@link
+   * #nextMobilityScan} has to be called before accessing new scan data.
    *
    * @return the next Frame.
    */
@@ -350,10 +357,10 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW ->
-          frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max().orElse(0);
-      case CENTROID ->
-          frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max().orElse(0);
+      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
+          .orElse(0);
+      case CENTROID -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
+          .orElse(0);
     };
   }
 

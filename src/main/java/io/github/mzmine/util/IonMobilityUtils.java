@@ -1,18 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.util;
@@ -24,6 +25,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
@@ -320,6 +322,57 @@ public class IonMobilityUtils {
         dst[i] = series.getMobility(i);
       }
     }
+  }
+
+  /**
+   * @param precursorMz   The precursor to isolate.
+   * @param access        A data access.
+   * @param mzRange       The mzRange to isolate.
+   * @param mobilityRange The mobility range to isolate.
+   * @return Accumulated precursor intensity divided by intensity of all ions in the
+   * isolation window.
+   */
+  public static double getIsolationChimerityScore(final double precursorMz,
+      @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
+      @NotNull final Range<Float> mobilityRange) {
+
+    final Frame frame = access.getFrame();
+
+    double precursorIntensity = 0d;
+    double isolationWindowTIC = 0d;
+
+    access.resetMobilityScan();
+    while (access.hasNextMobilityScan()) {
+      final MobilityScan mobilityScan = access.nextMobilityScan();
+
+      if (access.getNumberOfDataPoints() == 0) {
+        continue;
+      }
+
+      final int closestIndex = access.binarySearch(precursorMz, true);
+      if (mzRange.contains(access.getMzValue(closestIndex))) {
+        precursorIntensity += access.getIntensityValue(closestIndex);
+        isolationWindowTIC += access.getIntensityValue(closestIndex);
+      }
+
+      for (int i = closestIndex - 1; i > 0; i--) {
+        if (mzRange.contains(access.getMzValue(i))) {
+          isolationWindowTIC += access.getIntensityValue(i);
+        } else {
+          break;
+        }
+      }
+
+      for (int i = closestIndex + 1; i < access.getNumberOfDataPoints(); i++) {
+        if (mzRange.contains(access.getMzValue(i))) {
+          isolationWindowTIC += access.getIntensityValue(i);
+        } else {
+          break;
+        }
+      }
+    }
+
+    return precursorIntensity / isolationWindowTIC;
   }
 
   public enum MobilogramType {
