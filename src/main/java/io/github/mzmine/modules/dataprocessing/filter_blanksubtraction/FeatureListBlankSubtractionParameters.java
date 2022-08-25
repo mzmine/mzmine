@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter alignedPeakList =
-      new FeatureListsParameter("Aligned peak list", 1, 1);
+      new FeatureListsParameter("Aligned feature list", 1, 1);
 
   public static final RawDataFilesParameter blankRawDataFiles =
       new RawDataFilesParameter("Blank/Control raw data files", 1, 100);
@@ -51,7 +51,8 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "The suffix for the new feature list.", "subtracted");
 
   public FeatureListBlankSubtractionParameters() {
-    super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, foldChange, suffix});
+    super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, foldChange, suffix},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }
 
   @Override
