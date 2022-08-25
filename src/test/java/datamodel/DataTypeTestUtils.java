@@ -18,25 +18,27 @@
 package datamodel;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javafx.scene.paint.Color;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 
 /**
@@ -65,20 +67,25 @@ public class DataTypeTestUtils {
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
     final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1);
     flist.addRow(row);
+
+    final MZmineProject project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
+
     row.set(type, value);
-    testSaveLoad(type, value, flist, row, null, null);
+    testSaveLoad(type, value, project, flist, row, null, null);
 
     // test save/load for row null value
-    testSaveLoad(type, null, flist, row, null, null);
+    testSaveLoad(type, null, project, flist, row, null, null);
 
     // test load/save for features
     final ModularFeature feature = new ModularFeature(flist, file, null, null);
     feature.set(type, value);
     row.addFeature(file, feature);
-    testSaveLoad(type, value, flist, row, feature, file);
+    testSaveLoad(type, value, project, flist, row, feature, file);
 
     // test save/load for feature null value
-    testSaveLoad(type, null, flist, row, feature, file);
+    testSaveLoad(type, null, project, flist, row, feature, file);
 
     file.close();
   }
@@ -89,10 +96,11 @@ public class DataTypeTestUtils {
    * implementation of {@link Object#equals(Object)} for the given datatype.).
    */
   public static void testSaveLoad(@NotNull DataType<?> type, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) {
+      @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) {
 
-    final Object loadedValue = saveAndLoad(type, value, flist, row, feature, file);
+    final Object loadedValue = saveAndLoad(type, value, project, flist, row, feature, file);
     Assertions.assertEquals(value, loadedValue,
         () -> "Loaded value does not equal saved value." + (feature == null ? " (row type)"
             : " (feature type)"));
@@ -106,8 +114,9 @@ public class DataTypeTestUtils {
    * @return The loaded value or null if an error occurred.
    */
   public static Object saveAndLoad(@NotNull DataType<?> type, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) {
+      @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) {
 
     // test row save
     final ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -163,10 +172,12 @@ public class DataTypeTestUtils {
         Assertions.fail("Did not find data type element.");
       }
       final int preReadNumber = reader.getLocation().getLineNumber();
-      Object loadedValue = type.loadFromXML(reader, flist, row, feature, file);
+      Object loadedValue = type.loadFromXML(reader, project, flist, row, feature, file);
       final int diff = reader.getLocation().getLineNumber() - preReadNumber;
-      if(diff >= numLines - preReadNumber) {
-        Assertions.fail("Data type " + type.getUniqueID() + " for overshot it's data type for value " + value + ".");
+      if (diff >= numLines - preReadNumber) {
+        Assertions.fail(
+            "Data type " + type.getUniqueID() + " for overshot it's data type for value " + value
+                + ".");
       }
       reader.close();
 

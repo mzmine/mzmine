@@ -17,6 +17,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -73,9 +74,9 @@ public class BestScanNumberType extends DataType<Scan> implements NullColumnType
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(CONST.XML_DATA_TYPE_ELEMENT))) {

@@ -20,6 +20,7 @@ package datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -44,6 +45,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.Spe
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
@@ -79,6 +81,8 @@ public class RegularScanTypesTest {
   ModularFeatureListRow row;
   ModularFeature feature;
   List<Scan> scans;
+
+  MZmineProject project;
 
   @BeforeAll
   void initialise() {
@@ -124,6 +128,10 @@ public class RegularScanTypesTest {
       }
     }
     flist.setSelectedScans(file, scans);
+
+    project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
   }
 
   @Test
@@ -160,22 +168,22 @@ public class RegularScanTypesTest {
   void bestScanNumberTypeTest() {
     BestScanNumberType type = new BestScanNumberType();
     Scan value = file.getScan(3);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
 
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
   }
 
   @Test
   void fragmentScanNumbersTypeTest() {
     FragmentScanNumbersType type = new FragmentScanNumbersType();
     List<Scan> value = new ArrayList<>(scans.subList(6, 9));
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
 
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
   }
 
   @Test
@@ -204,10 +212,11 @@ public class RegularScanTypesTest {
         new SpectralDBAnnotation(entry, similarity, query, null),
         new SpectralDBAnnotation(entry, similarity, query, 0.043f));
 
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
+        file);
   }
 
   @Test
@@ -230,7 +239,7 @@ public class RegularScanTypesTest {
         IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
 
     List<MatchedLipid> loaded = (List<MatchedLipid>) DataTypeTestUtils.saveAndLoad(type, value,
-        flist, row, null, null);
+        project, flist, row, null, null);
 
     Assertions.assertEquals(value.size(), loaded.size());
     final MatchedLipid first = value.get(0);

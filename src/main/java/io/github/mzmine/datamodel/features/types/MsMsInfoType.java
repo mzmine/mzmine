@@ -17,6 +17,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -75,9 +76,9 @@ public class MsMsInfoType extends ListDataType<MsMsInfo> {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     ObservableList<MsMsInfo> infos = FXCollections.observableArrayList();
 
