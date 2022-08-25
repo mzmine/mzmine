@@ -214,9 +214,9 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
         }
       }
 
-      TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
     }
 
+    TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
     setStatus(TaskStatus.FINISHED);
   }
 

@@ -107,7 +107,8 @@ public class TimsTOFAcquisitionUtils {
 
   public static boolean acquire(final File acqControl, final File commandFile, boolean exportOnly) {
 
-    List<String> cmdLine = List.of("--commands", commandFile.getAbsolutePath());
+    List<String> cmdLine = List.of(acqControl.getAbsolutePath(), "--commandfile",
+        "\"" + commandFile.getAbsolutePath() + "\"");
 
     if (!exportOnly) {
       final ProcessBuilder builder = new ProcessBuilder(cmdLine).inheritIO();
