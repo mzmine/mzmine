@@ -27,7 +27,6 @@ import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -37,7 +36,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -48,9 +46,7 @@ import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -126,13 +122,14 @@ public class MaldiGroupMS2Task extends AbstractTask {
       // we need to create a new feature list, because the raw data files cannot be altered.
       // however, we need to set the raw data files so a project can be loaded/saved
       // LinkedHashSet to keep the current files at the front
-      final Set<RawDataFile> allFiles = new LinkedHashSet<>();
-      allFiles.addAll(list.getRawDataFiles());
-      allFiles.addAll(files);
+//      final Set<RawDataFile> allFiles = new LinkedHashSet<>();
+//      allFiles.addAll(list.getRawDataFiles());
+//      allFiles.addAll(files);
 
-      final ModularFeatureList newFlist = list.createCopy(list.getName(), getMemoryMapStorage(),
-          allFiles.stream().toList(), false);
-      files.forEach(file -> newFlist.setSelectedScans(file, file.getScans()));
+      final ModularFeatureList newFlist = list;
+//          list.createCopy(list.getName(), getMemoryMapStorage(),
+//          allFiles.stream().toList(), false);
+//      files.forEach(file -> newFlist.setSelectedScans(file, file.getScans()));
 
       // for all features
       for (FeatureListRow row : newFlist.getRows()) {
@@ -145,11 +142,11 @@ public class MaldiGroupMS2Task extends AbstractTask {
       }
 
       newFlist.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(GroupMS2Module.class, parameters,
+          new SimpleFeatureListAppliedMethod(MaldiGroupMS2Module.class, parameters,
               getModuleCallDate()));
 
-      project.removeFeatureList(list);
-      project.addFeatureList(newFlist);
+//      project.removeFeatureList(list);
+//      project.addFeatureList(newFlist);
 
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished adding all MS2 scans to their features in " + list.getName());

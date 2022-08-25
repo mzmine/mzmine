@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ExpandingTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
@@ -169,6 +170,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
               new double[]{mz}, new double[]{frameAccess.getIntensityValue(i)}, List.of(frame));
           final ModularFeature feature = new ModularFeature(flist, file, series,
               FeatureStatus.DETECTED);
+          feature.set(MaldiSpotType.class, frame.getMaldiSpotInfo().spotName());
           trace = new ExpandingTrace(
               new ModularFeatureListRow(flist, rowId.getAndIncrement(), feature), mzRange,
               Range.all());
