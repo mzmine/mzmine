@@ -127,6 +127,7 @@ public class RegularScanTypesTest {
         Assertions.fail("Cannot add scans to raw data file.");
       }
     }
+
     flist.setSelectedScans(file, scans);
 
     project = new MZmineProjectImpl();
@@ -141,12 +142,24 @@ public class RegularScanTypesTest {
     final List<MsMsInfo> msMsInfos = List.of(
         new DDAMsMsInfoImpl(550, 1, 30f, null, null, 2, ActivationMethod.HCD,
             Range.closed(500d, 600d)),
-        new DDAMsMsInfoImpl(550, null, null, null, null, 2, ActivationMethod.UNKNOWN,
+        new DDAMsMsInfoImpl(550, null, null, file.getScan(7), null, 2, ActivationMethod.UNKNOWN,
             Range.closed(500d, 600d)));
 
     Assertions.assertTrue(msMsInfos.size() > 0);
 
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, msMsInfos);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+
+    final RawDataFile file2 = new RawDataFileImpl("file2", null, null, Color.BLACK);
+    final MZmineProject newProject = new MZmineProjectImpl();
+    newProject.addFile(file);
+    newProject.addFile(file2);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, newProject, flist, row, feature, file2);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, newProject, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, feature, file2);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, null, null);
   }
 
   @Test

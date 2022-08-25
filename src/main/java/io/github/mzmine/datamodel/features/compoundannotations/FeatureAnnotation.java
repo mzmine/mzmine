@@ -42,7 +42,7 @@ public interface FeatureAnnotation {
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
       case SpectralDBAnnotation.XML_ATTR ->
-          SpectralDBAnnotation.loadFromXML(reader, flist.getRawDataFiles());
+          SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       default -> null;

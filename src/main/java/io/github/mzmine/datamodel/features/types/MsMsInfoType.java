@@ -81,6 +81,7 @@ public class MsMsInfoType extends ListDataType<MsMsInfo> {
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     ObservableList<MsMsInfo> infos = FXCollections.observableArrayList();
+    final List<RawDataFile> allProjectFiles = project.getCurrentRawDataFiles();
 
     while (reader.hasNext()) {
       reader.next();
@@ -92,7 +93,7 @@ public class MsMsInfoType extends ListDataType<MsMsInfo> {
       }
 
       if (reader.getLocalName().equals(MsMsInfo.XML_ELEMENT)) {
-        infos.add(MsMsInfo.loadFromXML(reader, file));
+        infos.add(MsMsInfo.loadFromXML(reader, file, allProjectFiles));
       }
     }
     return infos.isEmpty() ? null : infos;

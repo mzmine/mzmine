@@ -133,6 +133,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
     }
 
     List<MatchedLipid> ids = new ArrayList<>();
+    final List<RawDataFile> currentRawDataFiles = project.getCurrentRawDataFiles();
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
@@ -142,7 +143,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       }
 
       if (reader.getLocalName().equals(MatchedLipid.XML_ELEMENT)) {
-        MatchedLipid id = MatchedLipid.loadFromXML(reader, flist.getRawDataFiles());
+        MatchedLipid id = MatchedLipid.loadFromXML(reader, currentRawDataFiles);
         ids.add(id);
       }
     }

@@ -153,12 +153,12 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
           && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
           .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
-        FeatureIdentity id = FeatureIdentity.loadFromXML(reader, flist.getRawDataFiles());
+        FeatureIdentity id = FeatureIdentity.loadFromXML(reader, project.getCurrentRawDataFiles());
         ids.add(new SpectralDBAnnotation((SpectralDBFeatureIdentity) id));
       } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
           && reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)
           .equals(SpectralDBAnnotation.XML_ATTR)) {
-        ids.add(SpectralDBAnnotation.loadFromXML(reader, flist.getRawDataFiles()));
+        ids.add(SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles()));
       }
     }
 

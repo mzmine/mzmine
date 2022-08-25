@@ -215,6 +215,20 @@ public class IMSScanTypesTest {
 
     DataTypeTestUtils.testSaveLoad(type, list, project, flist, row, feature, file);
     DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, list, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+
+    final IMSRawDataFile file2 = new IMSRawDataFileImpl("file2", null, null, Color.BLACK);
+    final MZmineProject newProject = new MZmineProjectImpl();
+    newProject.addFile(file);
+    newProject.addFile(file2);
+
+    DataTypeTestUtils.testSaveLoad(type, list, newProject, flist, row, feature, file2);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, feature, file2);
+
+    DataTypeTestUtils.testSaveLoad(type, list, newProject, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, null, null);
   }
 
   @Test

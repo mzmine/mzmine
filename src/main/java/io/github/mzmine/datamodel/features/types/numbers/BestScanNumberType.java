@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -78,6 +79,7 @@ public class BestScanNumberType extends DataType<Scan> implements NullColumnType
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
+    final List<RawDataFile> currentRawDataFiles = project.getCurrentRawDataFiles();
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
       reader.next();
@@ -86,7 +88,7 @@ public class BestScanNumberType extends DataType<Scan> implements NullColumnType
       }
 
       if (reader.getLocalName().equals(CONST.XML_RAW_FILE_SCAN_ELEMENT)) {
-        return Scan.loadScanFromXML(reader, flist.getRawDataFiles());
+        return Scan.loadScanFromXML(reader, currentRawDataFiles);
       }
     }
 

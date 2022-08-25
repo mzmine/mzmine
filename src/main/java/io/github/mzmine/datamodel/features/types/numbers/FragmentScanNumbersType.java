@@ -82,6 +82,7 @@ public class FragmentScanNumbersType extends ScanNumbersType {
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     List<Scan> msmsSpectra = new ArrayList<>();
+    final List<RawDataFile> currentRawDataFiles = project.getCurrentRawDataFiles();
 
     while (reader.hasNext()) {
       reader.next();
@@ -93,7 +94,7 @@ public class FragmentScanNumbersType extends ScanNumbersType {
       }
 
       if(reader.getLocalName().equals(CONST.XML_RAW_FILE_SCAN_ELEMENT)) {
-        msmsSpectra.add(Scan.loadScanFromXML(reader, flist.getRawDataFiles()));
+        msmsSpectra.add(Scan.loadScanFromXML(reader, currentRawDataFiles));
       }
     }
 
