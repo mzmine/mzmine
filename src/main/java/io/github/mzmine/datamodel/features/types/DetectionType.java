@@ -18,6 +18,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -106,12 +107,12 @@ public class DetectionType extends DataType<FeatureStatus> implements
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader,
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
     String elementText = reader.getElementText();
-    if(elementText.isEmpty()) {
+    if (elementText.isEmpty()) {
       return null;
     }
     return FeatureStatus.valueOf(elementText);

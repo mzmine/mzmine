@@ -62,7 +62,8 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
 
   public NeutralLossFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss,
-        molecule, suffix});
+        molecule, suffix},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_neutral_loss/filter_neutral_loss.html");
   }
 
   @Override

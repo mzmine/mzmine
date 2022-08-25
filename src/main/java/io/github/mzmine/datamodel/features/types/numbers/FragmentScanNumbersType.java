@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -76,11 +77,12 @@ public class FragmentScanNumbersType extends ScanNumbersType {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     List<Scan> msmsSpectra = new ArrayList<>();
+    final List<RawDataFile> currentRawDataFiles = project.getCurrentRawDataFiles();
 
     while (reader.hasNext()) {
       reader.next();
@@ -92,7 +94,7 @@ public class FragmentScanNumbersType extends ScanNumbersType {
       }
 
       if(reader.getLocalName().equals(CONST.XML_RAW_FILE_SCAN_ELEMENT)) {
-        msmsSpectra.add(Scan.loadScanFromXML(reader, flist.getRawDataFiles()));
+        msmsSpectra.add(Scan.loadScanFromXML(reader, currentRawDataFiles));
       }
     }
 

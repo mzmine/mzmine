@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -126,9 +127,9 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
         && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
@@ -145,12 +146,13 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
       // todo remove upper branch in next release
       if (reader.getLocalName().equals(CompoundDBAnnotation.XML_ELEMENT_OLD)) {
-        final CompoundDBAnnotation id = SimpleCompoundDBAnnotation.loadFromXML(reader, flist, row);
+        final CompoundDBAnnotation id = SimpleCompoundDBAnnotation.loadFromXML(reader, project,
+            flist, row);
         if (id != null) {
           ids.add(id);
         }
       } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)) {
-        final FeatureAnnotation id = FeatureAnnotation.loadFromXML(reader, flist, row);
+        final FeatureAnnotation id = FeatureAnnotation.loadFromXML(reader, project, flist, row);
         if (id instanceof CompoundDBAnnotation cid) {
           ids.add(cid);
         } else {

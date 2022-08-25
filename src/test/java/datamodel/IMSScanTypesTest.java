@@ -21,6 +21,7 @@ package datamodel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
@@ -39,6 +40,7 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -70,6 +72,8 @@ public class IMSScanTypesTest {
   ModularFeatureList flist;
   ModularFeatureListRow row;
   ModularFeature feature;
+
+  MZmineProject project;
 
   private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
     Assertions.assertEquals(value.getCollisionEnergy(), loaded.getCollisionEnergy());
@@ -110,6 +114,10 @@ public class IMSScanTypesTest {
     feature = new ModularFeature(flist, file, null, null);
     row.addFeature(file, feature);
     flist.addRow(row);
+
+    project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
 
     // generate ms1 frames
     for (int i = 0; i < 5; i++) {
@@ -157,11 +165,11 @@ public class IMSScanTypesTest {
   void bestScanNumberTypeTest() {
     BestScanNumberType type = new BestScanNumberType();
     Frame value = file.getFrame(3);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
 
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
   }
 
 
@@ -181,18 +189,18 @@ public class IMSScanTypesTest {
     }
 
     List<MergedMsMsSpectrum> loaded = (List<MergedMsMsSpectrum>) DataTypeTestUtils.saveAndLoad(type,
-        value, flist, row, null, null);
+        value, project, flist, row, null, null);
     for (int i = 0; i < value.size(); i++) {
       compareMergedMsMs(value.get(i), loaded.get(i));
     }
-    loaded = (List<MergedMsMsSpectrum>) DataTypeTestUtils.saveAndLoad(type, value, flist, row,
-        feature, file);
+    loaded = (List<MergedMsMsSpectrum>) DataTypeTestUtils.saveAndLoad(type, value, project, flist,
+        row, feature, file);
     for (int i = 0; i < value.size(); i++) {
       compareMergedMsMs(value.get(i), loaded.get(i));
     }
 
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
   }
 
   @Test
@@ -205,8 +213,22 @@ public class IMSScanTypesTest {
       list.add(info);
     }
 
-    DataTypeTestUtils.testSaveLoad(type, list, flist, row, feature, file);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, list, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, list, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+
+    final IMSRawDataFile file2 = new IMSRawDataFileImpl("file2", null, null, Color.BLACK);
+    final MZmineProject newProject = new MZmineProjectImpl();
+    newProject.addFile(file);
+    newProject.addFile(file2);
+
+    DataTypeTestUtils.testSaveLoad(type, list, newProject, flist, row, feature, file2);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, feature, file2);
+
+    DataTypeTestUtils.testSaveLoad(type, list, newProject, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, null, null);
   }
 
   @Test
@@ -244,10 +266,11 @@ public class IMSScanTypesTest {
         new SpectralDBAnnotation(entry, similarity, query, null),
         new SpectralDBAnnotation(entry, similarity, query, 0.034f));
 
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
+        file);
   }
 
 

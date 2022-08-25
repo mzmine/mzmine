@@ -96,20 +96,29 @@ public class FeatureListLoadTask extends AbstractTask {
     this.zip = zip;
   }
 
+  /**
+   * @param reader  The xml reader.
+   * @param type    the data type to be read.
+   * @param project The current project.
+   * @param flist   The current feature list.
+   * @param row     The row.
+   * @param feature The current feature. Can be null.
+   * @param file    The data file of the current feature. null if the feature is null.
+   * @return
+   */
   public static Object parseDataType(XMLStreamReader reader, DataType<?> type,
-      ModularFeatureList flist, ModularFeatureListRow row, ModularFeature feature,
-      RawDataFile file) {
+      MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row,
+      ModularFeature feature, RawDataFile file) {
     if (type != null) {
       try {
-        return type.loadFromXML(reader, flist, row, feature, file);
+        return type.loadFromXML(reader, project, flist, row, feature, file);
       } catch (Exception e) {
         logger.log(Level.WARNING, e,
             () -> "Error loading data type " + type.getHeaderString() + " in row (id=" + row.getID()
-                  + ") feature " + (file != null ? file.getName() : "") + " from XML.");
+                + ") feature " + (file != null ? file.getName() : "") + " from XML.");
       }
     } else {
-      logger.info(() -> "No data type for id " + reader
-          .getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+      logger.info(() -> "No data type for id " + reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
     }
     return null;
   }
@@ -168,7 +177,7 @@ public class FeatureListLoadTask extends AbstractTask {
                     + metadataFile.getAbsolutePath());
           continue;
         }
-        parseFeatureList(storage, flist, flistFile);
+        parseFeatureList(storage, project, flist, flistFile);
 
         // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
         flist.replaceCachedFilesAndScans();
@@ -190,8 +199,8 @@ public class FeatureListLoadTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private void parseFeatureList(MemoryMapStorage storage, ModularFeatureList flist,
-      File flistFile) {
+  private void parseFeatureList(MemoryMapStorage storage, MZmineProject project,
+      ModularFeatureList flist, File flistFile) {
     currentFlist = flist.getName();
     processedRows = 0;
     totalRows = flist.getNumberOfRows();
@@ -217,7 +226,7 @@ public class FeatureListLoadTask extends AbstractTask {
                       .getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR));
             }
           } else if (CONST.XML_ROW_ELEMENT.equals(localName)) {
-            parseRow(reader, storage, flist);
+            parseRow(reader, storage, project, flist);
             processedRows++;
           }
         }
@@ -356,15 +365,16 @@ public class FeatureListLoadTask extends AbstractTask {
 
       }
       return flist;
-    } catch (XPathExpressionException | ParserConfigurationException | SAXException | IOException e) {
+    } catch (XPathExpressionException | ParserConfigurationException | SAXException |
+             IOException e) {
       e.printStackTrace();
       logger.log(Level.SEVERE, e.getMessage(), e);
       return null;
     }
   }
 
-  private void parseRow(XMLStreamReader reader, MemoryMapStorage storage, ModularFeatureList flist)
-      throws XMLStreamException {
+  private void parseRow(XMLStreamReader reader, MemoryMapStorage storage, MZmineProject project,
+      ModularFeatureList flist) throws XMLStreamException {
     if (!reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
       throw new IllegalStateException("Cannot parse row if current element is not a row element");
     }
@@ -387,11 +397,11 @@ public class FeatureListLoadTask extends AbstractTask {
                                  + ". File does not exist in project.");
             continue;
           }
-          parseFeature(reader, storage, flist, row, file);
+          parseFeature(reader, storage, project, flist, row, file);
         } else if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-          DataType type = DataTypes
-              .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-          Object value = parseDataType(reader, type, flist, row, null, null);
+          DataType type = DataTypes.getTypeForId(
+              reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+          Object value = parseDataType(reader, type, project, flist, row, null, null);
           if (type != null && value != null) {
             try {
               row.set(type, value);
@@ -410,7 +420,7 @@ public class FeatureListLoadTask extends AbstractTask {
   }
 
   private void parseFeature(@NotNull XMLStreamReader reader, @Nullable MemoryMapStorage storage,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      MZmineProject project, @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @NotNull RawDataFile file) throws XMLStreamException {
 
     // create feature with original file, but use buffered file for data type loading.
@@ -426,9 +436,9 @@ public class FeatureListLoadTask extends AbstractTask {
 
       if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         // the data types are responsible for loading their values
-        DataType type = DataTypes
-            .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-        Object value = parseDataType(reader, type, flist, row, feature, file);
+        DataType type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        Object value = parseDataType(reader, type, project, flist, row, feature, file);
         if (type != null && value != null) {
           try {
             feature.set(type, value);

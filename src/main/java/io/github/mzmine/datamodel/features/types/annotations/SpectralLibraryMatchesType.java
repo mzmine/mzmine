@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -130,9 +131,9 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
         && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
@@ -152,12 +153,12 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
           && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
           .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
-        FeatureIdentity id = FeatureIdentity.loadFromXML(reader, flist.getRawDataFiles());
+        FeatureIdentity id = FeatureIdentity.loadFromXML(reader, project.getCurrentRawDataFiles());
         ids.add(new SpectralDBAnnotation((SpectralDBFeatureIdentity) id));
       } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
           && reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)
           .equals(SpectralDBAnnotation.XML_ATTR)) {
-        ids.add(SpectralDBAnnotation.loadFromXML(reader, flist.getRawDataFiles()));
+        ids.add(SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles()));
       }
     }
 

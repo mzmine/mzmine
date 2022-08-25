@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
+import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -85,16 +86,18 @@ public interface MsMsInfo {
    * @param file   The file this ms ms info belongs to.
    * @return The {@link MsMsInfo}.
    */
-  static MsMsInfo loadFromXML(XMLStreamReader reader, RawDataFile file) {
+  static MsMsInfo loadFromXML(XMLStreamReader reader, RawDataFile file,
+      List<RawDataFile> allProjectFiles) {
     if (!reader.isStartElement() || !reader.getLocalName().equals(MsMsInfo.XML_ELEMENT)) {
       throw new IllegalStateException("Wrong element.");
     }
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
-      case PasefMsMsInfoImpl.XML_TYPE_NAME -> PasefMsMsInfoImpl.loadFromXML(reader,
-          (IMSRawDataFile) file);
-      case DDAMsMsInfoImpl.XML_TYPE_NAME -> DDAMsMsInfoImpl.loadFromXML(reader, file);
-      case MSnInfoImpl.XML_TYPE_NAME -> MSnInfoImpl.loadFromXML(reader, file);
+      case PasefMsMsInfoImpl.XML_TYPE_NAME ->
+          PasefMsMsInfoImpl.loadFromXML(reader, (IMSRawDataFile) file, allProjectFiles);
+      case DDAMsMsInfoImpl.XML_TYPE_NAME ->
+          DDAMsMsInfoImpl.loadFromXML(reader, file, allProjectFiles);
+      case MSnInfoImpl.XML_TYPE_NAME -> MSnInfoImpl.loadFromXML(reader, file, allProjectFiles);
       default -> throw new IllegalStateException("Unknown msms info type");
     };
   }
