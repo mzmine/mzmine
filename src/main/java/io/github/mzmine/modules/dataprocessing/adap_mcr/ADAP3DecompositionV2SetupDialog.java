@@ -20,8 +20,8 @@ package io.github.mzmine.modules.dataprocessing.adap_mcr;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.RangeUtils;
-import java.awt.Dimension;
-import java.awt.Font;
+
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,7 +29,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javafx.scene.layout.Background;
+import javafx.geometry.NodeOrientation;
+import javafx.geometry.Pos;
+import javafx.scene.layout.*;
 import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Sets;
 import dulab.adap.datamodel.BetterComponent;
@@ -46,9 +48,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
+
+import javax.swing.*;
 
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
@@ -78,7 +79,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
    */
   private BorderPane pnlUIElements;
   private FlowPane pnlComboBoxes;
-  private HBox pnlPlots;
+  private VBox pnlPlots;
   private CheckBox chkPreview;
   private ComboBox<ChromatogramPeakPair> cboPeakLists;
   private ComboBox<RetTimeClusterer.Cluster> cboClusters;
@@ -118,7 +119,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the chkPreview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlPlots, 3, 0);
+//
+        pnlPlots.setSpacing(10);
+        pnlPlots.setAlignment(Pos.TOP_CENTER);
+        paramsPane.add(pnlPlots, 4, 0, 1, 100);
+
         pnlUIElements.getChildren().add(pnlComboBoxes);
         pnlUIElements.setCenter(pnlComboBoxes);
 
@@ -136,12 +141,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     final BorderPane panel = new BorderPane();
     panel.setTop(new Separator());
     panel.setCenter(chkPreview);
-    // panel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
     pnlUIElements = new BorderPane();
     pnlUIElements.setTop(panel);
 
     // ComboBox for Feature lists
     cboPeakLists = new ComboBox<>();
+    cboPeakLists.setPrefWidth(200);
     // cboPeakLists.setFont(COMBO_FONT);
     for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
       cboPeakLists.getItems().add(p);
@@ -152,13 +157,15 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
 
     // ComboBox with Clusters
     cboClusters = new ComboBox<>();
+    cboClusters.setPrefWidth(200);
     // cboClusters.setFont(COMBO_FONT);
     cboClusters.setOnAction(e -> shapeCluster());
     // cboClusters.addActionListener(this);
 
-    pnlComboBoxes = new FlowPane(new Label("Feature Lists"), cboPeakLists, btnRefresh,
+    pnlComboBoxes = new FlowPane(new Label("Feature Lists"), cboPeakLists,
         new Label("Clusters"), cboClusters, new BorderPane());
     pnlComboBoxes.setOrientation(Orientation.VERTICAL);
+//    pnlComboBoxes.setAlignment(Pos.CENTER);
 
     // --------------------------------------------------------------------
     // ----- Panel with plots --------------------------------------
@@ -174,7 +181,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
 
     final BorderPane pnlPlotRetTimeClusters = new BorderPane();
     pnlPlotRetTimeClusters.setStyle("-fx-background-color: #FFFFFF;");
-    pnlPlotRetTimeClusters.setCenter(retTimeMZPlot);
+    pnlPlotRetTimeClusters.setBottom(retTimeMZPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
 
     // Plot with chromatograms
@@ -183,12 +190,19 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     retTimeIntensityPlot.setPrefSize(400,300);
 
     BorderPane pnlPlotShapeClusters = new BorderPane();
+
     pnlPlotShapeClusters.setStyle("-fx-background-color: #FFFFFF;");
     pnlPlotShapeClusters.setCenter(retTimeIntensityPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
 
 
-    pnlPlots = new HBox(pnlPlotRetTimeClusters,pnlPlotShapeClusters);
+
+    //StackPane stackPane = new StackPane();
+
+    pnlPlots = new VBox(pnlPlotRetTimeClusters,pnlPlotShapeClusters);
+
+
+
 
     super.paramsPane.add(pnlUIElements, 0, super.getNumberOfParameters() + 3);
   }
@@ -223,8 +237,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
       cboPeakLists.getItems().add(p);
 
-    if (cboPeakLists.getItems().size() > 0)
-      cboPeakLists.getSelectionModel().select(0);
+//    if (cboPeakLists.getItems().size() > 0)
+//      cboPeakLists.getSelectionModel().select(0);
   }
 
   /**
