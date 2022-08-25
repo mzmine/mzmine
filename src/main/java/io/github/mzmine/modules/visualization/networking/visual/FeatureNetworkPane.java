@@ -598,8 +598,17 @@ public class FeatureNetworkPane extends NetworkPane {
     if (featureList != null) {
       relationMaps = featureList.getRowMaps();
       createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new));
+      setFeatureListOnNodes(featureList.getRows().toArray(FeatureListRow[]::new));
     } else {
       clear();
+    }
+  }
+
+  public void setFeatureListOnNodes(FeatureListRow[] rows)
+  {
+    for(int i=0;i<rows.length;i++)
+    {
+      graph.getNode(i).setAttribute("FeatureListOnNode",rows[i]);
     }
   }
 
