@@ -20,7 +20,7 @@ import org.gradle.internal.os.OperatingSystem
 plugins {
     id "java"
     id "application"
-    id "org.openjfx.javafxplugin" version "0.0.10"
+    id "org.openjfx.javafxplugin" version "0.0.13"
     id "org.beryx.runtime" version "1.12.7"
 
     // versioning now in version.properties file
@@ -41,8 +41,8 @@ semver {
 group = "io.github.mzmine"
 description = "MZmine"
 
-sourceCompatibility = "17"
-targetCompatibility = "17"
+sourceCompatibility = "18"
+targetCompatibility = "18"
 defaultTasks "test", "jpackage"
 
 // Check the OS
@@ -238,7 +238,7 @@ configurations.all {
  */
 
 javafx {
-    version = "17"
+    version = "18.0.2"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
