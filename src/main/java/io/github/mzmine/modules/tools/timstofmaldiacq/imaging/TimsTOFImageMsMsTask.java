@@ -68,6 +68,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final Boolean exportOnly;
   private final Double isolationWidth;
   private final MZTolerance isolationWindow;
+  private final int numMsMs;
+  private final double minMsMsIntensity;
+  private final int minDistance;
 
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
@@ -87,6 +90,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
     isolationWidth = parameters.getValue(TimsTOFImageMsMsParameters.isolationWidth);
+    numMsMs = parameters.getValue(TimsTOFImageMsMsParameters.numMsMs);
+    minMsMsIntensity = parameters.getValue(TimsTOFImageMsMsParameters.minimumIntensity);
+    minDistance = parameters.getValue(TimsTOFImageMsMsParameters.minimumDistance);
     isolationWindow = new MZTolerance(isolationWidth / 1.7,
         0d); // isolation window typically wider than set
   }
@@ -123,10 +129,6 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
       return;
     }
-
-    final int numMsMs = 3;
-    final double minDistance = 50;
-    final double minMsMsIntensity = 10_000;
 
     final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
     final Map<Feature, List<MaldiSpotInfo>> featureSpotMap = new HashMap<>();
@@ -240,6 +242,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
         continue;
       }
 
+      access.jumpToFrame(frame);
       final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
           access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
       logger.finest(() -> String.valueOf(chimerityScore));
@@ -276,6 +279,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
         continue;
       }
 
+      access.jumpToFrame(usedFrame);
       final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
           access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
       logger.finest(() -> String.valueOf(chimerityScore));
