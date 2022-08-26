@@ -20,6 +20,10 @@ package io.github.mzmine.modules.visualization.frames;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.Pane;
 
+/**
+ * Wraps a {@link Canvas} so it can be resized automatically.
+ * <a href="https://stackoverflow.com/a/31761362">source</a>
+ */
 public class CanvasPane extends Pane {
 
   private final Canvas canvas;

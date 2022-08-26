@@ -43,6 +43,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.modules.visualization.frames.CanvasPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleMobilogramRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleTICRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSelectedRanges;
@@ -173,10 +174,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
     chartPanel.add(new BorderPane(singleSpectrumChart), 3, 0);
     chartPanel.add(new BorderPane(mobilogramChart, null, null,
         new Rectangle(1, HEATMAP_LEGEND_HEIGHT, javafx.scene.paint.Color.TRANSPARENT), null), 0, 1);
-    chartPanel.add(new BorderPane(heatmapChart, null, null, heatmapChart.getLegendCanvas(), null),
-        1, 1);
-    chartPanel.add(new BorderPane(ionTraceChart, null, null, ionTraceChart.getLegendCanvas(), null),
-        2, 1, 1, 1);
+    chartPanel.add(
+        new BorderPane(heatmapChart, null, null, new CanvasPane(heatmapChart.getLegendCanvas()),
+            null), 1, 1);
+    chartPanel.add(
+        new BorderPane(ionTraceChart, null, null, new CanvasPane(ionTraceChart.getLegendCanvas()),
+            null), 2, 1, 1, 1);
     chartPanel.add(controlsPanel, 3, 1);
 
     markerColor = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
