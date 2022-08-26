@@ -15,7 +15,6 @@
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  ~
   -->
 <?import io.github.mzmine.util.javafx.WindowsMenu?>
 <?import javafx.scene.control.Menu?>
@@ -497,6 +496,8 @@
 
     <MenuItem text="MS spectrum" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule"/>
+    <MenuItem text="Frame visualizer" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.frames.FrameVisualizerModule"/>
     <MenuItem text="Chromatogram plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule"/>
     <MenuItem text="2D plot" onAction="#runModule"

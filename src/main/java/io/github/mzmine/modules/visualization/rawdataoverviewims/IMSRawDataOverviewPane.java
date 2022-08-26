@@ -57,6 +57,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
@@ -108,11 +109,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private int binWidth;
   private Float rtWidth;
 
-  private Color markerColor;
+  private final Color markerColor;
   private IMSRawDataFile rawDataFile;
   private int selectedMobilogramDatasetIndex;
   private int selectedChromatogramDatasetIndex;
-  private Set<Integer> mzRangeTicDatasetIndices;
+  private final Set<Integer> mzRangeTicDatasetIndices;
 
   /**
    * Creates a BorderPane layout.
@@ -133,7 +134,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
     mzRangeTicDatasetIndices = new HashSet<>();
     selectedMz = new SimpleObjectProperty<>();
     selectedMobilityScan = new SimpleObjectProperty<>();
-
     this.mzTolerance = mzTolerance;
     this.scanSelection = scanSelection;
     this.rtWidth = rtWidth;
@@ -202,7 +202,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     MZmineCore.getTaskController().addTask(
         new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
-            Set.of(cachedFrame), rawDataFile, this, rangesBinningMobilogramDataAccess, new Date()));
+            Set.of(cachedFrame), rawDataFile, this::addMobilogramRangesToChart,
+            rangesBinningMobilogramDataAccess, new Date()));
     if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {
@@ -381,7 +382,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
       controlsPanel.setRangeToMobilogramRangeComp(newValue);
       Thread mobilogramCalc = new Thread(
           new BuildSelectedRanges(selectedMz.get(), Set.of(cachedFrame), rawDataFile, scanSelection,
-              this, rtWidth, selectedBinningMobilogramDataAccess));
+              rtWidth, selectedBinningMobilogramDataAccess, this::setSelectedMobilogram,
+              c -> this.setSelectedChromatogram(c,
+                  MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT())));
       mobilogramCalc.start();
       float rt = selectedFrame.get().getRetentionTime();
       ionTraceChart.setDataset(new IMSIonTraceHeatmapProvider(rawDataFile, selectedMz.get(),
@@ -393,8 +396,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   public void addMobilogramRangesToChart(List<? extends ColoredXYDataset> previewMobilograms) {
-    mobilogramChart.addDatasets(previewMobilograms);
-    updateValueMarkers();
+    Platform.runLater(() -> {
+      mobilogramChart.addDatasets(previewMobilograms);
+      updateValueMarkers();
+    });
   }
 
   public void setTICRangesToChart(List<TICDataSet> ticDataSets, List<Color> ticDatasetColors) {
@@ -419,6 +424,24 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     selectedMobilogramDatasetIndex = mobilogramChart.addDataset(dataset);
     selectedChromatogramDatasetIndex = ticChart.addTICDataSet(ticDataSet, ticDatasetColor);
+  }
+
+  public void setSelectedMobilogram(ColoredXYDataset mobilogram) {
+    MZmineCore.runLater(() -> {
+      if (selectedMobilogramDatasetIndex != -1) {
+        mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
+        selectedMobilogramDatasetIndex = mobilogramChart.addDataset(mobilogram);
+      }
+    });
+  }
+
+  public void setSelectedChromatogram(TICDataSet dataset, Color color) {
+    MZmineCore.runLater(() -> {
+      if (selectedChromatogramDatasetIndex != -1) {
+        ticChart.removeDataSet(selectedChromatogramDatasetIndex);
+        selectedChromatogramDatasetIndex = ticChart.addTICDataSet(dataset, color);
+      }
+    });
   }
 
   private void updateValueMarkers() {
