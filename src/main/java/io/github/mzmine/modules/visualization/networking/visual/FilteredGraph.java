@@ -9,7 +9,7 @@ import org.graphstream.graph.implementations.MultiGraph;
 
 public class FilteredGraph extends MultiGraph {
 
-  MultiGraph fullGraph;
+  private MultiGraph fullGraph;
 
   public FilteredGraph(String id) {
     super(id);

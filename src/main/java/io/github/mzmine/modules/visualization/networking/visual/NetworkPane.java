@@ -22,6 +22,7 @@ import com.google.common.io.Files;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.util.files.FileAndPathUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,9 +32,13 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
@@ -54,11 +59,15 @@ import org.graphstream.stream.file.FileSinkImages.Quality;
 import org.graphstream.stream.file.FileSinkSVG;
 import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
+import org.graphstream.ui.fx_viewer.util.FxShortcutManager;
 import org.graphstream.ui.geom.Point3;
+import org.graphstream.ui.graphicGraph.GraphicGraph;
 import org.graphstream.ui.javafx.util.FxFileSinkImages;
+import org.graphstream.ui.view.View;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.ThreadingModel;
 import org.graphstream.ui.view.ViewerListener;
+import org.graphstream.ui.view.camera.Camera;
 import org.graphstream.ui.view.util.InteractiveElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -290,6 +299,90 @@ public class NetworkPane extends BorderPane {
       }
     });
 
+    viewer.getDefaultView().setShortcutManager(new FxShortcutManager() {
+      public void init(GraphicGraph graph, View view) {
+        this.view = view;
+        view.addListener(KeyEvent.KEY_PRESSED, this.keyPressed);
+      }
+
+      public void release() {
+        this.view.removeListener(KeyEvent.KEY_PRESSED, this.keyPressed);
+        LOG.info("Key released");
+      }
+
+      final EventHandler<KeyEvent> keyPressed = event -> {
+        Camera camera = view.getCamera();
+
+        if (event.getCode() == KeyCode.PAGE_UP) {
+          camera.setViewPercent(Math.max(0.0001f, camera.getViewPercent() * 0.9f));
+        } else if (event.getCode() == KeyCode.PAGE_DOWN) {
+          camera.setViewPercent(camera.getViewPercent() * 1.1f);
+        } else if (event.getCode() == KeyCode.LEFT) {
+          if (event.isAltDown()) {
+            double r = camera.getViewRotation();
+            camera.setViewRotation(r - 5);
+          } else {
+            double delta = 0;
+
+              if (event.isShiftDown()) {
+                  delta = camera.getGraphDimension() * 0.1f;
+              } else {
+                  delta = camera.getGraphDimension() * 0.01f;
+              }
+
+            delta *= camera.getViewPercent();
+
+            Point3 p = camera.getViewCenter();
+            camera.setViewCenter(p.x - delta, p.y, 0);
+          }
+        } else if (event.getCode() == KeyCode.RIGHT) {
+          if (event.isAltDown()) {
+            double r = camera.getViewRotation();
+            camera.setViewRotation(r + 5);
+          } else {
+            double delta = 0;
+
+              if (event.isShiftDown()) {
+                  delta = camera.getGraphDimension() * 0.1f;
+              } else {
+                  delta = camera.getGraphDimension() * 0.01f;
+              }
+
+            delta *= camera.getViewPercent();
+
+            Point3 p = camera.getViewCenter();
+            camera.setViewCenter(p.x + delta, p.y, 0);
+          }
+        } else if (event.getCode() == KeyCode.UP) {
+          double delta = 0;
+
+            if (event.isShiftDown()) {
+                delta = camera.getGraphDimension() * 0.1f;
+            } else {
+                delta = camera.getGraphDimension() * 0.01f;
+            }
+
+          delta *= camera.getViewPercent();
+
+          Point3 p = camera.getViewCenter();
+          camera.setViewCenter(p.x, p.y + delta, 0);
+        } else if (event.getCode() == KeyCode.DOWN) {
+          double delta = 0;
+
+            if (event.isShiftDown()) {
+                delta = camera.getGraphDimension() * 0.1f;
+            } else {
+                delta = camera.getGraphDimension() * 0.01f;
+            }
+
+          delta *= camera.getViewPercent();
+
+          Point3 p = camera.getViewCenter();
+          camera.setViewCenter(p.x, p.y - delta, 0);
+        }
+      };
+    });
+
     rightClickMenu = new ContextMenu();
     exportGraphItem = new MenuItem("Export Graph");
     rightClickMenu.getItems().add(exportGraphItem);
@@ -308,7 +401,9 @@ public class NetworkPane extends BorderPane {
           mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
               view.getViewer().getGraphicGraph(), e.getX(),
               e.getY()); //for retrieving mouse-clicked edge
-          showMSMSMirrorScanModule();
+          if (mouseClickedEdge != null) {
+            showMSMSMirrorScanModule();
+          }
         }
       } else if (e.getButton() == MouseButton.SECONDARY) {
         if (rightClickMenu.isShowing()) {
