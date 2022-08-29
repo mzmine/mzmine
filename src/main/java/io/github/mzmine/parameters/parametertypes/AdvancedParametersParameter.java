@@ -111,11 +111,13 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   @Override
   public void setValueFromComponent(AdvancedParametersComponent component) {
     this.value = component.isSelected();
+    component.getValue();
   }
 
   @Override
   public void setValueToComponent(AdvancedParametersComponent component, Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
+    component.setValue(embeddedParameters);
   }
 
   @Override

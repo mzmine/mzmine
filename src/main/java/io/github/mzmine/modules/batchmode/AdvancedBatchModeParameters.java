@@ -29,12 +29,20 @@ public class AdvancedBatchModeParameters extends SimpleParameterSet {
       "Parent directory",
       "Select the parent directory, each folder in this directory will be considered a different dataset. All datafiles will be imported and processed.");
 
+  public static final BooleanParameter skipOnError = new BooleanParameter("Skip on error",
+      "Skip datasets (sub directories) on error. Otherwise error out and stop the batch", true);
+
   public static final BooleanParameter createResultsDirectory = new BooleanParameter(
       "Create results directory",
       "Push all results into a results directory with folders for datasets", true);
+  public static final BooleanParameter includeSubdirectories = new BooleanParameter(
+      "Search files in subdirs",
+      "Search for files in sub directories. Still uses the first subdirectories as datasets each.",
+      false);
 
   public AdvancedBatchModeParameters() {
-    super(new Parameter[]{processingParentDir, createResultsDirectory});
+    super(new Parameter[]{skipOnError, processingParentDir, includeSubdirectories,
+        createResultsDirectory});
   }
 
 }

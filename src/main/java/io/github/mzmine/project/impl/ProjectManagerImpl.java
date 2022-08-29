@@ -26,6 +26,7 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.logging.Logger;
 
@@ -89,7 +90,11 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public void clearProject() {
     // Create a new, empty project
+    MZmineProject old = getCurrentProject();
     setCurrentProject(new MZmineProjectImpl());
+    // keep libraries
+    currentProject.addSpectralLibrary(
+        old.getCurrentSpectralLibraries().toArray(new SpectralLibrary[0]));
     logger.info("Project cleared");
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -149,10 +148,7 @@ public class FileNamesComponent extends BorderPane {
         }
 
         // list all files in sub directories
-        List<File[]> filesInDir = FileAndPathUtil.findFilesInDir(dir, filter,
-            useSubFolders.isSelected());
-        // all files in dir or sub dirs
-        setValue(filesInDir.stream().flatMap(Arrays::stream).toArray(File[]::new));
+        setValue(FileAndPathUtil.findFilesInDirFlat(dir, filter, useSubFolders.isSelected()));
       });
     }
     return btns;

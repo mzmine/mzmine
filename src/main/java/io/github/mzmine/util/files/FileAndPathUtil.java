@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -337,7 +337,7 @@ public class FileAndPathUtil {
    * @return all sub directories
    */
   public static File[] getSubDirectories(File f) {
-    return f.listFiles((current, name) -> new File(current, name).isDirectory());
+    return f.listFiles(File::isDirectory);
   }
 
   // ###############################################################################################
@@ -350,6 +350,19 @@ public class FileAndPathUtil {
   public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter,
       boolean searchSubdir) {
     return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false);
+  }
+
+  /**
+   * Flat array of all files in directory and sub directories that match the filter
+   *
+   * @param dir          parent directory
+   * @param fileFilter   filter for file extensions
+   * @param searchSubdir include all sub directories
+   */
+  public static File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
+      boolean searchSubdir) {
+    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false).stream()
+        .flatMap(Arrays::stream).toArray(File[]::new);
   }
 
   /**
@@ -422,8 +435,8 @@ public class FileAndPathUtil {
       } else {
         // search in subfolders for data
         // find all subfolders, sort them and do the same iterative
-        File[] subDir = FileAndPathUtil
-            .sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir), false);
+        File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
+            false);
         // call this method
         findFilesInSubDirSeparatedFolders(dir, subDir, list, fileFilter);
       }
@@ -450,8 +463,8 @@ public class FileAndPathUtil {
         list.add(subFiles);
       }
       // find all subfolders, sort them and do the same iterative
-      File[] subDir = FileAndPathUtil
-          .sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir), false);
+      File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
+          false);
       // call this method
       findFilesInSubDir(subDir, list, fileFilter);
     }

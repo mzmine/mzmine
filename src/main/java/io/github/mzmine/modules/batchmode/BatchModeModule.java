@@ -25,10 +25,13 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -45,6 +48,12 @@ public class BatchModeModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Batch mode";
   private static final String MODULE_DESCRIPTION = "This module allows execution of multiple processing tasks in a batch.";
 
+  /**
+   * Run from batch file (usually in headless mode)
+   *
+   * @param batchFile local file
+   * @return exit code that reflects if the batch mode was started
+   */
   public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {
 
@@ -97,8 +106,40 @@ public class BatchModeModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
-    BatchTask newTask = new BatchTask(project, parameters, moduleCallDate);
+    final BatchTask newTask;
+    // check if advanced
+    if (parameters.getValue(BatchModeParameters.advanced)) {
+      AdvancedBatchModeParameters params = parameters.getParameter(BatchModeParameters.advanced)
+          .getEmbeddedParameters();
+      File parentDir = params.getValue(AdvancedBatchModeParameters.processingParentDir);
+      if (parentDir != null && parentDir.exists()) {
+        List<File> subDirs = new ArrayList<>();
+        for (File sub : parentDir.listFiles()) {
+          if (sub.isDirectory()) {
+            subDirs.add(sub);
+          }
+        }
+        if (subDirs.isEmpty()) {
+          DialogLoggerUtil.showErrorDialog("No parent directory",
+              "Parent directory not set or does not exist");
+          return ExitCode.ERROR;
+        }
+        String dirs = subDirs.size() + " directories";
 
+        String message = String.join(": ", "Advanced mode selected. Will run on ", dirs);
+        if (DialogLoggerUtil.showDialogYesNo("Run advanced mode?", message)) {
+          newTask = new BatchTask(project, parameters, moduleCallDate, subDirs);
+        } else {
+          return ExitCode.CANCEL;
+        }
+      } else {
+        DialogLoggerUtil.showErrorDialog("No parent directory",
+            "Parent directory not set or does not exist");
+        return ExitCode.ERROR;
+      }
+    } else {
+      newTask = new BatchTask(project, parameters, moduleCallDate);
+    }
     /*
      * We do not add the task to the tasks collection, but instead directly submit to the task
      * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the
