@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
  * @see Frame
  */
 public class SimpleFrame extends SimpleScan implements Frame {
+
+  private static Logger logger = Logger.getLogger(SimpleFrame.class.getName());
 
   private final MobilityType mobilityType;
 
@@ -177,6 +180,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public int setMobilities(double[] mobilities) {
+    if(mobilities.length == 0) {
+      logger.info(() -> "No mobilities detected in data file.");
+      mobilities = new double[] {0.0d};
+    }
     mobilitySegment = ((IMSRawDataFile) getDataFile()).addMobilityValues(mobilities);
     mobilityRange = Range.singleton(mobilities[0]);
     mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
