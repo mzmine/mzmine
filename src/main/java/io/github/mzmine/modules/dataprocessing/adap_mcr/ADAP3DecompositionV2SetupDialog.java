@@ -78,7 +78,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
    * Elements of the interface
    */
   private BorderPane pnlUIElements;
-  private FlowPane pnlComboBoxes;
+  private VBox pnlComboBoxes;
   private VBox pnlPlots;
   private CheckBox chkPreview;
   private ComboBox<ChromatogramPeakPair> cboPeakLists;
@@ -124,8 +124,9 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         pnlPlots.setAlignment(Pos.TOP_CENTER);
         paramsPane.add(pnlPlots, 4, 0, 1, 100);
 
+
         pnlUIElements.getChildren().add(pnlComboBoxes);
-        pnlUIElements.setCenter(pnlComboBoxes);
+
 
         refresh();
       } else {
@@ -162,10 +163,15 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     cboClusters.setOnAction(e -> shapeCluster());
     // cboClusters.addActionListener(this);
 
-    pnlComboBoxes = new FlowPane(new Label("Feature Lists"), cboPeakLists,
+    pnlComboBoxes = new VBox(new Label("Feature Lists"), cboPeakLists,
         new Label("Clusters"), cboClusters, new BorderPane());
-    pnlComboBoxes.setOrientation(Orientation.VERTICAL);
-//    pnlComboBoxes.setAlignment(Pos.CENTER);
+    pnlComboBoxes.setSpacing(10);
+    pnlComboBoxes.setPrefWidth(200);
+    pnlUIElements.setBottom(pnlComboBoxes);
+
+
+//    pnlComboBoxes.setOrientation(Orientation.VERTICAL);
+    //pnlComboBoxes.setAlignment(Pos.CENTER);
 
     // --------------------------------------------------------------------
     // ----- Panel with plots --------------------------------------
