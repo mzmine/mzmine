@@ -125,7 +125,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         paramsPane.add(pnlPlots, 4, 0, 1, 100);
 
 
-        pnlUIElements.getChildren().add(pnlComboBoxes);
+        pnlUIElements.setBottom(pnlComboBoxes);
 
 
         refresh();
@@ -167,7 +167,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         new Label("Clusters"), cboClusters, new BorderPane());
     pnlComboBoxes.setSpacing(10);
     pnlComboBoxes.setPrefWidth(200);
-    pnlUIElements.setBottom(pnlComboBoxes);
+
 
 
 //    pnlComboBoxes.setOrientation(Orientation.VERTICAL);
