@@ -207,7 +207,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {
       Range<Double> mobilityRange = selectedFrame.get().getMobilityRange();
-      if (mobilityRange != null) {
+      if (mobilityRange != null && !mobilityRange.isEmpty()) {
         heatmapChart.getXYPlot().getRangeAxis()
             .setRange(mobilityRange.lowerEndpoint(), mobilityRange.upperEndpoint());
       }
