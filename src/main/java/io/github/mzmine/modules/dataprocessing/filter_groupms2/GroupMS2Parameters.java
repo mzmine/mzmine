@@ -56,7 +56,10 @@ public class GroupMS2Parameters extends SimpleParameterSet {
 
   public static final BooleanParameter lockMS2ToFeatureMobilityRange = new BooleanParameter(
       "Lock to feature mobility range",
-      "If checked, only mobility scans from the mobility range of the feature will be merged.", false);
+      "If checked, only mobility scans from the mobility range of the feature will be merged.\n"
+          + "This is usually not needed. However, if isomeres/isobares elute at the same retention time and are close in mobility, "
+          + "the MS/MS window might be larger than the peak in mobility dimension and thus cause chimeric MS/MS spectra.\n"
+          + "This can be investigated in hte \"All MS MS\" window", false);
 
   public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
       new DoubleParameter("Minimum merged intensity (IMS)",
