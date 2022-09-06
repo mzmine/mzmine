@@ -46,7 +46,8 @@ public class MobilityMzRegionExtractionParameters extends SimpleParameterSet {
       "The suffix of newly created feature lists", " extracted");
 
   public MobilityMzRegionExtractionParameters() {
-    super(new Parameter[]{featureLists, regions, ccsOrMobility, suffix});
+    super(new Parameter[]{featureLists, regions, ccsOrMobility, suffix},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_mobilitymzregionextraction/filter_mobilitymzregionextraction.html");
   }
 
   @Override
