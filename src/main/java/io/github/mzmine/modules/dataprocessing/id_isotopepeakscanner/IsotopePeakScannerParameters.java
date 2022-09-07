@@ -44,7 +44,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final BooleanParameter checkRT =
-      new BooleanParameter("Check RT", "Compare rt of peaks to parent.");
+      new BooleanParameter("Check RT", "Compare RT of peaks to parent.");
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
@@ -65,7 +65,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final DoubleParameter minPatternIntensity =
       new DoubleParameter("Min. pattern intensity",
           "The minimum normalized intensity of a peak in the final calculated isotope pattern. "
-              + "Depends on the sensitivity of your MS.\nMin = 0.0, Max = 0.99...",
+              + "Depends on the sensitivity of your MS.\nMin = 0.0, Max = 0.99999",
           new DecimalFormat("0.####"), 0.01, 0.0d, 0.99999);
 
   public static final BooleanParameter checkIntensity = new BooleanParameter(
@@ -80,7 +80,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final ComboParameter<String> ratingChoices = new ComboParameter<String>(
       "Rating type",
       "Method to calculate the rating with.\nHighest Intensity is the standard method and faster.\n"
-          + "Average is slower but could be more accurate for some peaks. Select a masslist.",
+          + "Average is slower but could be more accurate for some peaks.",
       ratingTypeChoices, "Highest intensity");
 
   public static final StringParameter suffix = new StringParameter("Name suffix",
@@ -92,23 +92,23 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final BooleanParameter calculate_accurate_average =
       new BooleanParameter("Calculate accurate average",
-          "This method will use averaged intensitys over all mass lists in "
+          "This method will use averaged intensities over all mass lists in "
               + "which ALL relevant masses were detected in.\nThis will only be done for peaks that match the "
-              + "defined rating-calculation with the given rating.\nMake sure the mass list is contained in the"
-              + " feature list.\nIf there are no Scans that match all criteria avg rating will be -1.0.",
+              + "defined rating.\n",
           false);
 
   public static final OptionalModuleParameter autoCarbonOpt = new OptionalModuleParameter(
       "Auto carbon",
       "If activated, Isotope peak scanner will calculate isotope patterns with variable numbers of carbon specified below.\n"
           + "The pattern with the best fitting number of carbon atoms will be chosen for every detected pattern.\n"
-          + " This will greatly increase computation time but help with unknown-compound-identification.",
+          + " This will greatly increase computation time but may help with unknown-compound-identification.",
       new AutoCarbonParameters());
 
   public IsotopePeakScannerParameters() {
     super(new Parameter[]{PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
         charge, minPatternIntensity, mergeWidth, minHeight, checkIntensity, minRating,
-        ratingChoices, calculate_accurate_average, suffix});
+        ratingChoices, calculate_accurate_average, suffix},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_peak_scanner/isotope_peak_scanner.html");
   }
 
   @Override
