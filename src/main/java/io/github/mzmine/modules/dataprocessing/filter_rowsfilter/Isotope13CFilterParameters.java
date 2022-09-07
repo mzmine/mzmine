@@ -49,7 +49,8 @@ public class Isotope13CFilterParameters extends SimpleParameterSet {
 
   public Isotope13CFilterParameters() {
     super(new Parameter[]{mzTolerance, maxCharge, applyMinCEstimation, removeIfMainIs13CIsotope,
-        elements});
+        elements},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_filter/isotope_filter.html");
   }
 
   /**
