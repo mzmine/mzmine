@@ -145,10 +145,19 @@ public class EICPlot extends EChartViewer {
         for (Entry<Double, Double> e : cluster.get(j).entrySet())
           series.add(e.getKey(), e.getValue());
 
-        xyDataset.addSeries(series);
-        colorDataset.add(color);
-        toolTips.add(info.get(i).get(j));
+        try{
+          xyDataset.addSeries(series);
+        }
+        catch(Exception e) {
+          System.out.println(e.getMessage());
+        }
+        finally {
+          colorDataset.add(color);
+          toolTips.add(info.get(i).get(j));
+        }
+
       }
+
     }
   }
 }

@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.Random;
 import java.util.Set;
+
+import io.github.mzmine.modules.dataprocessing.adap_mcr.ChromatogramPeakPair;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
@@ -39,10 +43,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -82,9 +82,11 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
   private BorderPane pnlVisible;
   private GridPane pnlLabelsFields;
-  private HBox pnlTabs;
+  private VBox pnlTabs;
   private CheckBox preview;
   private ComboBox<FeatureList> comboPeakList;
+
+  private Button btnRefresh;
 
   private final ObservableList<ComboClustersItem> comboClustersModel =
       FXCollections.observableArrayList();
@@ -169,9 +171,10 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlTabs, 3, 0);
+        paramsPane.add(pnlTabs, 3, 0, 1, 100);
         pnlVisible.setCenter(pnlLabelsFields);
-        comboPeakList.getSelectionModel().select(0);
+        //comboPeakList.getSelectionModel().select(0);
+
       } else {
         paramsPane.getChildren().remove(pnlTabs);
         pnlVisible.getChildren().remove(pnlLabelsFields);
@@ -216,12 +219,13 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
     // comboClusters.setFont(COMBO_FONT);
     // comboClusters.addActionListener(this);
-
+    comboPeakList.setPrefWidth(200);
+    comboClusters.setPrefWidth(200);
     pnlLabelsFields = new GridPane();
     pnlLabelsFields.add(new Label("Feature list"), 0, 0);
     pnlLabelsFields.add(comboPeakList, 0, 1);
-    pnlLabelsFields.add(new Label("Cluster list"), 1, 0);
-    pnlLabelsFields.add(comboClusters, 1, 1);
+    pnlLabelsFields.add(new Label("Cluster list"), 2, 0);
+    pnlLabelsFields.add(comboClusters, 2, 1);
 
     pnlVisible = new BorderPane();
     pnlVisible.setTop(previewPanel);
@@ -231,27 +235,28 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     // --------------------------------------------------------------------
 
     // pnlTabs = new JTabbedPane();
-    pnlTabs = new HBox();
+    //pnlTabs = new HBox();
     // pnlTabs.setLayout(new BoxLayout(pnlTabs, BoxLayout.Y_AXIS));
 
-    // retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
+    retTimeMZPlot.setMinSize(400,300);
 
     BorderPane pnlPlotRetTimeClusters = new BorderPane();
-    // pnlPlotRetTimeClusters.setBackground(Color.white);
+    pnlPlotRetTimeClusters.setStyle("-fx-background-color: #FFFFFF;");
     pnlPlotRetTimeClusters.setCenter(retTimeMZPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
 
-    pnlTabs.getChildren().add(pnlPlotRetTimeClusters);
+    //pnlTabs.getChildren().add();
 
-    // retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
+    retTimeIntensityPlot.setMinSize(400,300);
 
     BorderPane pnlPlotShapeClusters = new BorderPane();
-    // pnlPlotShapeClusters.setBackground(Color.white);
+    pnlPlotShapeClusters.setStyle("-fx-background-color: #FFFFFF;");;
     pnlPlotShapeClusters.setCenter(retTimeIntensityPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
 
-    pnlTabs.getChildren().add(pnlPlotShapeClusters);
-
+    //pnlTabs.getChildren().add();
+    pnlTabs = new VBox(pnlPlotRetTimeClusters,pnlPlotShapeClusters);
+    pnlTabs.setSpacing(10);
     super.paramsPane.add(pnlVisible, 0, super.getNumberOfParameters() + 3);
   }
 
@@ -351,11 +356,11 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
         parameterSet.getParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES).getValue();
 
     if (edgeToHeightRatio == null || deltaToHeightRatio == null || useIsShared == null
-        || shapeSimThreshold == null || minModelPeakSharpness == null || deprecatedMZValues == null)
+        || shapeSimThreshold == null || minModelPeakSharpness == null)
       return;
 
     List<Peak> modelPeakCandidates = TwoStepDecomposition.filterPeaks(peaks, useIsShared,
-        edgeToHeightRatio, deltaToHeightRatio, minModelPeakSharpness, deprecatedMZValues);
+        edgeToHeightRatio, deltaToHeightRatio, minModelPeakSharpness, new ArrayList<>());
 
     if (modelPeakCandidates.isEmpty())
       return;
@@ -437,4 +442,5 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
     return result;
   }
+
 }
