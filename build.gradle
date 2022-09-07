@@ -247,12 +247,15 @@ javafx {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+    options.compilerArgs += ['--enable-preview']
 }
 
 tasks.withType(Test) {
+    jvmArgs += "--enable-preview"
 }
 
 tasks.withType(JavaExec) {
+    jvmArgs += '--enable-preview'
 }
 
 /*
