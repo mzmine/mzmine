@@ -23,88 +23,73 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import javafx.collections.FXCollections;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
  * how the selected mass detector and his parameters works over the raw data file.
  */
-public class RansacAlignerSetupDialog extends ParameterSetupDialog {
+public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
 
   // Dialog components
-  private final BorderPane pnlPlotXY;
-  private final GridPane comboPanel;
-  private final FlowPane peakListsPanel;
-  private final CheckBox previewCheckBox;
-  private final AlignmentRansacPlot chart;
-  private final ComboBox<FeatureList> peakListsComboX, peakListsComboY;
-  private final Button alignmentPreviewButton;
+  private GridPane comboPanel;
+
+  private final FlowPane featureListsPanel;
+
+  private ObservableList<FeatureList> featureLists;
+
+  private ComboBox<FeatureList> featureListsComboX, featureListsComboY;
+
+  private AlignmentRansacPlot plot;
 
   public RansacAlignerSetupDialog(boolean valueCheckRequired, RansacAlignerParameters parameters) {
     super(valueCheckRequired, parameters);
 
-    var featureLists = FXCollections.observableArrayList(
+    featureLists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
-    FeatureList[] selectedPeakLists = MZmineCore.getDesktop().getSelectedPeakLists();
-
-    // Preview check box
-    previewCheckBox = new CheckBox("Show preview of RANSAC alignment");
-
-    peakListsPanel = new FlowPane();
-    peakListsPanel.visibleProperty().bind(previewCheckBox.selectedProperty());
-    // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+    featureListsPanel = new FlowPane();
 
     paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
-    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
-
     // Panel for the combo boxes with the feature lists
     comboPanel = new GridPane();
 
-    peakListsComboX = new ComboBox<>(featureLists);
-    // peakListsComboX.addActionListener(this);
-    peakListsComboY = new ComboBox<>(featureLists);
-    // peakListsComboY.addActionListener(this);
+    featureListsComboX = new ComboBox<>(featureLists);
+    featureListsComboX.valueProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue.isEmpty()) {
+        updatePreview();
+      }
+      updatePreview();
+    });
+    comboPanel.add(featureListsComboX, 1, 1);
+    featureListsComboY = new ComboBox<>(featureLists);
+    comboPanel.add(featureListsComboY, 1, 2);
+    featureListsComboY.valueProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue.isEmpty()) {
+        updatePreview();
+      }
+    });
 
-    alignmentPreviewButton = new Button("Preview alignment");
-    alignmentPreviewButton.setOnAction(e -> updatePreview());
-    comboPanel.getChildren().addAll(peakListsComboX, peakListsComboY, alignmentPreviewButton);
+    featureListsPanel.getChildren().add(comboPanel);
 
-    if (selectedPeakLists.length >= 2) {
-      peakListsComboX.getSelectionModel().select(selectedPeakLists[0]);
-      peakListsComboY.getSelectionModel().select(selectedPeakLists[1]);
-    } else if (featureLists.size() > 1){
-      peakListsComboX.getSelectionModel().select(featureLists.get(0));
-      peakListsComboY.getSelectionModel().select(featureLists.get(1));
-    }
+    comboPanel.setHgap(5);
+    comboPanel.setVgap(5);
+    previewWrapperPane.setBottom(comboPanel);
 
-    peakListsPanel.getChildren().add(comboPanel);
+    plot = new AlignmentRansacPlot();
 
-    // Panel for XYPlot
-    pnlPlotXY = new BorderPane();
-    // Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-    // Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-    // pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
-    // pnlPlotXY.setBackground(Color.white);
-
-    chart = new AlignmentRansacPlot();
-    pnlPlotXY.setCenter(chart);
-
-    paramsPane.add(peakListsPanel, 0, getNumberOfParameters() + 3);
-
+    previewWrapperPane.setCenter(plot);
   }
 
 
@@ -146,10 +131,12 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
 
   private void updatePreview() {
 
-    FeatureList peakListX = peakListsComboX.getSelectionModel().getSelectedItem();
-    FeatureList peakListY = peakListsComboY.getSelectionModel().getSelectedItem();
+    this.plot.removeSeries();
 
-    if ((peakListX == null) || (peakListY == null)) {
+    FeatureList featureListX = featureListsComboX.getSelectionModel().getSelectedItem();
+    FeatureList featureListY = featureListsComboY.getSelectionModel().getSelectedItem();
+
+    if ((featureListsComboX == null) || (featureListsComboY == null)) {
       return;
     }
 
@@ -158,16 +145,16 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     RawDataFile file = null;
     RawDataFile file2 = null;
 
-    for (RawDataFile rfile : peakListX.getRawDataFiles()) {
-      if (peakListX.getFeatures(rfile).size() > numPeaks) {
-        numPeaks = peakListX.getFeatures(rfile).size();
+    for (RawDataFile rfile : featureListX.getRawDataFiles()) {
+      if (featureListX.getFeatures(rfile).size() > numPeaks) {
+        numPeaks = featureListX.getFeatures(rfile).size();
         file = rfile;
       }
     }
     numPeaks = 0;
-    for (RawDataFile rfile : peakListY.getRawDataFiles()) {
-      if (peakListY.getFeatures(rfile).size() > numPeaks) {
-        numPeaks = peakListY.getFeatures(rfile).size();
+    for (RawDataFile rfile : featureListY.getRawDataFiles()) {
+      if (featureListY.getFeatures(rfile).size() > numPeaks) {
+        numPeaks = featureListY.getFeatures(rfile).size();
         file2 = rfile;
       }
     }
@@ -176,29 +163,35 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     updateParameterSetFromComponents();
 
     // Check the parameter values
-    ArrayList<String> errorMessages = new ArrayList<String>();
-    boolean parametersOK = super.parameterSet.checkParameterValues(errorMessages);
-    if (!parametersOK) {
-      StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-      for (String m : errorMessages) {
-        message.append(m);
-        message.append("\n");
-      }
-      MZmineCore.getDesktop().displayMessage(null, message.toString());
-      return;
-    }
+//    ArrayList<String> errorMessages = new ArrayList<String>();
+//    boolean parametersOK = super.parameterSet.checkParameterValues(errorMessages);
+//    if (!parametersOK) {
+//      StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
+//      for (String m : errorMessages) {
+//        message.append(m);
+//        message.append("\n");
+//      }
+//      MZmineCore.getDesktop().displayMessage(null, message.toString());
+//      return;
+//    }
 
     // Ransac Alignment
-    Vector<AlignStructMol> list = this.getVectorAlignment(peakListX, peakListY, file, file2);
+    Vector<AlignStructMol> list = this.getVectorAlignment(featureListX, featureListY, file, file2);
     RANSAC ransac = new RANSAC(super.parameterSet);
     ransac.alignment(list);
 
     // Plot the result
-    this.chart.removeSeries();
-    this.chart.addSeries(list, peakListX.getName() + " vs " + peakListY.getName(),
+    this.plot.addSeries(list, featureListX.getName() + " vs " + featureListY.getName(),
         super.parameterSet.getParameter(RansacAlignerParameters.Linear).getValue());
-    this.chart.printAlignmentChart(peakListX.getName() + " RT", peakListY.getName() + " RT");
+    this.plot.printAlignmentChart(featureListX.getName() + " RT", featureListY.getName() + " RT");
 
   }
 
+  @Override
+  protected void showPreview(boolean show) {
+    super.showPreview(show);
+    if(show) {
+      updatePreview();
+    }
+  }
 }
