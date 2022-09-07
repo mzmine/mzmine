@@ -63,7 +63,8 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
 
   public DuplicateFilterParameters() {
     super(new Parameter[]{peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
-        requireSameIdentification, handleOriginal});
+        requireSameIdentification, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_duplicate_features/duplicate_feature_filter.html");
   }
 
 }
