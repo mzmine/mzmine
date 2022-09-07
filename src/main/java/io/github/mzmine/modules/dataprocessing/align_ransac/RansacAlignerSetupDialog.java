@@ -20,17 +20,20 @@ package io.github.mzmine.modules.dataprocessing.align_ransac;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.FlowPane;
@@ -82,7 +85,15 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
       }
     });
 
+    Button refreshButton = new Button("Refresh preview");
+    refreshButton.setOnAction(event -> {
+      updatePreview();
+    });
+    comboPanel.add(refreshButton, 0, 3);
+
     featureListsPanel.getChildren().add(comboPanel);
+
+//    featureListsPanel.getChildren().add(refreshButton);
 
     comboPanel.setHgap(5);
     comboPanel.setVgap(5);
@@ -91,6 +102,16 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
     plot = new AlignmentRansacPlot();
 
     previewWrapperPane.setCenter(plot);
+//    setOnPreviewShown(this::parametersChanged);
+
+//    previewWrapperPane.visibleProperty().bind(FXCollections.observableArrayList(parameterSet.get));
+//    previewWrapperPane.visibleProperty().addListener((c, o, n) ->
+////    {
+////      if (n) {
+////        updateParameterSetFromComponents();
+////      }
+////    });
+//        parametersChanged());
   }
 
 
@@ -134,6 +155,9 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
 
     this.plot.removeSeries();
 
+    // Update the parameter set from dialog components
+    updateParameterSetFromComponents();
+
     FeatureList featureListX = featureListsComboX.getSelectionModel().getSelectedItem();
     FeatureList featureListY = featureListsComboY.getSelectionModel().getSelectedItem();
 
@@ -160,21 +184,18 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
       }
     }
 
-    // Update the parameter set from dialog components
-    updateParameterSetFromComponents();
-
-//    Check the parameter values
-    ArrayList<String> errorMessages = new ArrayList<String>();
-    boolean parametersOK = super.parameterSet.checkParameterValues(errorMessages);
-    if (!parametersOK) {
-      StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-      for (String m : errorMessages) {
-        message.append(m);
-        message.append("\n");
-      }
-      MZmineCore.getDesktop().displayMessage(null, message.toString());
-      return;
-    }
+    // Check the parameter values
+//    ArrayList<String> errorMessages = new ArrayList<String>();
+//    boolean parametersOK = super.parameterSet.checkParameterValues(errorMessages);
+//    if (!parametersOK) {
+//      StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
+//      for (String m : errorMessages) {
+//        message.append(m);
+//        message.append("\n");
+//      }
+//      MZmineCore.getDesktop().displayMessage(null, message.toString());
+//      return;
+//    }
 
     // Ransac Alignment
     Vector<AlignStructMol> list = this.getVectorAlignment(featureListX, featureListY, file, file2);
@@ -195,4 +216,18 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
       updatePreview();
     }
   }
+
+  //using this method makes module too slow
+//  protected void parametersChanged() {
+//
+////    Scan scan = lastChangedScan.getValue();
+////    if (scan == null) {
+////      return;
+////    }
+//
+//    updateParameterSetFromComponents();
+////    loadPreview(spectrumPlot, scan);
+////    updateTitle(scan);
+//    updatePreview();
+//  }
 }
