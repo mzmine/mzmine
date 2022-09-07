@@ -26,6 +26,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import javafx.collections.FXCollections;
@@ -162,18 +163,18 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
     // Update the parameter set from dialog components
     updateParameterSetFromComponents();
 
-    // Check the parameter values
-//    ArrayList<String> errorMessages = new ArrayList<String>();
-//    boolean parametersOK = super.parameterSet.checkParameterValues(errorMessages);
-//    if (!parametersOK) {
-//      StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-//      for (String m : errorMessages) {
-//        message.append(m);
-//        message.append("\n");
-//      }
-//      MZmineCore.getDesktop().displayMessage(null, message.toString());
-//      return;
-//    }
+//    Check the parameter values
+    ArrayList<String> errorMessages = new ArrayList<String>();
+    boolean parametersOK = super.parameterSet.checkParameterValues(errorMessages);
+    if (!parametersOK) {
+      StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
+      for (String m : errorMessages) {
+        message.append(m);
+        message.append("\n");
+      }
+      MZmineCore.getDesktop().displayMessage(null, message.toString());
+      return;
+    }
 
     // Ransac Alignment
     Vector<AlignStructMol> list = this.getVectorAlignment(featureListX, featureListY, file, file2);
