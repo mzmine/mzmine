@@ -85,7 +85,9 @@ public class GridMassParameters extends SimpleParameterSet {
   public boolean checkParameterValues(Collection<String> errorMessages) {
     boolean allParameterOK = super.checkParameterValues(errorMessages);
 
-    if (scanSelection.getValue().getMsLevel() > 1) {
+    System.out.println("MS Level: " + scanSelection.getValue().getMsLevel());
+
+    if (scanSelection.getValue().getMsLevel() == null || scanSelection.getValue().getMsLevel() != 1 ) {
       errorMessages.add("Grid Mass module is only suitable for MS level 1 data."
           + "\nPlease, choose the correct level in Scans.");
       allParameterOK=false;
