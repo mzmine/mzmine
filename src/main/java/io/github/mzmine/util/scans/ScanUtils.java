@@ -1635,10 +1635,9 @@ public class ScanUtils {
 
     Scan ms2Scan = feature.getMostIntenseFragmentScan();
     List<PrecursorIonTree> tree = getMSnFragmentTrees(ms2Scan.getDataFile());
-    List<Scan> scanRange = feature.getScanNumbers();
+    Range<Float> rtRange = feature.getRawDataPointsRTRange();
 
-
-    return getMostIntenseMSnScan(ms2Scan, msLevel, tree, scanRange);
+    return getMostIntenseMSnScan(ms2Scan, msLevel, tree, rtRange);
 
   }
 
@@ -1656,9 +1655,9 @@ public class ScanUtils {
 
     Scan ms2Scan = row.getMostIntenseFragmentScan();
     List<PrecursorIonTree> tree = getMSnFragmentTrees(ms2Scan.getDataFile());
-    List<Scan> scanRange = row.getFeature(ms2Scan.getDataFile()).getScanNumbers();
+    Range<Float> rtRange = row.getFeature(ms2Scan.getDataFile()).getRawDataPointsRTRange();
 
-    return getMostIntenseMSnScan(ms2Scan, msLevel, tree, scanRange);
+    return getMostIntenseMSnScan(ms2Scan, msLevel, tree, rtRange);
   }
 
   /**
@@ -1667,14 +1666,12 @@ public class ScanUtils {
    * @param ms2Scan MS2 scan of feature
    * @param msLevel MSn scan level
    * @param msNFragmentTrees PrecursorIonTree for raw data file of most intense fragment scan.
-   * @param scanRange Scan range of feature associated with MS2 scan - TODO: Switch to RT
+   * @param rtRange RT range of feature associated with MS2 scan.
    * @return
    */
   public static Scan getMostIntenseMSnScan(Scan ms2Scan, int msLevel,
-      List<PrecursorIonTree> msNFragmentTrees, List<Scan> scanRange) {
-
-    int firstScanNum = scanRange.get(0).getScanNumber();
-    int lastScanNum = scanRange.get(scanRange.size() - 1).getScanNumber();
+      List<PrecursorIonTree> msNFragmentTrees,
+      Range<Float> rtRange) {
 
     // Loop through each tree
     for (PrecursorIonTree tree : msNFragmentTrees) {
@@ -1696,10 +1693,8 @@ public class ScanUtils {
 
             Double value = msn.getTIC();
 
-            // Get most intense MSn scan in feature scan range
-            if(msn.getScanNumber() > firstScanNum &&
-                msn.getScanNumber() < lastScanNum &&
-                value > intensity){
+            // Get most intense MSn scan in feature rt range
+            if(rtRange.contains(msn.getRetentionTime()) &&  value > intensity){
               msnScan = msn;
               intensity = value;
             }
