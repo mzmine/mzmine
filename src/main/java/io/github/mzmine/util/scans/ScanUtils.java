@@ -1631,6 +1631,17 @@ public class ScanUtils {
     }
   }
 
+  public static Scan getMostIntenseMSnScan(Feature feature, int msLevel){
+
+    Scan ms2Scan = feature.getMostIntenseFragmentScan();
+    List<PrecursorIonTree> tree = getMSnFragmentTrees(ms2Scan.getDataFile());
+    List<Scan> scanRange = feature.getScanNumbers();
+
+
+    return getMostIntenseMSnScan(ms2Scan, msLevel, tree, scanRange);
+
+  }
+
 
   /**
    * Return the closest MSn scan to the most intense MS2 fragment scan.
@@ -1645,24 +1656,23 @@ public class ScanUtils {
 
     Scan ms2Scan = row.getMostIntenseFragmentScan();
     List<PrecursorIonTree> tree = getMSnFragmentTrees(ms2Scan.getDataFile());
+    List<Scan> scanRange = row.getFeature(ms2Scan.getDataFile()).getScanNumbers();
 
-    return getMostIntenseMSnScan(row, msLevel, tree);
+    return getMostIntenseMSnScan(ms2Scan, msLevel, tree, scanRange);
   }
 
   /**
    * Get most intense MSn scan for feature list row
    *
-   * @param row Feature List row
+   * @param ms2Scan MS2 scan of feature
    * @param msLevel MSn scan level
    * @param msNFragmentTrees PrecursorIonTree for raw data file of most intense fragment scan.
+   * @param scanRange Scan range of feature associated with MS2 scan - TODO: Switch to RT
    * @return
    */
-  public static Scan getMostIntenseMSnScan(FeatureListRow row, int msLevel,
-      List<PrecursorIonTree> msNFragmentTrees) {
+  public static Scan getMostIntenseMSnScan(Scan ms2Scan, int msLevel,
+      List<PrecursorIonTree> msNFragmentTrees, List<Scan> scanRange) {
 
-    Scan ms2Scan = row.getMostIntenseFragmentScan();
-
-    List<Scan> scanRange = row.getFeature(ms2Scan.getDataFile()).getScanNumbers();
     int firstScanNum = scanRange.get(0).getScanNumber();
     int lastScanNum = scanRange.get(scanRange.size() - 1).getScanNumber();
 
