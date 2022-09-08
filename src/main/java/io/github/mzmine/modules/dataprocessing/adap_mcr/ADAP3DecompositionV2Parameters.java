@@ -83,7 +83,8 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 
   public ADAP3DecompositionV2Parameters() {
     super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH, RET_TIME_TOLERANCE,
-        MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE});
+        MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_multivariate_curve_res/featdet_multivar_curve_res.html");
   }
 
   @Override
