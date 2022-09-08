@@ -606,10 +606,17 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public void setFeatureListOnNodes(FeatureListRow[] rows)
   {
-    for(int i=0;i<rows.length;i++)
-    {
-      graph.getNode(i).setAttribute("FeatureListOnNode",rows[i]);
-    }
+    int n = 0;
+    for (Node node : graph) {
+        node.setAttribute(generator.toNodeName(rows[n]), rows[n]);
+        if(n==rows.length)
+        {
+          break;
+        }
+      else {
+        n++;
+      }
+      }
   }
 
 
