@@ -44,12 +44,15 @@ public class RTCalibrationParameters extends SimpleParameterSet {
       "Minimum height of a feature to be selected as normalization standard",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final OriginalFeatureListHandlingParameter handleOriginal = //
-      new OriginalFeatureListHandlingParameter(false);
+  public static final OriginalFeatureListHandlingParameter handleOriginal =
+      new OriginalFeatureListHandlingParameter("Original feature list",
+          "Defines the processing.\nKEEP is to keep the original feature list and create a new"
+              + "processed list.\nREMOVE saves memory.", false);
 
   public RTCalibrationParameters() {
     super(
-        new Parameter[]{featureLists, suffix, MZTolerance, RTTolerance, minHeight, handleOriginal});
+        new Parameter[]{featureLists, suffix, MZTolerance, RTTolerance, minHeight, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration/norm_rt_calibration.html");
   }
 
 }
