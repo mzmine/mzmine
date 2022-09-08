@@ -42,7 +42,8 @@ public class MergeAlignerParameters extends SimpleParameterSet {
       new StringParameter("Feature list name", "Feature list name", "Merged feature list");
 
   public MergeAlignerParameters() {
-    super(new Parameter[]{featureLists, peakListName});
+    super(new Parameter[]{featureLists, peakListName},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/align_merge_lists/align_merge_lists.html");
   }
 
   @Override

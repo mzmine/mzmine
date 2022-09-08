@@ -42,15 +42,15 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
   );
 
   // -- Save RAM 1
-  public static final BooleanParameter saveRAMratherThanCPU_1 = new BooleanParameter(
-      "Save RAM (!! <FULL-EXPENSE-ON-CPU> !!)",
-      "Ignored if clusterer type is not 'Cached'. Saves RAM at the expense of CPU during the whole clustering process (NO precomputed distances).",
-      false);
-  // -- Save RAM 2
-  public static final BooleanParameter saveRAMratherThanCPU_2 = new BooleanParameter(
-      "Save RAM (!! <LAST-PART-ONLY> !!)",
-      "Ignored if clusterer type is not 'Cached'. Saves RAM at the expense of CPU during the 2nd step of the clustering (building clusters from tree).",
-      false);
+//  public static final BooleanParameter saveRAMratherThanCPU_1 = new BooleanParameter(
+//      "Save RAM (!! <FULL-EXPENSE-ON-CPU> !!)",
+//      "Ignored if clusterer type is not 'Cached'. Saves RAM at the expense of CPU during the whole clustering process (NO precomputed distances).",
+//      false);
+//  // -- Save RAM 2
+//  public static final BooleanParameter saveRAMratherThanCPU_2 = new BooleanParameter(
+//      "Save RAM (!! <LAST-PART-ONLY> !!)",
+//      "Ignored if clusterer type is not 'Cached'. Saves RAM at the expense of CPU during the 2nd step of the clustering (building clusters from tree).",
+//      false);
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
@@ -58,10 +58,10 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
       new StringParameter("Feature list name", "Feature list name", "Aligned feature list");
 
   // Clusterer choice
-  public static final ComboParameter<ClustererType> clusterer_type =
-      new ComboParameter<ClustererType>("Hierarchical clusterer",
-          "Which clustering algorithm should be used (See: \"Hierarchical clustering\" algorithms in general).",
-          ClustererType.values(), ClustererType.CACHED);
+//  public static final ComboParameter<ClustererType> clusterer_type =
+//      new ComboParameter<ClustererType>("Hierarchical clusterer",
+//          "Which clustering algorithm should be used (See: \"Hierarchical clustering\" algorithms in general).",
+//          ClustererType.values(), ClustererType.CACHED);
 
   // Clustering linkage strategy
   public static final ComboParameter<ClusteringLinkageStrategyType> linkageStartegyType_0 =
@@ -69,17 +69,17 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
           "What strategy shall be used for the clustering algorithm decision making (See: \"Hierarchical clustering\" algorithms in general).",
           ClusteringLinkageStrategyType.values(), ClusteringLinkageStrategyType.AVERAGE);
 
-  public static final IntegerParameter hybrid_K_value = new IntegerParameter(
-      "'K' value (Hybrid clusterer)",
-      "Ignored if clusterer type is not 'Hybrid'. Number of clusters for 1st pass (-1 => Let the algorithm decide) - 'Hybrid' uses 'K-Mean algorithm' as a first clustering pass.",
-      -1);
+//  public static final IntegerParameter hybrid_K_value = new IntegerParameter(
+//      "'K' value (Hybrid clusterer)",
+//      "Ignored if clusterer type is not 'Hybrid'. Number of clusters for 1st pass (-1 => Let the algorithm decide) - 'Hybrid' uses 'K-Mean algorithm' as a first clustering pass.",
+//      -1);
 
   // -- Use unaltered RDF...
-  public static final BooleanParameter useOldestRDFAncestor = new BooleanParameter(
-      "Use original raw data file",
-      "Chemical similarity is computed using unaltered m/z profile at given scan from the very oldest Raw Data File ancestor (if it has not been removed). "
-          + "Unchecked: information are grabbed as usual (from the data file the feature list to be merged was built from).",
-      false);
+//  public static final BooleanParameter useOldestRDFAncestor = new BooleanParameter(
+//      "Use original raw data file",
+//      "Chemical similarity is computed using unaltered m/z profile at given scan from the very oldest Raw Data File ancestor (if it has not been removed). "
+//          + "Unchecked: information are grabbed as usual (from the data file the feature list to be merged was built from).",
+//      false);
   // --
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
@@ -149,7 +149,8 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
         // RTToleranceAfter,
         exportDendrogramTxt, dendrogramTxtFilename
         /* SameChargeRequired, SameIDRequired, compareIsotopePattern */
-    });
+    },
+        "https://mzmine.github.io/mzmine_documentation/module_docs/align_hierarch/align_hierarch.html");
   }
 
 }
