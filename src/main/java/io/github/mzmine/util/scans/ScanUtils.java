@@ -1687,7 +1687,7 @@ public class ScanUtils {
         // Get scans associated with MS Level
         List<Scan> fragmentScans = root.getFragmentScans(msLevel - 2);
 
-        if (fragmentScans != null) {
+        if (fragmentScans.size() != 0) {
 
           Scan msnScan = null;
           double intensity = 0;
