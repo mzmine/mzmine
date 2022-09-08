@@ -437,8 +437,8 @@ public class NetworkPane extends BorderPane {
     Node a = mouseClickedEdge.getNode0();
     Node b = mouseClickedEdge.getNode1();
     MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
-    FeatureListRow Row1 = (FeatureListRow) a.getAttribute("FeatureListOnNode");
-    FeatureListRow Row2 = (FeatureListRow) b.getAttribute("FeatureListOnNode");
+    FeatureListRow Row1 = (FeatureListRow) a.getAttribute(a.toString());
+    FeatureListRow Row2 = (FeatureListRow) b.getAttribute(b.toString());
     mirrorScanTab.getController()
         .setScans(Row1.getMostIntenseFragmentScan(), Row2.getMostIntenseFragmentScan());
     mirrorScanTab.show();
