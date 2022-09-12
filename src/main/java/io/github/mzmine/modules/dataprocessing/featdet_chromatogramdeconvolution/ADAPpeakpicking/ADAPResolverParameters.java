@@ -74,7 +74,7 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
 
   public static final DoubleParameter COEF_AREA_THRESHOLD = new DoubleParameter(
       "Coefficient/area threshold",
-      "This is a theshold for the maximum coefficient (inner product) devided by the area "
+      "This is a threshold for the maximum coefficient (inner product) divided by the area "
           + "under the curve of the feature. Filters out bad peaks.",
       NumberFormat.getNumberInstance(), 110.0, 0.0, null);
 
