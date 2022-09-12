@@ -70,8 +70,8 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
           .getEmbeddedParameter().getValue();
     }
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-      this.ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
-          .getEmbeddedParameter().getValue();
+      this.ms2Detector = advancedParam.getParameter(
+          AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
     }
   }
 

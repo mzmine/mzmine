@@ -44,7 +44,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       new OriginalFeatureListHandlingParameter(true);
 
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
-      "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());
+      "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters(),
+      true);
 
   public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>(
       "Dimension", "Select the dimension to be resolved.",
