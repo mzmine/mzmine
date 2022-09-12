@@ -55,7 +55,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
    * R engine type. Only added in parameter sets that need R.
    */
   public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
-      "R engine", "The R engine to be used for communicating with R.", REngineType.values(),
+      "R engine", "The R engine to be used for communicating with R. "
+      + "RServe might provide you with better performance.", REngineType.values(),
       REngineType.RCALLER);
 
   public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
