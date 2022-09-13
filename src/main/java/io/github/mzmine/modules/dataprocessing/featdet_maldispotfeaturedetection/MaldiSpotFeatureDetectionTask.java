@@ -144,7 +144,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
       var traceMap = spotTracesMap.computeIfAbsent(spot, k -> TreeRangeMap.create());
       final ModularFeatureList flist = spotFlistMap.computeIfAbsent(spot,
           s -> new ModularFeatureList(
-              spotSampleNameMap.getOrDefault(spot, file.getName() + " - " + s),
+              spotSampleNameMap.getOrDefault(spot.toUpperCase(), file.getName() + " - " + s),
               getMemoryMapStorage(), file));
 
       final List<Scan> selectedScans =
@@ -240,7 +240,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
       }
 
       for (int i = 1; i < spotSampleNames.length; i++) {
-        spotNameMap.put(spotSampleNames[i][spotIndex], spotSampleNames[i][nameIndex]);
+        spotNameMap.put(spotSampleNames[i][spotIndex].toUpperCase(), spotSampleNames[i][nameIndex]);
       }
     } catch (IOException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
