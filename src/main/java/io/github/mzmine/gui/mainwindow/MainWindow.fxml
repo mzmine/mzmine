@@ -40,6 +40,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.Scene?>
 <?import org.controlsfx.control.StatusBar?>
+<?import org.controlsfx.control.NotificationPane?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -179,9 +180,13 @@
           </SplitPane>
 
           <!--          Right side, main panel -->
-          <TabPane fx:id="mainTabPane"
-            tabClosingPolicy="ALL_TABS">
-          </TabPane>
+
+          <NotificationPane fx:id="notificationPane">
+            <content>
+              <TabPane fx:id="mainTabPane" tabClosingPolicy="ALL_TABS">
+              </TabPane>
+            </content>
+          </NotificationPane>
         </items>
       </SplitPane>
     </center>

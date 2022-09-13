@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -44,7 +44,9 @@ public interface RawDataFile {
    * Change the name of this data file.
    * <p></p>
    * Setting the name of a file via this function is not reproducible in MZmine projects if the name
-   * is not predetermined in by a parameter. In that case, {@link io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
+   * is not predetermined in by a parameter. In that case,
+   * {@link
+   * io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
    * String)} should be used.
    *
    * @return the actually set name after checking restricted symbols and for duplicate names
@@ -66,14 +68,14 @@ public interface RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return
+   * @return max number of data points in masslist
    */
   int getMaxCentroidDataPoints();
 
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return
+   * @return max raw data points in scans
    */
   int getMaxRawDataPoints();
 
@@ -116,10 +118,27 @@ public interface RawDataFile {
 
   @NotNull Range<Double> getDataMZRange();
 
+
+  /**
+   * Contains at least one zero intensity (or negative). This might be a sign that the conversion
+   * with msconvert had incorrect settings. Peak picking needs to be the first step NOT title maker
+   *
+   * @return true if <=0 in any scan
+   */
+  boolean isContainsZeroIntensity();
+
+
+  /**
+   * The spectrum type of all spectra or {@link MassSpectrumType#MIXED}
+   *
+   * @return the type of all spectra
+   */
+  MassSpectrumType getSpectraType();
+
   /**
    * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
-   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
-   * Number)}
+   * positive range is required,
+   * {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range, Number)}
    */
   @NotNull Range<Float> getDataRTRange();
 
@@ -127,8 +146,8 @@ public interface RawDataFile {
 
   /**
    * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
-   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
-   * Number)}
+   * positive range is required,
+   * {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range, Number)}
    */
   @NotNull Range<Float> getDataRTRange(Integer msLevel);
 
@@ -160,10 +179,6 @@ public interface RawDataFile {
 
   void addScan(Scan newScan) throws IOException;
 
-  void setRTRange(int msLevel, Range<Float> rtRange);
-
-  void setMZRange(int msLevel, Range<Double> mzRange);
-
 
   String setNameNoChecks(@NotNull String name);
 
@@ -185,10 +200,10 @@ public interface RawDataFile {
   /**
    * The scan at the specified scan number or null
    *
-   * @param scanNumber
-   * @return
+   * @param scanNumber the number defined in the scan
+   * @return scan or null
    */
-  default Scan getScanAtNumber(int scanNumber) {
+  default @Nullable Scan getScanAtNumber(int scanNumber) {
     return getScans().stream().filter(s -> s.getScanNumber() == scanNumber).findFirst()
         .orElse(null);
   }
@@ -196,10 +211,10 @@ public interface RawDataFile {
   /**
    * Scan at index i in list getScans()
    *
-   * @param i
-   * @return
+   * @param i index
+   * @return scan or null
    */
-  default Scan getScan(int i) {
+  default @Nullable Scan getScan(int i) {
     return getScans().get(i);
   }
 
@@ -215,10 +230,13 @@ public interface RawDataFile {
    *
    * @return a datetime stamp (or null in case if it wasn't mentioned in the RawDataFile)
    */
-  default LocalDateTime getStartTimeStamp() { return null; }
+  default LocalDateTime getStartTimeStamp() {
+    return null;
+  }
 
   /**
    * Set the start time stamp of the sample.
    */
-  default void setStartTimeStamp(LocalDateTime localDateTime) { }
+  default void setStartTimeStamp(LocalDateTime localDateTime) {
+  }
 }

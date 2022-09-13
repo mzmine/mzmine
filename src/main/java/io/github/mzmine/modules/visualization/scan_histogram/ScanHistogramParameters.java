@@ -62,7 +62,8 @@ public class ScanHistogramParameters extends SimpleParameterSet {
   public ScanHistogramParameters() {
     super(
         new Parameter[]{dataFiles, scanSelection, mzRange, heightRange, massDefect, type, binWidth,
-            useMobilityScans});
+            useMobilityScans},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ms_raw_data_overview/raw_data_additional.md#scan-histogram");
   }
 
   public enum Weight {

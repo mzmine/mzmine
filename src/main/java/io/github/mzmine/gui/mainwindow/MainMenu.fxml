@@ -15,8 +15,8 @@
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  ~
-  --><?import io.github.mzmine.util.javafx.WindowsMenu?>
+  -->
+<?import io.github.mzmine.util.javafx.WindowsMenu?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -92,10 +92,6 @@
       userData=""/>
 
     <SeparatorMenuItem/>
-    <MenuItem text="Export audit log" onAction="#runModule"
-      userData="io.github.mzmine.modules.auditlogexport.AuditLogExportModule"/>
-
-    <SeparatorMenuItem/>
     <MenuItem text="Exit" onAction="#exitApplication"/>
   </Menu>
 
@@ -114,8 +110,6 @@
 
       <MenuItem onAction="#runModule" text="mzML"
         userData="io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule"/>
-      <!-- *Obsolete* MenuItem onAction="#runModule" text="mzML via jmzml"
-        userData="io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule"/ -->
       <MenuItem onAction="#runModule" text="imzML"
         userData="io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule"/>
       <MenuItem onAction="#runModule" text="netCDF"

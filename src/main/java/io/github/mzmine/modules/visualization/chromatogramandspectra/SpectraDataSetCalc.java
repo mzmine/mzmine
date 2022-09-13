@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -69,7 +69,7 @@ public class SpectraDataSetCalc extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     // + 1 because we count the generation of the data sets, too.
-    return doneFiles / (rawDataFiles.size() + 1);
+    return doneFiles / (double) (rawDataFiles.size() + 1);
   }
 
   @Override

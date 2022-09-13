@@ -18,10 +18,13 @@
 
 package io.github.mzmine.modules.visualization.injection_time;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemScanProvider;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -30,20 +33,23 @@ import java.util.List;
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-class InjectTimeDataProvider extends SimpleXYProvider {
+class InjectTimeDataProvider extends SimpleXYProvider implements XYItemScanProvider {
 
   private final double[] mobilities;
   private final boolean useMobilities;
+  private final Scan[] scans;
   private NumberFormat mobilityFormat;
 
   public InjectTimeDataProvider(int msLevel, Color awt, List<InjectData> data) {
     super("MS" + msLevel, awt, null, null, MZmineCore.getConfiguration().getRTFormat(),
         MZmineCore.getConfiguration().getIntensityFormat());
-    List<InjectData> filtered = data.stream().filter(d -> d.msLevel() == msLevel).toList();
+    List<InjectData> filtered = data.stream().filter(d -> d.msLevel() == msLevel)
+        .sorted(Comparator.comparingDouble(InjectData::injectTime).reversed()).toList();
     setxValues(filtered.stream().mapToDouble(v -> 1.0 / v.injectTime()).toArray());
     setyValues(filtered.stream().mapToDouble(InjectData::lowestIntensity).toArray());
 
     mobilities = filtered.stream().mapToDouble(InjectData::mobility).toArray();
+    scans = filtered.stream().map(InjectData::scan).toArray(Scan[]::new);
     useMobilities = mobilities[0] > 0;
   }
 
@@ -65,5 +71,9 @@ class InjectTimeDataProvider extends SimpleXYProvider {
     }
 
     return super.getToolTipText(itemIndex);
+  }
+
+  public Scan getScan(int item) {
+    return item >= 0 && item < scans.length ? scans[item] : null;
   }
 }

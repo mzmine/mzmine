@@ -266,9 +266,11 @@ public class ParameterSetupPane extends BorderPane {
       label.minWidthProperty().bind(label.widthProperty());
       label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
 
-      final Tooltip tooltip = new Tooltip(up.getDescription());
-      tooltip.setShowDuration(new Duration(20_000));
-      label.setTooltip(tooltip);
+      if (!up.getDescription().isEmpty()) {
+        final Tooltip tooltip = new Tooltip(up.getDescription());
+        tooltip.setShowDuration(new Duration(20_000));
+        label.setTooltip(tooltip);
+      }
 
       label.setStyle("-fx-font-weight: bold");
       paramsPane.add(label, 0, rowCounter);

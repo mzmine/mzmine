@@ -57,7 +57,8 @@ public class IMSRawDataOverviewParameters extends SimpleParameterSet {
 
   public IMSRawDataOverviewParameters() {
     super(new Parameter[]{rawDataFiles, summedFrameNoiseLevel, mobilityScanNoiseLevel,
-        mzTolerance, scanSelection, rtWidth, binWidth});
+        mzTolerance, scanSelection, rtWidth, binWidth},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ims_raw_data_overview/IM-data-visualisation.html");
   }
 
   @NotNull
