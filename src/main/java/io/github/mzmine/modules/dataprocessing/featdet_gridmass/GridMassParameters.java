@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import java.util.Collection;
 
 public class GridMassParameters extends SimpleParameterSet {
 
@@ -79,6 +80,19 @@ public class GridMassParameters extends SimpleParameterSet {
   public static final StringParameter ignoreTimes = new StringParameter("False+: Ignore times",
       "To avoid estimation of features at specific times in minutes. Use 0-0 to ignore. Format: time1-time2, time3-time4, ... ",
       "0-0");
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    boolean allParameterOK = super.checkParameterValues(errorMessages);
+
+    if (scanSelection.getValue().getMsLevel() == null || scanSelection.getValue().getMsLevel() != 1 ) {
+      errorMessages.add("Grid Mass module is only suitable for MS level 1 data."
+          + "\nPlease, choose the correct level in Scans.");
+      allParameterOK=false;
+    }
+
+    return allParameterOK;
+  }
 
   public GridMassParameters() {
     super(new Parameter[] {dataFiles, scanSelection, suffix, minimumHeight, mzTolerance, timeSpan,
