@@ -419,6 +419,10 @@ public class IsotopesUtils {
 
   public static List<DataPoint> findIsotopesInScan(List<Double> isoMzDiffs, double maxIsoMzDiff,
       MZTolerance isoMzTolerance, MassSpectrum spectrum, DataPoint target) {
+    if (spectrum.getNumberOfDataPoints() <= 0) {
+      return List.of();
+    }
+
     int dp = spectrum.getNumberOfDataPoints() - 1;
 
     List<DataPoint> candidates = new ArrayList<>();

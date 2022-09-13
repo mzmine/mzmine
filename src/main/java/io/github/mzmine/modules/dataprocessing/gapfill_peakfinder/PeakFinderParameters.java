@@ -57,7 +57,8 @@ public class PeakFinderParameters extends SimpleParameterSet {
 
   public PeakFinderParameters() {
     super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance, RTCorrection,
-        useParallel, handleOriginal});
+        useParallel, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_peak_finder/gap-filling.html");
   }
 
   @Override

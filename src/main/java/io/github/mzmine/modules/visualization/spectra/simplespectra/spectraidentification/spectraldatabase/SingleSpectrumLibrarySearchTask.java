@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -46,8 +46,8 @@ import org.jetbrains.annotations.NotNull;
  */
 class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
 
-  private static final Logger logger = Logger
-      .getLogger(SingleSpectrumLibrarySearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      SingleSpectrumLibrarySearchTask.class.getName());
   private final SpectraPlot spectraPlot;
   private SpectraIdentificationResultsWindowFX resultWindow;
 
@@ -61,7 +61,7 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
   @Override
   public String getTaskDescription() {
     return "Spectral libraries identification of spectrum " + scan.getScanDefinition()
-           + " using libraries " + librariesJoined;
+        + " using libraries " + librariesJoined;
   }
 
   @Override
@@ -79,8 +79,7 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
 
     final int fcount = matches.get();
     MZmineCore.runLater(() -> {
-      resultWindow
-          .setTitle("Matched " + fcount + " compounds for scan#" + scan.getScanNumber());
+      resultWindow.setTitle("Matched " + fcount + " compounds for scan#" + scan.getScanNumber());
       resultWindow.setMatchingFinished();
     });
 
@@ -123,8 +122,9 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
             shortName + " " + "Score: " + MZmineCore.getConfiguration().getScoreFormat()
                 .format(match.getSimilarity().getScore()), dataset);
-        spectraPlot.addDataSet(detectedCompoundsDataset,
-            new Color((int) (Math.random() * 0x1000000)), true, true);
+
+        MZmineCore.runLater(() -> spectraPlot.addDataSet(detectedCompoundsDataset,
+            new Color((int) (Math.random() * 0x1000000)), true, true));
 
       } catch (MissingMassListException e) {
         logger.log(Level.WARNING, "No mass list for the selected spectrum", e);
