@@ -180,13 +180,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public int setMobilities(double[] mobilities) {
-    if(mobilities.length == 0) {
-      logger.info(() -> String.format("No mobilities detected in frame #%d of file %s.", getFrameId(), getDataFile().getName()));
-      mobilities = new double[] {0.0d};
+    if (mobilities.length == 0) {
+      logger.info(
+          () -> String.format("No mobilities detected in frame #%d of file %s.", getFrameId(),
+              getDataFile().getName()));
+      mobilities = new double[]{1d};
+      mobilityRange = Range.openClosed(1d, 1d); // empty range
+    } else {
+      mobilityRange = Range.singleton(mobilities[0]);
+      mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
     }
     mobilitySegment = ((IMSRawDataFile) getDataFile()).addMobilityValues(mobilities);
-    mobilityRange = Range.singleton(mobilities[0]);
-    mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
     return mobilitySegment;
   }
 
