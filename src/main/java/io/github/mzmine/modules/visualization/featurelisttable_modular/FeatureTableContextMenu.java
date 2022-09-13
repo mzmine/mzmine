@@ -613,8 +613,8 @@ public class FeatureTableContextMenu extends ContextMenu {
         SpectraMerging.pasefMS2MergeTol, null);
 
     controller.setScans(selectedFeature.getMZ(), ScanUtils.extractDataPoints(msms),
-        selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncleanedSpectrum)/*, "RT shape & mobility window cleaned MS/MS",
-        "Mobility window only (along rt)"*/);
+        selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncleanedSpectrum), " (cleaned)",
+        " (uncleaned)");
 
     window.show();
   }

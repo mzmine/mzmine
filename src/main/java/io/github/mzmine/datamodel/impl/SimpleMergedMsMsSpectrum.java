@@ -102,7 +102,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
     final IntensityMergingType type = IntensityMergingType.valueOf(
         reader.getAttributeValue(null, XML_INTENSITY_MERGE_TYPE_ATTR));
-    final MsMsMergeType msMsMergeType = MsMsMergeType.valueOf(null,
+    final MsMsMergeType msMsMergeType = MsMsMergeType.valueOf(
         reader.getAttributeValue(null, XML_MSMS_MERGING_TYPE_ATTR));
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 

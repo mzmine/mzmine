@@ -220,6 +220,11 @@ public class MirrorScanWindowController {
 
   public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
       DataPoint[] dpsB) {
+    setScans(precursorMZA, dpsA, precursorMZB, dpsB, "", "");
+  }
+
+  public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB, DataPoint[] dpsB,
+      String labelA, String labelB) {
     this.precursorMZA = precursorMZA;
     this.dpsA = dpsA;
     this.precursorMZB = precursorMZB;
@@ -227,7 +232,7 @@ public class MirrorScanWindowController {
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     String precursorString = MessageFormat.format(": {0}↔{1}; top↔bottom",
-        mzFormat.format(precursorMZA), mzFormat.format(precursorMZB));
+        mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
     pnMirror.getChildren().removeAll();
     pnNLMirror.getChildren().removeAll();
@@ -243,8 +248,7 @@ public class MirrorScanWindowController {
     if (precursorMZA > 0 && precursorMZB > 0) {
       lbTitleNL.setText("Neutral loss mirror" + precursorString);
       neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
-          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
-          ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
+          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA, ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
       pnNLMirror.setCenter(neutralLossMirrorSpecrumPlot);
 
       //
