@@ -348,6 +348,7 @@ public class IonMobilityUtils {
 
     access.resetMobilityScan();
     while (access.hasNextMobilityScan()) {
+      access.nextMobilityScan();
 
       if (access.getNumberOfDataPoints() == 0 || !mobilityRange.contains(
           (float) access.getMobility())) {
