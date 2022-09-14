@@ -15,6 +15,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
   -->
 <?import io.github.mzmine.util.javafx.WindowsMenu?>
 <?import javafx.scene.control.Menu?>
@@ -225,6 +226,9 @@
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"
+        text="MSn tree feature list builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule"/>
+      <MenuItem onAction="#runModule"
         text="MSn feature list builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
     </Menu>
@@ -301,6 +305,8 @@
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
+      <MenuItem text="Spectral library batch generation" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
     </Menu>
 
     <Menu text="Processing">

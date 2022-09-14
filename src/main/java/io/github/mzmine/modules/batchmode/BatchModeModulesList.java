@@ -42,6 +42,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalib
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
@@ -129,6 +130,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataImportModule;
 import java.util.List;
 
@@ -199,6 +201,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#EIC_BUILDING}
        */
       ModularADAPChromatogramBuilderModule.class, //
+      MsnTreeFeatureDetectionModule.class, //
       GridMassModule.class, //
       IonMobilityTraceBuilderModule.class, //
       RecursiveIMSBuilderModule.class, //
@@ -311,7 +314,8 @@ public class BatchModeModulesList {
       MzTabImportModule.class, //
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
-      LibraryAnalysisCSVExportModule.class //
+      LibraryAnalysisCSVExportModule.class, //
+      LibraryBatchGenerationModule.class //
 
       /*
        * needed in batch mode?

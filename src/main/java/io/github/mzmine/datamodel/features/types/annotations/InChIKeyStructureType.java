@@ -28,14 +28,14 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public class InChIStructureType extends StringType implements EditableColumnType,
+public class InChIKeyStructureType extends StringType implements EditableColumnType,
     StringParser<String>, AnnotationType {
 
   private final StringConverter<String> converter = new DefaultStringConverter();
 
   @Override
   public @NotNull String getHeaderString() {
-    return "InChI";
+    return "InChI key";
   }
 
   @Override
@@ -57,6 +57,6 @@ public class InChIStructureType extends StringType implements EditableColumnType
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "inchi";
+    return "inchi_key";
   }
 }
