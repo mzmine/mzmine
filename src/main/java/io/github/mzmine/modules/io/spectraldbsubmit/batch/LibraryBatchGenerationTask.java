@@ -29,15 +29,30 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -48,38 +63,28 @@ import java.util.logging.Logger;
 public class LibraryBatchGenerationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LibraryBatchGenerationTask.class.getName());
-  private final MZmineProject project;
-  private final ParameterSet parameters;
   private final ModularFeatureList[] flists;
-  private final boolean exportGnpsJson;
-  private final boolean exportMsp;
   private final int minSignals;
   private final ScanSelector scanExport;
   private final File outFile;
-  private final String metadataSeparator;
-  private final File metadataFile;
-  private final IonNetworkLibrary ions;
+  private final SpectralLibraryExportFormats format;
 
-  public int totalRows = 0;
+  public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
+  public AtomicInteger exported = new AtomicInteger(0);
+  public AtomicInteger doubleMatches = new AtomicInteger(0);
   private String description = "Batch exporting spectral library";
 
   public LibraryBatchGenerationTask(final MZmineProject project, final ParameterSet parameters,
       final Instant moduleCallDate) {
     super(null, moduleCallDate);
-    this.project = project;
-    this.parameters = parameters;
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
-    exportGnpsJson = parameters.getValue(LibraryBatchGenerationParameters.exportGnpsJson);
-    exportMsp = parameters.getValue(LibraryBatchGenerationParameters.exportMsp);
     minSignals = parameters.getValue(LibraryBatchGenerationParameters.minSignals);
     scanExport = parameters.getValue(LibraryBatchGenerationParameters.scanExport);
-    outFile = parameters.getValue(LibraryBatchGenerationParameters.file);
-    metadataFile = parameters.getValue(LibraryBatchGenerationParameters.metadata);
-    metadataSeparator = parameters.getValue(LibraryBatchGenerationParameters.fieldSeparator);
-    var ions = parameters.getParameter(LibraryBatchGenerationParameters.ions)
-        .getEmbeddedParameters();
-    this.ions = new IonNetworkLibrary(ions);
+    format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
+    String exportFormat = format.getExtension();
+    File file = parameters.getValue(LibraryBatchGenerationParameters.file);
+    outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
   }
 
   @Override
@@ -91,23 +96,80 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    description = "Importing metadata";
+    totalRows = Arrays.stream(flists).mapToLong(ModularFeatureList::getNumberOfRows).sum();
 
-//    ConcurrentHashMap<FeatureListRow,> matches = new ConcurrentHashMap();
-
-    for (ModularFeatureList flist : flists) {
-//      flist.stream().parallel().forEach(row -> {
-//        List<matchRow(row, metadata, )
-//        matches.put(row, match);
-//      });
+    try (var writer = Files.newBufferedWriter(outFile.toPath(), StandardCharsets.UTF_8)) {
+      for (int i = 0; i < flists.length; i++) {
+        var flist = flists[i];
+        description = "Exporting entries for feature list " + flist.getName();
+        for (var row : flist.getRows()) {
+          processRow(writer, row);
+        }
+      }
+    } catch (IOException e) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Could not open file " + outFile + " for writing.");
+      logger.log(Level.WARNING,
+          String.format("Error writing libary file: %s. Message: %s", outFile.getAbsolutePath(),
+              e.getMessage()), e);
+      return;
     }
 
     setStatus(TaskStatus.FINISHED);
   }
 
-//  public String getMspEntry() {
-//    String msp = MSPEntryGenerator.createMSPEntry(param, dps);
-//  }
+  private void processRow(final BufferedWriter writer, final FeatureListRow row)
+      throws IOException {
+    List<Scan> scans = row.getAllFragmentScans();
+    List<CompoundDBAnnotation> matches = row.getCompoundAnnotations();
+    if (scans.isEmpty() || matches.isEmpty()) {
+      return;
+    }
+
+    String lastName = null;
+    int exported = 0;
+
+    List<DataPoint[]> spectra = scans.stream().map(Scan::getMassList)
+        .map(ScanUtils::extractDataPoints).toList();
+
+    for (var match : matches) {
+      // first entry for the same molecule reflect the most common ion type, usually M+H
+      if (Objects.equals(match.getCompoundName(), lastName)) {
+        continue;
+      }
+
+      lastName = match.getCompoundName();
+
+      // filter matches
+      for (int i = 0; i < spectra.size(); i++) {
+        final DataPoint[] dataPoints = spectra.get(i);
+        if (dataPoints.length < minSignals) {
+          continue;
+        }
+        // add instrument type etc by parameter
+        SpectralDBEntry entry = new SpectralDBEntry(scans.get(i), match, dataPoints);
+        exportEntry(writer, entry);
+      }
+    }
+  }
+
+  private void exportEntry(final BufferedWriter writer, final SpectralDBEntry entry)
+      throws IOException {
+    switch (format) {
+      case msp -> exportMsp(writer, entry);
+      case json -> exportGnpsJson(writer, entry);
+    }
+  }
+
+  private void exportGnpsJson(final BufferedWriter writer, final SpectralDBEntry entry)
+      throws IOException {
+  }
+
+  private void exportMsp(final BufferedWriter writer, final SpectralDBEntry entry)
+      throws IOException {
+    String msp = MSPEntryGenerator.createMSPEntry(entry);
+    writer.append(msp);
+  }
 
   @Override
   public String getTaskDescription() {

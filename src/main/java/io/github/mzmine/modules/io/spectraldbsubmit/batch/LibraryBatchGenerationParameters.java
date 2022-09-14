@@ -32,15 +32,11 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 
 /**
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
@@ -59,22 +55,12 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final FileNameParameter file = new FileNameParameter("Export file",
       "Local library file", FileSelectionType.SAVE);
 
-  public static final FileNameParameter metadata = new FileNameParameter("Metadata csv",
-      "CSV or other tabular data with columns: ", FileSelectionType.SAVE);
-
-  public static final StringParameter fieldSeparator = new StringParameter("Metadata separator",
-      "Character(s) used to separate fields in the metadata table. \\t for tab", "\t");
-  public static final BooleanParameter exportGnpsJson = new BooleanParameter(
-      "Export GNPS json file", "The GNPS library submission json format", true);
-  public static final BooleanParameter exportMsp = new BooleanParameter("Export NIST msp file",
-      "The NIST msp library format", true);
-
-  public static final SubModuleParameter<IonLibraryParameterSet> ions = new SubModuleParameter<>(
-      "Ion types", "Defines the ions searched", new IonLibraryParameterSet());
+  public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
+      "Export format", "format to export", SpectralLibraryExportFormats.values(),
+      SpectralLibraryExportFormats.json);
 
   public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, metadata, fieldSeparator, ions, file, minSignals, scanExport,
-        exportGnpsJson, exportMsp});
+    super(new Parameter[]{flists, file, minSignals, scanExport, exportFormat});
   }
 
 }

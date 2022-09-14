@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -23,10 +23,12 @@ import org.apache.commons.lang3.StringUtils;
 public enum DBEntryField {
 
   ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Float.class), MZ(Double.class), CHARGE(
-      Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
+      Integer.class), ION_MODE, COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, FORMULA, MOLWEIGHT(
+      Double.class), EXACT_MASS(
       Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
       Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION, CCS(
-      Float.class);
+      Float.class), // MSn
+  MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS;
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -167,7 +169,14 @@ public enum DBEntryField {
       case CHEMSPIDER -> "CHEMSPIDER";
       case MONA_ID -> "MONA_ID";
       case CCS -> "CCS";
-      case RESOLUTION, NUM_PEAKS, ENTRY_ID, SYNONYM, MOLWEIGHT -> "";
+      case NUM_PEAKS -> "num_peaks";
+      case RESOLUTION, ENTRY_ID, SYNONYM, MOLWEIGHT -> "";
+      case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
+      case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
+      case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
+      case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
+      case FRAGMENTATION_METHOD -> "Fragmenation_method";
+      case ISOLATION_WINDOW -> "Isolation_window";
     };
   }
 
@@ -180,6 +189,8 @@ public enum DBEntryField {
       case COLLISION_ENERGY -> "Collision_energy";
       case COMMENT -> "Comments";
       case EXACT_MASS -> "ExactMass";
+      case FRAGMENTATION_METHOD -> "Method";
+      case ISOLATION_WINDOW -> "Isolation_window";
       case FORMULA -> "Formula";
       case INCHIKEY -> "InChIKey";
       case INSTRUMENT -> "Instrument";
@@ -194,7 +205,13 @@ public enum DBEntryField {
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
       case SMILES -> "SMILES";
-      case ACQUISITION, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYM, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, INCHI, DATA_COLLECTOR -> "";
+      case INCHI -> "INCHI";
+      case ACQUISITION, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYM, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
+          toString();
+      case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
+      case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
+      case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
+      case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
     };
   }
 
@@ -223,7 +240,14 @@ public enum DBEntryField {
       case SMILES -> "SMILES";
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
-      case ACQUISITION, NUM_PEAKS, MONA_ID, CHEMSPIDER, PUBCHEM, RT, RESOLUTION, SYNONYM, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> "";
+      case ACQUISITION, NUM_PEAKS, MONA_ID, CHEMSPIDER, PUBCHEM, RT, RESOLUTION, SYNONYM, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY ->
+          toString();
+      case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
+      case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
+      case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
+      case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
+      case FRAGMENTATION_METHOD -> "Fragmenation_method";
+      case ISOLATION_WINDOW -> "Isolation_window";
     };
   }
 
@@ -262,6 +286,12 @@ public enum DBEntryField {
       case NUM_PEAKS -> "##NPOINTS";
       case RESOLUTION, SYNONYM, MOLWEIGHT -> "";
       case CCS -> "";
+      case MSN_COLLISION_ENERGIES -> "";
+      case MSN_PRECURSOR_MZS -> "";
+      case MSN_FRAGMENTATION_METHODS -> "";
+      case MSN_ISOLATION_WINDOWS -> "";
+      case FRAGMENTATION_METHOD -> "";
+      case ISOLATION_WINDOW -> "";
     };
   }
 
