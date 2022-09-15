@@ -47,7 +47,7 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       new RTTolerance(0.2f, Unit.MINUTES));
 
   public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
-      "Use the feature's edges (retention time) as a filter.", false);
+      "Use the feature's edges (retention time) as a filter.", true);
 
   public static final BooleanParameter combineTimsMsMs = new BooleanParameter(
       "Combine MS/MS spectra (TIMS)",
