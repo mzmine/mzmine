@@ -29,11 +29,14 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
+import static io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator.EXPORT_FIELDS;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
@@ -138,5 +141,38 @@ public class GnpsJsonGenerator {
       data.add(signal.build());
     }
     return data.build();
+  }
+
+  public static String generateJSON(final SpectralDBEntry entry) {
+    JsonObjectBuilder json = Json.createObjectBuilder();
+    // tag spectrum from mzmine3
+    json.add(DBEntryField.SOFTWARE.getGnpsJsonID(), "mzmine3");
+
+    for (DBEntryField field : EXPORT_FIELDS) {
+      String id = field.getGnpsJsonID();
+      if (id == null || id.isBlank()) {
+        continue;
+      }
+      entry.getField(field).ifPresent(value -> {
+        switch (value) {
+          case Double cv -> json.add(id, cv);
+          case Float cv -> json.add(id, cv);
+          case Integer cv -> json.add(id, cv);
+          case Long cv -> json.add(id, cv);
+          case Boolean cv -> json.add(id, cv);
+          default -> json.add(id, value.toString());
+        }
+      });
+    }
+    entry.getField(DBEntryField.ION_MODE)
+        .ifPresent(value -> json.add(DBEntryField.ION_MODE.getGnpsJsonID(), value.toString()));
+
+    DataPoint[] dps = entry.getDataPoints();
+    json.add(DBEntryField.NUM_PEAKS.getGnpsJsonID(), dps.length);
+
+    // add data points array
+    json.add("peaks", genJSONData(dps));
+
+    return json.build().toString();
   }
 }

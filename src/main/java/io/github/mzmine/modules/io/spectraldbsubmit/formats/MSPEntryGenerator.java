@@ -30,6 +30,7 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
@@ -144,7 +145,7 @@ public class MSPEntryGenerator {
           .ifPresent(value -> s.append(field.getNistMspID()).append(def).append(value).append(br));
     }
     entry.getField(DBEntryField.ION_MODE).ifPresent(p -> {
-      String pol = Polarity.Positive.equals(p) ? "P" : "N";
+      String pol = PolarityType.POSITIVE.equals(p) ? "P" : "N";
       s.append(DBEntryField.ION_MODE.getNistMspID()).append(def).append(pol).append(br);
     });
 
