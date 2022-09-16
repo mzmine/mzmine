@@ -12,8 +12,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
@@ -25,10 +27,14 @@ public class RansacPreviewTask extends AbstractTask {
   private FeatureList featureListX;
   private FeatureList featureListY;
 
+  private Vector<AlignStructMol> list;
+  private int alignedRows;
+  private int totalRows;
+
   private ParameterSet parameters;
 
-  public RansacPreviewTask(AlignmentRansacPlot plot,
-      FeatureList featureListComboX, FeatureList featureListComboY, ParameterSet parameterSet) {
+public RansacPreviewTask(AlignmentRansacPlot plot,
+    FeatureList featureListComboX, FeatureList featureListComboY, ParameterSet parameterSet) {
     super(null, Instant.now());
 
     this.plot = plot;
@@ -44,10 +50,13 @@ public class RansacPreviewTask extends AbstractTask {
     return message;
   }
 
-  //TODO Write a working percentage calculation
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    if (totalRows == 0) {
+      return 0d;
+    }
+   return list != null ? alignedRows / (double) totalRows : 0d;
+//    return alignedRows / totalRows;
   }
 
   @Override
@@ -63,35 +72,19 @@ public class RansacPreviewTask extends AbstractTask {
 
   //TODO This method at the moment is quite slow. Optimize it (or underlying methods) if possible
   private void updateRansacPlot() {
+//    this.plot.removeSeries();
 
-    this.plot.removeSeries();
-
-    // Select the rawDataFile which has more peaks in each peakList
-    int numPeaks = 0;
-    RawDataFile file = null;
-    RawDataFile file2 = null;
-
-    for (RawDataFile rfile : featureListX.getRawDataFiles()) {
-      if (featureListX.getFeatures(rfile).size() > numPeaks) {
-        numPeaks = featureListX.getFeatures(rfile).size();
-        file = rfile;
-      }
-    }
-
-    numPeaks = 0;
-    for (RawDataFile rfile : featureListY.getRawDataFiles()) {
-      if (featureListY.getFeatures(rfile).size() > numPeaks) {
-        numPeaks = featureListY.getFeatures(rfile).size();
-        file2 = rfile;
-      }
-    }
+    // Select the rawDataFile which has more peaks in each feature list
+    RawDataFile file = featureListX.getRawDataFiles().stream().max(Comparator.comparingInt(raw -> featureListX.getFeatures(raw).size())).get();
+    RawDataFile file2 = featureListY.getRawDataFiles().stream().max(Comparator.comparingInt(raw -> featureListY.getFeatures(raw).size())).get();
 
     // Ransac Alignment
-    Vector<AlignStructMol> list = this.getVectorAlignment(featureListX, featureListY, file, file2);
+    list = this.getVectorAlignment(featureListX, featureListY, file, file2);
     RANSAC ransac = new RANSAC(parameters);
     ransac.alignment(list);
 
     // Plot the result
+    this.plot.removeSeries();
     this.plot.addSeries(list, featureListX.getName() + " vs " + featureListY.getName(),
         parameters.getParameter(RansacAlignerParameters.Linear).getValue());
     this.plot.printAlignmentChart(featureListX.getName() + " RT", featureListY.getName() + " RT");
@@ -105,8 +98,10 @@ public class RansacPreviewTask extends AbstractTask {
   private Vector<AlignStructMol> getVectorAlignment(FeatureList peakListX, FeatureList peakListY,
       RawDataFile file, RawDataFile file2) {
 
-    Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
+    Vector<AlignStructMol> alignMol = new Vector<>();
+    totalRows = peakListX.getNumberOfRows();
 
+    peakListX.getRows().sorted(FeatureListRowSorter.DEFAULT_RT);
     for (FeatureListRow row : peakListX.getRows()) {
 
       // Calculate limits for a row with which the row can be aligned
@@ -117,7 +112,7 @@ public class RansacPreviewTask extends AbstractTask {
       Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
       Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
-      // Get all rows of the aligned peaklist within parameter limits
+      // Get all rows of the aligned feature list within parameter limits
       List<FeatureListRow> candidateRows = peakListY.getRowsInsideScanAndMZRange(rtRange, mzRange);
 
       for (FeatureListRow candidateRow : candidateRows) {
@@ -129,6 +124,7 @@ public class RansacPreviewTask extends AbstractTask {
           }
         }
       }
+      alignedRows ++;
     }
     return alignMol;
   }
