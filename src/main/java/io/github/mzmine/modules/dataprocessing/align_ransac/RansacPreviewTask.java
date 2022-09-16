@@ -33,8 +33,8 @@ public class RansacPreviewTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-public RansacPreviewTask(AlignmentRansacPlot plot,
-    FeatureList featureListComboX, FeatureList featureListComboY, ParameterSet parameterSet) {
+  public RansacPreviewTask(AlignmentRansacPlot plot, FeatureList featureListComboX,
+      FeatureList featureListComboY, ParameterSet parameterSet) {
     super(null, Instant.now());
 
     this.plot = plot;
@@ -55,8 +55,7 @@ public RansacPreviewTask(AlignmentRansacPlot plot,
     if (totalRows == 0) {
       return 0d;
     }
-   return list != null ? alignedRows / (double) totalRows : 0d;
-//    return alignedRows / totalRows;
+    return alignedRows / totalRows;
   }
 
   @Override
@@ -72,11 +71,12 @@ public RansacPreviewTask(AlignmentRansacPlot plot,
 
   //TODO This method at the moment is quite slow. Optimize it (or underlying methods) if possible
   private void updateRansacPlot() {
-//    this.plot.removeSeries();
 
     // Select the rawDataFile which has more peaks in each feature list
-    RawDataFile file = featureListX.getRawDataFiles().stream().max(Comparator.comparingInt(raw -> featureListX.getFeatures(raw).size())).get();
-    RawDataFile file2 = featureListY.getRawDataFiles().stream().max(Comparator.comparingInt(raw -> featureListY.getFeatures(raw).size())).get();
+    RawDataFile file = featureListX.getRawDataFiles().stream()
+        .max(Comparator.comparingInt(raw -> featureListX.getFeatures(raw).size())).get();
+    RawDataFile file2 = featureListY.getRawDataFiles().stream()
+        .max(Comparator.comparingInt(raw -> featureListY.getFeatures(raw).size())).get();
 
     // Ransac Alignment
     list = this.getVectorAlignment(featureListX, featureListY, file, file2);
@@ -107,8 +107,8 @@ public RansacPreviewTask(AlignmentRansacPlot plot,
       // Calculate limits for a row with which the row can be aligned
       MZTolerance mzTolerance = parameters.getParameter(RansacAlignerParameters.MZTolerance)
           .getValue();
-      RTTolerance rtTolerance = parameters.getParameter(
-          RansacAlignerParameters.RTToleranceBefore).getValue();
+      RTTolerance rtTolerance = parameters.getParameter(RansacAlignerParameters.RTToleranceBefore)
+          .getValue();
       Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
       Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
@@ -124,7 +124,7 @@ public RansacPreviewTask(AlignmentRansacPlot plot,
           }
         }
       }
-      alignedRows ++;
+      alignedRows++;
     }
     return alignMol;
   }
