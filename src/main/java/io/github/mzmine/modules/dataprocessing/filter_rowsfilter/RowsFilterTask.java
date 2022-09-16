@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -101,9 +102,11 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
   private Double minCount;
+  private final boolean removeRedundantIsotopeRows;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
+
 
   /**
    * Create the task.
@@ -187,6 +190,8 @@ public class RowsFilterTask extends AbstractTask {
     filter13CIsotopes = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
     isotope13CFilter = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C)
         .getEmbeddedParameters().createFilter();
+
+    removeRedundantIsotopeRows = parameters.getValue(RowsFilterParameters.removeRedundantRows);
   }
 
   @Override
@@ -513,9 +518,15 @@ public class RowsFilterTask extends AbstractTask {
       }
     }
 
-    if (filterByMassDefect) {
-      return !massDefectFilter.contains(row.getAverageMZ());
+    if (filterByMassDefect && !massDefectFilter.contains(row.getAverageMZ())) {
+      return true;
     }
+
+    if (removeRedundantIsotopeRows && isRowRedundantDueToIsotopePattern(row,
+        row.getBestIsotopePattern())) {
+      return true;
+    }
+
     return false;
   }
 
@@ -556,5 +567,24 @@ public class RowsFilterTask extends AbstractTask {
     } else {
       return row.getNumberOfFeatures();
     }
+  }
+
+  /**
+   * @param row     The row
+   * @param pattern An isotope pattern of that row
+   * @return True if the row is not the most intense or first signal in that isotope pattern.
+   */
+  private boolean isRowRedundantDueToIsotopePattern(@NotNull FeatureListRow row,
+      @Nullable final IsotopePattern pattern) {
+    if (!removeRedundantIsotopeRows || pattern == null) {
+      return false;
+    }
+    final int featureDpIndex = pattern.binarySearch(row.getAverageMZ(), true);
+
+    if (featureDpIndex != 0 && featureDpIndex != Objects.requireNonNullElse(
+        pattern.getBasePeakIndex(), -1)) {
+      return true;
+    }
+    return false;
   }
 }
