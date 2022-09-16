@@ -28,6 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
+ * This adds an accordion to the parameter pane with additional parameters. Those parameters should
+ * only be used if the value (check box) is selected. One use case is the advanced batch mode.
+ *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class AdvancedParametersParameter<T extends ParameterSet> implements
