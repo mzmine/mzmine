@@ -49,12 +49,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 
-import javax.swing.*;
-
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
-
 public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
   /**
    * Minimum dimensions of plots

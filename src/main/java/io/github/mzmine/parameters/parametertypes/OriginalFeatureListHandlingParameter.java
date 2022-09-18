@@ -36,15 +36,24 @@ public class OriginalFeatureListHandlingParameter extends
   public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace,
       OriginalFeatureListOption startValue) {
     super("Original feature list",
-        "Defines the processing. Standard is to keep the original feature list and create a new "
-        + "processed list. REMOVE saves memory. PROCESS IN PLACE is an advanced option to process "
-        + "directly in the feature list and reduce memory consumption more - this might come with "
+        "Defines the processing.\nKEEP is to keep the original feature list and create a new "
+        + "processed list.\nREMOVE saves memory.\nPROCESS IN PLACE is an advanced option to process directly in the feature list and reduce memory consumption more - this might come with "
         + "side effects, apply with caution.",
         includeProcessInPlace ? OriginalFeatureListOption.values()
             : new OriginalFeatureListOption[]{OriginalFeatureListOption.KEEP,
                 OriginalFeatureListOption.REMOVE}, startValue);
     this.includeProcessInPlace = includeProcessInPlace;
     this.value = startValue;
+  }
+
+  public OriginalFeatureListHandlingParameter(String name, String description, boolean includeProcessInPlace) {
+    super(name,
+        description,
+        includeProcessInPlace ? OriginalFeatureListOption.values()
+            : new OriginalFeatureListOption[]{OriginalFeatureListOption.KEEP,
+                OriginalFeatureListOption.REMOVE},
+        OriginalFeatureListOption.KEEP);
+    this.includeProcessInPlace = includeProcessInPlace;
   }
 
   public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace) {

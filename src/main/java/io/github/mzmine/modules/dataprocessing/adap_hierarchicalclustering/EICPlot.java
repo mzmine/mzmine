@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -41,6 +44,7 @@ import javafx.scene.Cursor;
  */
 
 public class EICPlot extends EChartViewer {
+  private static java.util.logging.Logger logger = Logger.getLogger(EICPlot.class.getName());
   private final XYSeriesCollection xyDataset;
   private final List<Double> colorDataset;
   private final List<String> toolTips;
@@ -149,7 +153,7 @@ public class EICPlot extends EChartViewer {
           xyDataset.addSeries(series);
         }
         catch(Exception e) {
-          System.out.println(e.getMessage());
+          logger.log(Level.WARNING, e.getMessage(), e);
         }
         finally {
           colorDataset.add(color);

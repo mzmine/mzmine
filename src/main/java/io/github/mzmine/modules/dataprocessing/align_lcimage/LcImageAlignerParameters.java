@@ -60,7 +60,8 @@ public class LcImageAlignerParameters extends SimpleParameterSet {
       "{lc} img");
 
   public LcImageAlignerParameters() {
-    super(new Parameter[]{flists, mzTolerance, mzWeight, mobTolerance, mobilityWeight, name});
+    super(new Parameter[]{flists, mzTolerance, mzWeight, mobTolerance, mobilityWeight, name},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/align_lc-image/align_lc-image.html");
   }
 
   @Override

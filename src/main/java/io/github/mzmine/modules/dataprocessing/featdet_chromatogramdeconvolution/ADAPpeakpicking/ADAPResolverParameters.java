@@ -22,6 +22,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
 import com.google.common.collect.Range;
+import com.sun.javafx.application.HostServicesDelegate;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
@@ -36,6 +37,10 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
+import javafx.application.HostServices;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.control.Hyperlink;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,9 +73,9 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
       "Signal to noise ratio threshold", NumberFormat.getNumberInstance(), 10.0, 0.0, null);
 
   public static final DoubleParameter COEF_AREA_THRESHOLD = new DoubleParameter(
-      "coefficient/area threshold",
-      "This is a theshold for the maximum coefficient (inner product) devided by the area "
-          + "under the curve of the feautre. Filters out bad peaks.",
+      "Coefficient/area threshold",
+      "This is a threshold for the maximum coefficient (inner product) divided by the area "
+          + "under the curve of the feature. Filters out bad peaks.",
       NumberFormat.getNumberInstance(), 110.0, 0.0, null);
 
   public static final DoubleParameter MIN_FEAT_HEIGHT = new DoubleParameter("min feature height",
@@ -80,7 +85,9 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
   public ADAPResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
         SN_THRESHOLD, SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD, PEAK_DURATION,
-        RT_FOR_CWT_SCALES_DURATION});
+        RT_FOR_CWT_SCALES_DURATION},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_adap/adap-resolver.html");
+
   }
 
   @Override
