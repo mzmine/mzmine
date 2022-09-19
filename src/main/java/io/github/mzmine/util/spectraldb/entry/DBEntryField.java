@@ -22,13 +22,16 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum DBEntryField {
 
-  ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Float.class), MZ(Double.class), CHARGE(
+  ENTRY_ID, NAME, SYNONYM, COMMENT, DESCRIPTION, ION_TYPE, RT(Float.class), MZ(
+      Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, FORMULA, MOLWEIGHT(
       Double.class), EXACT_MASS(
       Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
       Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION, CCS(
       Float.class), // MSn
-  MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS;
+  MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, // Dataset ID is for MassIVE or other repositories
+  DATASET_ID, USI, DATAFILE_SCAN_NUMBER, // Quality measures
+  QUALITY_CHIMERIC;
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -147,7 +150,8 @@ public enum DBEntryField {
       case CAS -> "CASNUMBER";
       case CHARGE -> "CHARGE";
       case COLLISION_ENERGY -> "FRAGMENTATION_METHOD";
-      case COMMENT -> "description";
+      case COMMENT -> "comment";
+      case DESCRIPTION -> "description";
       case DATA_COLLECTOR -> "DATACOLLECTOR";
       case EXACT_MASS -> "EXACTMASS";
       case FORMULA -> "FORMULA";
@@ -177,6 +181,10 @@ public enum DBEntryField {
       case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
       case FRAGMENTATION_METHOD -> "Fragmenation_method";
       case ISOLATION_WINDOW -> "Isolation_window";
+      case DATASET_ID -> "dataset_id";
+      case USI -> "usi";
+      case DATAFILE_SCAN_NUMBER -> "datafile_scannumber";
+      case QUALITY_CHIMERIC -> "quality_chimeric";
     };
   }
 
@@ -212,6 +220,11 @@ public enum DBEntryField {
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
       case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
+      case USI -> "usi";
+      case DATAFILE_SCAN_NUMBER -> "datafile_scannumber";
+      case DESCRIPTION -> "description";
+      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case DATASET_ID -> "dataset_id";
     };
   }
 
@@ -222,7 +235,8 @@ public enum DBEntryField {
     return switch (this) {
       case ENTRY_ID -> "SPECTRUMID";
       case CHARGE -> "CHARGE";
-      case COMMENT -> "ORGANISM";
+      case COMMENT -> "comment";
+      case DESCRIPTION -> "description";
       case DATA_COLLECTOR -> "DATACOLLECTOR";
       case EXACT_MASS -> "ExactMass";
       case FORMULA -> "Formula";
@@ -248,6 +262,10 @@ public enum DBEntryField {
       case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
       case FRAGMENTATION_METHOD -> "Fragmenation_method";
       case ISOLATION_WINDOW -> "Isolation_window";
+      case USI -> "usi";
+      case DATAFILE_SCAN_NUMBER -> "datafile_scannumber";
+      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case DATASET_ID -> "dataset_id";
     };
   }
 
@@ -263,6 +281,7 @@ public enum DBEntryField {
       case CHARGE -> "";
       case COLLISION_ENERGY -> "";
       case COMMENT -> "";
+      case DESCRIPTION -> "";
       case DATA_COLLECTOR -> "";
       case EXACT_MASS -> "##MW";
       case FORMULA -> "##MOLFORM";
@@ -292,6 +311,10 @@ public enum DBEntryField {
       case MSN_ISOLATION_WINDOWS -> "";
       case FRAGMENTATION_METHOD -> "";
       case ISOLATION_WINDOW -> "";
+      case USI -> "";
+      case DATAFILE_SCAN_NUMBER -> "";
+      case QUALITY_CHIMERIC -> "";
+      case DATASET_ID -> "";
     };
   }
 

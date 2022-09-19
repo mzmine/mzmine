@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -48,8 +48,8 @@ public class MZTolerance {
     for (Feature f : features) {
       final Range<Double> mzRange = f.getRawDataPointsMZRange();
       final double mz = f.getMZ();
-      final double abs = Math
-          .max(Math.abs(mzRange.lowerEndpoint() - mz), Math.abs(mzRange.upperEndpoint() - mz));
+      final double abs = Math.max(Math.abs(mzRange.lowerEndpoint() - mz),
+          Math.abs(mzRange.upperEndpoint() - mz));
       final double ppm = abs / mz * MILLION;
       if (abs > maxAbs) {
         maxAbs = abs;
@@ -114,4 +114,5 @@ public class MZTolerance {
   public int hashCode() {
     return Objects.hash(getMzTolerance(), getPpmTolerance());
   }
+
 }

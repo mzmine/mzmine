@@ -49,7 +49,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -134,14 +133,20 @@ public class SpectralDBEntry {
     }
   }
 
-  private static String extractJsonList(final List<DDAMsMsInfo> precursors,
+  private static List extractJsonList(final List<DDAMsMsInfo> precursors,
       Function<DDAMsMsInfo, Object> extractor) {
-    String list = precursors.stream().map(extractor).filter(Objects::nonNull).map(Objects::toString)
-        .collect(Collectors.joining(","));
-    if (list.isEmpty()) {
-      return null;
-    }
-    return "[" + list + "]";
+    return precursors.stream().map(extractor).filter(Objects::nonNull).toList();
+//    String list = precursors.stream().map(extractor).filter(Objects::nonNull)
+//        .map(Objects::toString)
+//        .collect(Collectors.joining(","));
+//    if (list.isEmpty()) {
+//      return null;
+//    }
+//    return "[" + list + "]";
+  }
+
+  public void putAll(Map<DBEntryField, Object> fields) {
+    this.fields.putAll(fields);
   }
 
   public boolean putIfNotNull(DBEntryField field, Object value) {
@@ -280,5 +285,9 @@ public class SpectralDBEntry {
     int result = Objects.hash(fields);
     result = 31 * result + Arrays.hashCode(dps);
     return result;
+  }
+
+  public Map<DBEntryField, Object> getFields() {
+    return fields;
   }
 }

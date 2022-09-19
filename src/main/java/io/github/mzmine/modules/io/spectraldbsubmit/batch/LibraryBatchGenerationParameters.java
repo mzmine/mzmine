@@ -37,6 +37,8 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 
 /**
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
@@ -49,6 +51,11 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final IntegerParameter minSignals = new IntegerParameter("Min signals",
       "Minimum signals in a masslist (all other masslists are discarded)", 3);
 
+  public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
+      "Handle chimeric spectra",
+      "Options to identify and handle chimeric spectra with multiple MS1 signals in the precusor ion selection",
+      new HandleChimericMsMsParameters(), true);
+
   public static final ComboParameter<ScanSelector> scanExport = new ComboParameter<>("Export scans",
       "Select scans to export", ScanSelector.values(), ScanSelector.ALL);
 
@@ -59,8 +66,12 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
       SpectralLibraryExportFormats.json);
 
+  public static final SubModuleParameter<LibaryMetadataParameters> metadata = new SubModuleParameter<>(
+      "Metadata", "Metadata for all entries", new LibaryMetadataParameters());
+
   public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, file, minSignals, scanExport, exportFormat});
+    super(new Parameter[]{flists, file, minSignals, scanExport, exportFormat, metadata,
+        handleChimerics});
   }
 
 }

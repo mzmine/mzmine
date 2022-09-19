@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,12 +19,12 @@
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
@@ -32,30 +32,29 @@ package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
 /**
  * Specific values for GNPS entries (fields that only allow these values)
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class GnpsValues {
 
   public enum CompoundSource {
-    Lysate, Isolated, Commercial, Crude, Other;
+    Lysate, Isolated, Commercial, Crude, Other
   }
 
   public enum Polarity {
-    Positive, Negative;
+    Positive, Negative
   }
 
   public enum Instrument {
-    qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF;
+    qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF, ICR;
 
     private final String value;
 
-    private Instrument() {
+    Instrument() {
       this.value = null;
     }
 
-    private Instrument(String value) {
+    Instrument(String value) {
       this.value = value;
     }
 
@@ -66,15 +65,15 @@ public class GnpsValues {
   }
 
   public enum IonSource {
-    LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI;
+    LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI, MALDI, LDI, DESI;
 
     private final String value;
 
-    private IonSource() {
+    IonSource() {
       this.value = null;
     }
 
-    private IonSource(String value) {
+    IonSource(String value) {
       this.value = value;
     }
 

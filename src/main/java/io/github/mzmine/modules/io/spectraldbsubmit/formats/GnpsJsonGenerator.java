@@ -29,8 +29,6 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
-import static io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator.EXPORT_FIELDS;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
@@ -41,6 +39,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
+import java.util.List;
 
 /**
  * Json for GNPS library entry submission
@@ -97,32 +96,59 @@ public class GnpsJsonGenerator {
       if (!p.getName().equals(LibraryMetaDataParameters.EXPORT_RT.getName())) {
         String key = p.getName();
         Object value = p.getValue();
-        if (value instanceof Double) {
-          if (Double.compare(0d, (Double) value) == 0) {
-            json.add(key, 0);
-          } else {
-            json.add(key, (Double) value);
-          }
-        } else if (value instanceof Float) {
-          if (Float.compare(0f, (Float) value) == 0) {
-            json.add(key, 0);
-          } else {
-            json.add(key, (Float) value);
-          }
-        } else if (value instanceof Integer) {
-          json.add(key, (Integer) value);
-        } else {
-          if (value == null || (value instanceof String && ((String) value).isEmpty())) {
-            value = "N/A";
-          }
-          json.add(key, value.toString());
-        }
+        addToJson(json, key, value);
       }
     }
 
     // return Json.createObjectBuilder().add("spectrum",
     // json.build()).build().toString();
     return json.build().toString();
+  }
+
+  private static void addToJson(final JsonObjectBuilder json, final String key, Object value) {
+    if (value instanceof Double) {
+      if (Double.compare(0d, (Double) value) == 0) {
+        json.add(key, 0);
+      } else {
+        json.add(key, (Double) value);
+      }
+    } else if (value instanceof Float) {
+      if (Float.compare(0f, (Float) value) == 0) {
+        json.add(key, 0);
+      } else {
+        json.add(key, (Float) value);
+      }
+    } else if (value instanceof Integer) {
+      json.add(key, (Integer) value);
+    } else {
+      if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+        value = "N/A";
+      }
+      json.add(key, value.toString());
+    }
+  }
+
+  private static void addToJson(final JsonArrayBuilder json, Object value) {
+    if (value instanceof Double) {
+      if (Double.compare(0d, (Double) value) == 0) {
+        json.add(0);
+      } else {
+        json.add((Double) value);
+      }
+    } else if (value instanceof Float) {
+      if (Float.compare(0f, (Float) value) == 0) {
+        json.add(0);
+      } else {
+        json.add((Float) value);
+      }
+    } else if (value instanceof Integer) {
+      json.add((Integer) value);
+    } else {
+      if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+        value = "N/A";
+      }
+      json.add(value.toString());
+    }
   }
 
   /**
@@ -135,7 +161,7 @@ public class GnpsJsonGenerator {
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {
-      // round to five digits. thats more than enough
+      // round to digits. thats more than enough
       signal.add(((int) (dp.getMZ() * 1000000)) / 1000000.0);
       signal.add(dp.getIntensity());
       data.add(signal.build());
@@ -148,21 +174,21 @@ public class GnpsJsonGenerator {
     // tag spectrum from mzmine3
     json.add(DBEntryField.SOFTWARE.getGnpsJsonID(), "mzmine3");
 
-    for (DBEntryField field : EXPORT_FIELDS) {
-      String id = field.getGnpsJsonID();
+    for (var metafield : entry.getFields().entrySet()) {
+      String id = metafield.getKey().getGnpsJsonID();
       if (id == null || id.isBlank()) {
         continue;
       }
-      entry.getField(field).ifPresent(value -> {
-        switch (value) {
-          case Double cv -> json.add(id, cv);
-          case Float cv -> json.add(id, cv);
-          case Integer cv -> json.add(id, cv);
-          case Long cv -> json.add(id, cv);
-          case Boolean cv -> json.add(id, cv);
-          default -> json.add(id, value.toString());
-        }
-      });
+      Object value = metafield.getValue();
+      switch (value) {
+        case Double cv -> json.add(id, cv);
+        case Float cv -> json.add(id, cv);
+        case Integer cv -> json.add(id, cv);
+        case Long cv -> json.add(id, cv);
+        case Boolean cv -> json.add(id, cv);
+        case List list -> json.add(id, listToJsonArray(list));
+        default -> json.add(id, value.toString());
+      }
     }
     entry.getField(DBEntryField.ION_MODE)
         .ifPresent(value -> json.add(DBEntryField.ION_MODE.getGnpsJsonID(), value.toString()));
@@ -174,5 +200,13 @@ public class GnpsJsonGenerator {
     json.add("peaks", genJSONData(dps));
 
     return json.build().toString();
+  }
+
+  private static JsonArray listToJsonArray(final List list) {
+    JsonArrayBuilder array = Json.createArrayBuilder();
+    for (var o : list) {
+      addToJson(array, o);
+    }
+    return array.build();
   }
 }
