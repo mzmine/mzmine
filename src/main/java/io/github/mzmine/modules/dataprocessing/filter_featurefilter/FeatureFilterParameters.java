@@ -85,7 +85,8 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   public FeatureFilterParameters() {
     super(
         new Parameter[] {PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
-            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, MS2_Filter, AUTO_REMOVE});
+            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, MS2_Filter, AUTO_REMOVE},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/feature_filter/feature_filter.html");
   }
 
   @Override

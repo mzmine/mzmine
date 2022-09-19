@@ -73,7 +73,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       createEntry(NeutralMassType.class, match -> match.get(new NeutralMassType())), //
       createEntry(RTType.class, match -> match.get(new RTType())), //
       createEntry(CCSType.class, CompoundDBAnnotation::getCCS),
-      createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)));
+      createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)),
+      createEntry(CommentType.class, match -> match.get(CommentType.class)));
 
   public CompoundDatabaseMatchesType() {
   }

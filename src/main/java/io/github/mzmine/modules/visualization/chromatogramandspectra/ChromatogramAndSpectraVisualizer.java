@@ -85,7 +85,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   public static final Logger logger = Logger.getLogger(
       ChromatogramAndSpectraVisualizer.class.getName());
-  private static final BasicStroke MARKER_STROKE = new BasicStroke(2.0f);
+  public static final BasicStroke MARKER_STROKE = new BasicStroke(2.0f);
   protected final TICPlot chromPlot;
   protected final SpectraPlot spectrumPlot;
   protected final ObjectProperty<ScanSelection> scanSelection;
@@ -125,7 +125,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected ChromatogramPlotControlPane pnChromControls;
   protected BooleanProperty showMassListProperty;
   protected ValueMarker rtMarker;
-  protected ValueMarker mzMarker;
   protected ParameterSet parameterSet;
   protected boolean showSpectraOfEveryRawFile;
   /**
@@ -423,7 +422,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    */
   private void onSpectrumSelectionChanged(ObservableValue<? extends SpectrumCursorPosition> obs,
       SpectrumCursorPosition old, SpectrumCursorPosition pos) {
-    updateSpectrumDomainMarker(pos);
     mzRangeProperty().set(getChromMzTolerance().getToleranceRange(pos.getMz()));
     updateFeatureDataSets(pos.getMz());
   }
@@ -450,23 +448,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
           MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
 
       chromPlot.getXYPlot().addDomainMarker(rtMarker);
-    });
-  }
-
-  private void updateSpectrumDomainMarker(@NotNull SpectrumCursorPosition pos) {
-    spectrumPlot.applyWithNotifyChanges(false, () -> {
-      spectrumPlot.getXYPlot().clearDomainMarkers();
-
-      if (mzMarker == null) {
-        mzMarker = new ValueMarker(pos.getMz());
-        mzMarker.setStroke(MARKER_STROKE);
-      } else {
-        mzMarker.setValue(pos.getMz());
-      }
-      mzMarker.setPaint(
-          MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
-
-      spectrumPlot.getXYPlot().addDomainMarker(mzMarker);
     });
   }
 

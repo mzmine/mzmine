@@ -107,8 +107,9 @@ public class FactorOfLowestMassDetector implements MassDetector {
   private double minIntensity(MassSpectrum spec) {
     double minIntensity = Double.MAX_VALUE;
     for (int i = 0; i < spec.getNumberOfDataPoints(); i++) {
-      if (spec.getIntensityValue(i) < minIntensity) {
-        minIntensity = spec.getIntensityValue(i);
+      final double value = spec.getIntensityValue(i);
+      if (value < minIntensity && value > 0) {
+        minIntensity = value;
       }
     }
     if (Double.compare(minIntensity, Double.MAX_VALUE) == 0) {
