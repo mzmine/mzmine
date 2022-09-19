@@ -335,8 +335,8 @@ runtime {
                    "-XX:MinRAMPercentage=80",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
-                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
-                   /*"--enable-preview"*/]
+                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+                   "--enable-preview"]
     }
 }
 
