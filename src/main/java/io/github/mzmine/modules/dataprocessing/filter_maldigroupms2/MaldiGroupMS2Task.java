@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
@@ -179,7 +178,6 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
     double fmz = feature.getMZ();
     Float mobility = feature.getMobility();
-    final String featureSpot = feature.get(MaldiSpotType.class);
 
     // collect all frames with mslevel=2 with the same spot from all files
     final List<ImagingFrame> frames = files.stream()
@@ -189,7 +187,9 @@ public class MaldiGroupMS2Task extends AbstractTask {
           }
           final MaldiSpotInfo maldiSpotInfo = imgFrame.getMaldiSpotInfo();
           final String spotName = maldiSpotInfo.spotName();
-          if (spotName.equals(featureSpot)) {
+
+          if (feature.getFeatureData().getSpectra().stream().anyMatch(
+              (frame -> ((ImagingFrame) frame).getMaldiSpotInfo().spotName().equals(spotName)))) {
             c.accept(imgFrame);
           }
         })).toList();
