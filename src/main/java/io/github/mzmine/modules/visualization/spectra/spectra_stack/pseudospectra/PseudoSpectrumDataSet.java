@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,8 +15,11 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra;
 
+import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSDataPointIdentity;
+import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.math3.exception.OutOfRangeException;
@@ -24,19 +27,17 @@ import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSDataPointIdentity;
-import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-
 public class PseudoSpectrumDataSet extends XYSeriesCollection {
+
   private static final long serialVersionUID = 1L;
 
   private Map<XYDataItem, String> annotation;
 
   public PseudoSpectrumDataSet(boolean autoSort, Comparable... keys) {
     super();
-    for (Comparable key : keys)
+    for (Comparable key : keys) {
       addSeries(new XYSeries(key, autoSort));
+    }
   }
 
   public void addDP(double x, double y, String ann) {
@@ -44,8 +45,9 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
   }
 
   public void addDP(int series, double x, double y, String ann) {
-    if (series >= getSeriesCount())
+    if (series >= getSeriesCount()) {
       throw new OutOfRangeException(series, 0, getSeriesCount());
+    }
 
     XYDataItem dp = new XYDataItem(x, y);
     getSeries(series).add(dp);
@@ -56,30 +58,34 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
 
   /**
    * Add annotation
-   * 
+   *
    * @param dp
    * @param ann
    */
   public void addAnnotation(XYDataItem dp, String ann) {
-    if (annotation == null)
+    if (annotation == null) {
       this.annotation = new HashMap<>();
+    }
     annotation.put(dp, ann);
   }
 
   public String getAnnotation(int series, int item) {
-    if (annotation == null)
+    if (annotation == null) {
       return null;
+    }
     XYDataItem itemDataPoint = getSeries(series).getDataItem(item);
     for (XYDataItem key : annotation.keySet()) {
-      if (Math.abs(key.getXValue() - itemDataPoint.getXValue()) < 0.0001)
+      if (Math.abs(key.getXValue() - itemDataPoint.getXValue()) < 0.0001) {
         return annotation.get(key);
+      }
     }
     return null;
   }
 
   public void addIdentity(MZTolerance mzTolerance, AbstractMSMSIdentity ann) {
-    if (ann instanceof AbstractMSMSDataPointIdentity)
+    if (ann instanceof AbstractMSMSDataPointIdentity) {
       addDPIdentity(mzTolerance, (AbstractMSMSDataPointIdentity) ann);
+    }
     // TODO add diff identity
   }
 

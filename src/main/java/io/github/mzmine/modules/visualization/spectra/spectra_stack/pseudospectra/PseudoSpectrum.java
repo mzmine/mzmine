@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
+package io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -51,18 +51,20 @@ public class PseudoSpectrum {
     for (FeatureListRow row : group) {
       String annotation = null;
       // sum -> heighest peak
-      if (sum)
+      if (sum) {
         series.addDP(row.getAverageMZ(), row.getBestFeature().getHeight(), annotation);
-      else {
+      } else {
         Feature f = raw == null ? row.getBestFeature() : row.getFeature(raw);
-        if (f != null)
+        if (f != null) {
           series.addDP(f.getMZ(), f.getHeight(), null);
+        }
       }
       // add isotopes
       IsotopePattern pattern = row.getBestIsotopePattern();
       if (pattern != null) {
-        for (DataPoint dp : ScanUtils.extractDataPoints(pattern))
+        for (DataPoint dp : ScanUtils.extractDataPoints(pattern)) {
           isoSeries.add(dp.getMZ(), dp.getIntensity());
+        }
       }
     }
     series.addSeries(isoSeries);
@@ -73,8 +75,9 @@ public class PseudoSpectrum {
   public static EChartViewer createChartViewer(FeatureListRow[] group, RawDataFile raw, boolean sum,
       String title) {
     PseudoSpectrumDataSet data = createDataSet(group, raw, sum);
-    if (data == null)
+    if (data == null) {
       return null;
+    }
     JFreeChart chart = createChart(data, raw, sum, title);
     if (chart != null) {
       EChartViewer pn = new EChartViewer(chart);

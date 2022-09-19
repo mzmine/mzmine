@@ -224,7 +224,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   private Range<Double> getMzRange(SpectrumCursorPosition pos, MZTolerance tolerance) {
-    logger.info("get range for " + pos + " and tol " + tolerance.toString());
     if (pos == null) {
       return null;
     }
@@ -618,7 +617,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   private void addMatchLabelColorsListener() {
     matchLabelColors.addListener(((observable, oldValue, newValue) -> {
-      if (newValue == true) {
+      if (newValue) {
         for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
           XYDataset dataset = getXYPlot().getDataset();
           if (!(dataset instanceof ScanDataSet)) {
