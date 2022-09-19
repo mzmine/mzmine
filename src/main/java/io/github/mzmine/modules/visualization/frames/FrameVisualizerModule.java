@@ -42,6 +42,9 @@ public class FrameVisualizerModule implements MZmineRunnableModule {
       final FrameVisualizerTab tab = new FrameVisualizerTab("Frame visualizer", true);
       tab.onRawDataFileSelectionChanged(List.of(file));
       MZmineCore.getDesktop().addTab(tab);
+    } else {
+      MZmineCore.getDesktop()
+          .displayMessage(file.getName() + "is not an IMS file. Cannot run frame visualizer.");
     }
     return ExitCode.OK;
   }
