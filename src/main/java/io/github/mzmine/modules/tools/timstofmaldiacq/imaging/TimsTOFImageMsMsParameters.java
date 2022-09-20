@@ -57,6 +57,14 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
       "Minimum distance of MS/MS spectra",
       "The number of MS/MS spectra to be acquired per feature.", 30);
 
+  public static final DoubleParameter maximumChimerity = new DoubleParameter(
+      "Minimum chimerity score",
+      "Evaluates the chimerity of the isolation window and only selects pixels with low chimerity for fragmentation.\n"
+          + "The precursor intensity is divided by the summed intensity in the isolation window.\n"
+          + "This means that low values (e.g. 0.1) indicate high chimerity and high values (e.g. 0.9) indicate low chimerity."
+          + "Thereby MS/MS spectra with higher quality are produced.", new DecimalFormat("0.00"),
+      0.80, 0d, 1d);
+
   public static final DoubleParameter minimumIntensity = new DoubleParameter(
       "Minimum MS1 intensity",
       "Minimum intensity of a MS1 pixel to be eligible for an MS/MS spectrum.\n"
@@ -71,7 +79,7 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
   public TimsTOFImageMsMsParameters() {
     super(new Parameter[]{flists, minMobilityWidth, maxMobilityWidth, savePathDir, laserOffsetY,
         laserOffsetX, acquisitionControl, isolationWidth, numMsMs, minimumDistance,
-        minimumIntensity, exportOnly});
+        minimumIntensity, maximumChimerity, exportOnly});
   }
 
   @Override

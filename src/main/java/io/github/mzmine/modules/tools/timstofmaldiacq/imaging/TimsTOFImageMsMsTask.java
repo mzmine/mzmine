@@ -72,6 +72,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final double minMsMsIntensity;
   private final int minDistance;
 
+  private final double minChimerityScore;
+
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
   private File currentCeFile = null;
@@ -93,6 +95,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     numMsMs = parameters.getValue(TimsTOFImageMsMsParameters.numMsMs);
     minMsMsIntensity = parameters.getValue(TimsTOFImageMsMsParameters.minimumIntensity);
     minDistance = parameters.getValue(TimsTOFImageMsMsParameters.minimumDistance);
+    minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.maximumChimerity);
     isolationWindow = new MZTolerance(isolationWidth / 1.7,
         0d); // isolation window typically wider than set
   }
@@ -156,7 +159,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
       // check existing msms spots first
       int createdMsMsEntries = addEntriesToExistingSpots(access, minMsMsIntensity, frameSpotMap,
-          precursor, imagingData, numMsMs, featureSpotMap, minDistance);
+          precursor, imagingData, numMsMs, featureSpotMap, minDistance, minChimerityScore);
 
       // we have all needed entries
       if (createdMsMsEntries >= numMsMs) {
@@ -165,7 +168,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
       // find new entries
       createdMsMsEntries = createNewMsMsSpots(access, frameSpotMap, minMsMsIntensity, imagingData,
-          precursor, numMsMs, createdMsMsEntries, featureSpotMap, minDistance);
+          precursor, numMsMs, createdMsMsEntries, featureSpotMap, minDistance, minChimerityScore);
 
       if (createdMsMsEntries < numMsMs) {
         logger.finest(() -> "Did not find enough MSMS spots for feature " + f.toString());
@@ -222,7 +225,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private int createNewMsMsSpots(MobilityScanDataAccess access,
       Map<ImagingFrame, ImagingSpot> spotMap, double minMsMsIntensity,
       IonTimeSeries<? extends ImagingFrame> imagingData, MaldiTimsPrecursor precursor, int numMsMs,
-      int currentNumSpots, Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance) {
+      int currentNumSpots, Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance,
+      double minChimerityScore) {
     final IntensitySortedSeries<IonTimeSeries<? extends ImagingFrame>> imagingSorted = new IntensitySortedSeries<>(
         imagingData);
 
@@ -245,7 +249,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       access.jumpToFrame(frame);
       final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
           access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
-      logger.finest(() -> String.valueOf(chimerityScore));
+      if (chimerityScore < minChimerityScore) {
+        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
+        continue;
+      }
 
       final MaldiSpotInfo spotInfo = frame.getMaldiSpotInfo();
       if (spotInfo == null) {
@@ -264,7 +271,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private int addEntriesToExistingSpots(MobilityScanDataAccess access, double minMsMsIntensity,
       Map<ImagingFrame, ImagingSpot> spotMap, MaldiTimsPrecursor precursor,
       IonTimeSeries<? extends ImagingFrame> imagingData, final int numMsMs,
-      Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance) {
+      Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance,
+      final double minChimerityScore) {
     int createdMsMsEntries = 0;
     final List<ImagingFrame> usedFrames = checkExistingSpots(spotMap, imagingData,
         minMsMsIntensity);
@@ -282,7 +290,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       access.jumpToFrame(usedFrame);
       final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
           access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
-      logger.finest(() -> String.valueOf(chimerityScore));
+      if (chimerityScore < minChimerityScore) {
+        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
+        continue;
+      }
 
       // check if the entry fits into the precursor ramp at that spot
       if (imagingSpot.addPrecursor(precursor)) {
