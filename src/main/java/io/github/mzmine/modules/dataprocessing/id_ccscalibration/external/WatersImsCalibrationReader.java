@@ -90,7 +90,7 @@ public class WatersImsCalibrationReader {
 
     if (strCoefficient == null || strExponent == null || strT0 == null) {
       throw new IllegalArgumentException(String.format(
-          "Calibration file did not contain expected parameters. (A = %s, B = %s, t0 = %s)",
+          "Calibration file did not contain expected parameters. (coeff = %s, exponent = %s, t0 = %s)",
           strCoefficient, strExponent, strT0));
     }
     final double coeff = Double.parseDouble(strCoefficient);

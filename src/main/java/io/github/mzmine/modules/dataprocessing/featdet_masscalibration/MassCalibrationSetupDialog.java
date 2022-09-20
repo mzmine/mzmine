@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -90,10 +90,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
-    if (dataFiles.length == 0) {
-      // throw new RuntimeException("No datafiles");
-    }
-
     RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
 
     if (selectedFiles.length > 0) {
@@ -104,6 +100,18 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       previewDataFile = null;
     }
 
+    //TODO: Improve handling of ComboBox in case no raw files are loaded
+    if (previewDataFile != null) {
+      comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+      comboDataFileName.setOnAction(e -> {
+        parametersChanged(true);
+      });
+      comboDataFileName.getSelectionModel().select(previewDataFile);
+    } else {
+      comboDataFileName = new ComboBox<>();
+    }
+
     previewCheckBox = new CheckBox("Show preview");
 
     paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
@@ -112,13 +120,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     // Elements of pnlLab
     pnlDataFile = new FlowPane();
     pnlDataFile.getChildren().add(new Label("Data file "));
-
-    comboDataFileName = new ComboBox<>(FXCollections.observableList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
-    comboDataFileName.setOnAction(e -> {
-      parametersChanged(false);
-    });
-    comboDataFileName.getSelectionModel().select(previewDataFile);
 
     pnlDataFile.getChildren().add(comboDataFileName);
 
@@ -173,19 +174,19 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     chartsPane.visibleProperty().addListener((c, o, n) -> {
       if (n) {
         mainPane.setCenter(chartsPane);
-        mainPane.setLeft(mainScrollPane);
+        mainPane.setLeft(getParamPane());
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
         parametersChanged(false);
       } else {
         mainPane.setLeft(null);
-        mainPane.setCenter(mainScrollPane);
+        mainPane.setCenter(getParamPane());
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
       }
     });
 
-    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
+    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 1, 1);
     this.setOnCloseRequest(event -> cancelRunningPreviewTask());
   }
 
@@ -219,7 +220,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
         previewTask.cancel();
       }
 
-      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true, Instant.now());
+      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true,
+          Instant.now());
 
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
       MZmineCore.getTaskController().addTask(previewTask);
@@ -232,8 +234,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected void updatePreviewAfterTaskRun(boolean rerun) {
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
-        MZmineCore.getDesktop().displayMessage("Mass calibration error message",
-            previewTask.getErrorMessage());
+        MZmineCore.getDesktop()
+            .displayMessage("Mass calibration error message", previewTask.getErrorMessage());
       }
       return;
     }

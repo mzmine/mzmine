@@ -22,16 +22,16 @@ import java.util.stream.DoubleStream;
 
 public enum Weighting {
   // no weighting
-  NONE("NONE", v -> 1),
+  NONE("None", v -> 1),
   // linear -> no transform
-  LINEAR("LINEAR", v -> v),
+  LINEAR("Linear", v -> v),
   // logger: put to zero weight if it was zero
-  logger10("logger10", v -> v == 0 ? 0 : Math.log10(v)), //
-  logger2("logger2", v -> v == 0 ? 0 : Math.log(v) / Math.log(2)),
+  logger10("log10", v -> v == 0 ? 0 : Math.log10(v)), //
+  logger2("log2", v -> v == 0 ? 0 : Math.log(v) / Math.log(2)),
   /**
-   * Sqare-root
+   * Square-root
    */
-  SQRT("SQRT", "sqare root", Math::sqrt),
+  SQRT("SQRT", "square root", Math::sqrt),
   /**
    * cube-root
    */
@@ -89,8 +89,8 @@ public enum Weighting {
    * @param values
    * @return
    */
-  public double[] transform(double[] weights) {
-    return DoubleStream.of(weights).map(this::transform).toArray();
+  public double[] transform(double[] values) {
+    return DoubleStream.of(values).map(this::transform).toArray();
   }
 
   /**
@@ -105,8 +105,9 @@ public enum Weighting {
     return DoubleStream.of(weights).map(v -> transform(v, noiseLevel, maxWeight)).toArray();
   }
 
-  public String getLabel() {
-    return label;
+  @Override
+  public String toString() {
+    return this.label;
   }
 
   public String getDescription() {

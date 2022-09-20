@@ -67,7 +67,8 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
 
   public PeakComparisonRowFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, SUFFIX, COLUMN_INDEX_1, COLUMN_INDEX_2, FOLD_CHANGE,
-        MZ_PPM_DIFF, RT_DIFF, AUTO_REMOVE});
+        MZ_PPM_DIFF, RT_DIFF, AUTO_REMOVE},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_peakcomparison_row_filter/filter_peakcomparison_row_filter.html");
   }
 
 }

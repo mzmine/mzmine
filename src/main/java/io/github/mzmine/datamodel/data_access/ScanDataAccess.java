@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -386,4 +386,9 @@ public abstract class ScanDataAccess implements Scan {
         "The intended use of this class is to loop over all scans and data points");
   }
 
+  @Override
+  public @Nullable Float getInjectionTime() {
+    Scan scan = getCurrentScan();
+    return scan == null ? null : scan.getInjectionTime();
+  }
 }

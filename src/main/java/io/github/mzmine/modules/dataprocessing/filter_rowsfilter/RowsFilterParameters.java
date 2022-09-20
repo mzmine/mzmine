@@ -63,9 +63,14 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<Isotope13CFilterParameters> ISOTOPE_FILTER_13C = new OptionalModuleParameter<>(
       "Validate 13C isotope pattern",
       "Searches for an +1 13C signal (considering possible charge states) \n"
-      + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
-      + "that are 13C isotopes by searching for preceding -1 signal.",
+          + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
+          + "that are 13C isotopes by searching for preceding -1 signal.",
       new Isotope13CFilterParameters(), false);
+
+  public static final BooleanParameter removeRedundantRows = new BooleanParameter(
+      "Remove redundant isotope rows",
+      "Removes rows that are not the most intense or the monoisotopic peak in an isotope pattern.",
+      false);
 
   public static final OptionalParameter<MZRangeParameter> MZ_RANGE = new OptionalParameter<>(
       new MZRangeParameter(), false);
@@ -132,9 +137,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
-        ISOTOPE_FILTER_13C, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
-        KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-        REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, Reset_ID, massDefect, handleOriginal});
+            ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
+            KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
+            REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, Reset_ID, massDefect, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
   @Override

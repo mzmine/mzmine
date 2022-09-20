@@ -30,32 +30,42 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utilities for feature lists
- *
  */
 public class FeatureUtils {
 
-  private static final FeatureListRowSorter ascMzRowSorter =
-      new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending);
+  private static final FeatureListRowSorter ascMzRowSorter = new FeatureListRowSorter(
+      SortingProperty.MZ, SortingDirection.Ascending);
 
   /**
-   * Common utility method to be used as Feature.toString() method in various Feature implementations
+   * Common utility method to be used as Feature.toString() method in various Feature
+   * implementations
    *
    * @param feature Feature to be converted to String
    * @return String representation of the feature
    */
-  public static String featureToString(Feature feature) {
+  public static String featureToString(@Nullable Feature feature) {
+    if(feature == null) {
+      return "null";
+    }
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     buf.append("m/z ");
@@ -127,7 +137,6 @@ public class FeatureUtils {
    * identities on both rows must be same
    *
    * @return True if identities match between rows
-   *
    */
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
@@ -163,8 +172,9 @@ public class FeatureUtils {
           break;
         }
       }
-      if (!sameID)
+      if (!sameID) {
         break;
+      }
     }
 
     return sameID;
@@ -175,7 +185,6 @@ public class FeatureUtils {
    *
    * @param row1 FeatureListRow 1
    * @param row2 FeatureListRow 2
-   *
    * @return true, same charge state
    */
   public static boolean compareChargeState(FeatureListRow row1, FeatureListRow row2) {
@@ -191,13 +200,13 @@ public class FeatureUtils {
 
   /**
    * Returns true if feature list row contains a compound identity matching to id
-   *
    */
   public static boolean containsIdentity(FeatureListRow row, FeatureIdentity id) {
 
     for (FeatureIdentity identity : row.getPeakIdentities()) {
-      if (identity.getName().equals(id.getName()))
+      if (identity.getName().equals(id.getName())) {
         return true;
+      }
     }
 
     return false;
@@ -242,8 +251,9 @@ public class FeatureUtils {
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
       if (basePeak != null) {
-        if (basePeak.getIntensity() > 0)
+        if (basePeak.getIntensity() > 0) {
           dataPointFound = true;
+        }
         newFeature.addDatapoint(scan, basePeak);
       } else {
         final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
@@ -263,16 +273,17 @@ public class FeatureUtils {
 
 
   /**
-   *
    * @param row The row.
-   * @return The average retention time range of all features contained in this feature list row across
-   *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
-   *         it.
+   * @return The average retention time range of all features contained in this feature list row
+   * across all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
+   * it.
    */
-  public @NotNull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
+  public @NotNull
+  static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
 
-    if (row == null || row.getBestFeature() == null)
+    if (row == null || row.getBestFeature() == null) {
       return Range.closed(0.f, 0.f);
+    }
 
     int size = row.getFeatures().size();
     double[] lower = new double[size];
@@ -281,8 +292,9 @@ public class FeatureUtils {
     Feature[] f = row.getFeatures().toArray(new Feature[0]);
 
     for (int i = 0; i < size; i++) {
-      if (f[i] == null)
+      if (f[i] == null) {
         continue;
+      }
 
       Range<Float> r = f[i].getRawDataPointsRTRange();
 
@@ -314,15 +326,15 @@ public class FeatureUtils {
   /**
    * Create a copy of a feature list row.
    *
-   *
    * @param newFeatureList
-   * @param row the row to copy.
+   * @param row            the row to copy.
    * @return the newly created copy.
    */
-  private static ModularFeatureListRow copyFeatureRow(ModularFeatureList newFeatureList, final ModularFeatureListRow row,
-                                               boolean copyFeatures) {
+  private static ModularFeatureListRow copyFeatureRow(ModularFeatureList newFeatureList,
+      final ModularFeatureListRow row, boolean copyFeatures) {
     // Copy the feature list row.
-    final ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, row, copyFeatures);
+    final ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, row,
+        copyFeatures);
 
     // TODO this should actually be already copied in the feature list row constructor (all DataTypes are)
 //     if (row.getFeatureInformation() != null) {
@@ -348,7 +360,8 @@ public class FeatureUtils {
     return newRows;
   }
 
-  public static ModularFeatureListRow[] copyFeatureRows(ModularFeatureList newFeatureList, final ModularFeatureListRow[] rows, boolean copyFeatures) {
+  public static ModularFeatureListRow[] copyFeatureRows(ModularFeatureList newFeatureList,
+      final ModularFeatureListRow[] rows, boolean copyFeatures) {
     ModularFeatureListRow[] newRows = new ModularFeatureListRow[rows.length];
     for (int i = 0; i < newRows.length; i++) {
       newRows[i] = copyFeatureRow(newFeatureList, rows[i], copyFeatures);
@@ -356,13 +369,15 @@ public class FeatureUtils {
     return newRows;
   }
 
-  public static List<ModularFeatureListRow> copyFeatureRows(final List<ModularFeatureListRow> rows) {
+  public static List<ModularFeatureListRow> copyFeatureRows(
+      final List<ModularFeatureListRow> rows) {
     return rows.stream().map(row -> copyFeatureRow(row)).collect(Collectors.toList());
   }
 
-  public static List<ModularFeatureListRow> copyFeatureRows(ModularFeatureList newFeatureList, final List<ModularFeatureListRow> rows,
-                                                            boolean copyFeatures) {
-    return rows.stream().map(row -> copyFeatureRow(newFeatureList, row, copyFeatures)).collect(Collectors.toList());
+  public static List<ModularFeatureListRow> copyFeatureRows(ModularFeatureList newFeatureList,
+      final List<ModularFeatureListRow> rows, boolean copyFeatures) {
+    return rows.stream().map(row -> copyFeatureRow(newFeatureList, row, copyFeatures))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -443,14 +458,14 @@ public class FeatureUtils {
       // Naive area under the curve calculation.
       double rtDifference = nextScan.getRetentionTime() - scan.getRetentionTime();
       rtDifference *= 60;
-      targetArea += (float)(rtDifference * (intensity + nextIntensity) / 2);
+      targetArea += (float) (rtDifference * (intensity + nextIntensity) / 2);
     }
 
     if (targetHeight != 0) {
 
       // Set intensity range with maximum height in range.
       Range intensityRange = Range.open((float) 0.0, targetHeight);
-      
+
       // Build new feature for target.
       ModularFeature newPeak = new ModularFeature(featureList, dataFile, targetMZ, targetRT,
           targetHeight, targetArea, scanRange, targetDP, FeatureStatus.DETECTED, representativeScan,
@@ -460,5 +475,31 @@ public class FeatureUtils {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
+   * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
+   * {@link ListWithSubsType} within the {@link FeatureListRow}'s {@link
+   * io.github.mzmine.datamodel.features.ModularDataModel}.
+   *
+   * @param selectedRow The row
+   * @return List of all annotations.
+   */
+  @NotNull
+  public static List<CompoundDBAnnotation> extractAllCompoundAnnotations(
+      FeatureListRow selectedRow) {
+    final List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
+    final Collection<DataType> dataTypes = selectedRow.getTypes().values();
+    for (DataType dataType : dataTypes) {
+      if (dataType instanceof ListWithSubsType<?> listType && dataType instanceof AnnotationType) {
+        final List<?> list = selectedRow.get(listType);
+        if (list != null && !list.isEmpty()) {
+          list.stream().filter(c -> c instanceof CompoundDBAnnotation)
+              .forEach(c -> compoundAnnotations.add((CompoundDBAnnotation) c));
+        }
+      }
+    }
+    return compoundAnnotations;
   }
 }

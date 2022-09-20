@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,22 +22,21 @@
 
 package io.github.mzmine.util.R.Rsession;
 
+import io.github.mzmine.util.R.RLocationDetection;
+import io.github.mzmine.util.R.Rsession.Logger.Level;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+import org.apache.commons.io.FileUtils;
 import org.rosuda.REngine.Rserve.RConnection;
-
-import io.github.mzmine.util.R.RLocationDetection;
-import io.github.mzmine.util.R.Rsession.Logger.Level;
 
 public class Rdaemon {
 
   RserverConf conf;
   Process process;
   Logger log;
-  static File APP_DIR = new File(System.getProperty("user.home") + File.separator + ".Rserve");
+  static File APP_DIR = new File(FileUtils.getUserDirectory() + File.separator + ".Rserve");
 
   private static boolean RSERVE_INSTALLED = false;
 
@@ -86,10 +85,11 @@ public class Rdaemon {
 
   public void println(String m, Level l) {
     // System.out.println(m);
-    if (log != null)
+    if (log != null) {
       log.println(m, l);
-    else
+    } else {
       System.out.println(l + " " + m);
+    }
   }
 
   public void stop() {
@@ -165,8 +165,7 @@ public class Rdaemon {
           println("  ok", Level.INFO);
         } else {
           println("  failed.", Level.ERROR);
-          String notice =
-              "Please install Rserve manually in your R environment using \"install.packages('Rserve')\" command.";
+          String notice = "Please install Rserve manually in your R environment using \"install.packages('Rserve')\" command.";
           println(notice, Level.ERROR);
           System.err.println(notice);
           return;
@@ -200,21 +199,22 @@ public class Rdaemon {
         tmpDir = new File((tmpDirectory != null) ? tmpDirectory : "/tmp");
         tmpFile = File.createTempFile("rs_pid", ".pid", tmpDir);
         RserveArgs.append(" --RS-pidfile \\'" /*
-                                               * + System.getProperty( "user.dir")
-                                               */ + tmpFile.getPath() + "\\'");
+         * + System.getProperty( "user.dir")
+         */ + tmpFile.getPath() + "\\'");
       }
       tmpFile.deleteOnExit();
     } catch (IOException e) {
-      throw new UnsupportedOperationException("Unable to create temp 'rs_pid' file in directory '"
-          + ((tmpDir != null) ? tmpDir.getPath() : null) + "'");
+      throw new UnsupportedOperationException(
+          "Unable to create temp 'rs_pid' file in directory '" + ((tmpDir != null)
+              ? tmpDir.getPath() : null) + "'");
     }
 
     if (conf.port > 0) {
       RserveArgs.append(" --RS-port " + conf.port);
     }
 
-    boolean started =
-        StartRserve.launchRserve(rCmd, "--no-save --slave", RserveArgs.toString(), false);
+    boolean started = StartRserve.launchRserve(rCmd, "--no-save --slave", RserveArgs.toString(),
+        false);
 
     if (started) {
       println("  ok", Level.INFO);

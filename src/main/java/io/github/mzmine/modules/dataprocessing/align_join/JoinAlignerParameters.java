@@ -23,9 +23,11 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -39,22 +41,24 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final StringParameter peakListName =
-      new StringParameter("Feature list name", "Feature list name", "Aligned feature list");
+  public static final StringParameter peakListName = new StringParameter("Feature list name",
+      "Feature list name", "Aligned feature list");
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter MZWeight =
-      new DoubleParameter("Weight for m/z", "Score for perfectly matching m/z values");
+  public static final DoubleParameter MZWeight = new DoubleParameter("Weight for m/z",
+      "Score for perfectly matching m/z values");
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final DoubleParameter RTWeight =
-      new DoubleParameter("Weight for RT", "Score for perfectly matching RT values");
+  public static final DoubleParameter RTWeight = new DoubleParameter("Weight for RT",
+      "Score for perfectly matching RT values");
 
-  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance =
-      new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
-          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"), false);
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance = new OptionalParameter<>(
+      new MobilityToleranceParameter("Mobility tolerance",
+          "If checked, mobility of features will be compared for alignment. "
+              + "\nThis parameter then specifies the tolerance range for matching mobility values"),
+      false);
 
   public static final DoubleParameter mobilityWeight = new DoubleParameter("Mobility weight",
       "Score for perfectly matching mobility values. Only taken into account if \"Mobility tolerance\" is activated.",
@@ -77,13 +81,17 @@ public class JoinAlignerParameters extends SimpleParameterSet {
       "Compare spectra similarity", "Compare MS1 or MS2 spectra similarity",
       new JoinAlignerSpectraSimilarityScoreParameters(), false);
 
-  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
-      false);
+
+  public static final OriginalFeatureListHandlingParameter handleOriginal =
+      new OriginalFeatureListHandlingParameter("Original feature list",
+      "Defines the processing.\nKEEP is to keep the original feature list and create a new"
+          + "processed list.\nREMOVE saves memory.", false);
 
   public JoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
-        mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
-        compareIsotopePattern, compareSpectraSimilarity, handleOriginal});
+            mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
+            compareIsotopePattern, compareSpectraSimilarity, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/join_aligner/join_aligner.html");
   }
 
   @NotNull

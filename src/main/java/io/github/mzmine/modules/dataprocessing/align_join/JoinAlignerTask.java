@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
@@ -87,7 +86,7 @@ public class JoinAlignerTask extends AbstractTask {
   /**
    * All feature lists except the base list
    */
-  private final List<ModularFeatureList> featureLists;
+  private final List<FeatureList> featureLists;
   private ModularFeatureList alignedFeatureList;
   // Processed rows counter
   private int totalRows;
@@ -105,7 +104,7 @@ public class JoinAlignerTask extends AbstractTask {
     this.parameters = parameters;
 
     featureLists = Arrays.stream(parameters.getParameter(JoinAlignerParameters.peakLists).getValue()
-        .getMatchingFeatureLists()).toList();
+        .getMatchingFeatureLists()).map(flist -> (FeatureList) flist).toList();
 
     featureListName = parameters.getParameter(JoinAlignerParameters.peakListName).getValue();
 
@@ -187,7 +186,7 @@ public class JoinAlignerTask extends AbstractTask {
     }
 
     // Collect all data files
-    final List<RawDataFile> allDataFiles = getAllDataFiles();
+    final List<RawDataFile> allDataFiles = FeatureListUtils.getAllDataFiles(featureLists);
     if (allDataFiles == null) {
       return;
     }
@@ -195,8 +194,8 @@ public class JoinAlignerTask extends AbstractTask {
     // Create a new aligned feature list based on the baseList and renumber IDs
     alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
         allDataFiles);
-    transferRowTypes(alignedFeatureList, featureLists);
-    transferSelectedScans(featureLists, alignedFeatureList);
+    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists);
+    FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     final AtomicInteger newRowID = new AtomicInteger(1);
 
     // list all rows for each feature list
@@ -394,25 +393,6 @@ public class JoinAlignerTask extends AbstractTask {
         alignedCounter.get(), remainingCounter.get(), iteration, featureLists.size()));
   }
 
-  @Nullable
-  private List<RawDataFile> getAllDataFiles() {
-    List<RawDataFile> allDataFiles = new ArrayList<>();
-    for (FeatureList featureList : featureLists) {
-      for (RawDataFile dataFile : featureList.getRawDataFiles()) {
-        // Each data file can only have one column in aligned feature
-        // list
-        if (allDataFiles.contains(dataFile)) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Cannot run alignment, because file " + dataFile
-                          + " is present in multiple feature lists");
-          return null;
-        }
-        allDataFiles.add(dataFile);
-      }
-    }
-    return allDataFiles;
-  }
-
   private boolean checkSpectralSimilarity(FeatureListRow row, FeatureListRow candidate) {
     // compare the similarity of spectra mass lists on MS1 or
     // MS2 level
@@ -492,29 +472,5 @@ public class JoinAlignerTask extends AbstractTask {
   private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
     return simFunction.getModule()
         .getSimilarity(simFunction.getParameterSet(), mzTolerance, 0, library, query);
-  }
-
-  private void transferRowTypes(ModularFeatureList targetFlist,
-      Collection<ModularFeatureList> sourceFlists) {
-    for (ModularFeatureList sourceFlist : sourceFlists) {
-      for (Class<? extends DataType> value : sourceFlist.getRowTypes().keySet()) {
-        if (!targetFlist.hasRowType(value)) {
-          targetFlist.addRowType(sourceFlist.getRowTypes().get(value));
-        }
-      }
-    }
-  }
-
-  private void transferSelectedScans(Collection<ModularFeatureList> flists,
-      ModularFeatureList target) {
-    for (ModularFeatureList flist : flists) {
-      for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
-        if (target.getSeletedScans(rawDataFile) != null) {
-          throw new IllegalStateException(
-              "Error, selected scans for file " + rawDataFile + " already set.");
-        }
-        target.setSelectedScans(rawDataFile, flist.getSeletedScans(rawDataFile));
-      }
-    }
   }
 }

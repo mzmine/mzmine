@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -47,14 +48,13 @@ public class RawDataFilePlaceholder implements RawDataFile {
   public RawDataFilePlaceholder(@NotNull final RawDataFile file) {
     name = file.getName();
     absPath = file.getAbsolutePath();
-    if(file instanceof RawDataFilePlaceholder rfp) {
-      if(rfp.fileHashCode == null) {
+    if (file instanceof RawDataFilePlaceholder rfp) {
+      if (rfp.fileHashCode == null) {
         fileHashCode = null;
       } else {
         fileHashCode = rfp.fileHashCode;
       }
-    }
-    else {
+    } else {
       fileHashCode = file.hashCode();
     }
   }
@@ -88,9 +88,9 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   public boolean matches(@Nullable final RawDataFile file) {
-    return file != null && file.getName().equals(name) && Objects
-        .equals(absPath, file.getAbsolutePath()) && (fileHashCode == null || Objects
-        .equals(fileHashCode, file.hashCode()));
+    return file != null && file.getName().equals(name) && Objects.equals(absPath,
+        file.getAbsolutePath()) && (fileHashCode == null || Objects.equals(fileHashCode,
+        file.hashCode()));
   }
 
   @Override
@@ -181,6 +181,18 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
+  public boolean isContainsZeroIntensity() {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public MassSpectrumType getSpectraType() {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
   public @NotNull Range<Float> getDataRTRange() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
@@ -259,19 +271,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public void setRTRange(int msLevel, Range<Float> rtRange) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public void setMZRange(int msLevel, Range<Double> mzRange) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public ObservableList<Scan> getScans() {
+  public @NotNull ObservableList<Scan> getScans() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }

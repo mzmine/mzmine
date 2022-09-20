@@ -20,6 +20,7 @@ package io.github.mzmine.modules.io.export_image_csv;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
@@ -28,23 +29,29 @@ public class ImageToCsvExportParameters extends SimpleParameterSet {
 
   public static final DirectoryParameter dir = new DirectoryParameter("Export directory",
       "The directory to save the files in.");
-  public static final StringParameter delimiter = new StringParameter("Delimiter",
-      "The delimiter.", ",");
+  public static final StringParameter delimiter = new StringParameter("Delimiter", "The delimiter.",
+      ",");
+
+  public static final BooleanParameter normalize = new BooleanParameter("Normalize to average TIC",
+          """
+          If selected, the intensities will be normalized to the average TIC of the whole raw data file.
+          Example: NormalizedIntensity = Intensity_pixel / TIC_pixel * AvgTIC_file 
+          """, false);
 
   public static final ComboParameter<HandleMissingValues> handleMissingSpectra = new ComboParameter<>(
       "Handle missing scan at x,y",
       "There might be no scan at an x,y coordinate due to irregular shapes during imaging "
-      + "acquisition. Select option to handle these cases.\nDefault: leave empty",
+          + "acquisition. Select option to handle these cases.\nDefault: leave empty",
       HandleMissingValues.values(), HandleMissingValues.LEAVE_EMPTY);
 
   public static final ComboParameter<HandleMissingValues> handleMissingSignals = new ComboParameter<>(
       "Handle missing signals in scans",
       "Options to report the intensity for signals that are missing in specific scans.\n"
-      + "Default: replace by zero",
-      HandleMissingValues.values(), HandleMissingValues.REPLACE_BY_ZERO);
+          + "Default: replace by zero", HandleMissingValues.values(),
+      HandleMissingValues.REPLACE_BY_ZERO);
 
   public ImageToCsvExportParameters() {
-    super(new Parameter[]{dir, delimiter, handleMissingSpectra, handleMissingSignals});
+    super(new Parameter[]{dir, delimiter, normalize, handleMissingSpectra, handleMissingSignals});
   }
 
   /**
@@ -54,7 +61,7 @@ public class ImageToCsvExportParameters extends SimpleParameterSet {
   public enum HandleMissingValues {
     /**
      * leave empty in csv means ,,
-      */
+     */
     LEAVE_EMPTY,
     /**
      * replace by zero

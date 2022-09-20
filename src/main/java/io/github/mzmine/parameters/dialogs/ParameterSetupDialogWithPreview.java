@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -54,7 +54,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
     super(valueCheckRequired, parameters, message);
 
     paramPreviewSplit = new SplitPane();
-    paramPreviewSplit.getItems().add(mainScrollPane);
+    paramPreviewSplit.getItems().add(getParamPane());
     paramPreviewSplit.setOrientation(Orientation.HORIZONTAL);
     mainPane.setCenter(paramPreviewSplit);
 
@@ -87,6 +87,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
       paramPreviewSplit.setDividerPosition(0, 0.5);
     } else {
       paramPreviewSplit.getItems().remove(previewWrapperPane);
+      mainPane.getScene().getWindow().sizeToScene();
     }
   }
 

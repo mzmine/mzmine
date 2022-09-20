@@ -39,11 +39,11 @@ public class ScanSmoothingParameters extends SimpleParameterSet {
       "Number of scan in which intensities will be averaged in the same m/z.\nThe max between this and Time Span will be used.",
       5);
 
-  public static final DoubleParameter mzTolerance = new DoubleParameter("MZ tolerance",
-      "M/Z range in which intensities will be averaged. The max between this\nand m/z points will be used. If both 0 no mz smoothing will be performed.",
+  public static final DoubleParameter mzTolerance = new DoubleParameter("m/z tolerance",
+      "m/z range in which intensities will be averaged. The max between this\nand m/z points will be used. If both 0 no mz smoothing will be performed.",
       MZmineCore.getConfiguration().getRTFormat(), 0.05);
 
-  public static final IntegerParameter mzPoints = new IntegerParameter("MZ min points",
+  public static final IntegerParameter mzPoints = new IntegerParameter("m/z min points",
       "Number of m/z points used to smooth. The max between this and m/z tol will be used.\nIf both 0 no m/z smoothing will be performed.",
       3);
 
@@ -52,14 +52,15 @@ public class ScanSmoothingParameters extends SimpleParameterSet {
       MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
 
   public static final BooleanParameter removeOld =
-      new BooleanParameter("Remove prev files", "Remove processed files to save memory.", false);
+      new BooleanParameter("Remove previous files", "Remove processed files to save memory.", false);
 
   public static final StringParameter suffix =
       new StringParameter("Suffix", "This string is added to filename as suffix", "smooth");
 
   public ScanSmoothingParameters() {
     super(new Parameter[] {dataFiles, suffix, timeSpan, scanSpan, mzTolerance, mzPoints,
-        minimumHeight, removeOld});
+        minimumHeight, removeOld},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_raw_data/scan_smoothing.html");
   }
 
 }

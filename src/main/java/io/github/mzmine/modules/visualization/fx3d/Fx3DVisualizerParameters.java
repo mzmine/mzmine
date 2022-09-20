@@ -55,7 +55,8 @@ public class Fx3DVisualizerParameters extends SimpleParameterSet {
 
   public Fx3DVisualizerParameters() {
     super(new Parameter[] {dataFiles, scanSelection, mzRange, features, rtResolution, mzResolution,
-        windowSettings});
+        windowSettings},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ms_raw_data_overview/raw_data_additional.md");
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -31,7 +31,10 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,9 +47,16 @@ public class MsdkScanWrapper implements Scan {
   // wrap this scan
   private final MsScan scan;
   private final MsMsInfo msMsInfo;
+  private final double[] mzs;
+  private final float[] intensities;
 
   public MsdkScanWrapper(MsScan scan) {
     this.scan = scan;
+
+    // preload as getMzValue(i) is inefficient in MSDK scans
+    mzs = scan.getMzValues();
+    intensities = scan.getIntensityValues();
+
     scan.getIsolations();
     if (!scan.getIsolations().isEmpty()) {
       IsolationInfo isolationInfo = scan.getIsolations().get(0);
@@ -66,7 +76,7 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public int getNumberOfDataPoints() {
-    return scan.getNumberOfDataPoints();
+    return mzs.length;
   }
 
   @Override
@@ -76,7 +86,8 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public double[] getMzValues(@NotNull double[] dst) {
-    return scan.getMzValues(dst);
+    throw new UnsupportedOperationException(
+        "Unsupported operation. MSDK scan uses float array and the conversion in this method is not efficient.");
   }
 
   @Override
@@ -87,12 +98,12 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public double getMzValue(int index) {
-    return scan.getMzValues()[index];
+    return mzs[index];
   }
 
   @Override
   public double getIntensityValue(int index) {
-    return scan.getIntensityValues()[index];
+    return intensities[index];
   }
 
   @Nullable
@@ -198,4 +209,16 @@ public class MsdkScanWrapper implements Scan {
 
   }
 
+  @Override
+  public @Nullable Float getInjectionTime() {
+    try {
+      return ((MzMLMsScan) scan).getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
+    } catch (Exception ex) {
+      // float parsing error
+      return null;
+    }
+  }
 }

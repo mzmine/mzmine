@@ -74,6 +74,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 
   public RansacAlignerParameters() {
     super(new Parameter[] {peakLists, peakListName, MZTolerance, RTToleranceBefore,
-        RTToleranceAfter, Iterations, NMinPoints, Margin, Linear, SameChargeRequired});
+        RTToleranceAfter, Iterations, NMinPoints, Margin, Linear, SameChargeRequired},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/align_ransac/align_ransac.html");
   }
 }

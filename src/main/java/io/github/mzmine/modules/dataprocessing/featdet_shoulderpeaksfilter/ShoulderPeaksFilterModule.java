@@ -55,7 +55,8 @@ public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
     RawDataFile[] dataFiles = parameters.getParameter(ShoulderPeaksFilterParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new ShoulderPeaksFilterTask(dataFile, parameters.cloneParameterSet(), storage, moduleCallDate);
+      Task newTask = new ShoulderPeaksFilterTask(dataFile, parameters.cloneParameterSet(true),
+          storage, moduleCallDate);
       tasks.add(newTask);
     }
 

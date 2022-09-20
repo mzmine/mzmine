@@ -38,7 +38,8 @@ public class SameRangeGapFillerParameters extends SimpleParameterSet {
       new OriginalFeatureListHandlingParameter(false);
 
   public SameRangeGapFillerParameters() {
-    super(new Parameter[]{peakLists, suffix, mzTolerance, handleOriginal});
+    super(new Parameter[]{peakLists, suffix, mzTolerance, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_same_mz_and_RT_range/same_mz_and_RT_range_gap_filler.html");
   }
 
 }

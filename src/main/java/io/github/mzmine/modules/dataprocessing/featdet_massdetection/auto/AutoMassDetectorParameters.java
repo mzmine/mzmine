@@ -37,6 +37,7 @@ public class AutoMassDetectorParameters extends SimpleParameterSet {
       new DetectIsotopesParameter());
 
   public AutoMassDetectorParameters() {
-    super(new Parameter[] {noiseLevel, detectIsotopes});
+    super(new Parameter[] {noiseLevel, detectIsotopes},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#auto");
   }
 }
