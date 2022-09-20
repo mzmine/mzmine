@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -13,7 +13,6 @@
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
@@ -121,6 +120,35 @@ public class ScanSelection {
 
   public Scan[] getMatchingScans(RawDataFile dataFile) {
     return streamMatchingScans(dataFile).toArray(Scan[]::new);
+  }
+
+  /**
+   * Returns the closest scan to the given retention time matching this scan selection.
+   *
+   * @param file          The raw data file.
+   * @param retentionTime The retention time of the wanted scan.
+   * @return
+   */
+  public Scan getScanAtRt(RawDataFile file, float retentionTime) {
+
+    if (retentionTime > file.getDataRTRange().upperEndpoint()) {
+      return null;
+    }
+
+    Scan[] matchingScans = getMatchingScans(file);
+    double minDiff = 10E6;
+
+    for (int i = 0; i < matchingScans.length; i++) {
+      Scan scan = matchingScans[i];
+      double diff = Math.abs(retentionTime - scan.getRetentionTime());
+
+      if (diff < minDiff) {
+        minDiff = diff;
+      } else if (diff > minDiff) {
+        return matchingScans[i - 1];
+      }
+    }
+    return null;
   }
 
   /**
