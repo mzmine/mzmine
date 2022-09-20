@@ -73,6 +73,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final int minDistance;
 
   private final double minChimerityScore;
+  private final int[] spotsFeatureCounter;
 
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
@@ -96,8 +97,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     minMsMsIntensity = parameters.getValue(TimsTOFImageMsMsParameters.minimumIntensity);
     minDistance = parameters.getValue(TimsTOFImageMsMsParameters.minimumDistance);
     minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.maximumChimerity);
-    isolationWindow = new MZTolerance(isolationWidth / 1.7,
+    isolationWindow = new MZTolerance((isolationWidth / 1.7) / 2,
         0d); // isolation window typically wider than set
+    spotsFeatureCounter = new int[numMsMs + 1];
   }
 
   @Override
@@ -170,13 +172,17 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       createdMsMsEntries = createNewMsMsSpots(access, frameSpotMap, minMsMsIntensity, imagingData,
           precursor, numMsMs, createdMsMsEntries, featureSpotMap, minDistance, minChimerityScore);
 
-      if (createdMsMsEntries < numMsMs) {
-        logger.finest(() -> "Did not find enough MSMS spots for feature " + f.toString());
-        continue;
-      }
+      spotsFeatureCounter[createdMsMsEntries]++;
     }
 
-    File acqFile = new File(savePathDir, "acquisition.txt");
+    for (int i = 0; i < numMsMs + 1; i++) {
+      final int j = i;
+      logger.finest(
+          () -> String.format("%d features have %d MS/MS spots. (%.1f)", (spotsFeatureCounter[j]),
+              j, (spotsFeatureCounter[j] / (double) rows.size() * 100)));
+    }
+
+    final File acqFile = new File(savePathDir, "acquisition.txt");
     acqFile.delete();
 
     // sort the spots by line, so we limit the movement that we have to do
