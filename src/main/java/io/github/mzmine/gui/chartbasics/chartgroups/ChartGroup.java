@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import javafx.scene.Node;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.ChartChangeEventType;
@@ -46,7 +45,7 @@ import org.jfree.data.Range;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartGroup extends Node {
+public class ChartGroup {
 
   // max range of all charts
   private Range[] maxRange = null;
@@ -394,6 +393,9 @@ public class ChartGroup extends Node {
 
   public void resetDomainZoom() {
     // each a different range
+    if (list == null) {
+      return;
+    }
     for (ChartViewWrapper c : list) {
       if (c.getChartFX() != null) {
         ChartLogicsFX.autoDomainAxis(c.getChartFX());
@@ -410,6 +412,9 @@ public class ChartGroup extends Node {
   }
 
   public void resetRangeZoom() {
+    if (list == null) {
+      return;
+    }
     if (!combineRangeAxes) {
       // each a different range
       for (ChartViewWrapper c : list) {

@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -43,7 +44,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       new OriginalFeatureListHandlingParameter(true);
 
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
-      "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());
+      "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters(),
+      true);
 
   public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>(
       "Dimension", "Select the dimension to be resolved.",
@@ -54,11 +56,19 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
    * R engine type. Only added in parameter sets that need R.
    */
   public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
-      "R engine", "The R engine to be used for communicating with R.", REngineType.values(),
+      "R engine", "The R engine to be used for communicating with R. "
+      + "RServe might provide you with better performance.", REngineType.values(),
       REngineType.RCALLER);
 
+  public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
+      "Min # of data points", "Minimum number of data points on a feature", 3, true);
+
   public GeneralResolverParameters(Parameter[] parameters) {
-    super(parameters);
+    this(parameters, null);
+  }
+
+  public GeneralResolverParameters(Parameter[] parameters, String url) {
+    super(parameters, url);
   }
 
   @Deprecated

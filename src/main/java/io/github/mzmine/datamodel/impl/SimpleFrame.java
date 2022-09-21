@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
  * @see Frame
  */
 public class SimpleFrame extends SimpleScan implements Frame {
+
+  private static Logger logger = Logger.getLogger(SimpleFrame.class.getName());
 
   private final MobilityType mobilityType;
 
@@ -59,11 +62,11 @@ public class SimpleFrame extends SimpleScan implements Frame {
       float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
-      @Nullable Set<PasefMsMsInfo> precursorInfos) {
+      @Nullable Set<PasefMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
          */
-        mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange);
+        mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange, accumulationTime);
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
@@ -177,9 +180,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public int setMobilities(double[] mobilities) {
+    if (mobilities.length == 0) {
+      logger.info(
+          () -> String.format("No mobilities detected in frame #%d of file %s.", getFrameId(),
+              getDataFile().getName()));
+      mobilities = new double[]{1d};
+      mobilityRange = Range.openClosed(1d, 1d); // empty range
+    } else {
+      mobilityRange = Range.singleton(mobilities[0]);
+      mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
+    }
     mobilitySegment = ((IMSRawDataFile) getDataFile()).addMobilityValues(mobilities);
-    mobilityRange = Range.singleton(mobilities[0]);
-    mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
     return mobilitySegment;
   }
 

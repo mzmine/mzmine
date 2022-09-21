@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -81,6 +81,20 @@
 	-fx-padding : 1;
 }
 
+.notification-pane .notification-bar > .pane {
+  -fx-font-size : 13.0;
+  -fx-background-color: -menu-bg;
+  -fx-effect: dropshadow(three-pass-box, -selection-highlight-outline, 6, 0.0, 0, 3);
+}
+
+.notification-pane .notification-bar > .pane .label {
+  -fx-font-size : 14.0;
+}
+
+.ikonli-font-icon {
+  -fx-icon-color:-selection-highlight-outline;
+}
+
 /** ScrollPane **/
 .scroll-bar:horizontal .thumb,
 .scroll-bar:vertical .thumb {
@@ -106,11 +120,11 @@
 }
 
 .title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
 }
 
 .bold-title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
   -fx-font-weight: bold;
 }
 
@@ -141,4 +155,9 @@
 
 .web-view {
   -fx-font-smoothing-type: LCD;
+}
+
+.accordion > .titled-pane > .title {
+    -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
+    -fx-background-radius: 0, 0, 0;
 }

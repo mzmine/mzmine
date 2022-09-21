@@ -39,7 +39,8 @@ public class CentroidMassDetectorParameters extends SimpleParameterSet {
       new DetectIsotopesParameter());
 
   public CentroidMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel, detectIsotopes});
+    super(new UserParameter[] {noiseLevel, detectIsotopes},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#centroid");
   }
 
   @Override

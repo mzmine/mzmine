@@ -102,7 +102,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
   public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd,
       CenterFunction mzCenterFunction, double msmsRange, float RTRangeMSMS) {
 
-    assert regionEnd > regionStart;
+    assert regionEnd >= regionStart;
 
     this.peakList = chromatogram.getFeatureList();
     this.dataFile = chromatogram.getRawDataFile();

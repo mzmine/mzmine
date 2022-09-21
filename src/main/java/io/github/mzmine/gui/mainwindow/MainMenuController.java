@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,15 +22,17 @@ import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -38,12 +40,14 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import org.apache.commons.io.FileUtils;
 
 /**
  * The controller class for MainMenu.fxml
@@ -78,7 +82,7 @@ public class MainMenuController {
      * it is hard-coded here for now
      */
     final Path logFilePath = Paths.get(
-        System.getProperty("user.home") + File.separator + "mzmine_0_0.log");
+        FileUtils.getUserDirectory() + File.separator + "mzmine_0_0.log");
 
     try {
       Desktop gui = MZmineCore.getDesktop();
@@ -125,9 +129,8 @@ public class MainMenuController {
     MZmineGUI.showAboutWindow();
   }
 
-  public void setSampleParams(Event event) {
-    ProjectParametersSetupDialog dialog = new ProjectParametersSetupDialog();
-    dialog.show();
+  public void setSampleMetadata(Event event) {
+    MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
   }
 
 
@@ -161,9 +164,13 @@ public class MainMenuController {
 
     logger.info("Setting parameters for module " + module.getName());
 
-    ExitCode exitCode = moduleParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK) {
-      return;
+    try {
+      ExitCode exitCode = moduleParameters.showSetupDialog(true);
+      if (exitCode != ExitCode.OK) {
+        return;
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
 
     ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
@@ -223,6 +230,27 @@ public class MainMenuController {
 
   public void showMSnTreeTab(ActionEvent actionEvent) {
     MSnTreeVisualizerModule.showNewTab();
+  }
+
+  public void setTaskViewerBottom(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.MAIN);
+  }
+
+  public void setTaskViewerTab(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.TAB);
+  }
+
+  public void setTaskViewerExternal(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.EXTERNAL);
+  }
+
+  public void hideTaskViewer(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.HIDDEN);
+  }
+
+  public void showSpectralMirrorDialog(ActionEvent event) {
+    MirrorScanWindowFXML window = new MirrorScanWindowFXML();
+    window.show();
   }
 }
 

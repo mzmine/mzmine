@@ -19,6 +19,7 @@ package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
@@ -68,8 +69,8 @@ public class LipidSpectrumType extends LinkedGraphicalType {
 
     List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
-      Task task =
-          new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row, coll.getText());
+      Task task = new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row,
+          coll.getText());
       MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
     }
     return pane;
@@ -83,7 +84,8 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   @Nullable
   @Override
   public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> file) {
+      @Nonnull List<RawDataFile> file, DataType<?> superType,
+      @org.jetbrains.annotations.Nullable final Object value) {
     List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null) {
       MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(

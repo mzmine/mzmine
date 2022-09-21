@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -169,7 +169,13 @@ public class SiriusExportTask extends AbstractTask {
             .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         tmpFile = new File(newFilename);
       }
-      final File curFile = FileAndPathUtil.getRealFilePath(tmpFile, ".mgf");
+      final File curFile = FileAndPathUtil.getRealFilePath(tmpFile, "mgf");
+
+      if (!FileAndPathUtil.createDirectory(curFile.getParentFile())) {
+        setErrorMessage("Could not create directories for file " + curFile + " for writing.");
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
 
       // Open file
       try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
@@ -378,7 +384,7 @@ public class SiriusExportTask extends AbstractTask {
   private boolean missingMassListError(Scan scan, MassList ms1MassList) {
     if (ms1MassList == null) {
       setErrorMessage("A mass list was missing for scan " + ScanUtils.scanToString(scan, true)
-                      + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
+          + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
       setStatus(TaskStatus.ERROR);
       return true;
     }

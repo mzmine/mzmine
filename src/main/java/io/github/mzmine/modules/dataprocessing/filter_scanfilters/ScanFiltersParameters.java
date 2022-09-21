@@ -52,7 +52,8 @@ public class ScanFiltersParameters extends SimpleParameterSet {
           "If checked, original file will be removed and only filtered version remains");
 
   public ScanFiltersParameters() {
-    super(new Parameter[] {dataFiles, scanSelect, suffix, filter, autoRemove});
+    super(new Parameter[] {dataFiles, scanSelect, suffix, filter, autoRemove},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_raw_data/filter-scan-by-scan.html");
   }
 
 }

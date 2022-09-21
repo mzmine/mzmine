@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2021 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement;
@@ -27,13 +27,13 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -291,16 +291,27 @@ public class IonNetworkRefinementTask extends AbstractTask {
 
   private static boolean hasMajorIonID(IonNetwork net) {
     return net.values().stream().map(IonIdentity::getIonType).anyMatch(ion -> {
-      return ion.getAdduct().equals(IonModification.H) //
-             || (ion.getAdduct().equals(IonModification.NA) && ion.getModCount() == 0)
-             || ion.getAdduct().equals(IonModification.NH4);
+      return equalsType(ion, IonModification.H, 3) || equalsType(ion, IonModification.NA, 0)
+          || equalsType(ion, IonModification.NH4, 1) || equalsType(ion, IonModification.H_NEG, 2)
+          || equalsType(ion, IonModification.CL, 0) || equalsType(ion, IonModification.FA, 0);
     });
+  }
+
+  /**
+   * @param testedIon        tested ion
+   * @param adduct           the target adduct
+   * @param maxModifications maximum number of ion modifications (-2H2O == 2)
+   * @return true if adducts equal and modification is within max
+   */
+  private static boolean equalsType(IonType testedIon, IonModification adduct,
+      int maxModifications) {
+    return testedIon.getAdduct().equals(adduct) && testedIon.getModCount() <= maxModifications;
   }
 
 
   /**
    * Delete xmers if one was verified by msms
-   * 
+   *
    * @param row
    * @param best
    * @param all

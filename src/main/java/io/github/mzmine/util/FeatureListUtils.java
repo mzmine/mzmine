@@ -19,11 +19,14 @@
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -206,5 +209,54 @@ public class FeatureListUtils {
       row.set(IDType.class, newRowID);
       newRowID++;
     }
+  }
+
+  /**
+   * Transfers all row types present in the source feature list to the target feature list.
+   */
+  public static void transferRowTypes(FeatureList targetFlist,
+      Collection<FeatureList> sourceFlists) {
+    for (FeatureList sourceFlist : sourceFlists) {
+      for (Class<? extends DataType> value : sourceFlist.getRowTypes().keySet()) {
+        if (!targetFlist.hasRowType(value)) {
+          targetFlist.addRowType(sourceFlist.getRowTypes().get(value));
+        }
+      }
+    }
+  }
+
+  /**
+   * Copies the selected scans from a collection of feature lists to the target feature list.
+   */
+  public static void transferSelectedScans(FeatureList target, Collection<FeatureList> flists) {
+    for (FeatureList flist : flists) {
+      for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
+        if (target.getSeletedScans(rawDataFile) != null) {
+          throw new IllegalStateException(
+              "Error, selected scans for file " + rawDataFile + " already set.");
+        }
+        target.setSelectedScans(rawDataFile, flist.getSeletedScans(rawDataFile));
+      }
+    }
+  }
+
+  /**
+   * Loops over all feature lists and collects all raw data files. If a file is present in multiple
+   * feature lists, an exception is thrown.
+   */
+  public static List<RawDataFile> getAllDataFiles(Collection<FeatureList> flists) {
+    List<RawDataFile> allDataFiles = new ArrayList<>();
+    for (FeatureList featureList : flists) {
+      for (RawDataFile dataFile : featureList.getRawDataFiles()) {
+        // Each data file can only have one column in aligned feature
+        // list
+        if (allDataFiles.contains(dataFile)) {
+          throw new IllegalArgumentException(
+              "File " + dataFile + " is present in multiple feature lists");
+        }
+        allDataFiles.add(dataFile);
+      }
+    }
+    return allDataFiles;
   }
 }

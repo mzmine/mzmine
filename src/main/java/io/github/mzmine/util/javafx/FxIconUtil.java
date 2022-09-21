@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxIconUtil {
 
@@ -34,8 +35,8 @@ public class FxIconUtil {
 
   @NotNull
   public static Image loadImageFromResources(final @NotNull String resourcePath) {
-    final InputStream iconResource =
-        FxIconUtil.class.getClassLoader().getResourceAsStream(resourcePath);
+    final InputStream iconResource = FxIconUtil.class.getClassLoader()
+        .getResourceAsStream(resourcePath);
     if (iconResource == null) {
       logger.warning("Could not find an icon file at path " + resourcePath);
       throw new IllegalArgumentException("Could not find an icon file at path " + resourcePath);
@@ -58,8 +59,7 @@ public class FxIconUtil {
   public static Image getFileIcon(Color color) {
     // Define colors mapping for the initial file icon
     HashMap<Color, Color> colorsMapping = new HashMap<>();
-    colorsMapping.put(new Color(1.0, 0.5333333611488342, 0.0235294122248888, 1.0),
-        color);
+    colorsMapping.put(new Color(1.0, 0.5333333611488342, 0.0235294122248888, 1.0), color);
     colorsMapping.put(new Color(0.9921568632125854, 0.6078431606292725, 0.1882352977991104, 1.0),
         ColorUtils.tintColor(color, 0.25));
     colorsMapping.put(new Color(1.0, 0.7372549176216125, 0.4470588266849518, 1.0),
@@ -67,6 +67,20 @@ public class FxIconUtil {
 
     // Recolor file icon according to the mapping
     return ImageUtils.recolor(loadImageFromResources("icons/fileicon.png"), colorsMapping);
+  }
+
+  /**
+   * Get FontIcon from Ikonli library
+   *
+   * @param iconCode icon code
+   * @return Icon in color and size
+   */
+  public static FontIcon getFontIcon(String iconCode, int size, Color color) {
+    FontIcon icon = new FontIcon();
+    String b = "-fx-icon-color:" + FxColorUtil.colorToHex(color) + ";-fx-icon-code:" + iconCode
+        + ";-fx-icon-size:" + size + ";";
+    icon.setStyle(b);
+    return icon;
   }
 
 }

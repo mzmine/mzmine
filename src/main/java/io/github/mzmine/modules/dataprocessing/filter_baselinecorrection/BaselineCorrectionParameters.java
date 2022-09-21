@@ -136,7 +136,8 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
    */
   public BaselineCorrectionParameters() {
     super(new Parameter[] {dataFiles, SUFFIX, CHROMOTAGRAM_TYPE, MS_LEVEL, USE_MZ_BINS,
-        MZ_BIN_WIDTH, BASELINE_CORRECTORS, RENGINE_TYPE, REMOVE_ORIGINAL});
+        MZ_BIN_WIDTH, BASELINE_CORRECTORS, RENGINE_TYPE, REMOVE_ORIGINAL},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_raw_data/baseline-corrections.html");
     thisParameters = null;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -34,12 +34,9 @@ import java.util.logging.Logger;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.fx.ChartViewer;
 
 /**
- * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class GraphicsExportDialogFX extends ParameterSetupDialog {
 
@@ -52,17 +49,17 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected ExportChartThemeParameters chartParam;
   protected SimpleColorPalette colorPalette;
 
-  private Button btnRenewPreview;
-  private Button btnApply;
-  private Button btnSave;
+  private final Button btnRenewPreview;
+  private final Button btnApply;
+  private final Button btnSave;
 
 
   public GraphicsExportDialogFX(boolean valueCheckRequired, ParameterSet parameterSet,
       JFreeChart chart) {
     super(valueCheckRequired, parameterSet);
 
-    chartParam = (ExportChartThemeParameters) parameterSet
-        .getParameter(GraphicsExportParameters.chartParameters).getValue();
+    chartParam = (ExportChartThemeParameters) parameterSet.getParameter(
+        GraphicsExportParameters.chartParameters).getValue();
 
     colorPalette = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
 
@@ -86,15 +83,13 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     // add buttons
     btnRenewPreview = new Button("Renew Preview");
     btnRenewPreview.setOnAction(e -> renewPreview());
-    pnlButtons.getButtons().add(btnRenewPreview);
 
     btnApply = new Button("Apply Theme");
     btnApply.setOnAction(e -> applyTheme());
-    pnlButtons.getButtons().add(btnApply);
 
     btnSave = new Button("Save");
     btnSave.setOnAction(e -> saveGraphicsAs());
-    pnlButtons.getButtons().add(btnSave);
+    getButtonBar().getButtons().addAll(btnRenewPreview, btnApply, btnSave);
 
     setMinWidth(900.0);
     setMinHeight(400.0);
@@ -105,8 +100,8 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected void applyTheme() {
     // update param
     updateParameterSetFromComponents();
-    chartParam = (ExportChartThemeParameters) parameterSet
-        .getParameter(GraphicsExportParameters.chartParameters).getValue();
+    chartParam = (ExportChartThemeParameters) parameterSet.getParameter(
+        GraphicsExportParameters.chartParameters).getValue();
     colorPalette = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
     // apply settings
     chartParam.applyToChartTheme(theme);
@@ -134,14 +129,13 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
       GraphicsExportParameters parameterSet = (GraphicsExportParameters) this.parameterSet;
       //
       if (parameterSet.isUseOnlyWidth()) {
-        double height = (ChartLogicsFX.calcHeightToWidth((ChartViewer) chartPanel,
+        double height = (ChartLogicsFX.calcHeightToWidth(chartPanel,
             parameterSet.getWidthPixel()/* , false */));
 
-        DoubleParameter p =
-            parameterSet.getParameter(GraphicsExportParameters.height).getEmbeddedParameter();
-        DoubleComponent c =
-            ((OptionalParameterComponent<DoubleComponent>) parametersAndComponents.get(p.getName()))
-                .getEmbeddedComponent();
+        DoubleParameter p = parameterSet.getParameter(GraphicsExportParameters.height)
+            .getEmbeddedParameter();
+        DoubleComponent c = ((OptionalParameterComponent<DoubleComponent>) parametersAndComponents.get(
+            p.getName())).getEmbeddedComponent();
         p.setValueToComponent(c, height);
         p.setValueFromComponent(c);
 

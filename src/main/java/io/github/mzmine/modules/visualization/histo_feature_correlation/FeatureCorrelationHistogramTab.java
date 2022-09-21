@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.histo_feature_correlation;
@@ -21,8 +22,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramData;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramPanel;
+import io.github.mzmine.modules.visualization.scan_histogram.chart.HistogramData;
+import io.github.mzmine.modules.visualization.scan_histogram.chart.HistogramPanel;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,8 +52,8 @@ public class FeatureCorrelationHistogramTab extends MZmineTab {
   private final HistogramData dataIdentified;
 
   public FeatureCorrelationHistogramTab(ModularFeatureList flist,
-      DoubleArrayList valuesUnidentified,
-      DoubleArrayList valuesIdentified, String title, String xLabel, double binWidth) {
+      DoubleArrayList valuesUnidentified, DoubleArrayList valuesIdentified, String title,
+      String xLabel, double binWidth) {
     super(title, true, false);
 
     this.flist = flist;
@@ -65,8 +66,7 @@ public class FeatureCorrelationHistogramTab extends MZmineTab {
 
     histoUnidentified = new HistogramPanel(xLabel + " (unidentified)", dataUnidentified, binWidth);
 
-    histoIonIdentities = new HistogramPanel(xLabel + " (connected ion identities)",
-        dataIdentified,
+    histoIonIdentities = new HistogramPanel(xLabel + " (connected ion identities)", dataIdentified,
         binWidth);
 
     setContent(mainPane);
@@ -109,8 +109,7 @@ public class FeatureCorrelationHistogramTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 }

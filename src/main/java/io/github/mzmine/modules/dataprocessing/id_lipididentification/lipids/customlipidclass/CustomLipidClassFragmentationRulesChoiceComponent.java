@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -18,20 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonReader;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import com.google.gson.Gson;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -45,6 +31,18 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -55,6 +53,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPane {
 
@@ -73,8 +73,8 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
   public CustomLipidClassFragmentationRulesChoiceComponent(LipidFragmentationRule[] choices) {
 
-    ObservableList<LipidFragmentationRule> choicesList =
-        FXCollections.observableArrayList(Arrays.asList(choices));
+    ObservableList<LipidFragmentationRule> choicesList = FXCollections.observableArrayList(
+        Arrays.asList(choices));
 
     checkList.setItems(choicesList);
     setCenter(checkList);
@@ -82,19 +82,21 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
     checkList.setMinWidth(300);
     addButton.setOnAction(e -> {
       final ParameterSet parameters = new AddLipidFragmentationRuleParameters();
-      if (parameters.showSetupDialog(true) != ExitCode.OK)
+      if (parameters.showSetupDialog(true) != ExitCode.OK) {
         return;
+      }
 
       // Create new custom lipid class
       LipidFragmentationRule lipidFragmentationRule = new LipidFragmentationRule(//
-          parameters.getParameter(AddLipidFragmentationRuleParameters.polarity).getValue(), // polarity
-          parameters.getParameter(AddLipidFragmentationRuleParameters.ionizationMethod).getValue(), // ionization
+          parameters.getParameter(AddLipidFragmentationRuleParameters.polarity).getValue(),
+          // polarity
+          parameters.getParameter(AddLipidFragmentationRuleParameters.ionizationMethod).getValue(),
+          // ionization
           parameters.getParameter(AddLipidFragmentationRuleParameters.lipidFragmentationRuleType)
               .getValue(), // rule type
-          parameters
-              .getParameter(
+          parameters.getParameter(
                   AddLipidFragmentationRuleParameters.lipidFragmentationRuleInformationLevel) // information
-                                                                                              // level
+              // level
               .getValue(),
           parameters.getParameter(AddLipidFragmentationRuleParameters.formula).getValue() // formula
       );
@@ -115,8 +117,9 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
       // Select a file.
       final File file = chooser.showOpenDialog(this.getScene().getWindow());
-      if (file == null)
+      if (file == null) {
         return;
+      }
 
       try {
         FileInputStream fileInputStream = new FileInputStream(file);
@@ -125,9 +128,9 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
         reader.close();
         Gson gson = new Gson();
         for (int i = 0; i < jsonArray.size(); i++) {
-          LipidFragmentationRule rule =
-              gson.fromJson(jsonArray.get(i).asJsonObject().getString("Lipid Fragmentation Rule"),
-                  LipidFragmentationRule.class);
+          LipidFragmentationRule rule = gson.fromJson(
+              jsonArray.get(i).asJsonObject().getString("Lipid Fragmentation Rule"),
+              LipidFragmentationRule.class);
           checkList.getItems().add(rule);
         }
       } catch (FileNotFoundException ex) {
@@ -144,8 +147,9 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
       chooser.getExtensionFilters().add(new ExtensionFilter("JSON", FILENAME_EXTENSION));
 
       final File file = chooser.showSaveDialog(this.getScene().getWindow());
-      if (file == null)
+      if (file == null) {
         return;
+      }
 
       try {
         FileWriter fileWriter = new FileWriter(file);
@@ -177,8 +181,9 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
   void setValue(List<LipidFragmentationRule> checkedItems) {
     checkList.getSelectionModel().clearSelection();
-    for (LipidFragmentationRule mod : checkedItems)
+    for (LipidFragmentationRule mod : checkedItems) {
       checkList.getSelectionModel().select(mod);
+    }
   }
 
   public List<LipidFragmentationRule> getChoices() {
@@ -194,28 +199,25 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
    */
   private static class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
 
+    public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<>(
+        "Ionization method", "Type of ion used to calculate the ionized mass",
+        IonizationType.values());
+    public static final ComboParameter<LipidFragmentationRuleType> lipidFragmentationRuleType = new ComboParameter<>(
+        "Lipid fragmentation rule type", "Choose the type of the lipid fragmentation rule",
+        LipidFragmentationRuleType.values());
+    public static final ComboParameter<LipidAnnotationLevel> lipidFragmentationRuleInformationLevel = new ComboParameter<>(
+        "Lipid fragment information level",
+        "Choose the information value of the lipid fragment, molecular formula level, or chain composition level",
+        LipidAnnotationLevel.values());
     private static final ComboParameter<PolarityType> polarity = new ComboParameter<>("Polarity",
-        "Select polarity type", new PolarityType[] {PolarityType.POSITIVE, PolarityType.NEGATIVE});
-
-    public static final ComboParameter<IonizationType> ionizationMethod =
-        new ComboParameter<>("Ionization method", "Type of ion used to calculate the ionized mass",
-            IonizationType.values());
-
-    public static final ComboParameter<LipidFragmentationRuleType> lipidFragmentationRuleType =
-        new ComboParameter<>("Lipid fragmentation rule type",
-            "Choose the type of the lipid fragmentation rule", LipidFragmentationRuleType.values());
-
-    public static final ComboParameter<LipidAnnotationLevel> lipidFragmentationRuleInformationLevel =
-        new ComboParameter<>("Lipid fragment information level",
-            "Choose the information value of the lipid fragment, molecular formula level, or chain composition level",
-            LipidAnnotationLevel.values());
+        "Select polarity type", new PolarityType[]{PolarityType.POSITIVE, PolarityType.NEGATIVE});
 
     private static final StringParameter formula = new StringParameter("Molecular formula",
         "Enter a molecular formula, if it is involved in the fragmentation rule. E.g. a head group fragment needs to be specified by its molecular formula.",
         null, false, false);
 
     private AddLipidFragmentationRuleParameters() {
-      super(new Parameter[] {polarity, ionizationMethod, lipidFragmentationRuleType,
+      super(new Parameter[]{polarity, ionizationMethod, lipidFragmentationRuleType,
           lipidFragmentationRuleInformationLevel, formula});
     }
   }

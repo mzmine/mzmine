@@ -78,6 +78,10 @@ public abstract class AbstractResolver implements Resolver {
     file = flist.getRawDataFile(0);
   }
 
+  public RawDataFile getRawDataFile() {
+    return file;
+  }
+
   @Override
   public @NotNull <T extends IonTimeSeries<? extends Scan>> List<T> resolve(@NotNull T series,
       @Nullable MemoryMapStorage storage) {

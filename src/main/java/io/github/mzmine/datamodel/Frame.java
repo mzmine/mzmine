@@ -47,10 +47,6 @@ public interface Frame extends Scan {
 
   @NotNull MobilityType getMobilityType();
 
-  /**
-   * @return Unsorted set of sub spectrum numbers.
-   */
-//  Set<Integer> getMobilityScanNumbers();
   @NotNull Range<Double> getMobilityRange();
 
   /**

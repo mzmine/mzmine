@@ -1,6 +1,0 @@
-extraction:
-  java:
-    index:
-      gradle:
-        version: "7.3.3"
-      java_version: "17.0.1"

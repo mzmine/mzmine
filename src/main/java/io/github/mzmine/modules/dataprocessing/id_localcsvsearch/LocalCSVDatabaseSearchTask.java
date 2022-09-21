@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
@@ -42,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -195,8 +195,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       for (FeatureListRow peakRow : peakList.getRows()) {
         if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
           final CompoundDBAnnotation clone = annotation.clone();
-          clone.put(CompoundAnnotationScoreType.class,
-              clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
+          final Float score = clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance,
+              ccsTolerance);
+          clone.put(CompoundAnnotationScoreType.class, score);
           clone.put(MzPpmDifferenceType.class,
               (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
                   peakRow.getAverageMZ()));
