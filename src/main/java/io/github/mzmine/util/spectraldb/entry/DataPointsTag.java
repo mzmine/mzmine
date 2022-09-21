@@ -19,22 +19,21 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED;
+  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED, UNALIGNED;
 
   /**
    * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
-   * 
+   *
    * @return
    */
   public String toRemainderString() {
-    switch (this) {
-      case ORIGINAL:
-        return "filtered";
-      case FILTERED:
-        return "unaligned";
-      case ALIGNED:
-        return "aligned";
-    }
-    return "";
+    return switch (this) {
+      case ORIGINAL -> "filtered";
+      case UNALIGNED -> "unaligned";
+      case FILTERED -> "unaligned";
+      case ALIGNED -> "aligned";
+      case ALIGNED_MODIFIED -> "modified";
+      case MERGED -> "merged";
+    };
   }
 }

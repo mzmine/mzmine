@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -23,13 +23,17 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class SpectraVisualizerParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
-  public static final IntegerParameter scanNumber =
-      new IntegerParameter("Scan number", "Scan number");
+  public static final IntegerParameter scanNumber = new IntegerParameter("Scan number",
+      "Scan number");
+
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
+      "Tolerance around signals for various processing and visualization tools", 0.01, 25);
 
   /**
    * Windows size and position
@@ -37,7 +41,8 @@ public class SpectraVisualizerParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public SpectraVisualizerParameters() {
-    super(new Parameter[] {dataFiles, scanNumber, windowSettings});
+    super(new Parameter[]{dataFiles, scanNumber, mzTolerance, windowSettings},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ms_raw_data_overview/raw_data_additional.html#ms-spectrum");
   }
 
 }

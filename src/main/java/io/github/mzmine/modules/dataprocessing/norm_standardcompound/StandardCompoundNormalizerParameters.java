@@ -45,14 +45,17 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
       "Used in distance measuring as multiplier of m/z difference");
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
-      new OriginalFeatureListHandlingParameter(false);
+      new OriginalFeatureListHandlingParameter("Original feature list",
+          "Defines the processing.\nKEEP is to keep the original feature list and create a new"
+              + "processed list.\nREMOVE saves memory.", false);
 
   public static final FeatureSelectionParameter standardCompounds = new FeatureSelectionParameter(
       "Standard compounds", "List of features for choosing the normalization standards", null);
 
   public StandardCompoundNormalizerParameters() {
     super(new Parameter[]{featureList, suffix, standardUsageType, featureMeasurementType,
-        MZvsRTBalance, standardCompounds, handleOriginal});
+        MZvsRTBalance, standardCompounds, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_stand_cmpd/norm_stand_cmpd.html");
   }
 
 }

@@ -75,6 +75,9 @@ public class IonMobilityUtils {
       @NotNull final IMSRawDataFile file) {
     Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
     for (Frame frame : file.getFrames()) {
+      if (frame.getMobilityRange().isEmpty() || frame.getMobilities().size() <= 1) {
+        continue;
+      }
       if (!ranges.containsValue(frame.getMobilityRange())) {
         ranges.put(frame, frame.getMobilityRange());
       }
@@ -197,7 +200,8 @@ public class IonMobilityUtils {
   /**
    * @param series The series. Sorted by ascending mobility. Note that raw {@link IonMobilitySeries}
    *               from {@link io.github.mzmine.datamodel.MobilityType#TIMS} measurements can be
-   *               sorted by descending mobility. {@link io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries}
+   *               sorted by descending mobility.
+   *               {@link io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries}
    *               are guaranteed to be sorted by ascending mobility.
    * @return The FWHM range or null.
    */
@@ -263,8 +267,8 @@ public class IonMobilityUtils {
   }
 
   /**
-   * Sums up the number of values of each {@link IonMobilitySeries} in the given {@link
-   * IonMobilogramTimeSeries}.
+   * Sums up the number of values of each {@link IonMobilitySeries} in the given
+   * {@link IonMobilogramTimeSeries}.
    *
    * @param trace The ion mobility trace.
    * @return The number of data points.
@@ -281,8 +285,8 @@ public class IonMobilityUtils {
    * Returns the maximum number of datapoints in {@link IonMobilogramTimeSeries} in this row.
    *
    * @param row The row.
-   * @return The maximum number of data points or null if there is no {@link
-   * IonMobilogramTimeSeries}.
+   * @return The maximum number of data points or null if there is no
+   * {@link IonMobilogramTimeSeries}.
    */
   public static Integer getMaxNumTraceDatapoints(ModularFeatureListRow row) {
     int max = row.streamFeatures()

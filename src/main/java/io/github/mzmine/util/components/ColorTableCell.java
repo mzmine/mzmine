@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -17,49 +17,53 @@
  */
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.main.MZmineCore;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.ContentDisplay;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import javafx.scene.Node;
 import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 /**
- * @param <T>
- * @author akshaj This class represents the color picker in the table of Fx3DVisualizer.
+ * A simple color cell type. Either filled or as circles
+ *
+ * @param <S> table data type
  */
-public class ColorTableCell<T> extends TableCell<T, Color> {
+public class ColorTableCell<S> extends TableCell<S, Color> {
 
-  private final ColorPicker colorPicker;
+  private final Style style;
+  private final Node node;
 
-  public ColorTableCell(TableColumn<T, Color> column) {
-    colorPicker = new ColorPicker();
-    colorPicker.editableProperty().bind(column.editableProperty());
-    colorPicker.disableProperty().bind(column.editableProperty().not());
-    colorPicker.setOnShowing(event -> {
-      final TableView<T> tableView = getTableView();
-      tableView.getSelectionModel().select(getTableRow().getIndex());
-      tableView.edit(tableView.getSelectionModel().getSelectedIndex(), column);
-    });
-    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-      commitEdit(newValue);
-    });
-    colorPicker.getCustomColors().addAll(MZmineCore.getConfiguration().getDefaultColorPalette());
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  public ColorTableCell(Style style) {
+    this.style = style;
+    node = switch (style) {
+      case FILL -> null;
+      case CIRCLE -> {
+        Circle circle = new Circle();
+        circle.setRadius(10);
+        yield circle;
+      }
+    };
   }
 
   @Override
   protected void updateItem(Color item, boolean empty) {
-
     super.updateItem(item, empty);
 
     setText(null);
     if (empty) {
       setGraphic(null);
     } else {
-      colorPicker.setValue(item);
-      setGraphic(colorPicker);
+      switch (style) {
+        case FILL -> this.setStyle("-fx-background-color:" + FxColorUtil.colorToHex(item) + ";");
+        case CIRCLE -> {
+          ((Circle) node).setFill(item);
+          setGraphic(node);
+        }
+      }
     }
+  }
+
+  public enum Style {
+    FILL, CIRCLE
   }
 }

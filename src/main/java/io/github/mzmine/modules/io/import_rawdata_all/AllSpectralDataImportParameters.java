@@ -54,7 +54,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
-      "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help). Positive: Lower memory consumption; Caution: All processing steps will directly change the underlying data, with no way of retrieving raw data or inial results apart from the current state.",
+      "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help).\nAdvantage: Lower memory consumption\nCaution: All processing steps will directly change the underlying data, with no way of retrieving raw data or initial results.",
       new AdvancedSpectraImportParameters(), true);
 
   public AllSpectralDataImportParameters() {

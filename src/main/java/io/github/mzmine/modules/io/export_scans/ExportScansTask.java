@@ -59,6 +59,7 @@ public class ExportScansTask extends AbstractTask {
   private int progressMax;
 
   private boolean useMassList;
+  private MzMLFileExportMethod method;
 
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
     super(null, Instant.now()); // no new data stored -> null, date irrelevant (not used in batch)
@@ -87,7 +88,12 @@ public class ExportScansTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return progressMax == 0 ? 0.0 : (double) progress / (double) progressMax;
+    if(method != null) {
+      return Objects.requireNonNullElse(method.getFinishedPercentage(), 0f);
+    } else if(progressMax != 0) {
+      return (double) progress / (double) progressMax;
+    }
+    return 0;
   }
 
   @Override
@@ -204,6 +210,7 @@ public class ExportScansTask extends AbstractTask {
 
   public void exportmzML() throws MSDKException {
 
+    progressMax = scans.length;
     // Initialize objects
     SimpleRawDataFile msdkRawFile =
         new SimpleRawDataFile("MZmine mzML export", Optional.empty(), FileType.MZML);
@@ -212,7 +219,7 @@ public class ExportScansTask extends AbstractTask {
       msdkRawFile.addScan(MSDKscan);
     }
     // Actually write to disk
-    MzMLFileExportMethod method = new MzMLFileExportMethod(msdkRawFile, exportFile,
+    method = new MzMLFileExportMethod(msdkRawFile, exportFile,
         MzMLCompressionType.ZLIB, MzMLCompressionType.ZLIB);
     method.execute();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -49,22 +49,20 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final int totalFrames;
 
   protected final List<Frame> eligibleFrames;
+  private final ScanSelection selection;
   protected final double[] mzs;
   protected final double[] intensities;
-
+  protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
   // current data
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
   protected MassSpectrum currentSpectrum;
-  protected List<? extends MassSpectrum> currentSpectra;
   protected List<MobilityScan> currentMobilityScans;
   protected int currentNumberOfDataPoints = -1;
   protected int currentNumberOfMobilityScans = -1;
   protected int currentMobilityScanIndex = -1;
   protected int currentFrameIndex = -1;
   protected int currentSpectrumDatapointIndexOffset = 0;
-
-  protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
 
   /**
    * The intended use of this memory access is to loop over all scans and access data points via
@@ -76,16 +74,23 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   protected MobilityScanDataAccess(IMSRawDataFile dataFile, MobilityScanDataType type,
       ScanSelection selection) {
-    this(dataFile, type, (List<Frame>) selection.getMatchingScans(dataFile.getFrames()));
+    this(dataFile, type, (List<Frame>) selection.getMatchingScans(dataFile.getFrames()), selection);
   }
 
   public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames) {
+    this(dataFile, type, frames, null);
+  }
+
+  public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
+      @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames,
+      ScanSelection selection) {
     this.dataFile = dataFile;
     this.type = type;
 
     // count matching scans
     eligibleFrames = frames;
+    this.selection = selection;
     totalFrames = eligibleFrames.size();
 
     final int length = getMaxNumberOfDataPoints(eligibleFrames);
@@ -152,7 +157,15 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   public boolean hasNextMobilityScan() {
-    return currentMobilityScanIndex + 1 < currentNumberOfMobilityScans;
+    final int nextNum = currentMobilityScanIndex + 1;
+    if (currentFrame == null || nextNum >= currentNumberOfMobilityScans) {
+      return false;
+    }
+
+    if (selection != null) {
+      return selection.matches(currentFrame.getMobilityScan(nextNum));
+    }
+    return true;
   }
 
   /**
@@ -165,6 +178,10 @@ public class MobilityScanDataAccess implements MobilityScan {
    *                                  the current scan
    */
   public MobilityScan nextMobilityScan() throws MissingMassListException {
+    if (!hasNextMobilityScan()) {
+      return null;
+    }
+
     currentMobilityScanIndex++;
     if (currentSpectrum != null) {
       // increment by the last mobility scan!
@@ -199,12 +216,16 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   /**
-   * Sets the next frame. The mobility scan index is reset to -1, therefore {@link
-   * #nextMobilityScan} has to be called before accessing new scan data.
+   * Sets the next frame. The mobility scan index is reset to -1, therefore
+   * {@link #nextMobilityScan} has to be called before accessing new scan data.
    *
    * @return the next Frame.
    */
   public Frame nextFrame() {
+    if (!hasNextFrame()) {
+      return null;
+    }
+
     currentFrameIndex++;
     currentFrame = eligibleFrames.get(currentFrameIndex);
     currentNumberOfMobilityScans = currentFrame.getNumberOfMobilityScans();
@@ -212,11 +233,23 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentMobilityScan = null;
     currentSpectrum = null;
 
+    currentMobilityScans = currentFrame.getMobilityScans();
+
     currentSpectrumDatapointIndexOffset = 0;
 
-    currentMobilityScans = currentFrame.getMobilityScans();
-    currentSpectra = type == MobilityScanDataType.RAW ? currentMobilityScans
-        : currentMobilityScans.stream().map(MobilityScan::getMassList).toList();
+    if (selection != null) {
+      for (int i = 0; i < currentMobilityScans.size(); i++) {
+        MobilityScan tmpMobScan = currentMobilityScans.get(i);
+        if (selection.matches(tmpMobScan)) {
+          break;
+        }
+
+        currentMobilityScanIndex = i;
+        MassSpectrum currentSpec =
+            type == MobilityScanDataType.RAW ? tmpMobScan : tmpMobScan.getMassList();
+        currentSpectrumDatapointIndexOffset += currentSpec.getNumberOfDataPoints();
+      }
+    }
 
     final MobilityScanStorage storage = currentFrame.getMobilityScanStorage();
     if (type == MobilityScanDataType.RAW) {
@@ -245,20 +278,20 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   public void jumpToFrameIndex(int index) {
-    if(index <= -1 || index >= eligibleFrames.size()) {
+    if (index <= -1 || index >= eligibleFrames.size()) {
       throw new IllegalArgumentException("Illegal index " + index);
     }
 
-    currentFrameIndex = index -1;
+    currentFrameIndex = index - 1;
     nextFrame();
   }
 
   public int indexOfFrame(Frame frame) {
-    if(frameIndexMap.isEmpty()) {
+    if (frameIndexMap.isEmpty()) {
       int index = 0;
       for (Frame eligibleFrame : eligibleFrames) {
         final var val = frameIndexMap.put(eligibleFrame, index);
-        if(val != null) {
+        if (val != null) {
           throw new IllegalStateException("Clash of Frame hash codes.");
         }
         index++;
@@ -271,15 +304,12 @@ public class MobilityScanDataAccess implements MobilityScan {
   public MobilityScan jumpToMobilityScan(MobilityScan scan) {
     jumpToFrame(scan.getFrame());
     MobilityScan mobilityScan = null;
-    while(currentMobilityScanIndex < scan.getMobilityScanNumber()) {
+    while (currentMobilityScanIndex < scan.getMobilityScanNumber()) {
       mobilityScan = nextMobilityScan();
     }
     return mobilityScan;
   }
 
-  /**
-   * @return
-   */
   public MassList getMassList() {
     return currentSpectrum instanceof MassList ml ? ml : currentMobilityScan.getMassList();
   }
@@ -288,7 +318,6 @@ public class MobilityScanDataAccess implements MobilityScan {
    * Get mass-to-charge ratio at index
    *
    * @param index data point index
-   * @return
    */
   @Override
   public double getMzValue(int index) {
@@ -301,7 +330,6 @@ public class MobilityScanDataAccess implements MobilityScan {
    * Get intensity at index
    *
    * @param index data point index
-   * @return
    */
   @Override
   public double getIntensityValue(int index) {
@@ -312,8 +340,6 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   /**
    * Number of selected scans
-   *
-   * @return
    */
   public int getNumberOfScans() {
     return totalFrames;
@@ -321,15 +347,13 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   /**
    * Maximum number of data points is used to create the arrays that back the data
-   *
-   * @return
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
-          .orElse(0);
-      case CENTROID -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
-          .orElse(0);
+      case RAW ->
+          frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max().orElse(0);
+      case CENTROID ->
+          frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max().orElse(0);
     };
   }
 
@@ -421,4 +445,8 @@ public class MobilityScanDataAccess implements MobilityScan {
         "The intended use of this class is to loop over all scans and data points");
   }
 
+  @Override
+  public @Nullable Float getInjectionTime() {
+    return currentMobilityScan.getInjectionTime();
+  }
 }

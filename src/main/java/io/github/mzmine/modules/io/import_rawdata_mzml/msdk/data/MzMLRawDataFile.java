@@ -42,6 +42,7 @@ public class MzMLRawDataFile implements RawDataFile {
   private @NotNull String defaultInstrumentConfiguration;
   private @NotNull String defaultDataProcessingScan;
   private @NotNull String defaultDataProcessingChromatogram;
+  private @NotNull String startTimeStamp;
 
   private @NotNull String name;
 
@@ -59,6 +60,7 @@ public class MzMLRawDataFile implements RawDataFile {
   public MzMLRawDataFile(File sourceFile, List<String> msFunctions, List<MsScan> msScans,
       List<Chromatogram> chromatograms) {
     this.sourceFile = sourceFile;
+    this.startTimeStamp = "";
     this.name = sourceFile != null ? sourceFile.getName() : null;
     this.msFunctions = msFunctions;
     this.msScans = msScans;
@@ -118,6 +120,14 @@ public class MzMLRawDataFile implements RawDataFile {
 
   public void setDefaultInstrumentConfiguration(String defaultInstrumentConfiguration) {
     this.defaultInstrumentConfiguration = defaultInstrumentConfiguration;
+  }
+
+  public @NotNull String getStartTimeStamp() {
+    return startTimeStamp;
+  }
+
+  public void setStartTimeStamp(String startTimeStamp) {
+    this.startTimeStamp = startTimeStamp;
   }
 
   public String getDefaultDataProcessingScan() {

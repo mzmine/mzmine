@@ -45,7 +45,7 @@ public class ADAP3AlignerParameters extends SimpleParameterSet {
   public static final DoubleParameter SAMPLE_COUNT_RATIO = new DoubleParameter(
       "Min confidence (between 0 and 1)",
       "A fraction of the total number of samples. An aligned feature must be detected at "
-          + "least in several samples. This parameter determines the minimum number of samples where a "
+          + "least in several samples.\nThis parameter determines the minimum number of samples where a "
           + "feature must be detected.",
       NumberFormat.getInstance(), 0.7, 0.0, 1.0);
 
@@ -71,6 +71,7 @@ public class ADAP3AlignerParameters extends SimpleParameterSet {
 
   public ADAP3AlignerParameters() {
     super(new Parameter[] {PEAK_LISTS, SAMPLE_COUNT_RATIO, RET_TIME_RANGE, MZ_RANGE,
-        SCORE_TOLERANCE, SCORE_WEIGHT, EIC_SCORE, NEW_PEAK_LIST_NAME});
+        SCORE_TOLERANCE, SCORE_WEIGHT, EIC_SCORE, NEW_PEAK_LIST_NAME},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/align_adap/align_adap_gc.html");
   }
 }

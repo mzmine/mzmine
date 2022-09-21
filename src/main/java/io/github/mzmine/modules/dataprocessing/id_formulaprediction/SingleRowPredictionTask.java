@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
@@ -53,7 +53,6 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SingleRowPredictionTask extends AbstractTask {
 
@@ -250,15 +249,14 @@ public class SingleRowPredictionTask extends AbstractTask {
     // Calculate isotope similarity score
     final IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
 
-    final String stringFormula = MolecularFormulaManipulator.getString(cdkFormula);
-
-    final String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula, ionType, charge);
+    final IMolecularFormula clonedFormula = FormulaUtils.cloneFormula(cdkFormula);
+    ionType.ionizeFormula(clonedFormula);
 
     // Fixed min abundance
     final double minPredictedAbundance = 0.00001;
 
     final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator
-        .calculateIsotopePattern(adjustedFormula, minPredictedAbundance, charge,
+        .calculateIsotopePattern(clonedFormula, minPredictedAbundance, charge,
             ionType.getPolarity());
 
     Float isotopeScore = null;

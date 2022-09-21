@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,12 +19,14 @@
 package io.github.mzmine.modules.io.import_rawdata_mzxml;
 
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
@@ -38,6 +40,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.ByteArrayInputStream;
@@ -45,6 +48,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -66,16 +70,16 @@ public class MzXMLImportTask extends AbstractTask {
 
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private File file;
-  private MZmineProject project;
-  private RawDataFile newMZmineFile;
+  private final File file;
+  private final MZmineProject project;
+  private final RawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;
   private int peaksCount = 0;
-  private StringBuilder charBuffer;
+  private final StringBuilder charBuffer;
   private boolean compressFlag = false;
-  private DefaultHandler handler = new MzXMLHandler();
+  private final DefaultHandler handler = new MzXMLHandler();
   private String precision;
 
   // extracted values
@@ -94,14 +98,14 @@ public class MzXMLImportTask extends AbstractTask {
    * This variables are used to set the number of fragments that one single scan can have. The
    * initial size of array is set to 10, but it depends of fragmentation level.
    */
-  private int parentTreeValue[] = new int[10];
+  private final int[] parentTreeValue = new int[10];
   private int msLevelTree = 0;
 
   /*
    * This stack stores the current scan and all his fragments until all the information is recover.
    * The logic is FIFO at the moment of write into the RawDataFile
    */
-  private LinkedList<SimpleScan> parentStack;
+  private final LinkedList<SimpleScan> parentStack;
 
 
   // advanced processing will apply mass detection directly to the scans
@@ -143,7 +147,7 @@ public class MzXMLImportTask extends AbstractTask {
       }
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
         this.ms2Detector = advancedParam.getParameter(
-            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
+            AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
       }
     }
 
@@ -305,11 +309,7 @@ public class MzXMLImportTask extends AbstractTask {
         charBuffer.setLength(0);
         compressFlag = false;
         String compressionType = attrs.getValue("compressionType");
-        if ((compressionType == null) || (compressionType.equals("none"))) {
-          compressFlag = false;
-        } else {
-          compressFlag = true;
-        }
+        compressFlag = (compressionType != null) && (!compressionType.equals("none"));
         precision = attrs.getValue("precision");
 
       }
@@ -394,7 +394,7 @@ public class MzXMLImportTask extends AbstractTask {
             peakBytes = CompressionUtils.decompress(peakBytes);
           } catch (DataFormatException e) {
             setStatus(TaskStatus.ERROR);
-            setErrorMessage("Corrupt compressed peak: " + e.toString());
+            setErrorMessage("Corrupt compressed peak: " + e);
             throw new SAXException("Parsing Cancelled");
           }
         }
@@ -402,8 +402,9 @@ public class MzXMLImportTask extends AbstractTask {
         // make a data input stream
         DataInputStream peakStream = new DataInputStream(new ByteArrayInputStream(peakBytes));
 
-        double mzValues[] = new double[peaksCount];
-        double intensityValues[] = new double[peaksCount];
+        DataPoint[] dps = new DataPoint[peaksCount];
+        double[] mzValues = new double[peaksCount];
+        double[] intensityValues = new double[peaksCount];
 
         try {
           for (int i = 0; i < peaksCount; i++) {
@@ -420,10 +421,16 @@ public class MzXMLImportTask extends AbstractTask {
             }
 
             // Copy m/z and intensity data
-            mzValues[i] = mz;
-            intensityValues[i] = intensity;
-
+            dps[i] = new SimpleDataPoint(mz, intensity);
           }
+          // sort because old converters might create unsorted spectral data
+          Arrays.sort(dps, DataPointSorter.DEFAULT_MZ_ASCENDING);
+
+          for (int i = 0; i < dps.length; i++) {
+            mzValues[i] = dps[i].getMZ();
+            intensityValues[i] = dps[i].getIntensity();
+          }
+
         } catch (IOException eof) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Corrupt mzXML file");
@@ -471,7 +478,6 @@ public class MzXMLImportTask extends AbstractTask {
               mzValues, intensityValues, spectrumType, polarity, scanId, null);
         }
 
-        return;
       }
     }
 
@@ -507,7 +513,7 @@ public class MzXMLImportTask extends AbstractTask {
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
     @Override
-    public void characters(char buf[], int offset, int len) throws SAXException {
+    public void characters(char[] buf, int offset, int len) throws SAXException {
       charBuffer.append(buf, offset, len);
     }
   }

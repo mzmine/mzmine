@@ -43,18 +43,19 @@ public class AlignScansParameters extends SimpleParameterSet {
       "Minimum intensity to be considered for the align correlation.\nIf chromatogram height is below this level, it is not used in the correlation calculation.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1000.0);
 
-  public static final BooleanParameter logTransform = new BooleanParameter("Correlation in Log",
+  public static final BooleanParameter logTransform = new BooleanParameter("Correlation in log",
       "Transform intensities to Log scale before comparing correlation.", false);
 
   public static final BooleanParameter removeOld =
-      new BooleanParameter("Remove prev files", "Remove processed files to save memory.", false);
+      new BooleanParameter("Remove previous files", "Remove processed files to save memory.", false);
 
   public static final StringParameter suffix =
       new StringParameter("Suffix", "This string is added to filename as suffix", "align");
 
   public AlignScansParameters() {
     super(new Parameter[] {dataFiles, suffix, scanSpan, mzSpan, minimumHeight, logTransform,
-        removeOld});
+        removeOld},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_raw_data/align-scans.html");
   }
 
 }

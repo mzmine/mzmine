@@ -93,7 +93,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
     }
   };
 
-  public static final ComboParameter<String> ionizationMode = new ComboParameter<String>(
+  public static final ComboParameter<String> ionizationMode = new ComboParameter<>(
       "Ionization mode",
       "Ionization mode for which to use an appropriate universal calibrants list",
       ionizationModeChoices.keySet().toArray(new String[0]));
@@ -228,16 +228,15 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public static final NestedComboParameter biasEstimationMethod = new NestedComboParameter(
       "Mass calibration method",
-      "To estimate mass measurement bias more accurately, we can model the trend exhibited by the"
-          + " error size vs m/z value relation obtained by matching the mass peaks. With the estimation model"
-          + " we can shift/calibrate the mass peaks at different particular m/z values more accurately."
-          + " Select the bias estimation method, a global arithmetic mean estimate, or a regression method"
-          + " for error size vs m/z value. Please see the help file for more details.",
+      """
+          Model the trend exhibited by the error size vs m/z value relation obtained by matching the mass peaks.
+          See the help file for more details.""",
       biasEstimationChoices, BiasEstimationChoice.ARITHMETIC_MEAN.toString(), true, 250);
 
   public MassCalibrationParameters() {
     super(new Parameter[]{dataFiles, intensityThreshold, duplicateErrorFilter, referenceLibrary,
-        rangeExtractionMethod, biasEstimationMethod});
+        rangeExtractionMethod, biasEstimationMethod},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-calibration.html");
   }
 
   @Override

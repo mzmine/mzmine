@@ -141,10 +141,10 @@ public class AlignmentRansacPlot extends EChartViewer {
   }
 
   /**
-   * Add new serie.
+   * Add new series.
    *
-   * @param v Vector with the alignments
-   * @param Name Name of the type of lipids in this alignment
+   * @param data Vector with the alignments
+   * @param title Name of the feature lists in this alignment
    */
   public void addSeries(Vector<AlignStructMol> data, String title, boolean linear) {
     try {

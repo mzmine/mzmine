@@ -49,7 +49,6 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     HistogramTab newTab = new HistogramTab(parameters);
-    //newTab.show();
     MZmineCore.getDesktop().addTab(newTab);
     return ExitCode.OK;
   }
