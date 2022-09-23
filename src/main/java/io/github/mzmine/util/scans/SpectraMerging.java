@@ -522,14 +522,14 @@ public class SpectraMerging {
     MAXIMUM("Maximum value"),
     AVERAGE("Average value");
 
-    private String label;
+    private final String label;
 
     @Override
     public String toString() {
       return this.label;
     }
 
-    MergingType(String label) {
+    IntensityMergingType(String label) {
       this.label = label;
     }
   }
