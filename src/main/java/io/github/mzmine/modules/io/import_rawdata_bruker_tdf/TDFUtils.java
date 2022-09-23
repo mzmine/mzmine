@@ -321,9 +321,6 @@ public class TDFUtils {
       }
       Arrays.fill(buffer, (byte) 0);
     }
-    if (dataPoints.get(0)[0].length != 0) {
-      logger.finest("data");
-    }
     return dataPoints;
   }
 

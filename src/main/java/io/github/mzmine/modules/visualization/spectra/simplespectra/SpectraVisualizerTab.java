@@ -265,7 +265,6 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   public void setMzTolerance(MZTolerance mzTolerance) {
-    logger.info("Set mz tolerance from component " + mzTolerance);
     this.mzToleranceProperty.set(mzTolerance);
   }
 

@@ -87,6 +87,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
       paramPreviewSplit.setDividerPosition(0, 0.5);
     } else {
       paramPreviewSplit.getItems().remove(previewWrapperPane);
+      mainPane.getScene().getWindow().sizeToScene();
     }
   }
 

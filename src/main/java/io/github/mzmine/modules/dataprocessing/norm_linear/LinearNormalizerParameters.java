@@ -39,12 +39,15 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
   public static final ComboParameter<FeatureMeasurementType> featureMeasurementType = new ComboParameter<FeatureMeasurementType>(
       "Feature measurement type", "Measure features using", FeatureMeasurementType.values());
 
-  public static final OriginalFeatureListHandlingParameter handleOriginal = //
-      new OriginalFeatureListHandlingParameter(false);
+  public static final OriginalFeatureListHandlingParameter handleOriginal =
+      new OriginalFeatureListHandlingParameter("Original feature list",
+          "Defines the processing.\nKEEP is to keep the original feature list and create a new"
+              + "processed list.\nREMOVE saves memory.", false);
 
   public LinearNormalizerParameters() {
     super(new Parameter[]{featureLists, suffix, normalizationType, featureMeasurementType,
-        handleOriginal});
+        handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_linear/norm_linear.html");
   }
 
 }

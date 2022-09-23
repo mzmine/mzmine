@@ -77,6 +77,9 @@ public class IonMobilityUtils {
       @NotNull final IMSRawDataFile file) {
     Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
     for (Frame frame : file.getFrames()) {
+      if (frame.getMobilityRange().isEmpty() || frame.getMobilities().size() <= 1) {
+        continue;
+      }
       if (!ranges.containsValue(frame.getMobilityRange())) {
         ranges.put(frame, frame.getMobilityRange());
       }

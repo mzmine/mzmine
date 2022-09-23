@@ -82,13 +82,14 @@ public class CentWaveResolverParameters extends GeneralResolverParameters {
 
   public static final ComboParameter<PeakIntegrationMethod> INTEGRATION_METHOD =
       new ComboParameter<PeakIntegrationMethod>("Peak integration method",
-          "Method used to determine RT extents of detected peaks", PeakIntegrationMethod.values(),
+          "Type of data used during peak reconstruction", PeakIntegrationMethod.values(),
           PeakIntegrationMethod.UseSmoothedData);
 
   public CentWaveResolverParameters() {
 
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, SN_THRESHOLD,
-        PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD, RENGINE_TYPE, MIN_NUMBER_OF_DATAPOINTS});
+        PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD, RENGINE_TYPE, MIN_NUMBER_OF_DATAPOINTS},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_centwave/centwave-resolver.html");
   }
 
   @Override
