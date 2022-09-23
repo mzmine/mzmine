@@ -29,9 +29,12 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionTask;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcqusitionWriter;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.SingleSpotMs2Writer;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -40,7 +43,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -62,8 +64,6 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final Double maxMobilityWidth;
   private final Double minMobilityWidth;
   private final File acqControl;
-  private final Integer laserOffsetY;
-  private final Integer laserOffsetX;
   private final File savePathDir;
   private final Boolean exportOnly;
   private final Double isolationWidth;
@@ -74,6 +74,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
   private final double minChimerityScore;
   private final int[] spotsFeatureCounter;
+
+  private final Ms2ImagingMode ms2ImagingMode;
+  private final @Nullable ParameterSet ms2ModuleParameters;
+  private final @NotNull MaldiMs2AcqusitionWriter ms2Module;
 
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
@@ -88,8 +92,6 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     maxMobilityWidth = parameters.getValue(TimsTOFImageMsMsParameters.maxMobilityWidth);
     minMobilityWidth = parameters.getValue(TimsTOFImageMsMsParameters.minMobilityWidth);
     acqControl = parameters.getValue(TimsTOFImageMsMsParameters.acquisitionControl);
-    laserOffsetY = parameters.getValue(TimsTOFImageMsMsParameters.laserOffsetY);
-    laserOffsetX = parameters.getValue(TimsTOFImageMsMsParameters.laserOffsetX);
     savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
     isolationWidth = parameters.getValue(TimsTOFImageMsMsParameters.isolationWidth);
@@ -99,6 +101,12 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.maximumChimerity);
     isolationWindow = new MZTolerance((isolationWidth / 1.7) / 2,
         0d); // isolation window typically wider than set
+    ms2Module = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode).getModule();
+    ms2ModuleParameters = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode)
+        .getParameterSet();
+    ms2ImagingMode = ms2Module.equals(MZmineCore.getModuleInstance(SingleSpotMs2Writer.class))
+        ? Ms2ImagingMode.SINGLE : Ms2ImagingMode.TRIPLE;
+
     spotsFeatureCounter = new int[numMsMs + 1];
   }
 
@@ -196,7 +204,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
           e2.getKey().getMaldiSpotInfo().yIndexPos());
     }).map(Entry::getValue).toList();
 
-    for (int i = 0; i < sortedSpots.size(); i++) {
+    ms2Module.writeAcqusitionFile(acqFile, ms2ModuleParameters, sortedSpots, savePathDir,
+        this::isCanceled);
+
+    /*for (int i = 0; i < sortedSpots.size(); i++) {
       final ImagingSpot spot = sortedSpots.get(i);
 
       progress = 0.2 + 0.8 * i / sortedSpots.size();
@@ -221,9 +232,11 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
           }
         }
       }
-    }
+    }*/
 
-    TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
+    if (!isCanceled()) {
+      TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
+    }
 
     setStatus(TaskStatus.FINISHED);
   }
@@ -235,9 +248,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       double minChimerityScore) {
     final IntensitySortedSeries<IonTimeSeries<? extends ImagingFrame>> imagingSorted = new IntensitySortedSeries<>(
         imagingData);
-
     final List<MaldiSpotInfo> spots = featureSpotMap.computeIfAbsent(precursor.feature(),
         f -> new ArrayList<>());
+
     while (imagingSorted.hasNext() && currentNumSpots < numMsMs) {
       final Integer nextIndex = imagingSorted.next();
       final ImagingFrame frame = imagingData.getSpectrum(nextIndex);
@@ -256,7 +269,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
           access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
       if (chimerityScore < minChimerityScore) {
-        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
+//        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
         continue;
       }
 
@@ -266,7 +279,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
 
       final ImagingSpot spot = spotMap.computeIfAbsent(frame,
-          a -> new ImagingSpot(a.getMaldiSpotInfo()));
+          a -> new ImagingSpot(a.getMaldiSpotInfo(), ms2ImagingMode));
       if (spot.addPrecursor(precursor)) {
         currentNumSpots++;
       }
@@ -297,7 +310,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
           access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
       if (chimerityScore < minChimerityScore) {
-        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
+//        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
         continue;
       }
 

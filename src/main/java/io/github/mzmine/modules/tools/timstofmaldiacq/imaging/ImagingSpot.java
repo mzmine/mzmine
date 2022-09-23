@@ -10,35 +10,67 @@ import java.util.Objects;
 public final class ImagingSpot {
 
   private final MaldiSpotInfo spotInfo;
-  private final List<MaldiTimsPrecursor>[][] precursorLists = new List[2][2];
+  private final List<MaldiTimsPrecursor>[][] precursorLists;
 
-  public ImagingSpot(MaldiSpotInfo spotInfo) {
+  private final Ms2ImagingMode imagingMode;
+
+  public ImagingSpot(MaldiSpotInfo spotInfo, Ms2ImagingMode mode) {
     this.spotInfo = spotInfo;
 
-    precursorLists[0][1] = new ArrayList<>();
-    precursorLists[1][1] = new ArrayList<>();
-    precursorLists[1][0] = new ArrayList<>();
+    this.imagingMode = mode;
+    switch (imagingMode) {
+      case SINGLE -> {
+        precursorLists = new List[2][2];
+        precursorLists[0][0] = new ArrayList<>();
+        precursorLists[0][1] = List.of();
+        precursorLists[1][1] = List.of();
+        precursorLists[1][0] = List.of();
+      }
+      case TRIPLE -> {
+        precursorLists = new List[2][2];
+        precursorLists[0][0] = List.of();
+        precursorLists[0][1] = new ArrayList<>();
+        precursorLists[1][1] = new ArrayList<>();
+        precursorLists[1][0] = new ArrayList<>();
+      }
+      case default -> {
+        throw new IllegalStateException("Illegal value for Ms2ImagingMode");
+      }
+    }
   }
 
   public List<MaldiTimsPrecursor> getPrecursorList(int xOffset, int yOffset) {
     assert xOffset < 2 && yOffset < 2;
-    assert !(xOffset == 0 && yOffset == 0);
-
     return precursorLists[xOffset][yOffset];
+  }
+
+  public List<List<MaldiTimsPrecursor>> getPrecursorLists() {
+    return switch (imagingMode) {
+      case SINGLE -> List.of(precursorLists[0][0]);
+      case TRIPLE -> List.of(precursorLists[0][1], precursorLists[1][0], precursorLists[1][1]);
+    };
   }
 
   /**
    * @return True if the precursor was added successfully somewhere adjacent to this spot.
    */
   public boolean addPrecursor(MaldiTimsPrecursor precursor) {
-    for (int x = 0; x < 2; x++) {
-      for (int y = 0; y < 2; y++) {
-        if (x == 0 && y == 0) {
-          continue;
+    switch (imagingMode) {
+      case TRIPLE -> {
+        for (int x = 0; x < 2; x++) {
+          for (int y = 0; y < 2; y++) {
+            if (x == 0 && y == 0) {
+              continue;
+            }
+            if (addPrecursorToList(precursor, x, y)) {
+              return true;
+            }
+          }
         }
-        if (addPrecursorToList(precursor, x, y)) {
-          return true;
-        }
+        return false;
+      }
+      case SINGLE -> {
+        return addPrecursorToList(precursor, 0, 0);
       }
     }
     return false;
