@@ -88,7 +88,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public LocalCSVDatabaseSearchParameters() {
     super(
         new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance, ionLibrary});
+            mobTolerance, ccsTolerance, ionLibrary},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html");
   }
 
   @Override

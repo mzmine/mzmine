@@ -52,7 +52,7 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
           new RDBERestrictionParameters());
 
   public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
-      "Isotope pattern filter", "Search only for formulas with a isotope pattern similar",
+      "Isotope pattern score", "Search only for formulas with a isotope pattern similar",
       new IsotopePatternScoreParameters());
 
   public static final OptionalModuleParameter msmsFilter =

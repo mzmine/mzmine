@@ -30,13 +30,13 @@ public class IsotopePatternScoreParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTolerance =
       new MZToleranceParameter("Isotope m/z tolerance",
           "m/z tolerance which defines what isotopes would be considered same when "
-              + "comparing two isotopic patterns. This tolerance needs to be "
-              + "higher than general m/z precision of the data, because some "
-              + "small isotopes may overlap with the sides of bigger isotopic " + "peaks.");
+              + "comparing two isotopic patterns.\nThis tolerance needs to be "
+              + "higher than general m/z precision of the data,\nbecause some "
+              + "small isotopes may overlap with the sides of bigger isotopic peaks.");
 
   public static final DoubleParameter isotopeNoiseLevel = new DoubleParameter(
       "Minimum absolute intensity",
-      "Minimum absolute intensity of the isotopes to be compared. Isotopes below this intensity will be ignored.",
+      "Minimum absolute intensity of the isotopes to be compared.\nIsotopes below this intensity will be ignored.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final PercentParameter isotopePatternScoreThreshold = new PercentParameter(

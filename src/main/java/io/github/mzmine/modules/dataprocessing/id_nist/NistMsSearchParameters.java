@@ -98,7 +98,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    */
   public NistMsSearchParameters() {
     super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, DOT_PRODUCT,
-        MERGE_PARAMETER, INTEGER_MZ, IMPORT_PARAMETER});
+        MERGE_PARAMETER, INTEGER_MZ, IMPORT_PARAMETER},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html");
   }
 
   @Override

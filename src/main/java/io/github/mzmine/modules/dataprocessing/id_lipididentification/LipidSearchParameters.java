@@ -67,7 +67,8 @@ public class LipidSearchParameters extends SimpleParameterSet {
 
   public LipidSearchParameters() {
     super(new Parameter[] {featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
-        searchForMSMSFragments, customLipidClasses});
+        searchForMSMSFragments, customLipidClasses},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 
   @Override
