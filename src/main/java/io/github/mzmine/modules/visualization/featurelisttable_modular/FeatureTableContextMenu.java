@@ -76,9 +76,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectr
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -388,7 +388,8 @@ public class FeatureTableContextMenu extends ContextMenu {
             || merged.getSpectrumMergingType() == MsMsMergeType.IMS_DIA));
     showDiaIons.setOnAction(e -> showDiaMsMsIons());
 
-    final MenuItem showDiaMirror = new ConditionalMenuItem("Mirror uncleaned DIA spectrum",
+    final MenuItem showDiaMirror = new ConditionalMenuItem(
+        "Mirror correlated pseudo spectrum DIA to all MS2 ions",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
             && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
             && selectedFeature.getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum merged
@@ -616,12 +617,12 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     }).toList();
 
-    final MergedMassSpectrum uncleanedSpectrum = SpectraMerging.mergeSpectra(mobilityScans,
+    final MergedMassSpectrum uncorrelatedSpectrum = SpectraMerging.mergeSpectra(mobilityScans,
         SpectraMerging.pasefMS2MergeTol, null);
 
     controller.setScans(selectedFeature.getMZ(), ScanUtils.extractDataPoints(msms),
-        selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncleanedSpectrum), " (cleaned)",
-        " (uncleaned)");
+        selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncorrelatedSpectrum), " (correlated)",
+        " (no correlation)");
 
     window.show();
   }

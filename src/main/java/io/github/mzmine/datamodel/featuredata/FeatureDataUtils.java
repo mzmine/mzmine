@@ -228,7 +228,7 @@ public class FeatureDataUtils {
    * @param cf     The center function ({@link #DEFAULT_CENTER_FUNCTION} default)
    * @return The m/z value
    */
-  public static double calculateMz(@NotNull final IonSeries series,
+  public static double calculateCenterMz(@NotNull final IonSeries series,
       @NotNull final CenterFunction cf) {
     double[][] data = DataPointUtils.getDataPointsAsDoubleArray(series.getMZValueBuffer(),
         series.getIntensityValueBuffer());
@@ -242,7 +242,7 @@ public class FeatureDataUtils {
    * @param cf     The center function ({@link #DEFAULT_CENTER_FUNCTION} default)
    * @return The m/z value
    */
-  public static double calculateMz(@NotNull final IonSeries series,
+  public static double calculateCenterMz(@NotNull final IonSeries series,
       @NotNull final CenterFunction cf, int startInclusive, int endInclusive) {
     double[] mz = new double[endInclusive - startInclusive];
     double[] intensity = new double[endInclusive - startInclusive];
@@ -288,7 +288,7 @@ public class FeatureDataUtils {
     feature.setRepresentativeScan(mostIntenseSpectrum);
     feature.setHeight(intensityRange != null ? intensityRange.upperEndpoint() : 0f);
     feature.setRT(mostIntenseSpectrum != null ? mostIntenseSpectrum.getRetentionTime() : Float.NaN);
-    feature.setMZ(calculateMz(featureData, mzCenterFunction));
+    feature.setMZ(calculateCenterMz(featureData, mzCenterFunction));
 
     if (featureData instanceof IonMobilogramTimeSeries imts) {
       final SummedIntensityMobilitySeries summedMobilogram = imts.getSummedMobilogram();

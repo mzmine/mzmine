@@ -153,7 +153,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     // build chromatograms
     final MZmineProject dummyProject = new MZmineProjectImpl();
-    var ms2Flist = runADAP(dummyProject, file);
+    var ms2Flist = buildChromatograms(dummyProject, file);
 
     // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
     final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
@@ -190,7 +190,8 @@ public class DiaMs2CorrTask extends AbstractTask {
       final double[] ms1Intensities = shape[1];
 
       // fwhm sometimes does funny stuff, so we restrict it to the overlap of fwhm + rt range
-      final Range<Float> rtRange = Range.closed((float) ms1Rts[0], (float) ArrayUtils.back(ms1Rts));
+      final Range<Float> rtRange = Range.closed((float) ms1Rts[0],
+          (float) ArrayUtils.lastElement(ms1Rts));
       final List<Scan> ms2sInRtRange = ms2Scans.stream()
           .filter(scan -> rtRange.contains(scan.getRetentionTime())).toList();
       final Scan closestMs2 = getClosestMs2(feature.getRT(), ms2sInRtRange);
@@ -251,7 +252,8 @@ public class DiaMs2CorrTask extends AbstractTask {
         final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
             intensities, minCorrPoints, 2, minMs2Intensity / 3);
         if (correlationData != null && correlationData.isValid()
-            && Math.pow(correlationData.getPearsonR(), 2) > minPearson) {
+            && correlationData.getPearsonR() > 0
+            && Math.pow(correlationData.getPearsonR(), 2) > minPearson) { // TODO use R only?
           int startIndex = -1;
           int endIndex = -1;
           double maxIntensity = Double.NEGATIVE_INFINITY;
@@ -279,7 +281,7 @@ public class DiaMs2CorrTask extends AbstractTask {
             endIndex = eic.getNumberOfValues() - 1;
           }
 
-          final double mz = FeatureDataUtils.calculateMz(eic,
+          final double mz = FeatureDataUtils.calculateCenterMz(eic,
               FeatureDataUtils.DEFAULT_CENTER_FUNCTION, startIndex, endIndex);
 
           // for IMS measurements, the ion must be present in the MS2 mobility scans in the during
@@ -338,7 +340,7 @@ public class DiaMs2CorrTask extends AbstractTask {
     return closestMs2;
   }
 
-  private ModularFeatureList runADAP(MZmineProject dummyProject, RawDataFile file) {
+  private ModularFeatureList buildChromatograms(MZmineProject dummyProject, RawDataFile file) {
     adapTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
         getMemoryMapStorage(), getModuleCallDate());
     adapTask.run();

@@ -138,7 +138,7 @@ public class ArrayUtils {
     }
   }
 
-  public static double back(double[] array) {
+  public static double lastElement(double[] array) {
     assert array.length > 0;
     return array[array.length - 1];
   }

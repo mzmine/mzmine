@@ -41,7 +41,7 @@ public class DiaMs2CorrParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minMs1Intensity = new DoubleParameter(
       "Minimum feature intensity",
-      "The minimum MS1 intensity of a feature to be considered to build an MS2 spectrum.",
+      "The minimum MS1 intensity of a feature to be considered to build a pseudo MS2 spectrum.",
       MZmineCore.getConfiguration().getIntensityFormat(), 5E3);
 
   public static final DoubleParameter minMs2Intensity = new DoubleParameter(
@@ -50,8 +50,8 @@ public class DiaMs2CorrParameters extends SimpleParameterSet {
 
   public static final IntegerParameter numCorrPoints = new IntegerParameter(
       "Number of correlated points",
-      "The number of points to be correlated in MS1 and MS2 features. Depends on cycle time and chromatographic resolution.",
-      8);
+      "The number of points to be correlated in MS1 and MS2 features.\n"
+          + "Depends on cycle time and chromatographic resolution.", 5);
 
   public static final DoubleParameter minPearson = new DoubleParameter(
       "Minimum pearson correlation",

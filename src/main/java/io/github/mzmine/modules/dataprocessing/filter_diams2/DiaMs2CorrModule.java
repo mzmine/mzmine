@@ -35,7 +35,7 @@ public class DiaMs2CorrModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "DIA MS2 scan builder (experimental)";
+    return "DIA MS2 pseudo MS2 builder (experimental)";
   }
 
   @Override
@@ -45,7 +45,7 @@ public class DiaMs2CorrModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
-    return "Builds artificial MS2 scans based on their shape correlation.";
+    return "Builds pseudo MS2 scans based on feature shape correlation.";
   }
 
   @Override

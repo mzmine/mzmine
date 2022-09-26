@@ -23,7 +23,6 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.SpectraMerging;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -63,26 +62,5 @@ public class RangeMapTest {
     Assertions.assertEquals(760.6061146774999, map.getEntry(mz2).getKey().upperEndpoint());
     Assertions.assertEquals(760.6061146774999, map.getEntry(mz3).getKey().lowerEndpoint());
     Assertions.assertEquals(760.634015375, map.getEntry(mz3).getKey().upperEndpoint());
-
-    map.clear();
-
-    map.put(SpectraMerging.createNewNonOverlappingRange(map, Range.closed(1d, 2d)), 5d);
-    map.put(SpectraMerging.createNewNonOverlappingRange(map, Range.closed(2d, 2.1d)), 5d);
-    map.put(SpectraMerging.createNewNonOverlappingRange(map, Range.closed(2.5d, 3d)), 5d);
-    map.put(SpectraMerging.createNewNonOverlappingRange(map, Range.closed(1.4d, 2.6d)), 5d);
-
-    var ranges = map.asMapOfRanges();
-    ranges.forEach((k, v) -> logger.info(k + " - " + v));
-  }
-
-  @Test
-  void test() {
-    RangeMap<Double, String> map = TreeRangeMap.create();
-
-    map.put(Range.closed(5.0d, 5.4d), "1");
-    map.put(Range.closed(5.35, 5.8d), "2");
-
-    final Map<Range<Double>, String> ranges = map.asMapOfRanges();
-    ranges.forEach((k, v) -> logger.info(k + " - " + v));
   }
 }
