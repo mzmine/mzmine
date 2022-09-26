@@ -28,7 +28,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewPane;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
@@ -40,7 +39,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import javafx.application.Platform;
+import java.util.function.Consumer;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,27 +47,28 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
 
   private final List<Range<Double>> mzRanges;
   private final Set<Frame> frames;
-  private final IMSRawDataOverviewPane pane;
   private final IMSRawDataFile file;
+  private final Consumer<List<ColoredXYDataset>> onProcessingFinished;
   private final BinningMobilogramDataAccess binning;
   private double finishedPercentage;
 
   public BuildMultipleMobilogramRanges(@NotNull List<Range<Double>> mzRanges,
       @NotNull Set<Frame> frames, @NotNull IMSRawDataFile file,
-      @NotNull IMSRawDataOverviewPane pane, @NotNull BinningMobilogramDataAccess binning,
-      @NotNull Date moduleCallDate) {
+      @NotNull Consumer<List<ColoredXYDataset>> onProcessingFinished,
+      @NotNull BinningMobilogramDataAccess binning, @NotNull Date moduleCallDate) {
     super(null,
         Instant.now()); // no new data stored -> null, date is irrelevant (not used in batch mode)
+    this.onProcessingFinished = onProcessingFinished;
     this.binning = binning;
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;
     this.frames = frames;
-    this.pane = pane;
     this.file = file;
   }
 
   @Override
   public void run() {
+    setStatus(TaskStatus.PROCESSING);
     if (frames.stream().findAny().orElse(null) == null) {
       setStatus(TaskStatus.FINISHED);
       return;
@@ -100,9 +100,14 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
         }
       }
       finishedPercentage = mzRanges.indexOf(mzRange) / (double) mzRanges.size();
+
+      if (isCanceled()) {
+        return;
+      }
     }
+
     setStatus(TaskStatus.FINISHED);
-    Platform.runLater(() -> pane.addMobilogramRangesToChart(mobilogramDataSets));
+    onProcessingFinished.accept(mobilogramDataSets);
   }
 
   @Override
