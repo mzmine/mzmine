@@ -66,7 +66,8 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public VanKrevelenDiagramParameters() {
-    super(new Parameter[] {featureList, selectedRows, zAxisValues, paintScale, windowSettings});
+    super(new Parameter[] {featureList, selectedRows, zAxisValues, paintScale, windowSettings},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#van-krevelen-diagram");
   }
 
   @Override

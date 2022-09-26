@@ -37,7 +37,7 @@ public class ScatterPlotParameters extends SimpleParameterSet {
 
   public ScatterPlotParameters() {
     super(new Parameter[] {featureLists, windowSettings},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.md#scatter-plot");
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#scatter-plot");
   }
 
   @Override

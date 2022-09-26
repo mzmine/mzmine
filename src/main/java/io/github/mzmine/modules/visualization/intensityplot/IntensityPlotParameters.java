@@ -61,7 +61,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
   public IntensityPlotParameters() {
     super(new Parameter[] {featureList, dataFiles, xAxisValueSource, yAxisValueSource, selectedRows,
         windowSettings},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.md#feature-intensity-plot");
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#feature-intensity-plot");
   }
 
   @Override
