@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,12 +22,22 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import java.util.Collections;
+import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
 
 public class SimpleTab extends MZmineTab {
 
+  public SimpleTab(String title, Node content, boolean showBinding, boolean defaultBindingState) {
+    this(title, showBinding, defaultBindingState);
+    setContent(content);
+  }
+
   public SimpleTab(String title, boolean showBinding, boolean defaultBindingState) {
     super(title, showBinding, defaultBindingState);
+  }
+
+  public SimpleTab(String title, Node content) {
+    this(title, content, false, false);
   }
 
   public SimpleTab(String title) {

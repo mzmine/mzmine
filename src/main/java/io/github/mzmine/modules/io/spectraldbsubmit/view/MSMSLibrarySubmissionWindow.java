@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -31,7 +31,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.LibrarySubmitTask;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitParameters;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
@@ -50,7 +50,6 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -78,6 +77,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -96,7 +96,8 @@ import org.jfree.chart.axis.ValueAxis;
  */
 public class MSMSLibrarySubmissionWindow extends Stage {
 
-  private static Logger logger = Logger.getLogger(MSMSLibrarySubmissionWindow.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      MSMSLibrarySubmissionWindow.class.getName());
   protected final LibrarySubmitParameters paramSubmit;
   protected final LibraryMetaDataParameters paramMeta = new LibraryMetaDataParameters();
   protected final URL helpURL;
@@ -113,17 +114,17 @@ public class MSMSLibrarySubmissionWindow extends Stage {
   // MS 2
   private ChartGroup group;
   //
-  private BorderPane contentPane;
-  private GridPane pnCharts;
+  private final BorderPane contentPane;
+  private final GridPane pnCharts;
   private boolean showTitle = true;
   private boolean showLegend = false;
   // click marker in all of the group
   private boolean showCrosshair = true;
-  private BorderPane pnSideMenu;
-  private GridPane pnSettings;
-  private FlowPane pnButtons;
-  private Label lblSettings;
-  private ScrollPane scrollCharts;
+  private final BorderPane pnSideMenu;
+  private final GridPane pnSettings;
+  private final FlowPane pnButtons;
+  private final Label lblSettings;
+  private final ScrollPane scrollCharts;
   private ScanSelectPanel[] pnScanSelect;
   private ScrollPane scrollMeta;
   private GridPane pnMetaData;
@@ -134,7 +135,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
   // data either rows or list of entries with 1 or multiple scans
   private FeatureListRow[] rows;
   private ObservableList<ObservableList<Scan>> scanList;
-  private ResultsTextPane txtResults;
+  private final ResultsTextPane txtResults;
 
   /**
    * Create the frame.
@@ -149,7 +150,8 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     main.setMinSize(754, 519);
 
     final Scene scene = new Scene(main);
-    scene.getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    scene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(scene);
 
     contentPane = new BorderPane();
@@ -323,13 +325,11 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     this.pnScanSelect = new ScanSelectPanel[scanList.size()];
 
     double rt = scanList.stream().flatMap(ObservableList::stream)
-        .mapToDouble(Scan::getRetentionTime)
-        .average().orElse(0d);
+        .mapToDouble(Scan::getRetentionTime).average().orElse(0d);
 
     // any scan matches MS level 1? --> set level to ms1
-    int minMSLevel =
-        scanList.stream().flatMap(ObservableList::stream).mapToInt(Scan::getMSLevel).min()
-            .orElse(1);
+    int minMSLevel = scanList.stream().flatMap(ObservableList::stream).mapToInt(Scan::getMSLevel)
+        .min().orElse(1);
     getMSLevelComponent().setText(minMSLevel < 2 ? "1" : "" + minMSLevel);
     setFragmentScan(minMSLevel > 1);
 
@@ -363,13 +363,12 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     int rowCounter = 0;
     // Create labels and components for each parameter
     for (Parameter p : paramSubmit.getParameters()) {
-      if (!(p instanceof UserParameter)) {
+      if (!(p instanceof UserParameter up)) {
         continue;
       }
-      UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
-      // comp.setToolTip(new Tooltip(up.getDescription()));
+      Tooltip.install(comp, new Tooltip(up.getDescription()));
 
       // Set the initial value
       Object value = up.getValue();
@@ -377,13 +376,8 @@ public class MSMSLibrarySubmissionWindow extends Stage {
         up.setValueToComponent(comp, value);
       }
 
-      // By calling this we make sure the components will never be resized
-      // smaller than their optimal size
-      // comp.setMinimumSize(comp.getPreferredSize());
-
       // add separator
       if (p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())) {
-//        pnSubmitParam.addSeparator(0, rowCounter, 2);
         pnSubmitParam.add(new Separator(), 0, rowCounter, 2, 1);
         rowCounter++;
       }
@@ -394,11 +388,6 @@ public class MSMSLibrarySubmissionWindow extends Stage {
 
       parametersAndComponents.put(p.getName(), comp);
 
-      ComboBox t = new ComboBox();
-      // int comboh = t.getPreferredSize().height;
-      // int comph = comp.getPreferredSize().height;
-
-      // int verticalWeight = comph > 2 * comboh ? 1 : 0;
       pnSubmitParam.add(comp, 1, rowCounter);
       rowCounter++;
     }
@@ -417,13 +406,12 @@ public class MSMSLibrarySubmissionWindow extends Stage {
 
     // Create labels and components for each parameter
     for (Parameter p : paramMeta.getParameters()) {
-      if (!(p instanceof UserParameter)) {
+      if (!(p instanceof UserParameter up)) {
         continue;
       }
-      UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
-      // comp.setToolTipText(up.getDescription());
+      Tooltip.install(comp, new Tooltip(up.getDescription()));
 
       // Set the initial value
       Object value = up.getValue();
@@ -431,25 +419,11 @@ public class MSMSLibrarySubmissionWindow extends Stage {
         up.setValueToComponent(comp, value);
       }
 
-      // By calling this we make sure the components will never be resized
-      // smaller than their optimal size
-      // comp.setMinimumSize(comp.getPreferredSize());
-
       Label label = new Label(p.getName());
       pnMetaData.add(label, 0, rowCounter);
-      // label.setLabelFor(comp);
-
       parametersAndComponents.put(p.getName(), comp);
 
-//      JComboBox t = new JComboBox();
-      // int comboh = t.getPreferredSize().height;
-      // int comph = comp.getPreferredSize().height;
-
-      // Multiple selection will be expandable, other components not
-      // int verticalWeight = comph > 2 * comboh ? 1 : 0;
-      // vertWeightSum += verticalWeight;
-
-       pnMetaData.add(comp, 1, rowCounter);
+      pnMetaData.add(comp, 1, rowCounter);
       rowCounter++;
     }
   }
@@ -457,18 +431,16 @@ public class MSMSLibrarySubmissionWindow extends Stage {
   @SuppressWarnings({"unchecked", "rawtypes"})
   protected void updateParameterSetFromComponents() {
     for (Parameter<?> p : paramSubmit.getParameters()) {
-      if (!(p instanceof UserParameter)) {
+      if (!(p instanceof UserParameter up)) {
         continue;
       }
-      UserParameter up = (UserParameter) p;
       Node component = parametersAndComponents.get(p.getName());
       up.setValueFromComponent(component);
     }
     for (Parameter<?> p : paramMeta.getParameters()) {
-      if (!(p instanceof UserParameter)) {
+      if (!(p instanceof UserParameter up)) {
         continue;
       }
-      UserParameter up = (UserParameter) p;
       Node component = parametersAndComponents.get(p.getName());
       up.setValueFromComponent(component);
     }
@@ -525,10 +497,9 @@ public class MSMSLibrarySubmissionWindow extends Stage {
         int adducts = countSelectedAdducts();
         // every valid selected ion needs an adduct for MS2
         if (ions != adducts) {
-          MZmineCore.getDesktop()
-              .displayErrorMessage(MessageFormat.format(
-                  "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set",
-                  ions, adducts));
+          MZmineCore.getDesktop().displayErrorMessage(MessageFormat.format(
+              "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set", ions,
+              adducts));
           return;
         }
       }
@@ -554,8 +525,8 @@ public class MSMSLibrarySubmissionWindow extends Stage {
           for (ScanSelectPanel ion : pnScanSelect) {
             if (ion.isValidAndSelected()) {
               // create ion param
-              LibrarySubmitIonParameters ionParam =
-                  createIonParameters(paramSubmit, paramMeta, ion);
+              LibrarySubmitIonParameters ionParam = createIonParameters(paramSubmit, paramMeta,
+                  ion);
               DataPoint[] dps = ion.getFilteredDataPoints();
 
               // submit and save locally
@@ -657,12 +628,9 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     // });
 
     //
-    addCheckBox(settings, "show legend", showLegend,
-        this::setShowLegend);
-    addCheckBox(settings, "show title", showTitle,
-        this::setShowTitle);
-    addCheckBox(settings, "show crosshair", showCrosshair,
-        this::setShowCrosshair);
+    addCheckBox(settings, "show legend", showLegend, this::setShowLegend);
+    addCheckBox(settings, "show title", showTitle, this::setShowTitle);
+    addCheckBox(settings, "show crosshair", showCrosshair, this::setShowCrosshair);
 
     main.setTop(menu);
   }
@@ -709,9 +677,8 @@ public class MSMSLibrarySubmissionWindow extends Stage {
   }
 
   private void setRetentionTimeToComponent(double rt) {
-    OptionalParameterComponent<DoubleComponent> cb =
-        (OptionalParameterComponent<DoubleComponent>) getComponentForParameter(
-            LibraryMetaDataParameters.EXPORT_RT);
+    OptionalParameterComponent<DoubleComponent> cb = (OptionalParameterComponent<DoubleComponent>) getComponentForParameter(
+        LibraryMetaDataParameters.EXPORT_RT);
     cb.getEmbeddedComponent().setText(MZmineCore.getConfiguration().getRTFormat().format(rt));
   }
 
@@ -734,8 +701,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
           // create MS2 of all rows
           for (int i = 0; i < rows.length; i++) {
             FeatureListRow row = rows[i];
-            ScanSelectPanel pn =
-                new ScanSelectPanel(row, sort, noiseLevel, minSignals);
+            ScanSelectPanel pn = new ScanSelectPanel(row, sort, noiseLevel, minSignals);
             pnScanSelect[i] = pn;
             pn.addChartChangedListener(chart -> regroupCharts());
             pnCharts.add(pn, 0, i);
@@ -750,8 +716,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
           // all selectors of scanlist
           for (int i = 0; i < scanList.size(); i++) {
             ObservableList<Scan> scansEntry = scanList.get(i);
-            ScanSelectPanel pn =
-                new ScanSelectPanel(scansEntry, sort, noiseLevel, minSignals);
+            ScanSelectPanel pn = new ScanSelectPanel(scansEntry, sort, noiseLevel, minSignals);
             pnScanSelect[i] = pn;
             pn.addChartChangedListener(chart -> regroupCharts());
             pnCharts.add(pn, 0, i);

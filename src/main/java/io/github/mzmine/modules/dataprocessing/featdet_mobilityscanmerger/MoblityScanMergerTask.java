@@ -49,11 +49,14 @@ public class MoblityScanMergerTask extends AbstractTask {
   private final Weighting weighting;
   private final ParameterSet parameters;
   private final double noiseLevel;
+  private final IntensityMergingType mergingType;
   private int totalFrames;
   private int processedFrames;
 
-  public MoblityScanMergerTask(final IMSRawDataFile file, ParameterSet parameters, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // for now, the merged data points are added to the frame on the raw data
+  public MoblityScanMergerTask(final IMSRawDataFile file, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
+    super(null,
+        moduleCallDate); // for now, the merged data points are added to the frame on the raw data
     // level. In the future, we will generate a mass list.
     processedFrames = 0;
     totalFrames = 1;
@@ -61,12 +64,11 @@ public class MoblityScanMergerTask extends AbstractTask {
     this.rawDataFile = file;
 
     mzTolerance = parameters.getParameter(MobilityScanMergerParameters.mzTolerance).getValue();
-    weighting = parameters.getParameter(MobilityScanMergerParameters.weightingType)
-        .getValue();
+    mergingType = parameters.getParameter(MobilityScanMergerParameters.mergingType).getValue();
+    weighting = parameters.getParameter(MobilityScanMergerParameters.weightingType).getValue();
     scanSelection = parameters.getParameter(MobilityScanMergerParameters.scanSelection).getValue();
     noiseLevel = parameters.getParameter(MobilityScanMergerParameters.noiseLevel).getValue();
   }
-
 
   @Override
   public String getTaskDescription() {
@@ -85,8 +87,7 @@ public class MoblityScanMergerTask extends AbstractTask {
 
     final CenterFunction cf = new CenterFunction(SpectraMerging.DEFAULT_CENTER_MEASURE, weighting);
 
-    List<? extends Frame> frames = scanSelection
-        .getMatchingScans(rawDataFile.getFrames());
+    List<? extends Frame> frames = scanSelection.getMatchingScans(rawDataFile.getFrames());
     totalFrames = frames.size();
 
     try {
@@ -94,7 +95,7 @@ public class MoblityScanMergerTask extends AbstractTask {
         SimpleFrame frame = (SimpleFrame) f;
         double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
             frame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
-            IntensityMergingType.SUMMED, cf, noiseLevel, null);
+            mergingType, cf, noiseLevel, null);
 
         frame.setDataPoints(merged[0], merged[1]);
         frame.addMassList(new ScanPointerMassList(frame));
@@ -103,13 +104,15 @@ public class MoblityScanMergerTask extends AbstractTask {
       }
     } catch (NullPointerException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
-      setErrorMessage("No mass list present in " + rawDataFile.getName() + ".\nPlease run mass detection first.");
+      setErrorMessage("No mass list present in " + rawDataFile.getName()
+          + ".\nPlease run mass detection first.");
       setStatus(TaskStatus.ERROR);
       return;
     }
 
-    rawDataFile.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(MobilityScanMergerModule.class, parameters, getModuleCallDate()));
+    rawDataFile.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(MobilityScanMergerModule.class, parameters,
+            getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
   }

@@ -29,10 +29,10 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectrumChartFactory;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectraItemLabelGenerator;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectraRenderer;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.scans.ScanAlignment;
@@ -81,9 +81,8 @@ public class MirrorChartFactory {
 
     Scan scan = db.getQueryScan();
     if (scan == null || db.getEntry().getDataPoints() == null) {
-      EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + db.getCompoundName(),
-          0, 0, null, "Library: " + db.getDatabase(),
-          0, 0, null, true, true);
+      EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + db.getCompoundName(), 0,
+          0, null, "Library: " + db.getDatabase(), 0, 0, null, true, true);
       mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
       EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
       theme.apply(mirrorSpecrumPlot.getChart());

@@ -452,6 +452,12 @@
           userData="io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule"/>
       </Menu>
 
+      <Menu text="EC-MS workflow">
+        <MenuItem text="Calculate potentials"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.CalcEcmsPotentialModule"/>
+      </Menu>
+
       <SeparatorMenuItem/>
       <MenuItem text="Clear feature list annotations"
         onAction="#runModule"
@@ -504,6 +510,8 @@
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
+    <MenuItem text="Massvoltammogram" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltommogramModule"/>
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"
       userData="io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule"/>
 

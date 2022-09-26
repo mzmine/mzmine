@@ -37,6 +37,7 @@ import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
@@ -490,10 +491,16 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
-    // TODO handle if mz or rt is not present
-    return modularStream().filter(
-            row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    List<FeatureListRow> rows = new ArrayList<>();
+    for(var row : getRows()) {
+      Float rt = row.getAverageRT();
+      if(rt==null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+        rows.add(row);
+      } else if(rt>rtRange.upperEndpoint()) {
+        break;
+      }
+    }
+    return rows;
   }
 
   @Override
