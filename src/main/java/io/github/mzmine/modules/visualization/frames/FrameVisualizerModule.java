@@ -39,7 +39,7 @@ public class FrameVisualizerModule implements MZmineRunnableModule {
     final RawDataFile file = parameters.getValue(FrameVisualizerParameters.files)
         .getMatchingRawDataFiles()[0];
     if (file instanceof IMSRawDataFile) {
-      final FrameVisualizerTab tab = new FrameVisualizerTab("Frame visualizer", true);
+      final FrameVisualizerTab tab = new FrameVisualizerTab("IMS Frame visualizer", true);
       tab.onRawDataFileSelectionChanged(List.of(file));
       MZmineCore.getDesktop().addTab(tab);
     } else {
