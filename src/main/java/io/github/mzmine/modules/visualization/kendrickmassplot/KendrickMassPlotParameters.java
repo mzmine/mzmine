@@ -87,7 +87,7 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     super(new Parameter[] {featureList, selectedRows, yAxisCustomKendrickMassBase, xAxisValues,
         xAxisCustomKendrickMassBase, zAxisValues, zAxisCustomKendrickMassBase, bubbleSize,
         zScaleType, zScaleRange, paintScale, windowSettings},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.md#kendrick-mass-plot");
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#kendrick-mass-plot");
   }
 
   @Override

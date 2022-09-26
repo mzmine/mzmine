@@ -31,8 +31,7 @@ public class FeatureCorrelationHistogramParameters extends SimpleParameterSet {
       0.01);
 
   public FeatureCorrelationHistogramParameters() {
-    super(new Parameter[]{featureLists, binWidth},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional.html/correlated-features-deltamz-histogram");
+    super(new Parameter[]{featureLists, binWidth});
   }
 
 }

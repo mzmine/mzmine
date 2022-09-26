@@ -60,7 +60,8 @@ public class CorrelatedFeaturesMzHistogramParameters extends SimpleParameterSet 
 
   public CorrelatedFeaturesMzHistogramParameters() {
     super(new Parameter[]{featureLists, mzRange, rtRange, minCorr, limitToDoubleMz, binWidth,
-        saveToFile});
+        saveToFile},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#correlated-features-deltamz-histogram");
   }
 
 }

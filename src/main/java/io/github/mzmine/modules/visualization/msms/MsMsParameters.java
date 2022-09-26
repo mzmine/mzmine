@@ -89,7 +89,8 @@ public class MsMsParameters extends SimpleParameterSet {
 
   public MsMsParameters() {
     super(new Parameter[]{dataFiles, xAxisType, yAxisType, zAxisType, msLevel, rtRange,
-        mzRange, mzTolerance, intensityFiltering, dffParameters, windowSettings});
+        mzRange, mzTolerance, intensityFiltering, dffParameters, windowSettings},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/msmsplot/msms-plot.html");
   }
 
 }

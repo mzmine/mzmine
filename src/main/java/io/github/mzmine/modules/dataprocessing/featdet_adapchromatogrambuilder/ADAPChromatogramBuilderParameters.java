@@ -80,7 +80,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public ADAPChromatogramBuilderParameters() {
     super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, minGroupIntensity,
             minHighestPoint, mzTolerance, suffix, allowSingleScans},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_adap_chromatogram_builder/adap-chromatogram-builder.html");
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_adap_chromatogram_builder/adap-chromatogram-builder.html");
   }
 
   @Override

@@ -42,7 +42,7 @@ public class SpectraVisualizerParameters extends SimpleParameterSet {
 
   public SpectraVisualizerParameters() {
     super(new Parameter[]{dataFiles, scanNumber, mzTolerance, windowSettings},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ms_raw_data_overview/raw_data_additional.html#ms-spectrum");
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_overview/raw_data_additional.html#ms-spectrum");
   }
 
 }
