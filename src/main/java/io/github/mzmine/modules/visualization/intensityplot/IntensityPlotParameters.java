@@ -18,10 +18,13 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,9 +43,11 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
-  public static final MultiChoiceParameter<RawDataFile> dataFiles =
-      new MultiChoiceParameter<RawDataFile>("Raw data files", "Raw data files to display",
-          new RawDataFile[0]);
+//  public static final MultiChoiceParameter<RawDataFile> dataFiles =
+//      new MultiChoiceParameter<RawDataFile>("Raw data files", "Raw data files to display",
+//          MZmineCore.getDesktop().getSelectedDataFiles());
+
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
   public static final ComboParameter<Object> xAxisValueSource =
       new ComboParameter<Object>("X axis value", "X axis value", new Object[] {rawDataFilesOption});
@@ -73,8 +78,9 @@ public class IntensityPlotParameters extends SimpleParameterSet {
           selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
       FeatureListRow plRows[] = selectedFeatureLists[0].getRows().toArray(FeatureListRow[]::new);
       Arrays.sort(plRows, new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
-      getParameter(dataFiles).setChoices(plDataFiles);
-      getParameter(dataFiles).setValue(plDataFiles);
+//      getParameter(dataFiles).setChoices(plDataFiles);
+//      getParameter(dataFiles).setValue(plDataFiles);
+
     }
 
     return super.showSetupDialog(valueCheckRequired);

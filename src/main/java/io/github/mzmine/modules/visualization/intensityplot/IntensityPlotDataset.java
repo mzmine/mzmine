@@ -68,7 +68,8 @@ class IntensityPlotDataset extends AbstractDataset
         parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue();
     this.yAxisValueSource =
         parameters.getParameter(IntensityPlotParameters.yAxisValueSource).getValue();
-    this.selectedFiles = parameters.getParameter(IntensityPlotParameters.dataFiles).getValue();
+
+    this.selectedFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
     this.selectedRows =
         parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(featureList);

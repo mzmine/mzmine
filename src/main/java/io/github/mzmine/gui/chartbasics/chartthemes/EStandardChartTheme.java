@@ -38,10 +38,12 @@ import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -216,15 +218,31 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     // to get the correct font specified in this theme by the item label font, we need to reapply
     // it. (the normal theme sets the default font, too)
-    final XYPlot plot = chart.getXYPlot();
-    if (plot != null) {
-      int rendererCount = plot.getRendererCount();
-      for (int i = 0; i < rendererCount; i++) {
-        XYItemRenderer r = plot.getRenderer(i);
+
+    if (chart.getPlot() instanceof XYPlot) {
+      XYPlot xyPlot = chart.getXYPlot();
+      if (xyPlot != null) {
+        int rendererCount = xyPlot.getRendererCount();
+        for (int i = 0; i < rendererCount; i++) {
+        XYItemRenderer r = xyPlot.getRenderer(i);
         if (r instanceof AbstractRenderer renderer) {
           applyToAbstractRenderer(renderer);
         }
+        }
+
+    } else if (chart.getPlot() instanceof CategoryPlot) {
+        CategoryPlot categoryPlot = chart.getCategoryPlot();
+      if (categoryPlot != null) {
+        int rendererCount = categoryPlot.getRendererCount();
+        for (int i = 0; i < rendererCount; i++) {
+          CategoryItemRenderer r = categoryPlot.getRenderer(i);
+          if (r instanceof AbstractRenderer renderer) {
+            applyToAbstractRenderer(renderer);
+          }
+        }
       }
+    }
+
     }
 
     chart.setNotify(oldNotify);

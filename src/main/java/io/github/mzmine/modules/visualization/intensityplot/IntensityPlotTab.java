@@ -30,8 +30,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Logger;
+import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
@@ -42,6 +44,8 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.AbstractCategoryItemRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.renderer.category.StatisticalLineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
@@ -121,7 +125,8 @@ public class IntensityPlotTab extends MZmineTab {
       CategoryPlot plot = (CategoryPlot) chart.getPlot();
 
       // set renderer
-      StatisticalLineAndShapeRenderer renderer = new StatisticalLineAndShapeRenderer(false, true);
+//      StatisticalLineAndShapeRenderer renderer = new StatisticalLineAndShapeRenderer(false, true);
+      AbstractCategoryItemRenderer renderer = (AbstractCategoryItemRenderer) chart.getCategoryPlot().getRenderer();;
       renderer.setDefaultStroke(new BasicStroke(2));
       plot.setRenderer(renderer);
       plot.setBackgroundPaint(Color.white);
@@ -132,6 +137,10 @@ public class IntensityPlotTab extends MZmineTab {
 
       CategoryAxis xAxis = plot.getDomainAxis();
       xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+
+//      ChartPanel chartPanel = new ChartPanel(chart);
+      EChartViewer chartPanel = new EChartViewer(chart);
+      mainPane.setCenter(chartPanel);
 
     } else {
 
@@ -149,13 +158,16 @@ public class IntensityPlotTab extends MZmineTab {
       XYToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
       renderer.setDefaultToolTipGenerator(toolTipGenerator);
 
+      EChartViewer chartPanel = new EChartViewer(chart);
+      mainPane.setCenter(chartPanel);
+
     }
 
     chart.setBackgroundPaint(Color.white);
 
     // create chart JPanel
-    EChartViewer chartPanel = new EChartViewer(chart);
-    mainPane.setCenter(chartPanel);
+//    EChartViewer chartPanel = new EChartViewer(chart);
+//    mainPane.setCenter(chartPanel);
 
     ToolBar toolBar = new ToolBar();
     toolBar.setOrientation(Orientation.VERTICAL);
