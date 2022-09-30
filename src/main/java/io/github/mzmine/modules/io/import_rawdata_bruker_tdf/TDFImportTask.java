@@ -433,6 +433,9 @@ public class TDFImportTask extends AbstractTask {
       final ParameterSet param = msLevel == 1 ? ms1DetectorParam : ms2DetectorParam;
       final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(
           frame.getFrameId(), frameTable, detector, param);
+      if (spectra.isEmpty()) {
+        spectra.add(new BuildingMobilityScan(0, new double[]{}, new double[]{}));
+      }
 
       frame.setMobilityScans(spectra, detector != null);
 

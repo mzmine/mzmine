@@ -189,7 +189,6 @@ dependencies {
     implementation 'org.kordamp.ikonli:ikonli-javafx:12.3.1'
     implementation 'org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1'
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
-    implementation "org.drjekyll:fontchooser:2.4"
     implementation 'org.json:json:20211205'
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
@@ -198,6 +197,8 @@ dependencies {
     implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
     implementation "net.csibio.aird:aird-sdk:1.1.6.1"
+    implementation "com.github.yannrichet:JMathPlot:1.0.1"
+
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
     testImplementation "org.mockito:mockito-inline:$mockitoversion"
@@ -247,15 +248,15 @@ javafx {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-    options.compilerArgs += ['--enable-preview']
+//    options.compilerArgs += ['--enable-preview']
 }
 
 tasks.withType(Test) {
-    jvmArgs += "--enable-preview"
+//    jvmArgs += "--enable-preview"
 }
 
 tasks.withType(JavaExec) {
-    jvmArgs += '--enable-preview'
+//    jvmArgs += '--enable-preview'
 }
 
 /*
@@ -335,8 +336,8 @@ runtime {
                    "-XX:MinRAMPercentage=80",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
-                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
-                   /*"--enable-preview"*/]
+                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+                   "--enable-preview"]
     }
 }
 

@@ -44,7 +44,7 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
       new RTTolerance(0.2f, Unit.MINUTES));
 
   public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
-      "Use the feature's edges (retention time) as a filter.", false);
+      "Use the feature's edges (retention time) as a filter.", true);
 
   public static final BooleanParameter combineTimsMsMs = new BooleanParameter(
       "Combine MS/MS spectra (TIMS)",
@@ -54,9 +54,9 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
   public static final BooleanParameter lockMS2ToFeatureMobilityRange = new BooleanParameter(
       "Lock to feature mobility range",
       "If checked, only mobility scans from the mobility range of the feature will be merged.\n"
-          + "This is usually not needed. However, if isomeres/isobares elute at the same retention time and are close in mobility, "
+          + "This is usually not needed. However, if isomers/isobars elute at the same retention time and are close in mobility, "
           + "the MS/MS window might be larger than the peak in mobility dimension and thus cause chimeric MS/MS spectra.\n"
-          + "This can be investigated in hte \"All MS MS\" window", false);
+          + "This can be investigated in the \"All MS MS\" window", false);
 
   public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
       new DoubleParameter("Minimum merged intensity (IMS)",
@@ -67,8 +67,7 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
 
   public GroupMS2SubParameters() {
     super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs,
-            lockMS2ToFeatureMobilityRange, outputNoiseLevel},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
+            lockMS2ToFeatureMobilityRange, outputNoiseLevel});
   }
 
   @Override

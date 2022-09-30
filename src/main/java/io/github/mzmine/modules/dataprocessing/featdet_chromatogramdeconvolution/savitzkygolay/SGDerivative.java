@@ -23,9 +23,9 @@ public final class SGDerivative {
   /**
    * This method returns the second smoothed derivative values of an array.
    * 
-   * @param double[] values
-   * @param boolean is first derivative
-   * @param int level of filter (1 - 12)
+   * @param values
+   * @param firstDerivative is first derivative
+   * @param levelOfFilter level of filter (1 - 12)
    * @return double[] derivative of values
    */
   public static double[] calculateDerivative(double[] values, boolean firstDerivative,

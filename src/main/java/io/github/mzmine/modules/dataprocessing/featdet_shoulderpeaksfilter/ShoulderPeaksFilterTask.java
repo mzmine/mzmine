@@ -29,7 +29,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Date;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -129,7 +128,6 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
       DataPoint mzPeaks[] = massList.getDataPoints();
 
       DataPoint newMzPeaks[] = ShoulderPeaksFilter.filterMassValues(mzPeaks, parameters);
-
 
       MassList newMassList =
           SimpleMassList.create(storage, newMzPeaks);

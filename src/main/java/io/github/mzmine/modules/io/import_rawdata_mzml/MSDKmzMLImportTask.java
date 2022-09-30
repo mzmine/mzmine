@@ -124,7 +124,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       }
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
         this.ms2Detector = advancedParam.getParameter(
-            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
+            AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
       }
     }
 
