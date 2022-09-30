@@ -83,6 +83,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   private final int minCorrPoints;
   private final MZTolerance mzTolerance;
   private final double minPearson;
+  private final double correlationThreshold = 0.1d;
 
   private final ParameterSet parameters;
   private final ParameterSet adapParameters;
@@ -181,8 +182,8 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       MergedMassSpectrum mergedMobilityScan = null; // for IMS
       final IonTimeSeries<? extends Scan> featureEIC = feature.getFeatureData();
-      final double[][] shape = extractPointsAroundMaximum(minCorrPoints, featureEIC,
-          feature.getRepresentativeScan());
+      final double[][] shape = extractPointsAroundMaximum(
+          feature.getHeight() * correlationThreshold, featureEIC, feature.getRepresentativeScan());
       if (shape == null) {
         continue;
       }
@@ -252,8 +253,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
             intensities, minCorrPoints, 2, minMs2Intensity / 3);
         if (correlationData != null && correlationData.isValid()
-            && correlationData.getPearsonR() > 0
-            && Math.pow(correlationData.getPearsonR(), 2) > minPearson) { // TODO use R only?
+            && correlationData.getPearsonR() > 0 && correlationData.getPearsonR() > minPearson) {
           int startIndex = -1;
           int endIndex = -1;
           double maxIntensity = Double.NEGATIVE_INFINITY;
@@ -362,13 +362,13 @@ public class DiaMs2CorrTask extends AbstractTask {
    * Extracts a given number of data points around a maximum. The number of detected points is
    * automatically limited to the bounds of the chromatogram.
    *
-   * @param numPoints    the number of points to extract.
-   * @param chromatogram the chromatogram to extract the points from.
-   * @param maximumScan  The maximum scan in the chromatogram.
+   * @param minCorrelationIntensity minimum intensity to extract
+   * @param chromatogram            the chromatogram to extract the points from.
+   * @param maximumScan             The maximum scan in the chromatogram.
    * @return a 2d array [0][] = rts, [1][] = intensities.
    */
   @Nullable
-  private double[][] extractPointsAroundMaximum(final int numPoints,
+  private double[][] extractPointsAroundMaximum(final double minCorrelationIntensity,
       final IonTimeSeries<? extends Scan> chromatogram, @Nullable final Scan maximumScan) {
     if (maximumScan == null) {
       return null;
@@ -376,13 +376,28 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     final List<? extends Scan> spectra = chromatogram.getSpectra();
     final int index = Math.abs(Collections.binarySearch(spectra, maximumScan));
-    final int index2 = spectra.indexOf(maximumScan);
+    // final int index2 = spectra.indexOf(maximumScan);
 
     // take one point more each, because MS1 and MS2 are acquired in alternating fashion, so we
     // need one more ms1 point on each side for the rt range, so we can fit the determined number
     // of ms2 points
-    final int lower = Math.max(index - numPoints / 2 - 1, 0);
-    final int upper = Math.min(index + numPoints / 2 + 1, chromatogram.getNumberOfValues() - 1);
+    // final int lower = Math.max(index - numPoints / 2 - 1, 0);
+    // final int upper = Math.min(index + numPoints / 2 + 1, chromatogram.getNumberOfValues() - 1);
+
+    int lower = 0;
+    for (int i = index; i >= 0; i--) {
+      if (chromatogram.getIntensity(i) < minCorrelationIntensity) {
+        lower = i;
+        break;
+      }
+    }
+    int upper = chromatogram.getNumberOfValues() - 1;
+    for (int i = 0; i < chromatogram.getNumberOfValues(); i++) {
+      if (chromatogram.getIntensity(i) < minCorrelationIntensity) {
+        upper = i;
+        break;
+      }
+    }
 
     final double[] rts = new double[upper - lower];
     final double[] intensities = new double[upper - lower];
