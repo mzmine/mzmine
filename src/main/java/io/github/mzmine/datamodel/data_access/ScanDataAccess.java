@@ -234,6 +234,11 @@ public abstract class ScanDataAccess implements Scan {
    */
   public abstract int getNumberOfScans();
 
+  public void reset() {
+    currentNumberOfDataPoints = -1;
+    scanIndex = -1;
+  }
+
   /**
    * Maximum number of data points is used to create the arrays that back the data
    *

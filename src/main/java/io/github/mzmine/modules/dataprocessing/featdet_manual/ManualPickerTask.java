@@ -23,14 +23,21 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
@@ -42,15 +49,15 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import org.bouncycastle.math.raw.Mod;
 
 class ManualPickerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private int processedScans, totalScans;
+  private int processedFiles, totalFiles;
 
   private final MZmineProject project;
-  private final FeatureTableFX table;
   private final ModularFeatureList featureList;
   private FeatureListRow featureListRow;
   private RawDataFile dataFiles[];
@@ -59,26 +66,28 @@ class ManualPickerTask extends AbstractTask {
   private final ParameterSet parameterSet;
 
   ManualPickerTask(MZmineProject project, FeatureListRow featureListRow, RawDataFile dataFiles[],
-      ManualPickerParameters parameters, FeatureList featureList, FeatureTableFX table) {
+      ParameterSet parameters, FeatureList featureList) {
     super(null, Instant.now()); // we get passed a flist, so it should contain a storage
 
     this.project = project;
     this.featureListRow = featureListRow;
     this.dataFiles = dataFiles;
     this.featureList = (ModularFeatureList) featureList;
-    this.table = table;
 
     // TODO: FloatRangeParameter
-    rtRange = RangeUtils.toFloatRange(parameters.getParameter(ManualPickerParameters.retentionTimeRange).getValue());
+    rtRange = RangeUtils.toFloatRange(
+        parameters.getParameter(ManualPickerParameters.retentionTimeRange).getValue());
     mzRange = parameters.getParameter(ManualPickerParameters.mzRange).getValue();
     this.parameterSet = parameters;
+    totalFiles = dataFiles.length;
   }
 
   @Override
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalFiles == 0) {
       return 0;
-    return (double) processedScans / totalScans;
+    }
+    return (double) processedFiles / totalFiles;
   }
 
   @Override
@@ -93,51 +102,16 @@ class ManualPickerTask extends AbstractTask {
 
     logger.finest("Starting manual feature picker, RT: " + rtRange + ", m/z: " + mzRange);
 
-    Scan[][] scanNumbersRaw = new Scan[dataFiles.length][];
-    // Calculate total number of scans to process
-    for (int i = 0; i < dataFiles.length; i++) {
-      scanNumbersRaw[i] = dataFiles[i].getScanNumbers(1, rtRange);
-      totalScans += scanNumbersRaw.length;
-    }
+    final ScanSelection selection = new ScanSelection(rtRange, 1);
+    for (RawDataFile file : dataFiles) {
+      final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(file, selection,
+          mzRange, featureList.getMemoryMapStorage());
 
-    // Find feature in each data file
-    for (int i = 0; i < dataFiles.length; i++) {
-      RawDataFile dataFile = dataFiles[i];
-      ManualFeature newFeature = new ManualFeature(dataFile);
-      boolean dataPointFound = false;
-
-      Scan[] scanNumbers = scanNumbersRaw[i];
-
-      for (Scan scan : scanNumbers) {
-        if (isCanceled())
-          return;
-
-        // Find most intense m/z feature
-        DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
-
-        if (basePeak != null) {
-          if (basePeak.getIntensity() > 0)
-            dataPointFound = true;
-          newFeature.addDatapoint(scan, basePeak);
-        } else {
-          final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
-          DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-          newFeature.addDatapoint(scan, fakeDataPoint);
-        }
-        processedScans++;
-      }
-
-      if (dataPointFound) {
-        newFeature.finalizeFeature();
-        newFeature.setFeatureList(featureList);
-        if (newFeature.getArea() > 0) {
-          featureListRow.addFeature(dataFile,
-              FeatureConvertors.ManualFeatureToModularFeature(featureList, newFeature));
-        }
-      } else {
-        featureListRow.removeFeature(dataFile);
-      }
-
+      final Feature feature = featureListRow.getFeature(file);
+      ModularFeature f = (ModularFeature)feature;
+      f.set(FeatureDataType.class, series);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+      processedFiles++;
     }
 
     // Notify the GUI that feature list contents have changed
@@ -149,21 +123,13 @@ class ManualPickerTask extends AbstractTask {
       if (!rows.contains(featureListRow)) {
         featureList.addRow(featureListRow);
       }
-
-      // Add quality parameters to features
-      QualityParameters.calculateAndSetModularQualityParameters((ModularFeatureList) featureList);
-
-      // project.notifyObjectChanged(featureList, true);
-    }
-    if (table != null) {
-      // TODO:
-      //((AbstractTableModel) table.getModel()).fireTableDataChanged();
     }
 
-    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ManualFeaturePickerModule.class, parameterSet, getModuleCallDate()));
+    featureList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(ManualFeaturePickerModule.class, parameterSet,
+            getModuleCallDate()));
 
-    logger.finest("Finished manual feature picker, " + processedScans + " scans processed");
+    logger.finest("Finished manual feature picker, " + processedFiles + " files processed");
 
     setStatus(TaskStatus.FINISHED);
 

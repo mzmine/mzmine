@@ -97,7 +97,7 @@ public class ManualFeaturePickerModule implements MZmineModule {
       return exitCode;
 
     ManualPickerTask task = new ManualPickerTask(MZmineCore.getProjectManager().getCurrentProject(),
-        featureListRow, dataFiles, parameters, featureList, table);
+        featureListRow, dataFiles, parameters, featureList);
 
     MZmineCore.getTaskController().addTask(task);
     return exitCode;

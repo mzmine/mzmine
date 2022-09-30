@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.RangeUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,7 +53,7 @@ public class XICManualPickerModule implements MZmineModule {
   // }
 
   public static ExitCode runManualDetection(RawDataFile dataFile, FeatureListRow featureListRow,
-      FeatureList featureList, FeatureTableFX table) {
+      FeatureList featureList) {
 
     Range<Double> mzRange = null;
     Range<Float> rtRange = null;
@@ -95,14 +96,14 @@ public class XICManualPickerModule implements MZmineModule {
     if (exitCode != ExitCode.OK)
       return exitCode;
 
-    ManualPickerParameters param = new ManualPickerParameters();
+    ParameterSet param = new ManualPickerParameters().cloneParameterSet();
     param.getParameter(ManualPickerParameters.mzRange)
         .setValue(parameters.getParameter(XICManualPickerParameters.mzRange).getValue());
     param.getParameter(ManualPickerParameters.retentionTimeRange)
         .setValue(parameters.getParameter(XICManualPickerParameters.rtRange).getValue());
 
     ManualPickerTask task = new ManualPickerTask(MZmineCore.getProjectManager().getCurrentProject(),
-        featureListRow, new RawDataFile[] {dataFile}, param, featureList, table);
+        featureListRow, new RawDataFile[] {dataFile}, param, featureList);
 
     MZmineCore.getTaskController().addTask(task);
     return exitCode;
