@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedMobilityScan;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -99,7 +100,12 @@ public class ScanUtils {
    * @param scan Scan to be converted to String
    * @return String representation of the scan
    */
-  public static @NotNull String scanToString(@NotNull Scan scan, @NotNull Boolean includeFileName) {
+  public static @NotNull String scanToString(@Nullable Scan scan,
+      @NotNull Boolean includeFileName) {
+    if (scan == null) {
+      return "null";
+    }
+
     StringBuilder buf = new StringBuilder();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -136,7 +142,8 @@ public class ScanUtils {
 
     buf.append(" MS");
     buf.append(scan.getMSLevel());
-    if (scan.getMSLevel() > 1 && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+    if (scan.getMSLevel() > 1 && !(scan instanceof CachedMobilityScan)
+        && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
     switch (scan.getSpectrumType()) {
