@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
  *  This file is part of MZmine.
  *
@@ -184,7 +184,7 @@ public class DiaMs2CorrTask extends AbstractTask {
       final IonTimeSeries<? extends Scan> featureEIC = feature.getFeatureData();
       final double[][] shape = extractPointsAroundMaximum(
           feature.getHeight() * correlationThreshold, featureEIC, feature.getRepresentativeScan());
-      if (shape == null) {
+      if (shape == null || shape[0].length < minCorrPoints) {
         continue;
       }
       final double[] ms1Rts = shape[0];
@@ -392,7 +392,7 @@ public class DiaMs2CorrTask extends AbstractTask {
       }
     }
     int upper = chromatogram.getNumberOfValues() - 1;
-    for (int i = 0; i < chromatogram.getNumberOfValues(); i++) {
+    for (int i = index; i < chromatogram.getNumberOfValues(); i++) {
       if (chromatogram.getIntensity(i) < minCorrelationIntensity) {
         upper = i;
         break;
