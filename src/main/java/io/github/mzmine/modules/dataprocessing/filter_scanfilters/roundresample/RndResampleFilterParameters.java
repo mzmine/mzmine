@@ -36,7 +36,7 @@ public class RndResampleFilterParameters extends SimpleParameterSet {
 
   public static final BooleanParameter REMOVE_ZERO_INTENSITY =
       new BooleanParameter("Remove zero intensity m/z peaks",
-          "Clear all scans spectra from m/z peaks with intensity equal to zero.", true);
+          "Clear all scans spectra from m/z peaks with intensity equal to zero.", false);
 
   public RndResampleFilterParameters() {
     super(new Parameter[] {SUM_DUPLICATES, REMOVE_ZERO_INTENSITY});

@@ -127,6 +127,13 @@ public interface RawDataFile {
    */
   boolean isContainsZeroIntensity();
 
+  /**
+   * Contains at least one empty scan.
+   *
+   * @return true if m/z range is absent in any scan
+   */
+  boolean isContainsEmptyScans();
+
 
   /**
    * The spectrum type of all spectra or {@link MassSpectrumType#MIXED}

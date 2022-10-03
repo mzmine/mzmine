@@ -36,6 +36,11 @@ public class ResampleFilter implements ScanFilter {
   @Override
   public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
+    if (scan.isEmptyScanMZRange()) {
+//      return scan;
+      return scan;
+    }
+
     double binSize = parameters.getParameter(ResampleFilterParameters.binSize).getValue();
 
     Range<Double> mzRange = scan.getDataPointMZRange();

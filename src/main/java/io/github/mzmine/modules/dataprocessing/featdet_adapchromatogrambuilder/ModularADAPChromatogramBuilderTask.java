@@ -141,6 +141,11 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
 
+      if (s.isEmptyScanMZRange()) {
+        logger.info("Scan number " + s.getScanNumber() + "was found to be empty.");
+        continue;
+      }
+
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
         final String msg = "Retention time of scan #" + s.getScanNumber()

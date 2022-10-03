@@ -84,6 +84,8 @@ public class RawDataFileImpl implements RawDataFile {
   // track if file contains zero intensity as this might originate from wrong conversion
   // msconvert needs to have the peak picker as first step / not even title maker before that
   private boolean containsZeroIntensity;
+
+  private boolean containsEmptyScans;
   private MassSpectrumType spectraType;
   private LocalDateTime startTimeStamp;
 
@@ -288,21 +290,30 @@ public class RawDataFileImpl implements RawDataFile {
       }
     }
 
+    //check for empty scans (absent m/z range or absent intensity)
+    //
+    if (newScan.isEmptyScanMZRange()) {
+      containsEmptyScans = true;
+      logger.warning("""
+                  Some scans were recognized as empty (no detected peaks).
+                  """);
+    }
+
     // check for zero intensity because this might indicate incorrect conversion by msconvert
     // when not using peak picking as the first step
     if (!containsZeroIntensity) {
-      double[] intensities = newScan.getIntensityValues(new double[0]);
-      for (double v : intensities) {
-        if (v <= 0) {
-          containsZeroIntensity = true;
-          if (spectraType.isCentroided()) {
-            logger.warning("""
-                Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert. 
-                Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
-                a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
-                This leads to degraded mass accuracies.""");
-          }
-          break;
+        double[] intensities = newScan.getIntensityValues(new double[0]);
+        for (double v : intensities) {
+          if (v <= 0) {
+            containsZeroIntensity = true;
+            if (spectraType.isCentroided()) {
+              logger.warning("""
+                  Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert. 
+                  Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
+                  a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
+                  This leads to degraded mass accuracies.""");
+            }
+            break;
         }
       }
     }
@@ -316,6 +327,11 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public boolean isContainsZeroIntensity() {
     return containsZeroIntensity;
+  }
+
+
+  public boolean isContainsEmptyScans() {
+    return containsEmptyScans;
   }
 
 

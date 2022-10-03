@@ -52,6 +52,8 @@ public class CropFilterTask extends AbstractTask {
   private ScanSelection scanSelection;
   private Range<Double> mzRange;
   private String suffix;
+
+  private boolean emptyScans;
   private boolean removeOriginal;
   private ParameterSet parameters;
   private final MemoryMapStorage storage;
@@ -66,6 +68,7 @@ public class CropFilterTask extends AbstractTask {
     this.scanSelection = parameters.getParameter(CropFilterParameters.scanSelection).getValue();
     this.mzRange = parameters.getParameter(CropFilterParameters.mzRange).getValue();
     this.suffix = parameters.getParameter(CropFilterParameters.suffix).getValue();
+    this.emptyScans = parameters.getParameter(CropFilterParameters.emptyScans).getValue();
     this.removeOriginal = parameters.getParameter(CropFilterParameters.autoRemove).getValue();
     this.parameters = parameters;
     this.storage = storage;
@@ -98,6 +101,18 @@ public class CropFilterTask extends AbstractTask {
       for (Scan scan : scans) {
 
         SimpleScan scanCopy = null;
+
+        if (scan.isEmptyScanMZRange()) {
+          logger.info("Scan " + scan.getScanNumber() + " has empty m/z range");
+          if (emptyScans) {
+            continue;
+          } else {
+            scanCopy = new SimpleScan(newFile, scan, scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]));
+            newFile.addScan(scanCopy);
+            processedScans++;
+            continue;
+          }
+        }
 
         // Check if we have something to crop
         if (!mzRange.encloses(scan.getDataPointMZRange())) {
