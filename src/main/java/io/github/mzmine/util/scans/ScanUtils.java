@@ -715,6 +715,29 @@ public class ScanUtils {
   }
 
   /**
+   * Checks if MSn scan full scan precursor mz and rt is in ranges.
+   *
+   * @param s tested scan
+   * @param rtRange
+   * @param mzRange
+   * @return true if ms2fragmentscan precursor mz and scan rt in range.
+   */
+  public static boolean matchesMSnScan(Scan s, Range<Float> rtRange, Range<Double> mzRange){
+
+    if(rtRange != null && !rtRange.contains(s.getRetentionTime())) {
+      return false;
+    }
+
+    Double precursorMz = null;
+    if (s.getMSLevel() == 2) {
+      precursorMz = s.getPrecursorMz();
+    } else if (s.getMsMsInfo() instanceof MSnInfoImpl msn) {
+      precursorMz = msn.getMS2PrecursorMz();
+    }
+    return precursorMz != null && mzRange.contains(precursorMz);
+  }
+
+  /**
    * @param msLevel 0 for all scans
    */
   public static Stream<Scan> streamScans(RawDataFile dataFile, int msLevel) {
@@ -1654,7 +1677,10 @@ public class ScanUtils {
   public static Scan getMostIntenseMSnScan(FeatureListRow row, int msLevel){
 
     Scan ms2Scan = row.getMostIntenseFragmentScan();
+    RawDataFile dataFile = ms2Scan.getDataFile();
+
     List<PrecursorIonTree> tree = getMSnFragmentTrees(ms2Scan.getDataFile());
+
     Range<Float> rtRange = row.getFeature(ms2Scan.getDataFile()).getRawDataPointsRTRange();
 
     return getMostIntenseMSnScan(ms2Scan, msLevel, tree, rtRange);
