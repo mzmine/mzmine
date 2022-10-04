@@ -294,9 +294,7 @@ public class RawDataFileImpl implements RawDataFile {
     //
     if (newScan.isEmptyScanMZRange()) {
       containsEmptyScans = true;
-      logger.warning("""
-                  Some scans were recognized as empty (no detected peaks).
-                  """);
+      logger.warning("Some scans were recognized as empty (no detected peaks).");
     }
 
     // check for zero intensity because this might indicate incorrect conversion by msconvert

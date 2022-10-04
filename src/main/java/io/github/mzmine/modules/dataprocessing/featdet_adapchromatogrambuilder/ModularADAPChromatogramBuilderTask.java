@@ -142,7 +142,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       }
 
       if (s.isEmptyScanMZRange()) {
-        logger.info("Scan number " + s.getScanNumber() + "was found to be empty.");
+        logger.info("Scan number " + s.getScanNumber() + " was found to be empty.");
         continue;
       }
 
