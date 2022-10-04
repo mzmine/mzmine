@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_all;
@@ -298,13 +305,15 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return the task or null if the data format is not supported for direct mass detection
    */
   private AbstractTask createAdvancedTask(RawDataFileType fileType, MZmineProject project,
-      File file, RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam,
-      Class<? extends MZmineModule> module, ParameterSet parameters,
-      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
+      File file, @Nullable RawDataFile newMZmineFile,
+      @NotNull AdvancedSpectraImportParameters advancedParam, Class<? extends MZmineModule> module,
+      ParameterSet parameters, @NotNull Instant moduleCallDate,
+      @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, null, advancedParam, module, parameters,
-          moduleCallDate, storage);
+      case MZML, MZML_IMS ->
+          new MSDKmzMLImportTask(project, file, null, advancedParam, module, parameters,
+              moduleCallDate, storage);
       case MZXML ->
           new MzXMLImportTask(project, file, newMZmineFile, advancedParam, module, parameters,
               moduleCallDate);
@@ -314,7 +323,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case AIRD ->
           new AirdImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML, MZML_IMS ->
+      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, advancedParam, module,
               parameters, moduleCallDate, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
@@ -334,6 +343,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
             storage), advancedParam, moduleCallDate);
   }
 
+  @Nullable
   private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {

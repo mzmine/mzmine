@@ -23,7 +23,7 @@ License for more details.
 
 ## Releases
 
-[Releases](https://github.com/mzmine/mzmine3/releases?q=&expanded=true) are split into beta releases
+[Releases](https://github.com/mzmine/mzmine3/releases?q=&expanded=true) are split into [stable releases](https://github.com/mzmine/mzmine3/releases/latest)
 and
 the [latest development build](https://github.com/mzmine/mzmine3/releases/tag/Development-release)
 which reflects the current state of the master branch and is meant for testing purposes. Download

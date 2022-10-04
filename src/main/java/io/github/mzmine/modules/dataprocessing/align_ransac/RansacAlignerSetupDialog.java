@@ -1,186 +1,129 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
  * how the selected mass detector and his parameters works over the raw data file.
  */
-public class RansacAlignerSetupDialog extends ParameterSetupDialog {
+public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
 
   // Dialog components
-  private final BorderPane pnlPlotXY;
-  private final GridPane comboPanel;
-  private final FlowPane peakListsPanel;
-  private final CheckBox previewCheckBox;
-  private final AlignmentRansacPlot chart;
-  private final ComboBox<FeatureList> peakListsComboX, peakListsComboY;
-  private final Button alignmentPreviewButton;
+  private GridPane comboPanel;
+
+  private final FlowPane featureListsPanel;
+
+  private ObservableList<FeatureList> featureLists;
+
+  private ComboBox<FeatureList> featureListsComboX, featureListsComboY;
+
+  private AlignmentRansacPlot plot;
+
+  private RansacPreviewTask task;
 
   public RansacAlignerSetupDialog(boolean valueCheckRequired, RansacAlignerParameters parameters) {
     super(valueCheckRequired, parameters);
 
-    var featureLists = FXCollections.observableArrayList(
+    featureLists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
-    FeatureList[] selectedPeakLists = MZmineCore.getDesktop().getSelectedPeakLists();
-
-    // Preview check box
-    previewCheckBox = new CheckBox("Show preview of RANSAC alignment");
-
-    peakListsPanel = new FlowPane();
-    peakListsPanel.visibleProperty().bind(previewCheckBox.selectedProperty());
-    // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+    featureListsPanel = new FlowPane();
 
     paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
-    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
-
     // Panel for the combo boxes with the feature lists
     comboPanel = new GridPane();
 
-    peakListsComboX = new ComboBox<>(featureLists);
-    // peakListsComboX.addActionListener(this);
-    peakListsComboY = new ComboBox<>(featureLists);
-    // peakListsComboY.addActionListener(this);
-
-    alignmentPreviewButton = new Button("Preview alignment");
-    alignmentPreviewButton.setOnAction(e -> updatePreview());
-    comboPanel.getChildren().addAll(peakListsComboX, peakListsComboY, alignmentPreviewButton);
-
-    if (selectedPeakLists.length >= 2) {
-      peakListsComboX.getSelectionModel().select(selectedPeakLists[0]);
-      peakListsComboY.getSelectionModel().select(selectedPeakLists[1]);
-    } else if (featureLists.size() > 1){
-      peakListsComboX.getSelectionModel().select(featureLists.get(0));
-      peakListsComboY.getSelectionModel().select(featureLists.get(1));
-    }
-
-    peakListsPanel.getChildren().add(comboPanel);
-
-    // Panel for XYPlot
-    pnlPlotXY = new BorderPane();
-    // Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-    // Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-    // pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
-    // pnlPlotXY.setBackground(Color.white);
-
-    chart = new AlignmentRansacPlot();
-    pnlPlotXY.setCenter(chart);
-
-    paramsPane.add(peakListsPanel, 0, getNumberOfParameters() + 3);
-
-  }
-
-
-  /**
-   * Create the vector which contains all the possible aligned peaks.
-   *
-   * @return vector which contains all the possible aligned peaks.
-   */
-  private Vector<AlignStructMol> getVectorAlignment(FeatureList peakListX, FeatureList peakListY,
-      RawDataFile file, RawDataFile file2) {
-
-    Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
-
-    for (FeatureListRow row : peakListX.getRows()) {
-
-      // Calculate limits for a row with which the row can be aligned
-      MZTolerance mzTolerance = super.parameterSet.getParameter(RansacAlignerParameters.MZTolerance)
-          .getValue();
-      RTTolerance rtTolerance = super.parameterSet.getParameter(
-          RansacAlignerParameters.RTToleranceBefore).getValue();
-      Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-      Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
-
-      // Get all rows of the aligned peaklist within parameter limits
-      List<FeatureListRow> candidateRows = peakListY.getRowsInsideScanAndMZRange(rtRange, mzRange);
-
-      for (FeatureListRow candidateRow : candidateRows) {
-        if (file == null || file2 == null) {
-          alignMol.addElement(new AlignStructMol(row, candidateRow));
-        } else {
-          if (candidateRow.getFeature(file2) != null) {
-            alignMol.addElement(new AlignStructMol(row, candidateRow, file, file2));
-          }
-        }
+    featureListsComboX = new ComboBox<>(featureLists);
+    featureListsComboX.valueProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue.isEmpty()) {
+        updatePreview();
       }
-    }
-    return alignMol;
+//      updatePreview();
+    });
+    comboPanel.add(featureListsComboX, 1, 1);
+    featureListsComboY = new ComboBox<>(featureLists);
+    comboPanel.add(featureListsComboY, 1, 2);
+    featureListsComboY.valueProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue.isEmpty()) {
+        updatePreview();
+      }
+    });
+
+    Button refreshButton = new Button("Refresh preview");
+    refreshButton.setOnAction(event -> updatePreview());
+    comboPanel.add(refreshButton, 0, 3);
+
+    featureListsPanel.getChildren().add(comboPanel);
+
+//    featureListsPanel.getChildren().add(refreshButton);
+
+    comboPanel.setHgap(5);
+    comboPanel.setVgap(5);
+    previewWrapperPane.setBottom(comboPanel);
+
+    plot = new AlignmentRansacPlot();
+
+    previewWrapperPane.setCenter(plot);
+//    setOnPreviewShown(this::parametersChanged);
+
+//    previewWrapperPane.visibleProperty().bind(FXCollections.observableArrayList(parameterSet.get));
+//    previewWrapperPane.visibleProperty().addListener((c, o, n) ->
+////    {
+////      if (n) {
+////        updateParameterSetFromComponents();
+////      }
+////    });
+//        parametersChanged());
+    previewWrapperPane.isResizable();
   }
 
   private void updatePreview() {
-
-    FeatureList peakListX = peakListsComboX.getSelectionModel().getSelectedItem();
-    FeatureList peakListY = peakListsComboY.getSelectionModel().getSelectedItem();
-
-    if ((peakListX == null) || (peakListY == null)) {
-      return;
-    }
-
-    // Select the rawDataFile which has more peaks in each peakList
-    int numPeaks = 0;
-    RawDataFile file = null;
-    RawDataFile file2 = null;
-
-    for (RawDataFile rfile : peakListX.getRawDataFiles()) {
-      if (peakListX.getFeatures(rfile).size() > numPeaks) {
-        numPeaks = peakListX.getFeatures(rfile).size();
-        file = rfile;
-      }
-    }
-    numPeaks = 0;
-    for (RawDataFile rfile : peakListY.getRawDataFiles()) {
-      if (peakListY.getFeatures(rfile).size() > numPeaks) {
-        numPeaks = peakListY.getFeatures(rfile).size();
-        file2 = rfile;
-      }
-    }
-
     // Update the parameter set from dialog components
     updateParameterSetFromComponents();
 
-    // Check the parameter values
-    ArrayList<String> errorMessages = new ArrayList<String>();
-    boolean parametersOK = super.parameterSet.checkParameterValues(errorMessages);
-    if (!parametersOK) {
+    //check updated values
+    ArrayList<String> messages = new ArrayList<>();
+    boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+
+    if (!allParametersOK) {
       StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-      for (String m : errorMessages) {
+      for (String m : messages) {
         message.append(m);
         message.append("\n");
       }
@@ -188,17 +131,37 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
       return;
     }
 
-    // Ransac Alignment
-    Vector<AlignStructMol> list = this.getVectorAlignment(peakListX, peakListY, file, file2);
-    RANSAC ransac = new RANSAC(super.parameterSet);
-    ransac.alignment(list);
+    FeatureList featureListX = featureListsComboX.getSelectionModel().getSelectedItem();
+    FeatureList featureListY = featureListsComboY.getSelectionModel().getSelectedItem();
 
-    // Plot the result
-    this.chart.removeSeries();
-    this.chart.addSeries(list, peakListX.getName() + " vs " + peakListY.getName(),
-        super.parameterSet.getParameter(RansacAlignerParameters.Linear).getValue());
-    this.chart.printAlignmentChart(peakListX.getName() + " RT", peakListY.getName() + " RT");
+    if ((featureListX == null) || (featureListY == null)) {
+      return;
+    }
 
+    logger.finest("Creating new thread for RANSAC preview update");
+    task = new RansacPreviewTask(this.plot, featureListX, featureListY, super.parameterSet);
+    MZmineCore.getTaskController().addTask(task);
   }
 
+  @Override
+  protected void showPreview(boolean show) {
+    super.showPreview(show);
+    if(show) {
+      updatePreview();
+    }
+  }
+
+  //using this method makes module too slow
+//  protected void parametersChanged() {
+//
+////    Scan scan = lastChangedScan.getValue();
+////    if (scan == null) {
+////      return;
+////    }
+//
+//    updateParameterSetFromComponents();
+////    loadPreview(spectrumPlot, scan);
+////    updateTitle(scan);
+//    updatePreview();
+//  }
 }

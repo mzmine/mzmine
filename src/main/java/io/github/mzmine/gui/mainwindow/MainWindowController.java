@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.mainwindow;
@@ -21,6 +28,7 @@ package io.github.mzmine.gui.mainwindow;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -105,12 +113,15 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -121,6 +132,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
+import org.jetbrains.annotations.NotNull;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class MainWindowController {
 
@@ -160,9 +173,9 @@ public class MainWindowController {
   @FXML
   public NotificationPane notificationPane;
   @FXML
-  private Scene mainScene;
-  @FXML
   public VBox bottomBox;
+  @FXML
+  private Scene mainScene;
   @FXML
   private GroupableListView<RawDataFile> rawDataList;
   @FXML
@@ -215,6 +228,32 @@ public class MainWindowController {
   @FXML
   private TableColumn<WrappedTask, Double> taskProgressColumn;
 
+  @NotNull
+  private static Pane getRawGraphic(RawDataFile rawDataFile) {
+    try {
+      ImageView rawIcon = new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor()));
+      HBox box = new HBox(3, rawIcon);
+      if (rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
+          rawDataFile.getSpectraType())) {
+        FontIcon fontIcon = FxIconUtil.getFontIcon("bi-exclamation-triangle", 15,
+            MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
+        box.getChildren().add(fontIcon);
+
+        Tooltip tip = new Tooltip("""
+            Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert. 
+            Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
+            a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
+            This leads to degraded mass accuracies.""");
+        Tooltip.install(box, tip);
+        Tooltip.install(fontIcon, tip);
+        Tooltip.install(rawIcon, tip);
+      }
+      return box;
+    } catch (Exception ex) {
+      return new StackPane();
+    }
+  }
+
   @FXML
   public void initialize() {
 
@@ -248,13 +287,13 @@ public class MainWindowController {
             setText(rawDataFile.getName());
             rawDataFile.nameProperty()
                 .addListener((observable, oldValue, newValue) -> setText(newValue));
-            setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
+            setGraphic(getRawGraphic(rawDataFile));
 
             rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
               // Check raw data file name to avoid 'setGraphic' invocation for other items from
               // different thread, where 'updateItem' is called. Can it be done better?!
               if (rawDataFile.getName().equals(getText())) {
-                setGraphic(new ImageView(FxIconUtil.getFileIcon(newColor)));
+                setGraphic(getRawGraphic(rawDataFile));
               }
             });
           }
