@@ -692,6 +692,41 @@ public class ScanUtils {
   }
 
   /**
+   * Finds all MSn scans (n>=2) within given retention time range and with MS2 precursor m/z within given
+   * m/z range.
+   *
+   * TODO - evaluate if TIC sorting is appropriate for implementation.
+   *
+   * @param dataFile
+   * @param rtRange
+   * @param mzRange
+   * @return stream sorted by default sorting (highest TIC)
+   */
+  public static Stream<Scan> streamAllMsnFragmentScans(@NotNull RawDataFile dataFile,
+      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange){
+    return streamAllMSnFragmentScans(dataFile, rtRange, mzRange, FragmentScanSorter.DEFAULT_TIC);
+  }
+
+  /**
+   * Finds all MSn scans (n>=2) within given retention time range and with MS2 precursor m/z within given
+   * m/z range. Applies sorting if sorter is not null.
+   *
+   * @param dataFile
+   * @param rtRange
+   * @param mzRange
+   * @param sorter sorted stream see {@link FragmentScanSorter}. Unsorted if null
+   * @return sorted stream
+   */
+  public static Stream<Scan> streamAllMSnFragmentScans(@NotNull RawDataFile dataFile,
+      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @Nullable Comparator<Scan> sorter) {
+
+    final Stream<Scan> stream = dataFile.getScanNumbers(0).stream()
+        .filter(s -> matchesMSnScan(s, rtRange, mzRange));
+    return sorter == null ? stream : stream.sorted(sorter);
+  }
+
+  /**
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
