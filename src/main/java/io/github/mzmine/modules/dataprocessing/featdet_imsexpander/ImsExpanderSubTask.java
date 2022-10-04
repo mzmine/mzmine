@@ -25,13 +25,9 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -67,6 +63,8 @@ public class ImsExpanderSubTask extends AbstractTask {
   private String desc;
   private final BinningMobilogramDataAccess mobilogramDataAccess;
   private final ModularFeatureList newFlist;
+
+  private final List<ExpandedTrace> expandedTraces;
   private double createdRows = 0;
 
   public ImsExpanderSubTask(@Nullable final MemoryMapStorage storage,
@@ -91,6 +89,7 @@ public class ImsExpanderSubTask extends AbstractTask {
         MZmineCore.getConfiguration().getMZFormat());
     this.mobilogramDataAccess = mobilogramDataAccess;
     this.newFlist = newFlist;
+    expandedTraces = new ArrayList<>(expandingTraces.size());
   }
 
   @Override
@@ -183,14 +182,17 @@ public class ImsExpanderSubTask extends AbstractTask {
       if (expandingTrace.getNumberOfMobilityScans() > 1) {
         final IonMobilogramTimeSeries series = expandingTrace.toIonMobilogramTimeSeries(
             getMemoryMapStorage(), mobilogramDataAccess);
-        final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
-            expandingTrace.getRow(), false);
-        final ModularFeature f = new ModularFeature(newFlist,
-            expandingTrace.getRow().getFeature(imsFile));
-        f.set(FeatureDataType.class, series);
-        row.addFeature(imsFile, f);
-        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
-        newRows.add(row);
+        expandedTraces.add(new ExpandedTrace(series, expandingTrace.getRow(),
+            expandingTrace.getRow().getFeature(imsFile)));
+
+//        final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
+//            expandingTrace.getRow(), false);
+//        final ModularFeature f = new ModularFeature(newFlist,
+//            expandingTrace.getRow().getFeature(imsFile));
+//        f.set(FeatureDataType.class, series);
+//        row.addFeature(imsFile, f);
+//        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+//        newRows.add(row);
       }
 
       createdRows++;
@@ -205,10 +207,15 @@ public class ImsExpanderSubTask extends AbstractTask {
     // allow traces to be released
     expandingTraces = null;
 
-    synchronized (newFlist) {
-      newRows.forEach(newFlist::addRow);
-    }
+//    synchronized (newFlist) {
+//      newRows.forEach(newFlist::addRow);
+//    }
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  @NotNull
+  public List<ExpandedTrace> getExpandedTraces() {
+    return expandedTraces;
   }
 }
