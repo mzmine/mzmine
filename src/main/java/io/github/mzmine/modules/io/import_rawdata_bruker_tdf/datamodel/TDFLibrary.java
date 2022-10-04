@@ -60,6 +60,23 @@ public interface TDFLibrary extends Library {
   long tims_open(String analysis_dir, long use_recalib);
 
   /**
+   * Open data set.
+   *
+   * @param analysis_dir         the name of the directory in the file system that contains the
+   *                             analysis data, in UTF-8 encoding.
+   * @param use_recalib          if non-zero, use the most recent recalibrated state of the
+   *                             analysis, if there is one; if zero, use the original "raw"
+   *                             calibration written during acquisition time.
+   * @param pressureCompensation the pressure compensation strategy. 0 = NoPressureCompensation,
+   *                             1=AnalyisGlobalPressureCompensation,
+   *                             2=PerFramePressureCompensation
+   * @return On success, returns a non-zero instance handle that needs to be passed to subsequent
+   * API calls, in particular to the required call to tims_close(). On failure, returns 0, and you
+   * can use tims_get_last_error_string() to obtain a string describing the problem.
+   */
+  long tims_open_v2(String analysis_dir, long use_recalib, int pressureCompensation);
+
+  /**
    * Close data set.
    *
    * @param handle btained by tims_open(); passing 0 is ok and has no effect.
@@ -254,11 +271,11 @@ public interface TDFLibrary extends Library {
    *                   different order"
    * @param scan_begin first scan number to read (inclusive)
    * @param scan_end   last scan number (exclusive)
-   * @param callback   Bruker: "callback accepting the MS/MS spectra" - sounds more like MS1 to me?
-   * @param user_data  ?????
+   * @param callback   callback accepting the spectra
+   * @param user_data  will be passed to callback
    * @return 0 on error
    */
-  long tims_extract_centroided_spectrum_for_frame(long handle, long frame_id, long scan_begin,
+  long tims_extract_centroided_spectrum_for_frame_v2(long handle, long frame_id, long scan_begin,
       long scan_end, CentroidCallback callback, Pointer user_data);
 
   /**
