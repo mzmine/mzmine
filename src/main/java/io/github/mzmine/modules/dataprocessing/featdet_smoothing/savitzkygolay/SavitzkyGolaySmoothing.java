@@ -75,7 +75,7 @@ public class SavitzkyGolaySmoothing implements SmoothingAlgorithm {
   public double[] smooth(@NotNull final IntensitySeries access, double[] normWeights) {
     if (normWeights == null) {
       throw new IllegalArgumentException(
-          "No smoothing weigths specified. Was the smoother initialised correctly?");
+          "No smoothing weights specified. Was the smoother initialised correctly?");
     }
 
     // Initialise.

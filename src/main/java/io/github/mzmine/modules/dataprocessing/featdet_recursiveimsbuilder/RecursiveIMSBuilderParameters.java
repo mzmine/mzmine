@@ -62,7 +62,8 @@ public class RecursiveIMSBuilderParameters extends SimpleParameterSet {
 
   public RecursiveIMSBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minNumConsecutive,
-        minNumDatapoints, advancedParameters});
+        minNumDatapoints, advancedParameters},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ims-ms_featdet/recursive_ims_builder/recursive-ims-builder.html");
   }
 
   @NotNull
