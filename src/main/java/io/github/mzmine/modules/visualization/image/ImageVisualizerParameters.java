@@ -36,9 +36,9 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-      "Scan " + "selection",
+      "Scan selection",
       "Filter scans based on their properties. Different noise levels are recommended for MS1 and MS/MS scans",
-      new ScanSelection());
+      new ScanSelection(1));
 
   public static final MZRangeParameter mzRange = new MZRangeParameter("m/z range",
       "Select m/z range");

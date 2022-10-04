@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -50,7 +51,7 @@ public class ImageChart extends StackPane {
 
   public ImageChart(@NotNull ModularFeature f, AtomicDouble progress) {
 
-    FeatureImageProvider prov = new FeatureImageProvider(f);
+    FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(f);
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     // checked in ImagingChart.class
 

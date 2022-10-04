@@ -23,7 +23,8 @@ import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -35,25 +36,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
-public class FeatureImageProvider implements PlotXYZDataProvider {
+public class FeatureImageProvider<T extends ImagingScan> implements PlotXYZDataProvider,
+    MassSpectrumProvider<T> {
 
   private static final Logger logger = Logger.getLogger(FeatureImageProvider.class.getName());
 
-  private final ModularFeature feature;
-  private IonTimeSeries<ImagingScan> series;
+  private final Feature feature;
+  private IonTimeSeries<T> series;
   private double width;
   private double height;
   private final boolean normalize;
 
-  public FeatureImageProvider(ModularFeature feature) {
+  public FeatureImageProvider(Feature feature) {
     this(feature, false);
   }
 
-  public FeatureImageProvider(ModularFeature feature, boolean normalize) {
+  public FeatureImageProvider(Feature feature, boolean normalize) {
     this.feature = feature;
     this.normalize = normalize;
     if (normalize == false) {
-      series = (IonTimeSeries<ImagingScan>) feature.getFeatureData();
+      series = (IonTimeSeries<T>) feature.getFeatureData();
     }
   }
 
@@ -102,10 +104,10 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     try {
       if (normalize) {
-        series = (IonTimeSeries<ImagingScan>) IonTimeSeriesUtils.normalizeToAvgTic(
-            (IonTimeSeries<? extends ImagingScan>) featureData, null);
+        series = (IonTimeSeries<T>) IonTimeSeriesUtils.normalizeToAvgTic(
+            (IonTimeSeries<? extends T>) featureData, null);
       } else {
-        series = (IonTimeSeries<ImagingScan>) featureData;
+        series = (IonTimeSeries<T>) featureData;
       }
     } catch (ClassCastException e) {
       logger.info("Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
@@ -153,5 +155,10 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
   @Override
   public Double getBoxWidth() {
     return width;
+  }
+
+  @Override
+  public T getSpectrum(int index) {
+    return (T) series.getSpectrum(index);
   }
 }
