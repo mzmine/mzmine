@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.visualization.image_allmsms;
 
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
@@ -35,6 +59,8 @@ public class MobilogramMsMsPane extends VBox {
   private final SpectraVisualizerTab tab;
 
   public MobilogramMsMsPane(@NotNull final Scan spectrum, Feature feature) {
+    this.setFillWidth(true);
+
     tab = new SpectraVisualizerTab(spectrum.getDataFile());
     spectrumPlot = tab.getSpectrumPlot();
     tab.loadRawData(spectrum);
@@ -47,11 +73,9 @@ public class MobilogramMsMsPane extends VBox {
     final SimpleXYChart<PlotXYDataProvider> mobilogramChart = new SimpleXYChart<>(
         unitFormat.format("Intensity", "a.u."), feature.getMobilityUnit().getAxisLabel());
 
-    mobilogramChart.addDataset(
-        new FeatureRawMobilogramProvider(feature, feature.getRawDataPointsMZRange()));
-    mobilogramChart.addDataset(new SummedMobilogramXYProvider(series.getSummedMobilogram(),
-        new SimpleObjectProperty<>(
-            ColorUtils.getContrastPaletteColor(feature.getRawDataFile().getColor(), palette)),
+    mobilogramChart.addDataset(new FeatureRawMobilogramProvider(feature, feature.getRawDataPointsMZRange()));
+    mobilogramChart.addDataset(new SummedMobilogramXYProvider(series.getSummedMobilogram(), new SimpleObjectProperty<>(
+        ColorUtils.getContrastPaletteColor(feature.getRawDataFile().getColor(), palette)),
         FeatureUtils.featureToString(feature)));
 
     mobilogramChart.setDomainAxisNumberFormatOverride(mobilityFormat);
@@ -60,10 +84,8 @@ public class MobilogramMsMsPane extends VBox {
     mobilogramChart.setRangeAxisLabel(unitFormat.format("Summed intensity", "a.u."));
 
     if (spectrum instanceof MergedMsMsSpectrum mergedMsMs) {
-      var optMin = mergedMsMs.getSourceSpectra().stream()
-          .mapToDouble(s -> ((MobilityScan) s).getMobility()).min();
-      var optMax = mergedMsMs.getSourceSpectra().stream()
-          .mapToDouble(s -> ((MobilityScan) s).getMobility()).max();
+      var optMin = mergedMsMs.getSourceSpectra().stream().mapToDouble(s -> ((MobilityScan) s).getMobility()).min();
+      var optMax = mergedMsMs.getSourceSpectra().stream().mapToDouble(s -> ((MobilityScan) s).getMobility()).max();
       if (optMin.isPresent() && optMax.isPresent()) {
         IntervalMarker msmsInterval = new IntervalMarker(optMin.getAsDouble(), optMax.getAsDouble(),
             palette.getPositiveColorAWT(), new BasicStroke(1f), palette.getPositiveColorAWT(),
@@ -74,6 +96,16 @@ public class MobilogramMsMsPane extends VBox {
 
     getChildren().add(spectrumPlot);
     getChildren().add(mobilogramChart);
+
+    spectrumPlot.setMinHeight(250);
+    mobilogramChart.setMinHeight(250);
+
+    this.widthProperty().addListener(
+        (observable, oldValue, newValue) -> spectrumPlot.getCanvas().widthProperty()
+            .set(newValue.doubleValue()));
+    this.widthProperty().addListener(
+        (observable, oldValue, newValue) -> mobilogramChart.getCanvas().widthProperty()
+            .set(newValue.doubleValue()));
   }
 }
 

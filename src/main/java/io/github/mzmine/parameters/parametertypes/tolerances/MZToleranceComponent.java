@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -66,8 +65,13 @@ public class MZToleranceComponent extends FlowPane {
   }
 
   public void setValue(MZTolerance value) {
-    mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
-    ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+    if (value != null) {
+      mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
+      ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+    } else {
+      mzToleranceField.setText("");
+      ppmToleranceField.setText("");
+    }
   }
 
   public void setToolTipText(String toolTip) {

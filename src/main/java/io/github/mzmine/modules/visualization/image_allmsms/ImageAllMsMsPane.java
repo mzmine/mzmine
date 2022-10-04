@@ -1,22 +1,25 @@
-/**
- * MIT License
- * <p>
- * Copyright (c) 2006-2022 The MZmine Development Team
- * <p>
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * <p>
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.image_allmsms;
@@ -34,6 +37,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import java.awt.Color;
 import java.util.List;
@@ -54,12 +58,12 @@ public class ImageAllMsMsPane extends BorderPane {
 
   private static final Logger logger = Logger.getLogger(ImageAllMsMsPane.class.getName());
 
-  protected static final SplitPane mainSplit = new SplitPane();
-  protected static final BorderPane mainContent = new BorderPane();
-  protected static final ScrollPane msmsScroll = new ScrollPane();
-  protected static final VBox msmsContent = new VBox();
-  protected static final VBox spectrumContentWrapper = new VBox();
-  protected static final VBox ms1Content = new VBox();
+  protected final SplitPane mainSplit = new SplitPane();
+  protected final BorderPane mainContent = new BorderPane();
+  protected final ScrollPane msmsScroll = new ScrollPane();
+  protected final VBox msmsContent = new VBox();
+  protected final VBox spectrumContentWrapper = new VBox();
+  protected final VBox ms1Content = new VBox();
 
   protected final SpectraVisualizerTab tab;
 
@@ -71,16 +75,29 @@ public class ImageAllMsMsPane extends BorderPane {
     super();
 
     setCenter(mainSplit);
-    mainSplit.getItems().addAll(mainContent, msmsScroll);
-    spectrumContentWrapper.getChildren()
-        .addAll(ms1Content, new Separator(Orientation.HORIZONTAL), msmsContent);
+    mainSplit.getItems().add(mainContent);
+    mainSplit.getItems().add(msmsScroll);
+
     msmsScroll.setContent(spectrumContentWrapper);
 
     tab = new SpectraVisualizerTab(feature.getRawDataFile());
-    ms1Content.getChildren().add(tab.getSpectrumPlot());
+    final SpectraPlot spectrumPlot = tab.getSpectrumPlot();
+    spectrumPlot.setMinHeight(300);
+    ms1Content.getChildren().add(spectrumPlot);
+
+    spectrumContentWrapper.getChildren().add(ms1Content);
+    spectrumContentWrapper.getChildren().add(new Separator(Orientation.HORIZONTAL));
+    spectrumContentWrapper.getChildren().add(msmsContent);
+
+    ms1Content.fillWidthProperty().set(true);
+    spectrumContentWrapper.fillWidthProperty().set(true);
+    msmsScroll.fitToWidthProperty().set(true);
+    msmsScroll.fitToHeightProperty().set(true);
+    msmsContent.fillWidthProperty().set(true);
 
     imagePlot = new ImagingPlot(
         MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class));
+    mainContent.setCenter(imagePlot);
 
     imagePlot.getChart().cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       final XYDataset dataset = newValue.getDataset();
@@ -109,6 +126,7 @@ public class ImageAllMsMsPane extends BorderPane {
         .getNegativeColorAWT();
 
     imagePlot.getChart().removeAllDatasets();
+    imagePlot.getChart().getChart().getXYPlot().clearAnnotations();
     msmsContent.getChildren().clear();
 
     if (feature.getFeatureData() == null || feature.getFeatureData().getSpectra().isEmpty()
@@ -126,16 +144,16 @@ public class ImageAllMsMsPane extends BorderPane {
             if (info == null) {
               continue;
             }
-//            final XYBoxAnnotation msMsMarker = new XYBoxAnnotation(info.xIndexPos(),
-//                info.yIndexPos(), info.xIndexPos() + 1, info.yIndexPos() + 1, new BasicStroke(0f),
-//                markerColor, outlineColor);
             XYPointerAnnotation msMsMarker = new XYPointerAnnotation(
                 String.format("%d, %d", info.xIndexPos(), info.yIndexPos()), info.xIndexPos(),
-                info.yIndexPos(), 45.0);
-            msMsMarker.setBaseRadius(6);
-            msMsMarker.setTipRadius(3);
+                info.yIndexPos(), -45.0);
+            msMsMarker.setBaseRadius(50);
+            msMsMarker.setTipRadius(10);
             msMsMarker.setArrowPaint(markerColor);
             msMsMarker.setOutlinePaint(outlineColor);
+//            XYBoxAnnotation msMsMarker = new XYBoxAnnotation(info.xIndexPos(), info.yIndexPos(),
+//                info.xIndexPos() + 50, info.yIndexPos() + 50, new BasicStroke(1.0f), Color.green,
+//                Color.yellow);
             imagePlot.getChart().getChart().getXYPlot().addAnnotation(msMsMarker, false);
           }
         });
