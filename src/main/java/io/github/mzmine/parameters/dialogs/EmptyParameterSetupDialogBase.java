@@ -107,6 +107,8 @@ public class EmptyParameterSetupDialogBase extends Stage {
     parameterSet = paramPane.getParameterSet();
 
     mainPane = new BorderPane(paramPane);
+    mainPane.setMaxHeight(MZmineCore.getDesktop().getMainWindow().getScene().getHeight()*0.95);
+    mainPane.setMaxHeight(MZmineCore.getDesktop().getMainWindow().getScene().getHeight()*0.95);
     Scene scene = new Scene(mainPane);
 
     // Use main CSS

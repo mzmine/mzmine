@@ -40,7 +40,7 @@ public class FeatureCorrelationHistogramParameters extends SimpleParameterSet {
 
   public FeatureCorrelationHistogramParameters() {
     super(new Parameter[]{featureLists, binWidth},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional.html/correlated-features-deltamz-histogram");
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#correlation-coefficient-histogram");
   }
 
 }

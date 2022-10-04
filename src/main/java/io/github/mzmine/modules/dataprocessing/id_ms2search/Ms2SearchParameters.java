@@ -57,7 +57,8 @@ public class Ms2SearchParameters extends SimpleParameterSet {
 
   public Ms2SearchParameters() {
     super(new Parameter[]{peakList1, peakList2, mzTolerance, intensityThreshold,
-        minimumIonsMatched, scoreThreshold});
+        minimumIonsMatched, scoreThreshold},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_ms2_similarity/ms2-similarity-search.html");
   }
 
   @Override

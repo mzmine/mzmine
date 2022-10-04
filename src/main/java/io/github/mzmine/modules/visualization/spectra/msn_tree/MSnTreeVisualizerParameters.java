@@ -35,7 +35,8 @@ public class MSnTreeVisualizerParameters extends SimpleParameterSet {
       "Tolerance to group precursor ions into trees", 0.004, 20);
 
   public MSnTreeVisualizerParameters() {
-    super(new Parameter[]{mzTol});
+    super(new Parameter[]{mzTol},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_overview/raw_data_additional.html#msn-spectra-tree");
   }
 
 }

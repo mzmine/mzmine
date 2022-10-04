@@ -45,7 +45,7 @@ import javafx.application.Platform;
 public class OnlineDBSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Online database search";
-  private static final String MODULE_DESCRIPTION = "This module attepts to find those peaks in a feature list, which form an isotope pattern.";
+  private static final String MODULE_DESCRIPTION = "This module attempts to find those peaks in a feature list, which form an isotope pattern.";
 
   @Override
   public @NotNull String getName() {
