@@ -29,7 +29,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewPane;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
@@ -39,6 +38,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,62 +46,68 @@ public class BuildSelectedRanges implements Runnable {
 
   private final Range<Double> mzRange;
   private final Set<Frame> frames;
-  private final IMSRawDataOverviewPane pane;
   private final IMSRawDataFile file;
   private final ScanSelection scanSelection;
   private final Float rtWidth;
   private final BinningMobilogramDataAccess binning;
+  private final Consumer<ColoredXYDataset> mobilogramConsumer;
+  private final Consumer<TICDataSet> chromatogramConsumer;
 
   public BuildSelectedRanges(@NotNull Range<Double> mzRange, @NotNull Set<Frame> frames,
-      @NotNull IMSRawDataFile file, @NotNull ScanSelection scanSelection,
-      @NotNull IMSRawDataOverviewPane pane, Float rtWidth,
-      final BinningMobilogramDataAccess binning) {
+      @NotNull IMSRawDataFile file, @NotNull ScanSelection scanSelection, Float rtWidth,
+      final BinningMobilogramDataAccess binning, Consumer<ColoredXYDataset> mobilogramConsumer,
+      java.util.function.Consumer<TICDataSet> chromatogramConsumer) {
     this.mzRange = mzRange;
     this.frames = frames;
-    this.pane = pane;
     this.file = file;
     this.scanSelection = scanSelection;
     this.rtWidth = rtWidth;
     this.binning = binning;
+    this.mobilogramConsumer = mobilogramConsumer;
+    this.chromatogramConsumer = chromatogramConsumer;
   }
 
   @Override
   public void run() {
     Frame frame = frames.stream().findAny().orElse(null);
-    if(frame == null) {
+    if (frame == null) {
       return;
     }
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
     final String seriesKey =
-        "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
-            .format(mzRange.upperEndpoint());
-    ColoredXYDataset dataset = null;
+        "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat.format(
+            mzRange.upperEndpoint());
 
-    List<IonMobilitySeries> mobilograms = new ArrayList<>();
-    for (Frame f : frames) {
-      final IonMobilitySeries mobilogram = IonMobilityUtils
-          .buildMobilogramForMzRange(f, mzRange, MobilogramType.TIC, null);
-      mobilograms.add(mobilogram);
+    if (mobilogramConsumer != null) {
+      ColoredXYDataset dataset = null;
+
+      List<IonMobilitySeries> mobilograms = new ArrayList<>();
+      for (Frame f : frames) {
+        final IonMobilitySeries mobilogram = IonMobilityUtils.buildMobilogramForMzRange(f, mzRange,
+            MobilogramType.TIC, null);
+        mobilograms.add(mobilogram);
+      }
+
+      binning.setMobilogram(mobilograms);
+      final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
+      SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
+          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true);
+      dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
+      mobilogramConsumer.accept(dataset);
     }
 
-    binning.setMobilogram(mobilograms);
-    final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
-    SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
-        new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true);
-    dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
-
-    ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
-        scanSelection.getBaseFilteringInteger(),
-        Range.closed(frame.getRetentionTime() - rtWidth / 2,
-            frame.getRetentionTime() + rtWidth / 2), scanSelection.getScanMobilityRange(),
-        scanSelection.getPolarity(), scanSelection.getSpectrumType(),
-        scanSelection.getMsLevel(), scanSelection.getScanDefinition());
-    TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file),
-        mzRange, null);
-    ticDataSet.setCustomSeriesKey(seriesKey);
-    final ColoredXYDataset finalDataset = dataset;
-    MZmineCore.runLater(() -> pane.setSelectedRangesToChart(finalDataset, ticDataSet, color));
+    if (chromatogramConsumer != null) {
+      ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
+          scanSelection.getBaseFilteringInteger(),
+          Range.closed(frame.getRetentionTime() - rtWidth / 2,
+              frame.getRetentionTime() + rtWidth / 2), scanSelection.getScanMobilityRange(),
+          scanSelection.getPolarity(), scanSelection.getSpectrumType(), scanSelection.getMsLevel(),
+          scanSelection.getScanDefinition());
+      TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file), mzRange, null);
+      ticDataSet.setCustomSeriesKey(seriesKey);
+      chromatogramConsumer.accept(ticDataSet);
+    }
   }
 }

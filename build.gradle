@@ -189,7 +189,6 @@ dependencies {
     implementation 'org.kordamp.ikonli:ikonli-javafx:12.3.1'
     implementation 'org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1'
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
-    implementation "org.drjekyll:fontchooser:2.4"
     implementation 'org.json:json:20211205'
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
