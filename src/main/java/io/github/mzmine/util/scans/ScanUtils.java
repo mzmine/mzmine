@@ -702,7 +702,7 @@ public class ScanUtils {
    * @param mzRange
    * @return stream sorted by default sorting (highest TIC)
    */
-  public static Stream<Scan> streamAllMsnFragmentScans(@NotNull RawDataFile dataFile,
+  public static Stream<Scan> streamAllMSnFragmentScans(@NotNull RawDataFile dataFile,
       @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange){
     return streamAllMSnFragmentScans(dataFile, rtRange, mzRange, FragmentScanSorter.DEFAULT_TIC);
   }
