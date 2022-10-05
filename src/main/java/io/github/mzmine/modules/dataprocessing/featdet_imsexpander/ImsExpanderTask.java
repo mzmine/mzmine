@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_imsexpander;
@@ -25,11 +32,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -71,6 +81,7 @@ public class ImsExpanderTask extends AbstractTask {
   private String desc = "Mobility expanding.";
   private long totalFrames = 1;
   private long totalRows = 1;
+  private long createdRows = 0;
 
   private final int maxNumTraces;
 
@@ -102,8 +113,9 @@ public class ImsExpanderTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return
-        0.5 * tasks.stream().mapToDouble(AbstractTask::getFinishedPercentage).sum() / tasks.size()
-            + 0.5 * (processedRows.get() / (double) totalRows);
+        0.4 * tasks.stream().mapToDouble(AbstractTask::getFinishedPercentage).sum() / tasks.size()
+            + 0.4 * (processedRows.get() / (double) totalRows)
+            + 0.2 * createdRows / (double) totalRows;
   }
 
   @Override
@@ -124,6 +136,8 @@ public class ImsExpanderTask extends AbstractTask {
     newFlist.setSelectedScans(imsFile, flist.getSeletedScans(imsFile));
     newFlist.getAppliedMethods().addAll(flist.getAppliedMethods());
     DataTypeUtils.addDefaultIonMobilityTypeColumns(newFlist);
+
+    desc = "Mobility expanding feature list " + flist.getName();
 
     final List<? extends FeatureListRow> rows = new ArrayList<>(flist.getRows());
     rows.sort((Comparator.comparingDouble(FeatureListRow::getAverageMZ)));
@@ -197,6 +211,23 @@ public class ImsExpanderTask extends AbstractTask {
     if (!mayContinue.get() || getStatus() == TaskStatus.CANCELED) {
       setStatus(TaskStatus.CANCELED);
       return;
+    }
+
+    desc = "Creating new features for feature list " + flist.getName();
+    for (AbstractTask task : tasks) {
+      final ImsExpanderSubTask t = (ImsExpanderSubTask) task;
+      final List<ExpandedTrace> expandedTraces = t.getExpandedTraces();
+
+      for (ExpandedTrace expandedTrace : expandedTraces) {
+        final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
+            expandedTrace.oldRow(), false);
+        final ModularFeature f = new ModularFeature(newFlist, expandedTrace.oldFeature());
+        f.set(FeatureDataType.class, expandedTrace.series());
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+        row.addFeature(imsFile, f);
+        newFlist.addRow(row);
+        createdRows++;
+      }
     }
 
     // explicitly don't renumber, IDs are kept from the old flist.
