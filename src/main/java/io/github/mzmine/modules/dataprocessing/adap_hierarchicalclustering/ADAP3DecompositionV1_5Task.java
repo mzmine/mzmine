@@ -198,11 +198,11 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
       // Add the reference peak
-      FeatureListRow refPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
+      FeatureListRow originalPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
       // ?
-      refPeakRow.setFeatureList(resolvedPeakList);
+      originalPeakRow.setFeatureList(resolvedPeakList);
       // ?
-      Feature refPeak = new ModularFeature(resolvedPeakList, refPeakRow.getBestFeature());
+      Feature refPeak = new ModularFeature(resolvedPeakList, originalPeakRow.getBestFeature());
 
       // Add spectrum
       List<DataPoint> dataPoints = new ArrayList<>();
@@ -217,15 +217,15 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       row.addFeature(dataFile, refPeak);
 
       // Add PeakInformation
-      if (refPeakRow.getFeatureInformation() == null) {
+      if (originalPeakRow.getFeatureInformation() != null) {
         SimpleFeatureInformation information = new SimpleFeatureInformation(
-            new HashMap<>(refPeakRow.getFeatureInformation().getAllProperties()));
+            new HashMap<>(originalPeakRow.getFeatureInformation().getAllProperties()));
         row.setFeatureInformation(information);
       }
 
       // Set row properties
-      row.setAverageMZ(refPeakRow.getAverageMZ());
-      row.setAverageRT(refPeakRow.getAverageRT());
+      row.setAverageMZ(originalPeakRow.getAverageMZ());
+      row.setAverageRT(originalPeakRow.getAverageRT());
 
       // resolvedPeakList.addRow(row);
       newPeakListRows.add(row);

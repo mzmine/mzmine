@@ -29,6 +29,7 @@ import java.util.Random;
 import java.util.Set;
 
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ChromatogramPeakPair;
+import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import org.apache.commons.lang3.ArrayUtils;
@@ -260,7 +261,25 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     super.paramsPane.add(pnlVisible, 0, super.getNumberOfParameters() + 3);
   }
 
+  @Override
+  public void parametersChanged() {
+    super.updateParameterSetFromComponents();
 
+    if (!preview.isSelected())
+      return;
+
+    switch (compareParameters(parameterSet.getParameters())) {
+      case FIRST_PHASE_CHANGE:
+        comboPeakList.getOnAction().handle(new ActionEvent());
+//        comboPeakList.getSelectionModel().select(comboPeakList.getSelectionModel().getSelectedIndex());
+        break;
+
+      case SECOND_PHASE_CHANGE:
+        comboClusters.getOnAction().handle(new ActionEvent());
+//        comboClusters.getSelectionModel().select(comboClusters.getSelectionModel().getSelectedIndex());
+        break;
+    }
+  }
 
   /**
    * Cluster all peaks in PeakList based on retention time
