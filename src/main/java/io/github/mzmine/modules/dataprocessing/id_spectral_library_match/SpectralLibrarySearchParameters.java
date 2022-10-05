@@ -125,7 +125,8 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   public SpectralLibrarySearchParameters() {
     super(new Parameter[]{peakLists, libraries, msLevel, allMS2Spectra, mzTolerancePrecursor,
         removePrecursor, ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern,
-        cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});
+        cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html");
   }
 
   @Override

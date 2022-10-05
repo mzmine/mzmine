@@ -48,6 +48,7 @@
 <?import javafx.scene.Scene?>
 <?import org.controlsfx.control.StatusBar?>
 <?import org.controlsfx.control.NotificationPane?>
+<?import javafx.stage.Screen?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -55,7 +56,9 @@
     <URL value="@/themes/MZmine_default.css"/>
   </stylesheets>
   <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400" minWidth="600"
-    prefWidth="1300" prefHeight="800" xmlns="http://javafx.com/javafx/14.0.1"
+    prefWidth="${screen.visualBounds.width*0.9}"
+    prefHeight="${screen.visualBounds.height*0.9}"
+    xmlns="http://javafx.com/javafx/14.0.1"
     xmlns:fx="http://javafx.com/fxml/1">
     <top>
       <fx:include source="MainMenu.fxml"/>
@@ -248,5 +251,8 @@
         </StatusBar>
       </VBox>
     </bottom>
+    <fx:define>
+      <Screen fx:factory="getPrimary" fx:id="screen"/>
+    </fx:define>
   </BorderPane>
 </Scene>

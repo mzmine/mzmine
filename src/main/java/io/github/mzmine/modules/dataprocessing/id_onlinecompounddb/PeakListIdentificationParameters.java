@@ -43,7 +43,8 @@ public class PeakListIdentificationParameters extends SimpleParameterSet {
     super(new Parameter[] {peakLists, SingleRowIdentificationParameters.DATABASE, ionizationType,
         SingleRowIdentificationParameters.MAX_RESULTS,
         SingleRowIdentificationParameters.MZ_TOLERANCE,
-        SingleRowIdentificationParameters.ISOTOPE_FILTER});
+        SingleRowIdentificationParameters.ISOTOPE_FILTER},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_online_db/online-cmpd-db-search.html");
   }
 
 }

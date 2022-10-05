@@ -51,7 +51,8 @@ public class PrecursorDBSearchParameters extends SimpleParameterSet {
       new OptionalParameter<>(new RTToleranceParameter());
 
   public PrecursorDBSearchParameters() {
-    super(new Parameter[] {peakLists, dataBaseFile, mzTolerancePrecursor, rtTolerance});
+    super(new Parameter[] {peakLists, dataBaseFile, mzTolerancePrecursor, rtTolerance},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_spectra_lib/local-spectra-lib-search.html");
   }
 
 }

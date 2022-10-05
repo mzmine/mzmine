@@ -84,7 +84,8 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
   public FormulaPredictionFeatureListParameters() {
     super(new Parameter[] {charge, ionization, FEATURE_LISTS, sorting, mzTolerance,
         maxBestFormulasPerFeature, elements, elementalRatios, rdbeRestrictions, isotopeFilter,
-        msmsFilter});
+        msmsFilter},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_chem_formula/chem-formula-pred.html");
   }
 
   @Override

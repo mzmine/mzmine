@@ -32,11 +32,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,7 +51,6 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -79,6 +81,7 @@ public class ImsExpanderTask extends AbstractTask {
   private String desc = "Mobility expanding.";
   private long totalFrames = 1;
   private long totalRows = 1;
+  private long createdRows = 0;
 
   private final int maxNumTraces;
 
@@ -110,8 +113,9 @@ public class ImsExpanderTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return
-        0.5 * tasks.stream().mapToDouble(AbstractTask::getFinishedPercentage).sum() / tasks.size()
-            + 0.5 * (processedRows.get() / (double) totalRows);
+        0.4 * tasks.stream().mapToDouble(AbstractTask::getFinishedPercentage).sum() / tasks.size()
+            + 0.4 * (processedRows.get() / (double) totalRows)
+            + 0.2 * createdRows / (double) totalRows;
   }
 
   @Override
@@ -133,8 +137,9 @@ public class ImsExpanderTask extends AbstractTask {
     newFlist.getAppliedMethods().addAll(flist.getAppliedMethods());
     DataTypeUtils.addDefaultIonMobilityTypeColumns(newFlist);
 
-    final List<? extends FeatureListRow> rows = new ArrayList<>(FeatureUtils.copyFeatureRows(
-        (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) flist.getRows()));
+    desc = "Mobility expanding feature list " + flist.getName();
+
+    final List<? extends FeatureListRow> rows = new ArrayList<>(flist.getRows());
     rows.sort((Comparator.comparingDouble(FeatureListRow::getAverageMZ)));
 
     // either we use the row m/z + tolerance range, or we use the mz range of the feature.
@@ -206,6 +211,23 @@ public class ImsExpanderTask extends AbstractTask {
     if (!mayContinue.get() || getStatus() == TaskStatus.CANCELED) {
       setStatus(TaskStatus.CANCELED);
       return;
+    }
+
+    desc = "Creating new features for feature list " + flist.getName();
+    for (AbstractTask task : tasks) {
+      final ImsExpanderSubTask t = (ImsExpanderSubTask) task;
+      final List<ExpandedTrace> expandedTraces = t.getExpandedTraces();
+
+      for (ExpandedTrace expandedTrace : expandedTraces) {
+        final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
+            expandedTrace.oldRow(), false);
+        final ModularFeature f = new ModularFeature(newFlist, expandedTrace.oldFeature());
+        f.set(FeatureDataType.class, expandedTrace.series());
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+        row.addFeature(imsFile, f);
+        newFlist.addRow(row);
+        createdRows++;
+      }
     }
 
     // explicitly don't renumber, IDs are kept from the old flist.

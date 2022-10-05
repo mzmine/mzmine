@@ -80,7 +80,7 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   public ImsExpanderParameters() {
     super(new Parameter[]{featureLists, mzTolerance, useRawData, mobilogramBinWidth, maxNumTraces,
             handleOriginal},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ims_expander/ims-expander.html");
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ims-ms_featdet/featdet_ims_expander/ims-expander.html");
   }
 
   @Override

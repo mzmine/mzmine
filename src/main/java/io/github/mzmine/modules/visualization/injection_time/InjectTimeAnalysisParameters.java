@@ -64,7 +64,7 @@ public class InjectTimeAnalysisParameters extends SimpleParameterSet {
   public InjectTimeAnalysisParameters() {
     super(new Parameter[]{dataFiles, scanSelection, mzRange, minSignalsInScan, minIntensityFactor,
         massDefect, useMobilityScans},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ms_raw_data_overview/raw_data_additional.md#scan-inject-time-analysis");
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_overview/raw_data_additional.html#scan-inject-time-analysis");
   }
 
 

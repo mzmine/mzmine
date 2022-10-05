@@ -59,6 +59,7 @@ public class AnnotationNetworkParameters extends SimpleParameterSet {
    */
   public AnnotationNetworkParameters() {
     super(new Parameter[]{PEAK_LISTS, ONLY_BEST_NETWORKS, COLLAPSE_NODES, CONNECT_BY_NET_RELATIONS,
-        MS1_SIMILARITY_EDGES, MS2_SIMILARITY_EDGES});
+        MS1_SIMILARITY_EDGES, MS2_SIMILARITY_EDGES},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/interactive_ion_id_netw/interactive_ion_id_netw.html");
   }
 }
