@@ -94,8 +94,8 @@ public class MobilogramMsMsPane extends VBox {
       }
     }
 
-    getChildren().add(spectrumPlot);
     getChildren().add(mobilogramChart);
+    getChildren().add(spectrumPlot);
 
     spectrumPlot.setMinHeight(250);
     mobilogramChart.setMinHeight(250);

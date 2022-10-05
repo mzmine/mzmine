@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.visualization.image_allmsms;
 
 import io.github.mzmine.datamodel.ImagingFrame;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
@@ -35,12 +36,15 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import java.awt.Color;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -76,9 +80,7 @@ public class ImageAllMsMsPane extends BorderPane {
 
     setCenter(mainSplit);
     mainSplit.getItems().add(mainContent);
-    mainSplit.getItems().add(msmsScroll);
-
-    msmsScroll.setContent(spectrumContentWrapper);
+    mainSplit.getItems().add(spectrumContentWrapper);
 
     tab = new SpectraVisualizerTab(feature.getRawDataFile());
     final SpectraPlot spectrumPlot = tab.getSpectrumPlot();
@@ -87,7 +89,8 @@ public class ImageAllMsMsPane extends BorderPane {
 
     spectrumContentWrapper.getChildren().add(ms1Content);
     spectrumContentWrapper.getChildren().add(new Separator(Orientation.HORIZONTAL));
-    spectrumContentWrapper.getChildren().add(msmsContent);
+    spectrumContentWrapper.getChildren().add(msmsScroll);
+    msmsScroll.setContent(msmsContent);
 
     ms1Content.fillWidthProperty().set(true);
     spectrumContentWrapper.fillWidthProperty().set(true);
@@ -134,6 +137,7 @@ public class ImageAllMsMsPane extends BorderPane {
       return;
     }
 
+    AtomicInteger integer = new AtomicInteger(10);
     imagePlot.getChart().applyWithNotifyChanges(false, () -> {
       if (feature != null) {
         imagePlot.setData(new ColoredXYZDataset(new FeatureImageProvider<>(feature, true)));
@@ -144,17 +148,20 @@ public class ImageAllMsMsPane extends BorderPane {
             if (info == null) {
               continue;
             }
-            XYPointerAnnotation msMsMarker = new XYPointerAnnotation(
-                String.format("%d, %d", info.xIndexPos(), info.yIndexPos()), info.xIndexPos(),
-                info.yIndexPos(), -45.0);
-            msMsMarker.setBaseRadius(50);
-            msMsMarker.setTipRadius(10);
-            msMsMarker.setArrowPaint(markerColor);
-            msMsMarker.setOutlinePaint(outlineColor);
-//            XYBoxAnnotation msMsMarker = new XYBoxAnnotation(info.xIndexPos(), info.yIndexPos(),
-//                info.xIndexPos() + 50, info.yIndexPos() + 50, new BasicStroke(1.0f), Color.green,
-//                Color.yellow);
-            imagePlot.getChart().getChart().getXYPlot().addAnnotation(msMsMarker, false);
+
+            // transform the coordinates back to the original file coordinates
+            final double[] ms2Coord = transformCoordinates(info,
+                (ImagingRawDataFile) feature.getRawDataFile());
+            if (ms2Coord != null) {
+              XYPointerAnnotation msMsMarker = new XYPointerAnnotation(
+                  String.format("%.0f um, %.0f um (%s)", ms2Coord[0], ms2Coord[1], info.spotName()),
+                  ms2Coord[0], ms2Coord[1], 315);
+              msMsMarker.setBaseRadius(50);
+              msMsMarker.setTipRadius(10);
+              msMsMarker.setArrowPaint(markerColor);
+              msMsMarker.setOutlinePaint(outlineColor);
+              imagePlot.getChart().getChart().getXYPlot().addAnnotation(msMsMarker, false);
+            }
           }
         });
       }
@@ -163,6 +170,25 @@ public class ImageAllMsMsPane extends BorderPane {
     for (final Scan msms : feature.getAllMS2FragmentScans()) {
       msmsContent.getChildren().add(new MobilogramMsMsPane(msms, feature));
     }
+  }
+
+  private double[] transformCoordinates(MaldiSpotInfo info, ImagingRawDataFile rawDataFile) {
+    final String spotName = info.spotName();
+    final ImagingScan matchingScan = (ImagingScan) rawDataFile.getScans().stream().filter(
+            scan -> scan instanceof ImagingScan is && is.getMaldiSpotInfo().spotName().equals(spotName))
+        .findFirst().orElse(null);
+
+    if (matchingScan == null) {
+      return null;
+    }
+
+    final ImagingParameters imagingParam = rawDataFile.getImagingParam();
+    final double height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
+    final double width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
+
+    final Coordinates scanCoord = matchingScan.getCoordinates();
+    return scanCoord != null ? new double[]{scanCoord.getX() * width, scanCoord.getY() * height}
+        : null;
   }
 
   @Nullable
