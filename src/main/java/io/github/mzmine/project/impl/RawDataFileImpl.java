@@ -206,9 +206,7 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   @NotNull
   public List<Scan> getScanNumbers(int msLevel) {
-    return msLevel == 0 ?
-        scans.stream().collect(Collectors.toList()) :
-        scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
+    return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
   }
 
   /**
