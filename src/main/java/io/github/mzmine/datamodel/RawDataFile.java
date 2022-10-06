@@ -94,7 +94,7 @@ public interface RawDataFile {
   /**
    * Returns sorted array of all scan numbers in given MS level
    *
-   * @param msLevel MS level (0 for all scans)
+   * @param msLevel MS level
    * @return Sorted array of scan numbers, never returns null
    */
   @NotNull List<Scan> getScanNumbers(int msLevel);
