@@ -91,6 +91,7 @@ import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -579,11 +580,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     MZTolerance tol = new MZTolerance(0.005, 15);
 
     TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{file}, TICPlotType.BASEPEAK,
-        new ScanSelection(1), selectedFeature.getRawDataPointsMZRange(), null, null);
+        new ScanSelection(1), tol.getToleranceRange(selectedFeature.getMZ()), null, null);
 
+    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
       TICDataSet dataSet = new TICDataSet(file, matchingScans,
           tol.getToleranceRange(msms.getMzValue(i)), null, TICPlotType.BASEPEAK);
+      dataSet.setCustomSeriesKey(String.format("m/z %s", mzFormat.format(msms.getMzValue(i))));
       window.getTICPlot().addTICDataSet(dataSet,
           ColorUtils.getContrastPaletteColorAWT(file.getColor(),
               MZmineCore.getConfiguration().getDefaultColorPalette()));
