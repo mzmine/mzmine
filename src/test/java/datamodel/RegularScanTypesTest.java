@@ -1,19 +1,25 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * This file is part of MZmine.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package datamodel;
@@ -22,6 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -34,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -68,6 +76,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.opentest4j.AssertionFailedError;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -244,5 +253,68 @@ public class RegularScanTypesTest {
     Assertions.assertEquals(second.getIonizationType(), secondLoaded.getIonizationType());
     Assertions.assertEquals(second.getMsMsScore(), secondLoaded.getMsMsScore());
     Assertions.assertEquals(second.getAccurateMz(), secondLoaded.getAccurateMz());
+  }
+
+  @Test
+  void testSimplePseudoSpectrum() {
+    var scan = file.getScan(6);
+    final PseudoSpectrum spectrum = new SimplePseudoSpectrum(file, 2, scan.getRetentionTime(),
+        scan.getMsMsInfo(), scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
+        scan.getPolarity(), "A pseudo spectrum");
+
+    Object o1 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, flist, row, null,
+        null);
+    Object o2 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, flist, row,
+        feature, file);
+    Object o3 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, flist, row, null,
+        null);
+    Object o4 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, flist, row, feature,
+        file);
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) o1);
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) o2);
+    Assertions.assertEquals(o3, null);
+    Assertions.assertEquals(o4, null);
+
+    Object o5 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
+        flist, row, null, null);
+    Object o6 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
+        flist, row, feature, file);
+    Assertions.assertEquals(null,
+        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, flist, row, null, null));
+    Assertions.assertEquals(null,
+        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, flist, row, feature,
+            file));
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o5).get(0)));
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o6).get(0)));
+
+    final PseudoSpectrum spectrum2 = new SimplePseudoSpectrum(file, 1, scan.getRetentionTime(),
+        scan.getMsMsInfo(), scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
+        scan.getPolarity(), "A pseudo spectrum1");
+    // test fail
+    Assertions.assertThrows(AssertionFailedError.class,
+        () -> comparePseudoSpectra(spectrum, spectrum2));
+  }
+
+  private static void comparePseudoSpectra(PseudoSpectrum value, PseudoSpectrum loaded) {
+    Assertions.assertEquals(value.getBasePeakIndex(), loaded.getBasePeakIndex());
+    Assertions.assertEquals(value.getBasePeakMz(), loaded.getBasePeakMz());
+    Assertions.assertEquals(value.getBasePeakIntensity(), loaded.getBasePeakIntensity());
+    Assertions.assertEquals(value.getDataFile(), loaded.getDataFile());
+    Assertions.assertEquals(value.getDataPointMZRange(), loaded.getDataPointMZRange());
+    Assertions.assertEquals(value.getScanningMZRange(), loaded.getScanningMZRange());
+    Assertions.assertEquals(value.getPolarity(), loaded.getPolarity());
+    Assertions.assertEquals(value.getNumberOfDataPoints(), loaded.getNumberOfDataPoints());
+    Assertions.assertEquals(value.getScanNumber(), loaded.getScanNumber());
+    Assertions.assertEquals(value.getPrecursorCharge(), loaded.getPrecursorCharge());
+    Assertions.assertEquals(value.getMsMsInfo(), loaded.getMsMsInfo());
+    Assertions.assertEquals(value.getRetentionTime(), loaded.getRetentionTime());
+    Assertions.assertEquals(value.getScanDefinition(), loaded.getScanDefinition());
+    Assertions.assertEquals(value.getTIC(), loaded.getTIC());
+    Assertions.assertEquals(value.getMSLevel(), loaded.getMSLevel());
+
+    for (int i = 0; i < value.getNumberOfDataPoints(); i++) {
+      Assertions.assertEquals(value.getIntensityValue(i), loaded.getIntensityValue(i));
+      Assertions.assertEquals(value.getMzValue(i), loaded.getMzValue(i));
+    }
   }
 }
