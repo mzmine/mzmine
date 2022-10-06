@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.timstofmaldiacq;
 
 import com.google.common.collect.Range;
@@ -77,11 +101,29 @@ public class TimsTOFAcquisitionUtils {
     return csv;
   }
 
+  /**
+   * @param commandFile          path to command file
+   * @param spot                 spot name
+   * @param precursorList        list of precursors
+   * @param initialOffsetY       offset for the stage
+   * @param incrementOffsetX     offset for the stage, multiplied by the spotIncrement
+   * @param laserOffsetX         offset for the laser
+   * @param laserOffsetY         offset for the laser
+   * @param precursorListCounter
+   * @param spotIncrement        multiplier for the x offset
+   * @param savePathDir          path to the parent folder for acquired data
+   * @param name                 name of the measurement
+   * @param currentCeFile        optional path to the selected ce file
+   * @param enableCeStepping     optional
+   * @param isolationWidth       optional isolation width, overrides the ce table, if there is one.
+   * @throws IOException
+   */
   public static void appendToCommandFile(@NotNull File commandFile, final String spot,
       final List<MaldiTimsPrecursor> precursorList, final Integer initialOffsetY,
       final Integer incrementOffsetX, final Integer laserOffsetX, final Integer laserOffsetY,
       int precursorListCounter, int spotIncrement, final File savePathDir, String name,
-      File currentCeFile, boolean enableCeStepping) throws IOException {
+      File currentCeFile, boolean enableCeStepping, final Double isolationWidth)
+      throws IOException {
 
     var precursorCsv = createPrecursorCsv(precursorList, spot, precursorListCounter, savePathDir);
     if (precursorCsv == null) {
@@ -90,7 +132,7 @@ public class TimsTOFAcquisitionUtils {
 
     final List<String> cmdLine = createArgumentList(spot, initialOffsetY, incrementOffsetX,
         spotIncrement, savePathDir, name, currentCeFile, enableCeStepping, laserOffsetX,
-        laserOffsetY, precursorCsv);
+        laserOffsetY, precursorCsv, isolationWidth);
 
     if (!commandFile.exists()) {
       commandFile.createNewFile();
@@ -129,7 +171,7 @@ public class TimsTOFAcquisitionUtils {
   private static List<String> createArgumentList(String spot, Integer initialOffsetY,
       Integer incrementOffsetX, int spotIncrement, File savePathDir, String name,
       File currentCeFile, boolean enableCeStepping, Integer laserOffsetX, Integer laserOffsetY,
-      File precursorList) {
+      File precursorList, Double isolationWidth) {
 
     final List<String> cmdLine = new ArrayList<>();
 
@@ -142,7 +184,7 @@ public class TimsTOFAcquisitionUtils {
     cmdLine.add(String.valueOf(initialOffsetY != null ? initialOffsetY : 0));
 
     cmdLine.add("--path");
-    cmdLine.add(savePathDir.toString().replace(File.separatorChar, '/'));
+    cmdLine.add("\"" + savePathDir.toString().replace(File.separatorChar, '/') + "\"");
 
     cmdLine.add("--name");
     cmdLine.add(name);
@@ -157,11 +199,16 @@ public class TimsTOFAcquisitionUtils {
 
     if (enableCeStepping && currentCeFile != null && currentCeFile.exists()) {
       cmdLine.add("--cetable");
-      cmdLine.add(currentCeFile.toPath().toString());
+      cmdLine.add("\"" + currentCeFile.toPath().toString().replace(File.separatorChar, '/') + "\"");
     }
 
     cmdLine.add("--precursorlist");
-    cmdLine.add(precursorList.getAbsolutePath());
+    cmdLine.add("\"" + precursorList.getAbsolutePath().replace(File.separatorChar, '/') + "\"");
+
+    if (isolationWidth != null) {
+      cmdLine.add("--isolationwidth");
+      cmdLine.add(String.format("%.1f", isolationWidth));
+    }
 
     return cmdLine;
   }
