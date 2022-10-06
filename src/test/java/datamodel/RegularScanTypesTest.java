@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -260,7 +261,7 @@ public class RegularScanTypesTest {
     var scan = file.getScan(6);
     final PseudoSpectrum spectrum = new SimplePseudoSpectrum(file, 2, scan.getRetentionTime(),
         scan.getMsMsInfo(), scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
-        scan.getPolarity(), "A pseudo spectrum");
+        scan.getPolarity(), "A pseudo spectrum", PseudoSpectrumType.LC_DIA);
 
     Object o1 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, flist, row, null,
         null);
@@ -289,7 +290,7 @@ public class RegularScanTypesTest {
 
     final PseudoSpectrum spectrum2 = new SimplePseudoSpectrum(file, 1, scan.getRetentionTime(),
         scan.getMsMsInfo(), scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
-        scan.getPolarity(), "A pseudo spectrum1");
+        scan.getPolarity(), "A pseudo spectrum1", PseudoSpectrumType.LC_DIA);
     // test fail
     Assertions.assertThrows(AssertionFailedError.class,
         () -> comparePseudoSpectra(spectrum, spectrum2));
@@ -311,6 +312,7 @@ public class RegularScanTypesTest {
     Assertions.assertEquals(value.getScanDefinition(), loaded.getScanDefinition());
     Assertions.assertEquals(value.getTIC(), loaded.getTIC());
     Assertions.assertEquals(value.getMSLevel(), loaded.getMSLevel());
+    Assertions.assertEquals(value.getPseudoSpectrumType(), loaded.getPseudoSpectrumType());
 
     for (int i = 0; i < value.getNumberOfDataPoints(); i++) {
       Assertions.assertEquals(value.getIntensityValue(i), loaded.getIntensityValue(i));

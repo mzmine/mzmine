@@ -28,6 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
@@ -44,10 +45,12 @@ import org.jetbrains.annotations.Nullable;
 public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
 
   public static final String XML_SCAN_TYPE = "simplepseudospectrum";
+  protected final PseudoSpectrumType pseudoSpectrumType;
 
   public SimplePseudoSpectrum(@NotNull RawDataFile dataFile, int msLevel, float retentionTime,
       @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
-      @NotNull PolarityType polarity, @Nullable String scanDefinition) {
+      @NotNull PolarityType polarity, @Nullable String scanDefinition,
+      @NotNull final PseudoSpectrumType type) {
 
     super(dataFile, -1, msLevel, retentionTime, msMsInfo, mzValues, intensityValues,
         MassSpectrumType.CENTROIDED, polarity, scanDefinition,
@@ -55,6 +58,7 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
     // since this is a pseudo spectrum, directly add a mass list. Noise thresholding and every
     // other processing step before this spectrum's creation should have filtered the noise.
     addMassList(new ScanPointerMassList(this));
+    this.pseudoSpectrumType = type;
   }
 
   @Override
@@ -66,6 +70,7 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
     writer.writeAttribute(CONST.XML_RT_ATTR, String.valueOf(getRetentionTime()));
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
     writer.writeAttribute(CONST.XML_POLARITY_ATTR, getPolarity().name());
+    writer.writeAttribute(XML_PSEUDO_SPECTRUM_TYPE_ATTR, pseudoSpectrumType.name());
     writer.writeAttribute(CONST.XML_SCAN_DEF_ATTR,
         ParsingUtils.parseNullableString(getScanDefinition()));
     if (getMsMsInfo() != null) {
@@ -83,6 +88,11 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
     writer.writeEndElement();
   }
 
+  @Override
+  public PseudoSpectrumType getPseudoSpectrumType() {
+    return pseudoSpectrumType;
+  }
+
   public static PseudoSpectrum loadFromXML(XMLStreamReader reader, RawDataFile file)
       throws XMLStreamException {
     if (!reader.isStartElement() || !reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)
@@ -92,6 +102,8 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
 
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MSLEVEL_ATTR));
     final float rt = Float.parseFloat(reader.getAttributeValue(null, CONST.XML_RT_ATTR));
+    final PseudoSpectrumType type = PseudoSpectrumType.valueOf(
+        reader.getAttributeValue(null, XML_PSEUDO_SPECTRUM_TYPE_ATTR));
     final PolarityType polarity = PolarityType.valueOf(
         reader.getAttributeValue(null, CONST.XML_POLARITY_ATTR));
     final String scanDef = ParsingUtils.readNullableString(
@@ -119,7 +131,8 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
     }
 
     assert mzs != null && intensities != null;
-    return new SimplePseudoSpectrum(file, mslevel, rt, info, mzs, intensities, polarity, scanDef);
+    return new SimplePseudoSpectrum(file, mslevel, rt, info, mzs, intensities, polarity, scanDef,
+        type);
   }
 
 

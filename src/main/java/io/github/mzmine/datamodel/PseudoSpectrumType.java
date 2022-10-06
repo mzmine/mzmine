@@ -24,17 +24,6 @@
 
 package io.github.mzmine.datamodel;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-/**
- * Interface tag for artificially generated spectra.
- */
-public interface PseudoSpectrum extends Scan {
-
-  public static final String XML_PSEUDO_SPECTRUM_TYPE_ATTR = "pseudotype";
-
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
-
-  PseudoSpectrumType getPseudoSpectrumType();
+public enum PseudoSpectrumType {
+  LC_DIA, GC_EI;
 }
