@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,6 +26,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;

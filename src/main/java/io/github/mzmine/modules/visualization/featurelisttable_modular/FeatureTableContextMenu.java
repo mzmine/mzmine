@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -33,6 +32,8 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -75,16 +76,22 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverv
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
