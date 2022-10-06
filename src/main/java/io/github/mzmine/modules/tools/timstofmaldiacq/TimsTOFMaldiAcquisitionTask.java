@@ -210,7 +210,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
           try {
             TimsTOFAcquisitionUtils.appendToCommandFile(acqFile, spotName, precursorList,
-                initialOffsetY, incrementOffsetX, null, null, (i + 1), spotIncrement, savePathDir,
+                incrementOffsetX * spotIncrement, initialOffsetY, null, null, (i + 1), savePathDir,
                 fileName, currentCeFile, enableCeStepping, null);
           } catch (IOException e) {
             throw new RuntimeException(e);

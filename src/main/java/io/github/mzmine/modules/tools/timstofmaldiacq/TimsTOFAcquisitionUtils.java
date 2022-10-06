@@ -105,12 +105,11 @@ public class TimsTOFAcquisitionUtils {
    * @param commandFile          path to command file
    * @param spot                 spot name
    * @param precursorList        list of precursors
-   * @param initialOffsetY       offset for the stage
-   * @param incrementOffsetX     offset for the stage, multiplied by the spotIncrement
+   * @param xOffset              offset for the stage, multiplied by the spotIncrement
+   * @param yOffset              offset for the stage
    * @param laserOffsetX         offset for the laser
    * @param laserOffsetY         offset for the laser
    * @param precursorListCounter
-   * @param spotIncrement        multiplier for the x offset
    * @param savePathDir          path to the parent folder for acquired data
    * @param name                 name of the measurement
    * @param currentCeFile        optional path to the selected ce file
@@ -119,20 +118,18 @@ public class TimsTOFAcquisitionUtils {
    * @throws IOException
    */
   public static void appendToCommandFile(@NotNull File commandFile, final String spot,
-      final List<MaldiTimsPrecursor> precursorList, final Integer initialOffsetY,
-      final Integer incrementOffsetX, final Integer laserOffsetX, final Integer laserOffsetY,
-      int precursorListCounter, int spotIncrement, final File savePathDir, String name,
-      File currentCeFile, boolean enableCeStepping, final Double isolationWidth)
-      throws IOException {
+      final List<MaldiTimsPrecursor> precursorList, final Integer xOffset, final Integer yOffset,
+      final Integer laserOffsetX, final Integer laserOffsetY, int precursorListCounter,
+      final File savePathDir, String name, File currentCeFile, boolean enableCeStepping,
+      final Double isolationWidth) throws IOException {
 
     var precursorCsv = createPrecursorCsv(precursorList, spot, precursorListCounter, savePathDir);
     if (precursorCsv == null) {
       throw new RuntimeException("Cannot create precursor list.");
     }
 
-    final List<String> cmdLine = createArgumentList(spot, initialOffsetY, incrementOffsetX,
-        spotIncrement, savePathDir, name, currentCeFile, enableCeStepping, laserOffsetX,
-        laserOffsetY, precursorCsv, isolationWidth);
+    final List<String> cmdLine = createArgumentList(spot, xOffset, yOffset, savePathDir, name,
+        currentCeFile, enableCeStepping, laserOffsetX, laserOffsetY, precursorCsv, isolationWidth);
 
     if (!commandFile.exists()) {
       commandFile.createNewFile();
@@ -168,10 +165,9 @@ public class TimsTOFAcquisitionUtils {
   }
 
   @NotNull
-  private static List<String> createArgumentList(String spot, Integer initialOffsetY,
-      Integer incrementOffsetX, int spotIncrement, File savePathDir, String name,
-      File currentCeFile, boolean enableCeStepping, Integer laserOffsetX, Integer laserOffsetY,
-      File precursorList, Double isolationWidth) {
+  private static List<String> createArgumentList(String spot, Integer xOffset, Integer yOffset,
+      File savePathDir, String name, File currentCeFile, boolean enableCeStepping,
+      Integer laserOffsetX, Integer laserOffsetY, File precursorList, Double isolationWidth) {
 
     final List<String> cmdLine = new ArrayList<>();
 
@@ -179,9 +175,9 @@ public class TimsTOFAcquisitionUtils {
     cmdLine.add(spot);
 
     cmdLine.add("--xoffset");
-    cmdLine.add(String.valueOf(incrementOffsetX != null ? incrementOffsetX * spotIncrement : 0));
+    cmdLine.add(String.valueOf(xOffset != null ? xOffset : 0));
     cmdLine.add("--yoffset");
-    cmdLine.add(String.valueOf(initialOffsetY != null ? initialOffsetY : 0));
+    cmdLine.add(String.valueOf(yOffset != null ? yOffset : 0));
 
     cmdLine.add("--path");
     cmdLine.add("\"" + savePathDir.toString().replace(File.separatorChar, '/') + "\"");
