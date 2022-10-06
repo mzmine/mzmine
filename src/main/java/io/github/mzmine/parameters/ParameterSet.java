@@ -108,4 +108,8 @@ public interface ParameterSet extends ParameterContainer {
   public BooleanProperty parametersChangeProperty();
 
   @Nullable String getOnlineHelpUrl();
+
+  void setModuleNameAttribute(String moduleName);
+
+  String getModuleNameAttribute();
 }

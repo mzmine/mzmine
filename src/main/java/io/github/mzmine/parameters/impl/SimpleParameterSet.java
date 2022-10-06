@@ -63,6 +63,8 @@ public class SimpleParameterSet implements ParameterSet {
 
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
+
+  private String moduleNameAttribrute;
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
@@ -80,6 +82,12 @@ public class SimpleParameterSet implements ParameterSet {
   public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl) {
     this.parameters = parameters;
     this.helpUrl = onlineHelpUrl;
+  }
+
+  public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl, String moduleNameAttribrute) {
+    this.parameters = parameters;
+    this.helpUrl = onlineHelpUrl;
+//    this.moduleNameAttribrute = moduleNameAttribrute;
   }
 
   @Override
@@ -341,4 +349,10 @@ public class SimpleParameterSet implements ParameterSet {
   public @Nullable String getOnlineHelpUrl() {
     return helpUrl;
   }
+
+  @Override
+  public void setModuleNameAttribute(String moduleName) { this.moduleNameAttribrute = moduleName; }
+
+  @Override
+  public String getModuleNameAttribute() { return moduleNameAttribrute; }
 }
