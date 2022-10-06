@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,7 +26,6 @@
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
 public class CONST {
-
 
   private CONST() {
   }

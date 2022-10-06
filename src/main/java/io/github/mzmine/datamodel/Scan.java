@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -26,7 +27,6 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
-import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -153,6 +153,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   @NotNull Range<Double> getScanningMZRange();
 
   /**
+   *
    * @return The {@link MsMsInfo}. If null, this is not an MSn scan.
    */
   @Nullable MsMsInfo getMsMsInfo();
