@@ -30,8 +30,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -128,14 +130,16 @@ public class BatchTask extends AbstractTask {
         // clear the old project
         MZmineCore.getProjectManager().clearProject();
         currentDataset++;
-        logger.info(String.format("Starting batch dataset %d/%d", processedSteps / stepsPerDataset,
-            datasets));
 
         // change files
         File datasetDir = subDirectories.get(currentDataset);
         datasetName = datasetDir.getName();
         File[] allFiles = FileAndPathUtil.findFilesInDirFlat(datasetDir,
             AllSpectralDataImportParameters.ALL_MS_DATA_FILTER, searchSubdirs);
+
+        logger.info(
+            String.format("Processing batch dataset %s (%d/%d)", datasetName, currentDataset + 1,
+                datasets));
 
         if (allFiles.length != 0) {
           // set files to import
@@ -186,14 +190,19 @@ public class BatchTask extends AbstractTask {
       final String datasetName) {
     int changedOutputSteps = 0;
     for (MZmineProcessingStep<?> currentStep : queue) {
-      ParameterSet params = currentStep.getParameterSet();
-      // check some
-      for (final Parameter<?> p : params.getParameters()) {
-        if (p instanceof FileNameParameter fnp) {
-          File old = fnp.getValue();
-          String oldName = FileAndPathUtil.eraseFormat(old).getName();
-          fnp.setValue(createDatasetExportPath(parentDir, createResultsDir, datasetName, oldName));
-          changedOutputSteps++;
+      // only change for export modules
+      if (currentStep.getModule() instanceof MZmineRunnableModule mod && (
+          mod.getModuleCategory() == MZmineModuleCategory.FEATURELISTEXPORT
+              || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
+        ParameterSet params = currentStep.getParameterSet();
+        for (final Parameter<?> p : params.getParameters()) {
+          if (p instanceof FileNameParameter fnp) {
+            File old = fnp.getValue();
+            String oldName = FileAndPathUtil.eraseFormat(old).getName();
+            fnp.setValue(
+                createDatasetExportPath(parentDir, createResultsDir, datasetName, oldName));
+            changedOutputSteps++;
+          }
         }
       }
     }
