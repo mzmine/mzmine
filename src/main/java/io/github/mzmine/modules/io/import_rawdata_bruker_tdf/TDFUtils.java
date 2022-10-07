@@ -218,9 +218,15 @@ public class TDFUtils {
           + "library could not be initialised.");
       return 0L;
     }
+
+    final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.applyTimsPressureCompensation);
+    int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
+
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState, 2);
+      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;

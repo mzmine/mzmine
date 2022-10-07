@@ -153,9 +153,12 @@ public class MZminePreferences extends SimpleParameterSet {
       KeepInMemory.NONE);
 
   public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
-      "Use TIMS pressure compensation",
-      "Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.",
-      false);
+      "Use TIMS pressure compensation", """
+      Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
+      This compensation is applied during file import and cannot be applied afterwards.
+      Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
+      In practical cases, this memory consumption is mostly negligible. 
+      """, false);
 
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
@@ -168,6 +171,7 @@ public class MZminePreferences extends SimpleParameterSet {
     super(new Parameter[]{
         // start with performance
         numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
+        applyTimsPressureCompensation,
         // visuals
         // number formats
         mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
@@ -193,7 +197,7 @@ public class MZminePreferences extends SimpleParameterSet {
     // add groups
     dialog.addParameterGroup("General",
         new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
-            sendStatistics});
+            sendStatistics, applyTimsPressureCompensation});
     dialog.addParameterGroup("Formats",
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
