@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -221,7 +220,7 @@ public class TDFUtils {
     }
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState, 2);
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
