@@ -55,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -195,13 +196,26 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         }
 
         // add instrument type etc by parameter
-        SpectralDBEntry entry = new SpectralDBEntry(scans.get(i), match, dataPoints);
+        Scan scan = scans.get(i);
+        SpectralDBEntry entry = new SpectralDBEntry(scan, match, dataPoints);
         entry.putAll(metadataMap);
         if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
-          ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scans.get(i).getDataFile(),
+          ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan.getDataFile(),
               ChimericPrecursorResult.PASSED);
           entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
+          if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
+            entry.putIfNotNull(DBEntryField.NAME,
+                entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
+          }
         }
+        // add file info
+        final String file = Path.of(Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
+            scan.getDataFile().getName())).getFileName().toString() + ":" + scan.getScanNumber();
+        entry.putIfNotNull(DBEntryField.DATAFILE_SCAN_NUMBER, file);
+        entry.getField(DBEntryField.DATASET_ID).ifPresent(
+            dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + file));
+
+        // export to file
         exportEntry(writer, entry);
       }
     }
