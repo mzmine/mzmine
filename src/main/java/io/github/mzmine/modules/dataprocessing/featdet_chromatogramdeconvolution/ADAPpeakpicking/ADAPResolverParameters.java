@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
  * author Owen Myers (Oweenm@gmail.com)
@@ -22,6 +29,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
 import com.google.common.collect.Range;
+import com.sun.javafx.application.HostServicesDelegate;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
@@ -36,6 +44,10 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
+import javafx.application.HostServices;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.control.Hyperlink;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,9 +80,9 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
       "Signal to noise ratio threshold", NumberFormat.getNumberInstance(), 10.0, 0.0, null);
 
   public static final DoubleParameter COEF_AREA_THRESHOLD = new DoubleParameter(
-      "coefficient/area threshold",
-      "This is a theshold for the maximum coefficient (inner product) devided by the area "
-          + "under the curve of the feautre. Filters out bad peaks.",
+      "Coefficient/area threshold",
+      "This is a threshold for the maximum coefficient (inner product) divided by the area "
+          + "under the curve of the feature. Filters out bad peaks.",
       NumberFormat.getNumberInstance(), 110.0, 0.0, null);
 
   public static final DoubleParameter MIN_FEAT_HEIGHT = new DoubleParameter("min feature height",
@@ -80,7 +92,9 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
   public ADAPResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
         SN_THRESHOLD, SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD, PEAK_DURATION,
-        RT_FOR_CWT_SCALES_DURATION});
+        RT_FOR_CWT_SCALES_DURATION},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_adap/adap-resolver.html");
+
   }
 
   @Override
