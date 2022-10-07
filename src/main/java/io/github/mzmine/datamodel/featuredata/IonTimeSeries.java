@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
@@ -34,6 +35,9 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, TimeSeries {
+
+  SimpleIonTimeSeries EMPTY = new SimpleIonTimeSeries(null, new double[0], new double[0],
+      List.of());
 
   /**
    * @param scan
@@ -72,7 +76,9 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
   /**
    * @param writer   The writer.
    * @param allScans All scans of the given raw data file (those are used during import). NOT the
-   *                 preselected scans obtained from {@link io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
+   *                 preselected scans obtained from
+   *                 {@link
+   *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
    */
-  public void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
+  void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
 }

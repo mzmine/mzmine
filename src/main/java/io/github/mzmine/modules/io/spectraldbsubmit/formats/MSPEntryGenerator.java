@@ -44,12 +44,12 @@ import java.util.List;
 public class MSPEntryGenerator {
 
   public static final List<DBEntryField> EXPORT_FIELDS = List.of(DBEntryField.NAME, DBEntryField.MZ,
-      DBEntryField.ION_TYPE, DBEntryField.EXACT_MASS, DBEntryField.MS_LEVEL, DBEntryField.CHARGE,
-      DBEntryField.FORMULA, DBEntryField.SMILES, DBEntryField.INCHI, DBEntryField.INCHIKEY,
-      DBEntryField.FRAGMENTATION_METHOD, DBEntryField.COLLISION_ENERGY,
-      DBEntryField.ISOLATION_WINDOW, DBEntryField.MSN_FRAGMENTATION_METHODS,
-      DBEntryField.MSN_COLLISION_ENERGIES, DBEntryField.MSN_PRECURSOR_MZS,
-      DBEntryField.MSN_ISOLATION_WINDOWS);
+      DBEntryField.RT, DBEntryField.CCS, DBEntryField.ION_TYPE, DBEntryField.EXACT_MASS,
+      DBEntryField.MS_LEVEL, DBEntryField.CHARGE, DBEntryField.FORMULA, DBEntryField.SMILES,
+      DBEntryField.INCHI, DBEntryField.INCHIKEY, DBEntryField.FRAGMENTATION_METHOD,
+      DBEntryField.COLLISION_ENERGY, DBEntryField.ISOLATION_WINDOW,
+      DBEntryField.MSN_FRAGMENTATION_METHODS, DBEntryField.MSN_COLLISION_ENERGIES,
+      DBEntryField.MSN_PRECURSOR_MZS, DBEntryField.MSN_ISOLATION_WINDOWS);
 
   /**
    * Creates a simple MSP nist format DB entry
@@ -71,7 +71,7 @@ public class MSPEntryGenerator {
     String def = ": ";
     String br = "\n";
     StringBuilder s = new StringBuilder();
-    // tag spectrum from mzmine2
+    // tag spectrum from mzmine
     // ion specific
     s.append(DBEntryField.NAME.getNistMspID() + def + meta.getParameter(
         LibraryMetaDataParameters.COMPOUND_NAME).getValue() + br);

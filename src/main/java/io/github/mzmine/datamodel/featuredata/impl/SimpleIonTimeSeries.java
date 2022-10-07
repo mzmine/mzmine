@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.featuredata.impl;
@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -51,8 +50,6 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   public static final String XML_ELEMENT = "simpleiontimeseries";
-
-  private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
 
   protected final List<Scan> scans;
   protected final DoubleBuffer intensityValues;
@@ -110,10 +107,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
                 .map(f -> (Scan) f).toList();
           }
         }
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
       }
     }
 
@@ -207,10 +204,9 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof SimpleIonTimeSeries)) {
+    if (!(o instanceof SimpleIonTimeSeries that)) {
       return false;
     }
-    SimpleIonTimeSeries that = (SimpleIonTimeSeries) o;
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
         && MzSeries.seriesSubsetEqual(this, that);
   }

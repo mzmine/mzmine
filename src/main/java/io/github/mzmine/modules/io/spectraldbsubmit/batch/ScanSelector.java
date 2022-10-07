@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+/**
+ * Defines criteria on how to select spectra, e.g., for export in batch library creation
+ */
 public enum ScanSelector {
   ALL("All"), HIGHEST_TIC("Highest TIC"), MOST_SIGNALS("Most signals");
 
