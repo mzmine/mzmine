@@ -25,20 +25,19 @@
 
 package io.github.mzmine.modules.batchmode;
 
-/**
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-public class UnknownModuleNameException extends RuntimeException {
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 
-  public UnknownModuleNameException(String methodName) {
-    super("Unknown module name or class path: " + methodName);
+public class BatchModeParameterSetupDialog extends ParameterSetupDialog {
+
+  public BatchModeParameterSetupDialog(final ParameterSet parameters) {
+    super(true, parameters);
+    BatchQueueParameter batchQueue = parameters.getParameter(BatchModeParameters.batchQueue);
+    FileNameListSilentParameter lastFiles = parameters.getParameter(BatchModeParameters.lastFiles);
+
+    BatchComponentController controller = batchQueue.getController();
+    controller.setLastFiles(lastFiles.getValue());
   }
 
-  public UnknownModuleNameException(String methodName, Throwable cause) {
-    super("Unknown module name or class path: " + methodName, cause);
-  }
-
-  public UnknownModuleNameException(Throwable cause) {
-    super("Unknown module name or class path", cause);
-  }
 }

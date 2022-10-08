@@ -34,13 +34,13 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 
 public class AdvancedSpectraImportParameters extends SimpleParameterSet {
 
-  public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection =
-      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS1 detector (Advanced)",
+  public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection = new OptionalParameter<>(
+      new ModuleComboParameter<MassDetector>("MS1 detector (Advanced)",
           "Algorithm to use on MS1 scans for mass detection and its parameters",
           MassDetectionParameters.massDetectors, MassDetectionParameters.massDetectors[0]));
 
-  public static final OptionalParameter<ModuleComboParameter<MassDetector>> ms2MassDetection =
-      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS2 detector (Advanced)",
+  public static final OptionalParameter<ModuleComboParameter<MassDetector>> ms2MassDetection = new OptionalParameter<>(
+      new ModuleComboParameter<MassDetector>("MS2 detector (Advanced)",
           "Algorithm to use on MS2 scans for mass detection and its parameters",
           MassDetectionParameters.massDetectors, MassDetectionParameters.massDetectors[0]));
 

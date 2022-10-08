@@ -33,6 +33,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -243,20 +244,19 @@ public class BatchComponentController implements LastFilesComponent {
           .getModuleParameters(selectedMethod.getClass());
 
       // Clone the parameter set
-      final ParameterSet stepParams = methodParams.cloneParameterSet();
+      final ParameterSet stepParams =
+          methodParams == null ? new SimpleParameterSet() : methodParams.cloneParameterSet();
 
       // If this is not the first batch step, set the default for raw
       // data file and feature list selection
       if (!batchQueue.isEmpty()) {
         for (Parameter<?> param : stepParams.getParameters()) {
-          if (param instanceof RawDataFilesParameter) {
-            final RawDataFilesParameter rdfp = (RawDataFilesParameter) param;
+          if (param instanceof final RawDataFilesParameter rdfp) {
             final RawDataFilesSelection selection = new RawDataFilesSelection();
             selection.setSelectionType(RawDataFilesSelectionType.BATCH_LAST_FILES);
             rdfp.setValue(selection);
           }
-          if (param instanceof FeatureListsParameter) {
-            final FeatureListsParameter plp = (FeatureListsParameter) param;
+          if (param instanceof final FeatureListsParameter plp) {
             final FeatureListsSelection selection = new FeatureListsSelection();
             selection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS);
             plp.setValue(selection);
@@ -495,6 +495,7 @@ public class BatchComponentController implements LastFilesComponent {
     item.getChildren().forEach(child -> clone.getChildren().add(cloneTreeItem(child)));
     return item;
   }
+
 
   // Queue operations.
   private enum QueueOperations {

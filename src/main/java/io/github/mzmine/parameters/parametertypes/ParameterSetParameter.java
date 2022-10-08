@@ -24,30 +24,26 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
- *
  * @author aleksandrsmirnov
  */
-public class ParameterSetParameter
-    implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer, EmbeddedParameterSet {
-  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+public class ParameterSetParameter implements UserParameter<ParameterSet, ParameterSetComponent>,
+    ParameterContainer, EmbeddedParameterSet {
 
-  private String name;
-  private String description;
+  private static final Logger logger = Logger.getLogger(ParameterSetParameter.class.getName());
+  private final String name;
+  private final String description;
   private ParameterSet value;
 
   private static final String parameterElement = "parameter";
@@ -104,8 +100,9 @@ public class ParameterSetParameter
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (this.value == null)
+    if (this.value == null) {
       return;
+    }
 
     xmlElement.setAttribute("type", this.name);
     Document parent = xmlElement.getOwnerDocument();
@@ -140,8 +137,9 @@ public class ParameterSetParameter
   public boolean checkValue(Collection<String> errorMessages) {
 
     boolean result = true;
-    for (final Parameter p : this.value.getParameters())
+    for (final Parameter p : this.value.getParameters()) {
       result &= p.checkValue(errorMessages);
+    }
 
     return result;
   }
