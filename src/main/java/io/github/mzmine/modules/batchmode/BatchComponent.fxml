@@ -1,29 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2021 The MZmine Development Team
+  ~ Copyright (c) 2004-2022 The MZmine Development Team
   ~
-  ~ This file is part of MZmine.
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
   ~
-  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
-  ~ General Public License as published by the Free Software Foundation; either version 2 of the
-  ~ License, or (at your option) any later version.
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
   ~
-  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  ~ General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
-  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
-
 <?import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton?>
+
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -32,94 +41,80 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1"
-  fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController" fx:id="root">
-   <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" hgap="5.0" prefHeight="600.0"
-     prefWidth="708.0" vgap="5.0">
+
+<AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController">
+   <GridPane hgap="5.0" prefHeight="600.0" prefWidth="708.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <BorderPane GridPane.rowIndex="2">
          <GridPane.margin>
-            <Insets/>
+            <Insets />
          </GridPane.margin>
          <center>
-            <AnchorPane BorderPane.alignment="CENTER" prefHeight="200.0" prefWidth="200.0">
+            <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                <BorderPane.margin>
-                  <Insets/>
+                  <Insets />
                </BorderPane.margin>
-               <TextField AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                 AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" prefHeight="30.0"
-                 prefWidth="209.0" fx:id="searchField"/>
+               <TextField fx:id="searchField" prefHeight="30.0" prefWidth="209.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                <padding>
-                  <Insets left="5.0"/>
+                  <Insets left="5.0" />
                </padding>
             </AnchorPane>
          </center>
          <left>
-            <Label BorderPane.alignment="CENTER" text="Search"/>
+            <Label text="Search" BorderPane.alignment="CENTER" />
          </left>
          <opaqueInsets>
-            <Insets/>
+            <Insets />
          </opaqueInsets>
       </BorderPane>
-      <FlowPane GridPane.columnIndex="2" alignment="TOP_CENTER">
-         <Label styleClass="title-label" text="Batch queue"/>
+      <FlowPane alignment="TOP_CENTER" GridPane.columnIndex="2">
+         <Label styleClass="title-label" text="Batch queue" />
       </FlowPane>
-      <FlowPane GridPane.columnIndex="2" GridPane.rowIndex="2" alignment="TOP_CENTER" hgap="5"
-        prefHeight="200.0" prefWidth="200.0">
-         <Button mnemonicParsing="false" onAction="#setParametersPressed"
-           text="Set parameters" fx:id="btnSetParameters"/>
-         <Button mnemonicParsing="false" onAction="#clearPressed" text="Clear"
-           fx:id="btnClear"/>
+      <FlowPane alignment="TOP_CENTER" hgap="5" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
+         <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#setParametersPressed" text="Set parameters" />
+         <Button fx:id="btnClear" mnemonicParsing="false" onAction="#clearPressed" text="Clear" />
          <GridPane.margin>
-            <Insets/>
+            <Insets />
          </GridPane.margin>
          <opaqueInsets>
-            <Insets/>
+            <Insets />
          </opaqueInsets>
          <padding>
-            <Insets top="5.0"/>
+            <Insets top="5.0" />
          </padding>
       </FlowPane>
-      <FlowPane GridPane.columnIndex="2" GridPane.rowIndex="3" alignment="TOP_CENTER"
-        hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0">
-         <Button mnemonicParsing="false" onAction="#onLoadPressed" text="Load"
-           fx:id="btnLoad"/>
-         <Button mnemonicParsing="false" onAction="#onSavePressed" text="Save"
-           fx:id="btnSave"/>
+      <FlowPane alignment="TOP_CENTER" hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
+         <Button fx:id="btnLoad" mnemonicParsing="false" onAction="#onLoadPressed" text="Load" />
+         <Button fx:id="btnSave" mnemonicParsing="false" onAction="#onSavePressed" text="Save" />
          <LastFilesButton mnemonicParsing="false" text="Load last..." fx:id="btnLoadLast"/>
          <opaqueInsets>
-            <Insets/>
+            <Insets />
          </opaqueInsets>
       </FlowPane>
       <FlowPane alignment="TOP_CENTER">
-         <Label styleClass="title-label" text="Modules"/>
+         <Label styleClass="title-label" text="Modules" />
       </FlowPane>
-      <ListView GridPane.columnIndex="2" GridPane.rowIndex="1" prefHeight="200.0"
-        prefWidth="200.0" fx:id="currentStepsList"/>
-      <TreeView GridPane.rowIndex="1" prefHeight="200.0" prefWidth="200.0" fx:id="tvModules"/>
-      <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" alignment="CENTER"
-        prefHeight="200.0" prefWidth="100.0" spacing="5.0">
-         <Button mnemonicParsing="false" onAction="#onAddModulePressed" text="&gt;&gt;"
-           fx:id="btnAddModule"/>
-         <Button mnemonicParsing="false" onAction="#onRemoveModulePressed" text="&lt;&lt;"
-           fx:id="btnRemoveModule"/>
+      <ListView fx:id="currentStepsList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+      <TreeView fx:id="tvModules" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+         <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed" text="&gt;&gt;" />
+         <Button fx:id="btnRemoveModule" mnemonicParsing="false" onAction="#onRemoveModulePressed" text="&lt;&lt;" />
          <GridPane.margin>
-            <Insets/>
+            <Insets />
          </GridPane.margin>
          <padding>
-            <Insets top="5.0"/>
+            <Insets top="5.0" />
          </padding>
       </VBox>
       <columnConstraints>
-         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-         <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
-         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+         <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0" />
+         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
       </columnConstraints>
       <rowConstraints>
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
       </rowConstraints>
    </GridPane>
 </AnchorPane>
