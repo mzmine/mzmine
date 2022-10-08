@@ -1,25 +1,24 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -33,23 +32,15 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
-import org.bouncycastle.math.raw.Mod;
 
 class ManualPickerTask extends AbstractTask {
 
@@ -102,10 +93,10 @@ class ManualPickerTask extends AbstractTask {
 
     logger.finest("Starting manual feature picker, RT: " + rtRange + ", m/z: " + mzRange);
 
-    final ScanSelection selection = new ScanSelection(rtRange, 1);
     for (RawDataFile file : dataFiles) {
-      final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(file, selection,
-          mzRange, featureList.getMemoryMapStorage());
+      final List<Scan> selectedScans = (List<Scan>) featureList.getSeletedScans(file);
+      final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(file, selectedScans,
+          mzRange, rtRange, featureList.getMemoryMapStorage());
 
       final Feature feature = featureListRow.getFeature(file);
       ModularFeature f = (ModularFeature)feature;

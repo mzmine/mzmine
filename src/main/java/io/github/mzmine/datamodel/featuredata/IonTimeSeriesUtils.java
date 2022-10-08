@@ -1,3 +1,21 @@
+/*
+ *  Copyright 2006-2022 The MZmine Development Team
+ *
+ *  This file is part of MZmine.
+ *
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
+ *
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
+ */
+
 package io.github.mzmine.datamodel.featuredata;
 
 import com.google.common.collect.Range;
@@ -15,7 +33,6 @@ import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -130,12 +147,12 @@ public class IonTimeSeriesUtils {
    * <p></p>
    * <b>Note</b>  that a new {@link ScanDataAccess} will be created on every call. If multiple
    * chromatograms are to be created, use
-   * {@link IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, MemoryMapStorage)}
+   * {@link IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)}
    * instead.
    *
    * @return A chromatogram across the whole RT range of the scan selection.
    */
-  public static IonTimeSeries<?> extractIonTimeSeries(@NotNull RawDataFile file,
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
       @NotNull ScanSelection selection, @NotNull Range<Double> mzRange,
       @Nullable MemoryMapStorage storage) {
     final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, selection);
@@ -145,11 +162,11 @@ public class IonTimeSeriesUtils {
   /**
    * @see IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)
    */
-  public static IonTimeSeries<?> extractIonTimeSeries(@NotNull RawDataFile file,
-      @NotNull List<Scan> scans, @NotNull Range<Double> mzRange,
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
+      @NotNull List<Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
       @Nullable MemoryMapStorage storage) {
     final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, scans);
-    return extractIonTimeSeries(access, mzRange, null, storage);
+    return extractIonTimeSeries(access, mzRange, rtRange, storage);
   }
 
   /**
@@ -162,7 +179,7 @@ public class IonTimeSeriesUtils {
    * @param storage The memory map storage.
    * @return A chromatogram.
    */
-  public static IonTimeSeries<?> extractIonTimeSeries(@NotNull ScanDataAccess access,
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull ScanDataAccess access,
       @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
       @Nullable MemoryMapStorage storage) {
 
