@@ -56,8 +56,12 @@ public class SingleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
       double isolationWidth, ParameterSet parameters, BooleanSupplier isCanceled,
       File savePathDir) {
 
-    final int laserOffsetX = parameters.getValue(SingleSpotMs2Parameters.laserOffsetX);
-    final int laserOffsetY = parameters.getValue(SingleSpotMs2Parameters.laserOffsetY);
+    final Integer laserOffsetX =
+        parameters.getValue(SingleSpotMs2Parameters.laserOffsetX) ? parameters.getParameter(
+            SingleSpotMs2Parameters.laserOffsetX).getEmbeddedParameter().getValue() : null;
+    final Integer laserOffsetY =
+        parameters.getValue(SingleSpotMs2Parameters.laserOffsetY) ? parameters.getParameter(
+            SingleSpotMs2Parameters.laserOffsetY).getEmbeddedParameter().getValue() : null;
     for (int i = 0; i < spots.size(); i++) {
       final ImagingSpot spot = spots.get(i);
 

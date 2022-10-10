@@ -48,7 +48,7 @@ public class TripleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return SingleSpotMs2Parameters.class;
+    return TripleSpotMs2Parameters.class;
   }
 
   @Override
@@ -56,8 +56,11 @@ public class TripleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
       double isolationWidth, ParameterSet parameters, BooleanSupplier isCanceled,
       File savePathDir) {
 
-    int laserOffsetX = parameters.getValue(TripleSpotMs2Parameters.laserOffsetX);
-    int laserOffsetY = parameters.getValue(TripleSpotMs2Parameters.laserOffsetY);
+    final Integer stageOffsetX = parameters.getParameter(TripleSpotMs2Parameters.stageOffsetY)
+        .getValue();
+    final Integer stageOffsetY = parameters.getParameter(TripleSpotMs2Parameters.stageOffsetX)
+        .getValue();
+
     for (int i = 0; i < spots.size(); i++) {
       final ImagingSpot spot = spots.get(i);
 
@@ -76,7 +79,7 @@ public class TripleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
           }
           try {
             TimsTOFAcquisitionUtils.appendToCommandFile(acquisitionFile, spotInfo.spotName(),
-                spot.getPrecursorList(x, y), null, null, x * laserOffsetX, y * laserOffsetY,
+                spot.getPrecursorList(x, y), x * stageOffsetX, y * stageOffsetY, null, null,
                 counter++, savePathDir, spotInfo.spotName() + "_" + counter, null, false,
                 isolationWidth);
           } catch (IOException e) {

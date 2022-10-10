@@ -180,7 +180,7 @@ public class TimsTOFAcquisitionUtils {
     cmdLine.add(String.valueOf(yOffset != null ? yOffset : 0));
 
     cmdLine.add("--path");
-    cmdLine.add("\"" + savePathDir.toString().replace(File.separatorChar, '/') + "\"");
+    cmdLine.add(savePathDir.toString().replace(File.separatorChar, '/'));
 
     cmdLine.add("--name");
     cmdLine.add(name);
@@ -188,18 +188,23 @@ public class TimsTOFAcquisitionUtils {
     cmdLine.add("--acqtype");
     cmdLine.add("single");
 
-    cmdLine.add("--laseroffsetx");
-    cmdLine.add(String.valueOf(laserOffsetX != null ? laserOffsetX : 0));
-    cmdLine.add("--laseroffsety");
-    cmdLine.add(String.valueOf(laserOffsetY != null ? laserOffsetY : 0));
+    if (laserOffsetX != null) {
+      cmdLine.add("--laseroffsetx");
+      cmdLine.add(String.valueOf(laserOffsetX));
+
+    }
+    if (laserOffsetY != null) {
+      cmdLine.add("--laseroffsety");
+      cmdLine.add(String.valueOf(laserOffsetY));
+    }
 
     if (enableCeStepping && currentCeFile != null && currentCeFile.exists()) {
       cmdLine.add("--cetable");
-      cmdLine.add("\"" + currentCeFile.toPath().toString().replace(File.separatorChar, '/') + "\"");
+      cmdLine.add(currentCeFile.toPath().toString().replace(File.separatorChar, '/'));
     }
 
     cmdLine.add("--precursorlist");
-    cmdLine.add("\"" + precursorList.getAbsolutePath().replace(File.separatorChar, '/') + "\"");
+    cmdLine.add(precursorList.getAbsolutePath().replace(File.separatorChar, '/'));
 
     if (isolationWidth != null) {
       cmdLine.add("--isolationwidth");

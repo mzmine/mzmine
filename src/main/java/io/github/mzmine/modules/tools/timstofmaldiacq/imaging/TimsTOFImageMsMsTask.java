@@ -152,7 +152,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
     final Map<Feature, List<MaldiSpotInfo>> featureSpotMap = new HashMap<>();
     List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
-    rows.sort(Comparator.comparingDouble(FeatureListRow::getAverageHeight).reversed());
+    rows.sort(Comparator.comparingDouble(FeatureListRow::getAverageArea));
     for (int i = 0; i < rows.size(); i++) {
       progress = 0.1 * i / (double) rows.size();
 
