@@ -27,27 +27,29 @@ package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 
-public class BatchModeParameters extends SimpleParameterSet {
+public class AdvancedBatchModeParameters extends SimpleParameterSet {
 
-  public static final FileNameListSilentParameter lastFiles = new FileNameListSilentParameter(
-      "Last used files");
-  public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
+  public static final DirectoryParameter processingParentDir = new DirectoryParameter(
+      "Parent directory",
+      "Select the parent directory, each folder in this directory will be considered a different dataset. All datafiles will be imported and processed.");
 
-  public static final AdvancedParametersParameter<AdvancedBatchModeParameters> advanced = new AdvancedParametersParameter<>(
-      new AdvancedBatchModeParameters());
+  public static final BooleanParameter skipOnError = new BooleanParameter("Skip on error",
+      "Skip datasets (sub directories) on error. Otherwise error out and stop the batch", true);
 
-  public BatchModeParameters() {
-    super(new Parameter[]{batchQueue, advanced, lastFiles});
+  public static final BooleanParameter createResultsDirectory = new BooleanParameter(
+      "Create results directory",
+      "Push all results into a results directory with folders for datasets", true);
+  public static final BooleanParameter includeSubdirectories = new BooleanParameter(
+      "Search files in subdirs",
+      "Search for files in sub directories. Still uses the first subdirectories as datasets each.",
+      false);
+
+  public AdvancedBatchModeParameters() {
+    super(new Parameter[]{skipOnError, processingParentDir, includeSubdirectories,
+        createResultsDirectory});
   }
 
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    BatchModeParameterSetupDialog dialog = new BatchModeParameterSetupDialog(this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
-  }
 }

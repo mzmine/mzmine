@@ -33,13 +33,16 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.util.logging.Logger;
 
 /**
  * Project manager implementation
  */
 public class ProjectManagerImpl implements ProjectManager {
 
+  private static final Logger logger = Logger.getLogger(ProjectManagerImpl.class.getName());
   private static ProjectManagerImpl myInstance;
 
   MZmineProject currentProject;
@@ -67,7 +70,7 @@ public class ProjectManagerImpl implements ProjectManager {
 
     // Close previous data files
     if (currentProject != null) {
-      RawDataFile prevDataFiles[] = currentProject.getDataFiles();
+      RawDataFile[] prevDataFiles = currentProject.getDataFiles();
       for (RawDataFile prevDataFile : prevDataFiles) {
         prevDataFile.close();
       }
@@ -80,8 +83,8 @@ public class ProjectManagerImpl implements ProjectManager {
     // project)
     if (project.getProjectFile() != null) {
       File projectFile = project.getProjectFile();
-      ParameterSet loaderParams =
-          MZmineCore.getConfiguration().getModuleParameters(ProjectLoadModule.class);
+      ParameterSet loaderParams = MZmineCore.getConfiguration()
+          .getModuleParameters(ProjectLoadModule.class);
       loaderParams.getParameter(ProjectLoaderParameters.projectFile).setValue(projectFile);
     }
 
@@ -89,6 +92,17 @@ public class ProjectManagerImpl implements ProjectManager {
     if (!MZmineCore.isHeadLessMode()) {
       MZmineGUI.activateProject(project);
     }
+  }
+
+  @Override
+  public void clearProject() {
+    // Create a new, empty project
+    MZmineProject old = getCurrentProject();
+    setCurrentProject(new MZmineProjectImpl());
+    // keep libraries
+    currentProject.addSpectralLibrary(
+        old.getCurrentSpectralLibraries().toArray(new SpectralLibrary[0]));
+    logger.info("Project cleared");
   }
 
 }

@@ -29,11 +29,12 @@ import io.github.mzmine.modules.MZmineModule;
 import java.util.Objects;
 
 /**
- * A simple wrapper providing the toString() method for adding modules to combo boxes in batch mode.
+ * A simple wrapper providing the toString() method for adding modules to combo boxes in batch
+ * mode.
  */
 public class BatchModuleWrapper {
 
-  private MZmineModule module;
+  private final MZmineModule module;
 
   public BatchModuleWrapper(MZmineModule module) {
     this.module = module;
@@ -53,10 +54,9 @@ public class BatchModuleWrapper {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof BatchModuleWrapper)) {
+    if (!(o instanceof BatchModuleWrapper that)) {
       return false;
     }
-    BatchModuleWrapper that = (BatchModuleWrapper) o;
     return getModule().equals(that.getModule());
   }
 
