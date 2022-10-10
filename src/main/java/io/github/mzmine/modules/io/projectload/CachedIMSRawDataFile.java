@@ -215,7 +215,7 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
 
   @Override
   public boolean isContainsEmptyScans() {
-    return false;
+    throw new UnsupportedOperationException("Unsupported during project load.");
   }
 
   @Override

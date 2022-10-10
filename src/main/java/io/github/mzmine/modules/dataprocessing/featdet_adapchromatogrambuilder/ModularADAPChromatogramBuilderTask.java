@@ -127,6 +127,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     logger.info(() -> "Started chromatogram builder on " + dataFile);
 
     Scan[] scans = scanSelection.getMatchingScans(dataFile);
+    int emptyScanNumber = 0;
+
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
@@ -141,8 +143,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
 
-      if (s.isEmptyScanMZRange()) {
-        logger.info("Scan number " + s.getScanNumber() + " was found to be empty.");
+      if (s.isEmptyScan()) {
+        emptyScanNumber++;
         continue;
       }
 
@@ -156,6 +158,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
       prevRT = s.getRetentionTime();
+    }
+
+    if (emptyScanNumber > 0) {
+      logger.info( emptyScanNumber + " scans were found to be empty.");
     }
 
     // Check if the scans are MS1-only or MS2-only.

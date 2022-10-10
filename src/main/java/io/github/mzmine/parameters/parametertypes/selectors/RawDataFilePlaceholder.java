@@ -188,7 +188,8 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public boolean isContainsEmptyScans() {
-    return false;
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
 
   @Override

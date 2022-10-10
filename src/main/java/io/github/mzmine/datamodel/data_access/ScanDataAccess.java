@@ -338,7 +338,7 @@ public abstract class ScanDataAccess implements Scan {
   @Override
   public @Nullable Range<Double> getScanningMZRange() {
     Scan scan = getCurrentScan();
-    return (scan == null | scan.isEmptyScanMZRange()) ? Range.singleton(0d) : scan.getScanningMZRange();
+    return (scan == null || scan.isEmptyScan()) ? Range.singleton(0d) : scan.getScanningMZRange();
   }
 
   @Override
@@ -389,6 +389,6 @@ public abstract class ScanDataAccess implements Scan {
   @Override
   public @Nullable Float getInjectionTime() {
     Scan scan = getCurrentScan();
-    return (scan == null | scan.isEmptyScanMZRange()) ? null : scan.getInjectionTime();
+    return (scan == null || scan.isEmptyScan()) ? null : scan.getInjectionTime();
   }
 }

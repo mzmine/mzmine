@@ -291,8 +291,7 @@ public class RawDataFileImpl implements RawDataFile {
     }
 
     //check for empty scans (absent m/z range or absent intensity)
-    //
-    if (newScan.isEmptyScanMZRange()) {
+    if (!containsEmptyScans && newScan.isEmptyScan()) {
       containsEmptyScans = true;
       logger.warning("Some scans were recognized as empty (no detected peaks).");
     }

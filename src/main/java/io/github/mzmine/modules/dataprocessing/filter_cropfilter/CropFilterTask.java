@@ -102,8 +102,8 @@ public class CropFilterTask extends AbstractTask {
 
         SimpleScan scanCopy = null;
 
-        if (scan.isEmptyScanMZRange()) {
-          logger.info("Scan " + scan.getScanNumber() + " has empty m/z range");
+        if (scan.isEmptyScan()) {
+          logger.finest("Scan " + scan.getScanNumber() + " has empty m/z range");
           if (emptyScans) {
             continue;
           } else {

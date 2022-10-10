@@ -40,7 +40,7 @@ public class CropFilterParameters extends SimpleParameterSet {
 
   public static final BooleanParameter emptyScans =
       new BooleanParameter("Filter out empty scans",
-          "If checked, empty scans will be filtered out. Disrupts the initial scan numbering!\n"
+          "USAGE IS STRONGLY DISCOURAGED!\nIf checked, empty scans will be filtered out. Disrupts the initial scan numbering!\n"
               + "Preserving empty scans might be useful for the later analysis.");
 
   public static final BooleanParameter autoRemove =

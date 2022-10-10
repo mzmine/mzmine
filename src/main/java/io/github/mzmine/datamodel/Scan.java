@@ -192,8 +192,8 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    *
    * @return boolean
    */
-  default boolean isEmptyScanMZRange() {
-    return this.getDataPointMZRange() == null ? true : false;
+  default boolean isEmptyScan() {
+    return this.getNumberOfDataPoints() == 0;
   }
 
 }

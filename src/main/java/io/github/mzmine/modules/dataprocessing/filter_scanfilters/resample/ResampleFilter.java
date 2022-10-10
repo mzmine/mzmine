@@ -36,7 +36,7 @@ public class ResampleFilter implements ScanFilter {
   @Override
   public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
-    if (scan.isEmptyScanMZRange()) {
+    if (scan.isEmptyScan()) {
 //      return scan;
       return scan;
     }

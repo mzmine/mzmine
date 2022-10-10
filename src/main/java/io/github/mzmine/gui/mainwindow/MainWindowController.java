@@ -227,7 +227,7 @@ public class MainWindowController {
       ImageView rawIcon = new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor()));
       HBox box = new HBox(3, rawIcon);
       if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
-          rawDataFile.getSpectraType())) | rawDataFile.isContainsEmptyScans()) {
+          rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
         FontIcon fontIcon = FxIconUtil.getFontIcon("bi-exclamation-triangle", 15,
             MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
         box.getChildren().add(fontIcon);
@@ -242,7 +242,7 @@ public class MainWindowController {
               This leads to degraded mass accuracies.""");
         } else if (rawDataFile.isContainsEmptyScans()) {
           tip.setText("""
-              Some scans were recognized as empty (ano detected peaks).
+              Some scans were recognized as empty (no detected peaks).
               The possible reason might be the high noise levels influencing mzml conversion.""");
         }
         Tooltip.install(box, tip);
