@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,9 +24,10 @@
 
 package io.github.mzmine.modules.visualization.image;
 
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MobilityRangeParameter;
@@ -51,11 +51,14 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
       "Select m/z range");
   public static final OptionalParameter<MobilityRangeParameter> mobilityRange = new OptionalParameter<>(
       new MobilityRangeParameter());
-  public static final BooleanParameter normalize = new BooleanParameter("TIC normalize",
-      "Normalize each value by the scans TIC", false);
+  public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<>(
+      "Normalize images",
+      "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
+          + "only applies to newly generated plots.", ImageNormalization.values(),
+      ImageNormalization.NO_NORMALIZATION);
 
   public ImageVisualizerParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzRange, mobilityRange, normalize},
+    super(new Parameter[]{rawDataFiles, scanSelection, mzRange, mobilityRange, imageNormalization},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/image_raw_data/image_viewer.html");
   }
 }

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,6 +26,7 @@ package io.github.mzmine.main;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.modules.MZmineModule;
@@ -126,4 +126,6 @@ public interface MZmineConfiguration {
   StringCrypter getEncrypter();
 
   boolean isDarkMode();
+
+  ImageNormalization getImageNormalization();
 }

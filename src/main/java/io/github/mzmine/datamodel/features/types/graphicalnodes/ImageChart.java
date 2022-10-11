@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,6 +26,7 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -56,8 +56,7 @@ public class ImageChart extends StackPane {
   private static Logger logger = Logger.getLogger(ImageChart.class.getName());
 
   public ImageChart(@NotNull ModularFeature f, AtomicDouble progress) {
-
-    FeatureImageProvider prov = new FeatureImageProvider(f);
+    FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(f);
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     // checked in ImagingChart.class
 

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,42 +24,56 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
+import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MathUtils;
 import java.awt.Color;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
-public class FeatureImageProvider implements PlotXYZDataProvider {
+public class FeatureImageProvider<T extends ImagingScan> implements PlotXYZDataProvider,
+    MassSpectrumProvider<T>, PaintScaleProvider {
 
   private static final Logger logger = Logger.getLogger(FeatureImageProvider.class.getName());
 
-  private final ModularFeature feature;
-  private IonTimeSeries<ImagingScan> series;
+  private final Feature feature;
+  private IonTimeSeries<T> series;
   private double width;
   private double height;
-  private final boolean normalize;
+  private final List<T> selectedScans;
+  private final ImageNormalization normalize;
+  protected PaintScale paintScale = null;
 
-  public FeatureImageProvider(ModularFeature feature) {
-    this(feature, false);
+  public FeatureImageProvider(Feature feature) {
+    this(feature, (List<T>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+        MZmineCore.getConfiguration().getImageNormalization());
   }
 
-  public FeatureImageProvider(ModularFeature feature, boolean normalize) {
+  public FeatureImageProvider(Feature feature, @NotNull List<T> selectedScans,
+      ImageNormalization normalize) {
     this.feature = feature;
+    this.selectedScans = selectedScans;
     this.normalize = normalize;
-    if (normalize == false) {
-      series = (IonTimeSeries<ImagingScan>) feature.getFeatureData();
+    if (normalize == ImageNormalization.NO_NORMALIZATION) {
+      series = (IonTimeSeries<T>) feature.getFeatureData();
     }
   }
 
@@ -85,7 +98,7 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
   @Nullable
   @Override
   public PaintScale getPaintScale() {
-    return null;
+    return paintScale;
   }
 
   @NotNull
@@ -106,13 +119,13 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
     height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
     width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
 
-    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     try {
-      if (normalize) {
-        series = (IonTimeSeries<ImagingScan>) IonTimeSeriesUtils.normalizeToAvgTic(
-            (IonTimeSeries<? extends ImagingScan>) featureData, null);
+      final IonTimeSeries<T> featureData = (IonTimeSeries<T>) feature.getFeatureData();
+      if (normalize != null && selectedScans != null && !selectedScans.isEmpty()) {
+        series = (IonTimeSeries<T>) normalize.normalize(featureData,
+            (List<T>) (List<? extends Scan>) selectedScans, null);
       } else {
-        series = (IonTimeSeries<ImagingScan>) featureData;
+        series = featureData;
       }
     } catch (ClassCastException e) {
       logger.info("Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
@@ -123,6 +136,12 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
       throw new IllegalStateException(
           "Could not create image provider for feature " + FeatureUtils.featureToString(feature));
     }
+
+    double[] intensities = series.getIntensityValues(new double[series.getNumberOfValues()]);
+    final double[] quantiles = MathUtils.calcQuantile(intensities,
+        ImagingPlot.DEFAULT_IMAGING_QUANTILES);
+    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+        .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }
 
   @Override
@@ -160,5 +179,10 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
   @Override
   public Double getBoxWidth() {
     return width;
+  }
+
+  @Override
+  public T getSpectrum(int index) {
+    return (T) series.getSpectrum(index);
   }
 }
