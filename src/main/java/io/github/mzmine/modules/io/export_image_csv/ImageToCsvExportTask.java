@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -29,8 +28,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportParameters.HandleMissingValues;
 import io.github.mzmine.parameters.ParameterSet;
@@ -149,8 +148,10 @@ public class ImageToCsvExportTask extends AbstractTask {
         final IonTimeSeries<? extends ImagingScan> data;
         try {
           if (normalize) {
-            data = IonTimeSeriesUtils.normalizeToAvgTic(
-                (IonTimeSeries<? extends ImagingScan>) featureData, null);
+            final ImageNormalization imageNormalization = MZmineCore.getConfiguration()
+                .getImageNormalization();
+            data = imageNormalization.normalize((IonTimeSeries<ImagingScan>) featureData,
+                (List<ImagingScan>) f.getFeatureList().getSeletedScans(f.getRawDataFile()), null);
           } else {
             data = (IonTimeSeries<? extends ImagingScan>) featureData;
           }

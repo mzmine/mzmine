@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
@@ -74,9 +75,12 @@ public class ImageAllMsMsPane extends BorderPane {
   protected final ImagingPlot imagePlot;
 
   protected final ObjectProperty<Feature> featureProperty = new SimpleObjectProperty<>();
+  private final ImageNormalization imageNormalization;
 
   public ImageAllMsMsPane(@Nullable final Feature feature) {
     super();
+
+    imageNormalization = MZmineCore.getConfiguration().getImageNormalization();
 
     setCenter(mainSplit);
     mainSplit.getItems().add(mainContent);
@@ -140,7 +144,9 @@ public class ImageAllMsMsPane extends BorderPane {
     AtomicInteger integer = new AtomicInteger(10);
     imagePlot.getChart().applyWithNotifyChanges(false, () -> {
       if (feature != null) {
-        imagePlot.setData(new ColoredXYZDataset(new FeatureImageProvider<>(feature, true)));
+        imagePlot.setData(new ColoredXYZDataset(new FeatureImageProvider<>(feature,
+            (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+            imageNormalization)));
 
         imagePlot.getChart().applyWithNotifyChanges(false, () -> {
           for (Scan scan : feature.getAllMS2FragmentScans()) {

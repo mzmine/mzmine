@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -45,13 +44,14 @@ public class IonTimeSeriesUtils {
    * Remaps the values of the given series onto another set of scans to gain access to all RT
    * values, for example if the whole chromatogram including 0 intensities is required. This should
    * only be used for preview purposes, since buffers created by this method are not reused. If a
-   * set of features is processed, a {@link io.github.mzmine.datamodel.data_access.FeatureDataAccess}
-   * should be used. If access to all intensity and rt values including zero intensities is required
-   * in array form, {@link this#remapRtAxis(IonTimeSeries, List, double[], double[], double[])} can
-   * be used instead.
+   * set of features is processed, a
+   * {@link io.github.mzmine.datamodel.data_access.FeatureDataAccess} should be used. If access to
+   * all intensity and rt values including zero intensities is required in array form,
+   * {@link this#remapRtAxis(IonTimeSeries, List, double[], double[], double[])} can be used
+   * instead.
    * <p></p>
-   * Note that the use of this method removes the mobility dimension of a {@link
-   * IonMobilogramTimeSeries}.
+   * Note that the use of this method removes the mobility dimension of a
+   * {@link IonMobilogramTimeSeries}.
    *
    * @param series   The series.
    * @param newScans The scans. Have to contain all scans in the series.
@@ -121,13 +121,13 @@ public class IonTimeSeriesUtils {
     }
   }
 
-  public static <T extends IonTimeSeries<? extends Scan>> T normalizeToAvgTic(T series, @Nullable final
-      MemoryMapStorage storage) {
+  public static <S extends Scan, T extends IonTimeSeries<S>> T normalizeToAvgTic(T series,
+      List<S> allSelectedScans, @Nullable final MemoryMapStorage storage) {
     final List<? extends Scan> scans = series.getSpectra();
     final double[] intensities = new double[scans.size()];
     final double[] mzs = new double[scans.size()];
 
-    final double avgTic = scans.stream().mapToDouble(Scan::getTIC).average()
+    final double avgTic = allSelectedScans.stream().mapToDouble(Scan::getTIC).average()
         .orElseThrow(() -> new IllegalStateException("Cannot determine average TIC"));
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
@@ -138,4 +138,23 @@ public class IonTimeSeriesUtils {
 
     return (T) series.copyAndReplace(storage, mzs, intensities);
   }
+
+  /*public static <S extends Scan, T extends IonTimeSeries<S>> T normalizeRootMeanSquare(T series,
+      List<S> allSelectedScans, @Nullable final MemoryMapStorage storage) {
+    final List<? extends Scan> scans = series.getSpectra();
+    final double[] intensities = new double[scans.size()];
+    final double[] mzs = new double[scans.size()];
+
+    // Anal. Bioanal. Chem. 2011, 401, 167-181
+    final double rmsTIC = Math.sqrt(allSelectedScans.stream().mapToDouble(s ->
+          Math.pow(s.getTIC(), 2)).sum());
+
+    for (int i = 0; i < series.getNumberOfValues(); i++) {
+      intensities[i] = series.getIntensity(i) / scans.get(i).getTIC() * rmsTIC;
+    }
+
+    series.getMzValues(mzs);
+
+    return (T) series.copyAndReplace(storage, mzs, intensities);
+  }*/
 }

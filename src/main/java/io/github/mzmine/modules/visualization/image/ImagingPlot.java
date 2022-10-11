@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -38,6 +37,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import java.awt.Color;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.layout.BorderPane;
 import org.jfree.chart.axis.AxisLocation;
@@ -48,6 +48,7 @@ import org.jfree.chart.axis.NumberAxis;
  */
 public class ImagingPlot extends BorderPane {
 
+  public static final double[] DEFAULT_IMAGING_QUANTILES = new double[]{0.50, 0.98};
   private static final Logger logger = Logger.getLogger(ImagingPlot.class.getName());
   private final SimpleXYZScatterPlot<FeatureImageProvider> chart;
   private ParameterSet parameters;
@@ -68,7 +69,8 @@ public class ImagingPlot extends BorderPane {
 
   public void setData(ModularFeature feature) {
     FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(feature,
-        parameters.getValue(ImageVisualizerParameters.normalize));
+        (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+        parameters.getValue(ImageVisualizerParameters.imageNormalization));
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     setData(ds);
   }
