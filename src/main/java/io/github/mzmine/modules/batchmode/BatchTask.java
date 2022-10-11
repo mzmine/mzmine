@@ -66,16 +66,23 @@ import org.jetbrains.annotations.NotNull;
 public class BatchTask extends AbstractTask {
 
   private final BatchQueue queue;
-  private final ParameterSet parameters;
-  private final List<File> subDirectories;
+  // advanced parameters
+  private final int stepsPerDataset;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final int totalSteps;
   private final MZmineProject project;
   private final int datasets;
   private int processedSteps;
-  private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
-  private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
-  private final int stepsPerDataset;
+  private final boolean useAdvanced;
+  private List<File> subDirectories;
+  private List<RawDataFile> createdDataFiles;
+  private List<RawDataFile> previousCreatedDataFiles;
+  private List<FeatureList> createdFeatureLists;
+  private List<FeatureList> previousCreatedFeatureLists;
+  private Boolean skipOnError;
+  private Boolean searchSubdirs;
+  private Boolean createResultsDir;
+  private File parentDir;
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -87,12 +94,22 @@ public class BatchTask extends AbstractTask {
     super(null, moduleCallDate);
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
-    this.parameters = parameters;
-    // if sub directories is set - the input and output files are changed to each sub directory
-    // each sub dir is processed sequentially as a different dataset
-    boolean value = parameters.getParameter(BatchModeParameters.advanced).getValue();
-    this.subDirectories = value ? subDirectories : null;
-    datasets = subDirectories == null || subDirectories.isEmpty() ? 1 : subDirectories.size();
+    // advanced parameters
+    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
+    if (useAdvanced) {
+      // if sub directories is set - the input and output files are changed to each sub directory
+      // each sub dir is processed sequentially as a different dataset
+      AdvancedBatchModeParameters advanced = parameters.getParameter(BatchModeParameters.advanced)
+          .getEmbeddedParameters();
+      skipOnError = advanced.getValue(AdvancedBatchModeParameters.skipOnError);
+      searchSubdirs = advanced.getValue(AdvancedBatchModeParameters.includeSubdirectories);
+      createResultsDir = advanced.getValue(AdvancedBatchModeParameters.createResultsDirectory);
+      parentDir = advanced.getValue(AdvancedBatchModeParameters.processingParentDir);
+      this.subDirectories = subDirectories;
+      datasets = subDirectories == null || subDirectories.isEmpty() ? 1 : subDirectories.size();
+    } else {
+      datasets = 1;
+    }
     stepsPerDataset = queue.size();
     totalSteps = stepsPerDataset * datasets;
     createdDataFiles = new ArrayList<>();
@@ -107,26 +124,13 @@ public class BatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
-    // unmodifiable copies of currents lists
-    startFeatureLists = project.getCurrentFeatureLists();
-    startDataFiles = project.getCurrentRawDataFiles();
-
-    // advanced parameters
-    AdvancedBatchModeParameters advanced = parameters.getParameter(BatchModeParameters.advanced)
-        .getEmbeddedParameters();
-    boolean skipOnError = advanced.getValue(AdvancedBatchModeParameters.skipOnError);
-    boolean searchSubdirs = advanced.getValue(AdvancedBatchModeParameters.includeSubdirectories);
-    boolean createResultsDir = advanced.getValue(
-        AdvancedBatchModeParameters.createResultsDirectory);
-    File parentDir = advanced.getValue(AdvancedBatchModeParameters.processingParentDir);
-
     int errorDataset = 0;
     int currentDataset = -1;
     String datasetName = "";
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
       // at the end of one dataset, clear the project and start over again
-      if (processedSteps % stepsPerDataset == 0) {
+      if (useAdvanced && processedSteps % stepsPerDataset == 0) {
         // clear the old project
         MZmineCore.getProjectManager().clearProject();
         currentDataset++;
@@ -290,7 +294,7 @@ public class BatchTask extends AbstractTask {
               messages.toArray()));
     }
 
-    List<Task> currentStepTasks = new ArrayList<Task>();
+    List<Task> currentStepTasks = new ArrayList<>();
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString());
     ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
@@ -390,8 +394,6 @@ public class BatchTask extends AbstractTask {
    * Recursively sets the last feature lists to the parameters since there might be embedded
    * parameters.
    *
-   * @param method
-   * @param batchStepParameters
    * @return false on error
    */
   private boolean setBatchlastFeatureListsToParamSet(MZmineProcessingModule method,
