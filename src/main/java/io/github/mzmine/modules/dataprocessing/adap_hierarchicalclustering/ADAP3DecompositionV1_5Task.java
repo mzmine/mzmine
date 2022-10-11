@@ -230,10 +230,6 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         row.setFeatureInformation(information);
       }
 
-      // Set row properties
-      row.setAverageMZ(originalPeakRow.getAverageMZ());
-      row.setAverageRT(originalPeakRow.getAverageRT());
-
       // resolvedPeakList.addRow(row);
       newPeakListRows.add(row);
     }
