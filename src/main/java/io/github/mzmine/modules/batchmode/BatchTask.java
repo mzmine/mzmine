@@ -71,9 +71,9 @@ public class BatchTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final int totalSteps;
   private final MZmineProject project;
-  private final int datasets;
   private int processedSteps;
   private final boolean useAdvanced;
+  private final int datasets;
   private List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
@@ -83,6 +83,7 @@ public class BatchTask extends AbstractTask {
   private Boolean searchSubdirs;
   private Boolean createResultsDir;
   private File parentDir;
+  private int currentDataset;
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -125,7 +126,7 @@ public class BatchTask extends AbstractTask {
     logger.info("Starting a batch of " + totalSteps + " steps");
 
     int errorDataset = 0;
-    int currentDataset = -1;
+    currentDataset = -1;
     String datasetName = "";
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
@@ -436,7 +437,16 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Batch of " + totalSteps + " steps";
+    if (datasets > 1) {
+      if (stepsPerDataset == 0) {
+        return "Batch mode";
+      } else {
+        return String.format("Batch step %d/%d of dataset %d/%d",
+            processedSteps % stepsPerDataset + 1, stepsPerDataset, currentDataset + 1, datasets);
+      }
+    } else {
+      return String.format("Batch step %d/%d", processedSteps + 1, totalSteps);
+    }
   }
 
 }
