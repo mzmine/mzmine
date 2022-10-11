@@ -55,6 +55,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CollectionUtils;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
@@ -67,11 +69,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,13 +122,34 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    File[] selectedFiles = parameters.getParameter(AllSpectralDataImportParameters.fileNames)
-        .getValue();
+    File[] selectedFiles = parameters.getValue(AllSpectralDataImportParameters.fileNames);
 
     // for bruker files path might point to D:\datafile.d\datafile.d  where the first is a folder
     // change to the folder
-    final File[] fileNames = Arrays.stream(selectedFiles).map(this::validateBrukerPath)
-        .toArray(File[]::new);
+    Stream<File> fileStream = Arrays.stream(selectedFiles).map(this::validateBrukerPath);
+
+    // check if files were already loaded
+    if (parameters.getValue(AllSpectralDataImportParameters.skipExistingFiles)) {
+      Set<String> currentFileNames = project.getCurrentRawDataFiles().stream()
+          .map(RawDataFile::getName).collect(Collectors.toSet());
+      fileStream = fileStream.filter(f -> !currentFileNames.contains(f.getName()));
+    }
+
+    File[] fileNames = fileStream.toArray(File[]::new);
+
+    // check for duplicates in the input files
+    List<String> duplicates = CollectionUtils.streamDuplicates(
+        Arrays.stream(fileNames).map(File::getName)).toList();
+    if (!duplicates.isEmpty()) {
+      String msg = "Stopped import as there were duplicate file names in the import list. "
+          + "Make sure to use unique names as MZmine and many downstream tools depend on this. Duplicates are: "
+          + String.join("; ", duplicates);
+      logger.warning(msg);
+      if (!MZmineCore.isHeadLessMode()) {
+        DialogLoggerUtil.showErrorDialog("Duplicate file names selected", msg);
+      }
+      return ExitCode.ERROR;
+    }
 
     boolean useAdvancedOptions = parameters.getParameter(
         AllSpectralDataImportParameters.advancedImport).getValue();

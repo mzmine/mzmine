@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import java.util.List;
@@ -61,13 +62,18 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
       extensions);
 
+  public static final BooleanParameter skipExistingFiles = new BooleanParameter(
+      "Skip existing files",
+      "WARNING: Skips files with the same file name - otherwise throws an error, which is the safer way.",
+      false);
+
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
       "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help).\nAdvantage: Lower memory consumption\nCaution: All processing steps will directly change the underlying data, with no way of retrieving raw data or initial results.",
       new AdvancedSpectraImportParameters(), true);
 
   public AllSpectralDataImportParameters() {
-    super(new Parameter[]{fileNames, //
+    super(new Parameter[]{fileNames, skipExistingFiles, //
         advancedImport, // directly process masslists
         // allow import of spectral libraries
         SpectralLibraryImportParameters.dataBaseFiles});

@@ -31,27 +31,26 @@ import javafx.animation.Timeline;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 public class DialogLoggerUtil {
 
-  /*
-   * Dialogs
-   */
-  public static void showErrorDialog(String message, Exception e) {
-    Alert alert = new Alert(AlertType.ERROR, message + " \n" + e.getMessage());
-    alert.showAndWait();
-  }
-
   public static void showErrorDialog(String title, String message) {
-    Alert alert = new Alert(AlertType.ERROR, message);
-    alert.setTitle(title);
-    alert.showAndWait();
+    showDialog(AlertType.WARNING, title, message);
   }
 
   public static void showMessageDialog(String title, String message) {
-    Alert alert = new Alert(AlertType.INFORMATION, message);
-    alert.setTitle(title);
+    showDialog(AlertType.INFORMATION, title, message);
+  }
+
+
+  public static void showDialog(AlertType type, String title, String message) {
+    Alert alert = new Alert(type, message);
+//    alert.setHeaderText(message);
+    Text text = new Text(message);
+    text.setWrappingWidth(500);
+    alert.getDialogPane().setContent(text);
     alert.showAndWait();
   }
 
@@ -65,7 +64,6 @@ public class DialogLoggerUtil {
   /**
    * shows a message dialog just for a few given milliseconds
    *
-   * @param parent
    * @param title
    * @param message
    * @param time
