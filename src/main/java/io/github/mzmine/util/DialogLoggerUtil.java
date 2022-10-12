@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.main.MZmineCore;
 import java.util.Optional;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -46,12 +47,14 @@ public class DialogLoggerUtil {
 
 
   public static void showDialog(AlertType type, String title, String message) {
-    Alert alert = new Alert(type, message);
+    MZmineCore.runLater(() -> {
+      Alert alert = new Alert(type, message);
 //    alert.setHeaderText(message);
-    Text text = new Text(message);
-    text.setWrappingWidth(500);
-    alert.getDialogPane().setContent(text);
-    alert.showAndWait();
+      Text text = new Text(message);
+      text.setWrappingWidth(500);
+      alert.getDialogPane().setContent(text);
+      alert.showAndWait();
+    });
   }
 
   public static boolean showDialogYesNo(String title, String message) {
