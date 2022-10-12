@@ -32,11 +32,12 @@ import javafx.scene.layout.FlowPane;
 
 
 /**
+ *
  */
 public class SubModuleComponent extends FlowPane {
 
   /**
-   * 
+   *
    */
   private final Button setButton;
 

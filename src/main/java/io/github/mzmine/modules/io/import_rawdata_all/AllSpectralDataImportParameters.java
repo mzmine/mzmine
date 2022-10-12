@@ -35,10 +35,12 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
+  public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
+      "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.raw", "*.RAW", "*.mzData",
+      "*.mzdata", "*.aird");
+
   public static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("MS data", "*.mzML", "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml",
-          "*.d", "*.raw", "*.RAW", "*.mzData", "*.mzdata", "*.aird"), //
-      new ExtensionFilter("mzML MS data", "*.mzML", "*.mzml"), //
+      ALL_MS_DATA_FILTER, new ExtensionFilter("mzML MS data", "*.mzML", "*.mzml"), //
       new ExtensionFilter("mzXML MS data", "*.mzXML", "*.mzxml"), //
       new ExtensionFilter("imzML MS imaging data", "*.imzML", "*.imzml"), //
       new ExtensionFilter("Bruker tdf files", "*.d"), //

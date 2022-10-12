@@ -87,7 +87,8 @@ public class MSnInfoImpl implements DDAMsMsInfo {
    * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
    * @return A loaded {@link DDAMsMsInfoImpl}.
    */
-  public static MSnInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
+  public static MSnInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file,
+      List<RawDataFile> allProjectFiles) {
     List<DDAMsMsInfo> precursors = new ArrayList<>(4);
     int childrenOpen = 0;
     try {
@@ -104,7 +105,7 @@ public class MSnInfoImpl implements DDAMsMsInfo {
           continue;
         }
 
-        final MsMsInfo loaded = MsMsInfo.loadFromXML(reader, file);
+        final MsMsInfo loaded = MsMsInfo.loadFromXML(reader, file, allProjectFiles);
         if (loaded instanceof DDAMsMsInfo child) {
           childrenOpen++;
           precursors.add(child);

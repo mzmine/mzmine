@@ -221,6 +221,11 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
+  public boolean isContainsEmptyScans() {
+    throw new UnsupportedOperationException("Unsupported during project load.");
+  }
+
+  @Override
   public MassSpectrumType getSpectraType() {
     throw new UnsupportedOperationException("Unsupported during project load.");
   }

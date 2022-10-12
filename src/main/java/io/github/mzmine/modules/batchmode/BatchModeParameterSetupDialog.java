@@ -23,32 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.project;
+package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import javax.xml.stream.XMLStreamReader;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 
-/**
- * Project manager
- */
-public interface ProjectManager {
+public class BatchModeParameterSetupDialog extends ParameterSetupDialog {
 
-  /**
-   * Contract: Should not be used during raw data import to retrieve a list of possible raw data
-   * files. The list should be provided as a parameter to the
-   * {@link io.github.mzmine.datamodel.features.types.DataType#loadFromXML(XMLStreamReader,
-   * MZmineProject, ModularFeatureList, ModularFeatureListRow, ModularFeature, RawDataFile)}
-   * method.
-   *
-   * @return The current project.
-   */
-  MZmineProject getCurrentProject();
+  public BatchModeParameterSetupDialog(final ParameterSet parameters) {
+    super(true, parameters);
+    BatchQueueParameter batchQueue = parameters.getParameter(BatchModeParameters.batchQueue);
+    FileNameListSilentParameter lastFiles = parameters.getParameter(BatchModeParameters.lastFiles);
 
-  void setCurrentProject(MZmineProject newProject);
+    BatchComponentController controller = batchQueue.getController();
+    controller.setLastFiles(lastFiles.getValue());
+  }
 
-  void clearProject();
 }

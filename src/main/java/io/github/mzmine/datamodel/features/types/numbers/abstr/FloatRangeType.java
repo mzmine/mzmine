@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -69,9 +70,9 @@ public abstract class FloatRangeType extends NumberRangeType<Float> {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     return ParsingUtils.stringToFloatRange(reader.getElementText());
   }
 

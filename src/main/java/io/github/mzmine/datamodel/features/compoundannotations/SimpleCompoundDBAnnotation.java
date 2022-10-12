@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -115,8 +116,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     }
   }
 
-  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException {
+  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader,
+      @NotNull final MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row)
+      throws XMLStreamException {
     final String startElementName = reader.getLocalName();
     final String startElementAttrValue = Objects.requireNonNullElse(
         reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE_OLD),
@@ -145,7 +147,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       final DataType<?> typeForId = DataTypes.getTypeForId(
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
-        Object o = typeForId.loadFromXML(reader, flist, row, null, null);
+        Object o = typeForId.loadFromXML(reader, project, flist, row, null, null);
         id.put((DataType) typeForId, o);
       }
       i++;

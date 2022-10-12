@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -88,9 +89,9 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     if (!reader.isStartElement() && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR)
         .equals(getUniqueID())) {
       throw new IllegalStateException("Current element is not a database match info element.");
@@ -98,8 +99,8 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
 
     final String database_id = ParsingUtils.readNullableString(
         reader.getAttributeValue(null, "database_id"));
-    final OnlineDatabases database = OnlineDatabases.valueOf(ParsingUtils.readNullableString(
-        reader.getAttributeValue(null, "database_name")));
+    final OnlineDatabases database = OnlineDatabases.valueOf(
+        ParsingUtils.readNullableString(reader.getAttributeValue(null, "database_name")));
     final String url = reader.getElementText();
 
     return new DatabaseMatchInfo(database, database_id, url);

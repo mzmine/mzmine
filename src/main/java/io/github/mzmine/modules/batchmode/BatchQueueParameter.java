@@ -127,15 +127,16 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
         // Check step's parameters.
         final ParameterSet params = batchStep.getParameterSet();
-        if (params == null)
+        if (params == null) {
           continue;
+        }
 
         for (final Parameter<?> parameter : params.getParameters()) {
 
           // Ignore the raw data files and feature lists parameters
           if (!(parameter instanceof RawDataFilesParameter)
-              && !(parameter instanceof FeatureListsParameter)
-              && !parameter.checkValue(errorMessages)) {
+              && !(parameter instanceof FeatureListsParameter) && !parameter.checkValue(
+              errorMessages)) {
             allParamsOK = false;
 
           }

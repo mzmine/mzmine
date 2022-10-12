@@ -27,6 +27,7 @@ package datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -47,6 +48,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,6 +72,10 @@ public class FeatureDataTypeTest {
     row.addFeature(file, feature);
     flist.addRow(row);
 
+    final MZmineProject project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
+
     List<Scan> scans = new ArrayList<>();
     for (int i = 0; i < 20; i++) {
       scans.add(new SimpleScan(file, i, 1, 0.1f * i, null, new double[0], new double[0],
@@ -87,23 +93,27 @@ public class FeatureDataTypeTest {
     flist.setSelectedScans(file, scans.subList(3, 18));
 
     IonTimeSeries<Scan> series = new SimpleIonTimeSeries(null,
-        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d}, scans.subList(5, 10));
+        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d},
+        scans.subList(5, 10));
 
     // test if load/save is good
     feature.set(FeatureDataType.class, series);
-    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), series, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), series, project, flist, row, feature,
+        file);
 
     // test if equals is good
     IonTimeSeries<Scan> series_2 = new SimpleIonTimeSeries(null,
-        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d}, scans.subList(5, 10));
+        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d},
+        scans.subList(5, 10));
     Assertions.assertEquals(series, series_2);
 
     // test if equals returns false
     IonTimeSeries<Scan> series_3 = new SimpleIonTimeSeries(null,
-        new double[]{150d, 150d, 120d, 130d, 150d}, new double[]{1d, 4d, 20d, 4.999d, 1d}, scans.subList(5, 10));
+        new double[]{150d, 150d, 120d, 130d, 150d}, new double[]{1d, 4d, 20d, 4.999d, 1d},
+        scans.subList(5, 10));
     Assertions.assertNotEquals(series, series_3);
 
-    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, project, flist, row, feature, file);
   }
 
   @Test
@@ -117,6 +127,10 @@ public class FeatureDataTypeTest {
     final ModularFeature feature = new ModularFeature(flist, file, null, null);
     row.addFeature(file, feature);
     flist.addRow(row);
+
+    final MZmineProject project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
 
     for (int i = 0; i < 20; i++) {
       List<BuildingMobilityScan> scans = new ArrayList<>();
@@ -141,7 +155,8 @@ public class FeatureDataTypeTest {
 
     // test if load/save is good
     feature.set(FeatureDataType.class, series);
-    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), series, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), series, project, flist, row, feature,
+        file);
 
     // test if equals is good
     IonMobilogramTimeSeries series_2 = generateTrace(file, 2);
@@ -150,7 +165,7 @@ public class FeatureDataTypeTest {
     IonMobilogramTimeSeries series_3 = generateTrace(file, 2.005d);
     Assertions.assertNotEquals(series, series_3);
 
-    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, project, flist, row, feature, file);
   }
 
   @NotNull
