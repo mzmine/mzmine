@@ -506,7 +506,7 @@ public class BatchWizardController {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();
     param.getParameter(MassDetectionParameters.dataFiles)
-        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
+        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
     param.getParameter(MassDetectionParameters.scanTypes).setValue(SelectedScanTypes.SCANS);
     param.getParameter(MassDetectionParameters.massDetector).setValue(
@@ -532,7 +532,7 @@ public class BatchWizardController {
     param.setParameter(MobilityScanMergerParameters.weightingType, Weighting.LINEAR);
 
     final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
-        RawDataFilesSelectionType.BATCH_LAST_FILES);
+        RawDataFilesSelectionType.ALL_FILES);
     param.setParameter(MobilityScanMergerParameters.rawDataFiles, rawDataFilesSelection);
 
     return new MZmineProcessingStepImpl<>(
@@ -544,7 +544,7 @@ public class BatchWizardController {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
-        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
+        new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
     // crop rt range
     param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(
         RangeUtils.toFloatRange(hplcParameters.getValue(BatchWizardHPLCParameters.cropRtRange)),
