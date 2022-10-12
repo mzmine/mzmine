@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -153,7 +154,7 @@ public class MZminePreferences extends SimpleParameterSet {
       KeepInMemory.NONE);
 
   public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
-      "Use TIMS pressure compensation", """
+      "Use MALDI-TIMS pressure compensation", """
       Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
       This compensation is applied during file import and cannot be applied afterwards.
       Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
