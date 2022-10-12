@@ -186,6 +186,7 @@ public class BatchTask extends AbstractTask {
         }
       }
     }
+    processedSteps = totalSteps;
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
