@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
@@ -231,6 +232,10 @@ public class SimpleParameterSet implements ParameterSet {
       if (!pOK) {
         allParametersOK = false;
       }
+      if(p instanceof HiddenParameter<?,?> hidden) {
+        p = hidden.getEmbeddedParameter();
+      }
+
       if (p instanceof RawDataFilesParameter rfp) {
         pOK = checkRawDataFileIonMobilitySupport(rfp.getValue().getMatchingRawDataFiles(),
             errorMessages);

@@ -41,7 +41,8 @@ public interface ProjectManager {
    * Contract: Should not be used during raw data import to retrieve a list of possible raw data
    * files. The list should be provided as a parameter to the
    * {@link io.github.mzmine.datamodel.features.types.DataType#loadFromXML(XMLStreamReader,
-   * ModularFeatureList, ModularFeatureListRow, ModularFeature, RawDataFile)} method.
+   * MZmineProject, ModularFeatureList, ModularFeatureListRow, ModularFeature, RawDataFile)}
+   * method.
    *
    * @return The current project.
    */

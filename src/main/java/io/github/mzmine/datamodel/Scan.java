@@ -193,5 +193,15 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
     }
   }
 
+  /**
+   *
+   * Method to check if the scan m/z range is not empty
+   *
+   * @return boolean
+   */
+  default boolean isEmptyScan() {
+    return this.getNumberOfDataPoints() == 0;
+  }
+
 }
 

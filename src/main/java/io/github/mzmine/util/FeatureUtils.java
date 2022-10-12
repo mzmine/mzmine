@@ -32,6 +32,9 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -43,7 +46,6 @@ import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.ArrayList;
@@ -246,36 +248,12 @@ public class FeatureUtils {
    * @param mzRange
    * @return The result of the integration.
    */
-  public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Float> rtRange,
+  public static double integrateOverMzRtRange(RawDataFile dataFile, List<Scan> scans, Range<Float> rtRange,
       Range<Double> mzRange) {
-    ManualFeature newFeature = new ManualFeature(dataFile);
-    boolean dataPointFound = false;
+    final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(dataFile, scans,
+        mzRange,  rtRange, null);
 
-    Scan[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-
-    for (Scan scan : scanNumbers) {
-      // Find most intense m/z feature
-      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
-
-      if (basePeak != null) {
-        if (basePeak.getIntensity() > 0) {
-          dataPointFound = true;
-        }
-        newFeature.addDatapoint(scan, basePeak);
-      } else {
-        final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
-        DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newFeature.addDatapoint(scan, fakeDataPoint);
-      }
-
-    }
-
-    if (dataPointFound) {
-      newFeature.finalizeFeature();
-      return newFeature.getArea();
-    } else {
-      return 0.0;
-    }
+    return FeatureDataUtils.calculateArea(series);
   }
 
 
