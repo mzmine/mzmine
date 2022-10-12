@@ -111,13 +111,14 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensties = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
-        case CONST.XML_SCAN_LIST_ELEMENT -> scans = ParsingUtils.stringToMobilityScanList(
-            reader.getElementText(), file);
-        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file);
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensties = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_SCAN_LIST_ELEMENT ->
+            scans = ParsingUtils.stringToMobilityScanList(reader.getElementText(), file);
+        // the file has already been determined before
+        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
       }
     }
 
