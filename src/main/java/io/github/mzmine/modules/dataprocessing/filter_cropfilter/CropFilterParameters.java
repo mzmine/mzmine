@@ -45,12 +45,17 @@ public class CropFilterParameters extends SimpleParameterSet {
   public static final StringParameter suffix =
       new StringParameter("Suffix", "This string is added to filename as suffix", "filtered");
 
+  public static final BooleanParameter emptyScans =
+      new BooleanParameter("Filter out empty scans",
+          "USAGE IS STRONGLY DISCOURAGED!\nIf checked, empty scans will be filtered out. Disrupts the initial scan numbering!\n"
+              + "Preserving empty scans might be useful for the later analysis.");
+
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove source file after filtering",
           "If checked, original file will be removed and only filtered version remains");
 
   public CropFilterParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, mzRange, suffix, autoRemove},
+    super(new Parameter[] {dataFiles, scanSelection, mzRange, suffix, emptyScans, autoRemove},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_raw_data/crop-filter.html");
   }
 
