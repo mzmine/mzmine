@@ -29,9 +29,11 @@ import io.github.mzmine.main.MZmineCore;
 import java.util.Optional;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -52,7 +54,9 @@ public class DialogLoggerUtil {
 //    alert.setHeaderText(message);
       Text text = new Text(message);
       text.setWrappingWidth(500);
-      alert.getDialogPane().setContent(text);
+      HBox box = new HBox(text);
+      box.setPadding(new Insets(5));
+      alert.getDialogPane().setContent(box);
       alert.showAndWait();
     });
   }
