@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package util;
@@ -57,8 +64,6 @@ public class DIACorrelationTest {
     }
     final CorrelationData correlationData = DIA.corrFeatureShape(mainX, mainY, xShiftedBy0_05,
         y_shifted, 5, 2, 0.0001);
-    logger.info(() -> "Pearson shifted " + correlationData.getPearsonR());
-    logger.info(() -> "Cosine shifted " + correlationData.getCosineSimilarity());
 
     // distort shape by making it wider
     double[] y_distorted = new double[xShiftedBy0_05.length];
@@ -67,8 +72,6 @@ public class DIACorrelationTest {
     }
     final CorrelationData correlationData2 = DIA.corrFeatureShape(mainX, mainY, xShiftedBy0_05,
         y_distorted, 5, 2, 0.0001);
-    logger.info(() -> "Pearson shifted " + correlationData2.getPearsonR());
-    logger.info(() -> "Cosine shifted " + correlationData2.getCosineSimilarity());
     Assertions.assertTrue(correlationData.getPearsonR() > correlationData2.getPearsonR());
     Assertions.assertTrue(
         correlationData.getCosineSimilarity() > correlationData2.getCosineSimilarity());
@@ -80,8 +83,6 @@ public class DIACorrelationTest {
     }
     final CorrelationData correlationData3 = DIA.corrFeatureShape(mainX, mainY, xShiftedBy0_05,
         y_shifted_distorted, 5, 2, 0.0001);
-    logger.info(() -> "Pearson shifted_distorted " + correlationData3.getPearsonR());
-    logger.info(() -> "Cosine shifted_distorted " + correlationData3.getCosineSimilarity());
     Assertions.assertTrue(correlationData2.getPearsonR() > correlationData3.getPearsonR());
     Assertions.assertTrue(
         correlationData2.getCosineSimilarity() > correlationData3.getCosineSimilarity());
@@ -98,34 +99,15 @@ public class DIACorrelationTest {
     }
     final CorrelationData correlationData4 = DIA.corrFeatureShape(mainX, mainY, x_lessPoints,
         y_lessPoints, 5, 2, 0.0001);
-    logger.info(() -> "Pearson less points " + correlationData4.getPearsonR());
-    logger.info(() -> "Cosine less points " + correlationData4.getCosineSimilarity());
-//    Assertions.assertTrue(correlationData2.getPearsonR() > correlationData4.getPearsonR());
-//    Assertions.assertTrue(correlationData2.getCosineSimilarity() > correlationData4.getCosineSimilarity());
-
-    /*final double[][] interpolatedShape = DIA.getInterpolatedShape(mainX, mainY, x_lessPoints,
-        y_lessPoints);
-    for (int i = 0; i < interpolatedShape[0].length; i++) {
-      System.out.println(interpolatedShape[0][i]);
-    }
-    System.out.println();
-    System.out.println();
-    for (int i = 0; i < interpolatedShape[0].length; i++) {
-      System.out.println(interpolatedShape[1][i]);
-    }*/
+    Assertions.assertTrue(correlationData2.getPearsonR() < correlationData4.getPearsonR());
+    Assertions.assertTrue(
+        correlationData2.getCosineSimilarity() < correlationData4.getCosineSimilarity());
 
     final CorrelationData correlationData5 = DIA.corrFeatureShape(x_lessPoints, y_lessPoints, mainX,
         mainY, 5, 2, 0.0001);
-    logger.info(() -> "Pearson less points_reversed " + correlationData5.getPearsonR());
-    logger.info(() -> "Cosine less points_reversed " + correlationData5.getCosineSimilarity());
-
-    /*Instant start = Instant.now();
-    for(int i = 0; i < 1_000_000; i++) {
-      final CorrelationData performance = DIA.corrFeatureShape(x_lessPoints,
-          y_lessPoints, mainX, mainY, 5, 2, 0.0001);
-    }
-    Instant end = Instant.now();
-    logger.info(() -> "Time to execute: " + (end.toEpochMilli() - start.toEpochMilli()));*/
+    Assertions.assertEquals(correlationData4.getPearsonR(), correlationData5.getPearsonR());
+    Assertions.assertEquals(correlationData4.getCosineSimilarity(),
+        correlationData5.getCosineSimilarity());
   }
 
   private double gauss(double x, double sigma, double mu) {
@@ -156,29 +138,29 @@ public class DIACorrelationTest {
 
   }
 
-  private static double[] ms1rts = new double[]{10.224934, 10.2642, 10.303467, 10.3429, 10.382167,
-      10.421433, 10.460683, 10.49995, 10.539217, 10.57865, 10.617917, 10.657184, 10.696433, 10.7357,
-      10.774966, 10.814234, 10.853666, 10.892917, 10.932183, 10.97145, 11.010716, 11.049983,
-      11.0894165, 11.128667, 11.167933, 11.2072, 11.246467, 11.285733, 11.325, 11.364417, 11.403684,
-      11.44295, 11.482217, 11.521483, 11.56075};
+  private static final double[] ms1rts = new double[]{10.224934, 10.2642, 10.303467, 10.3429,
+      10.382167, 10.421433, 10.460683, 10.49995, 10.539217, 10.57865, 10.617917, 10.657184,
+      10.696433, 10.7357, 10.774966, 10.814234, 10.853666, 10.892917, 10.932183, 10.97145,
+      11.010716, 11.049983, 11.0894165, 11.128667, 11.167933, 11.2072, 11.246467, 11.285733, 11.325,
+      11.364417, 11.403684, 11.44295, 11.482217, 11.521483, 11.56075};
 
-  private static double[] ms1intensities = new double[]{4555, 9525, 18009, 28950, 38919, 45017,
-      43402, 39637, 40766, 69359, 150927, 439667, 1210074, 2021947, 3011063, 3458844, 3398783,
-      2787659, 1777083, 1057632, 538266, 288249, 214723, 177263, 156351, 116322, 73630, 42625,
-      26202, 21112, 17866, 17160, 15851, 12014, 9090
-  };
+  private static final double[] ms1intensities = new double[]{4555, 9525, 18009, 28950, 38919,
+      45017, 43402, 39637, 40766, 69359, 150927, 439667, 1210074, 2021947, 3011063, 3458844,
+      3398783, 2787659, 1777083, 1057632, 538266, 288249, 214723, 177263, 156351, 116322, 73630,
+      42625, 26202, 21112, 17866, 17160, 15851, 12014, 9090};
 
-  private static double[] ms2rts = new double[]{0.066516668, 0.105783336, 0.145199999, 0.18446666,
-      0.223733336,0.263000011,0.302266657,0.341533333,0.380783349,0.420266658,0.459533334,
-      0.498800009,0.538066685,0.577333331,0.616599977,0.656016648,0.695283353,0.73454994,
-      0.773816645,0.813083351,0.852333307,0.891600013,0.931033313,0.970300019,1.009566665,
-      1.04883337,1.088083386,1.127349973,1.166783452,1.206050038,1.245316625,1.28458333,
-      1.323833346,1.363100052,1.402366638,1.441799998,1.481066585,1.520333409,1.559583306,
-      1.598850012,1.638116717,1.677549958,1.716816664,1.756083369,1.795333385,1.834599972,
-      1.873866677,1.913133383,1.952566624,1.99181664,2.031083345,2.070349932,2.109616756,
-      2.148883343,2.188633442,2.228233337,2.267499685,2.306766748,2.346033335,2.385299921,
-      2.424550056,2.463983297,2.503249884,2.54251647,2.581783295,2.621050119,2.660300016,
-      2.699733257,2.739000082,2.778266668,2.817549944,2.856816769,2.896083355,2.935349941,
+  private static final double[] ms2rts = new double[]{0.066516668, 0.105783336, 0.145199999,
+      0.18446666, 0.223733336, 0.263000011, 0.302266657, 0.341533333, 0.380783349, 0.420266658,
+      0.459533334, 0.498800009, 0.538066685, 0.577333331, 0.616599977, 0.656016648, 0.695283353,
+      0.73454994, 0.773816645, 0.813083351, 0.852333307, 0.891600013, 0.931033313, 0.970300019,
+      1.009566665, 1.04883337, 1.088083386, 1.127349973, 1.166783452, 1.206050038, 1.245316625,
+      1.28458333, 1.323833346, 1.363100052, 1.402366638, 1.441799998, 1.481066585, 1.520333409,
+      1.559583306, 1.598850012, 1.638116717, 1.677549958, 1.716816664, 1.756083369, 1.795333385,
+      1.834599972, 1.873866677, 1.913133383, 1.952566624, 1.99181664, 2.031083345, 2.070349932,
+      2.109616756, 2.148883343, 2.188633442, 2.228233337, 2.267499685, 2.306766748, 2.346033335,
+      2.385299921, 2.424550056, 2.463983297, 2.503249884, 2.54251647, 2.581783295, 2.621050119,
+      2.660300016, 2.699733257, 2.739000082, 2.778266668, 2.817549944, 2.856816769, 2.896083355,
+      2.935349941,
       2.974783421,3.014033318,3.053299904,3.092566729,3.131833315,3.171099901,3.210516691,
       3.249783278,3.289050102,3.328316689,3.367583275,3.4068501,3.446266651,3.485533237,
       3.524800062,3.564066648,3.603333235,3.64260006,3.681849957,3.721283436,3.760550022,
@@ -239,17 +221,18 @@ public class DIACorrelationTest {
       18.65451622,18.69378281,18.73321724,18.77246666,18.81173325,18.85099983,18.89026642,
       18.929533,18.96879959};
 
-private static double[]ms2intensities={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,195,3779,
-    6305,6959,3623,1244,357,88,210,380,818,685,604,400,272,355,424,661,567,689,
-    583,837,575,979,1371,1579,1164,519,167,858,1468,1683,2116,3591,4524,3790,2784,
-    3075,6954,11838,12939,9971,4723,5896,13595,31898,70330,103208,96667,67823,61998,
-    130643,194662,192938,130836,62350,48312,147515,177913,183801,90200,94524,245748,
-    400929,430006,272555,170107,244811,315791,266913,138737,64067,42806,28550,30321,
-    39164,37921,22642,8391,7486,32923,63272,66637,43761,20748,97065,176199,187975,
-    112841,31211,12268,6773,5332,3984,3078,2676,2694,2396,1952,3063,4200,4766,4097,
-    4315,4848,4976,4141,5800,12625,15326,12535,4700,1371,1478,1606,1265,2599,34810,
-    192347,328710,335316,185981,52636,17975,15110,12663,8789,3768,1992,2157,1995,
-    1983,1593,1979,3408,4708,6650,5893,5221,4314,5709,6608,5882,3563,2469,2284,
+  private static final double[] ms2intensities = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 195,
+      3779, 6305, 6959, 3623, 1244, 357, 88, 210, 380, 818, 685, 604, 400, 272, 355, 424, 661, 567,
+      689, 583, 837, 575, 979, 1371, 1579, 1164, 519, 167, 858, 1468, 1683, 2116, 3591, 4524, 3790,
+      2784, 3075, 6954, 11838, 12939, 9971, 4723, 5896, 13595, 31898, 70330, 103208, 96667, 67823,
+      61998, 130643, 194662, 192938, 130836, 62350, 48312, 147515, 177913, 183801, 90200, 94524,
+      245748, 400929, 430006, 272555, 170107, 244811, 315791, 266913, 138737, 64067, 42806, 28550,
+      30321, 39164, 37921, 22642, 8391, 7486, 32923, 63272, 66637, 43761, 20748, 97065, 176199,
+      187975, 112841, 31211, 12268, 6773, 5332, 3984, 3078, 2676, 2694, 2396, 1952, 3063, 4200,
+      4766, 4097, 4315, 4848, 4976, 4141, 5800, 12625, 15326, 12535, 4700, 1371, 1478, 1606, 1265,
+      2599, 34810, 192347, 328710, 335316, 185981, 52636, 17975, 15110, 12663, 8789, 3768, 1992,
+      2157, 1995, 1983, 1593, 1979, 3408, 4708, 6650, 5893, 5221, 4314, 5709, 6608, 5882, 3563,
+      2469, 2284,
     1954,1732,1584,2073,2491,2884,3438,3737,3079,2472,2156,2738,3170,3107,3096,
     3079,3508,3643,3491,3455,2726,3527,4064,5582,9386,25342,53313,76952,75367,52238,
     26423,14724,15196,29955,65860,111224,131821,111803,72614,47405,39635,35461,28493,
