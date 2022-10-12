@@ -165,10 +165,29 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // start importing spectral libraries first
     final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
     if (libraryFiles != null) {
-      for (File f : libraryFiles) {
-        Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
-        tasks.add(newTask);
+      // check for duplicates in the input files
+      duplicates = CollectionUtils.streamDuplicates(Arrays.stream(libraryFiles).map(File::getName))
+          .toList();
+      if (!duplicates.isEmpty()) {
+        String msg =
+            "Stopped import as there were duplicate library file names in the import list. Duplicates are: "
+                + String.join("; ", duplicates);
+        logger.warning(msg);
+        if (!MZmineCore.isHeadLessMode()) {
+          DialogLoggerUtil.showErrorDialog("Duplicate library file names selected", msg);
+        }
+        return ExitCode.ERROR;
       }
+
+      Set<String> currentLibraries = project.getCurrentSpectralLibraries().stream()
+          .map(lib -> lib.getPath().getName()).collect(Collectors.toSet());
+
+      // remove duplicates
+      Arrays.stream(libraryFiles).filter(f -> !currentLibraries.contains(f.getName()))
+          .forEach(f -> {
+            Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
+            tasks.add(newTask);
+          });
     }
 
     // Find common prefix in raw file names if in GUI mode
