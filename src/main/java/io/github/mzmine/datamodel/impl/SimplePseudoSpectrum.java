@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -35,6 +36,7 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
+import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -126,7 +128,7 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
             mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
         case CONST.XML_INTENSITY_VALUES_ELEMENT ->
             intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
-        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file);
+        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
       }
     }
 
@@ -134,6 +136,5 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
     return new SimplePseudoSpectrum(file, mslevel, rt, info, mzs, intensities, polarity, scanDef,
         type);
   }
-
 
 }

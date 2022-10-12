@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -285,28 +286,29 @@ public class RegularScanTypesTest {
         scan.getMsMsInfo(), scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
         scan.getPolarity(), "A pseudo spectrum", PseudoSpectrumType.LC_DIA);
 
-    Object o1 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, flist, row, null,
-        null);
-    Object o2 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, flist, row,
+    Object o1 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, project, flist,
+        row, null, null);
+    Object o2 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, project, flist,
+        row, feature, file);
+    Object o3 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, project, flist, row,
+        null, null);
+    Object o4 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, project, flist, row,
         feature, file);
-    Object o3 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, flist, row, null,
-        null);
-    Object o4 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, flist, row, feature,
-        file);
     comparePseudoSpectra(spectrum, (PseudoSpectrum) o1);
     comparePseudoSpectra(spectrum, (PseudoSpectrum) o2);
     Assertions.assertEquals(o3, null);
     Assertions.assertEquals(o4, null);
 
     Object o5 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
-        flist, row, null, null);
+        project, flist, row, null, null);
     Object o6 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
-        flist, row, feature, file);
+        project, flist, row, feature, file);
     Assertions.assertEquals(null,
-        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, flist, row, null, null));
+        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
+            null, null));
     Assertions.assertEquals(null,
-        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, flist, row, feature,
-            file));
+        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
+            feature, file));
     comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o5).get(0)));
     comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o6).get(0)));
 

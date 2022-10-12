@@ -118,7 +118,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
             intensties = ParsingUtils.stringToDoubleArray(reader.getElementText());
         case CONST.XML_SCAN_LIST_ELEMENT ->
             scans = ParsingUtils.stringToMobilityScanList(reader.getElementText(), file);
-        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file);
+        // the file has already been determined before
+        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
       }
     }
 
