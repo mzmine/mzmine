@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -109,7 +110,7 @@ public class FeatureDataType extends
   }
 
   @Override
-  public Object loadFromXML(@NotNull final XMLStreamReader reader,
+  public Object loadFromXML(@NotNull final XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {

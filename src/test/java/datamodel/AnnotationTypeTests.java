@@ -26,6 +26,7 @@
 package datamodel;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -63,6 +64,7 @@ import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +93,10 @@ public class AnnotationTypeTests {
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
     final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1);
 
+    final MZmineProject project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
+
     FeatureIdentity id1 = new SimpleFeatureIdentity("name1", "form1", "method1", "id1", "url1");
     FeatureIdentity id2 = new SimpleFeatureIdentity("name2", "form2", "method2", "id2", "url2");
 
@@ -100,7 +106,7 @@ public class AnnotationTypeTests {
     ManualAnnotation value = new ManualAnnotation();
     value.setIdentities(list);
     final ManualAnnotation loaded = (ManualAnnotation) DataTypeTestUtils.saveAndLoad(type, value,
-        flist, row, null, null);
+        project, flist, row, null, null);
 
     List<FeatureIdentity> featureIdentities = loaded.getIdentities();
     Assertions.assertEquals(list.size(), featureIdentities.size());
@@ -119,7 +125,7 @@ public class AnnotationTypeTests {
     }
 
     // test null value
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
   }
 
   @Test
@@ -181,13 +187,17 @@ public class AnnotationTypeTests {
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
     final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1);
 
+    final MZmineProject project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
+
     FeatureIdentity id1 = new SimpleFeatureIdentity("name1", "form1", "method1", "id1", "url1");
     FeatureIdentity id2 = new SimpleFeatureIdentity("name2", "form2", "method2", "id2", "url2");
 
     IdentityType type = new IdentityType();
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
-    final List<?> loaded = (List<?>) DataTypeTestUtils.saveAndLoad(type, list, flist, row, null,
-        null);
+    final List<?> loaded = (List<?>) DataTypeTestUtils.saveAndLoad(type, list, project, flist, row,
+        null, null);
 
     Assertions.assertEquals(list.size(), loaded.size());
 
@@ -204,7 +214,7 @@ public class AnnotationTypeTests {
       Assertions.assertEquals(entry.getValue(), loaded2.getPropertyValue(entry.getKey()));
     }
 
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
   }
 
   @Test
@@ -319,8 +329,12 @@ public class AnnotationTypeTests {
     flist.addRow(row);
     row.set(type, value);
 
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, file);
-    DataTypeTestUtils.testSaveLoad(type, List.of(), flist, row, null, file);
+    final MZmineProject project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
+
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, file);
+    DataTypeTestUtils.testSaveLoad(type, List.of(), project, flist, row, null, file);
 
     Assertions.assertNotEquals(newIdentity, newIdentity2);
     Assertions.assertNotEquals(newIdentity, null);

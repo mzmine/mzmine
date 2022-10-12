@@ -23,36 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
+package io.github.mzmine.modules.batchmode;
 
-import java.awt.Window;
-
-import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetupDialog;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 
-public class RndResampleFilterParameters extends SimpleParameterSet {
+public class AdvancedBatchModeParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter SUM_DUPLICATES = new BooleanParameter(
-      "Sum duplicate intensities",
-      "Concatenates/sums ions count (intensity) of m/z peaks competing for being rounded at same m/z unit. "
-          + "If unchecked, the intensities are averaged rather than summed.",
+  public static final DirectoryParameter processingParentDir = new DirectoryParameter(
+      "Parent directory",
+      "Select the parent directory, each folder in this directory will be considered a different dataset. All datafiles will be imported and processed.");
+
+  public static final BooleanParameter skipOnError = new BooleanParameter("Skip on error",
+      "Skip datasets (sub directories) on error. Otherwise error out and stop the batch", true);
+
+  public static final BooleanParameter createResultsDirectory = new BooleanParameter(
+      "Create results directory",
+      "Push all results into a results directory with folders for datasets", true);
+  public static final BooleanParameter includeSubdirectories = new BooleanParameter(
+      "Search files in subdirs",
+      "Search for files in sub directories. Still uses the first subdirectories as datasets each.",
       false);
 
-  public static final BooleanParameter REMOVE_ZERO_INTENSITY =
-      new BooleanParameter("Remove zero intensity m/z peaks",
-          "Clear all scans spectra from m/z peaks with intensity equal to zero.", false);
-
-  public RndResampleFilterParameters() {
-    super(new Parameter[] {SUM_DUPLICATES, REMOVE_ZERO_INTENSITY});
+  public AdvancedBatchModeParameters() {
+    super(new Parameter[]{skipOnError, processingParentDir, includeSubdirectories,
+        createResultsDirectory});
   }
 
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    ScanFilterSetupDialog dialog =
-        new ScanFilterSetupDialog(valueCheckRequired, this, RndResampleFilter.class);
-    dialog.showAndWait();
-    return dialog.getExitCode();
-  }
 }

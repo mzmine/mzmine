@@ -53,20 +53,6 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
 
-  @Override
-  public BatchQueue clone() {
-    // Clone the parameters.
-    final BatchQueue clonedQueue = new BatchQueue();
-    for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
-      final ParameterSet parameters = step.getParameterSet();
-      final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy =
-          new MZmineProcessingStepImpl<>(step.getModule(),
-              parameters.cloneParameterSet());
-      clonedQueue.add(stepCopy);
-    }
-    return clonedQueue;
-  }
-
   /**
    * De-serialize from XML.
    *
@@ -100,8 +86,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       // Find a matching module.
       MZmineModule moduleFound = null;
       for (MZmineModule module : allModules) {
-        if (module instanceof MZmineProcessingModule
-            && module.getClass().getName().equals(methodName)) {
+        if (module instanceof MZmineProcessingModule && module.getClass().getName()
+            .equals(methodName)) {
           moduleFound = module;
           break;
         }
@@ -109,8 +95,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
       if (moduleFound == null) {
         try {
-          moduleFound = MZmineCore
-              .getModuleInstance((Class<MZmineModule>) Class.forName(methodName));
+          moduleFound = MZmineCore.getModuleInstance(
+              (Class<MZmineModule>) Class.forName(methodName));
         } catch (ClassNotFoundException e) {
           logger.warning(
               "Module not found for class " + methodName + " (maybe recreate the batch file)");
@@ -119,16 +105,29 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       }
       if (moduleFound != null) {
         // Get parameters and add step to queue.
-        final ParameterSet parameterSet =
-            MZmineCore.getConfiguration().getModuleParameters(moduleFound.getClass());
+        final ParameterSet parameterSet = MZmineCore.getConfiguration()
+            .getModuleParameters(moduleFound.getClass());
         final ParameterSet methodParams = parameterSet.cloneParameterSet();
         methodParams.loadValuesFromXML(stepElement);
-        queue.add(new MZmineProcessingStepImpl<>(
-            (MZmineProcessingModule) moduleFound, methodParams));
+        queue.add(
+            new MZmineProcessingStepImpl<>((MZmineProcessingModule) moduleFound, methodParams));
       }
     }
 
     return queue;
+  }
+
+  @Override
+  public BatchQueue clone() {
+    // Clone the parameters.
+    final BatchQueue clonedQueue = new BatchQueue();
+    for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
+      final ParameterSet parameters = step.getParameterSet();
+      final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy = new MZmineProcessingStepImpl<>(
+          step.getModule(), parameters.cloneParameterSet());
+      clonedQueue.add(stepCopy);
+    }
+    return clonedQueue;
   }
 
   /**

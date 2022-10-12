@@ -40,31 +40,31 @@ import org.w3c.dom.Element;
  */
 public interface ParameterSet extends ParameterContainer {
 
-  public Parameter<?>[] getParameters();
+  Parameter<?>[] getParameters();
 
-  public <T extends Parameter<?>> T getParameter(T parameter);
+  <T extends Parameter<?>> T getParameter(T parameter);
 
   default <V, T extends Parameter<V>> V getValue(T parameter) {
     final T actualParam = getParameter(parameter);
     return actualParam == null ? null : actualParam.getValue();
   }
 
-  public void loadValuesFromXML(Element element);
+  void loadValuesFromXML(Element element);
 
-  public void saveValuesToXML(Element element);
+  void saveValuesToXML(Element element);
 
-  public boolean checkParameterValues(Collection<String> errorMessages);
+  boolean checkParameterValues(Collection<String> errorMessages);
 
-  public ParameterSet cloneParameterSet();
+  ParameterSet cloneParameterSet();
 
   ParameterSet cloneParameterSet(boolean keepSelection);
 
   /**
    * This method specifies the fitness of a module to process data acquired on a ion mobility
-   * spectrometry (IMS)-mass spectrometer. The default implementation returns {@link
-   * IonMobilitySupport#UNTESTED}. However, overriding this method is encouraged to clarify it's
-   * fitness for ion mobility data, even if it will still return {@link
-   * IonMobilitySupport#UNTESTED}.
+   * spectrometry (IMS)-mass spectrometer. The default implementation returns
+   * {@link IonMobilitySupport#UNTESTED}. However, overriding this method is encouraged to clarify
+   * it's fitness for ion mobility data, even if it will still return
+   * {@link IonMobilitySupport#UNTESTED}.
    *
    * @return
    */
@@ -77,9 +77,9 @@ public interface ParameterSet extends ParameterContainer {
    * Represent method's parameters and their values in human-readable format
    */
   @Override
-  public String toString();
+  String toString();
 
-  public ExitCode showSetupDialog(boolean valueCheckRequired);
+  ExitCode showSetupDialog(boolean valueCheckRequired);
 
   /**
    * Set the value of a parameter
@@ -105,7 +105,7 @@ public interface ParameterSet extends ParameterContainer {
    *
    * @return BooleanProperty signalizing a change of any parameter of this ParameterSet
    */
-  public BooleanProperty parametersChangeProperty();
+  BooleanProperty parametersChangeProperty();
 
   @Nullable String getOnlineHelpUrl();
 }
