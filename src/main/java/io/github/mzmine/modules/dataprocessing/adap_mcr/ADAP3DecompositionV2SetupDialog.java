@@ -1,17 +1,26 @@
 /*
- * Copyright (C) 2017 Du-Lab Team <dulab.binf@gmail.com>
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
@@ -20,14 +29,18 @@ package io.github.mzmine.modules.dataprocessing.adap_mcr;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.RangeUtils;
-import java.awt.Dimension;
-import java.awt.Font;
+
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javafx.geometry.NodeOrientation;
+import javafx.geometry.Pos;
+import javafx.scene.layout.*;
 import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Sets;
 import dulab.adap.datamodel.BetterComponent;
@@ -44,14 +57,10 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
-
 public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
   /**
    * Minimum dimensions of plots
@@ -75,8 +84,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
    * Elements of the interface
    */
   private BorderPane pnlUIElements;
-  private FlowPane pnlComboBoxes;
-  private HBox pnlPlots;
+  private VBox pnlComboBoxes;
+  private VBox pnlPlots;
   private CheckBox chkPreview;
   private ComboBox<ChromatogramPeakPair> cboPeakLists;
   private ComboBox<RetTimeClusterer.Cluster> cboClusters;
@@ -116,8 +125,14 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the chkPreview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlPlots, 3, 0);
-        pnlUIElements.setCenter(pnlComboBoxes);
+//
+        pnlPlots.setSpacing(10);
+        pnlPlots.setAlignment(Pos.TOP_CENTER);
+        paramsPane.add(pnlPlots, 4, 0, 1, 100);
+
+
+        pnlUIElements.setBottom(pnlComboBoxes);
+
 
         refresh();
       } else {
@@ -133,12 +148,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     final BorderPane panel = new BorderPane();
     panel.setTop(new Separator());
     panel.setCenter(chkPreview);
-    // panel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
     pnlUIElements = new BorderPane();
     pnlUIElements.setTop(panel);
 
     // ComboBox for Feature lists
     cboPeakLists = new ComboBox<>();
+    cboPeakLists.setPrefWidth(200);
     // cboPeakLists.setFont(COMBO_FONT);
     for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
       cboPeakLists.getItems().add(p);
@@ -149,43 +164,57 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
 
     // ComboBox with Clusters
     cboClusters = new ComboBox<>();
+    cboClusters.setPrefWidth(200);
     // cboClusters.setFont(COMBO_FONT);
     cboClusters.setOnAction(e -> shapeCluster());
     // cboClusters.addActionListener(this);
 
-    pnlComboBoxes = new FlowPane(new Label("Feature Lists"), cboPeakLists, btnRefresh,
+    pnlComboBoxes = new VBox(new Label("Feature Lists"), cboPeakLists,
         new Label("Clusters"), cboClusters, new BorderPane());
-    pnlComboBoxes.setOrientation(Orientation.VERTICAL);
+    pnlComboBoxes.setSpacing(10);
+    pnlComboBoxes.setPrefWidth(200);
+
+
+
+//    pnlComboBoxes.setOrientation(Orientation.VERTICAL);
+    //pnlComboBoxes.setAlignment(Pos.CENTER);
 
     // --------------------------------------------------------------------
     // ----- Panel with plots --------------------------------------
     // --------------------------------------------------------------------
 
-    pnlPlots = new HBox();
+
     // pnlPlots.setLayout(new BoxLayout(pnlPlots, BoxLayout.Y_AXIS));
 
     // Plot with retention-time clusters
     retTimeMZPlot = new SimpleScatterPlot("Retention time", "m/z");
-    // retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
-    // retTimeMZPlot.setPreferredSize(MIN_DIMENSIONS);
+    retTimeMZPlot.setMinSize(400,300);
+    retTimeMZPlot.setPrefSize(400,300);
 
     final BorderPane pnlPlotRetTimeClusters = new BorderPane();
-    // pnlPlotRetTimeClusters.setBackground(Color.white);
-    pnlPlotRetTimeClusters.setCenter(retTimeMZPlot);
+    pnlPlotRetTimeClusters.setStyle("-fx-background-color: #FFFFFF;");
+    pnlPlotRetTimeClusters.setBottom(retTimeMZPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
 
     // Plot with chromatograms
     retTimeIntensityPlot = new EICPlot();
-    // retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
-    // retTimeIntensityPlot.setPreferredSize(MIN_DIMENSIONS);
+    retTimeIntensityPlot.setMinSize(400,300);
+    retTimeIntensityPlot.setPrefSize(400,300);
 
     BorderPane pnlPlotShapeClusters = new BorderPane();
-    // pnlPlotShapeClusters.setBackground(Color.white);
+
+    pnlPlotShapeClusters.setStyle("-fx-background-color: #FFFFFF;");
     pnlPlotShapeClusters.setCenter(retTimeIntensityPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
 
-    pnlPlots.getChildren().add(pnlPlotRetTimeClusters);
-    pnlPlots.getChildren().add(pnlPlotShapeClusters);
+
+
+    //StackPane stackPane = new StackPane();
+
+    pnlPlots = new VBox(pnlPlotRetTimeClusters,pnlPlotShapeClusters);
+
+
+
 
     super.paramsPane.add(pnlUIElements, 0, super.getNumberOfParameters() + 3);
   }
@@ -220,8 +249,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
       cboPeakLists.getItems().add(p);
 
-    if (cboPeakLists.getItems().size() > 0)
-      cboPeakLists.getSelectionModel().select(0);
+//    if (cboPeakLists.getItems().size() > 0)
+//      cboPeakLists.getSelectionModel().select(0);
   }
 
   /**

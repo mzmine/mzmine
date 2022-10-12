@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
@@ -40,7 +47,6 @@ import java.text.Format;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +54,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class GridMassTask extends AbstractTask {
 
-  private final HashMap<Scan, DataPoint[]> dpCache = null;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
@@ -70,20 +75,20 @@ public class GridMassTask extends AbstractTask {
   private final double smoothTimeMZ;
   private final double minimumHeight;
   Datum[][] roi;
-  double[] retentiontime;
-  private double additionTimeMaxPeaksPerScan;
-  private double smoothMZ;
+  double[] retentionTime;
+  private double additionTimeMaxPeaksPerScan; //TODO inspect
+  private double smoothMZ; //TODO inspect
   private double rtPerScan;
   private int tolScans;
   private int maxTolScans;
-  private int debug = 0;
+  private int debug;
 
-  private double minMasa = 0;
-  private double maxMasa = 0;
+  private double minMass = 0;
+  private double maxMass = 0;
 
-  private ModularFeatureList newPeakList;
+  private ModularFeatureList newFeatureList;
 
-  private String ignoreTimes = "";
+  private final String ignoreTimes;
   private final ParameterSet parameters;
 
   /**
@@ -135,26 +140,6 @@ public class GridMassTask extends AbstractTask {
     return dataFile;
   }
 
-  static int findFirstMass(double mass, DataPoint[] mzValues) {
-    int l = 0;
-    int r = mzValues.length - 1;
-    int mid = 0;
-    while (l < r) {
-      mid = (r + l) / 2;
-      if (mzValues[mid].getMZ() > mass) {
-        r = mid - 1;
-      } else if (mzValues[mid].getMZ() < mass) {
-        l = mid + 1;
-      } else {
-        return mid;
-      }
-    }
-    while (l > 0 && mzValues[l].getMZ() > mass) {
-      l--;
-    }
-    return l;
-  }
-
   public double intensityRatio(double int1, double int2) {
     return Math.min(int1, int2) / Math.max(int1, int2);
   }
@@ -169,7 +154,7 @@ public class GridMassTask extends AbstractTask {
   }
 
   static int findFirstMass(double mass, Datum[] mzValues, int l, int r) {
-    int mid = 0;
+    int mid;
     while (l < r) {
       mid = (r + l) / 2;
       if (mzValues[mid].mz > mass) {
@@ -245,8 +230,7 @@ public class GridMassTask extends AbstractTask {
     }
   }
 
-  void assignSpotIdToDatumsFromSpotId(SpotByProbes s, SpotByProbes s2, int sRadius,
-      double mzRadius) {
+  void assignSpotIdToDatumsFromSpotId(SpotByProbes s, SpotByProbes s2, double mzRadius) {
 
     int i, j;
     int oldSpotId = s2.spotId;
@@ -300,17 +284,17 @@ public class GridMassTask extends AbstractTask {
     }
   }
 
-  double intensityForMZorScan(ArrayList<DatumExpand> deA, double mz, int scan) {
-    double h = -1;
-    int j;
-    for (j = 0; j < deA.size(); j++) {
-      DatumExpand de = deA.get(j);
-      if ((de.dato.scan == scan || de.dato.mz == mz) && de.dato.intensity > h) {
-        h = de.dato.intensity;
-      }
-    }
-    return h;
-  }
+//  double intensityForMZorScan(ArrayList<DatumExpand> deA, double mz, int scan) {
+//    double h = -1;
+//    int j;
+//    for (j = 0; j < deA.size(); j++) {
+//      DatumExpand de = deA.get(j);
+//      if ((de.dato.scan == scan || de.dato.mz == mz) && de.dato.intensity > h) {
+//        h = de.dato.intensity;
+//      }
+//    }
+//    return h;
+//  }
 
   /**
    * @see Runnable#run()
@@ -329,6 +313,7 @@ public class GridMassTask extends AbstractTask {
     totalScans = scans.length;
 
     // Check if we have any scans
+    //TODO move to parameter check?
     if (totalScans == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("No scans match the selected criteria");
@@ -336,7 +321,7 @@ public class GridMassTask extends AbstractTask {
     }
 
     // Check if the scans are properly ordered by RT
-    double prevRT = Double.NEGATIVE_INFINITY;
+    double prevRT = Double.NEGATIVE_INFINITY; //TODO can this be -1?
     for (Scan s : scans) {
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
@@ -351,15 +336,14 @@ public class GridMassTask extends AbstractTask {
     }
 
     // Create new feature list
-    newPeakList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
-    newPeakList.setSelectedScans(dataFile, List.of(scans));
+    newFeatureList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
+    newFeatureList.setSelectedScans(dataFile, List.of(scans));
 
-    int j;
     // minimumTimeSpan
     Scan scan = scans[0];
     double minRT = scan.getRetentionTime();
     double maxRT = scan.getRetentionTime();
-    retentiontime = new double[totalScans];
+    retentionTime = new double[totalScans];
     int i;
     for (i = 0; i < totalScans; i++) {
       scan = scans[i];
@@ -370,7 +354,7 @@ public class GridMassTask extends AbstractTask {
       if (irt > maxRT) {
         maxRT = irt;
       }
-      retentiontime[i] = irt;
+      retentionTime[i] = irt;
     }
     rtPerScan = (maxRT - minRT) / i;
     // "tolerable" units in scans
@@ -390,10 +374,11 @@ public class GridMassTask extends AbstractTask {
     logger.info("Getting data points on " + dataFile);
 
     roi = new Datum[totalScans][];
-    ArrayList<Datum> roiAL = new ArrayList<Datum>();
-    long passed = 0, nopassed = 0;
-    minMasa = Double.MAX_VALUE;
-    maxMasa = 0;
+    ArrayList<Datum> roiAL = new ArrayList<>();
+    long passed;
+    long nopassed;
+    minMass = Double.MAX_VALUE; //TODO Change this value to 0?
+    maxMass = 0;
     int maxJ = 0;
     boolean[] scanOk = new boolean[totalScans];
     Arrays.fill(scanOk, true);
@@ -401,44 +386,46 @@ public class GridMassTask extends AbstractTask {
     logger.info(
         "Smoothing data points on " + dataFile + " (Time min=" + smoothTimeSpan + "; Time m/z="
             + smoothTimeMZ + ")");
-    IndexedDataPoint[][] data = smoothDataPoints(dataFile, smoothTimeSpan, smoothTimeMZ, 0,
-        smoothMZ, 0, minimumHeight);
+    IndexedDataPoint[][] data = smoothDataPoints( 0);
 
     logger.info("Determining intensities (mass sum) per scan on " + dataFile);
     for (i = 0; i < totalScans; i++) {
       if (isCanceled()) {
         return;
       }
-      scan = scans[i];
-      IndexedDataPoint[] mzv = data[i]; // scan.getDataPoints();
+
+      IndexedDataPoint[] mzv = data[i];
       double prev = (mzv.length > 0 ? mzv[0].datapoint.getMZ() : 0);
       double massSum = 0;
-      for (j = 0; j < mzv.length; j++) {
+
+      for (int j = 0; j < mzv.length; j++) {
         if (mzv[j].datapoint.getIntensity() >= minimumHeight) {
           massSum += mzv[j].datapoint.getMZ() - prev;
         }
         prev = mzv[j].datapoint.getMZ();
-        if (mzv[j].datapoint.getMZ() < minMasa) {
-          minMasa = mzv[j].datapoint.getMZ();
+        if (mzv[j].datapoint.getMZ() < minMass) {
+          minMass = mzv[j].datapoint.getMZ();
         }
-        if (mzv[j].datapoint.getMZ() > maxMasa) {
-          maxMasa = mzv[j].datapoint.getMZ();
+        if (mzv[j].datapoint.getMZ() > maxMass) {
+          maxMass = mzv[j].datapoint.getMZ();
         }
       }
-      double dm = 100.0 / (maxMasa - minMasa);
+      double dm = 100.0 / (maxMass - minMass);
       if (i % 30 == 0 && debug > 0) {
         System.out.println();
-        System.out.print("t=" + Math.round(retentiontime[i] * 100) / 100.0 + ": (in %) ");
+        System.out.print("t=" + Math.round(retentionTime[i] * 100) / 100.0 + ": (in %) ");
       }
       if (scanOk[i]) {
         if (!scanOk[i]) {
           // Disable neighbouring scans, how many ?
-          for (j = i; j > 0 && retentiontime[j] + additionTimeMaxPeaksPerScan > retentiontime[i];
+          int j;
+
+          for (j = i; j > 0 && retentionTime[j] + additionTimeMaxPeaksPerScan > retentionTime[i];
               j--) {
             scanOk[j] = false;
           }
           for (j = i;
-              j < totalScans && retentiontime[j] - additionTimeMaxPeaksPerScan < retentiontime[i];
+              j < totalScans && retentionTime[j] - additionTimeMaxPeaksPerScan < retentionTime[i];
               j++) {
             scanOk[j] = false;
           }
@@ -454,19 +441,19 @@ public class GridMassTask extends AbstractTask {
       setProcedure(i, totalScans, 1);
     }
 
-    if (debug > 0) {
+    if (debug > 0) { //TODO change debugging procedure?
       System.out.println();
     }
 
     String[] it = ignoreTimes.trim().split(", ?");
-    for (j = 0; j < it.length; j++) {
+    for (int j = 0; j < it.length; j++) {
       String[] itj = it[j].split("-");
       if (itj.length == 2) {
         Double a = Double.parseDouble(itj[0].trim());
         Double b = Double.parseDouble(itj[1].trim());
-        for (i = Math.abs(Arrays.binarySearch(retentiontime, a));
-            i < totalScans && retentiontime[i] <= b; i++) {
-          if (retentiontime[i] >= a) {
+        for (i = Math.abs(Arrays.binarySearch(retentionTime, a));
+            i < totalScans && retentionTime[i] <= b; i++) {
+          if (retentionTime[i] >= a) {
             scanOk[i] = false;
           }
         }
@@ -482,8 +469,9 @@ public class GridMassTask extends AbstractTask {
       if (scanOk[i]) {
         scan = scans[i];
         IndexedDataPoint[] mzv = data[i];
-        // DataPoint mzvOriginal[] = scan.getDataPoints();
-        ArrayList<Datum> dal = new ArrayList<Datum>();
+
+        ArrayList<Datum> dal = new ArrayList<>();
+        int j;
         for (j = 0; j < mzv.length; j++) {
           if (mzv[j].datapoint.getIntensity() >= minimumHeight) {
             SimpleDataPoint origDP = new SimpleDataPoint(scan.getMzValue(mzv[j].index),
@@ -519,14 +507,14 @@ public class GridMassTask extends AbstractTask {
             + byScan + " scans");
     double m;
     int ndata = (int) Math.round(
-        (((double) totalScans / (double) byScan) + 1) * ((maxMasa - minMasa + byMZ) / byMZ));
+        (((double) totalScans / (double) byScan) + 1) * ((maxMass - minMass + byMZ) / byMZ));
     Probe[] probes = new Probe[ndata];
     int idata = 0;
     for (i = 0; i < totalScans; i += byScan) {
       if (i % 100 == 0 && isCanceled()) {
         return;
       }
-      for (m = minMasa - (i % 2) * byMZ / 2; m <= maxMasa; m += byMZ) {
+      for (m = minMass - (i % 2) * byMZ / 2; m <= maxMass; m += byMZ) {
         probes[idata++] = new Probe(m, i);
       }
       setProcedure(i, totalScans, 3);
@@ -559,14 +547,13 @@ public class GridMassTask extends AbstractTask {
         }
       }
       probes = pArr;
-      pArr = null;
     }
     // (3) Assign spot id to each "center"
     logger.info("Sorting probes " + dataFile);
     Arrays.sort(probes);
     logger.info("Assigning spot id to local maxima on " + dataFile);
     SpotByProbes sbp = new SpotByProbes();
-    ArrayList<SpotByProbes> spots = new ArrayList<SpotByProbes>();
+    ArrayList<SpotByProbes> spots = new ArrayList<>();
     double mzA = -1;
     int scanA = -1;
     for (i = 0; i < probes.length; i++) {
@@ -578,7 +565,6 @@ public class GridMassTask extends AbstractTask {
           if (sbp.size() > 0) {
             spots.add(sbp);
             sbp.assignSpotId();
-            // System.out.println(sbp.toString());
           }
           sbp = new SpotByProbes();
           mzA = probes[i].mzCenter;
@@ -591,7 +577,6 @@ public class GridMassTask extends AbstractTask {
     if (sbp.size() > 0) {
       spots.add(sbp);
       sbp.assignSpotId();
-      // System.out.println(sbp.toString());
     }
     logger.info("Spots:" + spots.size());
 
@@ -619,6 +604,8 @@ public class GridMassTask extends AbstractTask {
         if (i % 100 == 0 && isCanceled()) {
           return;
         }
+
+        int j;
         for (j = i; j > 0 && j < spots.size() && spots.get(j - 1).center != null
             && spots.get(j - 1).center.mzCenter + mzTol > s1.center.mzCenter; j--)
           ;
@@ -639,18 +626,17 @@ public class GridMassTask extends AbstractTask {
                 System.out.println(
                     "Joining s1 id " + s1.spotId + "=" + mzFormat.format(s1.center.mzCenter)
                         + " mz [" + mzFormat.format(s1.minMZ) + " ~ " + mzFormat.format(s1.maxMZ)
-                        + "] time=" + timeFormat.format(retentiontime[s1.center.scanCenter])
+                        + "] time=" + timeFormat.format(retentionTime[s1.center.scanCenter])
                         + " int=" + s1.center.intensityCenter + " with s2 id " + s2.spotId + "="
                         + mzFormat.format(s2.center.mzCenter) + " mz [" + mzFormat.format(s2.minMZ)
                         + " ~ " + mzFormat.format(s2.maxMZ) + "] time=" + timeFormat.format(
-                        retentiontime[s2.center.scanCenter]) + " int=" + s2.center.intensityCenter);
+                        retentionTime[s2.center.scanCenter]) + " int=" + s2.center.intensityCenter);
               }
-              assignSpotIdToDatumsFromSpotId(s1, s2, scanR, mzR);
+              assignSpotIdToDatumsFromSpotId(s1, s2, mzR);
               s1.addProbesFromSpot(s2, true);
               j = i; // restart
               joins++;
             }
-            // }
           }
         }
       }
@@ -671,6 +657,7 @@ public class GridMassTask extends AbstractTask {
         int rScan = s1.maxScan;
         ArrayList<Integer> toRemove = new ArrayList<Integer>();
         toRemove.add(i);
+        int j;
         for (j = i; j > 0 && j < spots.size() && spots.get(j - 1).center != null
             && spots.get(j - 1).center.mzCenter + mzTol > s1.center.mzCenter; j--)
           ;
@@ -686,7 +673,7 @@ public class GridMassTask extends AbstractTask {
               int dr = Math.min(Math.abs(rScan - s2.minScan), Math.abs(rScan - s2.maxScan));
               int md = Math.min(dl, dr);
               if (md <= maxTolScans || !(s2.maxScan < lScan || s2.minScan > rScan)) {
-                // distancia tolerable o intersectan
+                // tolerable distance or intersection
                 totalScans += s2.maxScan - s2.minScan + 1;
                 toRemove.add(j);
                 lScan = Math.min(lScan, s2.minScan);
@@ -699,12 +686,11 @@ public class GridMassTask extends AbstractTask {
           if (debug > 2) {
             System.out.println("Removing " + toRemove.size() + " masses around " + mzFormat.format(
                 s1.center.mzCenter) + " m/z (" + s1.spotId + "), time " + timeFormat.format(
-                retentiontime[s1.center.scanCenter]) + ", intensity " + s1.center.intensityCenter
+                retentionTime[s1.center.scanCenter]) + ", intensity " + s1.center.intensityCenter
                 + ", Total Scans=" + totalScans + " ("
                 + Math.round(totalScans * rtPerScan * 1000.0) / 1000.0 + " min).");
           }
           for (Integer J : toRemove) {
-            // System.out.println("Removing: "+spots.get(J).spotId);
             spots.get(J).clear();
           }
         }
@@ -728,15 +714,15 @@ public class GridMassTask extends AbstractTask {
             peak.finishChromatogram();
             if (peak.getArea() > 1e-6) {
               newPeakID++;
-              ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakList, newPeakID);
+              ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newPeakID);
               newRow.addFeature(dataFile,
-                  FeatureConvertors.ChromatogramToModularFeature(newPeakList, peak));
-              newRow.setComment(sx.toString(retentiontime));
-              newPeakList.addRow(newRow);
+                  FeatureConvertors.ChromatogramToModularFeature(newFeatureList, peak));
+              newRow.setComment(sx.toString(retentionTime));
+              newFeatureList.addRow(newRow);
               if (debug > 0) {
                 System.out.println(
                     "Peak added id=" + sx.spotId + " " + mzFormat.format(sx.center.mzCenter)
-                        + " mz, time=" + timeFormat.format(retentiontime[sx.center.scanCenter])
+                        + " mz, time=" + timeFormat.format(retentionTime[sx.center.scanCenter])
                         + ", intensity=" + sx.center.intensityCenter + ", probes=" + sx.size()
                         + ", data scans=" + sx.getMaxDatumScans() + ", cont scans="
                         + sx.getContigousMaxDatumScans() + ", cont ratio="
@@ -751,7 +737,7 @@ public class GridMassTask extends AbstractTask {
               if (debug > 0) {
                 System.out.println("Ignored by area ~ 0 id=" + sx.spotId + " " + mzFormat.format(
                     sx.center.mzCenter) + " mz, time=" + timeFormat.format(
-                    retentiontime[sx.center.scanCenter]) + ", intensity="
+                    retentionTime[sx.center.scanCenter]) + ", intensity="
                     + sx.center.intensityCenter + ", probes=" + sx.size() + ", data scans="
                     + sx.getMaxDatumScans() + ", cont scans=" + sx.getContigousMaxDatumScans()
                     + ", cont ratio=" + sx.getContigousToMaxDatumScansRatio() + " area = "
@@ -764,7 +750,7 @@ public class GridMassTask extends AbstractTask {
             System.out.println(
                 "Ignored by continous criteria: id=" + sx.spotId + " " + mzFormat.format(
                     sx.center.mzCenter) + " mz, time=" + timeFormat.format(
-                    retentiontime[sx.center.scanCenter]) + ", intensity="
+                    retentionTime[sx.center.scanCenter]) + ", intensity="
                     + sx.center.intensityCenter + ", probes=" + sx.size() + ", data scans="
                     + sx.getMaxDatumScans() + ", cont scans=" + sx.getContigousMaxDatumScans()
                     + ", cont ratio=" + sx.getContigousToMaxDatumScansRatio());
@@ -776,7 +762,7 @@ public class GridMassTask extends AbstractTask {
             System.out.println(
                 "Ignored by time range criteria: id=" + sx.spotId + " " + mzFormat.format(
                     sx.center.mzCenter) + " mz, time=" + timeFormat.format(
-                    retentiontime[sx.center.scanCenter]) + ", intensity="
+                    retentionTime[sx.center.scanCenter]) + ", intensity="
                     + sx.center.intensityCenter + ", probes=" + sx.size() + ", data scans="
                     + sx.getMaxDatumScans() + ", cont scans=" + sx.getContigousMaxDatumScans()
                     + ", cont ratio=" + sx.getContigousToMaxDatumScansRatio());
@@ -785,13 +771,13 @@ public class GridMassTask extends AbstractTask {
       }
       setProcedure(i++, spots.size(), 9);
     }
-    logger.info("Peaks on " + dataFile + " = " + newPeakList.getNumberOfRows());
+    logger.info("Peaks on " + dataFile + " = " + newFeatureList.getNumberOfRows());
 
-    dataFile.getAppliedMethods().forEach(method -> newPeakList.getAppliedMethods().add(method));
-    newPeakList.getAppliedMethods().add(
+    dataFile.getAppliedMethods().forEach(method -> newFeatureList.getAppliedMethods().add(method));
+    newFeatureList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(GridMassModule.class, parameters, getModuleCallDate()));
     // Add new peaklist to the project
-    project.addFeatureList(newPeakList);
+    project.addFeatureList(newFeatureList);
 
     // Add quality parameters to peaks
     // QualityParameters.calculateQualityParameters(newPeakList);
@@ -802,23 +788,22 @@ public class GridMassTask extends AbstractTask {
 
   }
 
-  public IndexedDataPoint[][] smoothDataPoints(RawDataFile dataFile, double timeSpan,
-      double timeMZSpan, int scanSpan, double mzTol, int mzPoints, double minimumHeight) {
-    List<Scan> scanNumbers = dataFile.getScanNumbers(1);
-    int totalScans = scanNumbers.size();
+private IndexedDataPoint[][] smoothDataPoints(int scanSpan) {
+    List<Scan> scanNumbers = dataFile.getScanNumbers(1); //TODO Can the method potentially work with other MS levels?
+
     DataPoint[][] mzValues = null; // [relative scan][j value]
-    DataPoint[] mzValuesJ = null;
+    DataPoint[] mzValuesJ;
     Scan[] mzValuesScan = null;
     int[] mzValuesMZidx = null;
-    IndexedDataPoint[][] newMZValues = null;
+    IndexedDataPoint[][] newMZValues;
     IndexedDataPoint[] tmpDP = new IndexedDataPoint[0];
-    newMZValues = new IndexedDataPoint[totalScans][];
+    newMZValues = new IndexedDataPoint[this.totalScans][];
     int i, j, si, sj, ii, k, ssi, ssj, m;
-    double timeSmoothingMZtol = Math.max(timeMZSpan, 1e-6);
+    double timeSmoothingMZtol = Math.max(this.smoothTimeMZ, 1e-6);
 
-    int modts = Math.max(1, totalScans / 10);
+    int modts = Math.max(1, this.totalScans / 10);
 
-    for (i = 0; i < totalScans; i++) {
+    for (i = 0; i < this.totalScans; i++) {
 
       if (i % 100 == 0 && isCanceled()) {
         return null;
@@ -826,33 +811,33 @@ public class GridMassTask extends AbstractTask {
 
       // Smoothing in TIME space
       Scan scan = scanNumbers.get(i);
-      double rt = retentiontime[i];
-      DataPoint[] xDP = null;
-      IndexedDataPoint[] iDP = null;
+      double rt = this.retentionTime[i];
+      DataPoint[] xDP;
+      IndexedDataPoint[] iDP;
       sj = si = i;
-      ssi = ssj = i;
       int t = 0;
-      if (timeSpan > 0 || scanSpan > 0) {
+
+      if (this.smoothTimeSpan > 0 || scanSpan > 0) {
         if (scan != null) {
           for (si = i; si > 1; si--) {
-            if (retentiontime[si - 1] < rt - timeSpan / 2) {
+            if (this.retentionTime[si - 1] < rt - this.smoothTimeSpan / 2) {
               break;
             }
           }
-          for (sj = i; sj < totalScans - 1; sj++) {
-            if (retentiontime[sj + 1] >= rt + timeSpan / 2) {
+          for (sj = i; sj < this.totalScans - 1; sj++) {
+            if (this.retentionTime[sj + 1] >= rt + this.smoothTimeSpan / 2) {
               break;
             }
           }
           ssi = i - (scanSpan - 1) / 2;
           ssj = i + (scanSpan - 1) / 2;
           if (ssi < 0) {
-            ssj += -ssi;
+            ssj -= ssi;
             ssi = 0;
           }
-          if (ssj >= totalScans) {
-            ssi -= (ssj - totalScans + 1);
-            ssj = totalScans - 1;
+          if (ssj >= this.totalScans) {
+            ssi -= (ssj - this.totalScans + 1);
+            ssj = this.totalScans - 1;
           }
           if (sj - si + 1 < scanSpan) {
             si = ssi;
@@ -872,7 +857,7 @@ public class GridMassTask extends AbstractTask {
             if (mzValues[jsi] == null || jsi >= mzValuesScan.length - 1 || !mzValuesScan[jsi
                 + 1].equals(scanNumbers.get(j))) {
               Scan xscan = scanNumbers.get(j);
-              mzValues[jsi] = ScanUtils.extractDataPoints(xscan);
+              mzValues[jsi] = ScanUtils.extractDataPoints(xscan); // TODO Change deprecated
               mzValuesScan[jsi] = scanNumbers.get(j);
             } else {
               mzValues[jsi] = mzValues[jsi + 1];
@@ -883,18 +868,18 @@ public class GridMassTask extends AbstractTask {
           // Estimate Averages
           ii = i - si;
           if (tmpDP.length < mzValues[ii].length) {
-            tmpDP = new IndexedDataPoint[mzValues[ii].length * 3 / 2];
+            tmpDP = new IndexedDataPoint[mzValues[ii].length * 3 / 2]; //TODO 3/2?
           }
           for (k = 0; k < mzValues[ii].length; k++) {
             DataPoint dp = mzValues[ii][k];
             double mz = dp.getMZ();
-            double intensidad = 0;
+            double intensity;
             if (dp.getIntensity() > 0) { // only process those > 0
               double a = 0;
-              short c = 0;
-              int f = 0;
+              int c = 0;
+              int f;
               for (j = 0; j <= sj - si; j++) {
-                for (mzValuesJ = mzValues[j]; mzValuesMZidx[j] < mzValuesJ.length - 1
+                for (mzValuesJ = mzValues[j]; mzValuesMZidx[j] < mzValuesJ.length - 1 //TODO inspect
                     && mzValuesJ[mzValuesMZidx[j] + 1].getMZ() < mz - timeSmoothingMZtol;
                     mzValuesMZidx[j]++)
                   ;
@@ -906,27 +891,20 @@ public class GridMassTask extends AbstractTask {
                   if (Math.abs(mzValuesJ[m].getMZ() - mz) < Math.abs(mzValuesJ[f].getMZ() - mz)) {
                     f = m;
                   } else {
-                    // siempre debe ser mas cercano porque
-                    // están ordenados por masa, entonces
-                    // parar la búsqueda
+                    // must always be closest because they are ordered by mass, so stop the search
                     break;
                   }
                 }
                 if (f > 0 && f < mzValuesJ.length
                     && Math.abs(mzValuesJ[f].getMZ() - mz) <= timeSmoothingMZtol
-                    && mzValuesJ[f].getIntensity() > 0) { // >=
-                  // minimumHeight
-                  // ?
-                  // System.out.println("mz="+mz+";
-                  // Closer="+mzValuesJ[f].getMZ()+", f="+f+",
-                  // Intensity="+mzValuesJ[f].getIntensity());
+                    && mzValuesJ[f].getIntensity() > 0) {
                   a += mzValuesJ[f].getIntensity();
                   c++;
                 }
               }
-              intensidad = c > 0 ? a / c : 0;
-              if (intensidad >= minimumHeight) {
-                tmpDP[t++] = new IndexedDataPoint(k, new SimpleDataPoint(mz, intensidad));
+              intensity = c > 0 ? a / c : 0;
+              if (intensity >= this.minimumHeight) {
+                tmpDP[t++] = new IndexedDataPoint(k, new SimpleDataPoint(mz, intensity));
               }
             }
           }
@@ -938,7 +916,7 @@ public class GridMassTask extends AbstractTask {
           tmpDP = new IndexedDataPoint[xDP.length];
         }
         for (k = 0; k < xDP.length; k++) {
-          if (xDP[k].getIntensity() >= minimumHeight) {
+          if (xDP[k].getIntensity() >= this.minimumHeight) {
             tmpDP[t++] = new IndexedDataPoint(k, xDP[k]);
           }
         }
@@ -949,119 +927,14 @@ public class GridMassTask extends AbstractTask {
       }
       newMZValues[i] = iDP;
 
-      setProcedure(i, totalScans, 0);
+      setProcedure(i, this.totalScans, 0);
 
       if (i % modts == 0) {
-        logger.info("Smoothing/Caching " + dataFile + "..." + (i / modts) * 10 + "%");
+        logger.info("Smoothing/Caching " + this.dataFile + "..." + (i / modts) * 10 + "%");
       }
 
     }
 
     return newMZValues;
   }
-
-  public double HWHM(double x0, double x1, double y0, double y1) {
-    // x0 is the "scan" or m/z estimated at the highest peak
-    // y0 is the "highest" peak intensity
-    // x1 is the "scan" or m/z estimated at the point closest to (highest
-    // intensity / 2)
-    // y1 is the intensity closest to (highest intensity / 2)
-    // x1_2 = x0 - F * (x0-x1)
-    // F = (y0 - y0/2) / (y0 - y1) = y0/2 / (y0 - y1)
-    // x1_2 = x0(1-F) + x1*F /// this X1/2 is given a triangle, so using the
-    // same slope than between x0 and x1, this x1_2 is farther than the
-    // actual 1/2 point
-    // x3_4 = (x1_2 - x1) / 2 + x1 // aproximation to real X 1/2 by the half
-    // of the difference between the x1 and the estimated x1_2
-    double f = (y0 / 2) / (y0 - y1);
-    if (Double.isInfinite(f)) {
-      f = 1;
-    }
-    double x3_4 = (x1 * (1 + f) / 2) - (x0 * (1 + f) / 2);
-    return Math.abs(x3_4);
-  }
-
-  double[] massCenter(int l, int r, double min, double max) {
-    double x = 0;
-    double y = 0;
-    double sum = 0;
-    double maxValue = 0;
-    for (int i = l; i <= r; i++) {
-      DataPoint[] mzs = ScanUtils.extractDataPoints(scans[i]);
-      if (mzs != null) {
-        for (int j = findFirstMass(min, mzs); j < mzs.length; j++) {
-          double mass = mzs[j].getMZ();
-          if (mass >= min) {
-            if (mass <= max) {
-              double intensity = mzs[j].getIntensity();
-              if (intensity >= minimumHeight) {
-                x += i * intensity;
-                y += mass * intensity;
-                sum += intensity;
-                if (intensity > maxValue) {
-                  maxValue = intensity;
-                }
-              }
-            } else {
-              break;
-            }
-          }
-        }
-      }
-    }
-    if (sum > 0.0) {
-      x /= sum;
-      y /= sum;
-    }
-    return new double[]{x, y, maxValue};
-  }
-
-  Spot intensities(int l, int r, double min, double max, Chromatogram chr, PearsonCorrelation stats,
-      int spotId) {
-    boolean passSpot = false;
-    Spot s = new Spot();
-    if (r >= scans.length) {
-      r = scans.length - 1;
-    }
-    if (l < 0) {
-      l = 0;
-    }
-    for (int i = l; i <= r; i++) {
-      Datum[] mzs = roi[i];
-      if (mzs != null) {
-        Datum mzMax = null;
-        for (int j = findFirstMass(min, mzs); j < mzs.length; j++) {
-          double mass = mzs[j].mz;
-          double mjint = mzs[j].intensity;
-          if (mass >= min) {
-            if (mass <= max) {
-              if (mzs[j].spotId == spotId || passSpot) {
-                s.addPoint(i, mass, (mjint >= minimumHeight ? mjint : -mjint));
-                if (mjint >= minimumHeight) {
-                  if (mzMax == null || mjint > mzMax.intensity) {
-                    mzMax = mzs[j];
-                  }
-                }
-              } else {
-                if (mjint >= minimumHeight) {
-                  s.pointsNoSpot++;
-                }
-              }
-            } else {
-              break;
-            }
-          }
-        }
-        if (chr != null && mzMax != null) {
-          // Add ONLY THE MAX INTENSITY PER SCAN
-          chr.addMzPeak(scans[i], new SimpleDataPoint(mzMax.mz, mzMax.intensity)); // mzMax
-        }
-        if (stats != null && mzMax != null) {
-          stats.enter(i, mzMax.mz);
-        }
-      }
-    }
-    return s;
-  }
-
 }
