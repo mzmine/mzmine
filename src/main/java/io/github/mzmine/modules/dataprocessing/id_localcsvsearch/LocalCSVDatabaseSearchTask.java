@@ -101,7 +101,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private String[][] databaseValues;
   private int finishedLines = 0;
   private final FeatureList flist;
-  private int anInt;
   private int sampleColIndex = -1;
 
   LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters,
@@ -201,7 +200,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.toString());
+      setErrorMessage(e.getMessage());
       return;
     }
 
@@ -218,8 +217,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     return raws.stream().anyMatch(raw -> raw.getName().contains(sample));
   }
 
-  private void processOneLine(String[] values, List<ImportType> linesWithIndices,
-      final List<ImportType> commentFields) {
+  private void processOneLine(@NotNull String[] values, @NotNull List<ImportType> linesWithIndices,
+      @NotNull final List<ImportType> commentFields) {
 
     final CompoundDBAnnotation baseAnnotation = getCompoundFromLine(values, linesWithIndices,
         commentFields);
@@ -261,8 +260,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   @NotNull
-  private CompoundDBAnnotation getCompoundFromLine(String[] values,
-      List<ImportType> linesWithIndices, final List<ImportType> commentFields) {
+  private CompoundDBAnnotation getCompoundFromLine(@NotNull String[] values,
+      @NotNull List<ImportType> linesWithIndices, @NotNull final List<ImportType> commentFields) {
     var formulaType = DataTypes.get(FormulaType.class);
     var compoundNameType = DataTypes.get(CompoundNameType.class);
     var commentType = DataTypes.get(CommentType.class);
@@ -333,7 +332,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     return a;
   }
 
-  private List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine) {
+  private @NotNull List<ImportType> findLineIds(@NotNull List<ImportType> importTypes,
+      String[] firstLine) {
     List<ImportType> lines = new ArrayList<>();
     for (ImportType importType : importTypes) {
       if (importType.isSelected()) {
@@ -346,7 +346,15 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     for (ImportType importType : lines) {
       int columnIndex = getHeaderColumnIndex(firstLine, importType.getCsvColumnName());
       if (columnIndex == -1) {
-        return null;
+        // log all missing columns
+        String missingHeaders = lines.stream().map(ImportType::getCsvColumnName)
+            .filter(header -> getHeaderColumnIndex(firstLine, header) == -1)
+            .collect(Collectors.joining("; "));
+
+        String message =
+            "Library file " + dataBaseFile.getAbsolutePath() + " does not contain headers: "
+                + missingHeaders;
+        throw new IllegalArgumentException(message);
       }
       importType.setColumnIndex(columnIndex);
     }
@@ -369,10 +377,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       String columnName = firstLine[i];
       if (columnName.trim().equalsIgnoreCase(colHeader.trim())) {
         if (colIndex != -1) {
-          setErrorMessage(
-              "Library file " + dataBaseFile.getAbsolutePath() + " contains two columns called \""
-                  + columnName + "\".");
-          setStatus(TaskStatus.ERROR);
           return -1;
         }
         colIndex = i;
