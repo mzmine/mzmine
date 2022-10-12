@@ -31,11 +31,11 @@ package io.github.mzmine.modules.batchmode;
 public class UnknownModuleNameException extends RuntimeException {
 
   public UnknownModuleNameException(String methodName) {
-    super("Unknown module name or class path: "+methodName);
+    super("Unknown module name or class path: " + methodName);
   }
 
   public UnknownModuleNameException(String methodName, Throwable cause) {
-    super("Unknown module name or class path: "+methodName, cause);
+    super("Unknown module name or class path: " + methodName, cause);
   }
 
   public UnknownModuleNameException(Throwable cause) {

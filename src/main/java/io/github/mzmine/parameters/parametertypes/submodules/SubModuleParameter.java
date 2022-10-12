@@ -30,18 +30,17 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
-import org.w3c.dom.Element;
-
 import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * Parameter represented by check box with additional sub-parameters
- * 
  */
-public class SubModuleParameter<SUB extends ParameterSet>
-    implements UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet {
+public class SubModuleParameter<SUB extends ParameterSet> implements
+    UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet {
 
-  private String name, description;
+  private final String name;
+  private final String description;
   private SUB embeddedParameters;
 
   public SubModuleParameter(String name, String description, SUB embeddedParameters) {
@@ -59,6 +58,7 @@ public class SubModuleParameter<SUB extends ParameterSet>
   }
 
   /**
+   *
    */
   @Override
   public String getName() {
@@ -66,6 +66,7 @@ public class SubModuleParameter<SUB extends ParameterSet>
   }
 
   /**
+   *
    */
   @Override
   public String getDescription() {
@@ -82,33 +83,36 @@ public class SubModuleParameter<SUB extends ParameterSet>
     // If the option is selected, first check that the module has all
     // parameters set
     for (Parameter<?> p : embeddedParameters.getParameters()) {
-      if (p instanceof UserParameter) {
-        UserParameter<?, ?> up = (UserParameter<?, ?>) p;
+      if (p instanceof UserParameter<?, ?> up) {
         Object upValue = up.getValue();
-        if (upValue == null)
+        if (upValue == null) {
           return null;
+        }
       }
     }
     return true;
   }
 
   @Override
-  public void setValue(Boolean value) {}
+  public void setValue(Boolean value) {
+  }
 
   @Override
   public SubModuleParameter<SUB> cloneParameter() {
     final SUB embeddedParametersClone = (SUB) embeddedParameters.cloneParameterSet();
-    final SubModuleParameter<SUB> copy =
-        new SubModuleParameter<SUB>(name, description, embeddedParametersClone);
+    final SubModuleParameter<SUB> copy = new SubModuleParameter<SUB>(name, description,
+        embeddedParametersClone);
     copy.setValue(this.getValue());
     return copy;
   }
 
   @Override
-  public void setValueFromComponent(SubModuleComponent component) {}
+  public void setValueFromComponent(SubModuleComponent component) {
+  }
 
   @Override
-  public void setValueToComponent(SubModuleComponent component, Boolean newValue) {}
+  public void setValueToComponent(SubModuleComponent component, Boolean newValue) {
+  }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {

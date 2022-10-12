@@ -136,6 +136,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
+import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataImportModule;
 import java.util.List;
 
@@ -148,6 +149,7 @@ public class BatchModeModulesList {
       ProjectLoadModule.class, //
       ProjectSaveModule.class, //
       ProjectSaveAsModule.class, //
+      ClearProjectModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}

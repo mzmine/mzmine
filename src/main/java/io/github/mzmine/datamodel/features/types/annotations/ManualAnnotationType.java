@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -96,7 +97,7 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     if (!(value instanceof ManualAnnotation manual)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
 
     for (int i = 0; i < subTypes.size(); i++) {
@@ -110,10 +111,8 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
           sub.saveToXML(writer, subValue, flist, row, feature, file);
         } catch (XMLStreamException e) {
           final Object finalVal = subValue;
-          logger.warning(
-              () -> "Error while writing data type " + sub.getClass().getSimpleName()
-                    + " with value "
-                    + finalVal + " to xml.");
+          logger.warning(() -> "Error while writing data type " + sub.getClass().getSimpleName()
+              + " with value " + finalVal + " to xml.");
           e.printStackTrace();
         }
 
@@ -123,9 +122,9 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     ManualAnnotation manual = null;
     while (reader.hasNext()) {
       int next = reader.next();
@@ -137,7 +136,7 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
       if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         DataType type = DataTypes.getTypeForId(
             reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-        Object o = type.loadFromXML(reader, flist, row, feature, file);
+        Object o = type.loadFromXML(reader, project, flist, row, feature, file);
         if (manual == null) {
           manual = new ManualAnnotation();
         }
@@ -188,8 +187,8 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
       } else if (subType.getClass().equals(InChIStructureType.class)) {
         manual.setInchi((String) newValue);
       } else if (subType.getClass().equals(IdentityType.class)) {
-        List<FeatureIdentity> identities = Objects
-            .requireNonNullElse(manual.getIdentities(), new ArrayList<>());
+        List<FeatureIdentity> identities = Objects.requireNonNullElse(manual.getIdentities(),
+            new ArrayList<>());
         identities.remove(newValue);
         identities.add(0, (FeatureIdentity) newValue);
         manual.setIdentities(identities);
@@ -282,8 +281,8 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     } else if (value instanceof ManualAnnotation man) {
       return man.get(sub);
     } else {
-      throw new IllegalArgumentException(String
-          .format("value of type %s needs to be of type manual annotation",
+      throw new IllegalArgumentException(
+          String.format("value of type %s needs to be of type manual annotation",
               value.getClass().getName()));
     }
   }

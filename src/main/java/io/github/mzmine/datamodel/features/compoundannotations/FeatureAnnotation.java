@@ -25,11 +25,11 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -41,17 +41,17 @@ public interface FeatureAnnotation {
   public static final String XML_ELEMENT = "feature_annotation";
   public static final String XML_TYPE_ATTR = "annotation_type";
 
-  public static FeatureAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException {
+  public static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
+      ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
     }
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
-      case SpectralDBAnnotation.XML_ATTR -> SpectralDBAnnotation.loadFromXML(reader,
-          flist.getRawDataFiles());
-      case SimpleCompoundDBAnnotation.XML_ATTR -> SimpleCompoundDBAnnotation.loadFromXML(reader,
-          flist, row);
+      case SpectralDBAnnotation.XML_ATTR ->
+          SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles());
+      case SimpleCompoundDBAnnotation.XML_ATTR ->
+          SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       default -> null;
     };
   }
@@ -85,10 +85,11 @@ public interface FeatureAnnotation {
   @NotNull String getXmlAttributeKey();
 
   /**
-   * Writes an opening tag that conforms with the {@link FeatureAnnotation#loadFromXML(XMLStreamReader,
-   * Collection)} method, so the type can be recognised and delegated to the correct subclass. This
-   * allows combination of multiple different {@link FeatureAnnotation} implementations in a single
-   * list.
+   * Writes an opening tag that conforms with the
+   * {@link FeatureAnnotation#loadFromXML(XMLStreamReader, MZmineProject, ModularFeatureList,
+   * ModularFeatureListRow)}  method, so the type can be recognised and delegated to the correct
+   * subclass. This allows combination of multiple different {@link FeatureAnnotation}
+   * implementations in a single list.
    * <p></p>
    * Uses {@link FeatureAnnotation#getXmlAttributeKey()} to write the correct tags.
    *
@@ -100,8 +101,8 @@ public interface FeatureAnnotation {
   }
 
   /**
-   * Convenience method to supply developers with a closing method for {@link
-   * FeatureAnnotation#writeOpeningTag(XMLStreamWriter)}.
+   * Convenience method to supply developers with a closing method for
+   * {@link FeatureAnnotation#writeOpeningTag(XMLStreamWriter)}.
    */
   public default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();
