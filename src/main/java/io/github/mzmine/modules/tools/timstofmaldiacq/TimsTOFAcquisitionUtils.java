@@ -213,4 +213,11 @@ public class TimsTOFAcquisitionUtils {
 
     return cmdLine;
   }
+
+  public static int[] getOffsetsForIncrementCounter(int spotIncrement, int maxXIncrement,
+      int xOffset, int yOffset) {
+    final int finalOffsetX = spotIncrement % maxXIncrement * xOffset;
+    final int finalOffsetY = (int) ((Math.floor(spotIncrement / (double) maxXIncrement)) * yOffset);
+    return new int[]{finalOffsetX, finalOffsetY};
+  }
 }

@@ -69,6 +69,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
   private File currentCeFile = null;
+  private final int maxXIncrement;
 
   protected TimsTOFMaldiAcquisitionTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project) {
@@ -89,6 +90,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
         TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getModule();
     precursorSelectionParameters = parameters.getValue(
         TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getParameterSet();
+    maxXIncrement = parameters.getValue(TimsTOFMaldiAcquisitionParameters.maxIncrementSteps);
     enableCeStepping = parameters.getValue(TimsTOFMaldiAcquisitionParameters.ceStepping);
     if (enableCeStepping) {
       ceSteppingTables = new CeSteppingTables(
@@ -208,10 +210,12 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
                   ceCounter) + "eV" : "");
           desc = "Acquiring " + fileName;
 
+          final int[] offsets = TimsTOFAcquisitionUtils.getOffsetsForIncrementCounter(spotIncrement,
+              maxXIncrement, incrementOffsetX, initialOffsetY);
           try {
             TimsTOFAcquisitionUtils.appendToCommandFile(acqFile, spotName, precursorList,
-                incrementOffsetX * spotIncrement, initialOffsetY, null, null, (i + 1), savePathDir,
-                fileName, currentCeFile, enableCeStepping, null);
+                offsets[0], offsets[1], null, null, (i + 1), savePathDir, fileName, currentCeFile,
+                enableCeStepping, null);
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
