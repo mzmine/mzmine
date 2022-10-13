@@ -1189,8 +1189,6 @@ public class ScanUtils {
    * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
    */
   public static @Nullable Scan findPrecursorScan(@NotNull Scan scan) {
-
-    assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
     final List<Scan> scanNumbers = dataFile.getScans();
 

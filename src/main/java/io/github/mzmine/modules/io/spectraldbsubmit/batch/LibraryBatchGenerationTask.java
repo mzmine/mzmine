@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
@@ -30,8 +37,8 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -48,6 +55,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.BufferedWriter;
@@ -89,11 +97,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);
-  public AtomicInteger doubleMatches = new AtomicInteger(0);
   private String description = "Batch exporting spectral library";
 
-  public LibraryBatchGenerationTask(final MZmineProject project, final ParameterSet parameters,
-      final Instant moduleCallDate) {
+  public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
     minSignals = parameters.getValue(LibraryBatchGenerationParameters.minSignals);
@@ -132,8 +138,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     totalRows = Arrays.stream(flists).mapToLong(ModularFeatureList::getNumberOfRows).sum();
 
     try (var writer = Files.newBufferedWriter(outFile.toPath(), StandardCharsets.UTF_8)) {
-      for (int i = 0; i < flists.length; i++) {
-        var flist = flists[i];
+      for (ModularFeatureList flist : flists) {
         description = "Exporting entries for feature list " + flist.getName();
         for (var row : flist.getRows()) {
           processRow(writer, row);
@@ -141,6 +146,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
         finishedRows.incrementAndGet();
       }
+      //
+      logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
+          outFile.getAbsolutePath()));
     } catch (IOException e) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not open file " + outFile + " for writing.");
@@ -162,20 +170,18 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
 
     // handle chimerics
-    final Map<RawDataFile, ChimericPrecursorResult> chimericMap;
+    final Map<Scan, ChimericPrecursorResult> chimericMap;
     if (handleChimerics) {
       chimericMap = checkChimericPrecursorIsolation(row, scans);
       if (ChimericMsOption.SKIP.equals(handleChimericsOption)) {
-        scans = scans.stream().filter(
-                scan -> ChimericPrecursorResult.PASSED.equals(chimericMap.get(scan.getDataFile())))
-            .toList();
+        scans = scans.stream()
+            .filter(scan -> ChimericPrecursorResult.PASSED == chimericMap.get(scan)).toList();
       }
     } else {
       chimericMap = Map.of();
     }
 
     String lastName = null;
-    int exported = 0;
 
     List<DataPoint[]> spectra = scans.stream().map(Scan::getMassList)
         .map(ScanUtils::extractDataPoints).toList();
@@ -200,7 +206,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         SpectralDBEntry entry = new SpectralDBEntry(scan, match, dataPoints);
         entry.putAll(metadataMap);
         if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
-          ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan.getDataFile(),
+          // default is passed
+          ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan,
               ChimericPrecursorResult.PASSED);
           entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
           if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
@@ -209,36 +216,54 @@ public class LibraryBatchGenerationTask extends AbstractTask {
           }
         }
         // add file info
-        final String file = Path.of(Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
-            scan.getDataFile().getName())).getFileName().toString() + ":" + scan.getScanNumber();
-        entry.putIfNotNull(DBEntryField.DATAFILE_SCAN_NUMBER, file);
+        final String fileUSI = Path.of(
+            Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
+                scan.getDataFile().getName())).getFileName().toString() + ":"
+            + scan.getScanNumber();
+        entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
         entry.getField(DBEntryField.DATASET_ID).ifPresent(
-            dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + file));
+            dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
 
         // export to file
         exportEntry(writer, entry);
+        exported.incrementAndGet();
       }
     }
   }
 
-  private Map<RawDataFile, ChimericPrecursorResult> checkChimericPrecursorIsolation(
+  private Map<Scan, ChimericPrecursorResult> checkChimericPrecursorIsolation(
       final FeatureListRow row, final List<Scan> scans) {
     // all data files from fragment scans to score if is chimeric
-    Map<RawDataFile, ChimericPrecursorResult> chimericMap = new HashMap<>();
+    Map<Scan, ChimericPrecursorResult> chimericMap = new HashMap<>();
     for (Scan scan : scans) {
-      RawDataFile raw = scan.getDataFile();
-      chimericMap.computeIfAbsent(raw, key -> scoreChimericIsolation(row, raw));
+      chimericMap.computeIfAbsent(scan, key -> scoreChimericIsolation(row, scan));
     }
     return chimericMap;
   }
 
   private ChimericPrecursorResult scoreChimericIsolation(final FeatureListRow row,
-      final RawDataFile raw) {
+      final Scan scan) {
+    RawDataFile raw = scan.getDataFile();
     Feature feature = row.getFeature(raw);
     if (feature == null) {
       return ChimericPrecursorResult.PASSED;
     }
-    MassList massList = feature.getRepresentativeScan().getMassList();
+
+    // retrieve preceding ms1 scan
+    final Scan ms1;
+    if (scan instanceof MergedMsMsSpectrum msms) {
+      ms1 = ScanUtils.findPrecursorScanForMerged(msms, SpectraMerging.defaultMs1MergeTol);
+    } else {
+      ms1 = ScanUtils.findPrecursorScan(scan);
+    }
+
+    if (ms1 == null) {
+      // maybe there was no MS1 before that?
+      logger.finest(() -> String.format("Could not find MS1 before this scan: %s", scan));
+      return ChimericPrecursorResult.PASSED;
+    }
+
+    MassList massList = ms1.getMassList();
     if (massList == null) {
       throw new MissingMassListException(feature.getRepresentativeScan());
     }

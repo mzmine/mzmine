@@ -37,7 +37,7 @@ public enum DBEntryField {
       Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION, CCS(
       Float.class), // MSn
   MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, USI, DATAFILE_SCAN_NUMBER, // Quality measures
+  DATASET_ID, USI, DATAFILE_COLON_SCAN_NUMBER, // Quality measures
   QUALITY_CHIMERIC;
 
   // group of DBEntryFields logically
@@ -63,9 +63,6 @@ public enum DBEntryField {
 
   /**
    * DBENtryField for GNPS json key
-   *
-   * @param key
-   * @return
    */
   public static DBEntryField forGnpsJasonID(String key) {
     for (DBEntryField f : values()) {
@@ -80,9 +77,6 @@ public enum DBEntryField {
 
   /**
    * DBENtryField for NIST msp key
-   *
-   * @param key
-   * @return
    */
   public static DBEntryField forMspID(String key) {
     for (DBEntryField f : values()) {
@@ -97,9 +91,6 @@ public enum DBEntryField {
 
   /**
    * DBENtryField for mgf (GNPS) key
-   *
-   * @param key
-   * @return
    */
   public static DBEntryField forMgfID(String key) {
     for (DBEntryField f : values()) {
@@ -114,9 +105,6 @@ public enum DBEntryField {
 
   /**
    * DBENtryField for JDX key
-   *
-   * @param key
-   * @return
    */
   public static DBEntryField forJdxID(String key) {
     for (DBEntryField f : values()) {
@@ -190,7 +178,7 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "Isolation_window";
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
-      case DATAFILE_SCAN_NUMBER -> "datafile_scannumber";
+      case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case QUALITY_CHIMERIC -> "quality_chimeric";
     };
   }
@@ -228,7 +216,7 @@ public enum DBEntryField {
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
       case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
       case USI -> "usi";
-      case DATAFILE_SCAN_NUMBER -> "datafile_scannumber";
+      case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case DESCRIPTION -> "description";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case DATASET_ID -> "dataset_id";
@@ -270,7 +258,7 @@ public enum DBEntryField {
       case FRAGMENTATION_METHOD -> "Fragmenation_method";
       case ISOLATION_WINDOW -> "Isolation_window";
       case USI -> "usi";
-      case DATAFILE_SCAN_NUMBER -> "datafile_scannumber";
+      case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case DATASET_ID -> "dataset_id";
     };
@@ -319,7 +307,7 @@ public enum DBEntryField {
       case FRAGMENTATION_METHOD -> "";
       case ISOLATION_WINDOW -> "";
       case USI -> "";
-      case DATAFILE_SCAN_NUMBER -> "";
+      case DATAFILE_COLON_SCAN_NUMBER -> "";
       case QUALITY_CHIMERIC -> "";
       case DATASET_ID -> "";
     };
@@ -328,9 +316,9 @@ public enum DBEntryField {
   /**
    * Converts the content to the correct value type
    *
-   * @param content
-   * @return
-   * @throws NumberFormatException
+   * @param content the value to be converted
+   * @return the original value or Double, Float, Integer
+   * @throws NumberFormatException if the object class was specified as number but was not parsable
    */
   public Object convertValue(String content) throws NumberFormatException {
     if (getObjectClass() == Double.class) {

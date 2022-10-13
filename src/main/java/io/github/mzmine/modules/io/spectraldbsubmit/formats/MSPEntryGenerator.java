@@ -72,8 +72,8 @@ public class MSPEntryGenerator {
 
     boolean exportRT = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
     String ionMode =
-        meta.getParameter(LibraryMetaDataParameters.IONMODE).getValue().equals(Polarity.Positive)
-            ? "P" : "N";
+        meta.getParameter(LibraryMetaDataParameters.IONMODE).getValue().equals(Polarity.Negative)
+            ? "N" : "P";
 
     String def = ": ";
     String br = "\n";
