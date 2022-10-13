@@ -59,8 +59,8 @@ public class ParameterSetupDialog extends EmptyParameterSetupDialogBase {
     this.paramsPane = createParameterPane(parameters.getParameters());
     centerPane.setCenter(paramsPane);
 
-    setMinWidth(500.0);
-    setMinHeight(400.0);
+    setMinWidth(200);
+    setMinHeight(200);
 
     centerOnScreen();
   }

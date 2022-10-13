@@ -146,7 +146,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRows.size() == 1 && selectedFeature != null);
     manuallyDefineItem.setOnAction(
         e -> XICManualPickerModule.runManualDetection(selectedFeature.getRawDataFile(),
-            selectedRows.get(0), table.getFeatureList(), table));
+            selectedRows.get(0), table.getFeatureList()));
 
     getItems().addAll(new SeparatorMenuItem(), manuallyDefineItem, deleteRowsItem);
   }

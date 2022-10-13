@@ -24,11 +24,20 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -139,22 +148,83 @@ public class IonTimeSeriesUtils {
     return (T) series.copyAndReplace(storage, mzs, intensities);
   }
 
-  /*public static <S extends Scan, T extends IonTimeSeries<S>> T normalizeRootMeanSquare(T series,
-      List<S> allSelectedScans, @Nullable final MemoryMapStorage storage) {
-    final List<? extends Scan> scans = series.getSpectra();
-    final double[] intensities = new double[scans.size()];
-    final double[] mzs = new double[scans.size()];
+  /**
+   * Extracts an extracted ion chromatogram from the given raw file. The peak closest to the center
+   * of the given mz range will be used for every scan.
+   * <p></p>
+   * <b>Note</b>  that a new {@link ScanDataAccess} will be created on every call. If multiple
+   * chromatograms are to be created, use
+   * {@link IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)}
+   * instead.
+   *
+   * @return A chromatogram across the whole RT range of the scan selection.
+   */
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
+      @NotNull ScanSelection selection, @NotNull Range<Double> mzRange,
+      @Nullable MemoryMapStorage storage) {
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, selection);
+    return extractIonTimeSeries(access, mzRange, null, storage);
+  }
 
-    // Anal. Bioanal. Chem. 2011, 401, 167-181
-    final double rmsTIC = Math.sqrt(allSelectedScans.stream().mapToDouble(s ->
-          Math.pow(s.getTIC(), 2)).sum());
+  /**
+   * @see IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)
+   */
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
+      @NotNull List<Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
+      @Nullable MemoryMapStorage storage) {
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, scans);
+    return extractIonTimeSeries(access, mzRange, rtRange, storage);
+  }
 
-    for (int i = 0; i < series.getNumberOfValues(); i++) {
-      intensities[i] = series.getIntensity(i) / scans.get(i).getTIC() * rmsTIC;
+  /**
+   * Extracts an extracted ion chromatogram from the given raw file. The peak closest to the center
+   * of the given mz range will be used for every scan in the given rtRange.
+   *
+   * @param access  THe scan data access.
+   * @param mzRange The range of the m/z window. the m/z closest to the center will be used.
+   * @param rtRange if null, all scans in the data access will be used.
+   * @param storage The memory map storage.
+   * @return A chromatogram.
+   */
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull ScanDataAccess access,
+      @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
+      @Nullable MemoryMapStorage storage) {
+
+    final DoubleArrayList mzs = new DoubleArrayList();
+    final DoubleArrayList intensities = new DoubleArrayList();
+    final List<Scan> scans = new ArrayList<>();
+
+    access.reset();
+    final double centerMz = RangeUtils.rangeCenter(mzRange);
+
+    int i = 0;
+
+    while (access.hasNextScan()) {
+      final Scan scan = access.nextScan();
+
+      if (rtRange != null && !rtRange.contains(scan.getRetentionTime())) {
+        continue;
+      }
+
+      final int closestPeakIndex = access.binarySearch(centerMz, true);
+      final double mz = access.getMzValue(closestPeakIndex);
+
+      if (mzRange.contains(mz)) {
+        scans.add(scan);
+        mzs.add(mz);
+        intensities.add(access.getIntensityValue(closestPeakIndex));
+      } else {
+        mzs.add(0);
+        intensities.add(0);
+        scans.add(scan);
+      }
+
+      i++;
     }
 
-    series.getMzValues(mzs);
+    return new SimpleIonTimeSeries(storage, mzs.toDoubleArray(), intensities.toDoubleArray(),
+        scans);
+  }
 
-    return (T) series.copyAndReplace(storage, mzs, intensities);
-  }*/
+
 }

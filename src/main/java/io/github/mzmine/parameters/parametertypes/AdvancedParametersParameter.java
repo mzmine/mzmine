@@ -1,53 +1,47 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * This file is part of MZmine.
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
-
-package io.github.mzmine.parameters.parametertypes.submodules;
+package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.modules.io.projectsave.RawDataSavingUtils;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
- * Parameter represented by check box with additional sub-module
+ * This adds an accordion to the parameter pane with additional parameters. Those parameters should
+ * only be used if the value (check box) is selected. One use case is the advanced batch mode.
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class OptionalModuleParameter<T extends ParameterSet> implements
-    UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer, EmbeddedParameterSet {
+public class AdvancedParametersParameter<T extends ParameterSet> implements
+    UserParameter<Boolean, AdvancedParametersComponent>, ParameterContainer, EmbeddedParameterSet {
 
   private final String name;
   private final String description;
   private T embeddedParameters;
   private Boolean value;
 
-  public OptionalModuleParameter(String name, String description, T embeddedParameters,
+  public AdvancedParametersParameter(String name, String description, T embeddedParameters,
       boolean defaultVal) {
     this.name = name;
     this.description = description;
@@ -55,8 +49,12 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     value = defaultVal;
   }
 
-  public OptionalModuleParameter(String name, String description, T embeddedParameters) {
+  public AdvancedParametersParameter(String name, String description, T embeddedParameters) {
     this(name, description, embeddedParameters, false);
+  }
+
+  public AdvancedParametersParameter(T embeddedParameters) {
+    this("Advanced", "Advanced parameters", embeddedParameters, false);
   }
 
   public T getEmbeddedParameters() {
@@ -78,8 +76,8 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(embeddedParameters);
+  public AdvancedParametersComponent createEditingComponent() {
+    return new AdvancedParametersComponent(embeddedParameters, name, value);
   }
 
   @Override
@@ -105,22 +103,24 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public OptionalModuleParameter<T> cloneParameter() {
+  public AdvancedParametersParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
-    final OptionalModuleParameter<T> copy = new OptionalModuleParameter<>(name, description,
+    final AdvancedParametersParameter<T> copy = new AdvancedParametersParameter<>(name, description,
         embeddedParametersClone);
     copy.setValue(this.getValue());
     return copy;
   }
 
   @Override
-  public void setValueFromComponent(OptionalModuleComponent component) {
+  public void setValueFromComponent(AdvancedParametersComponent component) {
     this.value = component.isSelected();
+    component.getValue();
   }
 
   @Override
-  public void setValueToComponent(OptionalModuleComponent component, Boolean newValue) {
+  public void setValueToComponent(AdvancedParametersComponent component, Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
+    component.setValue(embeddedParameters);
   }
 
   @Override
@@ -158,7 +158,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public boolean valueEquals(Parameter<?> that) {
-    if (!(that instanceof OptionalModuleParameter thatOpt)) {
+    if (!(that instanceof AdvancedParametersParameter thatOpt)) {
       return false;
     }
 
