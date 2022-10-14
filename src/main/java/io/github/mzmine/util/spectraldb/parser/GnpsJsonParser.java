@@ -154,7 +154,7 @@ public class GnpsJsonParser extends SpectralDBTextParser {
     // extract meta data
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
     for (DBEntryField f : DBEntryField.values()) {
-      String id = f.getGnpsJsonID();
+      String id = f.getMZmineJsonID();
       if (id != null && !id.isEmpty() && main.containsKey(id)) {
 
         try {
@@ -175,7 +175,7 @@ public class GnpsJsonParser extends SpectralDBTextParser {
           }
         } catch (Exception e) {
           logger.log(Level.WARNING,
-              String.format("Cannot convert value %s to its type %s", f.getGnpsJsonID(),
+              String.format("Cannot convert value %s to its type %s", f.getMZmineJsonID(),
                   f.getObjectClass().toString()), e);
         }
       }

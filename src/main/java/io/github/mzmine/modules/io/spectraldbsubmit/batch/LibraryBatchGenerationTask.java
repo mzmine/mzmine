@@ -46,8 +46,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsJsonGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -283,7 +283,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
   private void exportGnpsJson(final BufferedWriter writer, final SpectralDBEntry entry)
       throws IOException {
-    String json = GnpsJsonGenerator.generateJSON(entry);
+    String json = MZmineJsonGenerator.generateJSON(entry);
     writer.append(json).append("\n");
   }
 

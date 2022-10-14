@@ -74,7 +74,7 @@ public class SpectralDBEntry {
   public SpectralDBEntry(double precursorMZ, DataPoint[] dps) {
     this.fields = new HashMap<>();
     this.dps = dps;
-    fields.put(DBEntryField.MZ, precursorMZ);
+    fields.put(DBEntryField.PRECURSOR_MZ, precursorMZ);
     fields.put(DBEntryField.NUM_PEAKS, dps.length);
   }
 
@@ -93,7 +93,7 @@ public class SpectralDBEntry {
     this(Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz()), dataPoints);
     // scan details
     putIfNotNull(DBEntryField.CHARGE, scan.getPrecursorCharge());
-    putIfNotNull(DBEntryField.ION_MODE, scan.getPolarity());
+    putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
 
     MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo instanceof MSnInfoImpl msnInfo) {
@@ -125,7 +125,7 @@ public class SpectralDBEntry {
         case InChIKeyStructureType ignored -> DBEntryField.INCHIKEY;
         case CCSType ignored -> DBEntryField.CCS;
         case ChargeType ignored -> DBEntryField.CHARGE;
-        case NeutralMassType ignored -> DBEntryField.MOLWEIGHT;
+        case NeutralMassType ignored -> DBEntryField.EXACT_MASS;
         case CommentType ignored -> DBEntryField.COMMENT;
         case IonTypeType ignored -> DBEntryField.ION_TYPE;
 //        case SynonymType ignored -> DBEntryField.SYNONYM;
@@ -230,7 +230,7 @@ public class SpectralDBEntry {
   }
 
   public Double getPrecursorMZ() {
-    return (Double) fields.get(DBEntryField.MZ);
+    return (Double) fields.get(DBEntryField.PRECURSOR_MZ);
   }
 
   public Optional<Object> getField(DBEntryField f) {

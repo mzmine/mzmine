@@ -49,11 +49,11 @@ import jakarta.json.JsonObjectBuilder;
 import java.util.List;
 
 /**
- * Json for GNPS library entry submission
+ * Json for MZmine json library entry submission
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class GnpsJsonGenerator {
+public class MZmineJsonGenerator {
 
   /**
    * Whole JSON entry
@@ -70,28 +70,28 @@ public class GnpsJsonGenerator {
 
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine2
-    json.add(DBEntryField.SOFTWARE.getGnpsJsonID(), "mzmine2");
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine2");
     // ion specific
     Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
     if (precursorMZ != null) {
-      json.add(DBEntryField.MZ.getGnpsJsonID(), precursorMZ);
+      json.add(DBEntryField.PRECURSOR_MZ.getMZmineJsonID(), precursorMZ);
     }
 
     Integer charge = param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue();
     if (charge != null) {
-      json.add(DBEntryField.CHARGE.getGnpsJsonID(), charge);
+      json.add(DBEntryField.CHARGE.getMZmineJsonID(), charge);
     }
 
     String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
     if (adduct != null && !adduct.trim().isEmpty()) {
-      json.add(DBEntryField.ION_TYPE.getGnpsJsonID(), adduct);
+      json.add(DBEntryField.ION_TYPE.getMZmineJsonID(), adduct);
     }
 
     if (exportRT) {
       Double rt = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getEmbeddedParameter()
           .getValue();
       if (rt != null) {
-        json.add(DBEntryField.RT.getGnpsJsonID(), rt);
+        json.add(DBEntryField.RT.getMZmineJsonID(), rt);
       }
     }
 
@@ -179,10 +179,10 @@ public class GnpsJsonGenerator {
   public static String generateJSON(final SpectralDBEntry entry) {
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine3
-    json.add(DBEntryField.SOFTWARE.getGnpsJsonID(), "mzmine3");
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine3");
 
     for (var metafield : entry.getFields().entrySet()) {
-      String id = metafield.getKey().getGnpsJsonID();
+      String id = metafield.getKey().getMZmineJsonID();
       if (id == null || id.isBlank()) {
         continue;
       }
@@ -197,11 +197,11 @@ public class GnpsJsonGenerator {
         default -> json.add(id, value.toString());
       }
     }
-    entry.getField(DBEntryField.ION_MODE)
-        .ifPresent(value -> json.add(DBEntryField.ION_MODE.getGnpsJsonID(), value.toString()));
+    entry.getField(DBEntryField.POLARITY)
+        .ifPresent(value -> json.add(DBEntryField.POLARITY.getMZmineJsonID(), value.toString()));
 
     DataPoint[] dps = entry.getDataPoints();
-    json.add(DBEntryField.NUM_PEAKS.getGnpsJsonID(), dps.length);
+    json.add(DBEntryField.NUM_PEAKS.getMZmineJsonID(), dps.length);
 
     // add data points array
     json.add("peaks", genJSONData(dps));

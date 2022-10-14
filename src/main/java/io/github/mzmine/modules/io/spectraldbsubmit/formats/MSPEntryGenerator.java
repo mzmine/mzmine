@@ -50,13 +50,14 @@ import java.util.List;
 
 public class MSPEntryGenerator {
 
-  public static final List<DBEntryField> EXPORT_FIELDS = List.of(DBEntryField.NAME, DBEntryField.MZ,
-      DBEntryField.RT, DBEntryField.CCS, DBEntryField.ION_TYPE, DBEntryField.EXACT_MASS,
-      DBEntryField.MS_LEVEL, DBEntryField.CHARGE, DBEntryField.FORMULA, DBEntryField.SMILES,
-      DBEntryField.INCHI, DBEntryField.INCHIKEY, DBEntryField.FRAGMENTATION_METHOD,
-      DBEntryField.COLLISION_ENERGY, DBEntryField.ISOLATION_WINDOW,
-      DBEntryField.MSN_FRAGMENTATION_METHODS, DBEntryField.MSN_COLLISION_ENERGIES,
-      DBEntryField.MSN_PRECURSOR_MZS, DBEntryField.MSN_ISOLATION_WINDOWS);
+  public static final List<DBEntryField> EXPORT_FIELDS = List.of(DBEntryField.NAME,
+      DBEntryField.PRECURSOR_MZ, DBEntryField.RT, DBEntryField.CCS, DBEntryField.ION_TYPE,
+      DBEntryField.EXACT_MASS, DBEntryField.MS_LEVEL, DBEntryField.CHARGE, DBEntryField.FORMULA,
+      DBEntryField.SMILES, DBEntryField.INCHI, DBEntryField.INCHIKEY,
+      DBEntryField.FRAGMENTATION_METHOD, DBEntryField.COLLISION_ENERGY,
+      DBEntryField.ISOLATION_WINDOW, DBEntryField.MSN_FRAGMENTATION_METHODS,
+      DBEntryField.MSN_COLLISION_ENERGIES, DBEntryField.MSN_PRECURSOR_MZS,
+      DBEntryField.MSN_ISOLATION_WINDOWS);
 
   /**
    * Creates a simple MSP nist format DB entry
@@ -90,7 +91,7 @@ public class MSPEntryGenerator {
         LibraryMetaDataParameters.INSTRUMENT).getValue() + br);
     s.append(DBEntryField.INSTRUMENT.getNistMspID() + def + meta.getParameter(
         LibraryMetaDataParameters.INSTRUMENT_NAME).getValue() + br);
-    s.append(DBEntryField.ION_MODE.getNistMspID() + def + ionMode + br);
+    s.append(DBEntryField.POLARITY.getNistMspID() + def + ionMode + br);
     s.append(DBEntryField.COLLISION_ENERGY.getNistMspID() + def + meta.getParameter(
         LibraryMetaDataParameters.FRAGMENTATION_METHOD).getValue() + br);
     s.append(DBEntryField.FORMULA.getNistMspID() + def + meta.getParameter(
@@ -103,9 +104,8 @@ public class MSPEntryGenerator {
 
     Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
     if (precursorMZ != null) {
-      s.append(
-          DBEntryField.MZ.getNistMspID() + def + param.getParameter(LibrarySubmitIonParameters.MZ)
-              .getValue() + br);
+      s.append(DBEntryField.PRECURSOR_MZ.getNistMspID() + def + param.getParameter(
+          LibrarySubmitIonParameters.MZ).getValue() + br);
     }
 
     String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
@@ -151,9 +151,9 @@ public class MSPEntryGenerator {
       entry.getField(field)
           .ifPresent(value -> s.append(field.getNistMspID()).append(def).append(value).append(br));
     }
-    entry.getField(DBEntryField.ION_MODE).ifPresent(p -> {
+    entry.getField(DBEntryField.POLARITY).ifPresent(p -> {
       String pol = PolarityType.POSITIVE.equals(p) ? "P" : "N";
-      s.append(DBEntryField.ION_MODE.getNistMspID()).append(def).append(pol).append(br);
+      s.append(DBEntryField.POLARITY.getNistMspID()).append(def).append(pol).append(br);
     });
 
     // num peaks and data
