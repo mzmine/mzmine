@@ -47,11 +47,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
-public class GnpsJsonParser extends SpectralDBTextParser {
+public class MZmineJsonParser extends SpectralDBTextParser {
 
-  private final static Logger logger = Logger.getLogger(GnpsJsonParser.class.getName());
+  private final static Logger logger = Logger.getLogger(MZmineJsonParser.class.getName());
 
-  public GnpsJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
+  public MZmineJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
   }
 
@@ -59,7 +59,7 @@ public class GnpsJsonParser extends SpectralDBTextParser {
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
     super.parse(mainTask, dataBaseFile);
 
-    logger.info("Parsing GNPS spectral library " + dataBaseFile.getAbsolutePath());
+    logger.info("Parsing MZmine spectral library " + dataBaseFile.getAbsolutePath());
 
     int correct = 0;
     int error = 0;
@@ -93,7 +93,7 @@ public class GnpsJsonParser extends SpectralDBTextParser {
         }
         // to many errors? wrong data format?
         if (error > 5 && correct < 5) {
-          logger.log(Level.WARNING, "This file was no GNPS spectral json library");
+          logger.log(Level.WARNING, "This file was no MZmine spectral json library");
           return false;
         }
         processedLines.incrementAndGet();
