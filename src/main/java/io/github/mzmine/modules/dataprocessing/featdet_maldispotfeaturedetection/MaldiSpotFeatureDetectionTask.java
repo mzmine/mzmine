@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -88,8 +89,8 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final ScanSelection selection = new ScanSelection(1);
   private final File spotNameFile;
-  private ParameterSet parameters;
-  private MZmineProject project;
+  private final ParameterSet parameters;
+  private final MZmineProject project;
   private String currentDesc = "";
   private double progress = 0d;
 
@@ -249,15 +250,28 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     if (file == null) {
       return spotNameMap;
     }
+
     try {
-      final String[][] spotSampleNames = CSVParser.parse(new FileReader(file));
+      final String[][] spotSampleNames = CSVParser.parse(new FileReader(file), ';');
 
       final String[] firstLine = spotSampleNames[0];
-      int spotIndex = 0;
-      int nameIndex = 1;
-      if (firstLine[1].toLowerCase().equals("spot")) {
-        spotIndex = 1;
-        nameIndex = 0;
+      int spotIndex = -1;
+      int nameIndex = -1;
+
+      for (int i = 0; i < firstLine.length; i++) {
+        if (firstLine[i].equalsIgnoreCase("spot")) {
+          spotIndex = i;
+        }
+        if (firstLine[i].equalsIgnoreCase("name")) {
+          nameIndex = i;
+        }
+      }
+
+      if (spotIndex == -1) {
+        throw new RuntimeException("Did not find spot column.");
+      }
+      if (nameIndex == -1) {
+        throw new RuntimeException("Did not find name column.");
       }
 
       for (int i = 1; i < spotSampleNames.length; i++) {
