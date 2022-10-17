@@ -50,9 +50,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a merged spectrum from scans of the same raw data file. If a merged spectrum across
- * multiple raw data files is needed, implementations have to check for compatibility. {@link
- * SimpleMergedMsMsSpectrum#getScanNumber()} will return -1 to represent the artificial state of
- * this spectrum.
+ * multiple raw data files is needed, implementations have to check for compatibility.
+ * {@link SimpleMergedMsMsSpectrum#getScanNumber()} will return -1 to represent the artificial state
+ * of this spectrum.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -72,7 +72,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     super(storage, mzValues, intensityValues, msLevel, sourceSpectra, mergingType, centerFunction);
 
     msMsInfo = info;
-    this.scanDefinition = ScanUtils.scanToString(this, true);
+    this.scanDefinition = ScanUtils.scanToString(this, true) /*+ " NE: " + ScanUtils.getNormalizedSpectralEntropy(this)
+            + " WE: " + ScanUtils.getWeightedSpectralEntropy(this)*/;
   }
 
   @Override
@@ -137,7 +138,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeAttribute(XML_MERGING_TYPE_ATTR, getMergingType().name());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
-    if(msMsInfo != null) {
+    if (msMsInfo != null) {
       msMsInfo.writeToXML(writer);
     }
 
