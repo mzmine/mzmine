@@ -110,7 +110,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
 
     // metadata as a map
-    LibaryMetadataParameters meta = parameters.getParameter(
+    LibraryBatchMetadataParameters meta = parameters.getParameter(
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
 
