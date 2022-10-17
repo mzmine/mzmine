@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.datamodel.impl;
 
@@ -29,6 +36,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWi
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import java.util.Objects;
@@ -156,7 +164,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
    * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
    * @return A loaded {@link DDAMsMsInfoImpl}.
    */
-  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
+  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file,
+      List<RawDataFile> allProjectFiles) {
 
     final double precursorMz = Double.parseDouble(
         reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
@@ -181,10 +190,19 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
         XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
+    final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
+        CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
+
+    // use the correct file if the ms info comes from a different file.
+    if (rawFileName != null && !rawFileName.equals(file != null ? file.getName() : null)) {
+      file = allProjectFiles.stream().filter(f -> f.getName().equals(rawFileName)).findFirst()
+          .orElse(file);
+    }
+
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
-        scanIndex != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null ? file.getScan(parentScanIndex) : null, msLevel, method,
-        isolationWindow);
+        scanIndex != null && file != null ? file.getScan(scanIndex) : null,
+        parentScanIndex != null && file != null ? file.getScan(parentScanIndex) : null, msLevel,
+        method, isolationWindow);
   }
 
   @Override
@@ -256,6 +274,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     if (getMsMsScan() != null) {
       writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
           String.valueOf(getMsMsScan().getDataFile().getScans().indexOf(getMsMsScan())));
+      writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getMsMsScan().getDataFile().getName());
     }
 
     if (getParentScan() != null) {
@@ -297,6 +316,14 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   public int hashCode() {
     return Objects.hash(getIsolationMz(), charge, getActivationEnergy(), getMsMsScan(),
         getParentScan(), getMsLevel(), method, getIsolationWindow());
+  }
+
+  @Override
+  public String toString() {
+    return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
+        + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
+        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
+        + msMsScan + '}';
   }
 
   @Override

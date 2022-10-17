@@ -1,25 +1,33 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -44,6 +52,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.Spe
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
@@ -79,6 +88,8 @@ public class RegularScanTypesTest {
   ModularFeatureListRow row;
   ModularFeature feature;
   List<Scan> scans;
+
+  MZmineProject project;
 
   @BeforeAll
   void initialise() {
@@ -123,7 +134,12 @@ public class RegularScanTypesTest {
         Assertions.fail("Cannot add scans to raw data file.");
       }
     }
+
     flist.setSelectedScans(file, scans);
+
+    project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
   }
 
   @Test
@@ -133,12 +149,24 @@ public class RegularScanTypesTest {
     final List<MsMsInfo> msMsInfos = List.of(
         new DDAMsMsInfoImpl(550, 1, 30f, null, null, 2, ActivationMethod.HCD,
             Range.closed(500d, 600d)),
-        new DDAMsMsInfoImpl(550, null, null, null, null, 2, ActivationMethod.UNKNOWN,
+        new DDAMsMsInfoImpl(550, null, null, file.getScan(7), null, 2, ActivationMethod.UNKNOWN,
             Range.closed(500d, 600d)));
 
     Assertions.assertTrue(msMsInfos.size() > 0);
 
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, msMsInfos);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+
+    final RawDataFile file2 = new RawDataFileImpl("file2", null, null, Color.BLACK);
+    final MZmineProject newProject = new MZmineProjectImpl();
+    newProject.addFile(file);
+    newProject.addFile(file2);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, newProject, flist, row, feature, file2);
+    DataTypeTestUtils.testSaveLoad(type, msMsInfos, newProject, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, feature, file2);
+    DataTypeTestUtils.testSaveLoad(type, null, newProject, flist, row, null, null);
   }
 
   @Test
@@ -160,22 +188,22 @@ public class RegularScanTypesTest {
   void bestScanNumberTypeTest() {
     BestScanNumberType type = new BestScanNumberType();
     Scan value = file.getScan(3);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
 
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
   }
 
   @Test
   void fragmentScanNumbersTypeTest() {
     FragmentScanNumbersType type = new FragmentScanNumbersType();
     List<Scan> value = new ArrayList<>(scans.subList(6, 9));
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
 
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
   }
 
   @Test
@@ -204,10 +232,11 @@ public class RegularScanTypesTest {
         new SpectralDBAnnotation(entry, similarity, query, null),
         new SpectralDBAnnotation(entry, similarity, query, 0.043f));
 
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
+        file);
   }
 
   @Test
@@ -230,7 +259,7 @@ public class RegularScanTypesTest {
         IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
 
     List<MatchedLipid> loaded = (List<MatchedLipid>) DataTypeTestUtils.saveAndLoad(type, value,
-        flist, row, null, null);
+        project, flist, row, null, null);
 
     Assertions.assertEquals(value.size(), loaded.size());
     final MatchedLipid first = value.get(0);

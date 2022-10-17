@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.submodules;
@@ -23,18 +30,17 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
-import org.w3c.dom.Element;
-
 import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * Parameter represented by check box with additional sub-parameters
- * 
  */
-public class SubModuleParameter<SUB extends ParameterSet>
-    implements UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet {
+public class SubModuleParameter<SUB extends ParameterSet> implements
+    UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet {
 
-  private String name, description;
+  private final String name;
+  private final String description;
   private SUB embeddedParameters;
 
   public SubModuleParameter(String name, String description, SUB embeddedParameters) {
@@ -52,6 +58,7 @@ public class SubModuleParameter<SUB extends ParameterSet>
   }
 
   /**
+   *
    */
   @Override
   public String getName() {
@@ -59,6 +66,7 @@ public class SubModuleParameter<SUB extends ParameterSet>
   }
 
   /**
+   *
    */
   @Override
   public String getDescription() {
@@ -75,33 +83,36 @@ public class SubModuleParameter<SUB extends ParameterSet>
     // If the option is selected, first check that the module has all
     // parameters set
     for (Parameter<?> p : embeddedParameters.getParameters()) {
-      if (p instanceof UserParameter) {
-        UserParameter<?, ?> up = (UserParameter<?, ?>) p;
+      if (p instanceof UserParameter<?, ?> up) {
         Object upValue = up.getValue();
-        if (upValue == null)
+        if (upValue == null) {
           return null;
+        }
       }
     }
     return true;
   }
 
   @Override
-  public void setValue(Boolean value) {}
+  public void setValue(Boolean value) {
+  }
 
   @Override
   public SubModuleParameter<SUB> cloneParameter() {
     final SUB embeddedParametersClone = (SUB) embeddedParameters.cloneParameterSet();
-    final SubModuleParameter<SUB> copy =
-        new SubModuleParameter<SUB>(name, description, embeddedParametersClone);
+    final SubModuleParameter<SUB> copy = new SubModuleParameter<SUB>(name, description,
+        embeddedParametersClone);
     copy.setValue(this.getValue());
     return copy;
   }
 
   @Override
-  public void setValueFromComponent(SubModuleComponent component) {}
+  public void setValueFromComponent(SubModuleComponent component) {
+  }
 
   @Override
-  public void setValueToComponent(SubModuleComponent component, Boolean newValue) {}
+  public void setValueToComponent(SubModuleComponent component, Boolean newValue) {
+  }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
