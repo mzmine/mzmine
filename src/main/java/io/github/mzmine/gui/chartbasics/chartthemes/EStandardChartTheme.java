@@ -224,8 +224,6 @@ public class EStandardChartTheme extends StandardChartTheme {
     // it. (the normal theme sets the default font, too)
 
     if (chart.getPlot() instanceof XYPlot xyPlot) {
-//      XYPlot xyPlot = chart.getXYPlot();
-//      if (xyPlot != null) {
       int rendererCount = xyPlot.getRendererCount();
       for (int i = 0; i < rendererCount; i++) {
         XYItemRenderer r = xyPlot.getRenderer(i);
@@ -233,10 +231,7 @@ public class EStandardChartTheme extends StandardChartTheme {
           applyToAbstractRenderer(renderer);
         }
       }
-
     } else if (chart.getPlot() instanceof CategoryPlot categoryPlot) {
-//        CategoryPlot categoryPlot = chart.getCategoryPlot();
-//      if (categoryPlot != null) {
       int rendererCount = categoryPlot.getRendererCount();
       for (int i = 0; i < rendererCount; i++) {
         CategoryItemRenderer r = categoryPlot.getRenderer(i);
@@ -244,10 +239,7 @@ public class EStandardChartTheme extends StandardChartTheme {
           applyToAbstractRenderer(renderer);
         }
       }
-//      }
     }
-
-//    }
 
     chart.setNotify(oldNotify);
     if (oldNotify) {
