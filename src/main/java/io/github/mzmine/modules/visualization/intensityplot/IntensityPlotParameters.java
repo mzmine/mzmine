@@ -25,24 +25,21 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
-import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import io.github.mzmine.util.FeatureListRowSorter;
-import java.util.Arrays;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Arrays;
 
 public class IntensityPlotParameters extends SimpleParameterSet {
 
@@ -50,18 +47,13 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
-//  public static final MultiChoiceParameter<RawDataFile> dataFiles =
-//      new MultiChoiceParameter<RawDataFile>("Raw data files", "Raw data files to display",
-//          MZmineCore.getDesktop().getSelectedDataFiles());
-
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ComboParameter<Object> xAxisValueSource =
-      new ComboParameter<Object>("X axis value", "X axis value", new Object[] {rawDataFilesOption});
+  public static final ComboParameter<Object> xAxisValueSource = new ComboParameter<>("X axis value",
+      "X axis value", new Object[]{rawDataFilesOption});
 
-  public static final ComboParameter<YAxisValueSource> yAxisValueSource =
-      new ComboParameter<YAxisValueSource>("Y axis value", "Y axis value",
-          YAxisValueSource.values());
+  public static final ComboParameter<YAxisValueSource> yAxisValueSource = new ComboParameter<>(
+      "Y axis value", "Y axis value", YAxisValueSource.values());
 
   public static final FeatureSelectionParameter selectedRows = new FeatureSelectionParameter();
 
@@ -71,22 +63,21 @@ public class IntensityPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public IntensityPlotParameters() {
-    super(new Parameter[] {featureList, dataFiles, xAxisValueSource, yAxisValueSource, selectedRows,
-        windowSettings},
+    super(new Parameter[]{featureList, dataFiles, xAxisValueSource, yAxisValueSource, selectedRows,
+            windowSettings},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#feature-intensity-plot");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    FeatureList selectedFeatureLists[] = getParameter(featureList).getValue().getMatchingFeatureLists();
+    FeatureList[] selectedFeatureLists = getParameter(featureList).getValue()
+        .getMatchingFeatureLists();
     if (selectedFeatureLists.length > 0) {
-      RawDataFile plDataFiles[] =
-          selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
-      FeatureListRow plRows[] = selectedFeatureLists[0].getRows().toArray(FeatureListRow[]::new);
+      RawDataFile[] plDataFiles = selectedFeatureLists[0].getRawDataFiles()
+          .toArray(RawDataFile[]::new);
+      FeatureListRow[] plRows = selectedFeatureLists[0].getRows().toArray(FeatureListRow[]::new);
       Arrays.sort(plRows, new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
-//      getParameter(dataFiles).setChoices(plDataFiles);
-//      getParameter(dataFiles).setValue(plDataFiles);
 
     }
 

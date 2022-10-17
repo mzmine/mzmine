@@ -58,9 +58,6 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
-/*
-import io.github.mzmine.util.MirrorChartFactory;
-*/
 
 /**
  * More options for the StandardChartTheme
@@ -82,7 +79,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected Font masterFont;
   protected Color masterFontColor;
   // Chart appearance
-  protected boolean isAntiAliased = true;
+  protected boolean isAntiAliased;
   protected boolean showTitle = false;
   protected boolean showLegend = true;
   // orientation : 0 - 2 (90 CW)
@@ -226,31 +223,31 @@ public class EStandardChartTheme extends StandardChartTheme {
     // to get the correct font specified in this theme by the item label font, we need to reapply
     // it. (the normal theme sets the default font, too)
 
-    if (chart.getPlot() instanceof XYPlot) {
-      XYPlot xyPlot = chart.getXYPlot();
-      if (xyPlot != null) {
-        int rendererCount = xyPlot.getRendererCount();
-        for (int i = 0; i < rendererCount; i++) {
+    if (chart.getPlot() instanceof XYPlot xyPlot) {
+//      XYPlot xyPlot = chart.getXYPlot();
+//      if (xyPlot != null) {
+      int rendererCount = xyPlot.getRendererCount();
+      for (int i = 0; i < rendererCount; i++) {
         XYItemRenderer r = xyPlot.getRenderer(i);
         if (r instanceof AbstractRenderer renderer) {
           applyToAbstractRenderer(renderer);
         }
-        }
+      }
 
-    } else if (chart.getPlot() instanceof CategoryPlot) {
-        CategoryPlot categoryPlot = chart.getCategoryPlot();
-      if (categoryPlot != null) {
-        int rendererCount = categoryPlot.getRendererCount();
-        for (int i = 0; i < rendererCount; i++) {
-          CategoryItemRenderer r = categoryPlot.getRenderer(i);
-          if (r instanceof AbstractRenderer renderer) {
-            applyToAbstractRenderer(renderer);
-          }
+    } else if (chart.getPlot() instanceof CategoryPlot categoryPlot) {
+//        CategoryPlot categoryPlot = chart.getCategoryPlot();
+//      if (categoryPlot != null) {
+      int rendererCount = categoryPlot.getRendererCount();
+      for (int i = 0; i < rendererCount; i++) {
+        CategoryItemRenderer r = categoryPlot.getRenderer(i);
+        if (r instanceof AbstractRenderer renderer) {
+          applyToAbstractRenderer(renderer);
         }
       }
+//      }
     }
 
-    }
+//    }
 
     chart.setNotify(oldNotify);
     if (oldNotify) {
