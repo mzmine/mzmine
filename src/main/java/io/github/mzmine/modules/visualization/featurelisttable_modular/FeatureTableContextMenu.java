@@ -40,10 +40,14 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
@@ -172,7 +176,38 @@ public class FeatureTableContextMenu extends ContextMenu {
     clearIdsItem.setOnAction(e -> selectedRows.forEach(
         row -> row.setPeakIdentities(FXCollections.observableArrayList())));
 
-    idsMenu.getItems().addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem);
+    // add the same menu for all datatypes
+    final Menu clearAnnotationsMenu = new Menu("Clear annotations");
+    DataTypes.getInstances().stream().forEach(dt -> {
+      if (!(dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType)) {
+        return;
+      }
+      if(dt instanceof IonIdentityListType) {
+        // disabled for now, remove operation requires further implementations
+        return;
+      }
+
+      final MenuItem deleteTopAnnotation = new ConditionalMenuItem(
+          "Delete selected " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+      deleteTopAnnotation.setOnAction(e -> {
+        var value = selectedRow.get(listType);
+        List<?> newList = new ArrayList<>(value);
+        newList.remove(0);
+        selectedRow.set(dt, newList);
+        table.refresh();
+      });
+      final MenuItem clearAllAnnotations = new ConditionalMenuItem(
+          "Clear all " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+      clearAllAnnotations.setOnAction(e -> {
+        selectedRow.set(listType, null);
+        table.refresh();
+      });
+      clearAnnotationsMenu.getItems()
+          .addAll(deleteTopAnnotation, clearAllAnnotations, new SeparatorMenuItem());
+    });
+
+    idsMenu.getItems()
+        .addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem, clearAnnotationsMenu);
   }
 
   private void initExportMenu() {
