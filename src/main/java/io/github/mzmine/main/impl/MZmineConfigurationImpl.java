@@ -27,6 +27,7 @@ package io.github.mzmine.main.impl;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineConfiguration;
@@ -452,5 +453,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   public boolean isDarkMode() {
     Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
     return darkMode != null && darkMode;
+  }
+
+  @Override
+  public ImageNormalization getImageNormalization() {
+    final ImageNormalization normalization = preferences.getParameter(
+        MZminePreferences.imageNormalization).getValue();
+    return normalization != null ? normalization : ImageNormalization.NO_NORMALIZATION;
   }
 }
