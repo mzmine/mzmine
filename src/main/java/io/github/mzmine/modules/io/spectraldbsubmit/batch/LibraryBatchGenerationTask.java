@@ -224,6 +224,14 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         entry.getField(DBEntryField.DATASET_ID).ifPresent(
             dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
 
+        // add experimental data
+        if (entry.getField(DBEntryField.RT).isEmpty()) {
+          entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+        }
+        if (entry.getField(DBEntryField.CCS).isEmpty()) {
+          entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+        }
+
         // export to file
         exportEntry(writer, entry);
         exported.incrementAndGet();
