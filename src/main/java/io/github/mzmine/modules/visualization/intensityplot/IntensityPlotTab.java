@@ -28,7 +28,13 @@ package io.github.mzmine.modules.visualization.intensityplot;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -37,6 +43,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Logger;
+import javafx.geometry.Orientation;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -49,25 +62,12 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.AbstractCategoryItemRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
-import org.jfree.chart.renderer.category.StatisticalLineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.util.javafx.FxIconUtil;
-import javafx.geometry.Orientation;
-import javafx.scene.control.Button;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
 
 /**
  *
@@ -95,29 +95,23 @@ public class IntensityPlotTab extends MZmineTab {
     super("Intensity plot", true, false);
 
     mainPane = new BorderPane();
-    //mainScene = new Scene(mainPane);
-
-    // Use main CSS
-    //mainScene.getStylesheets()
-    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    //setScene(mainScene);
 
     featureList = parameters.getParameter(IntensityPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 
     String title = "Intensity plot [" + featureList + "]";
-    String xAxisLabel =
-        parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue().toString();
-    String yAxisLabel =
-        parameters.getParameter(IntensityPlotParameters.yAxisValueSource).getValue().toString();
+    String xAxisLabel = parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue()
+        .toString();
+    String yAxisLabel = parameters.getParameter(IntensityPlotParameters.yAxisValueSource).getValue()
+        .toString();
 
     // create dataset
     dataset = new IntensityPlotDataset(parameters);
 
     // create new JFreeChart
     logger.finest("Creating new chart instance");
-    Object xAxisValueSource =
-        parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue();
+    Object xAxisValueSource = parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
+        .getValue();
     boolean isCombo = (xAxisValueSource instanceof ParameterWrapper)
         && (!(((ParameterWrapper) xAxisValueSource).getParameter() instanceof DoubleParameter));
     if ((xAxisValueSource == IntensityPlotParameters.rawDataFilesOption) || isCombo) {
@@ -128,7 +122,8 @@ public class IntensityPlotTab extends MZmineTab {
       CategoryPlot plot = (CategoryPlot) chart.getPlot();
 
       // set renderer
-      StatisticalLineAndShapeRenderer renderer = new StatisticalLineAndShapeRenderer(false, true);
+      AbstractCategoryItemRenderer renderer = (AbstractCategoryItemRenderer) chart.getCategoryPlot()
+          .getRenderer();
       renderer.setDefaultStroke(new BasicStroke(2));
       plot.setRenderer(renderer);
       plot.setBackgroundPaint(Color.white);
@@ -139,6 +134,9 @@ public class IntensityPlotTab extends MZmineTab {
 
       CategoryAxis xAxis = plot.getDomainAxis();
       xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+
+      EChartViewer chartPanel = new EChartViewer(chart);
+      mainPane.setCenter(chartPanel);
 
     } else {
 
@@ -156,13 +154,12 @@ public class IntensityPlotTab extends MZmineTab {
       XYToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
       renderer.setDefaultToolTipGenerator(toolTipGenerator);
 
+      EChartViewer chartPanel = new EChartViewer(chart);
+      mainPane.setCenter(chartPanel);
+
     }
 
     chart.setBackgroundPaint(Color.white);
-
-    // create chart JPanel
-    EChartViewer chartPanel = new EChartViewer(chart);
-    mainPane.setCenter(chartPanel);
 
     ToolBar toolBar = new ToolBar();
     toolBar.setOrientation(Orientation.VERTICAL);
@@ -185,8 +182,9 @@ public class IntensityPlotTab extends MZmineTab {
       }
 
       // check for null value
-      if (linesVisible == null)
+      if (linesVisible == null) {
         linesVisible = false;
+      }
 
       // update the icon
       if (linesVisible) {
@@ -212,16 +210,12 @@ public class IntensityPlotTab extends MZmineTab {
       Button setupAxesButton = new Button(null, new ImageView(axesIcon));
       setupAxesButton.setTooltip(new Tooltip("Setup ranges for axes"));
       setupAxesButton.setOnAction(e -> {
-        AxesSetupDialog dialog =
-            new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), chart.getXYPlot());
+        AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+            chart.getXYPlot());
         dialog.show();
       });
       toolBar.getItems().add(setupAxesButton);
     }
-
-    // disable maximum size (we don't want scaling)
-    // chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
-    // chartPanel.setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set title properties
     TextTitle chartTitle = chart.getTitle();
@@ -240,36 +234,19 @@ public class IntensityPlotTab extends MZmineTab {
 
     // set y axis properties
     NumberAxis yAxis;
-    if (plot instanceof CategoryPlot)
+    if (plot instanceof CategoryPlot) {
       yAxis = (NumberAxis) ((CategoryPlot) plot).getRangeAxis();
-    else
+    } else {
       yAxis = (NumberAxis) ((XYPlot) plot).getRangeAxis();
+    }
     NumberFormat yAxisFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    if (parameters.getParameter(IntensityPlotParameters.yAxisValueSource)
-        .getValue() == YAxisValueSource.RT)
+    if (parameters.getParameter(IntensityPlotParameters.yAxisValueSource).getValue()
+        == YAxisValueSource.RT) {
       yAxisFormat = MZmineCore.getConfiguration().getRTFormat();
+    }
     yAxis.setNumberFormatOverride(yAxisFormat);
 
     setContent(mainPane);
-    //setTitle(title);
-    // setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    // setBackground(Color.white);
-
-
-    //WindowsMenu.addWindowsMenu(mainScene);
-
-    // pack();
-
-    // get the window settings parameter
-    //ParameterSet paramSet =
-    //    MZmineCore.getConfiguration().getModuleParameters(IntensityPlotModule.class);
-    //WindowSettingsParameter settings =
-    //    paramSet.getParameter(IntensityPlotParameters.windowSettings);
-
-    // update the window and listen for changes
-    // settings.applySettingsToWindow(this);
-    // this.addComponentListener(settings);
-
   }
 
   JFreeChart getChart() {
@@ -305,8 +282,7 @@ public class IntensityPlotTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 }
