@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -77,9 +76,8 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
         continue;
       }
 
-      switch (reader.getLocalName()) {
-        case SimpleIsotopePattern.XML_ELEMENT -> patterns.add(
-            SimpleIsotopePattern.loadFromXML(reader));
+      if (SimpleIsotopePattern.XML_ELEMENT.equals(reader.getLocalName())) {
+        patterns.add(SimpleIsotopePattern.loadFromXML(reader));
       }
     }
     return patterns.isEmpty() ? null : new MultiChargeStateIsotopePattern(patterns);
@@ -221,11 +219,6 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   @Override
   public Iterator<DataPoint> iterator() {
     return getPreferredIsotopePattern().iterator();
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    return getPreferredIsotopePattern().stream();
   }
 
   @Override

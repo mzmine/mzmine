@@ -40,7 +40,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -381,12 +380,6 @@ public abstract class ScanDataAccess implements Scan {
 
   @Override
   public double[] getIntensityValues(@NotNull double[] dst) {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all scans and data points");
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }

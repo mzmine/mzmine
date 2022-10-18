@@ -37,7 +37,6 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +74,7 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
 
       @Override
       public MassSpectrumType getSpectrumType() {
-        if(spectrum != null){
+        if (spectrum != null) {
           return spectrum.getSpectrumType();
         }
         return null;
@@ -128,11 +127,6 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
       @Nullable
       @Override
       public Double getTIC() {
-        return null;
-      }
-
-      @Override
-      public Stream<DataPoint> stream() {
         return null;
       }
 

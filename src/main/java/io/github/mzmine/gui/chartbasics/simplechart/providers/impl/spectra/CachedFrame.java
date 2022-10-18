@@ -45,7 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,8 +58,8 @@ public class CachedFrame implements Frame {
   private final double[] mzs;
   private final double[] intensities;
   private final Frame originalFrame;
-  private List<MobilityScan> mobilityScans;
-  private List<MobilityScan> sortedMobilityScans;
+  private final List<MobilityScan> mobilityScans;
+  private final List<MobilityScan> sortedMobilityScans;
 
   public CachedFrame(Frame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
     originalFrame = frame;
@@ -70,8 +69,8 @@ public class CachedFrame implements Frame {
     frame.getMzValues(allmz);
     frame.getIntensityValues(allintensities);
 
-    double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(allmz, allintensities, frameNoiseLevel);
+    double[][] data = DataPointUtils.getDatapointsAboveNoiseLevel(allmz, allintensities,
+        frameNoiseLevel);
 
     mzs = data[0];
     intensities = data[1];
@@ -215,12 +214,6 @@ public class CachedFrame implements Frame {
   @Nullable
   @Override
   public Double getTIC() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
