@@ -467,8 +467,27 @@ public class FeatureCorrelationUtil {
     return true;
   }
 
+  /**
+   * Extension of the correlation util to process shapes with non-matching rts (or any other x
+   * indices)
+   *
+   * @author <a href="https://github.com/SteffenHeu">SteffenHeu</a>
+   */
   public static final class DIA {
 
+    /**
+     * Calculates {@link CorrelationData} for two peak shapes with non-equal but overlapping x value
+     * ranges. Y values will be interpolated.
+     *
+     * @param x1                      x values of the first series
+     * @param y1                      y values of the first series
+     * @param x2                      x values of the second series
+     * @param y2                      y values of the second series
+     * @param minCorrelatedDataPoints mininum number of total correlated points.
+     * @param minCorrDPOnFeatureEdge  miminum number of points per peak edge.
+     * @param noiseLevelShapeCorr     minimum y value for correlation.
+     * @return {@link CorrelationData} for the two shapes.
+     */
     public static CorrelationData corrFeatureShape(final double[] x1, final double[] y1,
         final double[] x2, final double y2[], int minCorrelatedDataPoints,
         int minCorrDPOnFeatureEdge, double noiseLevelShapeCorr) {
@@ -521,8 +540,7 @@ public class FeatureCorrelationUtil {
         double s1 = f1[0][i1];
         double s2 = f2[0][i2];
         // add point, if not break
-        if (Double.compare(s1, s2) == 0 && intensities1[i1] >= noiseLevelShapeCorr
-            && intensities2[i2] >= noiseLevelShapeCorr) {
+        if (Double.compare(s1, s2) == 0 && intensities1[i1] >= noiseLevelShapeCorr && intensities2[i2] >= noiseLevelShapeCorr) {
           corrData.add(new double[]{intensities1[i1], intensities2[i2]});
         } else {
           // end of feature found
@@ -559,16 +577,23 @@ public class FeatureCorrelationUtil {
       int right = corrData.size() - 1 - left;
       // return pearson r
       if (corrData.size() >= minCorrelatedDataPoints && right >= minCorrDPOnFeatureEdge) {
-        /*System.out.println("x1;y1;x2;y2");
-        for (int i = 0; i < f1[0].length; i++) {
-          System.out.println(String.format(Locale.ENGLISH,"%1.5E;%1.5E;%1.5E;%1.5E", f1[0][i], f1[1][i], f2[0][i], f2[1][i]));
-        }*/
         return new FullCorrelationData(corrData);
       }
 
       return null;
     }
 
+    /**
+     * Interpolates a shape of two value series (x and y values) onto both x value arrays. Both x
+     * value arrays must have overlapping value ranges. Y values for the "other" series will be
+     * interpolated for the "main" series' x-values using basic 2-point interpolation (see
+     * {@link DIA#interpolateY(double, double[], double[], int[])}). Values will only be
+     * interpolated for the overlapping range. The final shape will contain both, the interpolated
+     * and the original x and y values for the "other" series.
+     *
+     * @return Interpolated shape of the "other" series containing x ([0][]) and y ([1][]) values.
+     * Null if there is no overlapping range.
+     */
     @Nullable
     public static double[][] getInterpolatedShape(final double[] mainX, final double[] mainY,
         final double[] otherX, final double[] otherY) {
@@ -595,7 +620,6 @@ public class FeatureCorrelationUtil {
       final int otherEnd = otherIndicesEndExclusive[1];
 
       // create array for the interpolated data
-//      final double newX[] = Arrays.copyOfRange(mainX, mainStart, mainEnd); // use same x data
       // copy the x values of both arrays to the new array
       final double newX[] = new double[mainEnd - mainStart + otherEnd - otherStart];
       System.arraycopy(mainX, mainStart, newX, 0, mainEnd - mainStart);
@@ -611,6 +635,15 @@ public class FeatureCorrelationUtil {
       return new double[][]{newX, newY};
     }
 
+    /**
+     * @param x             array of x-values, sorted by increasing value
+     * @param allowedXRange value range for x-coordinates that may be included in the returned index
+     *                      array.
+     * @return An array of indices in the x array whose values are within the given range. the first
+     * index is inclusive, the last index is exclusive for convenient usage with
+     * {@link Arrays#copyOfRange(int[], int, int)} Null if there are no values within the given
+     * range.
+     */
     @Nullable
     private static int[] getAllowedRange(double[] x, Range<Double> allowedXRange) {
       int startIndex = -1;
@@ -649,22 +682,19 @@ public class FeatureCorrelationUtil {
      *                  variable to be passed to the next call.
      * @return the interpolated y value.
      */
-    private static double interpolateY(double x, final double[] otherX, final double[] otherY,
-        int[] prevIndex) {
+    private static double interpolateY(double x, final double[] otherX, final double[] otherY, int[] prevIndex) {
       // check arguments
       assert otherX.length == otherY.length;
       if (!(otherX[0] <= x) || !(x <= otherX[otherX.length - 1])) {
         throw new IllegalArgumentException(
-            String.format("Cannot interpolate y for x value %.3f within given bounds %.3f - %.3f",
-                x, otherX[0], otherX[otherX.length - 1]));
+            String.format("Cannot interpolate y for x value %.3f within given bounds %.3f - %.3f", x, otherX[0], otherX[otherX.length - 1]));
       }
 
       int start = -1;
       int end = -1;
 
       // find the two points that lie around the given x value
-      for (int i = prevIndex[0]; i < otherX.length;
-          i++) { // could be optimized to start at the last found index
+      for (int i = prevIndex[0]; i < otherX.length; i++) { // could be optimized to start at the last found index
         if (otherX[i] >= x) { // may also be equal
           // if equal, return that value
           if (Double.compare(otherX[i], x) == 0) {

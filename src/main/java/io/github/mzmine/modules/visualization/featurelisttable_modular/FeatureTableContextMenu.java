@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -386,7 +387,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     });
 
-    final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ions",
+    final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ion shapes",
         () -> selectedFeature != null
             && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
     showDiaIons.setOnAction(e -> showDiaMsMsIons());

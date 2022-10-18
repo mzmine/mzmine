@@ -42,7 +42,7 @@ public class DiaMs2CorrModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "DIA MS2 pseudo MS2 builder (experimental)";
+    return "DIA pseudo MS2 builder (experimental)";
   }
 
   @Override
