@@ -429,7 +429,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     showDiaIons.setOnAction(e -> showDiaMsMsIons());
 
     final MenuItem showDiaMirror = new ConditionalMenuItem(
-        "Mirror correlated pseudo spectrum DIA to all MS2 ions",
+        "DIA spectral mirror: Correlated-to-all signals",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
             && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
             && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
