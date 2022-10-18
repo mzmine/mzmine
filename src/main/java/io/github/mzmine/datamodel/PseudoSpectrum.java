@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,34 +24,17 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
-import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
-public interface MergedMassSpectrum extends Scan {
+/**
+ * Interface tag for artificially generated spectra.
+ */
+public interface PseudoSpectrum extends Scan {
 
-  /**
-   * @return A list of spectra used to create this merged spectrum
-   */
-  List<MassSpectrum> getSourceSpectra();
+  public static final String XML_PSEUDO_SPECTRUM_TYPE_ATTR = "pseudotype";
 
-  /**
-   * @return The merging type this spectrum is based on.
-   */
-  IntensityMergingType getMergingType();
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
-  /**
-   * @return The center function used to create this merged spectrum.
-   */
-  CenterFunction getCenterFunction();
-
-
-  /**
-   *
-   * @return -1 to represent the artificial state of this spectrum.
-   */
-  @Override
-  default int getScanNumber() {
-    return -1;
-  }
+  PseudoSpectrumType getPseudoSpectrumType();
 }

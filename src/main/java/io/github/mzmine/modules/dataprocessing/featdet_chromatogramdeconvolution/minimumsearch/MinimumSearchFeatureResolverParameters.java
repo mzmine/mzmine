@@ -74,10 +74,22 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
   public MinimumSearchFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
-            CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT,
-            MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
+    super(createParams(Setup.FULL), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
+  }
+
+  public MinimumSearchFeatureResolverParameters(Setup setup) {
+    super(createParams(setup), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
+  }
+
+  private static Parameter[] createParams(Setup setup) {
+    return switch (setup) {
+      case FULL -> new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters,
+          dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
+          MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS};
+      case INTEGRATED -> new Parameter[]{CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
+          MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION,
+          MIN_NUMBER_OF_DATAPOINTS};
+    };
   }
 
   @Override
@@ -103,5 +115,9 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  private enum Setup {
+    FULL, INTEGRATED;
   }
 }

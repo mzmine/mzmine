@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -42,6 +44,7 @@ import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -77,6 +80,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.opentest4j.AssertionFailedError;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -273,5 +277,70 @@ public class RegularScanTypesTest {
     Assertions.assertEquals(second.getIonizationType(), secondLoaded.getIonizationType());
     Assertions.assertEquals(second.getMsMsScore(), secondLoaded.getMsMsScore());
     Assertions.assertEquals(second.getAccurateMz(), secondLoaded.getAccurateMz());
+  }
+
+  @Test
+  void testSimplePseudoSpectrum() {
+    var scan = file.getScan(6);
+    final PseudoSpectrum spectrum = new SimplePseudoSpectrum(file, 2, scan.getRetentionTime(),
+        scan.getMsMsInfo(), scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
+        scan.getPolarity(), "A pseudo spectrum", PseudoSpectrumType.LC_DIA);
+
+    Object o1 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, project, flist,
+        row, null, null);
+    Object o2 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), spectrum, project, flist,
+        row, feature, file);
+    Object o3 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, project, flist, row,
+        null, null);
+    Object o4 = DataTypeTestUtils.saveAndLoad(new BestScanNumberType(), null, project, flist, row,
+        feature, file);
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) o1);
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) o2);
+    Assertions.assertEquals(o3, null);
+    Assertions.assertEquals(o4, null);
+
+    Object o5 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
+        project, flist, row, null, null);
+    Object o6 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
+        project, flist, row, feature, file);
+    Assertions.assertEquals(null,
+        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
+            null, null));
+    Assertions.assertEquals(null,
+        DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
+            feature, file));
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o5).get(0)));
+    comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o6).get(0)));
+
+    final PseudoSpectrum spectrum2 = new SimplePseudoSpectrum(file, 1, scan.getRetentionTime(),
+        scan.getMsMsInfo(), scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
+        scan.getPolarity(), "A pseudo spectrum1", PseudoSpectrumType.LC_DIA);
+    // test fail
+    Assertions.assertThrows(AssertionFailedError.class,
+        () -> comparePseudoSpectra(spectrum, spectrum2));
+  }
+
+  private static void comparePseudoSpectra(PseudoSpectrum value, PseudoSpectrum loaded) {
+    Assertions.assertEquals(value.getBasePeakIndex(), loaded.getBasePeakIndex());
+    Assertions.assertEquals(value.getBasePeakMz(), loaded.getBasePeakMz());
+    Assertions.assertEquals(value.getBasePeakIntensity(), loaded.getBasePeakIntensity());
+    Assertions.assertEquals(value.getDataFile(), loaded.getDataFile());
+    Assertions.assertEquals(value.getDataPointMZRange(), loaded.getDataPointMZRange());
+    Assertions.assertEquals(value.getScanningMZRange(), loaded.getScanningMZRange());
+    Assertions.assertEquals(value.getPolarity(), loaded.getPolarity());
+    Assertions.assertEquals(value.getNumberOfDataPoints(), loaded.getNumberOfDataPoints());
+    Assertions.assertEquals(value.getScanNumber(), loaded.getScanNumber());
+    Assertions.assertEquals(value.getPrecursorCharge(), loaded.getPrecursorCharge());
+    Assertions.assertEquals(value.getMsMsInfo(), loaded.getMsMsInfo());
+    Assertions.assertEquals(value.getRetentionTime(), loaded.getRetentionTime());
+    Assertions.assertEquals(value.getScanDefinition(), loaded.getScanDefinition());
+    Assertions.assertEquals(value.getTIC(), loaded.getTIC());
+    Assertions.assertEquals(value.getMSLevel(), loaded.getMSLevel());
+    Assertions.assertEquals(value.getPseudoSpectrumType(), loaded.getPseudoSpectrumType());
+
+    for (int i = 0; i < value.getNumberOfDataPoints(); i++) {
+      Assertions.assertEquals(value.getIntensityValue(i), loaded.getIntensityValue(i));
+      Assertions.assertEquals(value.getMzValue(i), loaded.getMzValue(i));
+    }
   }
 }
