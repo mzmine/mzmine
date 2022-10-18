@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,6 +66,10 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
     return root.getMaxMSLevel();
   }
 
+  public double getPrecursorMz() {
+    return root.getPrecursorMZ();
+  }
+
   public int countSpectra() {
     return stream().mapToInt(PrecursorIonTreeNode::countSpectra).sum();
   }
@@ -81,5 +86,9 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
   public int countPrecursor(int msLevel) {
     return stream().filter(ion -> msLevel - 1 == ion.getMsLevel())
         .mapToInt(PrecursorIonTreeNode::countPrecursors).sum();
+  }
+
+  public List<Scan> getAllFragmentScans() {
+    return root.getAllFragmentScans();
   }
 }

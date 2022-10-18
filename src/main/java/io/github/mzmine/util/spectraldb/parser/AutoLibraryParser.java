@@ -65,9 +65,9 @@ public class AutoLibraryParser extends SpectralDBParser {
 
     if (json.accept(dataBaseFile)) {
       // test Gnps and MONA json parser
-      SpectralDBParser[] parser =
-          new SpectralDBParser[]{new MonaJsonParser(bufferEntries, processor),
-              new GnpsJsonParser(bufferEntries, processor)};
+      SpectralDBParser[] parser = new SpectralDBParser[]{
+          new MonaJsonParser(bufferEntries, processor),
+          new MZmineJsonParser(bufferEntries, processor)};
       for (SpectralDBParser p : parser) {
         if (mainTask.isCanceled()) {
           return false;

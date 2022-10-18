@@ -44,11 +44,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class NistMspParser extends SpectralDBTextParser {
 
+  private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());
+
   public NistMspParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
   }
 
-  private static Logger logger = Logger.getLogger(NistMspParser.class.getName());
 
   @Override
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
@@ -65,7 +66,7 @@ public class NistMspParser extends SpectralDBTextParser {
 
     // read DB file
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
+      for (String l; (l = br.readLine()) != null; ) {
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
           return false;
@@ -82,16 +83,17 @@ public class NistMspParser extends SpectralDBTextParser {
               if (dp != null) {
                 dps.add(dp);
                 isData = true;
-              } else
+              } else {
                 isData = false;
+              }
             }
           } else {
             // empty row
             if (isData) {
               // empty row after data
               // add entry and reset
-              SpectralDBEntry entry =
-                  new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
+              SpectralDBEntry entry = new SpectralDBEntry(fields,
+                  dps.toArray(new DataPoint[dps.size()]));
               // add and push
               addLibraryEntry(entry);
               // reset
@@ -117,7 +119,7 @@ public class NistMspParser extends SpectralDBTextParser {
 
   /**
    * Extract data point
-   * 
+   *
    * @param line
    * @return DataPoint or null
    */
@@ -149,25 +151,26 @@ public class NistMspParser extends SpectralDBTextParser {
 
   /**
    * Extracts metadata from a line which is separated by ': ' and inserts the metadata inta a map
-   * 
+   *
    * @param fields The map of metadata fields
-   * @param line String with metadata
-   * @param sep index of the separation char ':'
+   * @param line   String with metadata
+   * @param sep    index of the separation char ':'
    */
   private void extractMetaData(Map<DBEntryField, Object> fields, String line, int sep) {
     String key = line.substring(0, sep);
     DBEntryField field = DBEntryField.forMspID(key);
     if (field != null) {
       // spe +2 for colon and space
-      String content = line.substring(sep + 2, line.length());
+      String content = line.substring(sep + 2);
       if (content.length() > 0) {
         try {
           // convert into value type
           Object value = field.convertValue(content);
           fields.put(field, value);
         } catch (Exception e) {
-          logger.log(Level.WARNING, "Cannot convert value type of " + content + " to "
-              + field.getObjectClass().toString(), e);
+          logger.log(Level.WARNING,
+              "Cannot convert value type of " + content + " to " + field.getObjectClass()
+                  .toString(), e);
         }
       }
     }

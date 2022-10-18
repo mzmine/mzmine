@@ -42,7 +42,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -58,8 +57,6 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   public static final String XML_ELEMENT = "simpleiontimeseries";
-
-  private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
 
   protected final List<Scan> scans;
   protected final DoubleBuffer intensityValues;
@@ -117,10 +114,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
                 .map(f -> (Scan) f).toList();
           }
         }
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
       }
     }
 
@@ -214,10 +211,9 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof SimpleIonTimeSeries)) {
+    if (!(o instanceof SimpleIonTimeSeries that)) {
       return false;
     }
-    SimpleIonTimeSeries that = (SimpleIonTimeSeries) o;
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
         && MzSeries.seriesSubsetEqual(this, that);
   }

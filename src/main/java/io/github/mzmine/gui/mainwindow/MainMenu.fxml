@@ -233,6 +233,9 @@
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"
+        text="MSn tree feature list builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule"/>
+      <MenuItem onAction="#runModule"
         text="MSn feature list builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
     </Menu>
@@ -309,6 +312,8 @@
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
+      <MenuItem text="Spectral library batch generation" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
     </Menu>
 
     <Menu text="Processing">
