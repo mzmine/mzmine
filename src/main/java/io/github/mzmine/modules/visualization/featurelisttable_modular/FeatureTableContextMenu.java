@@ -36,17 +36,18 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
@@ -63,6 +64,7 @@ import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
@@ -174,7 +176,38 @@ public class FeatureTableContextMenu extends ContextMenu {
     clearIdsItem.setOnAction(e -> selectedRows.forEach(
         row -> row.setPeakIdentities(FXCollections.observableArrayList())));
 
-    idsMenu.getItems().addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem);
+    // add the same menu for all datatypes
+    final Menu clearAnnotationsMenu = new Menu("Clear annotations");
+    DataTypes.getInstances().stream().forEach(dt -> {
+      if (!(dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType)) {
+        return;
+      }
+      if(dt instanceof IonIdentityListType) {
+        // disabled for now, remove operation requires further implementations
+        return;
+      }
+
+      final MenuItem deleteTopAnnotation = new ConditionalMenuItem(
+          "Delete selected " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+      deleteTopAnnotation.setOnAction(e -> {
+        var value = selectedRow.get(listType);
+        List<?> newList = new ArrayList<>(value);
+        newList.remove(0);
+        selectedRow.set(dt, newList);
+        table.refresh();
+      });
+      final MenuItem clearAllAnnotations = new ConditionalMenuItem(
+          "Clear all " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+      clearAllAnnotations.setOnAction(e -> {
+        selectedRow.set(listType, null);
+        table.refresh();
+      });
+      clearAnnotationsMenu.getItems()
+          .addAll(deleteTopAnnotation, clearAllAnnotations, new SeparatorMenuItem());
+    });
+
+    idsMenu.getItems()
+        .addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem, clearAnnotationsMenu);
   }
 
   private void initExportMenu() {
@@ -279,7 +312,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
     showImageFeatureItem.setOnAction(e -> {
       ParameterSet params = MZmineCore.getConfiguration()
-          .getModuleParameters(ImageToCsvExportModule.class);
+          .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
+      params.setParameter(ImageVisualizerParameters.imageNormalization,
+          MZmineCore.getConfiguration().getImageNormalization()); // same as in feature table.
       MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature, params));
     });
 
@@ -420,11 +455,6 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
         /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
-    final MenuItem showNormalizedImage = new ConditionalMenuItem("Show Normalized Image",
-        () -> selectedFeature != null
-            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
-    showImageFeatureItem.setOnAction(e -> addNormalizedImageTab());
-
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
             new SeparatorMenuItem(), show2DItem, show3DItem, showIntensityPlotItem,
@@ -433,20 +463,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem, showNormalizedImage);
-  }
-
-  private void addNormalizedImageTab() {
-    final IonTimeSeries<? extends Scan> featureData = selectedFeature.getFeatureData();
-    final IonTimeSeries<? extends Scan> normalized = IonTimeSeriesUtils.normalizeToAvgTic(
-        featureData, null);
-
-    ModularFeature f = new ModularFeature((ModularFeatureList) selectedFeature.getFeatureList(),
-        selectedFeature.getRawDataFile(), normalized, FeatureStatus.MANUAL);
-    ImageVisualizerParameters params = new ImageVisualizerParameters();
-    params.setParameter(ImageVisualizerParameters.normalize, true);
-    ImageVisualizerTab tab = new ImageVisualizerTab(f, params);
-    MZmineCore.getDesktop().addTab(tab);
+            showPeakRowSummaryItem);
   }
 
   private void onShown() {
