@@ -216,7 +216,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
         case ION_TYPE:
           value = readMetaData(main, "precursor type");
           break;
-        case ION_MODE:
+        case POLARITY:
           value = readMetaData(main, "ionization mode");
           break;
         case ION_SOURCE:
@@ -228,7 +228,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
         case MOLWEIGHT:
           value = readMetaDataDouble(main, "exact mass");
           break;
-        case MZ:
+        case PRECURSOR_MZ:
           value = readMetaDataDouble(main, "precursor m/z");
           break;
         case NAME:
@@ -295,7 +295,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
           break;
         case SOFTWARE:
           break;
-        case SYNONYM:
+        case SYNONYMS:
           break;
         default:
           break;

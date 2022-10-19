@@ -302,7 +302,7 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
 
   @Override
   public void applyMassListChanged(Scan scan, MassList old, MassList masses) {
-    throw new UnsupportedOperationException("Unsupported during project load.");
+    // do nothing
   }
 
   @Override

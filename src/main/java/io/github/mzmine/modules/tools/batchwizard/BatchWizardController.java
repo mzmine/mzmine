@@ -118,7 +118,7 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
@@ -528,7 +528,7 @@ public class BatchWizardController {
     param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection());
     param.setParameter(MobilityScanMergerParameters.noiseLevel,
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
-    param.setParameter(MobilityScanMergerParameters.mergingType, MergingType.SUMMED);
+    param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);
     param.setParameter(MobilityScanMergerParameters.weightingType, Weighting.LINEAR);
 
     final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(

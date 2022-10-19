@@ -60,8 +60,22 @@ public class SmoothingParameters extends SimpleParameterSet {
       "The suffix to be added to processed feature lists.", "sm");
 
   public SmoothingParameters() {
-    super(new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
+    super(createParams(Setup.FULL), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
+  }
+
+  public SmoothingParameters(Setup setup) {
+    super(createParams(setup), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
+  }
+
+  private enum Setup {
+    FULL, INTEGRATED;
+  }
+
+  private static Parameter[] createParams(Setup setup) {
+    return switch (setup) {
+      case FULL -> new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix};
+      case INTEGRATED -> new Parameter[]{smoothingAlgorithm};
+    };
   }
 
   @Override
