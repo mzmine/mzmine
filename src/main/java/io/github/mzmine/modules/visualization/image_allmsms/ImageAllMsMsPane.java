@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -88,7 +89,7 @@ public class ImageAllMsMsPane extends BorderPane {
 
     tab = new SpectraVisualizerTab(feature.getRawDataFile());
     final SpectraPlot spectrumPlot = tab.getSpectrumPlot();
-    spectrumPlot.setMinHeight(300);
+    spectrumPlot.minHeightProperty().bind(mainSplit.heightProperty().divide(3));
     ms1Content.getChildren().add(spectrumPlot);
 
     spectrumContentWrapper.getChildren().add(ms1Content);
@@ -173,8 +174,15 @@ public class ImageAllMsMsPane extends BorderPane {
       }
     });
 
+    final MobilogramChart mobilogramChart = new MobilogramChart(feature);
+    mobilogramChart.setMinHeight(200);
+    msmsContent.getChildren().add(mobilogramChart);
     for (final Scan msms : feature.getAllMS2FragmentScans()) {
-      msmsContent.getChildren().add(new MobilogramMsMsPane(msms, feature));
+      SpectraVisualizerTab tab = new SpectraVisualizerTab(msms.getDataFile());
+      SpectraPlot spectrumPlot = tab.getSpectrumPlot();
+      tab.loadRawData(msms);
+      msmsContent.getChildren().add(spectrumPlot);
+      spectrumPlot.setMinHeight(250);
     }
   }
 
