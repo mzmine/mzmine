@@ -1661,7 +1661,7 @@ public class ScanUtils {
    * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
    * no ions in the spectrum.
    */
-  public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+  public static double getSpectralEntropy(@NotNull final MassSpectrum spectrum) {
     final Double tic = spectrum.getTIC();
     if (tic == null || spectrum.getNumberOfDataPoints() == 0) {
       return Double.POSITIVE_INFINITY;
@@ -1672,7 +1672,15 @@ public class ScanUtils {
       final double normalizedIntensity = spectrum.getIntensityValue(i) / tic;
       spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
     }
-    return -spectralEntropy / Math.log(spectrum.getNumberOfDataPoints());
+    return -spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
   }
 
   /**
@@ -1685,7 +1693,7 @@ public class ScanUtils {
    * no ions in the spectrum.
    */
   public static double getWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
-    final double entropy = getNormalizedSpectralEntropy(spectrum);
+    final double entropy = getSpectralEntropy(spectrum);
     if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
       return entropy;
     }
@@ -1702,7 +1710,15 @@ public class ScanUtils {
       final double normalizedIntensity = weightedIntensities[i] / tic;
       spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
     }
-    return -spectralEntropy / Math.log(weightedIntensities.length);
+    return spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getWeightedNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
   }
 
   /**
