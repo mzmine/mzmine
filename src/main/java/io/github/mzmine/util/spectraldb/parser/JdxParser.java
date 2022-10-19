@@ -28,7 +28,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -51,11 +52,12 @@ public class JdxParser extends SpectralDBTextParser {
     super(bufferEntries, processor);
   }
 
-  private static Logger logger = Logger.getLogger(NistMspParser.class.getName());
+  private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
-    super.parse(mainTask, dataBaseFile);
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
+      throws IOException {
+    super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing jdx spectral library " + dataBaseFile.getAbsolutePath());
 
     boolean isData = false;
@@ -64,7 +66,7 @@ public class JdxParser extends SpectralDBTextParser {
     // create db
     int sep = -1;
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
+      for (String l; (l = br.readLine()) != null; ) {
         // main task was canceled?
         if (mainTask.isCanceled()) {
           return false;
@@ -76,14 +78,15 @@ public class JdxParser extends SpectralDBTextParser {
           if (sep != -1) {
             DBEntryField field = DBEntryField.forJdxID(l.substring(0, sep));
             if (field != null) {
-              String content = l.substring(sep + 1, l.length());
+              String content = l.substring(sep + 1);
               if (content.length() > 0) {
                 try {
                   Object value = field.convertValue(content);
                   fields.put(field, value);
                 } catch (Exception e) {
-                  logger.log(Level.WARNING, "Cannot convert value type of " + content + " to "
-                      + field.getObjectClass().toString(), e);
+                  logger.log(Level.WARNING,
+                      "Cannot convert value type of " + content + " to " + field.getObjectClass()
+                          .toString(), e);
                 }
               }
             }
@@ -105,8 +108,8 @@ public class JdxParser extends SpectralDBTextParser {
           if (l.contains("END")) {
             // row with END
             // add entry and reset
-            SpectralDBEntry entry =
-                new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
+            SpectralLibraryEntry entry = SpectralLibraryEntry.create(library, fields,
+                dps.toArray(new DataPoint[dps.size()]));
             fields = new EnumMap<>(fields);
             dps.clear();
             addLibraryEntry(entry);

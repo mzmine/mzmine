@@ -47,7 +47,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -436,8 +436,8 @@ public class MirrorScanWindowController {
 
   private void loadGnpsLibrary(String id1, String id2) {
     try {
-      final SpectralDBEntry top = GNPSUtils.accessLibraryOrUSISpectrum(id1);
-      final SpectralDBEntry bottom = GNPSUtils.accessLibraryOrUSISpectrum(id2);
+      final SpectralLibraryEntry top = GNPSUtils.accessLibraryOrUSISpectrum(id1);
+      final SpectralLibraryEntry bottom = GNPSUtils.accessLibraryOrUSISpectrum(id2);
 
       setScans(top.getPrecursorMZ(), top.getDataPoints(), bottom.getPrecursorMZ(),
           bottom.getDataPoints());

@@ -29,7 +29,7 @@
 //import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 //import io.github.mzmine.taskcontrol.AbstractTask;
 //import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-//import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+//import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 //import jakarta.json.Json;
 //import jakarta.json.JsonArray;
 //import jakarta.json.JsonNumber;
@@ -76,7 +76,7 @@
 //    AtomicInteger correct = new AtomicInteger(0);
 //    AtomicInteger error = new AtomicInteger(0);
 //
-//    List<SpectralDBEntry> results = new ArrayList<>();
+//    List<SpectralLibraryEntry> results = new ArrayList<>();
 //
 //    // create db
 //    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
@@ -84,7 +84,7 @@
 //      String l = br.readLine();
 //      while (l != null) {
 //        if (l.length() > 2) {
-//          final SpectralDBEntry entry = parseLineToEntry(correct, error, l);
+//          final SpectralLibraryEntry entry = parseLineToEntry(correct, error, l);
 //          if (entry != null) {
 //            results.add(entry);
 //          }
@@ -106,7 +106,7 @@
 //      }
 //
 //      // read the rest in parallel
-//      final List<SpectralDBEntry> entries = br.lines().filter(line -> {
+//      final List<SpectralLibraryEntry> entries = br.lines().filter(line -> {
 //            processedLines.incrementAndGet();
 //            return line.length() > 2;
 //          }).parallel().map(line -> parseLineToEntry(correct, error, line)).filter(Objects::nonNull)
@@ -124,9 +124,9 @@
 //    }
 //  }
 //
-//  private SpectralDBEntry parseLineToEntry(AtomicInteger correct, AtomicInteger error, String l) {
+//  private SpectralLibraryEntry parseLineToEntry(AtomicInteger correct, AtomicInteger error, String l) {
 //    try {
-//      final SpectralDBEntry entry = parseToEntry(l);
+//      final SpectralLibraryEntry entry = parseToEntry(l);
 //      if (entry != null) {
 //        correct.getAndIncrement();
 //        return entry;
@@ -140,14 +140,14 @@
 //  }
 //
 //  @Nullable
-//  private SpectralDBEntry parseToEntry(String line) {
+//  private SpectralLibraryEntry parseToEntry(String line) {
 //    try (JsonReader reader = Json.createReader(new StringReader(line))) {
 //      JsonObject json = reader.readObject();
 //      return getDBEntry(json);
 //    }
 //  }
 //
-//  public SpectralDBEntry getDBEntry(JsonObject main) {
+//  public SpectralLibraryEntry getDBEntry(JsonObject main) {
 //    // extract dps
 //    DataPoint[] dps = getDataPoints(main);
 //    if (dps == null || dps.length == 0) {
@@ -156,7 +156,7 @@
 //    // metadata
 //    Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
 //    extractAllFields(main, map);
-//    return new SpectralDBEntry(map, dps);
+//    return new SpectralLibraryEntry(map, dps);
 //  }
 //
 //  public void extractAllFields(JsonObject main, Map<DBEntryField, Object> map) {

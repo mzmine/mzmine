@@ -25,6 +25,22 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.UsiType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.apache.commons.lang3.StringUtils;
 
 public enum DBEntryField {
@@ -146,6 +162,34 @@ public enum DBEntryField {
       case MONA_ID -> "MoNA ID";
       case PRECURSOR_MZ -> "Precursor m/z";
       default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
+    };
+  }
+
+  /**
+   * @return The mzmine json format key or an empty String
+   */
+  public Class<? extends DataType> getDataType() {
+    return switch (this) {
+      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC ->
+          StringType.class;
+      case MS_LEVEL, NUM_PEAKS -> IntegerType.class;
+      case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
+      case CHARGE -> ChargeType.class;
+      case COLLISION_ENERGY -> DoubleType.class;
+      case FORMULA -> FormulaType.class;
+      case INCHI -> InChIStructureType.class;
+      case INCHIKEY -> InChIKeyStructureType.class;
+      case ION_TYPE -> IonTypeType.class;
+      case NAME -> CompoundNameType.class;
+      case RT -> RTType.class;
+      case SMILES -> SmilesStructureType.class;
+      case CCS -> CCSType.class;
+      case ISOLATION_WINDOW -> DoubleType.class;
+      case DATASET_ID -> DatasetIdType.class;
+      case USI -> UsiType.class;
+      // TODO change to real data types
+      case MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
+          StringType.class;
     };
   }
 

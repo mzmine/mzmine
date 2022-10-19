@@ -28,6 +28,7 @@ package io.github.mzmine.util.spectraldb.parser;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.files.FileTypeFilter;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -48,7 +49,7 @@ public class AutoLibraryParser extends SpectralDBParser {
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile)
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
       throws UnsupportedFormatException, IOException {
     FileTypeFilter json = new FileTypeFilter("json", "");
     FileTypeFilter msp = new FileTypeFilter("msp", "");
@@ -77,7 +78,7 @@ public class AutoLibraryParser extends SpectralDBParser {
           if (subParser instanceof SpectralDBTextParser txtParser) {
             txtParser.setTotalLines(totalLines);
           }
-          boolean state = p.parse(mainTask, dataBaseFile);
+          boolean state = p.parse(mainTask, dataBaseFile, library);
           if (state) {
             return state;
           } else {
@@ -106,7 +107,7 @@ public class AutoLibraryParser extends SpectralDBParser {
         txtParser.setTotalLines(totalLines);
       }
       // parse the file
-      boolean state = subParser.parse(mainTask, dataBaseFile);
+      boolean state = subParser.parse(mainTask, dataBaseFile, library);
       if (state) {
         return state;
       }

@@ -42,7 +42,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -136,7 +136,7 @@ public class MSPEntryGenerator {
   /**
    * Creates a simple MSP nist format DB entry
    */
-  public static String createMSPEntry(SpectralDBEntry entry) {
+  public static String createMSPEntry(SpectralLibraryEntry entry) {
 
     String def = ": ";
     String br = "\n";

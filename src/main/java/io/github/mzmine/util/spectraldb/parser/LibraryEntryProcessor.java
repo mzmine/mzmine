@@ -25,24 +25,21 @@
 
 package io.github.mzmine.util.spectraldb.parser;
 
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.List;
 
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-
 /**
- * 
  * @author Robin Schmid
- *
  */
 public interface LibraryEntryProcessor {
 
   /**
    * Process next batch of spectral db entries. This should be done in a separate thread. To not
    * interrupt the parser as this method is called from the parser thread.
-   * 
+   *
    * @param list
    * @param alreadyProcessed
    */
-  public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed);
+  void processNextEntries(List<SpectralLibraryEntry> list, int alreadyProcessed);
 
 }

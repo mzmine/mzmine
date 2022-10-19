@@ -23,33 +23,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.spectraldb.entry;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import java.text.MessageFormat;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
+import javafx.util.StringConverter;
+import javafx.util.converter.DefaultStringConverter;
+import org.jetbrains.annotations.NotNull;
 
-public class PrecursorDBFeatureIdentity extends SimpleFeatureIdentity {
+/**
+ * Universal spectrum identifier for a spectrum in the public domaine
+ */
+public class UsiType extends StringType implements EditableColumnType, StringParser<String>,
+    AnnotationType {
 
-  private final SpectralLibraryEntry entry;
+  private final StringConverter<String> converter = new DefaultStringConverter();
 
-  public PrecursorDBFeatureIdentity(SpectralLibraryEntry entry, String method) {
-    super(MessageFormat.format("Precursor? {0} as {3} ({1}) {2}",
-            entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
-            entry.getField(DBEntryField.PRECURSOR_MZ).orElse(""), // precursor m/z
-            entry.getField(DBEntryField.FORMULA).orElse(""), // molecular
-            // formula
-            entry.getField(DBEntryField.ION_TYPE).orElse("")), // Ion type
-        entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
-    this.entry = entry;
+  @Override
+  public @NotNull String getHeaderString() {
+    return "USI";
   }
 
-  public SpectralLibraryEntry getEntry() {
-    return entry;
+  @Override
+  public String fromString(String s) {
+    return s;
   }
 
-  public DataPoint[] getLibraryDataPoints() {
-    return entry.getDataPoints();
+  @Override
+  public StringConverter<String> getStringConverter() {
+    return converter;
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "usi";
+  }
 }
