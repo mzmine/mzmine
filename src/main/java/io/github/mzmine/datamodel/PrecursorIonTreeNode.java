@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -252,16 +253,8 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
    */
   @NotNull
   public List<Scan> getAllFragmentScans() {
-    List<Scan> scans = new ArrayList<>(getFragmentScans());
-    int level = 1;
-    while (true) {
-      final List<Scan> list = getFragmentScans(level);
-      if (list.isEmpty()) {
-        return scans;
-      }
-      scans.addAll(list);
-      level++;
-    }
+    return streamWholeTree().map(PrecursorIonTreeNode::getFragmentScans).flatMap(Collection::stream)
+        .toList();
   }
 
   public int getMaxMSLevel() {

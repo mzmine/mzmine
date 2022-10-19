@@ -240,17 +240,19 @@ public class IonMobilityUtils {
       }
     }
 
-    final double startMobility = MathUtils.twoPointGetXForY(series.getMobility(before),
-        series.getIntensity(before),
-        series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
-        series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
+    final float startMobility = (float) MathUtils
+        .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
+            series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            halfIntensity);
 
-    final double endMobility = MathUtils.twoPointGetXForY(
-        series.getMobility(Math.max(after - 1, 0)), series.getIntensity(Math.max(after - 1, 0)),
-        series.getMobility(after), series.getIntensity(after), halfIntensity);
+    final float endMobility = (float) MathUtils
+        .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
+            series.getIntensity(Math.max(after - 1, 0)), series.getMobility(after),
+            series.getIntensity(after), halfIntensity);
 
 //    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
-    return Range.closed((float) startMobility, (float) endMobility);
+    return Range.closed(Math.min(startMobility, endMobility), Math.max(startMobility, endMobility));
   }
 
   /**

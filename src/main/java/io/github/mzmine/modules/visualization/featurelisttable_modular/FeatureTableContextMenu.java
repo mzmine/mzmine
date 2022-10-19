@@ -33,9 +33,12 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -60,6 +63,9 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
@@ -74,16 +80,22 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverv
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -411,6 +423,18 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     });
 
+    final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ion shapes",
+        () -> selectedFeature != null
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showDiaIons.setOnAction(e -> showDiaMsMsIons());
+
+    final MenuItem showDiaMirror = new ConditionalMenuItem(
+        "DIA spectral mirror: Correlated-to-all signals",
+        () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showDiaMirror.setOnAction(e -> showDiaMirror());
+
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
@@ -461,7 +485,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem);
   }
@@ -563,5 +587,66 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     final RawDataFile file = selectedFeature.getRawDataFile();
     return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
+  }
+
+  private void showDiaMsMsIons() {
+    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
+    final RawDataFile file = selectedFeature.getRawDataFile();
+    ScanSelection selection = new ScanSelection(
+        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 1,
+            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 1), 2);
+    final List<Scan> matchingScans = selection.getMatchingScans(file.getScans());
+    MZTolerance tol = new MZTolerance(0.005, 15);
+
+    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{file}, TICPlotType.BASEPEAK,
+        new ScanSelection(1), tol.getToleranceRange(selectedFeature.getMZ()), null, null);
+
+    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+      TICDataSet dataSet = new TICDataSet(file, matchingScans,
+          tol.getToleranceRange(msms.getMzValue(i)), null, TICPlotType.BASEPEAK);
+      dataSet.setCustomSeriesKey(String.format("m/z %s", mzFormat.format(msms.getMzValue(i))));
+      window.getTICPlot().addTICDataSet(dataSet,
+          ColorUtils.getContrastPaletteColorAWT(file.getColor(),
+              MZmineCore.getConfiguration().getDefaultColorPalette()));
+    }
+
+    MZmineCore.getDesktop().addTab(window);
+  }
+
+  private void showDiaMirror() {
+    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
+    final RawDataFile file = selectedFeature.getRawDataFile();
+
+    final MirrorScanWindowFXML window = new MirrorScanWindowFXML();
+    final MirrorScanWindowController controller = window.getController();
+
+    final IonTimeSeries<? extends Scan> featureData = selectedFeature.getFeatureData();
+    if (!(featureData instanceof IonMobilogramTimeSeries ims)
+        || !(selectedFeature.getRawDataFile() instanceof IMSRawDataFile imsFile)) {
+      return;
+    }
+
+    final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(ims.getSummedMobilogram());
+    ScanSelection scanSelection = new ScanSelection(selectedFeature.getRawDataPointsRTRange(), 2);
+    List<Scan> ms2Scans = scanSelection.getMatchingScans(imsFile.getScans());
+
+    final List<MobilityScan> mobilityScans = ms2Scans.stream().<MobilityScan>mapMulti((f, c) -> {
+      Frame frame = (Frame) f;
+      for (MobilityScan ms : frame.getMobilityScans()) {
+        if (mobilityFWHM.contains((float) ms.getMobility())) {
+          c.accept(ms);
+        }
+      }
+    }).toList();
+
+    final MergedMassSpectrum uncorrelatedSpectrum = SpectraMerging.mergeSpectra(mobilityScans,
+        SpectraMerging.pasefMS2MergeTol, null);
+
+    controller.setScans(selectedFeature.getMZ(), ScanUtils.extractDataPoints(msms),
+        selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncorrelatedSpectrum), " (correlated)",
+        " (no correlation)");
+
+    window.show();
   }
 }
