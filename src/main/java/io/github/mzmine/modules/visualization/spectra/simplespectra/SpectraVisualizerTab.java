@@ -392,7 +392,9 @@ public class SpectraVisualizerTab extends MZmineTab {
       if (scan != null && scan.getMSLevel() > 1) {
         // add all precursors
         final Double prmz = scan.getPrecursorMz();
-        spectrumPlot.getXYPlot().addDomainMarker(new ValueMarker(prmz));
+        if (prmz != null) {
+          spectrumPlot.getXYPlot().addDomainMarker(new ValueMarker(prmz));
+        }
       }
 
     });
