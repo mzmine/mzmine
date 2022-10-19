@@ -321,8 +321,8 @@ public class SpectraMerging {
       return null;
     }
 
-    double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance, mergingType, cf,
-        null, outputNoiseLevelAbs);
+    double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
+        intensityMergingType, cf, null, outputNoiseLevelAbs);
 
     if (merged[0].length == 0) {
       return null;
@@ -332,8 +332,8 @@ public class SpectraMerging {
       double minRelative = Arrays.stream(merged[1]).max().orElse(0d) * outputNoiseLevelRelative;
       if (outputNoiseLevelAbs == null || (minRelative > outputNoiseLevelAbs)) {
         // if the min relative intensity is smaller than the absolute, we don't need to recalc here
-        merged = calculatedMergedMzsAndIntensities(massLists, tolerance, mergingType, cf, null,
-            minRelative);
+        merged = calculatedMergedMzsAndIntensities(massLists, tolerance, intensityMergingType, cf,
+            null, minRelative);
       }
     }
 
