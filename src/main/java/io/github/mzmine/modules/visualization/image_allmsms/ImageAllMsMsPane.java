@@ -124,6 +124,10 @@ public class ImageAllMsMsPane extends BorderPane {
     featureProperty.set(feature);
 
     mainSplit.setDividerPosition(0, 0.7);
+    if (feature.getFeatureData().getNumberOfValues() == 1) { // maldi spot measurement
+      mainSplit.setDividerPosition(0, 0.01);
+      tab.loadRawData(feature.getRepresentativeScan());
+    }
   }
 
   private void featureChanged(final Feature feature) {
@@ -178,9 +182,9 @@ public class ImageAllMsMsPane extends BorderPane {
     mobilogramChart.setMinHeight(200);
     msmsContent.getChildren().add(mobilogramChart);
     for (final Scan msms : feature.getAllMS2FragmentScans()) {
-      SpectraVisualizerTab tab = new SpectraVisualizerTab(msms.getDataFile());
-      SpectraPlot spectrumPlot = tab.getSpectrumPlot();
-      tab.loadRawData(msms);
+      SpectraVisualizerTab ms2Tab = new SpectraVisualizerTab(msms.getDataFile());
+      SpectraPlot spectrumPlot = ms2Tab.getSpectrumPlot();
+      ms2Tab.loadRawData(msms);
       msmsContent.getChildren().add(spectrumPlot);
       spectrumPlot.setMinHeight(250);
     }
