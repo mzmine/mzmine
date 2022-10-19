@@ -74,8 +74,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         centerFunction);
 
     msMsInfo = info;
-    this.scanDefinition = ScanUtils.scanToString(this, true) /*+ " NE: " + ScanUtils.getNormalizedSpectralEntropy(this)
-            + " WE: " + ScanUtils.getWeightedSpectralEntropy(this)*/;
+    this.scanDefinition = ScanUtils.scanToString(this, true);
   }
 
   @Override
