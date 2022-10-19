@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -94,9 +96,7 @@ public class ADAPInterface {
 
     Chromatogram chromatogram = peak.chromatogram;
 
-    // Retrieve scan numbers
-    Scan representativeScan = null;
-    double maxIntensity = 0.0;
+
     List<Scan> scanNumbers = new ArrayList<>(chromatogram.length);
     int count = 0;
     double startRetTime = chromatogram.getFirstRetTime();
@@ -105,23 +105,11 @@ public class ADAPInterface {
       double retTime = scan.getRetentionTime();
       if (retTime < startRetTime || retTime > endRetTime) continue;
 
-//      Double intensity = chromatogram.getIntensity(retTime, false);
-//
-//      if (intensity != null) {
       scanNumbers.add(scan);
-//        scanNumbers[count++] = num;
-//      }
-      double intensity = chromatogram.getIntensity(retTime, true);
-
-      if (intensity > maxIntensity) {
-        representativeScan = scan;
-        maxIntensity = intensity;
-      }
 
       if (scanNumbers.size() == chromatogram.length)
         break;
     }
-
 
     // Calculate peak area
     double area = 0.0;
@@ -131,28 +119,12 @@ public class ADAPInterface {
       area += base * height;
     }
 
-    // Create array of DataPoints
-    DataPoint[] dataPoints = new DataPoint[scanNumbers.size()];
-    for (int i = 0; i < scanNumbers.size(); ++i) {
-      Scan scan = scanNumbers.get(i);
-      double retTime = scan.getRetentionTime();
-      double intensity = chromatogram.getIntensity(retTime, true);
-      dataPoints[i] = new SimpleDataPoint(retTime, intensity);
-    }
 
-//    DataPoint[] dataPoints = new DataPoint[chromatogram.length];
-//    count = 0;
-//    for (double intensity : chromatogram.ys) {
-//      dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
-//    }
+    final double[] newIntensities = new double[scanNumbers.size()];
+    final double[] newMzs = new double[scanNumbers.size()];
+    SimpleIonTimeSeries simpleIonTimeSeries = new SimpleIonTimeSeries(null, newMzs, newIntensities, scanNumbers);
 
-    Scan[] scanNumbersArr = scanNumbers.toArray(new Scan[0]);
-    return new ModularFeature(featureList, file, peak.getMZ(), (float) peak.getRetTime(),
-            (float) peak.getIntensity(), (float) area, scanNumbersArr, dataPoints, FeatureStatus.ESTIMATED,
-            representativeScan, List.of(),
-            Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
-            Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
-            Range.closed(0.f, (float) peak.getIntensity()));
+    return new ModularFeature(featureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED) ;
   }
 
   @NotNull
@@ -176,4 +148,3 @@ public class ADAPInterface {
     return peakToFeature(featureList, file, betterPeak);
   }
 }
-
