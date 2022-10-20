@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -76,9 +77,16 @@ public class MaldiGroupMS2Parameters extends SimpleParameterSet {
               + "MS/MS mobility scans need to be merged together.",
           MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE));
 
+  public static final OptionalParameter<PercentParameter> outputNoiseLevelRelative = new OptionalParameter<>(
+      new PercentParameter("Minimum merged intensity (relative, IMS)",
+          "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
+              + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
+              + "MS/MS mobility scans need to be merged together.", 0.01d));
+
   public MaldiGroupMS2Parameters() {
-    super(new Parameter[]{PEAK_LISTS, files, mzTol, combineTimsMsMs,
-        lockMS2ToFeatureMobilityRange, outputNoiseLevel}, "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
+    super(new Parameter[]{PEAK_LISTS, files, mzTol, combineTimsMsMs, lockMS2ToFeatureMobilityRange,
+            outputNoiseLevel, outputNoiseLevelRelative},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
   }
 
   @Override
