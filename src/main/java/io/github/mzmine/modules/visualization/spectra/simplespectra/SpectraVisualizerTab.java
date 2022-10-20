@@ -396,7 +396,6 @@ public class SpectraVisualizerTab extends MZmineTab {
           spectrumPlot.getXYPlot().addDomainMarker(new ValueMarker(prmz));
         }
       }
-
     });
   }
 

@@ -37,7 +37,7 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -67,9 +67,11 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
   public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, MsMsInfo info, int msLevel,
-      @NotNull List<? extends MassSpectrum> sourceSpectra, @NotNull MergingType mergingType,
+      @NotNull List<? extends MassSpectrum> sourceSpectra,
+      @NotNull SpectraMerging.IntensityMergingType intensityMergingType,
       @NotNull CenterFunction centerFunction) {
-    super(storage, mzValues, intensityValues, msLevel, sourceSpectra, mergingType, centerFunction);
+    super(storage, mzValues, intensityValues, msLevel, sourceSpectra, intensityMergingType,
+        centerFunction);
 
     msMsInfo = info;
     this.scanDefinition = ScanUtils.scanToString(this, true);
@@ -85,17 +87,16 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     return msMsInfo;
   }
 
-  protected static final String XML_MSLEVEL_ATTR = "mslevel";
-  protected static final String XML_CE_ATTR = "ce";
-  protected static final String XML_PRECURSOR_MZ_ATTR = "precursormz";
-  protected static final String XML_PRECURSOR_CHARGE_ATTR = "precursorcharge";
-  protected static final String XML_MERGING_TYPE_ATTR = "mergingtype";
-
   public static SimpleMergedMsMsSpectrum loadFromXML(XMLStreamReader reader, IMSRawDataFile file)
       throws XMLStreamException {
-    final int mslevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
-    final MergingType type = MergingType.valueOf(
-        reader.getAttributeValue(null, XML_MERGING_TYPE_ATTR));
+    if (!reader.isStartElement() || !reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)
+        || !reader.getAttributeValue(null, Scan.XML_SCAN_TYPE_ATTR).equals(XML_SCAN_TYPE)) {
+      throw new IllegalStateException("Wrong scan type.");
+    }
+
+    final int mslevel = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MSLEVEL_ATTR));
+    final IntensityMergingType type = IntensityMergingType.valueOf(
+        reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR));
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
     double[] mzs = null;
@@ -132,9 +133,9 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeStartElement(Scan.XML_SCAN_ELEMENT);
     writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMsMsSpectrum.XML_SCAN_TYPE);
 
-    writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
-    writer.writeAttribute(XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
-    writer.writeAttribute(XML_MERGING_TYPE_ATTR, getMergingType().name());
+    writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
+    writer.writeAttribute(CONST.XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
+    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getMergingType().name());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
     if (msMsInfo != null) {

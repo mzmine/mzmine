@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
@@ -41,6 +43,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -68,6 +71,16 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file", ",");
+  public static final StringParameter commentFields = new StringParameter("Append comment fields",
+      "Multiple fields separated by comma that are appended to the comment. Like: Pathway,Synonyms",
+      "", false);
+
+  public static final OptionalParameter<StringParameter> filterSamples = new OptionalParameter<>(
+      new StringParameter("Filter filename header",
+          "Column header to filter matches to only occur in the given sample. Used for library generation workflows.",
+          "raw_filename"), false);
+
+
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
   public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter(
@@ -83,6 +96,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "mz", new PrecursorMZType()), //
       new ImportType(true, "rt", new RTType()), new ImportType(true, "formula", new FormulaType()),
       new ImportType(true, "smiles", new SmilesStructureType()),
+      new ImportType(false, "inchi", new InChIStructureType()),
+      new ImportType(false, "inchi key", new InChIKeyStructureType()),
       new ImportType(false, "name", new CompoundNameType()),
       new ImportType(false, "CCS", new CCSType()),
       new ImportType(false, "mobility", new MobilityType()),
@@ -95,7 +110,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public LocalCSVDatabaseSearchParameters() {
     super(
         new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance, ionLibrary},
+            mobTolerance, ccsTolerance, ionLibrary, filterSamples, commentFields},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html");
   }
 

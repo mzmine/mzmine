@@ -51,7 +51,7 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.Weights;
@@ -190,7 +190,7 @@ public class IMSScanTypesTest {
           file.getFrame(i - 5), file.getFrame(i), Range.closed(299d, 301d));
 
       MergedMsMsSpectrum scan = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
-          new MZTolerance(0.01, 10), MergingType.SUMMED, null,
+          new MZTolerance(0.01, 10), IntensityMergingType.SUMMED, null,
           RangeUtils.toFloatRange(file.getFrame(i).getMobilityRange()), null);
       value.add(scan);
     }
@@ -252,13 +252,13 @@ public class IMSScanTypesTest {
     PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(2),
         file.getFrame(6), null);
     MergedMsMsSpectrum query = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
-        new MZTolerance(0.01, 10), MergingType.SUMMED, null,
+        new MZTolerance(0.01, 10), IntensityMergingType.SUMMED, null,
         RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
 
     PasefMsMsInfo info2 = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(3),
         file.getFrame(7), null);
     MergedMsMsSpectrum library = SpectraMerging.getMergedMsMsSpectrumForPASEF(info2,
-        new MZTolerance(0.01, 10), MergingType.SUMMED, null,
+        new MZTolerance(0.01, 10), IntensityMergingType.SUMMED, null,
         RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
 
     Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS,

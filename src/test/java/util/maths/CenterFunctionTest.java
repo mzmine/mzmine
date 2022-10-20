@@ -37,7 +37,7 @@ public class CenterFunctionTest {
   private static final Logger logger = Logger.getLogger(CenterFunctionTest.class.getName());
 
   /**
-   * This test exists to test if calculation of m/zs is consistent even iv leading/trailing 0s are
+   * This test exists to test if calculation of m/zs is consistent even if leading/trailing 0s are
    * added to a feature.
    */
   @Test
