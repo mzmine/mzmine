@@ -53,7 +53,7 @@ public class CONST {
   public static final String XML_RT_ATTR = "rt";
   public static final String XML_PRECURSOR_MZ_ATTR = "precursormz";
   public static final String XML_PRECURSOR_CHARGE_ATTR = "precursorcharge";
-  public static final String XML_INTENSITY_MERGE_TYPE_ATTR = "mergetype";
+  public static final String XML_INTENSITY_MERGE_TYPE_ATTR = "mergingtype";
   public static final String XML_SCAN_LIST_ELEMENT = "scans";
   public static final String XML_POLARITY_ATTR = "polarity";
   /**
