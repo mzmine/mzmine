@@ -579,6 +579,8 @@
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
     <MenuItem onAction="#runModule" text="Analyse libraries to csv"
       userData="io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule"/>
+    <MenuItem onAction="#runModule" text="Rate MS2 Spectra"
+      userData="io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule"/>
   </Menu>
 
   <Menu text="Processing wizard">

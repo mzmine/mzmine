@@ -1715,7 +1715,7 @@ public class ScanUtils {
    * @return The spectral entropy normalized to the number of signals in a spectrum.
    * @see #getWeightedSpectralEntropy(MassSpectrum)
    */
-  public static double getWeightedNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
     return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
   }
 
