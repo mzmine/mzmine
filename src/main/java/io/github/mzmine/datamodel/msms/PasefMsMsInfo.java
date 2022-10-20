@@ -68,5 +68,19 @@ public interface PasefMsMsInfo extends DDAMsMsInfo {
    */
   Integer getPrecursorCharge();
 
+  @Nullable
+  default Range<Float> getMobilityRange() {
+    final Frame msMsFrame = getMsMsFrame();
+    if (msMsFrame == null) {
+      return null;
+    }
+    final Range<Integer> spectrumNumberRange = getSpectrumNumberRange();
+    final double lower = msMsFrame.getMobilityForMobilityScanNumber(
+        spectrumNumberRange.lowerEndpoint());
+    final double upper = msMsFrame.getMobilityForMobilityScanNumber(
+        spectrumNumberRange.upperEndpoint());
+    return Range.closed((float) lower, (float) upper);
+  }
+
   void writeToXML(XMLStreamWriter writer) throws XMLStreamException;
 }
