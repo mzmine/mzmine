@@ -1,25 +1,33 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.scans;
 
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
+import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -39,6 +47,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedMobilityScan;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -99,7 +108,12 @@ public class ScanUtils {
    * @param scan Scan to be converted to String
    * @return String representation of the scan
    */
-  public static @NotNull String scanToString(@NotNull Scan scan, @NotNull Boolean includeFileName) {
+  public static @NotNull String scanToString(@Nullable Scan scan,
+      @NotNull Boolean includeFileName) {
+    if (scan == null) {
+      return "null";
+    }
+
     StringBuilder buf = new StringBuilder();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -136,7 +150,8 @@ public class ScanUtils {
 
     buf.append(" MS");
     buf.append(scan.getMSLevel());
-    if (scan.getMSLevel() > 1 && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+    if (scan.getMSLevel() > 1 && !(scan instanceof CachedMobilityScan)
+        && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
     switch (scan.getSpectrumType()) {
@@ -1174,8 +1189,6 @@ public class ScanUtils {
    * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
    */
   public static @Nullable Scan findPrecursorScan(@NotNull Scan scan) {
-
-    assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
     final List<Scan> scanNumbers = dataFile.getScans();
 
@@ -1602,6 +1615,40 @@ public class ScanUtils {
   public static DataPoint[] removeSignals(DataPoint[] dps, double mz, MZTolerance tolerance) {
     Range<Double> range = tolerance.getToleranceRange(mz);
     return Arrays.stream(dps).filter(dp -> !range.contains(dp.getMZ())).toArray(DataPoint[]::new);
+  }
+
+  /**
+   * Filters the raw mz + intensity data of a scan to remove neighbouring zeros.
+   *
+   * @param scan The scan, [][0] are mzs, [][1] are intensities
+   * @return A multidimensional array with the filtered values. [][0] are mzs, [][1] are
+   * intensities.
+   */
+  public static double[][] removeExtraZeros(double[][] scan) {
+    // remove all extra zeros
+    final int numDp = scan.length;
+    final TDoubleArrayList filteredMzs = new TDoubleArrayList();
+    final TDoubleArrayList filteredIntensities = new TDoubleArrayList();
+    filteredMzs.add(scan[0][0]);
+    filteredIntensities.add(scan[0][1]);
+    for (int i = 1; i < numDp - 1;
+        i++) { // previous , this and next are zero --> do not add this data point
+      if (scan[i - 1][1] != 0 || scan[i][1] != 0 || scan[i + 1][1] != 0) {
+        filteredMzs.add(scan[i][0]);
+        filteredIntensities.add(scan[i][1]);
+      }
+    }
+    filteredMzs.add(scan[numDp - 1][0]);
+    filteredIntensities.add(scan[numDp - 1][1]);
+
+    //Convert the ArrayList to an array.
+    double[][] filteredScan = new double[filteredMzs.size()][2];
+    for (int i = 0; i < filteredMzs.size(); i++) {
+      filteredScan[i][0] = filteredMzs.get(i);
+      filteredScan[i][1] = filteredIntensities.get(i);
+    }
+
+    return filteredScan;
   }
 
   /**

@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.spectraldb.entry;
@@ -58,14 +66,14 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
   @Nullable
   private final Float ccsError;
 
-  private Scan queryScan;
+  private final Scan queryScan;
 
   public SpectralDBFeatureIdentity(Scan queryScan, SpectralDBEntry entry,
       SpectralSimilarity similarity, String method, @Nullable Float ccsError) {
     super(MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"),
             // Name
-            entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
+            entry.getField(DBEntryField.PRECURSOR_MZ).orElse(""), // precursor m/z
             entry.getField(DBEntryField.FORMULA).orElse(""), // molecular
             // formula
             entry.getField(DBEntryField.ION_TYPE).orElse(""), // Ion type
@@ -176,8 +184,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
       switch (reader.getLocalName()) {
         case SpectralDBEntry.XML_ELEMENT -> entry = SpectralDBEntry.loadFromXML(reader);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
-        case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT -> map = SimpleFeatureIdentity.readPropertyValues(
-            reader);
+        case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT ->
+            map = SimpleFeatureIdentity.readPropertyValues(reader);
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
         case XML_CCS_ERROR_ELEMENT -> {
           final String content = ParsingUtils.readNullableString(reader.getElementText());
@@ -213,8 +221,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     }
     SpectralDBFeatureIdentity that = (SpectralDBFeatureIdentity) o;
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
-        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects
-        .equals(getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
+        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
+        getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
         && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 

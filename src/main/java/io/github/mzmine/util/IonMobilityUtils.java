@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -75,6 +83,9 @@ public class IonMobilityUtils {
       @NotNull final IMSRawDataFile file) {
     Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
     for (Frame frame : file.getFrames()) {
+      if (frame.getMobilityRange().isEmpty() || frame.getMobilities().size() <= 1) {
+        continue;
+      }
       if (!ranges.containsValue(frame.getMobilityRange())) {
         ranges.put(frame, frame.getMobilityRange());
       }
@@ -197,7 +208,8 @@ public class IonMobilityUtils {
   /**
    * @param series The series. Sorted by ascending mobility. Note that raw {@link IonMobilitySeries}
    *               from {@link io.github.mzmine.datamodel.MobilityType#TIMS} measurements can be
-   *               sorted by descending mobility. {@link io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries}
+   *               sorted by descending mobility.
+   *               {@link io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries}
    *               are guaranteed to be sorted by ascending mobility.
    * @return The FWHM range or null.
    */
@@ -228,17 +240,19 @@ public class IonMobilityUtils {
       }
     }
 
-    final double startMobility = MathUtils.twoPointGetXForY(series.getMobility(before),
-        series.getIntensity(before),
-        series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
-        series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
+    final float startMobility = (float) MathUtils
+        .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
+            series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            halfIntensity);
 
-    final double endMobility = MathUtils.twoPointGetXForY(
-        series.getMobility(Math.max(after - 1, 0)), series.getIntensity(Math.max(after - 1, 0)),
-        series.getMobility(after), series.getIntensity(after), halfIntensity);
+    final float endMobility = (float) MathUtils
+        .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
+            series.getIntensity(Math.max(after - 1, 0)), series.getMobility(after),
+            series.getIntensity(after), halfIntensity);
 
 //    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
-    return Range.closed((float) startMobility, (float) endMobility);
+    return Range.closed(Math.min(startMobility, endMobility), Math.max(startMobility, endMobility));
   }
 
   /**
@@ -263,8 +277,8 @@ public class IonMobilityUtils {
   }
 
   /**
-   * Sums up the number of values of each {@link IonMobilitySeries} in the given {@link
-   * IonMobilogramTimeSeries}.
+   * Sums up the number of values of each {@link IonMobilitySeries} in the given
+   * {@link IonMobilogramTimeSeries}.
    *
    * @param trace The ion mobility trace.
    * @return The number of data points.
@@ -281,8 +295,8 @@ public class IonMobilityUtils {
    * Returns the maximum number of datapoints in {@link IonMobilogramTimeSeries} in this row.
    *
    * @param row The row.
-   * @return The maximum number of data points or null if there is no {@link
-   * IonMobilogramTimeSeries}.
+   * @return The maximum number of data points or null if there is no
+   * {@link IonMobilogramTimeSeries}.
    */
   public static Integer getMaxNumTraceDatapoints(ModularFeatureListRow row) {
     int max = row.streamFeatures()
