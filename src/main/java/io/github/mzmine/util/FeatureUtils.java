@@ -29,10 +29,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
@@ -486,5 +488,16 @@ public class FeatureUtils {
       }
     }
     return compoundAnnotations;
+  }
+
+  public static boolean isImsFeature(Feature f) {
+    if (!(f.getRawDataFile() instanceof IMSRawDataFile)) {
+      return false;
+    }
+
+    if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+      return false;
+    }
+    return true;
   }
 }
