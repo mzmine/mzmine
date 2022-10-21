@@ -67,12 +67,12 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
           + "This can be investigated in the \"All MS MS\" window", false);
 
   public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
-      new DoubleParameter("Minimum merged intensity (IMS)",
+      new DoubleParameter("Minimum merged intensity (absolute, IMS)",
           "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
               + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
               + "MS/MS mobility scans need to be merged together.",
           MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE));
-
+  f
   public static final OptionalParameter<PercentParameter> outputNoiseLevelRelative = new OptionalParameter<>(
       new PercentParameter("Minimum merged intensity (relative, IMS)",
           "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
