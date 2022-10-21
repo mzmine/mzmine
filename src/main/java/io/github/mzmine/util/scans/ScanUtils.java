@@ -1708,7 +1708,7 @@ public class ScanUtils {
       final double normalizedIntensity = weightedIntensities[i] / tic;
       spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
     }
-    return spectralEntropy;
+    return -spectralEntropy;
   }
 
   /**
@@ -1717,6 +1717,25 @@ public class ScanUtils {
    */
   public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
     return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @param msms The spectrum
+   * @return The lowest intensity or null if there are no data points..
+   */
+  @Nullable
+  public static Double getLowestIntensity(@NotNull final MassSpectrum msms) {
+    if (msms.getNumberOfDataPoints() == 0) {
+      return null;
+    }
+    double minIntensity = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+      final double intensity = msms.getIntensityValue(i);
+      if (intensity < minIntensity) {
+        minIntensity = intensity;
+      }
+    }
+    return minIntensity;
   }
 
   /**
