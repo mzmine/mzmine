@@ -96,11 +96,11 @@ public class ADAPInterface {
 
     Chromatogram chromatogram = peak.chromatogram;
 
-
     List<Scan> scanNumbers = new ArrayList<>(chromatogram.length);
     int count = 0;
     double startRetTime = chromatogram.getFirstRetTime();
     double endRetTime = chromatogram.getLastRetTimes();
+
     for (Scan scan : file.getScans()) {
       double retTime = scan.getRetentionTime();
       if (retTime < startRetTime || retTime > endRetTime) continue;
@@ -119,12 +119,21 @@ public class ADAPInterface {
       area += base * height;
     }
 
-
-    final double[] newIntensities = new double[scanNumbers.size()];
+    //Get mzs values from peak
     final double[] newMzs = new double[scanNumbers.size()];
+    for (int i = 0; i < newMzs.length; i++) {
+      newMzs[i] = peak.getMZ();
+    }
+
+    //Get intensities from chromatogram
+    final double[] newIntensities = new double[scanNumbers.size()];
+    for (int i = 0; i < newIntensities.length; i++) {
+      newIntensities[i] = chromatogram.ys[i];
+    }
+
     SimpleIonTimeSeries simpleIonTimeSeries = new SimpleIonTimeSeries(null, newMzs, newIntensities, scanNumbers);
 
-    return new ModularFeature(featureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED) ;
+    return new ModularFeature(featureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED);
   }
 
   @NotNull
