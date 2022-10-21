@@ -35,10 +35,12 @@ public record SpectrumMsMsQuality(float chimerity, MSMSScore explainedIntensityS
                                   CompoundDBAnnotation annotation) {
 
   public String toCsvString(char separator) {
-    return (annotation != null ? annotation.getCompoundName() : "") + separator //
+    return (annotation != null ? annotation.getCompoundName() : "") + separator + //
+        (annotation.getAdductType() != null ? annotation.getAdductType().toString(false) : "")
+        + separator //
         + chimerity + separator //
-        + explainedIntensityScore.getScore() + separator //
-        + explainedPeaksScore.getScore() + separator //
+        + (explainedIntensityScore != null ? explainedIntensityScore.getScore() : "") + separator //
+        + (explainedPeaksScore != null ? explainedPeaksScore.getScore() : "") + separator //
         + numPeaks + separator //
         + spectralEntropy + separator //
         + normalizedEntropy + separator //

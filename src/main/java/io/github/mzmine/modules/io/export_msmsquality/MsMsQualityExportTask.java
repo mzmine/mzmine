@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_msmsquality;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
@@ -37,14 +38,23 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.MaldiSpotType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -59,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -68,7 +79,7 @@ public class MsMsQualityExportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(MsMsQualityExportTask.class.getName());
 
   private final FeatureList[] featureLists;
-  private final File exportPath;
+  private final File exportFile;
   private final char separator = ';';
   final int numRows;
 
@@ -76,7 +87,13 @@ public class MsMsQualityExportTask extends AbstractTask {
   private final MZTolerance msmsFormulaTolerance;
   private final boolean annotatedOnly = true;
   private final ParameterSet parameterSet;
+  private final ParameterSet folParams;
   private int processedRows;
+
+  private final MassDetector factorOfLowest = MassDetectionParameters.factorOfLowest;
+
+  final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+  private final boolean matchCompoundToFlist;
 
   protected MsMsQualityExportTask(@NotNull Instant moduleCallDate, ParameterSet parameterSet) {
     super(null, moduleCallDate);
@@ -85,7 +102,13 @@ public class MsMsQualityExportTask extends AbstractTask {
     msmsFormulaTolerance = parameterSet.getValue(MsMsQualityExportParameters.formulaTolerance);
     featureLists = parameterSet.getValue(MsMsQualityExportParameters.flists)
         .getMatchingFeatureLists();
-    exportPath = parameterSet.getValue(MsMsQualityExportParameters.path);
+    exportFile = parameterSet.getValue(MsMsQualityExportParameters.file);
+    matchCompoundToFlist = parameterSet.getValue(
+        MsMsQualityExportParameters.matchCompoundNameToFlist);
+
+    folParams = MZmineCore.getConfiguration().getModuleParameters(FactorOfLowestMassDetector.class)
+        .cloneParameterSet();
+    folParams.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 2.5);
 
     numRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
   }
@@ -102,15 +125,17 @@ public class MsMsQualityExportTask extends AbstractTask {
 
   @Override
   public void run() {
+    setStatus(TaskStatus.PROCESSING);
 
-    for (FeatureList featureList : featureLists) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile))) {
+      writer.write("feature_list" + separator + "Compound" + separator + "adduct" + separator
+          + "chimerity_score" + separator + "explained_intensity" + separator + "explained_peaks"
+          + separator + "num_peaks" + separator + "spectral_entropy" + separator
+          + "normalized_entropy" + separator + "weighted_entropy" + separator
+          + "normalized_weighted_entropy" + separator + "collision_energy" + separator + "spot");
+      writer.newLine();
 
-      if (!exportPath.exists()) {
-        exportPath.mkdirs();
-      }
-
-      final File resultsFile = new File(exportPath, featureList.getName());
-      try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile))) {
+      for (FeatureList featureList : featureLists) {
 
         /*final double[] collisionEnergies = featureList.stream()
             .flatMap(row -> row.getAllFragmentScans().stream())
@@ -118,24 +143,22 @@ public class MsMsQualityExportTask extends AbstractTask {
             .mapToDouble(scan -> scan.getMsMsInfo().getActivationEnergy()).distinct().sorted()
             .toArray();*/
 
-        writer.write(
-            "Compound" + separator + "chimerity" + separator + "explained_intensity" + separator
-                + "explained_peaks" + separator + "num_peaks" + separator + "spectral_entropy"
-                + separator + "normalized_entropy" + separator + "weighted_entropy" + separator
-                + "normalized_weighted_entropy" + separator + "collision_energy");
-
         for (FeatureListRow row : featureList.getRows()) {
           final ModularFeature feature = (ModularFeature) row.getBestFeature();
           final RawDataFile file = feature.getRawDataFile();
 
-          final List<CompoundDBAnnotation> annotations = feature.get(
-              CompoundDatabaseMatchesType.class);
+          final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
           final CompoundDBAnnotation annotation =
               annotations != null && !annotations.isEmpty() ? annotations.get(0) : null;
           final String formula = annotation != null ? annotation.getFormula() : null;
 
           if (annotatedOnly && formula == null) {
             processedRows++;
+            continue;
+          }
+
+          if (matchCompoundToFlist && (annotation.getCompoundName() == null
+              || !featureList.getName().contains(annotation.getCompoundName()))) {
             continue;
           }
 
@@ -151,18 +174,23 @@ public class MsMsQualityExportTask extends AbstractTask {
               final SpectrumMsMsQuality quality = getImsMsMsQuality(feature, formula, mobScanAccess,
                   msmsScan, mergedMsMs, annotation);
 
+              writer.write(featureList.getName() + separator);
               writer.write(quality.toCsvString(separator));
               writer.write(String.format("%.1f", mergedMsMs.getCollisionEnergy()));
+              if (feature.get(MaldiSpotType.class) != null) {
+                writer.write(separator + feature.get(MaldiSpotType.class));
+              }
               writer.newLine();
             }
           }
-
           processedRows++;
         }
-      } catch (IOException e) {
-        logger.warning(() -> "Error exporting feature list " + featureList.getName());
       }
+    } catch (IOException e) {
+      logger.warning(() -> "Error exporting feature list quality.");
     }
+
+    setStatus(TaskStatus.FINISHED);
   }
 
   private SpectrumMsMsQuality getImsMsMsQuality(ModularFeature feature, String formula,
@@ -182,12 +210,26 @@ public class MsMsQualityExportTask extends AbstractTask {
     MSMSScore intensityFormulaScore = new MSMSScore(0f, null);
 
     if (formula != null) {
-      final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
+      final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
           formula, SilentChemObjectBuilder.getInstance());
-      peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(molecularFormula, msmsScan,
-          msmsFormulaTolerance, msmsScan.getNumberOfDataPoints());
-      intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(molecularFormula, msmsScan,
-          msmsFormulaTolerance, msmsScan.getNumberOfDataPoints());
+      try {
+        FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      final IonType adductType = annotation.getAdductType();
+      if (adductType.getCDKFormula() != null) {
+        molecularFormula.add(adductType.getCDKFormula());
+      }
+
+      final double[][] filtered = factorOfLowest.getMassValues(msmsScan, folParams);
+      final DataPoint[] dataPoints = DataPointUtils.getDataPoints(filtered[0], filtered[1]);
+
+      peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula,
+          dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(), dataPoints.length);
+      intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(msmsFormulaTolerance,
+          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(),
+          dataPoints.length);
     }
 
     return new SpectrumMsMsQuality((float) isolationChimerityScore, intensityFormulaScore,
@@ -196,6 +238,5 @@ public class MsMsQualityExportTask extends AbstractTask {
         (float) ScanUtils.getNormalizedSpectralEntropy(msmsScan),
         (float) ScanUtils.getWeightedSpectralEntropy(msmsScan),
         (float) ScanUtils.getNormalizedWeightedSpectralEntropy(msmsScan), annotation);
-
   }
 }
