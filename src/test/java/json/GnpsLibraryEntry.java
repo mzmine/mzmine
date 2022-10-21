@@ -46,7 +46,7 @@ public record GnpsLibraryEntry(
     // instrument specific
     String Ion_Source, String Instrument,
     // contacts
-    @JsonProperty("Data_Collector") String ionSource,
+    @JsonProperty("Data_Collector") String dataCollector,
     @JsonProperty("PI") String principalInvestigator) {
 
 }

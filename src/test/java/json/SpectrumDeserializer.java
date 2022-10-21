@@ -40,7 +40,7 @@ public class SpectrumDeserializer extends JsonDeserializer<DataPoint[]> {
   @Override
   public DataPoint[] deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
     String str = p.getText();
-    double[][] dps = new ObjectMapper().readValue(str, new TypeReference<double[][]>() {
+    double[][] dps = new ObjectMapper().readValue(str, new TypeReference<>() {
     });
     return Arrays.stream(dps).map(dp -> new SimpleDataPoint(dp[0], dp[1]))
         .toArray(DataPoint[]::new);
