@@ -279,15 +279,17 @@ public class SpectraMerging {
   /**
    * Creates a merged MS/MS spectrum for a PASEF {@link PasefMsMsInfo}.
    *
-   * @param info                 The MS/MS info to create a merged spectrum for
-   * @param tolerance            The m/z tolerence to merge peaks from separate mobility scans
-   *                             with.
-   * @param intensityMergingType The merging type. Usually {@link IntensityMergingType#SUMMED}.
-   * @param storage              The storage to use or null.
-   * @param mobilityRange        If the MS/MS shall only be created for a specific mobility range,
-   *                             e.g., in the case of isomeric features that have been resolved.
-   * @param outputNoiseLevel     Minimum intensity to be achieved in the merged intensity. May be
-   *                             null * or 0.
+   * @param info                     The MS/MS info to create a merged spectrum for
+   * @param tolerance                The m/z tolerence to merge peaks from separate mobility scans
+   *                                 with.
+   * @param intensityMergingType     The merging type. Usually {@link IntensityMergingType#SUMMED}.
+   * @param storage                  The storage to use or null.
+   * @param mobilityRange            If the MS/MS shall only be created for a specific mobility
+   *                                 range, e.g., in the case of isomeric features that have been
+   *                                 resolved.
+   * @param outputNoiseLevelAbs      Minimum intensity to be achieved in the merged intensity. May
+   *                                 be null * or 0.
+   * @param outputNoiseLevelRelative minimum relative intensity in the merged spectrum may be null.
    * @return A {@link MergedMsMsSpectrum} or null the spectrum would not have any data points.
    */
   @Nullable
@@ -295,7 +297,7 @@ public class SpectraMerging {
       @NotNull final MZTolerance tolerance,
       @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
       @Nullable final MemoryMapStorage storage, @Nullable Range<Float> mobilityRange,
-      @Nullable final Double outputNoiseLevel) {
+      @Nullable final Double outputNoiseLevelAbs, @Nullable Double outputNoiseLevelRelative) {
 
     final Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
     final Frame frame = info.getMsMsFrame();
@@ -319,11 +321,20 @@ public class SpectraMerging {
       return null;
     }
 
-    final double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
-        intensityMergingType, cf, null, outputNoiseLevel);
+    double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
+        intensityMergingType, cf, null, outputNoiseLevelAbs);
 
     if (merged[0].length == 0) {
       return null;
+    }
+
+    if (outputNoiseLevelRelative != null) {
+      double minRelative = Arrays.stream(merged[1]).max().orElse(0d) * outputNoiseLevelRelative;
+      if (outputNoiseLevelAbs == null || (minRelative > outputNoiseLevelAbs)) {
+        // if the min relative intensity is smaller than the absolute, we don't need to recalc here
+        merged = calculatedMergedMzsAndIntensities(massLists, tolerance, intensityMergingType, cf,
+            null, minRelative);
+      }
     }
 
     final MsMsInfo copy = info.createCopy();
@@ -521,9 +532,7 @@ public class SpectraMerging {
   }
 
   public enum IntensityMergingType {
-    SUMMED("Summed"),
-    MAXIMUM("Maximum value"),
-    AVERAGE("Average value");
+    SUMMED("Summed"), MAXIMUM("Maximum value"), AVERAGE("Average value");
 
     private final String label;
 

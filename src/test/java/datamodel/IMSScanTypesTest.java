@@ -191,7 +191,7 @@ public class IMSScanTypesTest {
 
       MergedMsMsSpectrum scan = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
           new MZTolerance(0.01, 10), IntensityMergingType.SUMMED, null,
-          RangeUtils.toFloatRange(file.getFrame(i).getMobilityRange()), null);
+          RangeUtils.toFloatRange(file.getFrame(i).getMobilityRange()), null, null);
       value.add(scan);
     }
 
@@ -253,13 +253,13 @@ public class IMSScanTypesTest {
         file.getFrame(6), null);
     MergedMsMsSpectrum query = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
         new MZTolerance(0.01, 10), IntensityMergingType.SUMMED, null,
-        RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
+        RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null, null);
 
     PasefMsMsInfo info2 = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(3),
         file.getFrame(7), null);
     MergedMsMsSpectrum library = SpectraMerging.getMergedMsMsSpectrumForPASEF(info2,
         new MZTolerance(0.01, 10), IntensityMergingType.SUMMED, null,
-        RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
+        RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null, null);
 
     Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS,
         "468-531-21", DBEntryField.DATA_COLLECTOR, "Dr. Xy", DBEntryField.CHARGE, 1);
