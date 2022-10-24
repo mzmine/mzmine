@@ -77,7 +77,7 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
       new PercentParameter("Minimum merged intensity (relative, IMS)",
           "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
               + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
-              + "MS/MS mobility scans need to be merged together.", 0.01d));
+              + "MS/MS mobility scans need to be merged together.", 0.01d), true);
 
   public GroupMS2SubParameters() {
     super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs,
