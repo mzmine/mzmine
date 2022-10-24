@@ -88,6 +88,10 @@ public class FeatureShapeType extends LinkedGraphicalType {
     return pane;
   }
 
+  @Override
+  public Class<? extends Node> getNodeClass() {
+    return FeatureShapeChart.class;
+  }
 
   @Override
   public double getColumnWidth() {

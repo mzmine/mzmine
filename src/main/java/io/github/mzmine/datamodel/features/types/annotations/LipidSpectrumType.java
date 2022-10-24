@@ -104,4 +104,9 @@ public class LipidSpectrumType extends LinkedGraphicalType {
       return null;
     }
   }
+
+  @Override
+  public Class<? extends Node> getNodeClass() {
+    return LipidSpectrumChart.class;
+  }
 }

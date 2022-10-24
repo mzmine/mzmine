@@ -81,6 +81,11 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
   }
 
   @Override
+  public Class<? extends Node> getNodeClass() {
+    return FeatureShapeMobilogramChart.class;
+  }
+
+  @Override
   public double getColumnWidth() {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }

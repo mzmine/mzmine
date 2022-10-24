@@ -62,4 +62,5 @@ public interface GraphicalColumType<T> {
    * @return width of the column
    */
   public double getColumnWidth();
+
 }

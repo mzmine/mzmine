@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import javafx.scene.Node;
 
 /**
  * This graphical type is linked to another datatype and creates charts/graphics for it
@@ -37,4 +38,5 @@ import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 public abstract class LinkedGraphicalType extends BooleanType implements NoTextColumn,
     GraphicalColumType<Boolean> {
 
+  public abstract Class<? extends Node> getNodeClass();
 }

@@ -27,9 +27,13 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -71,7 +75,15 @@ public class FeatureTableTab extends MZmineTab {
     }
 
     controller = loader.getController();
-    controller.setFeatureList(flist);
+
+    final NodeGenerationThread nodeGenerationThread = new NodeGenerationThread(null, Instant.now(),
+        flist);
+    MZmineCore.getTaskController().addTask(nodeGenerationThread);
+    nodeGenerationThread.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if(newStatus == TaskStatus.FINISHED) {
+        MZmineCore.runLater(() -> controller.setFeatureList(flist));
+      }
+    });
 
     // TODO: if there would be only selectColumnsButton in the toolbar, then remove toolbar and
     //  improve "+" button behaviour of the feature table header

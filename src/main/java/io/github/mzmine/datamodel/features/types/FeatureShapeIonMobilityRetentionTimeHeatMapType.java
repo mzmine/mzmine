@@ -103,6 +103,11 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
   }
 
   @Override
+  public Class<? extends Node> getNodeClass() {
+    return FeatureShapeIonMobilityRetentionTimeHeatMapChart.class;
+  }
+
+  @Override
   public double getColumnWidth() {
     return DEFAULT_GRAPHICAL_CELL_WIDTH + 50;
   }

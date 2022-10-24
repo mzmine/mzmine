@@ -44,7 +44,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DetectionType extends DataType<FeatureStatus> implements
+public  class DetectionType extends DataType<FeatureStatus> implements
     GraphicalColumType<FeatureStatus> {
 
   @NotNull
