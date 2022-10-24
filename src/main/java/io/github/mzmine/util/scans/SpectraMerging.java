@@ -329,7 +329,7 @@ public class SpectraMerging {
     }
 
     double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
-        intensityMergingType, cf, null, outputNoiseLevelAbs, null);
+        intensityMergingType, cf, null, outputNoiseLevelAbs, minNumPeaks);
 
     if (merged[0].length == 0) {
       return null;
@@ -340,7 +340,7 @@ public class SpectraMerging {
       if (outputNoiseLevelAbs == null || (minRelative > outputNoiseLevelAbs)) {
         // if the min relative intensity is smaller than the absolute, we don't need to recalc here
         merged = calculatedMergedMzsAndIntensities(massLists, tolerance, intensityMergingType, cf,
-            null, minRelative, null);
+            null, minRelative, minNumPeaks);
       }
     }
 
