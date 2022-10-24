@@ -86,6 +86,10 @@ public class DataTypeCellFactory implements
         try {
           super.updateItem(item, empty);
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
+          if(!getTableRow().isVisible()) {
+            // fix to make the cell factory not go crazy and create invisible nodes
+            return;
+          }
           if (type instanceof LinkedGraphicalType lgType) {
             // convert Boolean to boolean
             boolean cellActive = item != null && ((Boolean) item).booleanValue();

@@ -66,7 +66,7 @@ public class FeatureShapeType extends LinkedGraphicalType {
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
       TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
+    ModularFeatureListRow row = cell.getTableRow().getItem();
     if (row == null || !cellData) {
       return null;
     }

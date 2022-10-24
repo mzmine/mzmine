@@ -35,9 +35,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.Map;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
@@ -76,7 +74,7 @@ public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
       TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
       TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
       Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
+    ModularFeatureListRow row = cell.getTableRow().getItem();
     if (row == null)
       return null;
 
