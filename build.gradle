@@ -41,8 +41,13 @@ semver {
 group = "io.github.mzmine"
 description = "MZmine"
 
-sourceCompatibility = "18"
-targetCompatibility = "18"
+//sourceCompatibility = "19"
+//targetCompatibility = "19"
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(19)
+    }
+}
 defaultTasks "test", "jpackage"
 
 // Check the OS
