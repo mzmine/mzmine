@@ -28,16 +28,20 @@ package io.github.mzmine.modules.io.export_msmsquality;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MsMsQualityExportParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final DirectoryParameter path = new DirectoryParameter("Export folder",
-      "Folder to put the quality analysis files in.");
+  public static final FileNameParameter file = new FileNameParameter("Export File",
+      "File to put the quality analysis files in.", List.of(new ExtensionFilter("csv", "*.csv")),
+      FileSelectionType.SAVE);
 
   public static final BooleanParameter onlyCompoundAnnotated = new BooleanParameter(
       "Only compound matches", "Only export MSMS spectra from features with compound matches",
@@ -47,7 +51,12 @@ public class MsMsQualityExportParameters extends SimpleParameterSet {
       "Formula score tolerance", "Tolerance for scoring MS/MS peaks with sub-sum formulas.", 0.003,
       10);
 
+  public static final BooleanParameter matchCompoundNameToFlist = new BooleanParameter(
+      "Match compound name to feature list name",
+      "Only MS2 spectra whose compound name is contained in the feature lsit name are exported.");
+
   public MsMsQualityExportParameters() {
-    super(new Parameter[]{flists, path, onlyCompoundAnnotated, formulaTolerance});
+    super(new Parameter[]{flists, file, onlyCompoundAnnotated, formulaTolerance,
+        matchCompoundNameToFlist});
   }
 }
