@@ -1661,7 +1661,7 @@ public class ScanUtils {
    */
   public static double getSpectralEntropy(@NotNull final MassSpectrum spectrum) {
     final Double tic = spectrum.getTIC();
-    if (tic == null || spectrum.getNumberOfDataPoints() == 0) {
+    if (tic == null || tic <= 0 || spectrum.getNumberOfDataPoints() == 0) {
       return Double.POSITIVE_INFINITY;
     }
 
@@ -1678,6 +1678,9 @@ public class ScanUtils {
    * @see #getSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if(spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
     return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
   }
 
@@ -1716,12 +1719,15 @@ public class ScanUtils {
    * @see #getWeightedSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if(spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
     return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
   }
 
   /**
    * @param msms The spectrum
-   * @return The lowest intensity or null if there are no data points..
+   * @return The lowest non-zero intensity or null if there are no data points..
    */
   @Nullable
   public static Double getLowestIntensity(@NotNull final MassSpectrum msms) {
@@ -1731,11 +1737,11 @@ public class ScanUtils {
     double minIntensity = Double.POSITIVE_INFINITY;
     for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
       final double intensity = msms.getIntensityValue(i);
-      if (intensity < minIntensity) {
+      if (intensity < minIntensity && Double.compare(intensity, 0d) > 0) {
         minIntensity = intensity;
       }
     }
-    return minIntensity;
+    return Double.compare(minIntensity, Double.POSITIVE_INFINITY) < 0 ? minIntensity : null;
   }
 
   /**
