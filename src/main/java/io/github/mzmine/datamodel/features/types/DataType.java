@@ -245,6 +245,14 @@ public abstract class DataType<T> {
     }
   }
 
+  /**
+   * Defines if this data type is visible in the feature table by default.
+   * @return true or false.
+   */
+  public boolean getDefaultVisibility() {
+    return false;
+  }
+
   protected Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> getEditableCellFactory(
       RawDataFile raw, SubColumnsFactory parentType, int subColumnIndex) {
     if (this instanceof ListDataType) {

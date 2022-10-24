@@ -159,4 +159,9 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
     // never return null, if this type was saved we even need empty lists.
     return ids;
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

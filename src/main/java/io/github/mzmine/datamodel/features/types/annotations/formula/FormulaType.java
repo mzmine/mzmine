@@ -65,4 +65,8 @@ public class FormulaType extends StringType
     return converter;
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

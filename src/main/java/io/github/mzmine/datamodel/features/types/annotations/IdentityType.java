@@ -130,4 +130,9 @@ public class IdentityType extends ListDataType<FeatureIdentity> implements Annot
     }
     return ids;
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return false;
+  }
 }
