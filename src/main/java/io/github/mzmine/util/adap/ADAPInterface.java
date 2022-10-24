@@ -119,15 +119,11 @@ public class ADAPInterface {
       area += base * height;
     }
 
-    //Get mzs values from peak
+    //Get mzs values from peak and intensities from chromatogram
     final double[] newMzs = new double[scanNumbers.size()];
+    final double[] newIntensities = new double[scanNumbers.size()];
     for (int i = 0; i < newMzs.length; i++) {
       newMzs[i] = peak.getMZ();
-    }
-
-    //Get intensities from chromatogram
-    final double[] newIntensities = new double[scanNumbers.size()];
-    for (int i = 0; i < newIntensities.length; i++) {
       newIntensities[i] = chromatogram.ys[i];
     }
 
