@@ -38,8 +38,9 @@ public record SpectrumMsMsQuality(float chimerity, MSMSScore explainedIntensityS
     return String.join(separator, annotation != null ? annotation.getCompoundName() : "",
         annotation.getAdductType() != null ? annotation.getAdductType().toString(false) : "",
         Float.toString(chimerity),
-        (explainedIntensityScore != null ? Float.toString(explainedIntensityScore.getScore()) : ""),
-        (explainedPeaksScore != null ? Float.toString(explainedPeaksScore.getScore()) : ""),
+        (explainedIntensityScore != null ? Float.toString(explainedIntensityScore.getScore())
+            : "0"),
+        (explainedPeaksScore != null ? Float.toString(explainedPeaksScore.getScore()) : "0"),
         Integer.toString(numPeaks), Float.toString(spectralEntropy),
         Float.toString(normalizedEntropy), Float.toString(weightedEntropy),
         Float.toString(normalizedWeightedEntropy));
