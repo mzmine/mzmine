@@ -251,7 +251,7 @@ public class GroupMS2Task extends AbstractTask {
           (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
           ((ModularFeatureList) list).getMemoryMapStorage(),
           lockToFeatureMobilityRange && feature.getMobilityRange() != null
-              ? feature.getMobilityRange() : null, minMs2IntensityAbs, minMs2IntensityRel, null);
+              ? feature.getMobilityRange() : null, minMs2IntensityAbs, minMs2IntensityRel);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
