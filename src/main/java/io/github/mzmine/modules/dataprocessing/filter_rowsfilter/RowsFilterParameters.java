@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -47,6 +48,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -174,4 +176,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }
