@@ -108,7 +108,7 @@ public class MsMsQualityExportTask extends AbstractTask {
 
     folParams = MZmineCore.getConfiguration().getModuleParameters(FactorOfLowestMassDetector.class)
         .cloneParameterSet();
-    folParams.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 2.5);
+    folParams.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 1d);
 
     numRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
   }
