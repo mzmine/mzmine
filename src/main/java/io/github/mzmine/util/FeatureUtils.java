@@ -39,16 +39,21 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +79,7 @@ public class FeatureUtils {
    * @return String representation of the feature
    */
   public static String featureToString(@Nullable Feature feature) {
-    if(feature == null) {
+    if (feature == null) {
       return "null";
     }
     StringBuffer buf = new StringBuffer();
@@ -250,10 +255,10 @@ public class FeatureUtils {
    * @param mzRange
    * @return The result of the integration.
    */
-  public static double integrateOverMzRtRange(RawDataFile dataFile, List<Scan> scans, Range<Float> rtRange,
-      Range<Double> mzRange) {
+  public static double integrateOverMzRtRange(RawDataFile dataFile, List<Scan> scans,
+      Range<Float> rtRange, Range<Double> mzRange) {
     final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(dataFile, scans,
-        mzRange,  rtRange, null);
+        mzRange, rtRange, null);
 
     return FeatureDataUtils.calculateArea(series);
   }
@@ -467,8 +472,8 @@ public class FeatureUtils {
   /**
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
-   * {@link ListWithSubsType} within the {@link FeatureListRow}'s {@link
-   * io.github.mzmine.datamodel.features.ModularDataModel}.
+   * {@link ListWithSubsType} within the {@link FeatureListRow}'s
+   * {@link io.github.mzmine.datamodel.features.ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.
@@ -491,13 +496,27 @@ public class FeatureUtils {
   }
 
   public static boolean isImsFeature(Feature f) {
-    if (!(f.getRawDataFile() instanceof IMSRawDataFile)) {
-      return false;
+    return f.getRawDataFile() instanceof IMSRawDataFile
+        && f.getFeatureData() instanceof IonMobilogramTimeSeries;
+  }
+
+  /**
+   * Extracts the best (most confident) {@link FeatureAnnotation} from a feature/row.
+   * @param m The row/feature.
+   * @return The annotation or null.
+   */
+  @Nullable
+  public static FeatureAnnotation getBestFeatureAnnotation(ModularDataModel m) {
+    final List<SpectralDBAnnotation> specDb = m.get(SpectralLibraryMatchesType.class);
+    if (specDb != null && !specDb.isEmpty()) {
+      return specDb.get(0);
     }
 
-    if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
-      return false;
+    final List<CompoundDBAnnotation> comp = m.get(CompoundDatabaseMatchesType.class);
+    if (comp != null && !comp.isEmpty()) {
+      return comp.get(0);
     }
-    return true;
+
+    return null;
   }
 }

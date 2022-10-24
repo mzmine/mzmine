@@ -125,7 +125,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         // the file has already been determined before
         case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
         case SimpleMassList.XML_ELEMENT ->
-            ml = SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
+            SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
       }
     }
 

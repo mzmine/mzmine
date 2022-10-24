@@ -48,7 +48,7 @@ public class MsMsQualityExportParameters extends SimpleParameterSet {
       true);
 
   public static final MZToleranceParameter formulaTolerance = new MZToleranceParameter(
-      "Formula score tolerance", "Tolerance for scoring MS/MS peaks with sub-sum formulas.", 0.003,
+      "Sub formula m/z tolerance", "Tolerance for scoring MS/MS peaks with sub formulas.", 0.003,
       10);
 
   public static final BooleanParameter matchCompoundNameToFlist = new BooleanParameter(

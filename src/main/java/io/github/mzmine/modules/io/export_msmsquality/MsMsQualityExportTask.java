@@ -33,12 +33,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
-import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.MaldiSpotType;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
@@ -54,6 +53,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.RangeUtils;
@@ -80,7 +80,7 @@ public class MsMsQualityExportTask extends AbstractTask {
 
   private final FeatureList[] featureLists;
   private final File exportFile;
-  private final char separator = ';';
+  private final String separator = ";";
   final int numRows;
 
   private final Map<IMSRawDataFile, MobilityScanDataAccess> mobScanAccessMap = new HashMap<>();
@@ -128,28 +128,17 @@ public class MsMsQualityExportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile))) {
-      writer.write("feature_list" + separator + "Compound" + separator + "adduct" + separator
-          + "chimerity_score" + separator + "explained_intensity" + separator + "explained_peaks"
-          + separator + "num_peaks" + separator + "spectral_entropy" + separator
-          + "normalized_entropy" + separator + "weighted_entropy" + separator
-          + "normalized_weighted_entropy" + separator + "collision_energy" + separator + "spot");
+      writer.write(
+          String.join(separator, "feature_list", SpectrumMsMsQuality.getHeader(separator), "spot"));
       writer.newLine();
 
       for (FeatureList featureList : featureLists) {
-
-        /*final double[] collisionEnergies = featureList.stream()
-            .flatMap(row -> row.getAllFragmentScans().stream())
-            .filter(scan -> scan.getMsMsInfo() != null)
-            .mapToDouble(scan -> scan.getMsMsInfo().getActivationEnergy()).distinct().sorted()
-            .toArray();*/
 
         for (FeatureListRow row : featureList.getRows()) {
           final ModularFeature feature = (ModularFeature) row.getBestFeature();
           final RawDataFile file = feature.getRawDataFile();
 
-          final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
-          final CompoundDBAnnotation annotation =
-              annotations != null && !annotations.isEmpty() ? annotations.get(0) : null;
+          final FeatureAnnotation annotation = FeatureUtils.getBestFeatureAnnotation(row);
           final String formula = annotation != null ? annotation.getFormula() : null;
 
           if (annotatedOnly && formula == null) {
@@ -159,32 +148,19 @@ public class MsMsQualityExportTask extends AbstractTask {
 
           if (matchCompoundToFlist && (annotation.getCompoundName() == null
               || !featureList.getName().contains(annotation.getCompoundName()))) {
+            processedRows++;
             continue;
           }
 
-          if (file instanceof IMSRawDataFile imsFile
-              && feature.getFeatureData() instanceof IonMobilogramTimeSeries) {
-
-            final MobilityScanDataAccess mobScanAccess = mobScanAccessMap.computeIfAbsent(imsFile,
-                f -> new MobilityScanDataAccess(f, MobilityScanDataType.CENTROID,
-                    (List<Frame>) f.getFrames(1)));
-
-            for (Scan msmsScan : feature.getAllMS2FragmentScans()) {
-              final MergedMsMsSpectrum mergedMsMs = (MergedMsMsSpectrum) msmsScan;
-              final SpectrumMsMsQuality quality = getImsMsMsQuality(feature, formula, mobScanAccess,
-                  msmsScan, mergedMsMs, annotation);
-
-              writer.write(featureList.getName() + separator);
-              writer.write(quality.toCsvString(separator));
-              writer.write(String.format("%.1f", mergedMsMs.getCollisionEnergy()));
-              if (feature.get(MaldiSpotType.class) != null) {
-                writer.write(separator + feature.get(MaldiSpotType.class));
-              }
-              writer.newLine();
-            }
+          if (FeatureUtils.isImsFeature(feature)) {
+            processImsFeature(writer, featureList, feature, annotation, formula);
           }
           processedRows++;
         }
+
+        featureList.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(MsMsQualityExportModule.class, parameterSet,
+                getModuleCallDate()));
       }
     } catch (IOException e) {
       logger.warning(() -> "Error exporting feature list quality.");
@@ -193,9 +169,31 @@ public class MsMsQualityExportTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  private void processImsFeature(BufferedWriter writer, FeatureList featureList,
+      ModularFeature feature, FeatureAnnotation annotation, String formula) throws IOException {
+    final IMSRawDataFile imsFile = (IMSRawDataFile) feature.getRawDataFile();
+    final MobilityScanDataAccess mobScanAccess = mobScanAccessMap.computeIfAbsent(imsFile,
+        f -> new MobilityScanDataAccess(f, MobilityScanDataType.CENTROID,
+            (List<Frame>) f.getFrames(1)));
+
+    for (Scan msmsScan : feature.getAllMS2FragmentScans()) {
+      final MergedMsMsSpectrum mergedMsMs = (MergedMsMsSpectrum) msmsScan;
+      final SpectrumMsMsQuality quality = getImsMsMsQuality(feature, formula, mobScanAccess,
+          msmsScan, mergedMsMs, annotation);
+
+      writer.write(featureList.getName() + separator);
+      writer.write(quality.toCsvString(separator));
+      writer.write(String.format("%s%.1f", separator, mergedMsMs.getCollisionEnergy()));
+      /*if (feature.get(MaldiSpotType.class) != null) {
+        writer.write(separator + feature.get(MaldiSpotType.class));
+      }*/
+      writer.newLine();
+    }
+  }
+
   private SpectrumMsMsQuality getImsMsMsQuality(ModularFeature feature, String formula,
       MobilityScanDataAccess mobScanAccess, Scan msmsScan, MergedMsMsSpectrum mergedMsMs,
-      CompoundDBAnnotation annotation) {
+      FeatureAnnotation annotation) {
 
     final PasefMsMsInfo info = (PasefMsMsInfo) mergedMsMs.getMsMsInfo();
     final Double window = RangeUtils.rangeLength(mergedMsMs.getMsMsInfo().getIsolationWindow());

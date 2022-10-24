@@ -25,26 +25,29 @@
 
 package io.github.mzmine.modules.io.export_msmsquality;
 
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 
 public record SpectrumMsMsQuality(float chimerity, MSMSScore explainedIntensityScore,
                                   MSMSScore explainedPeaksScore, int numPeaks,
                                   float spectralEntropy, float normalizedEntropy,
                                   float weightedEntropy, float normalizedWeightedEntropy,
-                                  CompoundDBAnnotation annotation) {
+                                  FeatureAnnotation annotation) {
 
-  public String toCsvString(char separator) {
-    return (annotation != null ? annotation.getCompoundName() : "") + separator + //
-        (annotation.getAdductType() != null ? annotation.getAdductType().toString(false) : "")
-        + separator //
-        + chimerity + separator //
-        + (explainedIntensityScore != null ? explainedIntensityScore.getScore() : "") + separator //
-        + (explainedPeaksScore != null ? explainedPeaksScore.getScore() : "") + separator //
-        + numPeaks + separator //
-        + spectralEntropy + separator //
-        + normalizedEntropy + separator //
-        + weightedEntropy + separator //
-        + normalizedWeightedEntropy + separator; //
+  public String toCsvString(CharSequence separator) {
+    return String.join(separator, annotation != null ? annotation.getCompoundName() : "",
+        annotation.getAdductType() != null ? annotation.getAdductType().toString(false) : "",
+        Float.toString(chimerity),
+        (explainedIntensityScore != null ? Float.toString(explainedIntensityScore.getScore()) : ""),
+        (explainedPeaksScore != null ? Float.toString(explainedPeaksScore.getScore()) : ""),
+        Integer.toString(numPeaks), Float.toString(spectralEntropy),
+        Float.toString(normalizedEntropy), Float.toString(weightedEntropy),
+        Float.toString(normalizedWeightedEntropy));
+  }
+
+  public static String getHeader(CharSequence separator) {
+    return String.join(separator, "Compound", "adduct", "chimerity_score", "explained_intensity",
+        "explained_peaks", "num_peaks", "spectral_entropy", "normalized_entropy",
+        "weighted_entropy", "normalized_weighted_entropy", "collision_energy");
   }
 }

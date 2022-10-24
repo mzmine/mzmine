@@ -590,7 +590,7 @@
       userData="io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule"/>
     <MenuItem onAction="#runModule" text="timsTOF MALDI Image MSMS acquisition"
       userData="io.github.mzmine.modules.tools.timstofmaldiacq.imaging.TimsTOFImageMsMsModule"/>
-    <MenuItem onAction="#runModule" text="Rate MS2 Spectra"
+    <MenuItem onAction="#runModule" text="Export MS2 Spectra quality"
       userData="io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule"/>
   </Menu>
 
