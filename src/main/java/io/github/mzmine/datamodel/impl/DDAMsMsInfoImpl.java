@@ -200,9 +200,9 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     }
 
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
-        scanIndex != null && file != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null && file != null ? file.getScan(parentScanIndex) : null, msLevel,
-        method, isolationWindow);
+        scanIndex != null && scanIndex != -1 && file != null ? file.getScan(scanIndex) : null,
+        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(parentScanIndex) : null, msLevel, method,
+        isolationWindow);
   }
 
   @Override
@@ -307,9 +307,15 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     DDAMsMsInfoImpl that = (DDAMsMsInfoImpl) o;
     return Double.compare(that.getIsolationMz(), getIsolationMz()) == 0
         && getMsLevel() == that.getMsLevel() && Objects.equals(charge, that.charge)
-        && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && Objects.equals(
-        getMsMsScan(), that.getMsMsScan()) && Objects.equals(getParentScan(), that.getParentScan())
-        && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
+        && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && (
+        Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getMsMsScan() != null
+            && that.getMsMsScan() != null && getMsMsScan().getScanNumber() == that.getMsMsScan()
+            .getScanNumber())) && (Objects.equals(getParentScan(), that.getParentScan())
+        || Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getParentScan() != null
+        && that.getParentScan() != null && getParentScan().getScanNumber() == that.getParentScan()
+        .getScanNumber())
+
+    ) && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
   }
 
   @Override

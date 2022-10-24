@@ -58,6 +58,15 @@ public class ArrayUtils {
     return -1;
   }
 
+  public static int indexOf(double needle, double[] haystack) {
+    for (int i = 0; i < haystack.length; i++) {
+      if(Double.compare(haystack[i], needle) == 0) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   public static double sum(double[] array, int startIndex, int endIndex) {
     assert endIndex < array.length;
     assert startIndex >= 0;
@@ -134,5 +143,10 @@ public class ArrayUtils {
       input[i] = input[last - i];
       input[last - i] = temp;
     }
+  }
+
+  public static double lastElement(double[] array) {
+    assert array.length > 0;
+    return array[array.length - 1];
   }
 }

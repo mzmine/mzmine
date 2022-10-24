@@ -78,11 +78,11 @@ public class IntensityPlotModule implements MZmineRunnableModule {
     parameters.getParameter(IntensityPlotParameters.featureList)
         .setValue(FeatureListsSelectionType.SPECIFIC_FEATURELISTS, new FeatureList[] {featureList});
 
-    parameters.getParameter(IntensityPlotParameters.dataFiles)
-        .setChoices(featureList.getRawDataFiles().toArray(RawDataFile[]::new));
-
-    parameters.getParameter(IntensityPlotParameters.dataFiles)
-        .setValue(featureList.getRawDataFiles().toArray(RawDataFile[]::new));
+//    parameters.getParameter(IntensityPlotParameters.dataFiles)
+//        .setChoices(featureList.getRawDataFiles().toArray(RawDataFile[]::new));
+//
+//    parameters.getParameter(IntensityPlotParameters.dataFiles)
+//        .setValue(featureList.getRawDataFiles().toArray(RawDataFile[]::new));
 
     parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(rows);
 

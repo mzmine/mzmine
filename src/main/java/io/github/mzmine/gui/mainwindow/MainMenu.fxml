@@ -236,6 +236,9 @@
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"
+        text="MSn tree feature list builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule"/>
+      <MenuItem onAction="#runModule"
         text="MSn feature list builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
     </Menu>
@@ -312,11 +315,15 @@
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
+      <MenuItem text="Spectral library batch generation" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
     </Menu>
 
     <Menu text="Processing">
       <MenuItem onAction="#runModule" text="Assign MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
+      <MenuItem onAction="#runModule" text="Assign DIA pseudo spectra to features (experimental)"
+        userData="io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule"/>
       <MenuItem onAction="#runModule" text="Assign MALDI MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module"/>
       <MenuItem onAction="#runModule"

@@ -66,14 +66,14 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
   @Nullable
   private final Float ccsError;
 
-  private Scan queryScan;
+  private final Scan queryScan;
 
   public SpectralDBFeatureIdentity(Scan queryScan, SpectralDBEntry entry,
       SpectralSimilarity similarity, String method, @Nullable Float ccsError) {
     super(MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"),
             // Name
-            entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
+            entry.getField(DBEntryField.PRECURSOR_MZ).orElse(""), // precursor m/z
             entry.getField(DBEntryField.FORMULA).orElse(""), // molecular
             // formula
             entry.getField(DBEntryField.ION_TYPE).orElse(""), // Ion type
@@ -184,8 +184,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
       switch (reader.getLocalName()) {
         case SpectralDBEntry.XML_ELEMENT -> entry = SpectralDBEntry.loadFromXML(reader);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
-        case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT -> map = SimpleFeatureIdentity.readPropertyValues(
-            reader);
+        case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT ->
+            map = SimpleFeatureIdentity.readPropertyValues(reader);
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
         case XML_CCS_ERROR_ELEMENT -> {
           final String content = ParsingUtils.readNullableString(reader.getElementText());
@@ -221,8 +221,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     }
     SpectralDBFeatureIdentity that = (SpectralDBFeatureIdentity) o;
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
-        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects
-        .equals(getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
+        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
+        getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
         && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 

@@ -25,22 +25,20 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.text.MessageFormat;
-
-import io.github.mzmine.datamodel.DataPoint;
 
 public class PrecursorDBFeatureIdentity extends SimpleFeatureIdentity {
 
   private final SpectralDBEntry entry;
 
   public PrecursorDBFeatureIdentity(SpectralDBEntry entry, String method) {
-    super(
-        MessageFormat.format("Precursor? {0} as {3} ({1}) {2}",
+    super(MessageFormat.format("Precursor? {0} as {3} ({1}) {2}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
-            entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
+            entry.getField(DBEntryField.PRECURSOR_MZ).orElse(""), // precursor m/z
             entry.getField(DBEntryField.FORMULA).orElse(""), // molecular
-                                                             // formula
+            // formula
             entry.getField(DBEntryField.ION_TYPE).orElse("")), // Ion type
         entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
     this.entry = entry;
