@@ -48,7 +48,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.SpectraMerging;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -242,7 +242,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
     List<MergedMsMsSpectrum> msmsSpectra = new ArrayList<>();
     for (MsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
-          (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, MergingType.SUMMED,
+          (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
           ((ModularFeatureList) list).getMemoryMapStorage(),
           lockToFeatureMobilityRange && feature.getMobilityRange() != null
               ? feature.getMobilityRange() : null, minMs2Intensity, minMs2IntensityRel);
@@ -254,7 +254,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
     if (!msmsSpectra.isEmpty()) {
       if (combineTimsMS2) {
         List<Scan> sameCEMerged = SpectraMerging.mergeMsMsSpectra(msmsSpectra,
-            SpectraMerging.pasefMS2MergeTol, MergingType.SUMMED,
+            SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
             ((ModularFeatureList) list).getMemoryMapStorage());
         feature.setAllMS2FragmentScans(sameCEMerged, true);
 
