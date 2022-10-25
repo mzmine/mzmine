@@ -92,24 +92,9 @@ public class ADAPInterface {
 
   @NotNull
   public static ModularFeature peakToFeature(@NotNull ModularFeatureList featureList,
-                                             @NotNull RawDataFile file, @NotNull BetterPeak peak) {
+                                             @NotNull RawDataFile file, @NotNull BetterPeak peak, List<Scan> scanNumbers) {
 
     Chromatogram chromatogram = peak.chromatogram;
-
-    List<Scan> scanNumbers = new ArrayList<>(chromatogram.length);
-    int count = 0;
-    double startRetTime = chromatogram.getFirstRetTime();
-    double endRetTime = chromatogram.getLastRetTimes();
-
-    for (Scan scan : file.getScans()) {
-      double retTime = scan.getRetentionTime();
-      if (retTime < startRetTime || retTime > endRetTime) continue;
-
-      scanNumbers.add(scan);
-
-      if (scanNumbers.size() == chromatogram.length)
-        break;
-    }
 
     // Calculate peak area
     double area = 0.0;
@@ -134,7 +119,7 @@ public class ADAPInterface {
 
   @NotNull
   public static Feature peakToFeature(@NotNull ModularFeatureList featureList,
-                                      @NotNull RawDataFile file, @NotNull Peak peak) {
+                                      @NotNull RawDataFile file, @NotNull Peak peak, List<Scan> scanNumbers) {
 
     NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
 
@@ -150,6 +135,6 @@ public class ADAPInterface {
     BetterPeak betterPeak = new BetterPeak(peak.getInfo().peakID,
             new Chromatogram(retTimes, intensities), peak.getInfo());
 
-    return peakToFeature(featureList, file, betterPeak);
+    return peakToFeature(featureList, file, betterPeak, scanNumbers);
   }
 }
