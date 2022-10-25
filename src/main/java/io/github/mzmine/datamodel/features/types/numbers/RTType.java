@@ -85,4 +85,9 @@ public class RTType extends FloatType implements ExpandableType {
   public Class<? extends DataType<?>> getHiddenTypeClass() {
     return getClass();
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }
