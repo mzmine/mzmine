@@ -327,9 +327,10 @@
       <MenuItem onAction="#runModule"
         text="External CCS calibration"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule"/>
-      <MenuItem onAction="#runModule"
-        text="Calculate CCS values"
+      <MenuItem onAction="#runModule" text="Calculate CCS values"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
+      <MenuItem onAction="#runModule" text="Calculate spectral entropy"
+        userData="io.github.mzmine.modules.dataprocessing.filter_spectral_entropy_feature.SpectralEntropyModule"/>
     </Menu>
 
     <Menu text="Isotopes">

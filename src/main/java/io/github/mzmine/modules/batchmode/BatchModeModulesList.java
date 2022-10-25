@@ -74,6 +74,7 @@ import io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.Pe
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
+import io.github.mzmine.modules.dataprocessing.filter_spectral_entropy_feature.SpectralEntropyModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
@@ -138,8 +139,8 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
-import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
+import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataImportModule;
 import java.util.List;
 
@@ -298,6 +299,7 @@ public class BatchModeModulesList {
        */
       CameraSearchModule.class, //
       CCSCalcModule.class, //
+      SpectralEntropyModule.class, //
       ExternalCCSCalibrationModule.class, //
       ReferenceCCSCalibrationModule.class, //
       CliqueMSModule.class, //
