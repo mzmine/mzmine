@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
@@ -71,7 +72,7 @@ public class RawDataFileInfoPaneController {
   private TableColumn<Scan, Integer> msLevelColumn;
 
   @FXML
-  private TableColumn<Scan, Double> precursorMzColumn;
+  private TableColumn<Scan, String> precursorMzColumn;
 
   @FXML
   private TableColumn<Scan, Range<Double>> mzRangeColumn;
@@ -104,6 +105,10 @@ public class RawDataFileInfoPaneController {
 
   @FXML
   public void initialize() {
+    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    NumberFormat itFormat = MZmineCore.getConfiguration().getIntensityFormat();
+
     scanColumn.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getScanNumber()));
     rtColumn.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getRetentionTime()));
     msLevelColumn.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getMSLevel()));
@@ -112,7 +117,7 @@ public class RawDataFileInfoPaneController {
     basePeakIntensityColumn.setCellValueFactory(
         p -> new SimpleObjectProperty<>(p.getValue().getBasePeakIntensity()));
     precursorMzColumn.setCellValueFactory(
-        p -> new SimpleObjectProperty<>(p.getValue().getPrecursorMz()));
+        p -> new SimpleStringProperty(getPrecursorString(p.getValue(), mzFormat)));
     mzRangeColumn.setCellValueFactory(
         p -> new SimpleObjectProperty<>(p.getValue().getScanningMZRange()));
     scanTypeColumn.setCellValueFactory(
@@ -124,11 +129,7 @@ public class RawDataFileInfoPaneController {
     definitionColumn.setCellValueFactory(
         p -> new SimpleStringProperty(p.getValue().getScanDefinition()));
 
-    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-    NumberFormat itFormat = MZmineCore.getConfiguration().getIntensityFormat();
-
-    TableViewUitls.setFormattedCellFactory(precursorMzColumn, mzFormat);
+//    TableViewUitls.setFormattedCellFactory(precursorMzColumn, mzFormat);
     TableViewUitls.setFormattedCellFactory(basePeakColumn, mzFormat);
     TableViewUitls.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
     TableViewUitls.setFormattedCellFactory(rtColumn, rtFormat);
@@ -239,4 +240,16 @@ public class RawDataFileInfoPaneController {
     return rawDataTableView;
   }
 
+  private String getPrecursorString(Scan scan, NumberFormat mzFormat) {
+    if (scan == null) {
+      return null;
+    }
+
+    if (scan instanceof Frame f && !f.getImsMsMsInfos().isEmpty()) {
+      return String.join("; ",
+          f.getImsMsMsInfos().stream().map(i -> mzFormat.format(i.getIsolationMz())).toList());
+    }
+    final Double precursorMz = scan.getPrecursorMz();
+    return precursorMz != null ? mzFormat.format(scan.getPrecursorMz()) : null;
+  }
 }
