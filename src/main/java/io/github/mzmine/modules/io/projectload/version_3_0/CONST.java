@@ -35,12 +35,35 @@ public class CONST {
    */
   public static final String XML_NULL_VALUE = "NULL_VALUE";
 
+  /**
+   * Scan stuff
+   */
   public static final String XML_MZ_VALUES_ELEMENT = "mzs";
   public static final String XML_INTENSITY_VALUES_ELEMENT = "intensities";
   public static final String XML_MOBILITY_VALUES_ELEMENT = "mobilities";
+  public static final String XML_RAW_FILES_LIST_ELEMENT = "rawdatafiles";
+  public static final String XML_RAW_FILE_ELEMENT = "rawdatafile";
+  public static final String XML_RAW_FILE_NAME_ELEMENT = "name";
+  public static final String XML_RAW_FILE_PATH_ELEMENT = "path";
+  public static final String XML_RAW_FILE_SCAN_INDEX_ATTR = "scanindex";
+  public static final String XML_RAW_FILE_SCAN_ELEMENT = "scan";
+  public static final String XML_SCAN_DEF_ATTR = "scandefinition";
+  public static final String XML_MSLEVEL_ATTR = "mslevel";
+  public static final String XML_CE_ATTR = "ce";
+  public static final String XML_RT_ATTR = "rt";
+  public static final String XML_PRECURSOR_MZ_ATTR = "precursormz";
+  public static final String XML_PRECURSOR_CHARGE_ATTR = "precursorcharge";
+  public static final String XML_INTENSITY_MERGE_TYPE_ATTR = "mergingtype";
   public static final String XML_SCAN_LIST_ELEMENT = "scans";
+  public static final String XML_POLARITY_ATTR = "polarity";
+  /**
+   * General
+   */
   public static final String XML_NUM_VALUES_ATTR = "numvalues";
 
+  /**
+   * Feature list stoff
+   */
   public static final String XML_NUM_ROWS_ATTR = "numberofrows";
   public static final String XML_FLIST_NAME_ATTR = "featurelistname";
   public static final String XML_DATE_CREATED_ATTR = "date";
@@ -58,10 +81,4 @@ public class CONST {
   public static final String XML_FLIST_APPLIED_METHOD_ELEMENT = "appliedmethod";
   public static final String XML_FLIST_APPLIED_METHODS_LIST_ELEMENT = "appliedmethodslist";
 
-  public static final String XML_RAW_FILES_LIST_ELEMENT = "rawdatafiles";
-  public static final String XML_RAW_FILE_ELEMENT = "rawdatafile";
-  public static final String XML_RAW_FILE_NAME_ELEMENT = "name";
-  public static final String XML_RAW_FILE_PATH_ELEMENT = "path";
-  public static final String XML_RAW_FILE_SCAN_INDEX_ATTR = "scanindex";
-  public static final String XML_RAW_FILE_SCAN_ELEMENT = "scan";
 }

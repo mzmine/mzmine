@@ -441,8 +441,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     MZmineCore.runLater(() -> {
       if (selectedMobilogramDatasetIndex != -1) {
         mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
-        selectedMobilogramDatasetIndex = mobilogramChart.addDataset(mobilogram);
       }
+      selectedMobilogramDatasetIndex = mobilogramChart.addDataset(mobilogram);
     });
   }
 
@@ -450,8 +450,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     MZmineCore.runLater(() -> {
       if (selectedChromatogramDatasetIndex != -1) {
         ticChart.removeDataSet(selectedChromatogramDatasetIndex);
-        selectedChromatogramDatasetIndex = ticChart.addTICDataSet(dataset, color);
       }
+      selectedChromatogramDatasetIndex = ticChart.addTICDataSet(dataset, color);
     });
   }
 

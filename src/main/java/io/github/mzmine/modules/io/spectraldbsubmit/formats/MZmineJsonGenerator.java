@@ -41,17 +41,19 @@ import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParamet
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
+import java.util.List;
 
 /**
- * Json for GNPS library entry submission
+ * Json for MZmine json library entry submission
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class GnpsJsonGenerator {
+public class MZmineJsonGenerator {
 
   /**
    * Whole JSON entry
@@ -68,28 +70,28 @@ public class GnpsJsonGenerator {
 
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine2
-    json.add(DBEntryField.SOFTWARE.getGnpsJsonID(), "mzmine2");
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine2");
     // ion specific
     Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
     if (precursorMZ != null) {
-      json.add(DBEntryField.MZ.getGnpsJsonID(), precursorMZ);
+      json.add(DBEntryField.PRECURSOR_MZ.getMZmineJsonID(), precursorMZ);
     }
 
     Integer charge = param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue();
     if (charge != null) {
-      json.add(DBEntryField.CHARGE.getGnpsJsonID(), charge);
+      json.add(DBEntryField.CHARGE.getMZmineJsonID(), charge);
     }
 
     String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
     if (adduct != null && !adduct.trim().isEmpty()) {
-      json.add(DBEntryField.ION_TYPE.getGnpsJsonID(), adduct);
+      json.add(DBEntryField.ION_TYPE.getMZmineJsonID(), adduct);
     }
 
     if (exportRT) {
       Double rt = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getEmbeddedParameter()
           .getValue();
       if (rt != null) {
-        json.add(DBEntryField.RT.getGnpsJsonID(), rt);
+        json.add(DBEntryField.RT.getMZmineJsonID(), rt);
       }
     }
 
@@ -101,32 +103,59 @@ public class GnpsJsonGenerator {
       if (!p.getName().equals(LibraryMetaDataParameters.EXPORT_RT.getName())) {
         String key = p.getName();
         Object value = p.getValue();
-        if (value instanceof Double) {
-          if (Double.compare(0d, (Double) value) == 0) {
-            json.add(key, 0);
-          } else {
-            json.add(key, (Double) value);
-          }
-        } else if (value instanceof Float) {
-          if (Float.compare(0f, (Float) value) == 0) {
-            json.add(key, 0);
-          } else {
-            json.add(key, (Float) value);
-          }
-        } else if (value instanceof Integer) {
-          json.add(key, (Integer) value);
-        } else {
-          if (value == null || (value instanceof String && ((String) value).isEmpty())) {
-            value = "N/A";
-          }
-          json.add(key, value.toString());
-        }
+        addToJson(json, key, value);
       }
     }
 
     // return Json.createObjectBuilder().add("spectrum",
     // json.build()).build().toString();
     return json.build().toString();
+  }
+
+  private static void addToJson(final JsonObjectBuilder json, final String key, Object value) {
+    if (value instanceof Double) {
+      if (Double.compare(0d, (Double) value) == 0) {
+        json.add(key, 0);
+      } else {
+        json.add(key, (Double) value);
+      }
+    } else if (value instanceof Float) {
+      if (Float.compare(0f, (Float) value) == 0) {
+        json.add(key, 0);
+      } else {
+        json.add(key, (Float) value);
+      }
+    } else if (value instanceof Integer) {
+      json.add(key, (Integer) value);
+    } else {
+      if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+        value = "N/A";
+      }
+      json.add(key, value.toString());
+    }
+  }
+
+  private static void addToJson(final JsonArrayBuilder json, Object value) {
+    if (value instanceof Double) {
+      if (Double.compare(0d, (Double) value) == 0) {
+        json.add(0);
+      } else {
+        json.add((Double) value);
+      }
+    } else if (value instanceof Float) {
+      if (Float.compare(0f, (Float) value) == 0) {
+        json.add(0);
+      } else {
+        json.add((Float) value);
+      }
+    } else if (value instanceof Integer) {
+      json.add((Integer) value);
+    } else {
+      if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+        value = "N/A";
+      }
+      json.add(value.toString());
+    }
   }
 
   /**
@@ -139,11 +168,52 @@ public class GnpsJsonGenerator {
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {
-      // round to five digits. thats more than enough
+      // round to digits. thats more than enough
       signal.add(((int) (dp.getMZ() * 1000000)) / 1000000.0);
       signal.add(dp.getIntensity());
       data.add(signal.build());
     }
     return data.build();
+  }
+
+  public static String generateJSON(final SpectralDBEntry entry) {
+    JsonObjectBuilder json = Json.createObjectBuilder();
+    // tag spectrum from mzmine3
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine3");
+
+    for (var metafield : entry.getFields().entrySet()) {
+      String id = metafield.getKey().getMZmineJsonID();
+      if (id == null || id.isBlank()) {
+        continue;
+      }
+      Object value = metafield.getValue();
+      switch (value) {
+        case Double cv -> json.add(id, cv);
+        case Float cv -> json.add(id, cv);
+        case Integer cv -> json.add(id, cv);
+        case Long cv -> json.add(id, cv);
+        case Boolean cv -> json.add(id, cv);
+        case List list -> json.add(id, listToJsonArray(list));
+        default -> json.add(id, value.toString());
+      }
+    }
+    entry.getField(DBEntryField.POLARITY)
+        .ifPresent(value -> json.add(DBEntryField.POLARITY.getMZmineJsonID(), value.toString()));
+
+    DataPoint[] dps = entry.getDataPoints();
+    json.add(DBEntryField.NUM_PEAKS.getMZmineJsonID(), dps.length);
+
+    // add data points array
+    json.add("peaks", genJSONData(dps));
+
+    return json.build().toString();
+  }
+
+  private static JsonArray listToJsonArray(final List list) {
+    JsonArrayBuilder array = Json.createArrayBuilder();
+    for (var o : list) {
+      addToJson(array, o);
+    }
+    return array.build();
   }
 }

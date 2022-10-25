@@ -35,10 +35,10 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public class InChIStructureType extends StringType
-    implements EditableColumnType, StringParser<String>, AnnotationType {
+public class InChIStructureType extends StringType implements EditableColumnType,
+    StringParser<String>, AnnotationType {
 
-  private StringConverter<String> converter = new DefaultStringConverter();
+  private final StringConverter<String> converter = new DefaultStringConverter();
 
   @Override
   public @NotNull String getHeaderString() {

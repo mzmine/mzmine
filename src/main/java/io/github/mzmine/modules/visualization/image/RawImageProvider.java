@@ -38,10 +38,10 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
@@ -79,7 +79,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
   private final Range<Double> mzRange;
   private final Range<Double> mobilityRange;
   private final boolean useMobility;
-  private final boolean normalize;
+  private final ImageNormalization normalize;
   private final double width;
   private final double height;
   protected PaintScale paintScale;
@@ -93,7 +93,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
     height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
     width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
 
-    this.normalize = parameters.getValue(ImageVisualizerParameters.normalize);
+    this.normalize = parameters.getValue(ImageVisualizerParameters.imageNormalization);
     this.scanSelection = parameters.getValue(ImageVisualizerParameters.scanSelection);
     this.mzRange = parameters.getValue(ImageVisualizerParameters.mzRange);
     this.useMobility = parameters.getValue(ImageVisualizerParameters.mobilityRange);
@@ -186,12 +186,13 @@ public class RawImageProvider implements PlotXYZDataProvider {
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     series = extractIonTimeSeries();
 
-    if (normalize) {
-      series = IonTimeSeriesUtils.normalizeToAvgTic(series, null);
+    if (normalize != null) {
+      series = normalize.normalize(series, scanSelection.getMatchingScans(raw.getScans()), null);
     }
 
     double[] intensities = series.getIntensityValues(new double[series.getNumberOfValues()]);
-    final double[] quantiles = MathUtils.calcQuantile(intensities, new double[]{0.50, 0.98});
+    final double[] quantiles = MathUtils.calcQuantile(intensities,
+        ImagingPlot.DEFAULT_IMAGING_QUANTILES);
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }

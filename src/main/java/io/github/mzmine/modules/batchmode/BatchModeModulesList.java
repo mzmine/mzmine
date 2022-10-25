@@ -49,6 +49,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalib
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
@@ -58,6 +59,7 @@ import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.Baselin
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
@@ -137,6 +139,7 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
 import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataImportModule;
 import java.util.List;
 
@@ -208,6 +211,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#EIC_BUILDING}
        */
       ModularADAPChromatogramBuilderModule.class, //
+      MsnTreeFeatureDetectionModule.class, //
       GridMassModule.class, //
       IonMobilityTraceBuilderModule.class, //
       RecursiveIMSBuilderModule.class, //
@@ -273,15 +277,21 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
        */
-      CorrelateGroupingModule.class, MS2SimilarityModule.class, AnnotateIsomersModule.class,
+      CorrelateGroupingModule.class, //
+      MS2SimilarityModule.class, //
+      AnnotateIsomersModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}
        */
-      IonNetworkingModule.class, AddIonNetworkingModule.class, IonNetworkRefinementModule.class,
-      IonNetworkMSMSCheckModule.class, FormulaPredictionIonNetworkModule.class,
-      CreateAvgNetworkFormulasModule.class, IonNetRelationsModule.class,
-      ClearIonIdentitiesModule.class,
+      IonNetworkingModule.class, //
+      AddIonNetworkingModule.class, //
+      IonNetworkRefinementModule.class, //
+      IonNetworkMSMSCheckModule.class, //
+      FormulaPredictionIonNetworkModule.class, //
+      CreateAvgNetworkFormulasModule.class, //
+      IonNetRelationsModule.class, //
+      ClearIonIdentitiesModule.class, //
 
       /*
         {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_ANNOTATION}
@@ -292,6 +302,7 @@ public class BatchModeModulesList {
       ReferenceCCSCalibrationModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
+      DiaMs2CorrModule.class, //
       FormulaPredictionFeatureListModule.class, //
       IsotopePeakScannerModule.class, //
       LipidSearchModule.class, //
@@ -320,7 +331,8 @@ public class BatchModeModulesList {
       MzTabImportModule.class, //
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
-      LibraryAnalysisCSVExportModule.class //
+      LibraryAnalysisCSVExportModule.class, //
+      LibraryBatchGenerationModule.class //
 
       /*
        * needed in batch mode?

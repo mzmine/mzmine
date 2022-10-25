@@ -31,7 +31,7 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameter
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.parser.GnpsJsonParser;
+import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import io.github.mzmine.util.web.RequestResponse;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -171,7 +171,7 @@ public class GNPSUtils {
       if (json.containsKey("peaks")) {
         // https://metabolomics-usi.ucsd.edu/json/?usi1=mzspec%3AGNPS%3AGNPS-LIBRARY%3Aaccession%3ACCMSLIB00000579622
         JsonArray peaks = json.getJsonArray("peaks");
-        DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(peaks);
+        DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(peaks);
         final double precursorMz = json.getJsonNumber("precursor_mz").doubleValue();
         final int charge = json.getJsonNumber("precursor_charge").intValue();
         return new SpectralDBEntry(precursorMz, charge, spectrum);
@@ -181,7 +181,7 @@ public class GNPSUtils {
         final JsonObject info = json.getJsonObject("spectruminfo");
         final String spectrumString = info.getJsonString("peaks_json").getString();
         try (JsonReader specReader = Json.createReader(new StringReader(spectrumString))) {
-          final DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(
+          final DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(
               specReader.readArray());
 
           // precursor mz

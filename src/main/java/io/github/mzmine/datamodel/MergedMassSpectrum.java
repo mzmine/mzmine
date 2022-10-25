@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.List;
 
 public interface MergedMassSpectrum extends Scan {
@@ -39,7 +39,7 @@ public interface MergedMassSpectrum extends Scan {
   /**
    * @return The merging type this spectrum is based on.
    */
-  MergingType getMergingType();
+  IntensityMergingType getMergingType();
 
   /**
    * @return The center function used to create this merged spectrum.

@@ -311,11 +311,11 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
         final SpectralDBEntry ea = spec.entry();
         append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
         append(line, ea.getOrElse(DBEntryField.NAME, ""));
-        append(line, ea.getField(DBEntryField.MZ).map(Object::toString).orElse(""));
+        append(line, ea.getField(DBEntryField.PRECURSOR_MZ).map(Object::toString).orElse(""));
         append(line, ea.getField(DBEntryField.EXACT_MASS).map(Object::toString).orElse(""));
         append(line, ea.getOrElse(DBEntryField.ION_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.FORMULA, ""));
-        append(line, ea.getOrElse(DBEntryField.ION_MODE, ""));
+        append(line, ea.getOrElse(DBEntryField.POLARITY, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.SMILES, ""));
@@ -425,17 +425,13 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
         .sorted((a, b) -> Double.compare(b, a)).map(format::format).limit(4)
         .collect(Collectors.joining(";"));
 
-    StringBuilder line = new StringBuilder();
-    line.append(matched).append(fieldSeparator);
-    line.append(format.format(matchedRel)).append(fieldSeparator);
-    line.append(format.format(explainedIntensity)).append(fieldSeparator);
-    line.append(format.format(explainedIntensityA)).append(fieldSeparator);
-    line.append(format.format(explainedIntensityB)).append(fieldSeparator);
-    line.append(format.format(cosine)).append(fieldSeparator);
-    line.append(format.format(maxContribution)).append(fieldSeparator);
-    line.append(contributionString).append(fieldSeparator);
-    line.append(format.format(signalsGr0_05));
-    return line.toString();
+    final String line =
+        matched + fieldSeparator + format.format(matchedRel) + fieldSeparator + format.format(
+            explainedIntensity) + fieldSeparator + format.format(explainedIntensityA)
+            + fieldSeparator + format.format(explainedIntensityB) + fieldSeparator + format.format(
+            cosine) + fieldSeparator + format.format(maxContribution) + fieldSeparator
+            + contributionString + fieldSeparator + format.format(signalsGr0_05);
+    return line;
   }
 
   /**

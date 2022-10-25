@@ -35,6 +35,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.json.JsonValue;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -44,12 +45,13 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 
-public class GnpsJsonParser extends SpectralDBTextParser {
+public class MZmineJsonParser extends SpectralDBTextParser {
 
-  private final static Logger logger = Logger.getLogger(GnpsJsonParser.class.getName());
+  private final static Logger logger = Logger.getLogger(MZmineJsonParser.class.getName());
 
-  public GnpsJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
+  public MZmineJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
   }
 
@@ -57,7 +59,7 @@ public class GnpsJsonParser extends SpectralDBTextParser {
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
     super.parse(mainTask, dataBaseFile);
 
-    logger.info("Parsing GNPS spectral library " + dataBaseFile.getAbsolutePath());
+    logger.info("Parsing MZmine spectral library " + dataBaseFile.getAbsolutePath());
 
     int correct = 0;
     int error = 0;
@@ -91,7 +93,7 @@ public class GnpsJsonParser extends SpectralDBTextParser {
         }
         // to many errors? wrong data format?
         if (error > 5 && correct < 5) {
-          logger.log(Level.WARNING, "This file was no GNPS spectral json library");
+          logger.log(Level.WARNING, "This file was no MZmine spectral json library");
           return false;
         }
         processedLines.incrementAndGet();
@@ -101,6 +103,45 @@ public class GnpsJsonParser extends SpectralDBTextParser {
     finish();
 
     return true;
+  }
+
+  @Nullable
+  private static Object getValue(final JsonObject main, final DBEntryField f, final String id) {
+    Object o = null;
+    JsonValue value = main.get(id);
+    switch (value.getValueType()) {
+      case STRING, OBJECT -> {
+        if (f.getObjectClass() == Double.class) {
+          o = Double.parseDouble(main.getString(id));
+        } else if (f.getObjectClass() == Integer.class) {
+          o = Integer.parseInt(main.getString(id));
+        } else if (f.getObjectClass() == Float.class) {
+          o = Float.parseFloat(main.getString(id));
+        } else {
+          o = main.getString(id, null);
+        }
+      }
+      case NUMBER -> {
+        o = main.getJsonNumber(id);
+      }
+      case TRUE -> {
+        o = true;
+      }
+      case FALSE -> {
+        o = false;
+      }
+      case NULL -> {
+        o = null;
+      }
+    }
+    if (o != null && o.equals("N/A")) {
+      return null;
+    }
+    return o;
+  }
+
+  private static JsonNumber getDoubleValue(final JsonObject main, final String id) {
+    return main.getJsonNumber(id);
   }
 
   public SpectralDBEntry getDBEntry(JsonObject main) {
@@ -113,20 +154,11 @@ public class GnpsJsonParser extends SpectralDBTextParser {
     // extract meta data
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
     for (DBEntryField f : DBEntryField.values()) {
-      String id = f.getGnpsJsonID();
-      if (id != null && !id.isEmpty()) {
+      String id = f.getMZmineJsonID();
+      if (id != null && !id.isEmpty() && main.containsKey(id)) {
 
         try {
-          Object o = null;
-          if (f.getObjectClass() == Double.class || f.getObjectClass() == Integer.class
-              || f.getObjectClass() == Float.class) {
-            o = main.getJsonNumber(id);
-          } else {
-            o = main.getString(id, null);
-            if (o != null && o.equals("N/A")) {
-              o = null;
-            }
-          }
+          Object o = getValue(main, f, id);
           // add value
           if (o != null) {
             if (o instanceof JsonNumber) {
@@ -142,7 +174,9 @@ public class GnpsJsonParser extends SpectralDBTextParser {
             map.put(f, o);
           }
         } catch (Exception e) {
-          logger.log(Level.WARNING, "Cannot convert value to its type", e);
+          logger.log(Level.WARNING,
+              String.format("Cannot convert value %s to its type %s", f.getMZmineJsonID(),
+                  f.getObjectClass().toString()), e);
         }
       }
     }

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,6 +26,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -52,7 +52,9 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    */
   public static void saveScanToXML(@NotNull final XMLStreamWriter writer, @NotNull final Scan scan)
       throws XMLStreamException {
-    if (scan instanceof SimpleScan || scan instanceof Frame) {
+    if (scan instanceof PseudoSpectrum pseudo) { // first, because instanceof's for frame trigger, too.
+      pseudo.saveToXML(writer);
+    } else if (scan instanceof SimpleScan || scan instanceof Frame) {
       writer.writeStartElement(CONST.XML_RAW_FILE_SCAN_ELEMENT);
 
       writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleScan.XML_SCAN_TYPE);
@@ -105,6 +107,9 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       case SimpleMergedMsMsSpectrum.XML_SCAN_TYPE -> {
         return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file);
       }
+      case SimplePseudoSpectrum.XML_SCAN_TYPE -> {
+        return SimplePseudoSpectrum.loadFromXML(reader, file);
+      }
       default -> {
         throw new IllegalArgumentException("Cannot load scan from xml. Scan type not recognized.");
       }
@@ -137,7 +142,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   float getRetentionTime();
 
   /**
-   *
    * @return The injection time of this scan or null.
    */
   @Nullable
@@ -155,7 +159,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   @Nullable MsMsInfo getMsMsInfo();
 
   /**
-   *
    * @return The charge or null. Works for subclasses of {@link DDAMsMsInfo}.
    */
   default Integer getPrecursorCharge() {
@@ -163,7 +166,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   }
 
   /**
-   *
    * @return The precursor mz or null. Works for subclasses of {@link DDAMsMsInfo}.
    */
   default Double getPrecursorMz() {
@@ -191,6 +193,16 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
     } else {
       return Float.compare(this.getRetentionTime(), s.getRetentionTime());
     }
+  }
+
+  /**
+   *
+   * Method to check if the scan m/z range is not empty
+   *
+   * @return boolean
+   */
+  default boolean isEmptyScan() {
+    return this.getNumberOfDataPoints() == 0;
   }
 
 }
