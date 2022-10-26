@@ -103,4 +103,9 @@ public class FeatureShapeType extends LinkedGraphicalType {
       MZmineCore.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     };
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

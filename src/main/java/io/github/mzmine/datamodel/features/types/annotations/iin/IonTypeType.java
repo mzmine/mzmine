@@ -104,4 +104,9 @@ public class IonTypeType extends DataType<IonType> {
     }
     return value.toString(false);
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

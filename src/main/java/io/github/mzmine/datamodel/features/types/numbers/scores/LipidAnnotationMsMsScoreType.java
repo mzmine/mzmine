@@ -52,4 +52,9 @@ public class LipidAnnotationMsMsScoreType extends ScoreType {
     // Never change the ID for compatibility during saving/loading of type
     return "lipid_msms_score";
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }
