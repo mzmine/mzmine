@@ -246,8 +246,10 @@ public class RawDataFileInfoPaneController {
     }
 
     if (scan instanceof Frame f && !f.getImsMsMsInfos().isEmpty()) {
+      // IMS Frames may have multiple precursor m/zs in acquisition modes such as PASEF.
       return String.join("; ",
-          f.getImsMsMsInfos().stream().map(i -> mzFormat.format(i.getIsolationMz())).toList());
+          f.getImsMsMsInfos().stream().map(info -> mzFormat.format(info.getIsolationMz()))
+              .toList());
     }
     final Double precursorMz = scan.getPrecursorMz();
     return precursorMz != null ? mzFormat.format(scan.getPrecursorMz()) : null;
