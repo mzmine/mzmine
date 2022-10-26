@@ -70,4 +70,9 @@ public class HeightType extends FloatType {
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.MAX));
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

@@ -82,4 +82,9 @@ public class MobilityType extends FloatType implements ExpandableType {
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.AVERAGE));
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }
