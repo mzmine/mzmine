@@ -186,56 +186,49 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     List<DataPoint[]> spectra = scans.stream().map(Scan::getMassList)
         .map(ScanUtils::extractDataPoints).toList();
 
-    for (var match : matches) {
-      // first entry for the same molecule reflect the most common ion type, usually M+H
-      if (Objects.equals(match.getCompoundName(), lastName)) {
+    // first entry for the same molecule reflect the most common ion type, usually M+H
+    var match = matches.get(0);
+
+    // filter matches
+    for (int i = 0; i < spectra.size(); i++) {
+      final DataPoint[] dataPoints = spectra.get(i);
+      if (dataPoints.length < minSignals) {
         continue;
       }
 
-      lastName = match.getCompoundName();
-
-      // filter matches
-      for (int i = 0; i < spectra.size(); i++) {
-        final DataPoint[] dataPoints = spectra.get(i);
-        if (dataPoints.length < minSignals) {
-          continue;
+      // add instrument type etc by parameter
+      Scan scan = scans.get(i);
+      SpectralDBEntry entry = new SpectralDBEntry(scan, match, dataPoints);
+      entry.putAll(metadataMap);
+      if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
+        // default is passed
+        ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan,
+            ChimericPrecursorResult.PASSED);
+        entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
+        if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
+          entry.putIfNotNull(DBEntryField.NAME,
+              entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
         }
-
-        // add instrument type etc by parameter
-        Scan scan = scans.get(i);
-        SpectralDBEntry entry = new SpectralDBEntry(scan, match, dataPoints);
-        entry.putAll(metadataMap);
-        if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
-          // default is passed
-          ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan,
-              ChimericPrecursorResult.PASSED);
-          entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
-          if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
-            entry.putIfNotNull(DBEntryField.NAME,
-                entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
-          }
-        }
-        // add file info
-        final String fileUSI = Path.of(
-            Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
-                scan.getDataFile().getName())).getFileName().toString() + ":"
-            + scan.getScanNumber();
-        entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
-        entry.getField(DBEntryField.DATASET_ID).ifPresent(
-            dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
-
-        // add experimental data
-        if (entry.getField(DBEntryField.RT).isEmpty()) {
-          entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
-        }
-        if (entry.getField(DBEntryField.CCS).isEmpty()) {
-          entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
-        }
-
-        // export to file
-        exportEntry(writer, entry);
-        exported.incrementAndGet();
       }
+      // add file info
+      final String fileUSI = Path.of(
+          Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
+              scan.getDataFile().getName())).getFileName().toString() + ":" + scan.getScanNumber();
+      entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
+      entry.getField(DBEntryField.DATASET_ID).ifPresent(
+          dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
+
+      // add experimental data
+      if (entry.getField(DBEntryField.RT).isEmpty()) {
+        entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+      }
+      if (entry.getField(DBEntryField.CCS).isEmpty()) {
+        entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+      }
+
+      // export to file
+      exportEntry(writer, entry);
+      exported.incrementAndGet();
     }
   }
 
