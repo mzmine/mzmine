@@ -37,10 +37,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.*;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 
 import java.util.ArrayList;
@@ -91,10 +88,28 @@ public class ADAPInterface {
   }
 
   @NotNull
-  public static ModularFeature peakToFeature(@NotNull ModularFeatureList featureList,
-                                             @NotNull RawDataFile file, @NotNull BetterPeak peak, List<Scan> scanNumbers) {
+  public static ModularFeature peakToFeature(@NotNull ModularFeatureList alignedFeatureList, FeatureList originalFeatureList,
+                                             @NotNull RawDataFile file, @NotNull BetterPeak peak) {
 
     Chromatogram chromatogram = peak.chromatogram;
+
+    List<Scan> scanNumbers = new ArrayList<>();
+    int count = 0;
+    double startRetTime = chromatogram.getFirstRetTime();
+    double endRetTime = chromatogram.getLastRetTimes();
+
+    List<? extends Scan> scans = originalFeatureList.getSeletedScans(file);
+
+    for (Scan scan : scans) {
+      double retTime = scan.getRetentionTime();
+      if (Math.floor(retTime*1000) < Math.floor(startRetTime*1000)) continue;
+      else if (Math.floor(retTime*1000) > Math.floor(endRetTime*1000)) break;
+
+      scanNumbers.add(scan);
+
+      if (scanNumbers.size() == chromatogram.length)
+        break;
+    }
 
     // Calculate peak area
     double area = 0.0;
@@ -114,12 +129,19 @@ public class ADAPInterface {
 
     SimpleIonTimeSeries simpleIonTimeSeries = new SimpleIonTimeSeries(null, newMzs, newIntensities, scanNumbers);
 
-    return new ModularFeature(featureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED);
+    ModularFeature n = null;
+    try {
+       n = new ModularFeature(alignedFeatureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED);
+    } catch (Exception e) {
+      System.out.println("**** " + e.getMessage());
+    }
+
+    return n;
   }
 
   @NotNull
-  public static Feature peakToFeature(@NotNull ModularFeatureList featureList,
-                                      @NotNull RawDataFile file, @NotNull Peak peak, List<Scan> scanNumbers) {
+  public static Feature peakToFeature(@NotNull ModularFeatureList featureList,FeatureList originalFeatureList,
+                                      @NotNull RawDataFile file, @NotNull Peak peak) {
 
     NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
 
@@ -135,6 +157,6 @@ public class ADAPInterface {
     BetterPeak betterPeak = new BetterPeak(peak.getInfo().peakID,
             new Chromatogram(retTimes, intensities), peak.getInfo());
 
-    return peakToFeature(featureList, file, betterPeak, scanNumbers);
+    return peakToFeature(featureList, originalFeatureList,file, betterPeak);
   }
 }
