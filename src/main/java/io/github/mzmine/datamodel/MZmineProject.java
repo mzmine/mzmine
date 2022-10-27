@@ -27,10 +27,10 @@ package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.project.impl.ProjectChangeListener;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.Hashtable;
@@ -201,15 +201,6 @@ public interface MZmineProject {
   int getNumberOfFeatureLists();
 
   int getNumberOfLibraries();
-
-  /**
-   * Finds and sets a unique name for a data file
-   *
-   * @param raw  the target data file thats renamed
-   * @param name the new name candidate
-   * @return the unique name that was set
-   */
-  String setUniqueDataFileName(RawDataFile raw, String name);
 
   /**
    * Finds and sets a unique name for a feature list

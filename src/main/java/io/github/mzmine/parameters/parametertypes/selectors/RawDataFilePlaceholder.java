@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,18 +112,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
   @Override
   public @Nullable String getAbsolutePath() {
     return absPath;
-  }
-
-  @Override
-  public String setName(@NotNull String name) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public String setNameNoChecks(@NotNull String name) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
 
   @Override
@@ -297,12 +284,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public @NotNull StringProperty nameProperty() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }

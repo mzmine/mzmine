@@ -492,24 +492,4 @@ public class MZmineProjectImpl implements MZmineProject {
     }
   }
 
-  @Override
-  public String setUniqueDataFileName(RawDataFile raw, String name) {
-    try {
-      rawLock.writeLock().lock();
-
-      final List<String> names = rawDataFiles.stream().map(RawDataFile::getName).toList();
-      // make path safe
-      name = FileAndPathUtil.safePathEncode(name);
-      // handle duplicates
-      name = names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
-
-      // set the new name and notify listeners
-      raw.setNameNoChecks(name);
-
-      return name;
-    } finally {
-      rawLock.writeLock().unlock();
-    }
-  }
-
 }
