@@ -25,10 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.scene.control.TextField;
+import org.w3c.dom.Element;
 
 public class StringParameter implements UserParameter<String, TextField> {
 
@@ -101,8 +101,10 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   @Override
   public StringParameter cloneParameter() {
-    StringParameter copy = new StringParameter(name, description);
+    StringParameter copy = new StringParameter(name, description, getValue(), valueRequired,
+        isSensitive());
     copy.setValue(this.getValue());
+
     return copy;
   }
 
@@ -128,15 +130,17 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     xmlElement.setTextContent(value);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (!valueRequired)
+    if (!valueRequired) {
       return true;
+    }
     if ((value == null) || (value.trim().length() == 0)) {
       errorMessages.add(name + " is not set properly");
       return false;

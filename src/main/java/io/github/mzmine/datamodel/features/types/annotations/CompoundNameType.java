@@ -60,4 +60,8 @@ public class CompoundNameType extends StringType
     return "compound_name";
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

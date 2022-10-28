@@ -474,11 +474,11 @@ public interface FeatureList {
             .filter(type -> type instanceof LinkedGraphicalType)
             .forEach(type -> row.set(type, true));
       }
-      if (isImagingFile) {
-        // activate shape for this row
-        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_ROW.stream()
+      if (isImagingFile && newFeature instanceof ModularFeature f) {
+        // activate image for this feature
+        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_FEATURE.stream()
             .filter(type -> type instanceof LinkedGraphicalType)
-            .forEach(type -> row.set(type, true));
+            .forEach(type -> f.set(type, true));
       }
     }
   }

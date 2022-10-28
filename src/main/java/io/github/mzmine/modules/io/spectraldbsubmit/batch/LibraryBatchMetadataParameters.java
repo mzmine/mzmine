@@ -55,7 +55,7 @@ import java.util.Map;
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class LibaryMetadataParameters extends SimpleParameterSet {
+public class LibraryBatchMetadataParameters extends SimpleParameterSet {
 
   public static final ComboParameter<CompoundSource> ACQUISITION = new ComboParameter<>(
       "ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
@@ -82,7 +82,7 @@ public class LibaryMetadataParameters extends SimpleParameterSet {
   public static final StringParameter DATASET_ID = new StringParameter("Dataset ID",
       "MassIVE, MetaboLights, MetabolomicsWorkbench ID", "", false);
 
-  public LibaryMetadataParameters() {
+  public LibraryBatchMetadataParameters() {
     super(new Parameter[]{DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_SOURCE,
         ACQUISITION, PI, DATA_COLLECTOR, IONMODE});
   }

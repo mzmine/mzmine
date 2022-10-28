@@ -204,4 +204,8 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
    */
   protected abstract Map<Class<? extends DataType>, Function<T, Object>> getMapper();
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

@@ -58,4 +58,9 @@ public class MzPpmDifferenceType extends FloatType {
   public NumberFormat getFormatter() {
     return DEFAULT_FORMAT;
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

@@ -114,7 +114,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     library = new SpectralLibrary(MemoryMapStorage.forMassList(), outFile.getName() + "_batch",
         outFile);
     // metadata as a map
-    LibaryMetadataParameters meta = parameters.getParameter(
+    LibraryBatchMetadataParameters meta = parameters.getParameter(
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
 
@@ -227,6 +227,14 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
         entry.getField(DBEntryField.DATASET_ID).ifPresent(
             dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
+
+        // add experimental data
+        if (entry.getField(DBEntryField.RT).isEmpty()) {
+          entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+        }
+        if (entry.getField(DBEntryField.CCS).isEmpty()) {
+          entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+        }
 
         // export to file
         exportEntry(writer, entry);

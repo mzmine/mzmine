@@ -174,4 +174,9 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
     // never return null, if this type was saved we even need empty lists.
     return ids;
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }
