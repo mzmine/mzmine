@@ -109,7 +109,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
       }
 
       switch (reader.getLocalName()) {
-        case SpectralLibraryEntry.XML_ELEMENT -> entry = SpectralLibraryEntry.loadFromXML(reader);
+        case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
+            entry = SpectralLibraryEntry.loadFromXML(reader);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT ->
             map = SimpleFeatureIdentity.readPropertyValues(reader);

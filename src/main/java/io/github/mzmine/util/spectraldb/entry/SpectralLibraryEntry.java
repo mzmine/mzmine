@@ -66,7 +66,7 @@ import org.jetbrains.annotations.Nullable;
 public interface SpectralLibraryEntry extends MassList {
 
   Logger logger = Logger.getLogger(SpectralLibraryEntry.class.getName());
-  String XML_ELEMENT = "spectraldatabaseentry";
+  String XML_ELEMENT_ENTRY = "spectraldatabaseentry";
 
   static SpectralLibraryEntry create(@Nullable SpectralLibrary library, double precursorMZ,
       DataPoint[] dps) {

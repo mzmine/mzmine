@@ -66,7 +66,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   }
 
   public static SpectralLibraryEntry loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT_ENTRY))) {
       throw new IllegalStateException(
           "Cannot load spectral db entry from the current element. Wrong name.");
     }
@@ -76,7 +76,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     Map<DBEntryField, Object> fields = null;
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(XML_ELEMENT))) {
+        .equals(XML_ELEMENT_ENTRY))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -158,7 +158,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(XML_ELEMENT);
+    writer.writeStartElement(XML_ELEMENT_ENTRY);
 
     double[] mzs = getMzValues(new double[getNumberOfDataPoints()]);
     double[] intensities = getIntensityValues(new double[getNumberOfDataPoints()]);

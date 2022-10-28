@@ -93,7 +93,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
       }
 
       switch (reader.getLocalName()) {
-        case SpectralLibraryEntry.XML_ELEMENT -> entry = SpectralLibraryEntry.loadFromXML(reader);
+        case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
+            entry = SpectralLibraryEntry.loadFromXML(reader);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
         case XML_CCS_ERROR_ELEMENT -> {
