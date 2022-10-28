@@ -34,6 +34,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import org.jetbrains.annotations.Nullable;
 
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 record GnpsLibraryEntry(
     // entry specific

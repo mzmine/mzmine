@@ -80,13 +80,15 @@ public abstract class SpectralDBParser {
       // need double lock as list changes inside
       synchronized (list) {
         list.add(entry);
-        if (list.size() % bufferEntries == 0) {
-          // start new task for every 1000 entries
-          // push entries
-          processor.processNextEntries(list, processedEntries);
-          processedEntries += list.size();
-          // new list
-          list = new ArrayList<>();
+        if (bufferEntries > 0) {
+          if (list.size() % bufferEntries == 0) {
+            // start new task for every 1000 entries
+            // push entries
+            processor.processNextEntries(list, processedEntries);
+            processedEntries += list.size();
+            // new list
+            list = new ArrayList<>();
+          }
         }
       }
     }

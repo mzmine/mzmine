@@ -35,6 +35,7 @@ import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.SpectralDBParser;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,6 +76,7 @@ public class GNPSJsonParser extends SpectralDBParser {
               .toSpectralLibraryEntry(library);
           addLibraryEntry(entry);
         } catch (Exception ex) {
+          logger.log(Level.WARNING, ex.getMessage(), ex);
           error++;
         }
       }
