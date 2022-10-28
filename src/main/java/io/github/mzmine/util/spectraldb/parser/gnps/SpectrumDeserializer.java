@@ -23,30 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package json;
+package io.github.mzmine.util.spectraldb.parser.gnps;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.github.mzmine.datamodel.DataPoint;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public record GnpsLibraryEntry(
-    // entry specific
-    String spectrum_id, String splash, int ms_level, String Ion_Mode, String Adduct,
-    double Precursor_MZ, double ExactMass, int Charge,
+class SpectrumDeserializer extends JsonDeserializer<double[][]> {
 
-    @JsonDeserialize(using = SpectrumDeserializer.class) DataPoint[] peaks_json,
-
-    // compound specific
-    String Compound_Name, String Compound_Source, String CAS_Number, String Pubmed_ID,
-    // structures
-    String Smiles, String INCHI, String INCHI_AUX,
-
-    // instrument specific
-    String Ion_Source, String Instrument,
-    // contacts
-    @JsonProperty("Data_Collector") String dataCollector,
-    @JsonProperty("PI") String principalInvestigator) {
-
+  @Override
+  public double[][] deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+    String str = p.getText();
+    double[][] dps = new ObjectMapper().readValue(str, new TypeReference<>() {
+    });
+    double[][] xy = new double[2][dps.length];
+    for (int i = 0; i < dps.length; i++) {
+      xy[0][i] = dps[i][0];
+      xy[1][i] = dps[i][1];
+    }
+    return xy;
+  }
 }

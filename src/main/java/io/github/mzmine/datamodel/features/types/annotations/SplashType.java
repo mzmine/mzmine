@@ -23,32 +23,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package json;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonParseException;
-import io.github.mzmine.datamodel.DataPoint;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import org.junit.jupiter.api.Test;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
+import javafx.util.StringConverter;
+import javafx.util.converter.DefaultStringConverter;
+import org.jetbrains.annotations.NotNull;
 
-public class GnpsParserTest {
+/**
+ * Spectral hash code
+ */
+public class SplashType extends StringType implements EditableColumnType, StringParser<String> {
 
-  private static boolean checkDp(final DataPoint dp) {
-    return dp.getIntensity() > 0 && dp.getMZ() < 200;
+  private final StringConverter<String> converter = new DefaultStringConverter();
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Splash";
   }
 
-  @Test
-  public void testJackson() throws JsonParseException, IOException {
-    File file = new File(
-        GnpsParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
-
-    ObjectMapper mapper = new ObjectMapper();
-    List<GnpsLibraryEntry> list = mapper.readValue(file, new TypeReference<>() {
-    });
-
-    assert list.size() == 4;
+  @Override
+  public String fromString(String s) {
+    return s;
   }
+
+  @Override
+  public StringConverter<String> getStringConverter() {
+    return converter;
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "splash";
+  }
+
 }

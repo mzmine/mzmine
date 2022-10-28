@@ -111,6 +111,14 @@ public abstract class SpectralDBParser {
     logger.info(processedEntries + "  library entries imported");
   }
 
+  public int getProcessedEntries() {
+    return processedEntries + list.size();
+  }
+
   public abstract double getProgress();
+
+  public String getDescription() {
+    return "Importing library. Loaded entries:" + getProcessedEntries();
+  }
 
 }

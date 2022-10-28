@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SplashType;
 import io.github.mzmine.datamodel.features.types.annotations.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
@@ -65,7 +66,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, USI, DATAFILE_COLON_SCAN_NUMBER,
+  DATASET_ID, USI, DATAFILE_COLON_SCAN_NUMBER, SPLASH,
 
   // Quality measures
   QUALITY_CHIMERIC;
@@ -187,6 +188,7 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> DoubleType.class;
       case DATASET_ID -> DatasetIdType.class;
       case USI -> UsiType.class;
+      case SPLASH -> SplashType.class;
       // TODO change to real data types
       case MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
           StringType.class;
@@ -208,6 +210,7 @@ public enum DBEntryField {
       case DATA_COLLECTOR -> "datacollector";
       case EXACT_MASS -> "exact_mass";
       case FORMULA -> "formula";
+      case SPLASH -> "splash";
       case INCHI -> "inchi";
       case INCHIKEY -> "inchikey";
       case INSTRUMENT -> "instrument";
@@ -265,6 +268,7 @@ public enum DBEntryField {
       case ION_SOURCE -> "";
       case PRECURSOR_MZ -> "PrecursorMZ";
       case NAME -> "Name";
+      case SPLASH -> "Splash";
       case RT -> "RT";
       case MS_LEVEL -> "Spectrum_type";
       case NUM_PEAKS -> "Num Peaks";
@@ -311,6 +315,7 @@ public enum DBEntryField {
       case SMILES -> "SMILES";
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
+      case SPLASH -> "SPLASH";
       case ACQUISITION, NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RT, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY ->
           toString();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
@@ -346,7 +351,7 @@ public enum DBEntryField {
       case INCHIKEY -> "";
       case INSTRUMENT -> "";
       case INSTRUMENT_TYPE -> "";
-      case ION_TYPE -> "";
+      case ION_TYPE, SPLASH -> "";
       case POLARITY -> "";
       case ION_SOURCE -> "";
       case PRECURSOR_MZ -> "";
