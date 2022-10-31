@@ -226,12 +226,20 @@ public class TDFUtils {
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
       handle = tdfLib.tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
       handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
@@ -675,7 +683,6 @@ public class TDFUtils {
     } else {
       return false;
     }
-
   }
 
   public void setNumThreads(int numThreads) {
