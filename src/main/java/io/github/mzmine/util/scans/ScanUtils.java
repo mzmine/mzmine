@@ -1674,6 +1674,32 @@ public class ScanUtils {
   }
 
   /**
+   * Calculates the spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p = peak
+   * index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   *
+   * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getSpectralEntropy(@NotNull final double[] intensities) {
+    if(intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    final Double tic = Arrays.stream(intensities).sum();
+    if (tic <= 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      final double normalizedIntensity = intensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
    * @return The spectral entropy normalized to the number of signals in a spectrum.
    * @see #getSpectralEntropy(MassSpectrum)
    */
@@ -1682,6 +1708,17 @@ public class ScanUtils {
       return Double.POSITIVE_INFINITY;
     }
     return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final double[] intensities) {
+    if(intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getSpectralEntropy(intensities) / Math.log(intensities.length);
   }
 
   /**
@@ -1715,6 +1752,36 @@ public class ScanUtils {
   }
 
   /**
+   * Calculates the weighted spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p =
+   * peak index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   * For entropies S < 3, the intensities are reweighted.
+   *
+   * @return The weighted spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    final double entropy = getSpectralEntropy(intensities);
+    if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
+      return entropy;
+    }
+
+    final double[] weightedIntensities = new double[intensities.length];
+    double tic = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      weightedIntensities[i] = Math.pow(intensities[i], 0.25 + entropy * 0.25);
+      tic += weightedIntensities[i];
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < weightedIntensities.length; i++) {
+      final double normalizedIntensity = weightedIntensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
    * @return The spectral entropy normalized to the number of signals in a spectrum.
    * @see #getWeightedSpectralEntropy(MassSpectrum)
    */
@@ -1723,6 +1790,17 @@ public class ScanUtils {
       return Double.POSITIVE_INFINITY;
     }
     return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    if(intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getWeightedSpectralEntropy(intensities) / Math.log(intensities.length);
   }
 
   /**
@@ -1737,11 +1815,11 @@ public class ScanUtils {
     double minIntensity = Double.POSITIVE_INFINITY;
     for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
       final double intensity = msms.getIntensityValue(i);
-      if (intensity < minIntensity && Double.compare(intensity, 0d) > 0) {
+      if (intensity < minIntensity && intensity > 0) {
         minIntensity = intensity;
       }
     }
-    return Double.compare(minIntensity, Double.POSITIVE_INFINITY) < 0 ? minIntensity : null;
+    return minIntensity < Double.POSITIVE_INFINITY ? minIntensity : null;
   }
 
   /**
