@@ -134,7 +134,7 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
       merged = SpectraMerging.calculatedMergedMzsAndIntensities(
           frameComboBox.getValue().getMobilityScans().stream().map(MobilityScan::getMassList)
               .toList(), mzTolerance, intensityMergingType,
-          new CenterFunction(CenterMeasure.AVG, weighting), noiseLevel, null);
+          new CenterFunction(CenterMeasure.AVG, weighting), noiseLevel, null, null);
     } catch (NullPointerException e) {
       MZmineCore.getDesktop().displayErrorMessage(
           "No mass list present in " + frameComboBox.getValue().getDataFile().getName()

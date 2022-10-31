@@ -264,4 +264,8 @@ public class RangeUtils {
   public static String formatRange(Range<? extends Number> range, NumberFormat format) {
     return format.format(range.lowerEndpoint()) + " - " + format.format(range.upperEndpoint());
   }
+
+  public static Range<Double> rangeAround(double center, double length) {
+    return Range.closed(center - length / 2, center + length / 2);
+  }
 }

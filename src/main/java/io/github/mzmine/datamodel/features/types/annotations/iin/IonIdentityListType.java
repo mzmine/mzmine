@@ -179,4 +179,9 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
           subType.getClass().getName(), subColumnIndex, this.getClass().getName(), newValue));
     }
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

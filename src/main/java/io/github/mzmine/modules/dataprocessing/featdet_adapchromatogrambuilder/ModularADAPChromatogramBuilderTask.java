@@ -179,6 +179,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
             "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
                 + "This will likely produce wrong results. "
                 + "Please, set the scan filter parameter to a specific MS level");
+        break;
       }
     }
 

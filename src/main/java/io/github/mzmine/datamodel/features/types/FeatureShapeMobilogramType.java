@@ -85,4 +85,8 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }
