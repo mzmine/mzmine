@@ -30,9 +30,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.TableViewUitls;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -42,6 +44,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -88,6 +92,9 @@ public class RawDataFileInfoPaneController {
   private TableColumn<Scan, String> definitionColumn;
 
   @FXML
+  private TableColumn<Scan, ImageView> massDetectionColumn;
+
+  @FXML
   private Label lblNumScans;
 
   @FXML
@@ -123,6 +130,11 @@ public class RawDataFileInfoPaneController {
         p -> new SimpleObjectProperty<>(p.getValue().getInjectionTime()));
     definitionColumn.setCellValueFactory(
         p -> new SimpleStringProperty(p.getValue().getScanDefinition()));
+    final Image image_true = FxIconUtil.loadImageFromResources("icons/icons8-tick-box-16.png");
+    final Image image_false = FxIconUtil.loadImageFromResources("icons/icons8-no-16.png");
+    massDetectionColumn.setCellValueFactory(p ->
+       p.getValue().getMassList() != null ? new SimpleObjectProperty<>(new ImageView(image_true)): new SimpleObjectProperty<>(new ImageView(image_false))
+    );
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();

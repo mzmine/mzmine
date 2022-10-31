@@ -118,6 +118,8 @@
         <TableColumn fx:id="injectTimeColumn" editable="false" prefWidth="75" text="Inject time"/>
         <TableColumn fx:id="definitionColumn" minWidth="15"  prefWidth="125.0"
           text="Scan definition" editable="false"/>
+        <TableColumn fx:id="massDetectionColumn" minWidth="15"  prefWidth="50.0"
+          text="Masses detected" editable="false"/>
       </columns>
     </TableView>
   </center>
