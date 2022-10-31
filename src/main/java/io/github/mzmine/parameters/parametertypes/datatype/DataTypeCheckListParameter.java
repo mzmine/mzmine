@@ -64,7 +64,7 @@ public class DataTypeCheckListParameter implements
    * @param dt The data type
    */
   public void addDataType(ColumnID dt) {
-    addDataType(dt, true);
+    addDataType(dt, dt.getDataType().getDefaultVisibility());
   }
 
   /**
@@ -92,7 +92,7 @@ public class DataTypeCheckListParameter implements
   public boolean isDataTypeVisible(ColumnID dataType) {
     Boolean val = value.get(getKey(dataType));
     if (val == null) {
-      val = true;
+      val = dataType.getDataType().getDefaultVisibility();
       addDataType(dataType, val);
     }
     return val;

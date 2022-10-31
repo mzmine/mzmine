@@ -286,4 +286,9 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
               value.getClass().getName()));
     }
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return false;
+  }
 }

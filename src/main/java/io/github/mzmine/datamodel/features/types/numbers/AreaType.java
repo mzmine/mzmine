@@ -74,4 +74,9 @@ public class AreaType extends HeightType {
 
     return null;
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

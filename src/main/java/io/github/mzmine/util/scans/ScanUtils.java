@@ -1652,6 +1652,177 @@ public class ScanUtils {
   }
 
   /**
+   * Calculates the spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p = peak
+   * index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   *
+   * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    final Double tic = spectrum.getTIC();
+    if (tic == null || tic <= 0 || spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      final double normalizedIntensity = spectrum.getIntensityValue(i) / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * Calculates the spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p = peak
+   * index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   *
+   * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getSpectralEntropy(@NotNull final double[] intensities) {
+    if(intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    final Double tic = Arrays.stream(intensities).sum();
+    if (tic <= 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      final double normalizedIntensity = intensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if(spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final double[] intensities) {
+    if(intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getSpectralEntropy(intensities) / Math.log(intensities.length);
+  }
+
+  /**
+   * Calculates the weighted spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p =
+   * peak index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   * For entropies S < 3, the intensities are reweighted.
+   *
+   * @return The weighted spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    final double entropy = getSpectralEntropy(spectrum);
+    if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
+      return entropy;
+    }
+
+    final double[] weightedIntensities = new double[spectrum.getNumberOfDataPoints()];
+    double tic = 0d;
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      weightedIntensities[i] = Math.pow(spectrum.getIntensityValue(i), 0.25 + entropy * 0.25);
+      tic += weightedIntensities[i];
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < weightedIntensities.length; i++) {
+      final double normalizedIntensity = weightedIntensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * Calculates the weighted spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p =
+   * peak index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   * For entropies S < 3, the intensities are reweighted.
+   *
+   * @return The weighted spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    final double entropy = getSpectralEntropy(intensities);
+    if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
+      return entropy;
+    }
+
+    final double[] weightedIntensities = new double[intensities.length];
+    double tic = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      weightedIntensities[i] = Math.pow(intensities[i], 0.25 + entropy * 0.25);
+      tic += weightedIntensities[i];
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < weightedIntensities.length; i++) {
+      final double normalizedIntensity = weightedIntensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if(spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    if(intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getWeightedSpectralEntropy(intensities) / Math.log(intensities.length);
+  }
+
+  /**
+   * @param msms The spectrum
+   * @return The lowest non-zero intensity or null if there are no data points..
+   */
+  @Nullable
+  public static Double getLowestIntensity(@NotNull final MassSpectrum msms) {
+    if (msms.getNumberOfDataPoints() == 0) {
+      return null;
+    }
+    double minIntensity = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+      final double intensity = msms.getIntensityValue(i);
+      if (intensity < minIntensity && intensity > 0) {
+        minIntensity = intensity;
+      }
+    }
+    return minIntensity < Double.POSITIVE_INFINITY ? minIntensity : null;
+  }
+
+  /**
    * Binning modes
    */
   public enum BinningType {

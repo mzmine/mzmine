@@ -47,4 +47,8 @@ public class CosineScoreType extends ScoreType {
     return "Cosine similarity";
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

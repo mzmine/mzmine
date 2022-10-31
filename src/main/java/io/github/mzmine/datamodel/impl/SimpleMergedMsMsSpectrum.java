@@ -26,10 +26,12 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -103,6 +105,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     double[] intensties = null;
     List<MobilityScan> scans = null;
     MsMsInfo info = null;
+    MassList ml = null; // only saved if its not a ScanPointerMassList
+
     while (reader.hasNext()) {
       int next = reader.next();
       if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)) {
@@ -120,12 +124,20 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
             scans = ParsingUtils.stringToMobilityScanList(reader.getElementText(), file);
         // the file has already been determined before
         case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
+        case SimpleMassList.XML_ELEMENT ->
+            SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
       }
     }
 
     assert mzs != null && intensties != null && scans != null;
-    return new SimpleMergedMsMsSpectrum(file.getMemoryMapStorage(), mzs, intensties, info, mslevel,
-        scans, type, SpectraMerging.DEFAULT_CENTER_FUNCTION);
+    final SimpleMergedMsMsSpectrum scan = new SimpleMergedMsMsSpectrum(file.getMemoryMapStorage(),
+        mzs, intensties, info, mslevel, scans, type, SpectraMerging.DEFAULT_CENTER_FUNCTION);
+
+    if (ml != null) {
+      scan.addMassList(ml);
+    }
+
+    return scan;
   }
 
   @Override
@@ -160,6 +172,10 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeStartElement(CONST.XML_SCAN_LIST_ELEMENT);
     writer.writeCharacters(ParsingUtils.mobilityScanListToString(mobilityScans));
     writer.writeEndElement();
+
+    if (massList instanceof SimpleMassList) {
+      ((SimpleMassList) massList).saveToXML(writer);
+    }
 
     writer.writeEndElement();
   }
