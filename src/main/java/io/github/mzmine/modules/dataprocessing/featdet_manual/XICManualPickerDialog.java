@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_manual;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -43,7 +44,7 @@ import java.awt.Toolkit;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 import java.time.Instant;
-import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -70,10 +71,11 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
 
   private static final Logger logger = Logger.getLogger(XICManualPickerDialog.class.getName());
 
-  private static final Image icoLower = FxIconUtil
-      .loadImageFromResources("icons/integration_lowerboundary.png");
-  private static final Image icoUpper = FxIconUtil
-      .loadImageFromResources("icons/integration_upperboundary.png");
+  private static final Image icoLower = FxIconUtil.loadImageFromResources(
+      "icons/integration_lowerboundary.png");
+  private static final Image icoUpper = FxIconUtil.loadImageFromResources(
+      "icons/integration_upperboundary.png");
+  private final ModularFeatureList flist;
 
   protected Range<Double> mzRange, rtRange;
   protected RawDataFile rawDataFile;
@@ -210,6 +212,8 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     this.parameters = parameters;
     mzRange = parameters.getParameter(XICManualPickerParameters.mzRange).getValue();
     rtRange = parameters.getParameter(XICManualPickerParameters.rtRange).getValue();
+    flist = parameters.getParameter(XICManualPickerParameters.flists).getValue()
+        .getMatchingFeatureLists()[0];
     rawDataFile = parameters.getParameter(XICManualPickerParameters.rawDataFiles).getValue()
         .getMatchingRawDataFiles()[0];
 
@@ -302,16 +306,16 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
       @Override
       public void run() {
         setStatus(TaskStatus.PROCESSING);
-        double area = FeatureUtils
-            .integrateOverMzRtRange(rawDataFile, RangeUtils.toFloatRange(rtRange), mzRange);
+        double area = FeatureUtils.integrateOverMzRtRange(rawDataFile,
+            (List<Scan>) flist.getSeletedScans(rawDataFile), RangeUtils.toFloatRange(rtRange), mzRange);
         Platform.runLater(() -> txtArea.setText(intensityFormat.format(area)));
         setStatus(TaskStatus.FINISHED);
       }
 
       @Override
       public String getTaskDescription() {
-        return "Manual integration of m/z " + mzFormat
-            .format((mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2);
+        return "Manual integration of m/z " + mzFormat.format(
+            (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2);
       }
 
       @Override

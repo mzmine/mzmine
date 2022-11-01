@@ -1,10 +1,44 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.featuredata;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -20,13 +54,14 @@ public class IonTimeSeriesUtils {
    * Remaps the values of the given series onto another set of scans to gain access to all RT
    * values, for example if the whole chromatogram including 0 intensities is required. This should
    * only be used for preview purposes, since buffers created by this method are not reused. If a
-   * set of features is processed, a {@link io.github.mzmine.datamodel.data_access.FeatureDataAccess}
-   * should be used. If access to all intensity and rt values including zero intensities is required
-   * in array form, {@link this#remapRtAxis(IonTimeSeries, List, double[], double[], double[])} can
-   * be used instead.
+   * set of features is processed, a
+   * {@link io.github.mzmine.datamodel.data_access.FeatureDataAccess} should be used. If access to
+   * all intensity and rt values including zero intensities is required in array form,
+   * {@link this#remapRtAxis(IonTimeSeries, List, double[], double[], double[])} can be used
+   * instead.
    * <p></p>
-   * Note that the use of this method removes the mobility dimension of a {@link
-   * IonMobilogramTimeSeries}.
+   * Note that the use of this method removes the mobility dimension of a
+   * {@link IonMobilogramTimeSeries}.
    *
    * @param series   The series.
    * @param newScans The scans. Have to contain all scans in the series.
@@ -96,13 +131,13 @@ public class IonTimeSeriesUtils {
     }
   }
 
-  public static <T extends IonTimeSeries<? extends Scan>> T normalizeToAvgTic(T series, @Nullable final
-      MemoryMapStorage storage) {
+  public static <S extends Scan, T extends IonTimeSeries<S>> T normalizeToAvgTic(T series,
+      List<S> allSelectedScans, @Nullable final MemoryMapStorage storage) {
     final List<? extends Scan> scans = series.getSpectra();
     final double[] intensities = new double[scans.size()];
     final double[] mzs = new double[scans.size()];
 
-    final double avgTic = scans.stream().mapToDouble(Scan::getTIC).average()
+    final double avgTic = allSelectedScans.stream().mapToDouble(Scan::getTIC).average()
         .orElseThrow(() -> new IllegalStateException("Cannot determine average TIC"));
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
@@ -113,4 +148,84 @@ public class IonTimeSeriesUtils {
 
     return (T) series.copyAndReplace(storage, mzs, intensities);
   }
+
+  /**
+   * Extracts an extracted ion chromatogram from the given raw file. The peak closest to the center
+   * of the given mz range will be used for every scan.
+   * <p></p>
+   * <b>Note</b>  that a new {@link ScanDataAccess} will be created on every call. If multiple
+   * chromatograms are to be created, use
+   * {@link IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)}
+   * instead.
+   *
+   * @return A chromatogram across the whole RT range of the scan selection.
+   */
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
+      @NotNull ScanSelection selection, @NotNull Range<Double> mzRange,
+      @Nullable MemoryMapStorage storage) {
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, selection);
+    return extractIonTimeSeries(access, mzRange, null, storage);
+  }
+
+  /**
+   * @see IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)
+   */
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
+      @NotNull List<Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
+      @Nullable MemoryMapStorage storage) {
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, scans);
+    return extractIonTimeSeries(access, mzRange, rtRange, storage);
+  }
+
+  /**
+   * Extracts an extracted ion chromatogram from the given raw file. The peak closest to the center
+   * of the given mz range will be used for every scan in the given rtRange.
+   *
+   * @param access  THe scan data access.
+   * @param mzRange The range of the m/z window. the m/z closest to the center will be used.
+   * @param rtRange if null, all scans in the data access will be used.
+   * @param storage The memory map storage.
+   * @return A chromatogram.
+   */
+  public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull ScanDataAccess access,
+      @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
+      @Nullable MemoryMapStorage storage) {
+
+    final DoubleArrayList mzs = new DoubleArrayList();
+    final DoubleArrayList intensities = new DoubleArrayList();
+    final List<Scan> scans = new ArrayList<>();
+
+    access.reset();
+    final double centerMz = RangeUtils.rangeCenter(mzRange);
+
+    int i = 0;
+
+    while (access.hasNextScan()) {
+      final Scan scan = access.nextScan();
+
+      if (rtRange != null && !rtRange.contains(scan.getRetentionTime())) {
+        continue;
+      }
+
+      final int closestPeakIndex = access.binarySearch(centerMz, true);
+      final double mz = access.getMzValue(closestPeakIndex);
+
+      if (mzRange.contains(mz)) {
+        scans.add(scan);
+        mzs.add(mz);
+        intensities.add(access.getIntensityValue(closestPeakIndex));
+      } else {
+        mzs.add(0);
+        intensities.add(0);
+        scans.add(scan);
+      }
+
+      i++;
+    }
+
+    return new SimpleIonTimeSeries(storage, mzs.toDoubleArray(), intensities.toDoubleArray(),
+        scans);
+  }
+
+
 }

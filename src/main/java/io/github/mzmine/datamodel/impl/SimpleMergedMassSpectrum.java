@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -30,7 +37,8 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -48,7 +56,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   private static final Logger logger = Logger.getLogger(SimpleMergedMsMsSpectrum.class.getName());
 
   protected final List<MassSpectrum> sourceSpectra;
-  protected final MergingType mergingType;
+  protected final IntensityMergingType intensityMergingType;
   protected final CenterFunction centerFunction;
   protected final RawDataFile rawDataFile;
   protected final float retentionTime;
@@ -62,18 +70,18 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
    * Construncts a new SimpleMergedMassSpectrum. A {@link ScanPointerMassList} will be created by
    * default.
    *
-   * @param storage         The storage to use. may be null.
-   * @param mzValues        The merged mz values
-   * @param intensityValues The merged intensities
-   * @param msLevel         The ms level
-   * @param sourceSpectra   The source spectra used to create this spectrum
-   * @param mergingType     The merging type this spectrum was created with.
-   * @param centerFunction  The center function this spectrum was created with.
+   * @param storage              The storage to use. may be null.
+   * @param mzValues             The merged mz values
+   * @param intensityValues      The merged intensities
+   * @param msLevel              The ms level
+   * @param sourceSpectra        The source spectra used to create this spectrum
+   * @param intensityMergingType The merging type this spectrum was created with.
+   * @param centerFunction       The center function this spectrum was created with.
    */
   public SimpleMergedMassSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, int msLevel,
-      @NotNull List<? extends MassSpectrum> sourceSpectra, @NotNull MergingType mergingType,
-      @NotNull CenterFunction centerFunction) {
+      @NotNull List<? extends MassSpectrum> sourceSpectra,
+      @NotNull SpectraMerging.IntensityMergingType intensityMergingType, @NotNull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues);
 
     assert !sourceSpectra.isEmpty();
@@ -82,26 +90,28 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     PolarityType tempPolarity = null;
     Range<Double> tempScanningMzRange = null;
     float tempRt = 0f;
+    int numScans = 0;
     for (MassSpectrum spectrum : sourceSpectra) {
-      if (file == null) {
-        if (spectrum instanceof Scan) {
-          file = ((Scan) spectrum).getDataFile();
-          tempPolarity = ((Scan) spectrum).getPolarity();
-          tempScanningMzRange = ((Scan) spectrum).getScanningMZRange();
-          tempRt = ((Scan) spectrum).getRetentionTime();
+      if (spectrum instanceof Scan scan) {
+        if (file == null) { // set only once
+          file = scan.getDataFile();
+          tempPolarity = scan.getPolarity();
+          tempScanningMzRange = scan.getScanningMZRange();
         }
-      }
-      if (spectrum instanceof Scan && file != ((Scan) spectrum).getDataFile()) {
-        logger.warning("Merging spectra with different raw data files");
+        if (file != scan.getDataFile()) {
+          logger.warning("Merging spectra with different raw data files");
+        }
+        numScans++;
+        tempRt += scan.getRetentionTime();
       }
     }
     rawDataFile = file;
 
-    this.retentionTime = tempRt;
+    retentionTime = tempRt / numScans;
     this.polarity = tempPolarity;
     this.scanningMzRange = tempScanningMzRange;
     this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
-    this.mergingType = mergingType;
+    this.intensityMergingType = intensityMergingType;
     this.centerFunction = centerFunction;
     this.msLevel = msLevel;
     this.scanDefinition = ScanUtils.scanToString(this, true);
@@ -114,8 +124,8 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   }
 
   @Override
-  public MergingType getMergingType() {
-    return mergingType;
+  public IntensityMergingType getMergingType() {
+    return intensityMergingType;
   }
 
   @Override

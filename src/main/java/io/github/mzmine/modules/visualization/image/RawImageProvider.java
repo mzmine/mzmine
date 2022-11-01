@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.image;
@@ -31,10 +38,10 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
@@ -72,7 +79,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
   private final Range<Double> mzRange;
   private final Range<Double> mobilityRange;
   private final boolean useMobility;
-  private final boolean normalize;
+  private final ImageNormalization normalize;
   private final double width;
   private final double height;
   protected PaintScale paintScale;
@@ -86,7 +93,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
     height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
     width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
 
-    this.normalize = parameters.getValue(ImageVisualizerParameters.normalize);
+    this.normalize = parameters.getValue(ImageVisualizerParameters.imageNormalization);
     this.scanSelection = parameters.getValue(ImageVisualizerParameters.scanSelection);
     this.mzRange = parameters.getValue(ImageVisualizerParameters.mzRange);
     this.useMobility = parameters.getValue(ImageVisualizerParameters.mobilityRange);
@@ -179,12 +186,13 @@ public class RawImageProvider implements PlotXYZDataProvider {
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     series = extractIonTimeSeries();
 
-    if (normalize) {
-      series = IonTimeSeriesUtils.normalizeToAvgTic(series, null);
+    if (normalize != null) {
+      series = normalize.normalize(series, scanSelection.getMatchingScans(raw.getScans()), null);
     }
 
     double[] intensities = series.getIntensityValues(new double[series.getNumberOfValues()]);
-    final double[] quantiles = MathUtils.calcQuantile(intensities, new double[]{0.50, 0.98});
+    final double[] quantiles = MathUtils.calcQuantile(intensities,
+        ImagingPlot.DEFAULT_IMAGING_QUANTILES);
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_features_gnps;
@@ -24,7 +31,7 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameter
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.parser.GnpsJsonParser;
+import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import io.github.mzmine.util.web.RequestResponse;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -164,7 +171,7 @@ public class GNPSUtils {
       if (json.containsKey("peaks")) {
         // https://metabolomics-usi.ucsd.edu/json/?usi1=mzspec%3AGNPS%3AGNPS-LIBRARY%3Aaccession%3ACCMSLIB00000579622
         JsonArray peaks = json.getJsonArray("peaks");
-        DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(peaks);
+        DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(peaks);
         final double precursorMz = json.getJsonNumber("precursor_mz").doubleValue();
         final int charge = json.getJsonNumber("precursor_charge").intValue();
         return new SpectralDBEntry(precursorMz, charge, spectrum);
@@ -174,7 +181,7 @@ public class GNPSUtils {
         final JsonObject info = json.getJsonObject("spectruminfo");
         final String spectrumString = info.getJsonString("peaks_json").getString();
         try (JsonReader specReader = Json.createReader(new StringReader(spectrumString))) {
-          final DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(
+          final DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(
               specReader.readArray());
 
           // precursor mz

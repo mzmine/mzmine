@@ -1,25 +1,33 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.image;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -30,6 +38,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import java.awt.Color;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.layout.BorderPane;
 import org.jfree.chart.axis.AxisLocation;
@@ -40,6 +49,7 @@ import org.jfree.chart.axis.NumberAxis;
  */
 public class ImagingPlot extends BorderPane {
 
+  public static final double[] DEFAULT_IMAGING_QUANTILES = new double[]{0.50, 0.98};
   private static final Logger logger = Logger.getLogger(ImagingPlot.class.getName());
   private final SimpleXYZScatterPlot<FeatureImageProvider> chart;
   private ParameterSet parameters;
@@ -59,8 +69,9 @@ public class ImagingPlot extends BorderPane {
   }
 
   public void setData(ModularFeature feature) {
-    FeatureImageProvider prov = new FeatureImageProvider(feature,
-        parameters.getValue(ImageVisualizerParameters.normalize));
+    FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(feature,
+        (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+        parameters.getValue(ImageVisualizerParameters.imageNormalization));
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     setData(ds);
   }
@@ -77,7 +88,7 @@ public class ImagingPlot extends BorderPane {
     setData(raw);
   }
 
-  private void setData(ColoredXYZDataset ds) {
+  public void setData(ColoredXYZDataset ds) {
     chart.setDataset(ds);
   }
 

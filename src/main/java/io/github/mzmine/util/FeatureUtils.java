@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -22,22 +29,31 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,7 +79,7 @@ public class FeatureUtils {
    * @return String representation of the feature
    */
   public static String featureToString(@Nullable Feature feature) {
-    if(feature == null) {
+    if (feature == null) {
       return "null";
     }
     StringBuffer buf = new StringBuffer();
@@ -239,36 +255,12 @@ public class FeatureUtils {
    * @param mzRange
    * @return The result of the integration.
    */
-  public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
-    ManualFeature newFeature = new ManualFeature(dataFile);
-    boolean dataPointFound = false;
+  public static double integrateOverMzRtRange(RawDataFile dataFile, List<Scan> scans,
+      Range<Float> rtRange, Range<Double> mzRange) {
+    final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(dataFile, scans,
+        mzRange, rtRange, null);
 
-    Scan[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-
-    for (Scan scan : scanNumbers) {
-      // Find most intense m/z feature
-      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
-
-      if (basePeak != null) {
-        if (basePeak.getIntensity() > 0) {
-          dataPointFound = true;
-        }
-        newFeature.addDatapoint(scan, basePeak);
-      } else {
-        final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
-        DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newFeature.addDatapoint(scan, fakeDataPoint);
-      }
-
-    }
-
-    if (dataPointFound) {
-      newFeature.finalizeFeature();
-      return newFeature.getArea();
-    } else {
-      return 0.0;
-    }
+    return FeatureDataUtils.calculateArea(series);
   }
 
 
@@ -480,8 +472,8 @@ public class FeatureUtils {
   /**
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
-   * {@link ListWithSubsType} within the {@link FeatureListRow}'s {@link
-   * io.github.mzmine.datamodel.features.ModularDataModel}.
+   * {@link ListWithSubsType} within the {@link FeatureListRow}'s
+   * {@link io.github.mzmine.datamodel.features.ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.
@@ -501,5 +493,30 @@ public class FeatureUtils {
       }
     }
     return compoundAnnotations;
+  }
+
+  public static boolean isImsFeature(Feature f) {
+    return f.getRawDataFile() instanceof IMSRawDataFile
+        && f.getFeatureData() instanceof IonMobilogramTimeSeries;
+  }
+
+  /**
+   * Extracts the best (most confident) {@link FeatureAnnotation} from a feature/row.
+   * @param m The row/feature.
+   * @return The annotation or null.
+   */
+  @Nullable
+  public static FeatureAnnotation getBestFeatureAnnotation(ModularDataModel m) {
+    final List<SpectralDBAnnotation> specDb = m.get(SpectralLibraryMatchesType.class);
+    if (specDb != null && !specDb.isEmpty()) {
+      return specDb.get(0);
+    }
+
+    final List<CompoundDBAnnotation> comp = m.get(CompoundDatabaseMatchesType.class);
+    if (comp != null && !comp.isEmpty()) {
+      return comp.get(0);
+    }
+
+    return null;
   }
 }
