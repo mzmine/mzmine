@@ -76,6 +76,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1046,13 +1047,18 @@ public class ScanUtils {
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol,
       AtomicDouble progress) {
+    return getMSnFragmentTrees(raw.getScans(), mzTol, progress);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(List<Scan> scans, MZTolerance mzTol,
+      AtomicDouble progress) {
     // at any time in the flow there should only be the latest precursor with the same m/z
     MZToleranceRangeMap<PrecursorIonTreeNode> ms2Nodes = new MZToleranceRangeMap<>(mzTol);
 
     PrecursorIonTreeNode parent = null;
-    final int totalScans = raw.getNumOfScans();
+    final int totalScans = scans.size();
 
-    for (Scan scan : raw.getScans()) {
+    for (Scan scan : scans) {
       if (scan.getMSLevel() <= 1) {
         continue;
       }
@@ -1682,7 +1688,7 @@ public class ScanUtils {
    * no ions in the spectrum.
    */
   public static double getSpectralEntropy(@NotNull final double[] intensities) {
-    if(intensities.length == 0) {
+    if (intensities.length == 0) {
       return Double.POSITIVE_INFINITY;
     }
 
@@ -1704,7 +1710,7 @@ public class ScanUtils {
    * @see #getSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
-    if(spectrum.getNumberOfDataPoints() == 0) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
@@ -1715,7 +1721,7 @@ public class ScanUtils {
    * @see #getSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedSpectralEntropy(@NotNull final double[] intensities) {
-    if(intensities.length == 0) {
+    if (intensities.length == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getSpectralEntropy(intensities) / Math.log(intensities.length);
@@ -1786,7 +1792,7 @@ public class ScanUtils {
    * @see #getWeightedSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
-    if(spectrum.getNumberOfDataPoints() == 0) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
@@ -1797,7 +1803,7 @@ public class ScanUtils {
    * @see #getWeightedSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedWeightedSpectralEntropy(@NotNull final double[] intensities) {
-    if(intensities.length == 0) {
+    if (intensities.length == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getWeightedSpectralEntropy(intensities) / Math.log(intensities.length);
@@ -1820,6 +1826,26 @@ public class ScanUtils {
       }
     }
     return minIntensity < Double.POSITIVE_INFINITY ? minIntensity : null;
+  }
+
+  /**
+   * Split scans into lists for each fragmentation energy. Usually the MSn levels are split before
+   *
+   * @param scans input list
+   * @return map of fragmention energy to scans
+   */
+  public static Map<Float, List<Scan>> splitByFragmentationEnergy(final List<Scan> scans) {
+    return scans.stream().collect(Collectors.groupingBy(ScanUtils::getActivationEnergy));
+  }
+
+
+  public static @Nullable Float getActivationEnergy(final MassSpectrum spectrum) {
+    if (spectrum instanceof Scan scan && scan.getMsMsInfo() != null) {
+      return scan.getMsMsInfo().getActivationEnergy();
+    } else if (spectrum instanceof MergedMsMsSpectrum merged) {
+      return merged.getCollisionEnergy();
+    }
+    return null;
   }
 
   /**

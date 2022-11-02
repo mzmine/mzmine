@@ -54,6 +54,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -89,6 +91,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
+  private final FragmentScanSelection selection;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -124,6 +127,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       mzTolChimericsMainIon = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
+
+    //
+    selection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true, true,
+        IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY);
   }
 
   @Override
@@ -181,11 +188,13 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap = Map.of();
     }
 
-    String lastName = null;
+    // merge spectra, find best spectrum for each MSn node in the tree and each energy
+    scans = selection.getAllFragmentSpectra(scans);
 
     List<DataPoint[]> spectra = scans.stream().map(Scan::getMassList)
         .map(ScanUtils::extractDataPoints).toList();
 
+    String lastName = null;
     for (var match : matches) {
       // first entry for the same molecule reflect the most common ion type, usually M+H
       if (Objects.equals(match.getCompoundName(), lastName)) {

@@ -57,6 +57,11 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
     root.sort();
   }
 
+  /**
+   * Stream the whole tree. {@link PrecursorIonTreeNode#streamWholeTree()}
+   *
+   * @return stream of the tree nodes
+   */
   @NotNull
   public Stream<PrecursorIonTreeNode> stream() {
     return root.streamWholeTree();
