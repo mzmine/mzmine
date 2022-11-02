@@ -26,6 +26,8 @@
 package io.github.mzmine.datamodel;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -95,5 +97,12 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
   public List<Scan> getAllFragmentScans() {
     return root.getAllFragmentScans();
+  }
+
+  /**
+   * maps the MS level to the nodes
+   */
+  public @NotNull Map<Integer, List<PrecursorIonTreeNode>> groupByMsLevel() {
+    return stream().collect(Collectors.groupingBy(PrecursorIonTreeNode::getMsLevel));
   }
 }
