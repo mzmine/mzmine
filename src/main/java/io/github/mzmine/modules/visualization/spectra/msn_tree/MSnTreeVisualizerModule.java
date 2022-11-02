@@ -26,9 +26,11 @@
 package io.github.mzmine.modules.visualization.spectra.msn_tree;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DialogLoggerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,11 +40,21 @@ public class MSnTreeVisualizerModule implements MZmineModule {
 
   public static void showNewTab() {
     RawDataFile[] raw = MZmineCore.getDesktop().getSelectedDataFiles();
+    FeatureList[] flists = MZmineCore.getDesktop().getSelectedPeakLists();
+    if ((raw == null || raw.length == 0) && (flists == null || flists.length == 0)) {
+      DialogLoggerUtil.showMessageDialogForTime("Selection needed",
+          "Select a data file or feature to open the MSn tree", 5000);
+      return;
+    }
+
     MZmineCore.runLater(() -> {
       MSnTreeTab tab = new MSnTreeTab();
       MZmineCore.getDesktop().addTab(tab);
       if (raw != null && raw.length > 0) {
         tab.setRawDataFile(raw[0]);
+      }
+      if (flists != null && flists.length > 0) {
+        tab.setFeatureList(flists[0]);
       }
     });
   }

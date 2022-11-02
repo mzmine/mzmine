@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
@@ -117,7 +118,10 @@ public class MSnTreeTab extends SimpleTab {
   public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 5, 5, 5);
   private int lastSelectedItem = -1;
   private PrecursorIonTreeNode currentRoot = null;
+
+  // only one might be selected
   private RawDataFile raw;
+  private FeatureList featureList;
 
 
   public MSnTreeTab() {
@@ -243,11 +247,17 @@ public class MSnTreeTab extends SimpleTab {
     // parameters
     final MZTolerance mzTol = treeParameters.getValue(MSnTreeVisualizerParameters.mzTol);
     final RawDataFile finalraw = this.raw;
+    final FeatureList finalFlist = this.featureList;
     // track current thread
     final long current = currentThread.incrementAndGet();
     Thread thread = new Thread(() -> {
       // run on different thread
-      final List<PrecursorIonTree> trees = ScanUtils.getMSnFragmentTrees(finalraw, mzTol);
+      final List<PrecursorIonTree> trees;
+      if (finalraw != null) {
+        trees = ScanUtils.getMSnFragmentTrees(finalraw, mzTol);
+      } else {
+        trees = ScanUtils.getMSnFragmentTrees(finalFlist, mzTol);
+      }
       MZmineCore.runLater(() -> {
         if (current == currentThread.get()) {
 
@@ -337,6 +347,13 @@ public class MSnTreeTab extends SimpleTab {
    */
   public synchronized void setRawDataFile(RawDataFile raw) {
     this.raw = raw;
+    featureList = null;
+    regenerateTrees(treeParameters);
+  }
+
+  public void setFeatureList(final FeatureList flist) {
+    this.featureList = flist;
+    this.raw = null;
     regenerateTrees(treeParameters);
   }
 
@@ -607,4 +624,5 @@ public class MSnTreeTab extends SimpleTab {
       setRawDataFile(rawDataFiles.stream().findFirst().get());
     }
   }
+
 }
