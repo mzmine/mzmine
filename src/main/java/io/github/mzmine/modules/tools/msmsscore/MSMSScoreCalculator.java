@@ -136,7 +136,7 @@ public class MSMSScoreCalculator {
       IMolecularFormula formula = msmsEngine.getNextFormula();
       if (formula != null) {
         String formulaString = MolecularFormulaManipulator.getString(formula);
-        msmsAnnotations.put(dp, formulaString);
+        msmsAnnotations.put(dp, String.format("[M-%s]", formulaString));
         interpretedMSMSpeaks++;
       }
       totalMSMSpeaks++;
