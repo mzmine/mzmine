@@ -26,6 +26,7 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -92,8 +93,14 @@ public class SpectralDBEntry {
       final DataPoint[] dataPoints) {
     this(Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz()), dataPoints);
     // scan details
+
     putIfNotNull(DBEntryField.CHARGE, scan.getPrecursorCharge());
     putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
+
+    if (scan instanceof MergedMassSpectrum merged) {
+      putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
+      putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getType());
+    }
 
     MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo instanceof MSnInfoImpl msnInfo) {
