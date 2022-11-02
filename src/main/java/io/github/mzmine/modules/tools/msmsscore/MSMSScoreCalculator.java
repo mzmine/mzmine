@@ -95,7 +95,7 @@ public class MSMSScoreCalculator {
     }
 
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
-    Map<Double, String> msmsAnnotations = new Hashtable<>();
+    Map<DataPoint, String> msmsAnnotations = new Hashtable<>();
 
     // If getPrecursorCharge() returns 0, it means charge is unknown. In
     // that case let's assume charge 1
@@ -136,7 +136,7 @@ public class MSMSScoreCalculator {
       IMolecularFormula formula = msmsEngine.getNextFormula();
       if (formula != null) {
         String formulaString = MolecularFormulaManipulator.getString(formula);
-        msmsAnnotations.put(dp.getMZ(), formulaString);
+        msmsAnnotations.put(dp, formulaString);
         interpretedMSMSpeaks++;
       }
       totalMSMSpeaks++;
