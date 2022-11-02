@@ -119,7 +119,7 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
           msnTrees.size()));
     }
     PrecursorIonTree tree = msnTrees.stream()
-        .sorted(Comparator.comparingInt(PrecursorIonTree::countPrecursor)).findFirst().orElse(null);
+        .max(Comparator.comparingInt(PrecursorIonTree::countPrecursor)).orElse(null);
 
     // merge each MSn node and add all selected scans
     List<List<Scan>> mergedPerTreeNode = tree.stream().map(PrecursorIonTreeNode::getFragmentScans)

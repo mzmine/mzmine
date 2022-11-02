@@ -84,6 +84,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
+@SuppressWarnings("UnstableApiUsage")
 public class SpectraMerging {
 
   public static final double EPSILON = 1E-15;

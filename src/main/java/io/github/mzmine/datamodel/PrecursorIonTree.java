@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A tree structure to temporarily capture a precursor and all its fragment scans (MSn)
  *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
