@@ -65,6 +65,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   protected final PolarityType polarity;
   protected String scanDefinition; // cannot be final due to subclasses
   protected MassList massList = null;
+  private final Type type;
 
   /**
    * Construncts a new SimpleMergedMassSpectrum. A {@link ScanPointerMassList} will be created by
@@ -77,15 +78,17 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
    * @param sourceSpectra        The source spectra used to create this spectrum
    * @param intensityMergingType The merging type this spectrum was created with.
    * @param centerFunction       The center function this spectrum was created with.
+   * @param type
    */
   public SimpleMergedMassSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, int msLevel,
       @NotNull List<? extends MassSpectrum> sourceSpectra,
-      @NotNull SpectraMerging.IntensityMergingType intensityMergingType, @NotNull CenterFunction centerFunction) {
+      @NotNull SpectraMerging.IntensityMergingType intensityMergingType,
+      @NotNull CenterFunction centerFunction, final Type type) {
     super(storage, mzValues, intensityValues);
-
     assert !sourceSpectra.isEmpty();
 
+    this.type = type;
     RawDataFile file = null;
     PolarityType tempPolarity = null;
     Range<Double> tempScanningMzRange = null;
@@ -131,6 +134,11 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   @Override
   public CenterFunction getCenterFunction() {
     return centerFunction;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
   }
 
   @NotNull

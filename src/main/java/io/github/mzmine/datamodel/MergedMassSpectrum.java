@@ -31,6 +31,8 @@ import java.util.List;
 
 public interface MergedMassSpectrum extends Scan {
 
+  Type getType();
+
   /**
    * @return A list of spectra used to create this merged spectrum
    */
@@ -48,11 +50,14 @@ public interface MergedMassSpectrum extends Scan {
 
 
   /**
-   *
    * @return -1 to represent the artificial state of this spectrum.
    */
   @Override
   default int getScanNumber() {
     return -1;
+  }
+
+  enum Type {
+    ALL, ALL_MSN, MERGED_ENERGIES, SAME_ENERGY
   }
 }

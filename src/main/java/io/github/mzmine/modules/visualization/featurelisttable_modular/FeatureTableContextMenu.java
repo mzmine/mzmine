@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.Type;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -194,7 +195,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       if (!(dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType)) {
         return;
       }
-      if(dt instanceof IonIdentityListType) {
+      if (dt instanceof IonIdentityListType) {
         // disabled for now, remove operation requires further implementations
         return;
       }
@@ -381,7 +382,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         List<Scan> scans = (List<Scan>) selectedFeature.getFeatureData().getSpectra().stream()
             .filter(s -> range.contains(s.getRetentionTime())).toList();
         MergedMassSpectrum spectrum = SpectraMerging.mergeSpectra(scans,
-            SpectraMerging.defaultMs1MergeTol, null);
+            SpectraMerging.defaultMs1MergeTol, null, Type.ALL);
         SpectraVisualizerModule.addNewSpectrumTab(spectrum);
       }
     });
@@ -485,9 +486,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
-            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem);
+            showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
+            showCompoundDBResults, showSpectralDBResults, showMatchedLipidSignals,
+            new SeparatorMenuItem(), showPeakRowSummaryItem);
   }
 
   private void onShown() {
@@ -641,7 +642,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }).toList();
 
     final MergedMassSpectrum uncorrelatedSpectrum = SpectraMerging.mergeSpectra(mobilityScans,
-        SpectraMerging.pasefMS2MergeTol, null);
+        SpectraMerging.pasefMS2MergeTol, null, Type.ALL);
 
     controller.setScans(selectedFeature.getMZ(), ScanUtils.extractDataPoints(msms),
         selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncorrelatedSpectrum), " (correlated)",

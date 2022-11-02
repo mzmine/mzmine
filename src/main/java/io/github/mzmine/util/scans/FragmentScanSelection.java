@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.scans;
 
+import io.github.mzmine.datamodel.MergedMassSpectrum.Type;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.Scan;
@@ -91,7 +92,7 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     // merge by energies separately and then all together
     List<Scan> mergedByEnergy = mergeByFragmentationEnergy(byFragmentationEnergy);
     // first entry should be the mergeAll
-    allScans.add(mergeSpectra(mergedByEnergy));
+    allScans.add(mergeSpectra(mergedByEnergy, Type.ALL));
     addIf(mergeSeparateEnergies, allScans, mergedByEnergy);
 
     // filter out duplicates from the original scans list, same energy
@@ -128,9 +129,10 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     // first scan of each list is the representative scan (merged from all other or a single if solitary)
     List<Scan> representativeMergedScans = mergedPerTreeNode.stream().map(list -> list.get(0))
         .toList();
-    Scan allMerged = mergeSpectra(representativeMergedScans);
 
+    Scan allMerged = mergeSpectra(representativeMergedScans, Type.ALL_MSN);
     allScans.add(allMerged);
+
     mergedPerTreeNode.forEach(allScans::addAll);
     return allScans;
   }
@@ -180,7 +182,7 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     List<Scan> list = new ArrayList<>(perEnergy.size());
     for (final List<Scan> scans : perEnergy.values()) {
       if (scans.size() > 1) {
-        list.add(mergeSpectra(scans));
+        list.add(mergeSpectra(scans, Type.SAME_ENERGY));
       } else {
         list.add(scans.get(0));
       }
@@ -195,11 +197,11 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
    * @param scans input list of spectra to be merged
    * @return merged spectrum or a mass spectrum
    */
-  private Scan mergeSpectra(final List<? extends Scan> scans) {
+  private Scan mergeSpectra(final List<? extends Scan> scans, Type mergeType) {
     if (scans.size() == 1) {
       return scans.get(0);
     }
-    return SpectraMerging.mergeSpectra(scans, mzTol, null);
+    return SpectraMerging.mergeSpectra(scans, mzTol, null, mergeType);
   }
 
   private void addIf(boolean condition, final List<Scan> targetList, final Object scans) {

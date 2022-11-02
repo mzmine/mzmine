@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.Type;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PrecursorIonTree;
@@ -1242,7 +1243,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, Type.ALL);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1303,7 +1304,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, Type.ALL);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
