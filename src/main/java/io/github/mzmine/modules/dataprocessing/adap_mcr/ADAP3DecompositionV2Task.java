@@ -173,7 +173,6 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedPeakList);
 
     resolvedPeakList.setSelectedScans(dataFile, lists.chromatograms.getSeletedScans(dataFile));
-    lists.chromatograms.getAppliedMethods().forEach(m -> resolvedPeakList.getAppliedMethods().add(m));
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : lists.peaks.getAppliedMethods()) {

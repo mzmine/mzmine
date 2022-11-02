@@ -129,14 +129,8 @@ public class ADAPInterface {
 
     SimpleIonTimeSeries simpleIonTimeSeries = new SimpleIonTimeSeries(null, newMzs, newIntensities, scanNumbers);
 
-    ModularFeature n = null;
-    try {
-       n = new ModularFeature(alignedFeatureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED);
-    } catch (Exception e) {
-      System.out.println("**** " + e.getMessage());
-    }
+    return new ModularFeature(alignedFeatureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED);
 
-    return n;
   }
 
   @NotNull

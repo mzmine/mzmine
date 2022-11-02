@@ -174,7 +174,6 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
     resolvedPeakList.setSelectedScans(dataFile, peakList.getSeletedScans(dataFile));
 
-    peakList.getAppliedMethods().forEach(m -> resolvedPeakList.getAppliedMethods().add(m));
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
       resolvedPeakList.addDescriptionOfAppliedTask(method);
