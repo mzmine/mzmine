@@ -83,12 +83,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LibraryBatchGenerationTask.class.getName());
   private final ModularFeatureList[] flists;
-  private final int minSignals;
   private final ScanSelector scanExport;
   private final File outFile;
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
+  private final LibraryExportQualityParameters qualityParameters;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -102,7 +102,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
-    minSignals = parameters.getValue(LibraryBatchGenerationParameters.minSignals);
     scanExport = parameters.getValue(LibraryBatchGenerationParameters.scanExport);
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
     String exportFormat = format.getExtension();
@@ -113,6 +112,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     LibraryBatchMetadataParameters meta = parameters.getParameter(
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
+
+    qualityParameters = parameters.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters();
 
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
@@ -181,24 +183,23 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap = Map.of();
     }
 
-    String lastName = null;
-
-    List<DataPoint[]> spectra = scans.stream().map(Scan::getMassList)
-        .map(ScanUtils::extractDataPoints).toList();
-
     // first entry for the same molecule reflect the most common ion type, usually M+H
     var match = matches.get(0);
 
-    // filter matches
-    for (int i = 0; i < spectra.size(); i++) {
-      final DataPoint[] dataPoints = spectra.get(i);
-      if (dataPoints.length < minSignals) {
+    for (int i = 0; i < scans.size(); i++) {
+
+      final List<DataPoint> dataPoints = qualityParameters.matches(scans.get(i), match);
+      if (dataPoints == null) {
         continue;
       }
 
+      DataPoint[] dps =
+          qualityParameters.getValue(LibraryExportQualityParameters.exportExplainedPeaksOnly)
+              ? dataPoints.toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(scans.get(i));
+
       // add instrument type etc by parameter
       Scan scan = scans.get(i);
-      SpectralDBEntry entry = new SpectralDBEntry(scan, match, dataPoints);
+      SpectralDBEntry entry = new SpectralDBEntry(scan, match, dps);
       entry.putAll(metadataMap);
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed

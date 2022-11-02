@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
@@ -316,7 +317,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
     // MS/MS evaluation is slowest, so let's do it last
     Float msmsScore = null;
-    Map<Double, String> msmsAnnotations = null;
+    Map<DataPoint, String> msmsAnnotations = null;
 
     if (checkMSMS) {
       Scan msmsScan = peakListRow.getMostIntenseFragmentScan();
