@@ -77,7 +77,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new LibraryExportQualityParameters());
 
   public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, file, scanExport, exportFormat, metadata, handleChimerics});
+    super(new Parameter[]{flists, file, scanExport, exportFormat, metadata, handleChimerics,
+        quality});
   }
 
 }
