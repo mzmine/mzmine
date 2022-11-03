@@ -25,30 +25,13 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.scans.ScanUtils;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LibraryExportQualityParameters extends SimpleParameterSet {
 
@@ -65,8 +48,7 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
           "Minimum explained intensity in an MSMS.", 0.4d), false);
 
   public static final MZToleranceParameter formulaTolerance = new MZToleranceParameter(
-      "Formula m/z tolerance", "m/z tolerance to assign MSMS signals to a formula.", 0.003,
-      10.0d);
+      "Formula m/z tolerance", "m/z tolerance to assign MSMS signals to a formula.", 0.003, 10.0d);
 
   public static final BooleanParameter exportExplainedSignalsOnly = new BooleanParameter(
       "Export explained signals only",
@@ -77,88 +59,17 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
       "Only export MS/MS spectra if the feature list name contains the compound name.");
 
   public LibraryExportQualityParameters() {
-    super(new Parameter[]{minNumSignals, minExplainedSignals, minExplainedIntensity, formulaTolerance,
-        exportExplainedSignalsOnly, exportFlistNameMatchOnly});
+    super(
+        new Parameter[]{minNumSignals, minExplainedSignals, minExplainedIntensity, formulaTolerance,
+            exportExplainedSignalsOnly, exportFlistNameMatchOnly});
   }
 
-  /**
-   * @param msmsScan   The msms scan to evaluate
-   * @param annotation The annotation to base the evaluation on
-   * @return The list of explained signals. Null if this spectrum did not match the quality
-   * parameters. Empty list if formula parameters are disabled but the number of signals matched the
-   * requirements.
-   */
-  public List<DataPoint> matchAndGetExplainedSignals(final Scan msmsScan, final FeatureAnnotation annotation,
-      FeatureListRow f) {
-
-    if (getValue(LibraryExportQualityParameters.minNumSignals)
-        && msmsScan.getNumberOfDataPoints() < getParameter(
-        LibraryExportQualityParameters.minNumSignals).getEmbeddedParameter().getValue()) {
-      return null;
-    }
-
-    final String formula = annotation != null ? annotation.getFormula() : null;
-    if (formula == null || annotation.getCompoundName() == null) {
-      return null;
-    }
-
-    if (getValue(LibraryExportQualityParameters.exportFlistNameMatchOnly) && !f.getFeatureList()
-        .getName().contains(annotation.getCompoundName())) {
-      return null;
-    }
-
-    final MZTolerance msmsFormulaTolerance = getValue(
-        LibraryExportQualityParameters.formulaTolerance);
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        formula, SilentChemObjectBuilder.getInstance());
-    final List<DataPoint> explainedSignals = new ArrayList<>();
-
-    try {
-      FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    final IonType adductType = annotation.getAdductType();
-    if (adductType.getCDKFormula() != null) {
-      molecularFormula.add(adductType.getCDKFormula());
-    }
-
-    final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
-
-    if (getValue(LibraryExportQualityParameters.minExplainedIntensity)) {
-      MSMSScore intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(
-          msmsFormulaTolerance, molecularFormula, dataPoints, msmsScan.getPrecursorMz(),
-          msmsScan.getPrecursorCharge(), dataPoints.length);
-      if (intensityFormulaScore == null || intensityFormulaScore.getScore() < getParameter(
-          LibraryExportQualityParameters.minExplainedIntensity).getEmbeddedParameter().getValue()
-          .floatValue()) {
-        return null;
-      }
-      explainedSignals.addAll(intensityFormulaScore.getAnnotation().keySet());
-    }
-
-    if (getValue(LibraryExportQualityParameters.minExplainedSignals)) {
-      MSMSScore peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance,
-          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(),
-          dataPoints.length);
-      if (peakFormulaScore == null || peakFormulaScore.getScore() < getParameter(
-          LibraryExportQualityParameters.minExplainedSignals).getEmbeddedParameter().getValue()
-          .floatValue()) {
-        return null;
-      }
-      explainedSignals.clear(); // clear if we have previous annotations, they are the same
-      explainedSignals.addAll(peakFormulaScore.getAnnotation().keySet());
-    }
-
-    // double check if we still match the minimum peaks if we export explained only
-    if (getValue(LibraryExportQualityParameters.minNumSignals) && getValue(
-        LibraryExportQualityParameters.exportExplainedSignalsOnly)
-        && explainedSignals.size() < getParameter(
-        LibraryExportQualityParameters.minNumSignals).getEmbeddedParameter().getValue()) {
-      return null;
-    }
-
-    return explainedSignals;
+  public MsMsQualityChecker toQualityChecker() {
+    return new MsMsQualityChecker(
+        getValue(minNumSignals) ? getEmbeddedParameterValue(minNumSignals) : null,
+        getValue(minExplainedSignals) ? getEmbeddedParameterValue(minExplainedSignals) : null,
+        getValue(minExplainedIntensity) ? getEmbeddedParameterValue(minExplainedIntensity) : null,
+        getValue(formulaTolerance), getValue(exportExplainedSignalsOnly),
+        getValue(exportFlistNameMatchOnly));
   }
 }

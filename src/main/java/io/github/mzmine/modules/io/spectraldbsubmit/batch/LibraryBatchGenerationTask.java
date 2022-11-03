@@ -88,7 +88,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
-  private final LibraryExportQualityParameters qualityParameters;
+  private final MsMsQualityChecker msMsQualityChecker;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -113,8 +113,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
 
-    qualityParameters = parameters.getParameter(LibraryBatchGenerationParameters.quality)
-        .getEmbeddedParameters();
+    msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters().toQualityChecker();
 
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
@@ -193,15 +193,14 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 //      final DataPoint[] dataPoints = spectra.get(i);
 
       final Scan msmsScan = scans.get(i);
-      final List<DataPoint> explainedSignals = qualityParameters.matchAndGetExplainedSignals(
+      final List<DataPoint> explainedSignals = msMsQualityChecker.matchAndGetExplainedSignals(
           msmsScan, match, row);
       if (explainedSignals == null) {
         continue;
       }
 
-      DataPoint[] dps =
-          qualityParameters.getValue(LibraryExportQualityParameters.exportExplainedSignalsOnly)
-              ? explainedSignals.toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
+      DataPoint[] dps = msMsQualityChecker.exportExplainedSignalsOnly() ? explainedSignals.toArray(
+          DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
       // add instrument type etc by parameter
       SpectralDBEntry entry = new SpectralDBEntry(msmsScan, match, dps);
