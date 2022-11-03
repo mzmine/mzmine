@@ -102,7 +102,7 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
       return null;
     }
 
-    if (getValue(LibraryExportQualityParameters.exportFlistNameMatchOnly) && f.getFeatureList()
+    if (getValue(LibraryExportQualityParameters.exportFlistNameMatchOnly) && !f.getFeatureList()
         .getName().contains(annotation.getCompoundName())) {
       return null;
     }
@@ -149,6 +149,14 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
       }
       explainedPeaks.clear(); // clear if we have previous annotations, they are the same
       explainedPeaks.addAll(peakFormulaScore.getAnnotation().keySet());
+    }
+
+    // double check if we still match the minimum peaks if we export explained only
+    if (getValue(LibraryExportQualityParameters.minNumSignals) && getValue(
+        LibraryExportQualityParameters.exportExplainedPeaksOnly)
+        && explainedPeaks.size() < getParameter(
+        LibraryExportQualityParameters.minNumSignals).getEmbeddedParameter().getValue()) {
+      return null;
     }
 
     return explainedPeaks;
