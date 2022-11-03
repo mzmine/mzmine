@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
@@ -71,18 +72,24 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
       "Export explained peaks only",
       "Only explained peaks will be exported to the library spectrum.", false);
 
+  public static final BooleanParameter exportFlistNameMatchOnly = new BooleanParameter(
+      "Match compound and feature list name",
+      "Only export MS/MS spectra if the feature list name contains the compound name.");
+
   public LibraryExportQualityParameters() {
     super(new Parameter[]{minNumSignals, minExplainedPeaks, minExplainedIntensity, formulaTolerance,
-        exportExplainedPeaksOnly});
+        exportExplainedPeaksOnly, exportFlistNameMatchOnly});
   }
 
   /**
    * @param msmsScan   The msms scan to evaluate
    * @param annotation The annotation to base the evaluation on
    * @return The list of explained peaks. Null if this spectrum did not match the quality
-   * parameters. Empty list if formula parameters are disabled but the number of peaks matched
+   * parameters. Empty list if formula parameters are disabled but the number of peaks matched the
+   * requirements.
    */
-  public List<DataPoint> matches(final Scan msmsScan, final FeatureAnnotation annotation) {
+  public List<DataPoint> matches(final Scan msmsScan, final FeatureAnnotation annotation,
+      FeatureListRow f) {
 
     if (getValue(LibraryExportQualityParameters.minNumSignals)
         && msmsScan.getNumberOfDataPoints() < getParameter(
@@ -91,7 +98,12 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
     }
 
     final String formula = annotation != null ? annotation.getFormula() : null;
-    if (formula == null) {
+    if (formula == null || annotation.getCompoundName() == null) {
+      return null;
+    }
+
+    if (getValue(LibraryExportQualityParameters.exportFlistNameMatchOnly) && f.getFeatureList()
+        .getName().contains(annotation.getCompoundName())) {
       return null;
     }
 
