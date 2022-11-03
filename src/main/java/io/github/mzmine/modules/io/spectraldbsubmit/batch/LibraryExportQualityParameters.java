@@ -56,39 +56,39 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
       new IntegerParameter("Minimum number of signals",
           "Number of signals an MS2 must contain to be exported.", 3), true);
 
-  public static final OptionalParameter<PercentParameter> minExplainedPeaks = new OptionalParameter<>(
-      new PercentParameter("Minimum explained peaks (%)",
-          "Minimum number of explained peaks in an MSMS.", 0.4d), false);
+  public static final OptionalParameter<PercentParameter> minExplainedSignals = new OptionalParameter<>(
+      new PercentParameter("Minimum explained signals (%)",
+          "Minimum number of explained signals in an MSMS.", 0.4d), false);
 
   public static final OptionalParameter<PercentParameter> minExplainedIntensity = new OptionalParameter<>(
       new PercentParameter("Minimum explained intensity (%)",
           "Minimum explained intensity in an MSMS.", 0.4d), false);
 
   public static final MZToleranceParameter formulaTolerance = new MZToleranceParameter(
-      "MS/MS Formula tolerance", "m/z tolerance to assign MSMS signals to a formula.", 0.003,
+      "Formula m/z tolerance", "m/z tolerance to assign MSMS signals to a formula.", 0.003,
       10.0d);
 
-  public static final BooleanParameter exportExplainedPeaksOnly = new BooleanParameter(
-      "Export explained peaks only",
-      "Only explained peaks will be exported to the library spectrum.", false);
+  public static final BooleanParameter exportExplainedSignalsOnly = new BooleanParameter(
+      "Export explained signals only",
+      "Only explained signals will be exported to the library spectrum.", false);
 
   public static final BooleanParameter exportFlistNameMatchOnly = new BooleanParameter(
       "Match compound and feature list name",
       "Only export MS/MS spectra if the feature list name contains the compound name.");
 
   public LibraryExportQualityParameters() {
-    super(new Parameter[]{minNumSignals, minExplainedPeaks, minExplainedIntensity, formulaTolerance,
-        exportExplainedPeaksOnly, exportFlistNameMatchOnly});
+    super(new Parameter[]{minNumSignals, minExplainedSignals, minExplainedIntensity, formulaTolerance,
+        exportExplainedSignalsOnly, exportFlistNameMatchOnly});
   }
 
   /**
    * @param msmsScan   The msms scan to evaluate
    * @param annotation The annotation to base the evaluation on
-   * @return The list of explained peaks. Null if this spectrum did not match the quality
-   * parameters. Empty list if formula parameters are disabled but the number of peaks matched the
+   * @return The list of explained signals. Null if this spectrum did not match the quality
+   * parameters. Empty list if formula parameters are disabled but the number of signals matched the
    * requirements.
    */
-  public List<DataPoint> matches(final Scan msmsScan, final FeatureAnnotation annotation,
+  public List<DataPoint> matchAndGetExplainedSignals(final Scan msmsScan, final FeatureAnnotation annotation,
       FeatureListRow f) {
 
     if (getValue(LibraryExportQualityParameters.minNumSignals)
@@ -111,7 +111,7 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
         LibraryExportQualityParameters.formulaTolerance);
     final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
         formula, SilentChemObjectBuilder.getInstance());
-    final List<DataPoint> explainedPeaks = new ArrayList<>();
+    final List<DataPoint> explainedSignals = new ArrayList<>();
 
     try {
       FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
@@ -135,30 +135,30 @@ public class LibraryExportQualityParameters extends SimpleParameterSet {
           .floatValue()) {
         return null;
       }
-      explainedPeaks.addAll(intensityFormulaScore.getAnnotation().keySet());
+      explainedSignals.addAll(intensityFormulaScore.getAnnotation().keySet());
     }
 
-    if (getValue(LibraryExportQualityParameters.minExplainedPeaks)) {
+    if (getValue(LibraryExportQualityParameters.minExplainedSignals)) {
       MSMSScore peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance,
           molecularFormula, dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(),
           dataPoints.length);
       if (peakFormulaScore == null || peakFormulaScore.getScore() < getParameter(
-          LibraryExportQualityParameters.minExplainedPeaks).getEmbeddedParameter().getValue()
+          LibraryExportQualityParameters.minExplainedSignals).getEmbeddedParameter().getValue()
           .floatValue()) {
         return null;
       }
-      explainedPeaks.clear(); // clear if we have previous annotations, they are the same
-      explainedPeaks.addAll(peakFormulaScore.getAnnotation().keySet());
+      explainedSignals.clear(); // clear if we have previous annotations, they are the same
+      explainedSignals.addAll(peakFormulaScore.getAnnotation().keySet());
     }
 
     // double check if we still match the minimum peaks if we export explained only
     if (getValue(LibraryExportQualityParameters.minNumSignals) && getValue(
-        LibraryExportQualityParameters.exportExplainedPeaksOnly)
-        && explainedPeaks.size() < getParameter(
+        LibraryExportQualityParameters.exportExplainedSignalsOnly)
+        && explainedSignals.size() < getParameter(
         LibraryExportQualityParameters.minNumSignals).getEmbeddedParameter().getValue()) {
       return null;
     }
 
-    return explainedPeaks;
+    return explainedSignals;
   }
 }

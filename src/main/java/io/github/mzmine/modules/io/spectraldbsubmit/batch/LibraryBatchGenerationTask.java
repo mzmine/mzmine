@@ -192,22 +192,23 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     for (int i = 0; i < scans.size(); i++) {
 //      final DataPoint[] dataPoints = spectra.get(i);
 
-      final List<DataPoint> dataPoints = qualityParameters.matches(scans.get(i), match, row);
-      if (dataPoints == null) {
+      final Scan msmsScan = scans.get(i);
+      final List<DataPoint> explainedSignals = qualityParameters.matchAndGetExplainedSignals(
+          msmsScan, match, row);
+      if (explainedSignals == null) {
         continue;
       }
 
       DataPoint[] dps =
-          qualityParameters.getValue(LibraryExportQualityParameters.exportExplainedPeaksOnly)
-              ? dataPoints.toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(scans.get(i));
+          qualityParameters.getValue(LibraryExportQualityParameters.exportExplainedSignalsOnly)
+              ? explainedSignals.toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
       // add instrument type etc by parameter
-      Scan scan = scans.get(i);
-      SpectralDBEntry entry = new SpectralDBEntry(scan, match, dps);
+      SpectralDBEntry entry = new SpectralDBEntry(msmsScan, match, dps);
       entry.putAll(metadataMap);
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed
-        ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan,
+        ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
             ChimericPrecursorResult.PASSED);
         entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
         if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
@@ -217,8 +218,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       }
       // add file info
       final String fileUSI = Path.of(
-          Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
-              scan.getDataFile().getName())).getFileName().toString() + ":" + scan.getScanNumber();
+          Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
+              msmsScan.getDataFile().getName())).getFileName().toString() + ":"
+          + msmsScan.getScanNumber();
       entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
       entry.getField(DBEntryField.DATASET_ID).ifPresent(
           dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
