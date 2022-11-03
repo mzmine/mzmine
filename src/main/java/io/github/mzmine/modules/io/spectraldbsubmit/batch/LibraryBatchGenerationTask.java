@@ -83,12 +83,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LibraryBatchGenerationTask.class.getName());
   private final ModularFeatureList[] flists;
-  private final int minSignals;
   private final ScanSelector scanExport;
   private final File outFile;
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
+  private final MsMsQualityChecker msMsQualityChecker;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -102,7 +102,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
-    minSignals = parameters.getValue(LibraryBatchGenerationParameters.minSignals);
     scanExport = parameters.getValue(LibraryBatchGenerationParameters.scanExport);
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
     String exportFormat = format.getExtension();
@@ -113,6 +112,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     LibraryBatchMetadataParameters meta = parameters.getParameter(
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
+
+    msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters().toQualityChecker();
 
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
@@ -183,59 +185,56 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     String lastName = null;
 
-    List<DataPoint[]> spectra = scans.stream().map(Scan::getMassList)
-        .map(ScanUtils::extractDataPoints).toList();
+    // first entry for the same molecule reflect the most common ion type, usually M+H
+    var match = matches.get(0);
 
-    for (var match : matches) {
-      // first entry for the same molecule reflect the most common ion type, usually M+H
-      if (Objects.equals(match.getCompoundName(), lastName)) {
+    // filter matches
+    for (int i = 0; i < scans.size(); i++) {
+//      final DataPoint[] dataPoints = spectra.get(i);
+
+      final Scan msmsScan = scans.get(i);
+      final List<DataPoint> explainedSignals = msMsQualityChecker.matchAndGetExplainedSignals(
+          msmsScan, match, row);
+      if (explainedSignals == null) {
         continue;
       }
 
-      lastName = match.getCompoundName();
+      DataPoint[] dps = msMsQualityChecker.exportExplainedSignalsOnly() ? explainedSignals.toArray(
+          DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
-      // filter matches
-      for (int i = 0; i < spectra.size(); i++) {
-        final DataPoint[] dataPoints = spectra.get(i);
-        if (dataPoints.length < minSignals) {
-          continue;
+      // add instrument type etc by parameter
+      SpectralDBEntry entry = new SpectralDBEntry(msmsScan, match, dps);
+      entry.putAll(metadataMap);
+      if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
+        // default is passed
+        ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
+            ChimericPrecursorResult.PASSED);
+        entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
+        if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
+          entry.putIfNotNull(DBEntryField.NAME,
+              entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
         }
-
-        // add instrument type etc by parameter
-        Scan scan = scans.get(i);
-        SpectralDBEntry entry = new SpectralDBEntry(scan, match, dataPoints);
-        entry.putAll(metadataMap);
-        if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
-          // default is passed
-          ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan,
-              ChimericPrecursorResult.PASSED);
-          entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
-          if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
-            entry.putIfNotNull(DBEntryField.NAME,
-                entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
-          }
-        }
-        // add file info
-        final String fileUSI = Path.of(
-            Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
-                scan.getDataFile().getName())).getFileName().toString() + ":"
-            + scan.getScanNumber();
-        entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
-        entry.getField(DBEntryField.DATASET_ID).ifPresent(
-            dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
-
-        // add experimental data
-        if (entry.getField(DBEntryField.RT).isEmpty()) {
-          entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
-        }
-        if (entry.getField(DBEntryField.CCS).isEmpty()) {
-          entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
-        }
-
-        // export to file
-        exportEntry(writer, entry);
-        exported.incrementAndGet();
       }
+      // add file info
+      final String fileUSI = Path.of(
+          Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
+              msmsScan.getDataFile().getName())).getFileName().toString() + ":"
+          + msmsScan.getScanNumber();
+      entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
+      entry.getField(DBEntryField.DATASET_ID).ifPresent(
+          dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
+
+      // add experimental data
+      if (entry.getField(DBEntryField.RT).isEmpty()) {
+        entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+      }
+      if (entry.getField(DBEntryField.CCS).isEmpty()) {
+        entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+      }
+
+      // export to file
+      exportEntry(writer, entry);
+      exported.incrementAndGet();
     }
   }
 

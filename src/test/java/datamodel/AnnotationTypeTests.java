@@ -60,6 +60,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
@@ -352,7 +353,8 @@ public class AnnotationTypeTests {
 
     ResultFormula formula1 = new ResultFormula(form1,
         IsotopePatternCalculator.calculateIsotopePattern(form1, 0.01, 1, PolarityType.POSITIVE),
-        0.5f, 0.1f, Map.of(513.25, "C132", 200.26, "COF"),
+        0.5f, 0.1f,
+        Map.of(new SimpleDataPoint(513.25, 1d), "C132", new SimpleDataPoint(200.26, 1d), "COF"),
         MolecularFormulaManipulator.getMass(form1, 3));
     ResultFormula formula2 = new ResultFormula(form2,
         IsotopePatternCalculator.calculateIsotopePattern(form2, 0.01, 1, PolarityType.POSITIVE),

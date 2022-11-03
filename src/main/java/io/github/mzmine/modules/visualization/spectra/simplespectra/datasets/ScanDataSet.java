@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
@@ -187,8 +188,9 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset,
    *
    * @param annotation m/z value and annotation map
    */
-  public void addMzAnnotation(Map<Double, String> annotation) {
-    this.mzAnnotationMap.putAll(annotation);
+  public void addMzAnnotation(Map<DataPoint, String> annotation) {
+    annotation.entrySet().stream()
+        .forEach(e -> mzAnnotationMap.put(e.getKey().getMZ(), e.getValue()));
   }
 
 
