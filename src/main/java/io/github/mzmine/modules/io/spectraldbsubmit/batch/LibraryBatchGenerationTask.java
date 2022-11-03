@@ -188,7 +188,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     for (int i = 0; i < scans.size(); i++) {
 
-      final List<DataPoint> dataPoints = qualityParameters.matches(scans.get(i), match);
+      final List<DataPoint> dataPoints = qualityParameters.matches(scans.get(i), match, row);
       if (dataPoints == null) {
         continue;
       }
