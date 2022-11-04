@@ -55,6 +55,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import it.unimi.dsi.fastutil.doubles.Double2DoubleOpenHashMap;
 import java.awt.Color;
 import java.awt.Polygon;
@@ -431,7 +432,8 @@ public class MSnTreeTab extends SimpleTab {
 
     SpectraPlot previousPlot = null;
     // distribute collision energies in three categories low, med, high
-    final List<Float> collisionEnergies = currentRoot.getAllFragmentScans().stream().map(Scan::getMsMsInfo).filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy)
+    final List<Float> collisionEnergies = currentRoot.getAllFragmentScans().stream()
+        .map(Scan::getMsMsInfo).filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy)
         .filter(Objects::nonNull).distinct().sorted().toList();
 
     float minEnergy = 0f;
@@ -476,7 +478,8 @@ public class MSnTreeTab extends SimpleTab {
       // create combined SpectraPlot for each MS level - multiple datasets for shapes and lines
       int c = 0;
       for (PrecursorIonTreeNode precursor : levelPrecursors) {
-        final Color color = FxColorUtil.fxColorToAWT(colorMap.getOrDefault(precursor, javafx.scene.paint.Color.BLACK));
+        final Color color = FxColorUtil.fxColorToAWT(
+            colorMap.getOrDefault(precursor, javafx.scene.paint.Color.BLACK));
         final List<Scan> fragmentScans = precursor.getFragmentScans();
         for (final Scan scan : fragmentScans) {
           AbstractXYDataset data = ensureCentroidDataset(normalizeIntensities, denoise, scan);
@@ -487,7 +490,8 @@ public class MSnTreeTab extends SimpleTab {
           // add shapes dataset and renderer - no labels
           final ShapeType shapeType = getActivationEnergyShape(
               scan.getMsMsInfo().getActivationEnergy(), minEnergy, medEnergy, maxEnergy);
-          spectraPlot.addDataSet(data, color, false, new ArrowRenderer(shapeType, getShape(shapeType), color), null, false, false);
+          spectraPlot.addDataSet(data, color, false,
+              new ArrowRenderer(shapeType, getShape(shapeType), color), null, false, false);
 
           // combine all to one dataset for label
           combineDatasetsToOne(combinedData, data);
@@ -542,7 +546,7 @@ public class MSnTreeTab extends SimpleTab {
     var root = any.getRoot();
     // only get the merged spectrum on each level
     FragmentScanSelection selection = new FragmentScanSelection(mzTol, false,
-        IncludeInputSpectra.NONE);
+        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM);
     List<Scan> mergedSpectra = selection.getAllFragmentSpectra(root);
 
     // MS2 has two spectra - the merged MS2 and the spectrum of all MSn merged into it

@@ -58,6 +58,7 @@ import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.BufferedWriter;
@@ -130,7 +131,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     //
     selection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
-        IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY);
+        IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM);
   }
 
   @Override

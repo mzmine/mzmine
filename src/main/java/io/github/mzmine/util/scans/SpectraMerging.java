@@ -440,16 +440,20 @@ public class SpectraMerging {
 
   public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
       final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
+      @Nullable final MemoryMapStorage storage, final IntensityMergingType intensityMergeType,
+      final Type mergeType) {
+    return mergeSpectra(source, tolerance, storage, intensityMergeType, DEFAULT_CENTER_FUNCTION,
+        mergeType);
+  }
+
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
+      final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
       @Nullable final MemoryMapStorage storage, IntensityMergingType intensityMergingType,
       final CenterFunction centerFunction, Type mergeType) {
 
     // if we have mass lists, use them to merge.
-    final List<? extends MassSpectrum> spectra;
-    if (source.stream().allMatch(s -> s instanceof Scan)) {
-      spectra = source.stream().map(s -> ((Scan) s).getMassList()).toList();
-    } else {
-      spectra = source;
-    }
+    final List<? extends MassSpectrum> spectra = source.stream()
+        .map(s -> s instanceof Scan scan ? scan.getMassList() : s).toList();
 
     final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
         intensityMergingType, centerFunction, null, null, null);
