@@ -71,6 +71,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,7 +101,7 @@ public class SpectraMerging {
 
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
-  private static Logger logger = Logger.getLogger(SpectraMerging.class.getName());
+  private static final Logger logger = Logger.getLogger(SpectraMerging.class.getName());
 
   /**
    * Calculates merged intensities and mz values of all data points in the given spectrum. Ideally,
@@ -359,7 +360,7 @@ public class SpectraMerging {
    * @param storage              The storage to use.
    * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
    */
-  public static List<Scan> mergeMsMsSpectra(@NotNull final Collection<MergedMsMsSpectrum> spectra,
+  public static List<Scan> mergeMsMsSpectra(@NotNull final Collection<Scan> spectra,
       @NotNull final MZTolerance tolerance,
       @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
       @Nullable final MemoryMapStorage storage) {
@@ -368,11 +369,11 @@ public class SpectraMerging {
 
     final List<Scan> mergedSpectra = new ArrayList<>();
     // group spectra with the same CE into the same list
-    final Map<Float, List<MergedMsMsSpectrum>> grouped = spectra.stream()
-        .collect(Collectors.groupingBy(spectrum -> spectrum.getCollisionEnergy()));
+    final Map<Float, List<Scan>> grouped = spectra.stream()
+        .collect(Collectors.groupingBy(SpectraMerging::getCollisionEnergy));
 
-    for (final Entry<Float, List<MergedMsMsSpectrum>> entry : grouped.entrySet()) {
-      final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
+    for (final Entry<Float, List<Scan>> entry : grouped.entrySet()) {
+      final Scan spectrum = entry.getValue().get(0);
       final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
           tolerance, intensityMergingType, cf, null, null, null);
 
@@ -380,8 +381,13 @@ public class SpectraMerging {
         continue;
       }
 
-      final List<MassSpectrum> sourceSpectra = entry.getValue().stream()
-          .flatMap(s -> s.getSourceSpectra().stream()).collect(Collectors.toList());
+      final List<MassSpectrum> sourceSpectra = entry.getValue().stream().flatMap(s -> {
+        if (s instanceof MergedMassSpectrum spec) {
+          return spec.getSourceSpectra().stream();
+        } else {
+          return Stream.of(s);
+        }
+      }).collect(Collectors.toList());
 
       final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
           mzIntensities[0], mzIntensities[1], spectrum.getMsMsInfo(), spectrum.getMSLevel(),
@@ -390,6 +396,17 @@ public class SpectraMerging {
     }
 
     return mergedSpectra;
+  }
+
+  private static Float getCollisionEnergy(final Scan spec) {
+    if (spec instanceof MergedMsMsSpectrum merged) {
+      return merged.getCollisionEnergy();
+    }
+    MsMsInfo info = spec.getMsMsInfo();
+    if (info != null) {
+      return info.getActivationEnergy();
+    }
+    return null;
   }
 
   @Nullable
@@ -419,7 +436,7 @@ public class SpectraMerging {
 
     // todo use mass lists over raw scans to merge (separate PR)
 
-    final double merged[][] = calculatedMergedMzsAndIntensities(scans, tolerance,
+    final double[][] merged = calculatedMergedMzsAndIntensities(scans, tolerance,
         IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null, null);
 
     return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
