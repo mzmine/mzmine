@@ -233,9 +233,9 @@ public class RegularScanTypesTest {
     SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
-    List<SpectralDBAnnotation> value = List.of(
-        new SpectralDBAnnotation(entry, similarity, query, null),
-        new SpectralDBAnnotation(entry, similarity, query, 0.043f));
+    List<SpectralDBAnnotation> value = new ArrayList<>(
+        List.of(new SpectralDBAnnotation(entry, similarity, query, null),
+            new SpectralDBAnnotation(entry, similarity, query, 0.043f)));
 
     DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
@@ -297,17 +297,17 @@ public class RegularScanTypesTest {
         feature, file);
     comparePseudoSpectra(spectrum, (PseudoSpectrum) o1);
     comparePseudoSpectra(spectrum, (PseudoSpectrum) o2);
-    Assertions.assertEquals(o3, null);
-    Assertions.assertEquals(o4, null);
+    Assertions.assertNull(o3);
+    Assertions.assertNull(o4);
 
     Object o5 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
         project, flist, row, null, null);
     Object o6 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
         project, flist, row, feature, file);
-    Assertions.assertEquals(null,
+    Assertions.assertNull(
         DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
             null, null));
-    Assertions.assertEquals(null,
+    Assertions.assertNull(
         DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
             feature, file));
     comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o5).get(0)));

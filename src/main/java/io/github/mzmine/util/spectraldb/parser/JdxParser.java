@@ -108,7 +108,7 @@ public class JdxParser extends SpectralDBTextParser {
           if (l.contains("END")) {
             // row with END
             // add entry and reset
-            SpectralLibraryEntry entry = SpectralLibraryEntry.create(library, fields,
+            SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), fields,
                 dps.toArray(new DataPoint[dps.size()]));
             fields = new EnumMap<>(fields);
             dps.clear();

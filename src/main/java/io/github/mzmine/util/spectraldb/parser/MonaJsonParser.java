@@ -161,7 +161,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
     // metadata
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
     extractAllFields(main, map);
-    return SpectralLibraryEntry.create(library, map, dps);
+    return SpectralLibraryEntry.create(library.getStorage(), map, dps);
   }
 
   public void extractAllFields(JsonObject main, Map<DBEntryField, Object> map) {

@@ -28,6 +28,7 @@ package io.github.mzmine.util.spectraldb.parser.gnps;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -55,7 +56,8 @@ record GnpsLibraryEntry(
     @JsonProperty("PI") String principalInvestigator) {
 
   public SpectralLibraryEntry toSpectralLibraryEntry(@Nullable SpectralLibrary library) {
-    SpectralDBEntry entry = new SpectralDBEntry(library, spectrum[0], spectrum[1]);
+    MemoryMapStorage storage = library == null ? null : library.getStorage();
+    SpectralDBEntry entry = new SpectralDBEntry(storage, spectrum[0], spectrum[1]);
     entry.putIfNotNull(DBEntryField.ENTRY_ID, spectrum_id);
     entry.putIfNotNull(DBEntryField.GNPS_ID, spectrum_id);
     entry.putIfNotNull(DBEntryField.SPLASH, splash);

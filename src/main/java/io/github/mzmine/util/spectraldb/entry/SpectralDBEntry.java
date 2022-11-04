@@ -27,6 +27,7 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -46,23 +47,20 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   private static final String XML_DB_FIELD_ELEMENT = "entry";
   private static final String XML_FIELD_NAME_ATTR = "name";
 
-  @Nullable
-  private final SpectralLibrary library;
   private final Map<DBEntryField, Object> fields;
 
-  public SpectralDBEntry(@Nullable SpectralLibrary library, @NotNull double[] mzValues,
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, Map<DBEntryField, Object> fields) {
-    super(library == null ? null : library.getStorage(), mzValues, intensityValues);
-    this.library = library;
+    super(storage, mzValues, intensityValues);
     this.fields = new HashMap<>();
     if (fields != null) {
       this.fields.putAll(fields);
     }
   }
 
-  public SpectralDBEntry(@Nullable SpectralLibrary library, @NotNull double[] mzValues,
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues) {
-    this(library, mzValues, intensityValues, null);
+    this(storage, mzValues, intensityValues, null);
   }
 
   public static SpectralLibraryEntry loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -192,11 +190,9 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    if (!super.equals(o)) {
-      return false;
-    }
     SpectralDBEntry that = (SpectralDBEntry) o;
-    return Objects.equals(fields, that.fields);
+    return Objects.equals(fields, that.fields)
+        && getNumberOfDataPoints() == that.getNumberOfDataPoints();
   }
 
   @Override
@@ -210,8 +206,4 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     return fields;
   }
 
-  @Override
-  public @Nullable SpectralLibrary getLibrary() {
-    return library;
-  }
 }

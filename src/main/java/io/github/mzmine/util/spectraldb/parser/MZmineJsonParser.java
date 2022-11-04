@@ -183,7 +183,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
       }
     }
 
-    return SpectralLibraryEntry.create(library, map, dps);
+    return SpectralLibraryEntry.create(library.getStorage(), map, dps);
   }
 
   public static DataPoint[] getDataPointsFromJsonArray(JsonArray data) {

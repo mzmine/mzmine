@@ -94,8 +94,8 @@ public class GnpsMgfParser extends SpectralDBTextParser {
               if (l.equalsIgnoreCase("END IONS")) {
                 // add entry and reset
                 if (fields.size() > 1 && dps.size() > 1) {
-                  SpectralLibraryEntry entry = SpectralLibraryEntry.create(library, fields,
-                      dps.toArray(new DataPoint[dps.size()]));
+                  SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(),
+                      fields, dps.toArray(new DataPoint[dps.size()]));
                   // add and push
                   addLibraryEntry(entry);
                   correct++;

@@ -207,8 +207,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
           DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
       // add instrument type etc by parameter
-        Scan scan = scans.get(i);
-        SpectralLibraryEntry entry = SpectralLibraryEntry.create(library, scan, match, dps);
+      Scan scan = scans.get(i);
+      SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), scan, match,
+          dps);
       entry.putAll(metadataMap);
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed

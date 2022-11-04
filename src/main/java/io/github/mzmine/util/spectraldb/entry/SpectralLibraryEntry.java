@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,31 +69,31 @@ public interface SpectralLibraryEntry extends MassList {
   Logger logger = Logger.getLogger(SpectralLibraryEntry.class.getName());
   String XML_ELEMENT_ENTRY = "spectraldatabaseentry";
 
-  static SpectralLibraryEntry create(@Nullable SpectralLibrary library, double precursorMZ,
+  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage, double precursorMZ,
       DataPoint[] dps) {
     double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
     Map<DBEntryField, Object> fields = new HashMap<>();
     fields.put(DBEntryField.PRECURSOR_MZ, precursorMZ);
     fields.put(DBEntryField.NUM_PEAKS, dps.length);
-    return new SpectralDBEntry(library, data[0], data[1], fields);
+    return new SpectralDBEntry(storage, data[0], data[1], fields);
   }
 
-  static SpectralLibraryEntry create(@Nullable SpectralLibrary library, double precursorMZ,
+  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage, double precursorMZ,
       int charge, DataPoint[] dps) {
-    SpectralLibraryEntry entry = create(library, precursorMZ, dps);
+    SpectralLibraryEntry entry = create(storage, precursorMZ, dps);
     entry.putIfNotNull(DBEntryField.CHARGE, charge);
     return entry;
   }
 
-  static SpectralLibraryEntry create(@Nullable SpectralLibrary library,
+  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage,
       Map<DBEntryField, Object> fields, DataPoint[] dps) {
     double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
-    return new SpectralDBEntry(library, data[0], data[1], fields);
+    return new SpectralDBEntry(storage, data[0], data[1], fields);
   }
 
-  static SpectralLibraryEntry create(@Nullable SpectralLibrary library, final Scan scan,
+  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage, final Scan scan,
       final CompoundDBAnnotation match, final DataPoint[] dataPoints) {
-    SpectralLibraryEntry entry = create(library,
+    SpectralLibraryEntry entry = create(storage,
         Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz()),
         scan.getPrecursorCharge(), dataPoints);
     // scan details
@@ -164,8 +165,6 @@ public interface SpectralLibraryEntry extends MassList {
   <T> T getOrElse(DBEntryField f, T defaultValue);
 
   Map<DBEntryField, Object> getFields();
-
-  @Nullable SpectralLibrary getLibrary();
 
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 }

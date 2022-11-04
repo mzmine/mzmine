@@ -94,7 +94,7 @@ public class NistMspParser extends SpectralDBTextParser {
             if (isData) {
               // empty row after data
               // add entry and reset
-              SpectralLibraryEntry entry = SpectralLibraryEntry.create(library, fields,
+              SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), fields,
                   dps.toArray(new DataPoint[dps.size()]));
               // add and push
               addLibraryEntry(entry);
