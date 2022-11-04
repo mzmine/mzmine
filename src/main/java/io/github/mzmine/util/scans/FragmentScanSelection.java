@@ -36,7 +36,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,11 +45,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param mzTol
  * @param mergeSeparateEnergies
- * @param mergeEnergiesPerMSnNode
  * @param inputSpectra
  */
 public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEnergies,
-                                    boolean mergeEnergiesPerMSnNode,
                                     IncludeInputSpectra inputSpectra) {
 
   private static final Logger logger = Logger.getLogger(FragmentScanSelection.class.getName());
@@ -108,7 +105,6 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
   }
 
   private List<Scan> getAllFromMSn(final List<Scan> scans) {
-    List<Scan> allScans = new ArrayList<>();
     // get all merged spectra on MSn tree nodes, energies, and then one spectrum for all merged into one
     // for MS2, that means that all spectra are merged first for individual energies and then all of them to one
     // Empty list if only one spectrum
@@ -122,17 +118,28 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     PrecursorIonTree tree = msnTrees.stream()
         .max(Comparator.comparingInt(PrecursorIonTree::countPrecursor)).orElse(null);
 
+    return tree == null ? List.of() : getAllFragmentSpectra(tree);
+  }
+
+  @NotNull
+  public List<Scan> getAllFragmentSpectra(final PrecursorIonTree tree) {
+    return getAllFragmentSpectra(tree.getRoot());
+  }
+
+  @NotNull
+  public List<Scan> getAllFragmentSpectra(final PrecursorIonTreeNode root) {
     // merge each MSn node and add all selected scans
-    List<List<Scan>> mergedPerTreeNode = tree.stream().map(PrecursorIonTreeNode::getFragmentScans)
-        .map(this::getAllScans).toList();
+    List<List<Scan>> mergedPerTreeNode = root.streamWholeTree()
+        .map(PrecursorIonTreeNode::getFragmentScans).map(this::getAllScans).toList();
 
     // first scan of each list is the representative scan (merged from all other or a single if solitary)
     List<Scan> representativeMergedScans = mergedPerTreeNode.stream().map(list -> list.get(0))
         .toList();
 
     Scan allMerged = mergeSpectra(representativeMergedScans, Type.ALL_MSN);
-    allScans.add(allMerged);
 
+    List<Scan> allScans = new ArrayList<>();
+    allScans.add(allMerged);
     mergedPerTreeNode.forEach(allScans::addAll);
     return allScans;
   }
@@ -178,7 +185,7 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
    * @param perEnergy map of scans by fragmentation energy
    * @return list of one scan per fragmentation energy.
    */
-  public List<Scan> mergeByFragmentationEnergy(final Map<Float, List<Scan>> perEnergy) {
+  private List<Scan> mergeByFragmentationEnergy(final Map<Float, List<Scan>> perEnergy) {
     List<Scan> list = new ArrayList<>(perEnergy.size());
     for (final List<Scan> scans : perEnergy.values()) {
       if (scans.size() > 1) {
@@ -211,12 +218,6 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
       } else if (scans instanceof Collection<?> collection) {
         targetList.addAll((Collection<? extends Scan>) collection);
       }
-    }
-  }
-
-  private void addIf(boolean condition, final List<Scan> targetList, final Supplier<?> supplier) {
-    if (condition) {
-      addIf(true, targetList, supplier.get());
     }
   }
 

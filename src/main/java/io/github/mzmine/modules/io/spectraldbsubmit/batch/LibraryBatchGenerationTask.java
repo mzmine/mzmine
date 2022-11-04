@@ -129,7 +129,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
 
     //
-    selection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true, true,
+    selection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
         IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY);
   }
 
