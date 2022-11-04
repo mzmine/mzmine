@@ -72,6 +72,6 @@ public class RtMs2ApexDistanceType extends FloatType {
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 }
