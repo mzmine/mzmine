@@ -68,7 +68,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
       @NotNull double[] intensityValues, MsMsInfo info, int msLevel,
       @NotNull List<? extends MassSpectrum> sourceSpectra,
       @NotNull SpectraMerging.IntensityMergingType intensityMergingType,
-      @NotNull CenterFunction centerFunction, Type mergeType) {
+      @NotNull CenterFunction centerFunction, MergingType mergeType) {
     super(storage, mzValues, intensityValues, msLevel, sourceSpectra, intensityMergingType,
         centerFunction, mergeType);
 
@@ -96,8 +96,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MSLEVEL_ATTR));
     final IntensityMergingType type = IntensityMergingType.valueOf(
         reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR));
-    final Type mergeSpecType = Type.valueOf(
-        reader.getAttributeValue(null, CONST.XML_MERGE_TYPE_ATTR));
+    String mergingType = reader.getAttributeValue(null, CONST.XML_MERGE_TYPE_ATTR);
+    final MergingType mergeSpecType = mergingType == null ? null : MergingType.valueOf(mergingType);
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
     double[] mzs = null;
@@ -146,9 +146,9 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMsMsSpectrum.XML_SCAN_TYPE);
 
     writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
-    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getType().name());
+    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().name());
     writer.writeAttribute(CONST.XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
-    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getMergingType().name());
+    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getIntensityMergingType().name());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
     if (msMsInfo != null) {

@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
-import io.github.mzmine.datamodel.MergedMassSpectrum.Type;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PrecursorIonTree;
@@ -1039,8 +1039,16 @@ public class ScanUtils {
   }
 
 
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(RawDataFile, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param raw build trees from this file
+   * @return list of trees
+   */
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw) {
-    return getMSnFragmentTrees(raw, new MZTolerance(0.015, 20));
+    return getMSnFragmentTrees(raw, SpectraMerging.defaultMs2MergeTol);
   }
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol) {
@@ -1053,8 +1061,16 @@ public class ScanUtils {
   }
 
 
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(FeatureList, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param flist build trees from this feature list
+   * @return list of trees
+   */
   public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist) {
-    return getMSnFragmentTrees(flist, new MZTolerance(0.015, 20));
+    return getMSnFragmentTrees(flist, SpectraMerging.defaultMs2MergeTol);
   }
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist, MZTolerance mzTol) {
@@ -1262,7 +1278,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, Type.ALL);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, MergingType.ALL);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1323,7 +1339,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, Type.ALL);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, MergingType.ALL);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;

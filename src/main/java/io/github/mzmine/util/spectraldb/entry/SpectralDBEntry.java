@@ -99,7 +99,7 @@ public class SpectralDBEntry {
 
     if (scan instanceof MergedMassSpectrum merged) {
       putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
-      putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getType());
+      putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
     }
 
     MsMsInfo msMsInfo = scan.getMsMsInfo();

@@ -93,6 +93,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final boolean handleChimerics;
   private final FragmentScanSelection selection;
   private final MsMsQualityChecker msMsQualityChecker;
+  private final MZTolerance mzTolMerging;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -120,6 +121,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
         .getEmbeddedParameters().toQualityChecker();
 
+    mzTolMerging = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
@@ -132,7 +134,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
 
     //
-    selection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
+    selection = new FragmentScanSelection(mzTolMerging, true,
         IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM);
   }
 

@@ -31,7 +31,7 @@ import java.util.List;
 
 public interface MergedMassSpectrum extends Scan {
 
-  Type getType();
+  MergingType getMergingType();
 
   /**
    * @return A list of spectra used to create this merged spectrum
@@ -41,7 +41,7 @@ public interface MergedMassSpectrum extends Scan {
   /**
    * @return The merging type this spectrum is based on.
    */
-  IntensityMergingType getMergingType();
+  IntensityMergingType getIntensityMergingType();
 
   /**
    * @return The center function used to create this merged spectrum.
@@ -57,7 +57,24 @@ public interface MergedMassSpectrum extends Scan {
     return -1;
   }
 
-  enum Type {
-    ALL, ALL_MSN, MERGED_ENERGIES, SAME_ENERGY
+  /**
+   * The merging type describes the selection of input spectra and on which level it was merged.
+   */
+  enum MergingType {
+    /**
+     * ALL merged all spectra of the same precursor into one spectrum. Usually after merging the
+     * individual energies first.
+     */
+    ALL,
+    /**
+     * ALL_MSN merged all MSn spectra for a precursor into a pseudo MS2 spectrum. The order of
+     * merging is usually: 1. merge individual energies 2. merge for each precursor on all MSn
+     * levels 3. merge all into one
+     */
+    ALL_MSN,
+    /**
+     * SAME_ENERGY merged all spectra from the same energy
+     */
+    SAME_ENERGY
   }
 }
