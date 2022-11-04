@@ -40,7 +40,6 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -54,9 +53,6 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
-
-  public static final IntegerParameter minSignals = new IntegerParameter("Min signals",
-      "Minimum signals in a masslist (all other masslists are discarded)", 3);
 
   public static final ComboParameter<ScanSelector> scanExport = new ComboParameter<>("Export scans",
       "Select scans to export", ScanSelector.values(), ScanSelector.ALL);
@@ -76,9 +72,13 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       "Options to identify and handle chimeric spectra with multiple MS1 signals in the precusor ion selection",
       new HandleChimericMsMsParameters(), true);
 
+  public static final SubModuleParameter<LibraryExportQualityParameters> quality = new SubModuleParameter<>(
+      "Quality parameters", "Quality parameters for MS/MS spectra to be exported to the library.",
+      new LibraryExportQualityParameters());
+
   public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, file, minSignals, scanExport, exportFormat, metadata,
-        handleChimerics});
+    super(new Parameter[]{flists, file, scanExport, exportFormat, metadata, handleChimerics,
+        quality});
   }
 
 }
