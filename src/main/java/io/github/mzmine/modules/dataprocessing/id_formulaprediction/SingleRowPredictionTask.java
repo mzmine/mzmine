@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
@@ -283,7 +284,7 @@ public class SingleRowPredictionTask extends AbstractTask {
     Float msmsScore = null;
     Feature bestPeak = peakListRow.getBestFeature();
     RawDataFile dataFile = bestPeak.getRawDataFile();
-    Map<Double, String> msmsAnnotations = null;
+    Map<DataPoint, String> msmsAnnotations = null;
     Scan msmsScan = bestPeak.getMostIntenseFragmentScan();
 
     if ((checkMSMS) && (msmsScan != null)) {

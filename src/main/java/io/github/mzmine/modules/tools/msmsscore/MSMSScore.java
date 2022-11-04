@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.msmsscore;
 
+import io.github.mzmine.datamodel.DataPoint;
 import java.util.Map;
 
 /**
@@ -34,9 +35,9 @@ import java.util.Map;
 public class MSMSScore {
 
   private final float score;
-  private final Map<Double, String> annotation;
+  private final Map<DataPoint, String> annotation;
 
-  public MSMSScore(float score, Map<Double, String> annotation) {
+  public MSMSScore(float score, Map<DataPoint, String> annotation) {
     this.score = score;
     this.annotation = annotation;
   }
@@ -45,7 +46,7 @@ public class MSMSScore {
     return score;
   }
 
-  public Map<Double, String> getAnnotation() {
+  public Map<DataPoint, String> getAnnotation() {
     return annotation;
   }
 
