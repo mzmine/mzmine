@@ -288,6 +288,11 @@ public class SpectralDBEntry {
   }
 
   @Override
+  public String toString() {
+    return String.format("Entry: %s (dp: %d)", getOrElse(DBEntryField.NAME, ""), dps.length);
+  }
+
+  @Override
   public int hashCode() {
     int result = Objects.hash(fields);
     result = 31 * result + Arrays.hashCode(dps);
