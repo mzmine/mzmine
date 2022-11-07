@@ -189,7 +189,8 @@ public enum DBEntryField {
       case DATASET_ID -> DatasetIdType.class;
       case USI -> UsiType.class;
       case SPLASH -> SplashType.class;
-      // TODO change to real data types
+      // TODO change to real data types instead of strings
+      // are there other formats that define those properly?
       case MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
           StringType.class;
     };

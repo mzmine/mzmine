@@ -233,9 +233,9 @@ public class RegularScanTypesTest {
     SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
-    List<SpectralDBAnnotation> value = new ArrayList<>(
-        List.of(new SpectralDBAnnotation(entry, similarity, query, null),
-            new SpectralDBAnnotation(entry, similarity, query, 0.043f)));
+    List<SpectralDBAnnotation> value = List.of(
+        new SpectralDBAnnotation(entry, similarity, query, null),
+        new SpectralDBAnnotation(entry, similarity, query, 0.043f));
 
     DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);

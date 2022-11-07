@@ -486,7 +486,7 @@ public class NistMsSearchTask extends AbstractTask {
                   casNumber, DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib,
                   DBEntryField.SOFTWARE, SEARCH_METHOD);
 
-              // TODO empty spectrum for now. see if that works
+              // Use empty spectrum for now as NIST search does not provide the spectrum
               SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
                   map);
 
