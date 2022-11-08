@@ -84,10 +84,7 @@ public class DataTypeUtils {
   public static final List<DataType> DEFAULT_ION_MOBILITY_COLUMNS_FEATURE =
       List.of(new MobilityType(), new MobilityRangeType());
 
-
-  @NotNull
-  public static final List<DataType> DEFAULT_IMAGING_COLUMNS_ROW =
-      List.of(new ImageType());
+  public static final List<DataType> DEFAULT_IMAGING_COLUMNS_FEATURE = List.of(new ImageType());
 
   /**
    * Adds the default imaging DataType columns to a feature list
@@ -95,7 +92,7 @@ public class DataTypeUtils {
    * @param flist
    */
   public static void addDefaultImagingTypeColumns(ModularFeatureList flist) {
-    flist.addRowType(DEFAULT_IMAGING_COLUMNS_ROW);
+    flist.addFeatureType(DEFAULT_IMAGING_COLUMNS_FEATURE);
   }
 
   /**

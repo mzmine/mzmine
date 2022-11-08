@@ -57,6 +57,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FormulaListType extends ListWithSubsType<ResultFormula> implements AnnotationType {
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
+
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new FormulaListType(),
       new FormulaMassType(), new RdbeType(), new MzPpmDifferenceType(),

@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.HashMap;
@@ -47,11 +49,12 @@ public class ResultFormula extends MolecularFormulaIdentity {
   public static final String MSMS_ANNOTATIONS_ELEMENT = "msms_annotations";
   public static final String ANNOTATION_ELEMENT = "msms_annotation";
   public static final String ANNOTATION_MZ_ATTR = "mz";
+  public static final String ANNOTATION_INTENSITY_ATTR = "intensity";
 
   private final Float isotopeScore;
   private final Float msmsScore;
   private final IsotopePattern predictedIsotopePattern;
-  private Map<Double, String> msmsAnnotation;
+  private Map<DataPoint, String> msmsAnnotation;
 
   protected ResultFormula(ResultFormula f) {
     this(f.cdkFormula, f.predictedIsotopePattern, f.getIsotopeScore(), f.getMSMSScore(),
@@ -59,7 +62,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
   }
 
   public ResultFormula(IMolecularFormula cdkFormula, IsotopePattern predictedIsotopePattern,
-      Float isotopeScore, Float msmsScore, Map<Double, String> msmsAnnotation,
+      Float isotopeScore, Float msmsScore, Map<DataPoint, String> msmsAnnotation,
       double searchedNeutralMass) {
     super(cdkFormula, searchedNeutralMass);
     this.predictedIsotopePattern = predictedIsotopePattern;
@@ -68,7 +71,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
     this.msmsAnnotation = msmsAnnotation;
   }
 
-  public Map<Double, String> getMSMSannotation() {
+  public Map<DataPoint, String> getMSMSannotation() {
     return msmsAnnotation;
   }
 
@@ -130,9 +133,12 @@ public class ResultFormula extends MolecularFormulaIdentity {
 
     if (msmsAnnotation != null) {
       writer.writeStartElement(MSMS_ANNOTATIONS_ELEMENT);
-      for (Entry<Double, String> entry : msmsAnnotation.entrySet()) {
+      for (Entry<DataPoint, String> entry : msmsAnnotation.entrySet()) {
         writer.writeStartElement(ANNOTATION_ELEMENT);
-        writer.writeAttribute(ANNOTATION_MZ_ATTR, ParsingUtils.numberToString(entry.getKey()));
+        writer.writeAttribute(ANNOTATION_MZ_ATTR,
+            ParsingUtils.numberToString(entry.getKey().getMZ()));
+        writer.writeAttribute(ANNOTATION_INTENSITY_ATTR,
+            ParsingUtils.numberToString(entry.getKey().getIntensity()));
         writer.writeCharacters(ParsingUtils.parseNullableString(entry.getValue()));
         writer.writeEndElement();
       }
@@ -151,7 +157,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
     Float isotopeScore = null;
     Float msmsScore = null;
     IsotopePattern pattern = null;
-    Map<Double, String> annotations = null;
+    Map<DataPoint, String> annotations = null;
     MolecularFormulaIdentity id = null;
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
@@ -175,17 +181,19 @@ public class ResultFormula extends MolecularFormulaIdentity {
         id.getSearchedNeutralMass());
   }
 
-  private static Map<Double, String> loadAnnotations(XMLStreamReader reader)
+  private static Map<DataPoint, String> loadAnnotations(XMLStreamReader reader)
       throws XMLStreamException {
-    var map = new HashMap<Double, String>();
+    var map = new HashMap<DataPoint, String>();
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(MSMS_ANNOTATIONS_ELEMENT))) {
       reader.next();
       if (reader.isStartElement() && reader.getLocalName().equals(ANNOTATION_ELEMENT)) {
-        Double key = ParsingUtils.stringToDouble(
-            reader.getAttributeValue(null, ANNOTATION_MZ_ATTR));
+        Double mz = ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_MZ_ATTR));
+        Double intensity = Objects.requireNonNullElse(
+            ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_INTENSITY_ATTR)),
+            1d);
         String value = ParsingUtils.readNullableString(reader.getElementText());
-        map.put(key, value);
+        map.put(new SimpleDataPoint(mz, intensity), value);
       }
     }
     return map;

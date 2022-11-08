@@ -50,14 +50,9 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
   public static final BooleanParameter hideImageAxes = new BooleanParameter("Hide image axes",
       "If ticked, the axes of image plots will be hidden.", false);
 
-  public static final BooleanParameter normalizeImagesTIC = new BooleanParameter(
-      "Normalize images to TIC",
-      "Specifies if images displayed in the feature table shall be normalized to the average TIC or shown according to the raw data.",
-      true);
-
   public FeatureTableFXParameters() {
     super(new Parameter[]{showRowTypeColumns, showFeatureTypeColumns, lockImagesToAspectRatio,
-        hideImageAxes, normalizeImagesTIC});
+        hideImageAxes});
   }
 
 }

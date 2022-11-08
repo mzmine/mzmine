@@ -70,5 +70,4 @@ public class RangeMapTest {
     Assertions.assertEquals(760.6061146774999, map.getEntry(mz3).getKey().lowerEndpoint());
     Assertions.assertEquals(760.634015375, map.getEntry(mz3).getKey().upperEndpoint());
   }
-
 }

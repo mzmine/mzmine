@@ -80,7 +80,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       createEntry(CosineScoreType.class, match -> (float) match.getSimilarity().getScore()),
       createEntry(MatchingSignalsType.class, match -> match.getSimilarity().getOverlap()),
       createEntry(PrecursorMZType.class,
-          match -> match.getEntry().getField(DBEntryField.MZ).orElse(null)),
+          match -> match.getEntry().getField(DBEntryField.PRECURSOR_MZ).orElse(null)),
       createEntry(NeutralMassType.class,
           match -> match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null)),
       createEntry(CCSType.class, match -> match.getEntry().getOrElse(DBEntryField.CCS, null)),
@@ -171,5 +171,10 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
 
     // never return null, if this type was saved we even need empty lists.
     return ids;
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }

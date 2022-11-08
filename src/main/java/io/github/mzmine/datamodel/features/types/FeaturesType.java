@@ -25,12 +25,11 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import java.util.Map;
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,4 +66,8 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
     return (Class) Map.class;
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

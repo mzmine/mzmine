@@ -39,7 +39,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.scans.SpectraMerging;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
@@ -56,7 +56,7 @@ public class MoblityScanMergerTask extends AbstractTask {
   private final Weighting weighting;
   private final ParameterSet parameters;
   private final double noiseLevel;
-  private final MergingType mergingType;
+  private final IntensityMergingType mergingType;
   private int totalFrames;
   private int processedFrames;
 
@@ -102,7 +102,7 @@ public class MoblityScanMergerTask extends AbstractTask {
         SimpleFrame frame = (SimpleFrame) f;
         double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
             frame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
-            mergingType, cf, noiseLevel, null);
+            mergingType, cf, noiseLevel, null, null);
 
         frame.setDataPoints(merged[0], merged[1]);
         frame.addMassList(new ScanPointerMassList(frame));

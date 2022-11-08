@@ -160,6 +160,12 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
       "Show temp folder alert", true);
 
+  public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
+      "Normalize images",
+      "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
+          + "only applies to newly generated plots.", ImageNormalization.values(),
+      ImageNormalization.NO_NORMALIZATION);
+
   public MZminePreferences() {
     super(new Parameter[]{
         // start with performance
@@ -172,7 +178,7 @@ public class MZminePreferences extends SimpleParameterSet {
         unitFormat,
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, darkMode, presentationMode,
-        showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
+        imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
         // silent parameters without controls
         showTempFolderAlert});
   }
@@ -195,7 +201,7 @@ public class MZminePreferences extends SimpleParameterSet {
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, darkMode,
-            presentationMode, showPrecursorWindow});
+            presentationMode, showPrecursorWindow, imageNormalization});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
     });

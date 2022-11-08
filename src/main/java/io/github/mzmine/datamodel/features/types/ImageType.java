@@ -94,4 +94,8 @@ public class ImageType extends LinkedGraphicalType {
     return 205;
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

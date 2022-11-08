@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
@@ -240,17 +241,19 @@ public class IonMobilityUtils {
       }
     }
 
-    final double startMobility = MathUtils.twoPointGetXForY(series.getMobility(before),
-        series.getIntensity(before),
-        series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
-        series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
+    final float startMobility = (float) MathUtils
+        .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
+            series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            halfIntensity);
 
-    final double endMobility = MathUtils.twoPointGetXForY(
-        series.getMobility(Math.max(after - 1, 0)), series.getIntensity(Math.max(after - 1, 0)),
-        series.getMobility(after), series.getIntensity(after), halfIntensity);
+    final float endMobility = (float) MathUtils
+        .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
+            series.getIntensity(Math.max(after - 1, 0)), series.getMobility(after),
+            series.getIntensity(after), halfIntensity);
 
 //    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
-    return Range.closed((float) startMobility, (float) endMobility);
+    return Range.closed(Math.min(startMobility, endMobility), Math.max(startMobility, endMobility));
   }
 
   /**
@@ -332,6 +335,63 @@ public class IonMobilityUtils {
         dst[i] = series.getMobility(i);
       }
     }
+  }
+
+  /**
+   * Calculates a spectral chimerity around a specific m/z. The chimerity is calculated as the
+   * quotient of intensities in the isolation window with regard to mobility and m/z. The
+   * {@link MobilityScanDataAccess} must have selected the frame to evaluate. The mobility scan will
+   * be set to the first using {@link MobilityScanDataAccess#resetMobilityScan()}. If no data points
+   * are found in the isolation window a score of 0 will be returned.
+   *
+   * @param precursorMz   The precursor to isolate.
+   * @param access        A data access.
+   * @param mzRange       The mzRange to isolate.
+   * @param mobilityRange The mobility range to isolate.
+   * @return Accumulated precursor intensity divided by intensity of all ions in the isolation
+   * window. 0 if no intensities are found.
+   */
+  public static double getIsolationChimerityScore(final double precursorMz,
+      @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
+      @NotNull final Range<Float> mobilityRange) {
+
+    double precursorIntensity = 0d;
+    double isolationWindowTIC = 0d;
+
+    access.resetMobilityScan();
+    while (access.hasNextMobilityScan()) {
+      access.nextMobilityScan();
+
+      if (access.getNumberOfDataPoints() == 0 || !mobilityRange.contains(
+          (float) access.getMobility())) {
+        continue;
+      }
+
+      final int closestIndex = access.binarySearch(precursorMz, true);
+      if (mzRange.contains(access.getMzValue(closestIndex))) {
+        precursorIntensity += access.getIntensityValue(closestIndex);
+        isolationWindowTIC += access.getIntensityValue(closestIndex);
+      }
+
+      for (int i = closestIndex - 1; i > 0; i--) {
+        if (mzRange.contains(access.getMzValue(i))) {
+          isolationWindowTIC += access.getIntensityValue(i);
+        } else {
+          break;
+        }
+      }
+
+      for (int i = closestIndex + 1; i < access.getNumberOfDataPoints(); i++) {
+        if (mzRange.contains(access.getMzValue(i))) {
+          isolationWindowTIC += access.getIntensityValue(i);
+        } else {
+          break;
+        }
+      }
+    }
+
+    return Double.compare(isolationWindowTIC, 0d) > 0 ? precursorIntensity / isolationWindowTIC
+        : 0d;
   }
 
   public enum MobilogramType {

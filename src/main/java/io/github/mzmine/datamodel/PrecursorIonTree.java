@@ -25,13 +25,16 @@
 
 package io.github.mzmine.datamodel;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A tree structure to temporarily capture a precursor and all its fragment scans (MSn)
  *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
@@ -56,6 +59,11 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
     root.sort();
   }
 
+  /**
+   * Stream the whole tree. {@link PrecursorIonTreeNode#streamWholeTree()}
+   *
+   * @return stream of the tree nodes
+   */
   @NotNull
   public Stream<PrecursorIonTreeNode> stream() {
     return root.streamWholeTree();
@@ -63,6 +71,10 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
   public int getMaxMSLevel() {
     return root.getMaxMSLevel();
+  }
+
+  public double getPrecursorMz() {
+    return root.getPrecursorMZ();
   }
 
   public int countSpectra() {
@@ -81,5 +93,16 @@ public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
   public int countPrecursor(int msLevel) {
     return stream().filter(ion -> msLevel - 1 == ion.getMsLevel())
         .mapToInt(PrecursorIonTreeNode::countPrecursors).sum();
+  }
+
+  public List<Scan> getAllFragmentScans() {
+    return root.getAllFragmentScans();
+  }
+
+  /**
+   * maps the MS level to the nodes
+   */
+  public @NotNull Map<Integer, List<PrecursorIonTreeNode>> groupByMsLevel() {
+    return stream().collect(Collectors.groupingBy(PrecursorIonTreeNode::getMsLevel));
   }
 }

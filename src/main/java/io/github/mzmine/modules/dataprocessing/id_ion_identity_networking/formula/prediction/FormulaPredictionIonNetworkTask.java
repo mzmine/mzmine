@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
@@ -403,7 +404,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     // MS/MS evaluation is slowest, so let's do it last
     Float msmsScore = null;
-    Map<Double, String> msmsAnnotations = null;
+    Map<DataPoint, String> msmsAnnotations = null;
 
     // there was a problem in the RoundRobinMoleculaFormulaGenerator (index out of range
     try {

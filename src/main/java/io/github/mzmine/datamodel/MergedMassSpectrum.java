@@ -26,10 +26,12 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.List;
 
 public interface MergedMassSpectrum extends Scan {
+
+  MergingType getMergingType();
 
   /**
    * @return A list of spectra used to create this merged spectrum
@@ -39,7 +41,7 @@ public interface MergedMassSpectrum extends Scan {
   /**
    * @return The merging type this spectrum is based on.
    */
-  MergingType getMergingType();
+  IntensityMergingType getIntensityMergingType();
 
   /**
    * @return The center function used to create this merged spectrum.
@@ -48,11 +50,31 @@ public interface MergedMassSpectrum extends Scan {
 
 
   /**
-   *
    * @return -1 to represent the artificial state of this spectrum.
    */
   @Override
   default int getScanNumber() {
     return -1;
+  }
+
+  /**
+   * The merging type describes the selection of input spectra and on which level it was merged.
+   */
+  enum MergingType {
+    /**
+     * ALL merged all spectra of the same precursor into one spectrum. Usually after merging the
+     * individual energies first.
+     */
+    ALL,
+    /**
+     * ALL_MSN merged all MSn spectra for a precursor into a pseudo MS2 spectrum. The order of
+     * merging is usually: 1. merge individual energies 2. merge for each precursor on all MSn
+     * levels 3. merge all into one
+     */
+    ALL_MSN,
+    /**
+     * SAME_ENERGY merged all spectra from the same energy
+     */
+    SAME_ENERGY
   }
 }

@@ -75,11 +75,9 @@ public class ImsExpanderTask extends AbstractTask {
   private final MZmineProject project;
   private final MZTolerance mzTolerance;
   private final boolean useMzToleranceRange;
-  private final AtomicInteger processedFrames = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final int binWidth;
   private String desc = "Mobility expanding.";
-  private long totalFrames = 1;
   private long totalRows = 1;
   private long createdRows = 0;
 
@@ -87,7 +85,7 @@ public class ImsExpanderTask extends AbstractTask {
 
   public ImsExpanderTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final ModularFeatureList flist,
-      MZmineProject project, final int allowedThreads, @NotNull Instant moduleCallDate) {
+      MZmineProject project, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
@@ -179,12 +177,13 @@ public class ImsExpanderTask extends AbstractTask {
           binWidth);
       tasks.add(
           new ImsExpanderSubTask(getMemoryMapStorage(), parameters, framesSubList, flist, traces,
-              mobilogramDataAccess, newFlist));
+              mobilogramDataAccess, imsFile));
     }
 
     final AtomicBoolean allThreadsFinished = new AtomicBoolean(false);
     final AtomicBoolean mayContinue = new AtomicBoolean(true);
 
+    // DO NOT DELETE, adds itself to the tasks
     final AllTasksFinishedListener listener = new AllTasksFinishedListener(tasks, true,
         c -> allThreadsFinished.set(true), c -> {
       mayContinue.set(false);
