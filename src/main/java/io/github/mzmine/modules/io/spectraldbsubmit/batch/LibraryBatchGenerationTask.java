@@ -133,7 +133,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
 
-    //
     selection = new FragmentScanSelection(mzTolMerging, true,
         IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM);
   }
