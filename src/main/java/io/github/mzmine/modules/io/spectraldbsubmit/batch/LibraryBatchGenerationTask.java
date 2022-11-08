@@ -54,8 +54,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.BufferedWriter;
@@ -88,7 +91,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
-  private final LibraryExportQualityParameters qualityParameters;
+  private final FragmentScanSelection selection;
+  private final MsMsQualityChecker msMsQualityChecker;
+  private final MZTolerance mzTolMerging;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -113,9 +118,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
 
-    qualityParameters = parameters.getParameter(LibraryBatchGenerationParameters.quality)
-        .getEmbeddedParameters();
+    msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters().toQualityChecker();
 
+    mzTolMerging = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
@@ -126,6 +132,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       mzTolChimericsMainIon = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
+
+    //
+    selection = new FragmentScanSelection(mzTolMerging, true,
+        IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM);
   }
 
   @Override
@@ -183,27 +193,30 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap = Map.of();
     }
 
+    // merge spectra, find best spectrum for each MSn node in the tree and each energy
+    scans = selection.getAllFragmentSpectra(scans);
+
     // first entry for the same molecule reflect the most common ion type, usually M+H
     var match = matches.get(0);
 
     for (int i = 0; i < scans.size(); i++) {
 
-      final List<DataPoint> dataPoints = qualityParameters.matches(scans.get(i), match, row);
-      if (dataPoints == null) {
+      final Scan msmsScan = scans.get(i);
+      final List<DataPoint> explainedSignals = msMsQualityChecker.matchAndGetExplainedSignals(
+          msmsScan, match, row);
+      if (explainedSignals == null) {
         continue;
       }
 
-      DataPoint[] dps =
-          qualityParameters.getValue(LibraryExportQualityParameters.exportExplainedPeaksOnly)
-              ? dataPoints.toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(scans.get(i));
+      DataPoint[] dps = msMsQualityChecker.exportExplainedSignalsOnly() ? explainedSignals.toArray(
+          DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
       // add instrument type etc by parameter
-      Scan scan = scans.get(i);
-      SpectralDBEntry entry = new SpectralDBEntry(scan, match, dps);
+      SpectralDBEntry entry = new SpectralDBEntry(msmsScan, match, dps);
       entry.putAll(metadataMap);
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed
-        ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan,
+        ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
             ChimericPrecursorResult.PASSED);
         entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
         if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
@@ -213,8 +226,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       }
       // add file info
       final String fileUSI = Path.of(
-          Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
-              scan.getDataFile().getName())).getFileName().toString() + ":" + scan.getScanNumber();
+          Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
+              msmsScan.getDataFile().getName())).getFileName().toString() + ":"
+          + msmsScan.getScanNumber();
       entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
       entry.getField(DBEntryField.DATASET_ID).ifPresent(
           dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
