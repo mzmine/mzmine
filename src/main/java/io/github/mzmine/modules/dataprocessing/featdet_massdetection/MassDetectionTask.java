@@ -59,14 +59,15 @@ public class MassDetectionTask extends AbstractTask {
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
   private final SelectedScanTypes scanTypes;
+  private final Boolean denormalizeMSnScans;
   // scan counter
   private int processedScans = 0, totalScans = 0;
   // Mass detector
-  private MZmineProcessingStep<MassDetector> massDetector;
+  private final MZmineProcessingStep<MassDetector> massDetector;
   // for outputting file
-  private File outFilename;
-  private boolean saveToCDF;
-  private ParameterSet parameters;
+  private final File outFilename;
+  private final boolean saveToCDF;
+  private final ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -89,21 +90,17 @@ public class MassDetectionTask extends AbstractTask {
     this.outFilename = parameters.getParameter(MassDetectionParameters.outFilenameOption)
         .getEmbeddedParameter().getValue();
 
+    denormalizeMSnScans = parameters.getValue(MassDetectionParameters.denormalizeMSnScans);
+
     this.parameters = parameters;
 
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return "Detecting masses in " + dataFile;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalScans == 0) {
@@ -118,8 +115,23 @@ public class MassDetectionTask extends AbstractTask {
   }
 
   /**
-   * @see Runnable#run()
+   * multiplies the intensities with the injection time to denormalize the intensities
+   *
+   * @param scan    only applied to scans.getMSLevel>1
+   * @param mzPeaks [mzs, intensities]
    */
+  public static void denormalizeMSnScans(final Scan scan, final double[][] mzPeaks) {
+    if (scan.getMSLevel() <= 1) {
+      return;
+    }
+    Float injectionTime = scan.getInjectionTime();
+    if (injectionTime != null && injectionTime > 0) {
+      for (int i = 0; i < mzPeaks[1].length; i++) {
+        mzPeaks[1][i] = mzPeaks[1][i] * injectionTime;
+      }
+    }
+  }
+
   @Override
   public void run() {
 
@@ -149,6 +161,9 @@ public class MassDetectionTask extends AbstractTask {
           scanSelection);
       totalScans = data.getNumberOfScans();
 
+      MassDetector detector = massDetector.getModule();
+      ParameterSet parameterSet = massDetector.getParameterSet();
+
       // all scans
       while (data.hasNextScan()) {
         if (isCanceled()) {
@@ -157,13 +172,15 @@ public class MassDetectionTask extends AbstractTask {
 
         Scan scan = data.nextScan();
 
-        MassDetector detector = massDetector.getModule();
-
         double[][] mzPeaks = null;
         if (scanTypes.applyTo(scan)) {
           // run mass detection on data object
           // [mzs, intensities]
-          mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
+          mzPeaks = detector.getMassValues(data, parameterSet);
+
+          if (denormalizeMSnScans) {
+            denormalizeMSnScans(scan, mzPeaks);
+          }
 
           // add mass list to scans and frames
           scan.addMassList(new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]));
@@ -173,8 +190,7 @@ public class MassDetectionTask extends AbstractTask {
             || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
-              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,
-                  massDetector.getParameterSet());
+              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector, parameterSet);
         }
 
         if (this.saveToCDF && mzPeaks != null) {

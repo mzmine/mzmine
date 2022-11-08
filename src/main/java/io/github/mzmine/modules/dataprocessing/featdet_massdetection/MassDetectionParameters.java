@@ -40,6 +40,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.Wav
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -106,10 +107,18 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public static final OptionalParameter<FileNameParameter> outFilenameOption = new OptionalParameter<>(
       outFilename);
 
+  public static final BooleanParameter denormalizeMSnScans = new BooleanParameter(
+      "Denormalize fragment scans (traps)", """
+      Denormalize MS2 (MSn) scans by multiplying with the injection time. Encouraged before spectral merging.
+      (only available in trap-based systems, like Orbitraps, trapped ion mobility spectrometry (tims), etc)
+      This reduces the intensity differences between spectra acquired with different injection times
+      and reverts to "raw" intensities.""", false);
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, outFilenameOption},
+    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, denormalizeMSnScans,
+            outFilenameOption},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
   }
 
