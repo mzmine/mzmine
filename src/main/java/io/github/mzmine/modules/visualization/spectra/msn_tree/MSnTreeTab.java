@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
@@ -51,7 +52,10 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import it.unimi.dsi.fastutil.doubles.Double2DoubleOpenHashMap;
 import java.awt.Color;
 import java.awt.Polygon;
@@ -62,15 +66,20 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -81,6 +90,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
@@ -90,6 +100,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -106,7 +117,8 @@ public class MSnTreeTab extends SimpleTab {
   private final Label legendEnergies;
   private final CheckBox cbRelative;
   private final CheckBox cbDenoise;
-  private final List<SpectraPlot> spectraPlots = new ArrayList<>(1);
+  private final List<SpectraPlot> spectraPlots = new ArrayList<>(10);
+  public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 0, 5, 5);
   private final Spinner<Integer> sizeSpinner;
   private final ChartGroup chartGroup;
   private final ParameterSet treeParameters;
@@ -114,10 +126,14 @@ public class MSnTreeTab extends SimpleTab {
   public Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, 3}, 3);
   public Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{3, 3, 0}, 3);
   public Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, 3, 6, 3}, 4);
-  public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 5, 5, 5);
+  private int numberUsedSpectraPlots = 0;
   private int lastSelectedItem = -1;
   private PrecursorIonTreeNode currentRoot = null;
+
+  // only one might be selected
   private RawDataFile raw;
+  private FeatureList featureList;
+  private final Map<PrecursorIonTreeNode, javafx.scene.paint.Color> colorMap = new HashMap<>();
 
 
   public MSnTreeTab() {
@@ -145,8 +161,31 @@ public class MSnTreeTab extends SimpleTab {
     treeView.setRoot(root);
     treeView.setShowRoot(false);
     treeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-    treeView.getSelectionModel().selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> showSpectra(newValue)));
+    treeView.getSelectionModel().selectedItemProperty().addListener(
+        ((observable, oldValue, newValue) -> showSpectra(
+            newValue == null ? null : newValue.getValue())));
+
+    treeView.setCellFactory(tv -> new TreeCell<>() {
+      @Override
+      protected void updateItem(PrecursorIonTreeNode item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || item == null) {
+          setGraphic(null);
+        } else {
+          List<Text> texts = item.streamParents().map(node -> {
+            Text text = new Text(node.getFormatted());
+            text.setFill(colorMap.get(node));
+            return text;
+          }).toList();
+          texts.get(0).setText("m/z " + texts.get(0).getText());
+          for (int i = 1; i < texts.size(); i++) {
+            texts.get(i).setText(" ↦ " + texts.get(i).getText());
+          }
+
+          setGraphic(new HBox(5, texts.toArray(Node[]::new)));
+        }
+      }
+    });
 
     BorderPane left = new BorderPane();
     left.setTop(buttons);
@@ -154,13 +193,12 @@ public class MSnTreeTab extends SimpleTab {
 
     // create spectra grid
     spectraPane = new GridPane();
-    final ColumnConstraints col = new ColumnConstraints(200, 350, -1, Priority.ALWAYS, HPos.LEFT,
-        true);
-    spectraPane.getColumnConstraints().add(col);
+    spectraPane.getColumnConstraints()
+        .addAll(new ColumnConstraints(200, 350, -1, Priority.ALWAYS, HPos.LEFT, true),
+            new ColumnConstraints(200, 350, -1, Priority.ALWAYS, HPos.LEFT, true));
     spectraPane.setGridLinesVisible(true);
-    final RowConstraints rowConstraints = new RowConstraints(100, -1, -1, Priority.ALWAYS,
-        VPos.CENTER, true);
-    spectraPane.getRowConstraints().add(rowConstraints);
+    spectraPane.getRowConstraints()
+        .add(new RowConstraints(100, -1, -1, Priority.ALWAYS, VPos.CENTER, true));
     // create first plot and initialize group for zooming etc
     chartGroup = new ChartGroup(false, false, true, false);
     chartGroup.setShowCrosshair(true, false);
@@ -243,14 +281,26 @@ public class MSnTreeTab extends SimpleTab {
     // parameters
     final MZTolerance mzTol = treeParameters.getValue(MSnTreeVisualizerParameters.mzTol);
     final RawDataFile finalraw = this.raw;
+    final FeatureList finalFlist = this.featureList;
     // track current thread
     final long current = currentThread.incrementAndGet();
     Thread thread = new Thread(() -> {
       // run on different thread
-      final List<PrecursorIonTree> trees = ScanUtils.getMSnFragmentTrees(finalraw, mzTol);
+      final List<PrecursorIonTree> trees;
+      if (finalraw != null) {
+        trees = ScanUtils.getMSnFragmentTrees(finalraw, mzTol);
+      } else {
+        trees = ScanUtils.getMSnFragmentTrees(finalFlist, mzTol);
+      }
+
+      // refresh colors
+      final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
+      colorMap.clear();
+      trees.forEach(tree -> addToColorMap(tree, colors));
+
       MZmineCore.runLater(() -> {
         if (current == currentThread.get()) {
-
+          // add to tree
           treeView.getRoot().getChildren()
               .addAll(trees.stream().map(t -> createTreeItem(t.getRoot())).toList());
 
@@ -261,13 +311,26 @@ public class MSnTreeTab extends SimpleTab {
     thread.start();
   }
 
+  /**
+   * Defines the colors for each node (based on their MS level)
+   */
+  private void addToColorMap(final PrecursorIonTree tree, final SimpleColorPalette colors) {
+    tree.groupByMsLevel().values().forEach(nodes -> {
+      for (int i = 0; i < nodes.size(); i++) {
+        colorMap.put(nodes.get(i), colors.get(i % colors.size()));
+      }
+    });
+  }
+
   private void changeSymbolSize() {
     int size = sizeSpinner.getValue();
 
     downArrow = new Polygon(new int[]{-size, size, 0}, new int[]{0, 0, size}, 3);
     upArrow = new Polygon(new int[]{-size, size, 0}, new int[]{size, size, 0}, 3);
     diamond = new Polygon(new int[]{0, -size, 0, size}, new int[]{0, size, size * 2, size}, 4);
-    circle = new Ellipse2D.Double(-size / 2d, size, size, size);
+
+    size += 2;
+    circle = new Ellipse2D.Double(-size / 2d, 0, size, size);
 
     for (var p : spectraPlots) {
       for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
@@ -337,6 +400,13 @@ public class MSnTreeTab extends SimpleTab {
    */
   public synchronized void setRawDataFile(RawDataFile raw) {
     this.raw = raw;
+    featureList = null;
+    regenerateTrees(treeParameters);
+  }
+
+  public void setFeatureList(final FeatureList flist) {
+    this.featureList = flist;
+    this.raw = null;
     regenerateTrees(treeParameters);
   }
 
@@ -347,14 +417,11 @@ public class MSnTreeTab extends SimpleTab {
     return item;
   }
 
-  private void showSpectra(TreeItem<PrecursorIonTreeNode> node) {
-    showSpectra(node == null ? null : node.getValue());
-  }
-
   public void showSpectra(PrecursorIonTreeNode any) {
     spectraPane.getChildren().clear();
     spectraPane.getRowConstraints().clear();
     spectraPlots.forEach(SpectraPlot::removeAllDataSets);
+    numberUsedSpectraPlots = 0;
     if (any == null) {
       return;
     }
@@ -362,9 +429,6 @@ public class MSnTreeTab extends SimpleTab {
     PrecursorIonTreeNode prevRoot = currentRoot;
     currentRoot = any.getRoot();
     boolean rootHasChanged = !Objects.equals(prevRoot, currentRoot);
-
-    // colors
-    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
 
     SpectraPlot previousPlot = null;
     // distribute collision energies in three categories low, med, high
@@ -383,12 +447,14 @@ public class MSnTreeTab extends SimpleTab {
       if (minEnergy != maxEnergy) {
         if (minEnergy != medEnergy && maxEnergy != medEnergy) {
           legendEnergies.setText(
-              String.format("Activation: ▽≈%.0f △≈%.0f ◇≈%.0f", minEnergy, medEnergy, maxEnergy));
+              String.format("Activation: ▽≈%.0f △≈%.0f ◇≈%.0f ○ merged spectra", minEnergy,
+                  medEnergy, maxEnergy));
         } else {
-          legendEnergies.setText(String.format("Activation: ▽≈%.0f ◇≈%.0f", minEnergy, maxEnergy));
+          legendEnergies.setText(
+              String.format("Activation: ▽≈%.0f ◇≈%.0f ○ merged spectra", minEnergy, maxEnergy));
         }
       } else {
-        legendEnergies.setText(String.format("Activation: ◇≈%.0f", maxEnergy));
+        legendEnergies.setText(String.format("Activation: ◇≈%.0f ○ merged spectra", maxEnergy));
       }
     }
     // relative intensities? and denoise?
@@ -400,16 +466,8 @@ public class MSnTreeTab extends SimpleTab {
 
     // for each MS level
     do {
-      // create one spectra plot for each MS level
-      if (levelFromRoot >= spectraPlots.size()) {
-        final SpectraPlot plot = new SpectraPlot();
-        plot.getXYPlot().getRangeAxis()
-            .setLabel(String.format("MS%d intensity", levelFromRoot + 2));
-        spectraPlots.add(plot);
-        chartGroup.add(new ChartViewWrapper(plot));
-      }
-      SpectraPlot spectraPlot = spectraPlots.get(levelFromRoot);
-      spectraPlot.setNotifyChange(false);
+      int msLevel = levelFromRoot + 2;
+      SpectraPlot spectraPlot = getSpectraPlot(msLevel);
 
       // relative or absolute
       applyIntensityFormatToAxis(spectraPlot, normalizeIntensities);
@@ -420,7 +478,8 @@ public class MSnTreeTab extends SimpleTab {
       // create combined SpectraPlot for each MS level - multiple datasets for shapes and lines
       int c = 0;
       for (PrecursorIonTreeNode precursor : levelPrecursors) {
-        final Color color = FxColorUtil.fxColorToAWT(colors.get(c % colors.size()));
+        final Color color = FxColorUtil.fxColorToAWT(
+            colorMap.getOrDefault(precursor, javafx.scene.paint.Color.BLACK));
         final List<Scan> fragmentScans = precursor.getFragmentScans();
         for (final Scan scan : fragmentScans) {
           AbstractXYDataset data = ensureCentroidDataset(normalizeIntensities, denoise, scan);
@@ -463,6 +522,9 @@ public class MSnTreeTab extends SimpleTab {
 
     } while (!levelPrecursors.isEmpty());
 
+    // show merged spectra
+    showMergedSpectra(currentRoot);
+
     if (rootHasChanged) {
       chartGroup.applyAutoRange(true);
     }
@@ -472,6 +534,87 @@ public class MSnTreeTab extends SimpleTab {
       spectraPlot.setNotifyChange(true);
       spectraPlot.fireChangeEvent();
     }
+  }
+
+  private void showMergedSpectra(final PrecursorIonTreeNode any) {
+    if (any == null) {
+      return;
+    }
+    final boolean normalizeIntensities = cbRelative.isSelected();
+    final boolean denoise = cbDenoise.isSelected();
+    final MZTolerance mzTol = treeParameters.getValue(MSnTreeVisualizerParameters.mzTol);
+    var root = any.getRoot();
+    // only get the merged spectrum on each level
+    FragmentScanSelection selection = new FragmentScanSelection(mzTol, false,
+        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM);
+    List<Scan> mergedSpectra = selection.getAllFragmentSpectra(root);
+
+    // MS2 has two spectra - the merged MS2 and the spectrum of all MSn merged into it
+    Map<Integer, List<Scan>> byMsLevel = mergedSpectra.stream()
+        .sorted(Comparator.comparingInt(Scan::getMSLevel))
+        .collect(Collectors.groupingBy(Scan::getMSLevel));
+
+    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
+    SpectraPlot previousPlot = null;
+    int rowIndex = 0;
+    for (var entry : byMsLevel.entrySet()) {
+      Integer msLevel = entry.getKey();
+      if (msLevel == null) {
+        continue;
+      }
+
+      List<Scan> scans = entry.getValue();
+      SpectraPlot spectraPlot = getSpectraPlot(msLevel);
+
+      // relative or absolute
+      applyIntensityFormatToAxis(spectraPlot, normalizeIntensities);
+
+      for (int i = 0; i < scans.size(); i++) {
+        final Scan spec = scans.get(i);
+        // create combined SpectraPlot for each MS level
+        AbstractXYDataset data = ensureCentroidDataset(normalizeIntensities, denoise, spec);
+        // add peak renderer to show centroids - no labels
+        Color color = colors.getAWT(i);
+        spectraPlot.addDataSet(data, color, false, new PeakRenderer(color, false), null, false,
+            false);
+
+        spectraPlot.getChart().getLegend().setVisible(false);
+        root.streamWholeTree().filter(node -> node.getMsLevel() == msLevel)
+            .map(PrecursorIonTreeNode::getFragmentScans).map(list -> list.get(0)).findAny()
+            .ifPresent(scan -> spectraPlot.addPrecursorMarkers(scan, color, 0.25f));
+
+        spectraPlot.addDataSet(data, color, false,
+            new ArrowRenderer(ShapeType.CIRCLE, getShape(ShapeType.CIRCLE), color), null, false,
+            false);
+      }
+      // hide x axis
+      if (previousPlot != null) {
+        previousPlot.getXYPlot().getDomainAxis().setVisible(false);
+      }
+      // add
+      spectraPlot.getXYPlot().getDomainAxis().setVisible(true);
+      spectraPane.add(new BorderPane(spectraPlot), 1, rowIndex);
+      previousPlot = spectraPlot;
+      rowIndex++;
+    }
+  }
+
+  /**
+   * @param msLevel only used for labelling
+   * @return
+   */
+  private SpectraPlot getSpectraPlot(final int msLevel) {
+    // create one spectra plot for each MS level
+    if (numberUsedSpectraPlots >= spectraPlots.size()) {
+      final SpectraPlot plot = new SpectraPlot();
+      plot.getXYPlot().getRangeAxis().setLabel(String.format("MS%d intensity", msLevel));
+      spectraPlots.add(plot);
+      chartGroup.add(new ChartViewWrapper(plot));
+    }
+    SpectraPlot spectraPlot = spectraPlots.get(numberUsedSpectraPlots);
+    spectraPlot.setNotifyChange(false);
+    numberUsedSpectraPlots++;
+    return spectraPlot;
   }
 
   private void addCombinedDatasetForLabels(SpectraPlot spectraPlot,
@@ -607,4 +750,5 @@ public class MSnTreeTab extends SimpleTab {
       setRawDataFile(rawDataFiles.stream().findFirst().get());
     }
   }
+
 }

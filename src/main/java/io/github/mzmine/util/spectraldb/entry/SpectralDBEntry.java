@@ -196,9 +196,13 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   }
 
   @Override
+  public String toString() {
+    return String.format("Entry: %s (dp: %d)", getOrElse(DBEntryField.NAME, ""), dps.length);
+  }
+
+  @Override
   public int hashCode() {
-    int result = Objects.hash(fields);
-    return result;
+    return Objects.hash(fields, getNumberOfDataPoints());
   }
 
   @Override

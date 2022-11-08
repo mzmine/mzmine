@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
@@ -239,7 +240,8 @@ public class DiaMs2CorrTask extends AbstractTask {
             .flatMap(s -> ((Frame) s).getMobilityScans().stream())
             .filter(m -> mobilityRange.contains((float) m.getMobility())).toList();
         if (!mobilityScans.isEmpty()) {
-          mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance, null);
+          mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance, null,
+              MergingType.ALL);
         } else {
           continue; // if we have ims data, and there are no mobility scans to be merged, something is fishy.
         }

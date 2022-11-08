@@ -55,8 +55,11 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -91,7 +94,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
+  private final FragmentScanSelection selection;
   private final MsMsQualityChecker msMsQualityChecker;
+  private final MZTolerance mzTolMerging;
+  private final boolean enableMsnMerge;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -120,6 +126,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
         .getEmbeddedParameters().toQualityChecker();
 
+    enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
+    mzTolMerging = parameters.getEmbeddedParameterValue(
+        LibraryBatchGenerationParameters.mergeMzTolerance);
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
@@ -130,6 +139,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       mzTolChimericsMainIon = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
+
+    //
+    selection = new FragmentScanSelection(mzTolMerging, true,
+        IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM);
   }
 
   @Override
@@ -187,7 +200,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap = Map.of();
     }
 
-    String lastName = null;
+    if (enableMsnMerge) {
+      // merge spectra, find best spectrum for each MSn node in the tree and each energy
+      scans = selection.getAllFragmentSpectra(scans);
+    }
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
     var match = matches.get(0);

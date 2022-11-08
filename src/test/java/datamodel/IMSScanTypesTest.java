@@ -101,7 +101,7 @@ public class IMSScanTypesTest {
     Assertions.assertEquals(value.getSourceSpectra(), loaded.getSourceSpectra());
     Assertions.assertEquals(value.getTIC(), loaded.getTIC());
     Assertions.assertEquals(value.getMSLevel(), loaded.getMSLevel());
-    Assertions.assertEquals(value.getMergingType(), loaded.getMergingType());
+    Assertions.assertEquals(value.getIntensityMergingType(), loaded.getIntensityMergingType());
 
     for (int i = 0; i < value.getNumberOfDataPoints(); i++) {
       Assertions.assertEquals(value.getIntensityValue(i), loaded.getIntensityValue(i));

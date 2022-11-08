@@ -40,11 +40,13 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
@@ -67,6 +69,11 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final SubModuleParameter<LibraryBatchMetadataParameters> metadata = new SubModuleParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
+  public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
+      new MZToleranceParameter("m/z tolerance (merging)",
+          "If selected, spectra from different collision energies will be merged.\n"
+              + "The tolerance used to group signals during merging of spectra", 0.008, 25));
+
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",
       "Options to identify and handle chimeric spectra with multiple MS1 signals in the precusor ion selection",
@@ -77,8 +84,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new LibraryExportQualityParameters());
 
   public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, file, scanExport, exportFormat, metadata, handleChimerics,
-        quality});
+    super(new Parameter[]{flists, file, scanExport, exportFormat, metadata, mergeMzTolerance,
+        handleChimerics, quality});
   }
 
 }

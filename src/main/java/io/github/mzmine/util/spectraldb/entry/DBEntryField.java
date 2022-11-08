@@ -51,7 +51,7 @@ public enum DBEntryField {
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
-      Integer.class),
+      Integer.class), MERGED_SPEC_TYPE,
 
   // MS2
   COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, NUM_PEAKS(Integer.class), ACQUISITION,
@@ -201,6 +201,7 @@ public enum DBEntryField {
    */
   public String getMZmineJsonID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "merge_type";
       case ACQUISITION -> "acquisition";
       case SOFTWARE -> "softwaresource";
       case CAS -> "cas";
@@ -254,6 +255,7 @@ public enum DBEntryField {
    */
   public String getNistMspID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "merge_type";
       case ENTRY_ID -> "DB#";
       case COLLISION_ENERGY -> "Collision_energy";
       case COMMENT -> "Comments";
@@ -295,6 +297,7 @@ public enum DBEntryField {
    */
   public String getMgfID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "MERGE_TYPE";
       case ENTRY_ID -> "SPECTRUMID";
       case CHARGE -> "CHARGE";
       case COMMENT -> "comment";
@@ -337,6 +340,7 @@ public enum DBEntryField {
    */
   public String getJdxID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "";
       case ENTRY_ID -> "";
       case ACQUISITION -> "";
       case SOFTWARE -> "";
