@@ -42,7 +42,6 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -63,17 +62,15 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
   public static final String XML_SCAN_TYPE = "simplemergedmsmsspectrum";
 
-  private static final Logger logger = Logger.getLogger(SimpleMergedMsMsSpectrum.class.getName());
-
   protected MsMsInfo msMsInfo;
 
   public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, MsMsInfo info, int msLevel,
       @NotNull List<? extends MassSpectrum> sourceSpectra,
       @NotNull SpectraMerging.IntensityMergingType intensityMergingType,
-      @NotNull CenterFunction centerFunction) {
+      @NotNull CenterFunction centerFunction, MergingType mergeType) {
     super(storage, mzValues, intensityValues, msLevel, sourceSpectra, intensityMergingType,
-        centerFunction);
+        centerFunction, mergeType);
 
     msMsInfo = info;
     this.scanDefinition = ScanUtils.scanToString(this, true);
@@ -99,6 +96,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MSLEVEL_ATTR));
     final IntensityMergingType type = IntensityMergingType.valueOf(
         reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR));
+    String mergingType = reader.getAttributeValue(null, CONST.XML_MERGE_TYPE_ATTR);
+    final MergingType mergeSpecType = mergingType == null ? null : MergingType.valueOf(mergingType);
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
     double[] mzs = null;
@@ -131,7 +130,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
     assert mzs != null && intensties != null && scans != null;
     final SimpleMergedMsMsSpectrum scan = new SimpleMergedMsMsSpectrum(file.getMemoryMapStorage(),
-        mzs, intensties, info, mslevel, scans, type, SpectraMerging.DEFAULT_CENTER_FUNCTION);
+        mzs, intensties, info, mslevel, scans, type, SpectraMerging.DEFAULT_CENTER_FUNCTION,
+        mergeSpecType);
 
     if (ml != null) {
       scan.addMassList(ml);
@@ -146,8 +146,9 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMsMsSpectrum.XML_SCAN_TYPE);
 
     writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
+    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().name());
     writer.writeAttribute(CONST.XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
-    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getMergingType().name());
+    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getIntensityMergingType().name());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
     if (msMsInfo != null) {

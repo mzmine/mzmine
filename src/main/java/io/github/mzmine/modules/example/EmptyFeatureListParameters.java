@@ -23,31 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.msmsscore;
+package io.github.mzmine.modules.example;
 
-import io.github.mzmine.datamodel.DataPoint;
-import java.util.Map;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-/**
- * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS data points to
- * interpreted formulas
- */
-public class MSMSScore {
+public class EmptyFeatureListParameters extends SimpleParameterSet {
 
-  private final float score;
-  private final Map<DataPoint, String> annotation;
+  /*
+   * Define any parameters here (see io.github.mzmine.parameters for parameter types)
+   * static is needed here to use this parameter as a key to lookup values
+   */
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public MSMSScore(float score, Map<DataPoint, String> annotation) {
-    this.score = score;
-    this.annotation = annotation;
-  }
-
-  public float getScore() {
-    return score;
-  }
-
-  public Map<DataPoint, String> getAnnotation() {
-    return annotation;
+  public EmptyFeatureListParameters() {
+    /*
+     * The order of the parameters is used to construct the parameter dialog automatically
+     */
+    super(new Parameter[]{featureLists});
   }
 
 }

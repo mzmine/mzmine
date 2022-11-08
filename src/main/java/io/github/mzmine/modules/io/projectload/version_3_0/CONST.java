@@ -56,6 +56,8 @@ public class CONST {
   public static final String XML_INTENSITY_MERGE_TYPE_ATTR = "mergingtype";
   public static final String XML_SCAN_LIST_ELEMENT = "scans";
   public static final String XML_POLARITY_ATTR = "polarity";
+
+  public static final String XML_MERGE_TYPE_ATTR = "merge_spec_type";
   /**
    * General
    */
