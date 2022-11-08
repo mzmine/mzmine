@@ -69,6 +69,7 @@ import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.A
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module;
+import io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule;
@@ -199,6 +200,7 @@ public class BatchModeModulesList {
       ShoulderPeaksFilterModule.class, //
       ScanFiltersModule.class, //
       ScanSmoothingModule.class, //
+      MaldiPseudoFileGeneratorModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}

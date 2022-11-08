@@ -181,6 +181,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
       <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
+      <MenuItem text="Maldi pseudo file generator" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
     </Menu>
 
     <Menu text="Mass detection">

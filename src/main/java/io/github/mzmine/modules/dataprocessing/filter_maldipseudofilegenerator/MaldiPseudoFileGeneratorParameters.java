@@ -23,37 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement;
+package io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import org.jetbrains.annotations.NotNull;
 
-public class ImsMsMsRefinementParameters extends SimpleParameterSet {
+public class MaldiPseudoFileGeneratorParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter flists = new FeatureListsParameter();
+  public static final RawDataFilesParameter files = new RawDataFilesParameter();
 
-  public static final OptionalParameter<DoubleParameter> noiseLevel = new OptionalParameter<>(
-      new DoubleParameter("Intensity-to-noise factor",
-          "Factor of the minimum intensity to be removed from them mass list.",
-          MZmineCore.getConfiguration().getIntensityFormat(), 2.5));
-
-  public static final OptionalParameter<IntegerParameter> minNumPoints = new OptionalParameter<>(
-      new IntegerParameter("Minimum number of mobility peaks",
-          "Minimum number of times a peak has to be detected in mobility dimension to be used in the merged spectrum."));
-
-  public ImsMsMsRefinementParameters() {
-    super(new Parameter[]{flists, noiseLevel, minNumPoints});
+  public MaldiPseudoFileGeneratorParameters() {
+    super(new Parameter[]{files});
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
+    return IonMobilitySupport.SUPPORTED;
   }
 }
