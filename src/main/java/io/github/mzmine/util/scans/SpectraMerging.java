@@ -453,58 +453,45 @@ public class SpectraMerging {
   public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
       final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
       @Nullable final MemoryMapStorage storage, final MergingType mergeType) {
-    return mergeSpectra(source, tolerance, storage, IntensityMergingType.SUMMED,
-        DEFAULT_CENTER_FUNCTION, mergeType);
+    return mergeSpectra(source, tolerance, mergeType, IntensityMergingType.SUMMED,
+        DEFAULT_CENTER_FUNCTION, storage);
   }
 
   public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
       final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
       @Nullable final MemoryMapStorage storage, final IntensityMergingType intensityMergeType,
       final MergingType mergeType) {
-    return mergeSpectra(source, tolerance, storage, intensityMergeType, DEFAULT_CENTER_FUNCTION,
-        mergeType);
+    return mergeSpectra(source, tolerance, mergeType, intensityMergeType, DEFAULT_CENTER_FUNCTION,
+        storage);
+  }
+
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
+      final @NotNull List<T> source, @NotNull final MZTolerance tolerance, MergingType mergeType,
+      IntensityMergingType intensityMergingType, final CenterFunction centerFunction,
+      @Nullable final MemoryMapStorage storage) {
+
+    return mergeSpectra(source, tolerance, intensityMergingType, mergeType, null, null, null,
+        centerFunction, storage);
   }
 
   public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
       final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
-      @Nullable final MemoryMapStorage storage, IntensityMergingType intensityMergingType,
-      final CenterFunction centerFunction, MergingType mergeType) {
+      IntensityMergingType intensityMergingType, MergingType mergeType,
+      @Nullable Double inputNoiseLevel, @Nullable Double outputNoiseLevel,
+      @Nullable Integer minNumPeaks, CenterFunction centerFunction,
+      @Nullable final MemoryMapStorage storage) {
 
     // if we have mass lists, use them to merge.
     final List<? extends MassSpectrum> spectra = source.stream()
         .map(s -> s instanceof Scan scan ? scan.getMassList() : s).toList();
 
     final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
-        intensityMergingType, centerFunction, null, null, null);
+        intensityMergingType, centerFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks);
     final int msLevel = source.stream().filter(s -> s instanceof Scan)
         .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
 
     return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
-        source, intensityMergingType, centerFunction, mergeType);
-  }
-
-  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
-      final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
-      IntensityMergingType intensityMergingType, @Nullable Double inputNoiseLevel,
-      @Nullable Double outputNoiseLevel, @Nullable Integer minNumPeaks,
-      @Nullable final MemoryMapStorage storage) {
-
-    // if we have mass lists, use them to merge.
-    final List<? extends MassSpectrum> spectra;
-    if (source.stream().allMatch(s -> s instanceof Scan)) {
-      spectra = source.stream().map(s -> ((Scan) s).getMassList()).toList();
-    } else {
-      spectra = source;
-    }
-
-    final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
-        intensityMergingType, DEFAULT_CENTER_FUNCTION, inputNoiseLevel, outputNoiseLevel,
-        minNumPeaks);
-    final int msLevel = source.stream().filter(s -> s instanceof Scan)
-        .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
-
-    return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
-        source, IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
+        source, IntensityMergingType.SUMMED, centerFunction, mergeType);
   }
 
   public static Frame getMergedFrame(@Nullable final MemoryMapStorage storage,
