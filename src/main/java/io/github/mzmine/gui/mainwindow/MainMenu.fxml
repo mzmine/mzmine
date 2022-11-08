@@ -584,6 +584,8 @@
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
     <MenuItem onAction="#runModule" text="Analyse libraries to csv"
       userData="io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule"/>
+    <MenuItem onAction="#runModule" text="Export MS2 Spectra quality"
+      userData="io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule"/>
     <MenuItem onAction="#runModule" text="timsTOF MALDI acquisition"
       userData="io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule"/>
     <MenuItem onAction="#runModule" text="timsTOF MALDI Image MSMS acquisition"

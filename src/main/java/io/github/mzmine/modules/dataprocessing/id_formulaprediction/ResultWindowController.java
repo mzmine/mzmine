@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -308,7 +309,7 @@ public class ResultWindowController {
     if (msmsPlot == null) {
       return;
     }
-    Map<Double, String> annotation = formula.getMSMSannotation();
+    Map<DataPoint, String> annotation = formula.getMSMSannotation();
 
     if (annotation == null) {
       return;

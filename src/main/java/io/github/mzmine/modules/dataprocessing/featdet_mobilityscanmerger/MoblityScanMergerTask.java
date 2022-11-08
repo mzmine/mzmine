@@ -102,7 +102,7 @@ public class MoblityScanMergerTask extends AbstractTask {
         SimpleFrame frame = (SimpleFrame) f;
         double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
             frame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
-            mergingType, cf, noiseLevel, null);
+            mergingType, cf, noiseLevel, null, null);
 
         frame.setDataPoints(merged[0], merged[1]);
         frame.addMassList(new ScanPointerMassList(frame));

@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.compoundannotations;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
@@ -36,6 +37,11 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Describes a common feature annotation. Future implementations should also extend the
+ * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)}
+ * method.
+ */
 public interface FeatureAnnotation {
 
   public static final String XML_ELEMENT = "feature_annotation";

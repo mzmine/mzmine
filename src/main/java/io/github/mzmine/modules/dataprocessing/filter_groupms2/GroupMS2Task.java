@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.numbers.RtMs2ApexDistanceType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -77,11 +78,11 @@ public class GroupMS2Task extends AbstractTask {
   private final Double minMs2IntensityRel;
   // Processed rows counter
   private int processedRows, totalRows;
-  private FeatureList list;
-  private RTTolerance rtTol;
-  private MZTolerance mzTol;
-  private boolean limitRTByFeature;
-  private boolean lockToFeatureMobilityRange;
+  private final FeatureList list;
+  private final RTTolerance rtTol;
+  private final MZTolerance mzTol;
+  private final boolean limitRTByFeature;
+  private final boolean lockToFeatureMobilityRange;
 
   /**
    * Create the task.
@@ -182,6 +183,18 @@ public class GroupMS2Task extends AbstractTask {
 
         // set list to feature and sort
         f.setAllMS2FragmentScans(scans);
+
+        // get proximity
+        if (!scans.isEmpty()) {
+          float apexDistance = Float.MAX_VALUE;
+          for (Scan s : scans) {
+            float dist = s.getRetentionTime() - frt;
+            if (dist < apexDistance) {
+              apexDistance = dist;
+            }
+          }
+          f.set(RtMs2ApexDistanceType.class, apexDistance);
+        }
       }
     }
   }
@@ -245,13 +258,13 @@ public class GroupMS2Task extends AbstractTask {
     }
     feature.set(MsMsInfoType.class, eligibleMsMsInfos);
 
-    List<MergedMsMsSpectrum> msmsSpectra = new ArrayList<>();
+    List<Scan> msmsSpectra = new ArrayList<>();
     for (MsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
           (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
           ((ModularFeatureList) list).getMemoryMapStorage(),
           lockToFeatureMobilityRange && feature.getMobilityRange() != null
-              ? feature.getMobilityRange() : null, minMs2IntensityAbs, minMs2IntensityRel);
+              ? feature.getMobilityRange() : null, minMs2IntensityAbs, minMs2IntensityRel, null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
@@ -263,9 +276,21 @@ public class GroupMS2Task extends AbstractTask {
             SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
             ((ModularFeatureList) list).getMemoryMapStorage());
         feature.setAllMS2FragmentScans(sameCEMerged, true);
-
+        msmsSpectra = sameCEMerged;
       } else {
-        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) msmsSpectra, true);
+        feature.setAllMS2FragmentScans(msmsSpectra, true);
+      }
+
+      // get proximity
+      if (!msmsSpectra.isEmpty()) {
+        float apexDistance = Float.MAX_VALUE;
+        for (Scan s : msmsSpectra) {
+          float dist = s.getRetentionTime() - frt;
+          if (dist < apexDistance) {
+            apexDistance = dist;
+          }
+        }
+        feature.set(RtMs2ApexDistanceType.class, apexDistance);
       }
     }
   }

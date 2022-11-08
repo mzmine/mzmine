@@ -41,7 +41,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class MSMSScoreCalculator {
+public class MSMSIntensityScoreCalculator {
 
   /**
    * Returns a calculated similarity score of
@@ -103,8 +103,13 @@ public class MSMSScoreCalculator {
       precursorCharge = 1;
     }
 
+    double msmsTic = 0d;
+    double explainedIntensity = 0d;
+
     msmsCycle:
     for (DataPoint dp : msmsIons) {
+
+      msmsTic += dp.getIntensity();
 
       // Check if this is an isotope
       Range<Double> isotopeCheckRange = Range.closed(dp.getMZ() - 1.4, dp.getMZ() - 0.6);
@@ -112,8 +117,8 @@ public class MSMSScoreCalculator {
         // If we have any MS/MS peak with 1 neutron mass smaller m/z
         // and higher intensity, it means the current peak is an
         // isotope and we should ignore it
-        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity() > dp
-            .getIntensity())) {
+        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity()
+            > dp.getIntensity())) {
           continue msmsCycle;
         }
       }
@@ -138,6 +143,7 @@ public class MSMSScoreCalculator {
         String formulaString = MolecularFormulaManipulator.getString(formula);
         msmsAnnotations.put(dp, String.format("[M-%s]", formulaString));
         interpretedMSMSpeaks++;
+        explainedIntensity += dp.getIntensity();
       }
       totalMSMSpeaks++;
     }
@@ -147,7 +153,7 @@ public class MSMSScoreCalculator {
       return null;
     }
 
-    float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
+    float msmsScore = (float) (explainedIntensity / msmsTic);
     return new MSMSScore(msmsScore, msmsAnnotations);
   }
 
