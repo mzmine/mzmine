@@ -80,9 +80,10 @@ public class MergeFrameThread extends AbstractTask {
         frames, mobilityScanBin, IntensityMergingType.MAXIMUM, inputNoiseLevel, null,
         minMobilityPeaks, progress);
 
-    if (!isCanceled()) {
-      onFinished.accept(mergedFrame);
+    if (isCanceled()) {
+      return;
     }
+    onFinished.accept(mergedFrame);
 
     setStatus(TaskStatus.FINISHED);
   }
