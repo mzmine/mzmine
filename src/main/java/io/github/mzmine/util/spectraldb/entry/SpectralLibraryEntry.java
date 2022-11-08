@@ -27,6 +27,7 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -94,10 +95,15 @@ public interface SpectralLibraryEntry extends MassList {
   static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage, final Scan scan,
       final CompoundDBAnnotation match, final DataPoint[] dataPoints) {
     SpectralLibraryEntry entry = create(storage,
-        Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz()),
-        scan.getPrecursorCharge(), dataPoints);
+        Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz()), dataPoints);
     // scan details
+    entry.putIfNotNull(DBEntryField.CHARGE, scan.getPrecursorCharge());
     entry.putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
+
+    if (scan instanceof MergedMassSpectrum merged) {
+      entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
+    }
 
     MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo instanceof MSnInfoImpl msnInfo) {
@@ -145,7 +151,7 @@ public interface SpectralLibraryEntry extends MassList {
     return entry;
   }
 
-  private static List extractJsonList(final List<DDAMsMsInfo> precursors,
+  private static List<?> extractJsonList(final List<DDAMsMsInfo> precursors,
       Function<DDAMsMsInfo, Object> extractor) {
     return precursors.stream().map(extractor).filter(Objects::nonNull).toList();
   }

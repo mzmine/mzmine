@@ -197,7 +197,8 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public String toString() {
-    return String.format("Entry: %s (dp: %d)", getOrElse(DBEntryField.NAME, ""), dps.length);
+    return String.format("Entry: %s (dp: %d)", getOrElse(DBEntryField.NAME, ""),
+        getNumberOfDataPoints());
   }
 
   @Override

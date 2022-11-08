@@ -191,7 +191,7 @@ public enum DBEntryField {
       case SPLASH -> SplashType.class;
       // TODO change to real data types instead of strings
       // are there other formats that define those properly?
-      case MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
+      case MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
           StringType.class;
     };
   }
