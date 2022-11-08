@@ -109,7 +109,7 @@ class LinearNormalizerTask extends AbstractTask {
             originalFeatureList.getRawDataFiles());
 
 
-    originalFeatureList.getRawDataFiles().forEach(file-> normalizedFeatureList.setSelectedScans(file, file.getScans()));
+    originalFeatureList.getRawDataFiles().forEach(file-> normalizedFeatureList.setSelectedScans(file, originalFeatureList.getSeletedScans(file)));
     // Loop through all raw data files, and find the feature with biggest
     // height
     float maxOriginalHeight = 0f;
