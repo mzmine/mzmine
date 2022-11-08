@@ -34,6 +34,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.awt.Color;
 import java.util.Collection;
 import javafx.beans.property.SimpleObjectProperty;
@@ -101,7 +102,8 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    merged = SpectraMerging.getMergedFrame(frames, tolerance, null, mobilityScanBin, progress);
+    merged = SpectraMerging.getMergedFrame(null, tolerance, frames, mobilityScanBin,
+        IntensityMergingType.MAXIMUM, 100d, null, Math.min(frames.size() - 1, 5), progress);
 
     final int maxDp = merged.getMaxMobilityScanRawDataPoints();
     final double mzs[] = new double[maxDp];

@@ -450,9 +450,35 @@ public class SpectraMerging {
         source, IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
   }
 
-  public static Frame getMergedFrame(@NotNull final Collection<Frame> frames,
-      @NotNull final MZTolerance tolerance, @Nullable final MemoryMapStorage storage,
-      final int mobilityScanBin, @NotNull final AtomicDouble progress) {
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
+      final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
+      IntensityMergingType intensityMergingType, @Nullable Double inputNoiseLevel,
+      @Nullable Double outputNoiseLevel, @Nullable Integer minNumPeaks,
+      @Nullable final MemoryMapStorage storage) {
+
+    // if we have mass lists, use them to merge.
+    final List<? extends MassSpectrum> spectra;
+    if (source.stream().allMatch(s -> s instanceof Scan)) {
+      spectra = source.stream().map(s -> ((Scan) s).getMassList()).toList();
+    } else {
+      spectra = source;
+    }
+
+    final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
+        intensityMergingType, DEFAULT_CENTER_FUNCTION, inputNoiseLevel, outputNoiseLevel,
+        minNumPeaks);
+    final int msLevel = source.stream().filter(s -> s instanceof Scan)
+        .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
+
+    return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
+        source, IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
+  }
+
+  public static Frame getMergedFrame(@Nullable final MemoryMapStorage storage,
+      @NotNull final MZTolerance tolerance, @NotNull final Collection<Frame> frames,
+      final int mobilityScanBin, @NotNull final IntensityMergingType intensityMergingType,
+      @Nullable final Double inputNoiseLevel, @Nullable final Double outputNoiseLevelAbs,
+      @Nullable final Integer minMobilityPeaks, @NotNull final AtomicDouble progress) {
     if (frames.isEmpty()) {
       throw new IllegalStateException("No frames in collection to be merged.");
     }
@@ -497,8 +523,9 @@ public class SpectraMerging {
     final IMSRawDataFile file = (IMSRawDataFile) frames.stream().findAny().get().getDataFile();
 
     final SimpleFrame frame = new SimpleFrame(file, -1, msLevel, (highestRt + lowestRt) / 2, null,
-        null, MassSpectrumType.CENTROIDED, polarityType, "Merged frame (" + frames.stream() + ")",
-        scanMzRange, aFrame.getMobilityType(), null, null);
+        null, MassSpectrumType.CENTROIDED, polarityType,
+        String.format("Merged frame (%.2f-%.2f)", lowestRt, highestRt), scanMzRange,
+        aFrame.getMobilityType(), null, null);
 
     final AtomicInteger processed = new AtomicInteger(0);
     final double totalFrames = scanMap.size();
@@ -506,21 +533,27 @@ public class SpectraMerging {
     // create a merged spectrum for each mobility scan bin
     final List<BuildingMobilityScan> buildingMobilityScans = scanMap.entrySet().parallelStream()
         .map(entry -> {
+          final List<? extends MassSpectrum> spectra;
+
           final List<MassList> massLists = entry.getValue().stream().map(MobilityScan::getMassList)
-              .collect(Collectors.toList());
-          if (massLists.size() != entry.getValue().size()) {
-            throw new IllegalArgumentException(
-                "Not all mobility scans contain a mass list. Cannot merge Frames.");
+              .filter(Objects::nonNull).toList();
+          if (massLists.isEmpty()) {
+            spectra = entry.getValue();
+          } else {
+            if (massLists.size() != entry.getValue().size()) {
+              throw new IllegalArgumentException(
+                  "Not all mobility scans contain a mass list. Cannot merge Frames.");
+            }
+            spectra = massLists;
           }
-          double[][] mzIntensities = calculatedMergedMzsAndIntensities(massLists, tolerance,
-              IntensityMergingType.SUMMED, cf, null, null, null);
+          final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
+              intensityMergingType, cf, inputNoiseLevel, outputNoiseLevelAbs, minMobilityPeaks);
 
           processed.getAndIncrement();
           progress.set(processed.get() / totalFrames);
 
           return new BuildingMobilityScan(entry.getKey(), mzIntensities[0], mzIntensities[1]);
-        }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber))
-        .collect(Collectors.toList());
+        }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber)).toList();
 
     final double[] mobilities = new double[scanMap.size()];
     int i = 0;
@@ -533,7 +566,7 @@ public class SpectraMerging {
     frame.setMobilityScans(buildingMobilityScans, true);
     frame.setMobilities(mobilities);
     double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(buildingMobilityScans, tolerance,
-        IntensityMergingType.SUMMED, cf, null, null, null);
+        intensityMergingType, cf, null, null, null);
     frame.setDataPoints(mergedSpectrum[0], mergedSpectrum[1]);
     return frame;
   }
