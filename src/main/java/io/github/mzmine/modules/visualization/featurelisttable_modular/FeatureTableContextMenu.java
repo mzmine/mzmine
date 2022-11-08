@@ -382,7 +382,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         List<Scan> scans = (List<Scan>) selectedFeature.getFeatureData().getSpectra().stream()
             .filter(s -> range.contains(s.getRetentionTime())).toList();
         MergedMassSpectrum spectrum = SpectraMerging.mergeSpectra(scans,
-            SpectraMerging.defaultMs1MergeTol, null, MergingType.ALL);
+            SpectraMerging.defaultMs1MergeTol, MergingType.ALL, null);
         SpectraVisualizerModule.addNewSpectrumTab(spectrum);
       }
     });
@@ -642,7 +642,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }).toList();
 
     final MergedMassSpectrum uncorrelatedSpectrum = SpectraMerging.mergeSpectra(mobilityScans,
-        SpectraMerging.pasefMS2MergeTol, null, MergingType.ALL);
+        SpectraMerging.pasefMS2MergeTol, MergingType.ALL, null);
 
     controller.setScans(selectedFeature.getMZ(), ScanUtils.extractDataPoints(msms),
         selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncorrelatedSpectrum), " (correlated)",

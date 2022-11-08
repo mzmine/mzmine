@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -54,6 +55,7 @@ import io.github.mzmine.modules.visualization.frames.CanvasPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleMobilogramRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleTICRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSelectedRanges;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.MergeFrameThread;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
@@ -65,6 +67,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -81,6 +84,8 @@ import org.jfree.chart.ui.Layer;
 import org.jfree.chart.ui.RectangleEdge;
 
 public class IMSRawDataOverviewPane extends BorderPane {
+
+  private static final Logger logger = Logger.getLogger(IMSRawDataOverviewPane.class.getName());
 
   private static final int HEATMAP_LEGEND_HEIGHT = 50;
 
@@ -366,6 +371,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }));
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
+    ticChart.getMouseAdapter().addGestureHandler(new SimpleDataDragGestureHandler((start, end) -> {
+      Range<Float> rtRange = Range.closed((float) start.getX(), (float) end.getX());
+      final ScanSelection selection = scanSelection.cloneWithNewRtRange(rtRange);
+      MZmineCore.getTaskController().addTask(
+          new MergeFrameThread(rawDataFile, selection, binWidth, mobilityScanNoiseLevel,
+              f -> MZmineCore.runLater(() -> setSelectedFrame(f))));
+    }));
+
     ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue.getDataset() == null || newValue.getValueIndex() == -1) {
         return;

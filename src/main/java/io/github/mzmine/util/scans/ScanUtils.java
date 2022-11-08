@@ -1278,7 +1278,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, MergingType.ALL);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1339,7 +1339,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null, MergingType.ALL);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;

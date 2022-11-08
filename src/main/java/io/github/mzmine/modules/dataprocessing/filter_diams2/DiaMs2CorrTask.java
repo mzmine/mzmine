@@ -240,8 +240,8 @@ public class DiaMs2CorrTask extends AbstractTask {
             .flatMap(s -> ((Frame) s).getMobilityScans().stream())
             .filter(m -> mobilityRange.contains((float) m.getMobility())).toList();
         if (!mobilityScans.isEmpty()) {
-          mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance, null,
-              MergingType.ALL);
+          mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance,
+              MergingType.ALL, null);
         } else {
           continue; // if we have ims data, and there are no mobility scans to be merged, something is fishy.
         }
