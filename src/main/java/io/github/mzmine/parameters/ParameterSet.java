@@ -49,6 +49,11 @@ public interface ParameterSet extends ParameterContainer {
     return actualParam == null ? null : actualParam.getValue();
   }
 
+  default <V, T extends UserParameter<V, ?>> V getEmbeddedParameterValue(OptionalParameter<T> parameter) {
+    final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
+    return actualParam == null ? null : actualParam.getValue();
+  }
+
   void loadValuesFromXML(Element element);
 
   void saveValuesToXML(Element element);

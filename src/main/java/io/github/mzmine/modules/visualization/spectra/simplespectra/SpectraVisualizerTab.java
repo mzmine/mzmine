@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MassList;
@@ -523,7 +524,7 @@ public class SpectraVisualizerTab extends MZmineTab {
    *
    * @param annotation m/z value and annotation map
    */
-  public void addMzAnnotation(Map<Double, String> annotation) {
+  public void addMzAnnotation(Map<DataPoint, String> annotation) {
     spectrumDataSet.addMzAnnotation(annotation);
   }
 
