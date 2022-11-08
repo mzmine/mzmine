@@ -89,7 +89,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(LibraryBatchGenerationTask.class.getName());
   private final SpectralLibrary library;
   private final ModularFeatureList[] flists;
-  private final ScanSelector scanExport;
   private final File outFile;
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
@@ -110,7 +109,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
-    scanExport = parameters.getValue(LibraryBatchGenerationParameters.scanExport);
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
     String exportFormat = format.getExtension();
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);
