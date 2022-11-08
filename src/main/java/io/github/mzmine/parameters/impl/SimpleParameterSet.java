@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
@@ -65,7 +66,7 @@ public class SimpleParameterSet implements ParameterSet {
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
 
-  private String moduleNameAttribrute;
+  private String moduleNameAttribute;
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
@@ -83,12 +84,6 @@ public class SimpleParameterSet implements ParameterSet {
   public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl) {
     this.parameters = parameters;
     this.helpUrl = onlineHelpUrl;
-  }
-
-  public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl, String moduleNameAttribrute) {
-    this.parameters = parameters;
-    this.helpUrl = onlineHelpUrl;
-//    this.moduleNameAttribrute = moduleNameAttribrute;
   }
 
   @Override
@@ -200,6 +195,7 @@ public class SimpleParameterSet implements ParameterSet {
       SimpleParameterSet newSet = this.getClass().getDeclaredConstructor().newInstance();
       newSet.parameters = newParameters;
       newSet.setSkipSensitiveParameters(skipSensitiveParameters);
+      newSet.setModuleNameAttribute(this.getModuleNameAttribute());
       newSet.helpUrl = helpUrl;
 
       return newSet;
@@ -356,8 +352,8 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public void setModuleNameAttribute(String moduleName) { this.moduleNameAttribrute = moduleName; }
+  public void setModuleNameAttribute(String moduleName) { this.moduleNameAttribute = moduleName; }
 
   @Override
-  public String getModuleNameAttribute() { return moduleNameAttribrute; }
+  public String getModuleNameAttribute() { return moduleNameAttribute; }
 }
