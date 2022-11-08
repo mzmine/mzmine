@@ -239,13 +239,13 @@ public class MaldiGroupMS2Task extends AbstractTask {
       return;
     }
 
-    List<MergedMsMsSpectrum> msmsSpectra = new ArrayList<>();
+    List<Scan> msmsSpectra = new ArrayList<>();
     for (MsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
           (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
           ((ModularFeatureList) list).getMemoryMapStorage(),
           lockToFeatureMobilityRange && feature.getMobilityRange() != null
-              ? feature.getMobilityRange() : null, minMs2Intensity, minMs2IntensityRel);
+              ? feature.getMobilityRange() : null, minMs2Intensity, minMs2IntensityRel, null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
