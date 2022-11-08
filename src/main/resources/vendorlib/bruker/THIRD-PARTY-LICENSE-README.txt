@@ -2,7 +2,7 @@ The following software might be used in this product:
 
 ======================================
 
-Intel® Math Kernel Library, http://www.intel.com/software/products/mkl
+Intelï¿½ Math Kernel Library, http://www.intel.com/software/products/mkl
 
 End User License Agreement for the Intel(R) Software Development Products
 (Version May 2012)
@@ -105,7 +105,7 @@ substantially similar to any of the following: (a) GNU's General Public License
 Community Source License (SCSL), (f) the Sun Industry Source License (SISL), 
 and (g) the Common Public License (CPL).
 
-C.	The scope and term of your license depends on the type of license you 
+C.	The scope and term of your license depends on the type of license you
 are provided by Intel.  The variety of license types are set forth below, which 
 may not be available for all "Intel(R) Software Development Products" and 
 therefore may not apply to the Materials.  For more information on the types of
@@ -252,7 +252,7 @@ you agree to be bound by terms of this Agreement.
 
 F.	SOFTWARE TRANSFER:  Except for Pre-Release Licenses or Evaluation 
 Licenses or Non-Commercial Licenses, as specified above, you may permanently 
-transfer the Materials you received pursuant to a license type listed in 
+transfer the Materials you received pursuant to a license type listed in
 Section 3(C) above, and all of your rights under this Agreement, to another 
 party ("Recipient") solely in conjunction with a change of ownership, merger, 
 acquisition, sale or transfer of all, substantially all or any part of your 
