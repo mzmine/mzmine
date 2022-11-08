@@ -94,6 +94,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final FragmentScanSelection selection;
   private final MsMsQualityChecker msMsQualityChecker;
   private final MZTolerance mzTolMerging;
+  private final boolean enableMsnMerge;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -121,7 +122,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
         .getEmbeddedParameters().toQualityChecker();
 
-    mzTolMerging = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
+    enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
+    mzTolMerging = parameters.getEmbeddedParameterValue(
+        LibraryBatchGenerationParameters.mergeMzTolerance);
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
@@ -193,8 +196,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap = Map.of();
     }
 
-    // merge spectra, find best spectrum for each MSn node in the tree and each energy
-    scans = selection.getAllFragmentSpectra(scans);
+    if (enableMsnMerge) {
+      // merge spectra, find best spectrum for each MSn node in the tree and each energy
+      scans = selection.getAllFragmentSpectra(scans);
+    }
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
     var match = matches.get(0);

@@ -40,6 +40,7 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -68,9 +69,10 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final SubModuleParameter<LibraryBatchMetadataParameters> metadata = new SubModuleParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
-  public static final MZToleranceParameter mergeMzTolerance = new MZToleranceParameter(
-      "m/z tolerance (merging)", "The tolerance used to group signals during merging of spectra",
-      0.008, 25);
+  public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
+      new MZToleranceParameter("m/z tolerance (merging)",
+          "If selected, spectra from different collision energies will be merged.\n"
+              + "The tolerance used to group signals during merging of spectra", 0.008, 25));
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",
