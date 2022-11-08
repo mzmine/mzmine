@@ -56,9 +56,6 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final ComboParameter<ScanSelector> scanExport = new ComboParameter<>("Export scans",
-      "Select scans to export", ScanSelector.values(), ScanSelector.ALL);
-
   public static final FileNameParameter file = new FileNameParameter("Export file",
       "Local library file", FileSelectionType.SAVE);
 
@@ -84,8 +81,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new LibraryExportQualityParameters());
 
   public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, file, scanExport, exportFormat, metadata, mergeMzTolerance,
-        handleChimerics, quality});
+    super(new Parameter[]{flists, file, exportFormat, metadata, mergeMzTolerance, handleChimerics,
+        quality});
   }
 
 }

@@ -25,9 +25,18 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -36,21 +45,28 @@ public class SpectralLibrary {
 
   private final @NotNull String name;
   private final @NotNull File path;
-  private final @NotNull List<SpectralDBEntry> entries;
+  // spectra
+  private final @NotNull List<SpectralLibraryEntry> entries = new ArrayList<>();
 
-  public SpectralLibrary(@NotNull File path, @NotNull List<SpectralDBEntry> entries) {
-    this(path.getName(), path, entries);
+  // internals
+  @Nullable
+  private final MemoryMapStorage storage;
+  private final ObservableMap<Class<? extends DataType>, DataType> types = FXCollections.observableMap(
+      new LinkedHashMap<>());
+
+  public SpectralLibrary(@Nullable MemoryMapStorage storage, @NotNull File path) {
+    this(storage, path.getName(), path);
   }
 
-  public SpectralLibrary(@NotNull String name, @NotNull File path,
-      @NotNull List<SpectralDBEntry> entries) {
+  public SpectralLibrary(@Nullable MemoryMapStorage storage, @NotNull String name,
+      @NotNull File path) {
+    this.storage = storage;
     this.path = path;
-    this.entries = entries;
-    this.name = String.format("%s (%d spectra)", name, size());
+    this.name = name;
   }
 
   @NotNull
-  public List<SpectralDBEntry> getEntries() {
+  public List<SpectralLibraryEntry> getEntries() {
     return entries;
   }
 
@@ -61,7 +77,7 @@ public class SpectralLibrary {
 
   @NotNull
   public String getName() {
-    return name;
+    return String.format("%s (%d spectra)", name, size());
   }
 
   public int size() {
@@ -71,6 +87,24 @@ public class SpectralLibrary {
   @Override
   public String toString() {
     return getName();
+  }
+
+  public MemoryMapStorage getStorage() {
+    return storage;
+  }
+
+  public void addType(Collection<DataType> newTypes) {
+    for (DataType<?> type : newTypes) {
+      if (!types.containsKey(type.getClass())) {
+        // add row type - all rows will automatically generate a default property for this type in
+        // their data map
+        types.put(type.getClass(), type);
+      }
+    }
+  }
+
+  public void addType(@NotNull DataType<?>... types) {
+    addType(Arrays.asList(types));
   }
 
   /**

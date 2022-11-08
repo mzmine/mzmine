@@ -30,7 +30,7 @@ import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParam
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import io.github.mzmine.util.web.RequestResponse;
 import jakarta.json.Json;
@@ -90,7 +90,8 @@ public class GNPSUtils {
    * @param libIDorUSI GNPS library ID
    * @return library spectrum or null
    */
-  public static SpectralDBEntry accessLibraryOrUSISpectrum(String libIDorUSI) throws IOException {
+  public static SpectralLibraryEntry accessLibraryOrUSISpectrum(String libIDorUSI)
+      throws IOException {
     if (isGnpsLibID(libIDorUSI)) {
       return accessLibrarySpectrum(libIDorUSI);
     } else {
@@ -106,7 +107,7 @@ public class GNPSUtils {
    * @param libraryID GNPS library ID
    * @return library spectrum or null
    */
-  public static SpectralDBEntry accessLibrarySpectrum(String libraryID) throws IOException {
+  public static SpectralLibraryEntry accessLibrarySpectrum(String libraryID) throws IOException {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpGet httpGet = new HttpGet(ACCESS_LIBRARY_SPECTRUM + libraryID);
       logger.info("Retrieving library spectrum " + httpGet.getRequestLine());
@@ -136,7 +137,7 @@ public class GNPSUtils {
    * @param usi universal spectrum identifier
    * @return library spectrum or null
    */
-  public static SpectralDBEntry accessUSISpectrum(String usi) throws IOException {
+  public static SpectralLibraryEntry accessUSISpectrum(String usi) throws IOException {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpGet httpGet = new HttpGet(ACCESS_USI_SPECTRUM + usi);
       logger.info("Retrieving USI spectrum " + httpGet.getRequestLine());
@@ -163,7 +164,7 @@ public class GNPSUtils {
   }
 
   @NotNull
-  private static SpectralDBEntry parseJsonToSpectrum(String jsonSpec) {
+  private static SpectralLibraryEntry parseJsonToSpectrum(String jsonSpec) {
     try (JsonReader reader = Json.createReader(new StringReader(jsonSpec))) {
       JsonObject json = reader.readObject();
       // GNPS has different json return types just try to read the first one which is used for USI
@@ -174,7 +175,7 @@ public class GNPSUtils {
         DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(peaks);
         final double precursorMz = json.getJsonNumber("precursor_mz").doubleValue();
         final int charge = json.getJsonNumber("precursor_charge").intValue();
-        return new SpectralDBEntry(precursorMz, charge, spectrum);
+        return SpectralLibraryEntry.create(null, precursorMz, charge, spectrum);
       } else {
         // https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737
         // library ID
@@ -188,7 +189,7 @@ public class GNPSUtils {
           final JsonObject annotations = json.getJsonArray("annotations").getJsonObject(0);
           final double precursorMz = Double.parseDouble(
               annotations.getJsonString("Precursor_MZ").getString());
-          return new SpectralDBEntry(precursorMz, spectrum);
+          return SpectralLibraryEntry.create(null, precursorMz, spectrum);
         }
       }
     }
