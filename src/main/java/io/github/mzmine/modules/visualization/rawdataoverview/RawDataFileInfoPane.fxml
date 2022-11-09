@@ -101,25 +101,25 @@
   <center>
     <TableView fx:id="rawDataTableView" BorderPane.alignment="CENTER">
       <columnResizePolicy>
-<!--        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />-->
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
 	  </columnResizePolicy>
       <columns>
-        <TableColumn fx:id="scanColumn" editable="false" prefWidth="35" text="Scan"/>
-        <TableColumn fx:id="rtColumn" editable="false" prefWidth="35" text="RT"/>
-        <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="80" text="Base peak"/>
-        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="55"
+        <TableColumn fx:id="scanColumn" editable="false" text="Scan"/>
+        <TableColumn fx:id="rtColumn" editable="false" text="RT"/>
+        <TableColumn fx:id="basePeakColumn" editable="false" text="Base peak"/>
+        <TableColumn fx:id="basePeakIntensityColumn" editable="false"
           text="BP intensity"/>
-        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="42" text="MSn"/>
-        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="80"
+        <TableColumn fx:id="msLevelColumn" editable="false" text="MSn"/>
+        <TableColumn fx:id="precursorMzColumn" editable="false"
           text="Precursor m/z"/>
-        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="115" text="m/z range"/>
-        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="95.0" text="Scan type"/>
-        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="62.0" text="Polarity"/>
-        <TableColumn fx:id="injectTimeColumn" editable="false" prefWidth="75" text="Inject time"/>
-        <TableColumn fx:id="definitionColumn" minWidth="15"  prefWidth="125.0"
-          text="Scan definition" editable="false"/>
-        <TableColumn fx:id="massDetectionColumn" minWidth="15"  prefWidth="50.0"
-          text="Masses detected" editable="false"/>
+        <TableColumn fx:id="mzRangeColumn" editable="false" text="m/z range"/>
+        <TableColumn fx:id="scanTypeColumn" editable="false" text="Scan type"/>
+        <TableColumn fx:id="polarityColumn" editable="false" text="Polarity"/>
+        <TableColumn fx:id="injectTimeColumn" editable="false" text="Inject time"/>
+        <TableColumn fx:id="definitionColumn" editable="false"
+          text="Scan definition"/>
+        <TableColumn fx:id="massDetectionColumn" editable="false"
+          text="Masses detected"/>
       </columns>
     </TableView>
   </center>

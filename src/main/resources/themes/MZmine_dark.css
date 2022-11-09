@@ -100,7 +100,7 @@
 }
 
 .table-row-cell:selected {
-    -fx-background-color: #56b4e9;
+    -fx-background-color: -highlight;
 }
 
 .table-row-cell:selected .text {

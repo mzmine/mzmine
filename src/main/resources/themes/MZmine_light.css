@@ -108,7 +108,7 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 }
 
 .table-row-cell:selected {
-    -fx-background-color: #009e73;
+    -fx-background-color: -highlight;
 }
 
 .table-row-cell:selected .text {
