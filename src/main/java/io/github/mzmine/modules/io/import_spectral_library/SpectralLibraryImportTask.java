@@ -29,14 +29,13 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +47,6 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   private final MZmineProject project;
   private final File dataBaseFile;
-  private final List<SpectralDBEntry> entries = new ArrayList<>();
   private AutoLibraryParser parser;
 
   public SpectralLibraryImportTask(MZmineProject project, File dataBaseFile,
@@ -74,11 +72,13 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
     try {
       // will block until all library spectra are added to entries list
-      parseFile(dataBaseFile);
+      SpectralLibrary library = parseFile(dataBaseFile);
+      final List<SpectralLibraryEntry> entries = library.getEntries();
       if (entries.size() > 0) {
-        project.addSpectralLibrary(new SpectralLibrary(dataBaseFile, entries));
-        logger.log(Level.INFO, () -> String
-            .format("Library %s successfully added with %d entries", dataBaseFile, entries.size()));
+        project.addSpectralLibrary(library);
+        logger.log(Level.INFO,
+            () -> String.format("Library %s successfully added with %d entries", dataBaseFile,
+                entries.size()));
       } else {
         logger.log(Level.WARNING, "Library was empty or there was an error while reading");
       }
@@ -96,12 +96,15 @@ public class SpectralLibraryImportTask extends AbstractTask {
    *
    * @param dataBaseFile the target database file
    */
-  private void parseFile(File dataBaseFile) throws UnsupportedFormatException, IOException {
+  private SpectralLibrary parseFile(File dataBaseFile)
+      throws UnsupportedFormatException, IOException {
     //
+    SpectralLibrary library = new SpectralLibrary(MemoryMapStorage.forMassList(), dataBaseFile);
+    final List<SpectralLibraryEntry> entries = library.getEntries();
     parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> entries.addAll(list));
-
     // return tasks
-    parser.parse(this, dataBaseFile);
+    parser.parse(this, dataBaseFile, library);
+    return library;
   }
 
 }

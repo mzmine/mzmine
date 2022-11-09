@@ -53,6 +53,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -104,8 +105,8 @@ public class NistMsSearchTask extends AbstractTask {
   private static final String SEARCH_METHOD = "NIST MS Search";
 
   // Regular expressions for matching header and hit lines in results.
-  private static final Pattern SEARCH_REGEX = Pattern
-      .compile("^Unknown:\\s*" + SPECTRUM_NAME_PREFIX + "(\\d+).*");
+  private static final Pattern SEARCH_REGEX = Pattern.compile(
+      "^Unknown:\\s*" + SPECTRUM_NAME_PREFIX + "(\\d+).*");
   private static final Pattern RI_REGEX = Pattern.compile("RI:\\s*(\\d+)");
   private static final Pattern MF_REGEX = Pattern.compile("MF:\\s*(\\d+)");
   private static final Pattern RMF_REGEX = Pattern.compile("RMF:\\s*(\\d+)");
@@ -308,8 +309,8 @@ public class NistMsSearchTask extends AbstractTask {
             }
             // Merge multiple MSn fragment spectra.
             if (mergeParameters != null) {
-              MsMsSpectraMergeModule merger = MZmineCore
-                  .getModuleInstance(MsMsSpectraMergeModule.class);
+              MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
+                  MsMsSpectraMergeModule.class);
               assert merger != null;
               MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
               if (spectrum != null) {
@@ -469,8 +470,8 @@ public class NistMsSearchTask extends AbstractTask {
                 id = idMatcher.group(1);
               }
               if (libMatcher.find()) {
-                lib = "Library: " + libMatcher.group(1) + "\n" +
-                "NIST results only viewable in NIST MS Search";
+                lib = "Library: " + libMatcher.group(1) + "\n"
+                    + "NIST results only viewable in NIST MS Search";
               }
 
               // Compound ion_type is combined with name field for LC-MS/MS field.
@@ -480,13 +481,14 @@ public class NistMsSearchTask extends AbstractTask {
                 ion = ionMatcher.group(1);
               }
 
-              Map<DBEntryField, Object> map = Map
-                  .of(DBEntryField.ENTRY_ID, id, DBEntryField.NAME, name, DBEntryField.FORMULA,
-                      formula, DBEntryField.ION_TYPE, ion, DBEntryField.CAS, casNumber,
-                      DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib,
-                      DBEntryField.SOFTWARE, SEARCH_METHOD);
+              Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, id, DBEntryField.NAME,
+                  name, DBEntryField.FORMULA, formula, DBEntryField.ION_TYPE, ion, DBEntryField.CAS,
+                  casNumber, DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib,
+                  DBEntryField.SOFTWARE, SEARCH_METHOD);
 
-              SpectralDBEntry entry = new SpectralDBEntry(map, null);
+              // Use empty spectrum for now as NIST search does not provide the spectrum
+              SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
+                  map);
 
               SpectralSimilarity similarity = new SpectralSimilarity("Cosine Dot Product",
                   dotProduct, 100, Double.NaN);

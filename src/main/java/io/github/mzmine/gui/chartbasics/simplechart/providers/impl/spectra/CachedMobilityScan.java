@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import java.util.Iterator;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,8 +60,8 @@ public class CachedMobilityScan implements MobilityScan {
     scan.getMzValues(allmz);
     scan.getIntensityValues(allintensities);
 
-    double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(allmz, allintensities, noiseLevel);
+    double[][] data = DataPointUtils.getDatapointsAboveNoiseLevel(allmz, allintensities,
+        noiseLevel);
 
     mzs = data[0];
     intensities = data[1];
@@ -148,12 +147,6 @@ public class CachedMobilityScan implements MobilityScan {
   @Override
   public Double getTIC() {
     return tic;
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
   }
 
   @NotNull

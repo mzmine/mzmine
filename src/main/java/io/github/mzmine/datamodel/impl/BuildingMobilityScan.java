@@ -40,7 +40,6 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,8 +57,7 @@ public class BuildingMobilityScan implements MobilityScan {
   int basePeakIndex;
 
   /**
-   *
-   * @param scanNumber The scan number beginning with 0
+   * @param scanNumber    The scan number beginning with 0
    * @param mzIntensities The m/z values [0][n] and intensity values [1][n]
    */
   public BuildingMobilityScan(int scanNumber, double[][] mzIntensities) {
@@ -67,9 +65,8 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   /**
-   *
-   * @param scanNumber The scan number beginning with 0
-   * @param mzs The m/z values
+   * @param scanNumber  The scan number beginning with 0
+   * @param mzs         The m/z values
    * @param intensities The intensity values.
    */
   public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
@@ -190,11 +187,6 @@ public class BuildingMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getTIC() {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
