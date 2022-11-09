@@ -65,7 +65,7 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarityParameters;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -227,7 +227,8 @@ public class RegularScanTypesTest {
     Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS,
         "468-531-21", DBEntryField.DATA_COLLECTOR, "Dr. Xy", DBEntryField.CHARGE, 1);
 
-    SpectralDBEntry entry = new SpectralDBEntry(map, ScanUtils.extractDataPoints(library));
+    SpectralLibraryEntry entry = SpectralLibraryEntry.create(null, map,
+        ScanUtils.extractDataPoints(library));
 
     SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
@@ -296,17 +297,17 @@ public class RegularScanTypesTest {
         feature, file);
     comparePseudoSpectra(spectrum, (PseudoSpectrum) o1);
     comparePseudoSpectra(spectrum, (PseudoSpectrum) o2);
-    Assertions.assertEquals(o3, null);
-    Assertions.assertEquals(o4, null);
+    Assertions.assertNull(o3);
+    Assertions.assertNull(o4);
 
     Object o5 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
         project, flist, row, null, null);
     Object o6 = DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), List.of(spectrum),
         project, flist, row, feature, file);
-    Assertions.assertEquals(null,
+    Assertions.assertNull(
         DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
             null, null));
-    Assertions.assertEquals(null,
+    Assertions.assertNull(
         DataTypeTestUtils.saveAndLoad(new FragmentScanNumbersType(), null, project, flist, row,
             feature, file));
     comparePseudoSpectra(spectrum, (PseudoSpectrum) (((List) o5).get(0)));
