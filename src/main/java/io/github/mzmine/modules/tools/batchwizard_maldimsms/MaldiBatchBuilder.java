@@ -97,7 +97,11 @@ public class MaldiBatchBuilder {
     batch.add(makeSmoothingStep(7));
     batch.add(
         makeMobilityResolvingStep(parameters.getValue(MaldiWizardParameters.frameNoiseLevel)));
+    batch.add(makeDeisotopingStep());
+    batch.add(makeIsotopeFinderStep());
+    batch.add(makeFilterStep());
 
+    return batch;
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeImportTask(FileNamesParameter files) {
