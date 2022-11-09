@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.web.RequestResponse;
 import java.io.IOException;
 import java.util.Arrays;
@@ -45,7 +45,7 @@ public class GNPSTest {
   @Test
   @Disabled
   void testLibraryAccess() throws IOException {
-    SpectralDBEntry spec = GNPSUtils.accessLibrarySpectrum("CCMSLIB00005463737");
+    SpectralLibraryEntry spec = GNPSUtils.accessLibrarySpectrum("CCMSLIB00005463737");
     Assertions.assertNotNull(spec);
     Assertions.assertTrue(spec.getDataPoints().length > 0);
     Assertions.assertTrue(spec.getPrecursorMZ() > 0);

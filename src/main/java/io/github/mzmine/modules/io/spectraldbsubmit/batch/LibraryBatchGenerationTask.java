@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
@@ -60,7 +61,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -85,8 +87,8 @@ import java.util.logging.Logger;
 public class LibraryBatchGenerationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LibraryBatchGenerationTask.class.getName());
+  private final SpectralLibrary library;
   private final ModularFeatureList[] flists;
-  private final ScanSelector scanExport;
   private final File outFile;
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
@@ -94,11 +96,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final FragmentScanSelection selection;
   private final MsMsQualityChecker msMsQualityChecker;
   private final MZTolerance mzTolMerging;
+  private final boolean enableMsnMerge;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
   private ChimericMsOption handleChimericsOption;
-
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);
@@ -107,12 +109,13 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
-    scanExport = parameters.getValue(LibraryBatchGenerationParameters.scanExport);
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
     String exportFormat = format.getExtension();
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);
     outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
 
+    library = new SpectralLibrary(MemoryMapStorage.forMassList(), outFile.getName() + "_batch",
+        outFile);
     // metadata as a map
     LibraryBatchMetadataParameters meta = parameters.getParameter(
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
@@ -121,7 +124,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
         .getEmbeddedParameters().toQualityChecker();
 
-    mzTolMerging = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
+    enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
+    mzTolMerging = parameters.getEmbeddedParameterValue(
+        LibraryBatchGenerationParameters.mergeMzTolerance);
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
@@ -192,8 +197,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap = Map.of();
     }
 
-    // merge spectra, find best spectrum for each MSn node in the tree and each energy
-    scans = selection.getAllFragmentSpectra(scans);
+    if (enableMsnMerge) {
+      // merge spectra, find best spectrum for each MSn node in the tree and each energy
+      scans = selection.getAllFragmentSpectra(scans);
+    }
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
     var match = matches.get(0);
@@ -211,7 +218,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
           DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
       // add instrument type etc by parameter
-      SpectralDBEntry entry = new SpectralDBEntry(msmsScan, match, dps);
+      Scan scan = scans.get(i);
+      SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), scan, match,
+          dps);
       entry.putAll(metadataMap);
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed
@@ -288,7 +297,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         mzTolChimericsIsolation, allowedOtherSignalSum);
   }
 
-  private void exportEntry(final BufferedWriter writer, final SpectralDBEntry entry)
+  private void exportEntry(final BufferedWriter writer, final SpectralLibraryEntry entry)
       throws IOException {
     switch (format) {
       case msp -> exportMsp(writer, entry);
@@ -296,13 +305,13 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
   }
 
-  private void exportGnpsJson(final BufferedWriter writer, final SpectralDBEntry entry)
+  private void exportGnpsJson(final BufferedWriter writer, final SpectralLibraryEntry entry)
       throws IOException {
     String json = MZmineJsonGenerator.generateJSON(entry);
     writer.append(json).append("\n");
   }
 
-  private void exportMsp(final BufferedWriter writer, final SpectralDBEntry entry)
+  private void exportMsp(final BufferedWriter writer, final SpectralLibraryEntry entry)
       throws IOException {
     String msp = MSPEntryGenerator.createMSPEntry(entry);
     writer.append(msp);
