@@ -240,6 +240,10 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     alignedPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
         ADAP3AlignerModule.class, parameters, getModuleCallDate()));
+
+
+    allDataFiles.forEach(file-> alignedPeakList.setSelectedScans(file, file.getScans()));
+
     return alignedPeakList;
   }
 
