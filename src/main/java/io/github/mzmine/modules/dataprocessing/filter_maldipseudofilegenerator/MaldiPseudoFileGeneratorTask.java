@@ -155,6 +155,7 @@ public class MaldiPseudoFileGeneratorTask extends AbstractTask {
             newFile.getAppliedMethods().add(
                 new SimpleFeatureListAppliedMethod(MaldiPseudoFileGeneratorModule.class, parameters,
                     getModuleCallDate()));
+            newFile.setImagingParam(((ImagingRawDataFile) file).getImagingParam());
             newFiles.add(newFile);
           } catch (IOException e) {
             throw new RuntimeException(e);
