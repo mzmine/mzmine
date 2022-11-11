@@ -155,7 +155,7 @@ public class MirrorScanWindow extends JFrame {
     double rtA = scan.getRetentionTime();
 
     Double precursorMZB = db.getEntry().getPrecursorMZ();
-    Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
+    Float rtB = (Float) db.getEntry().getField(DBEntryField.RT).orElse(0f);
 
     contentPane.removeAll();
     // create without data
