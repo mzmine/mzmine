@@ -201,6 +201,10 @@ public class ImageAllMsMsPane extends BorderPane {
     }
 
     final ImagingParameters imagingParam = rawDataFile.getImagingParam();
+    if (imagingParam == null) {
+      return null;
+    }
+
     final double height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
     final double width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
 
