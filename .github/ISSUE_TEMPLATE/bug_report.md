@@ -9,7 +9,7 @@ assignees: ''
 
 ### Basic information
 
-* My operating system:
+* My operating system and version:
 * My MZmine version: 
 
 ### What happened
