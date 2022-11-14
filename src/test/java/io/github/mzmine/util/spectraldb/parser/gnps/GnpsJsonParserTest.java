@@ -37,13 +37,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class GNPSJsonParserTest {
+class GnpsJsonParserTest {
 
 
   @Test
   void testParse() throws IOException {
     File file = new File(
-        GNPSJsonParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
+        GnpsJsonParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
 
     List<SpectralLibraryEntry> list = new ArrayList<>();
     new GNPSJsonParser(0, (newList, alreadyProcessed) -> {
@@ -56,7 +56,7 @@ class GNPSJsonParserTest {
   @Test
   public void testObjectMapper() throws JsonParseException, IOException {
     File file = new File(
-        GNPSJsonParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
+        GnpsJsonParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
 
     ObjectMapper mapper = new ObjectMapper();
     List<GnpsLibraryEntry> list = mapper.readValue(file, new TypeReference<>() {
@@ -68,7 +68,7 @@ class GNPSJsonParserTest {
   @Test
   public void testJacksonStream() throws JsonParseException, IOException {
     File file = new File(
-        GNPSJsonParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
+        GnpsJsonParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
 
     ObjectMapper mapper = new ObjectMapper();
     List<SpectralLibraryEntry> list = new ArrayList<>();

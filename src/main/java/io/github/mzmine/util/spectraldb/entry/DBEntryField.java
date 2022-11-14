@@ -69,7 +69,7 @@ public enum DBEntryField {
   DATASET_ID, USI, DATAFILE_COLON_SCAN_NUMBER, SPLASH,
 
   // Quality measures
-  QUALITY_CHIMERIC;
+  QUALITY;
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -171,7 +171,7 @@ public enum DBEntryField {
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC ->
+      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY ->
           StringType.class;
       case MS_LEVEL, NUM_PEAKS -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
@@ -246,7 +246,7 @@ public enum DBEntryField {
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
       case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
-      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY -> "quality";
     };
   }
 
@@ -287,7 +287,7 @@ public enum DBEntryField {
       case USI -> "usi";
       case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case DESCRIPTION -> "description";
-      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY -> "quality";
       case DATASET_ID -> "dataset_id";
     };
   }
@@ -330,7 +330,7 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "Isolation_window";
       case USI -> "usi";
       case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
-      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY -> "quality";
       case DATASET_ID -> "dataset_id";
     };
   }
@@ -380,7 +380,7 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "";
       case USI -> "";
       case DATAFILE_COLON_SCAN_NUMBER -> "";
-      case QUALITY_CHIMERIC -> "";
+      case QUALITY -> "";
       case DATASET_ID -> "";
     };
   }
