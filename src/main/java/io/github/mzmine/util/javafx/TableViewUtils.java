@@ -28,8 +28,10 @@ package io.github.mzmine.util.javafx;
 import com.google.common.collect.Range;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
+import javafx.beans.binding.DoubleExpression;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 
 /**
  * Options to manipulate table views and maybe treetableviews
@@ -40,26 +42,26 @@ public class TableViewUtils {
 
   private static final Logger logger = Logger.getLogger(TableViewUtils.class.getName());
 
-//  public static void autoFitLastColumn(TableView<?> table) {
-//    autoFitLastColumn(table, table.widthProperty().subtract(10));
-//  }
-//
-//  public static void autoFitLastColumn(TableView<?> table, DoubleExpression tableWidth) {
-//    var cols = table.getColumns();
-//    if (cols.size() < 2) {
-//      throw new IllegalArgumentException("Table must contain 2 or more columns");
-//    }
-//    // target column to resize
-//    TableColumn<?, ?> lastCol = cols.get(cols.size() - 1);
-//    // subtract all widths from the table width
-//    DoubleExpression remainingWidth = tableWidth;
-//    for (var col : cols) {
-//      if (col != lastCol) {
-//        remainingWidth = remainingWidth.subtract(col.widthProperty());
-//      }
-//    }
-//    lastCol.prefWidthProperty().bind(remainingWidth);
-//  }
+  public static void autoFitLastColumn(TableView<?> table) {
+    autoFitLastColumn(table, table.widthProperty().subtract(10));
+  }
+
+  public static void autoFitLastColumn(TableView<?> table, DoubleExpression tableWidth) {
+    var cols = table.getColumns();
+    if (cols.size() < 2) {
+      throw new IllegalArgumentException("Table must contain 2 or more columns");
+    }
+    // target column to resize
+    TableColumn<?, ?> lastCol = cols.get(cols.size() - 1);
+    // subtract all widths from the table width
+    DoubleExpression remainingWidth = tableWidth;
+    for (var col : cols) {
+      if (col != lastCol) {
+        remainingWidth = remainingWidth.subtract(col.widthProperty());
+      }
+    }
+    lastCol.prefWidthProperty().bind(remainingWidth);
+  }
 
   /**
    * Use a numberformat to format the content of cells

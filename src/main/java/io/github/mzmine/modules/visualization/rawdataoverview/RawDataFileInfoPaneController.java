@@ -134,17 +134,27 @@ public class RawDataFileInfoPaneController {
     definitionColumn.setCellValueFactory(
         p -> new SimpleStringProperty(p.getValue().getScanDefinition()));
     massDetectionColumn.setCellValueFactory(
-        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(
-            FxIconUtil.getFontIcon("bi-check2-circle", 12,
-                MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor()))
-            : new SimpleObjectProperty<>(FxIconUtil.getFontIcon("bi-x-circle", 12,
-                MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor())));
+        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(getCheckMarkIcon())
+            : new SimpleObjectProperty<>(getXIcon()));
 
     TableViewUtils.setFormattedCellFactory(basePeakColumn, mzFormat);
     TableViewUtils.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
     TableViewUtils.setFormattedCellFactory(rtColumn, rtFormat);
     TableViewUtils.setFormattedCellFactory(injectTimeColumn, rtFormat);
     TableViewUtils.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
+
+    TableViewUtils.autoFitLastColumn(rawDataTableView);
+  }
+
+  @NotNull
+  private FontIcon getCheckMarkIcon() {
+    return FxIconUtil.getFontIcon("bi-check2-circle", 12,
+        MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor());
+  }
+
+  private FontIcon getXIcon() {
+    return FxIconUtil.getFontIcon("bi-x-circle", 12,
+        MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
   }
 
   /**
