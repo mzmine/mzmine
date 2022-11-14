@@ -68,8 +68,9 @@ public enum DBEntryField {
   // Dataset ID is for MassIVE or other repositories
   DATASET_ID, USI, DATAFILE_COLON_SCAN_NUMBER, SPLASH,
 
-  // Quality measures
-  QUALITY;
+  // Quality measures in wrapper object
+  QUALITY, // individual properties
+  QUALITY_CHIMERIC, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS;
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -171,12 +172,13 @@ public enum DBEntryField {
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY ->
+      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY, QUALITY_CHIMERIC ->
           StringType.class;
       case MS_LEVEL, NUM_PEAKS -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
       case CHARGE -> ChargeType.class;
-      case COLLISION_ENERGY -> DoubleType.class;
+      case COLLISION_ENERGY, ISOLATION_WINDOW, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS ->
+          DoubleType.class;
       case FORMULA -> FormulaType.class;
       case INCHI -> InChIStructureType.class;
       case INCHIKEY -> InChIKeyStructureType.class;
@@ -185,7 +187,6 @@ public enum DBEntryField {
       case RT -> RTType.class;
       case SMILES -> SmilesStructureType.class;
       case CCS -> CCSType.class;
-      case ISOLATION_WINDOW -> DoubleType.class;
       case DATASET_ID -> DatasetIdType.class;
       case USI -> UsiType.class;
       case SPLASH -> SplashType.class;
@@ -247,6 +248,9 @@ public enum DBEntryField {
       case USI -> "usi";
       case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case QUALITY -> "quality";
+      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
+      case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
     };
   }
 
@@ -289,6 +293,9 @@ public enum DBEntryField {
       case DESCRIPTION -> "description";
       case QUALITY -> "quality";
       case DATASET_ID -> "dataset_id";
+      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
+      case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
     };
   }
 
@@ -331,6 +338,9 @@ public enum DBEntryField {
       case USI -> "usi";
       case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case QUALITY -> "quality";
+      case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
+      case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
       case DATASET_ID -> "dataset_id";
     };
   }
@@ -382,6 +392,9 @@ public enum DBEntryField {
       case DATAFILE_COLON_SCAN_NUMBER -> "";
       case QUALITY -> "";
       case DATASET_ID -> "";
+      case QUALITY_CHIMERIC -> "";
+      case QUALITY_EXPLAINED_INTENSITY -> "";
+      case QUALITY_EXPLAINED_SIGNALS -> "";
     };
   }
 

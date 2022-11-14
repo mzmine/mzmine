@@ -173,6 +173,9 @@ public class MZmineJsonLibraryEntry {
       case USI -> usi;
       case SPLASH -> splash;
       case QUALITY -> quality;
+      case QUALITY_CHIMERIC -> quality != null ? quality.chimeric() : null;
+      case QUALITY_EXPLAINED_INTENSITY -> quality != null ? quality.explainedIntensity() : null;
+      case QUALITY_EXPLAINED_SIGNALS -> quality != null ? quality.explainedSignals() : null;
       case DESCRIPTION -> null;
       case MOLWEIGHT -> null;
       case PUBMED -> null;
