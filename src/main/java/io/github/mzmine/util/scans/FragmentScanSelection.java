@@ -210,7 +210,7 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     if (scans.size() == 1) {
       return scans.get(0);
     }
-    return SpectraMerging.mergeSpectra(scans, mzTol, null, intensityMergeType, mergeType);
+    return SpectraMerging.mergeSpectra(scans, mzTol, mergeType, intensityMergeType, null);
   }
 
   private void addIf(boolean condition, final List<Scan> targetList, final Object scans) {

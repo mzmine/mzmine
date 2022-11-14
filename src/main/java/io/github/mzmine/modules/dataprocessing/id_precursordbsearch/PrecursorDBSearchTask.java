@@ -36,7 +36,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
@@ -57,21 +57,22 @@ import org.jetbrains.annotations.NotNull;
  */
 class PrecursorDBSearchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final FeatureList peakList;
   private final File dataBaseFile;
-  private ParameterSet parameters;
+  private final ParameterSet parameters;
 
-  private MZTolerance mzTol;
-  private boolean useRT;
-  private RTTolerance rtTol;
+  private final MZTolerance mzTol;
+  private final boolean useRT;
+  private final RTTolerance rtTol;
 
   private List<AbstractTask> tasks;
   private int totalTasks;
-  private AtomicInteger matches = new AtomicInteger(0);
+  private final AtomicInteger matches = new AtomicInteger(0);
 
-  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.peakList = peakList;
     this.parameters = parameters;
@@ -88,8 +89,9 @@ class PrecursorDBSearchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalTasks == 0 || tasks == null)
+    if (totalTasks == 0 || tasks == null) {
       return 0;
+    }
     return ((double) totalTasks - tasks.size()) / totalTasks;
   }
 
@@ -154,7 +156,7 @@ class PrecursorDBSearchTask extends AbstractTask {
 
   /**
    * Load all library entries from data base file
-   * 
+   *
    * @param dataBaseFile
    * @return
    */
@@ -164,34 +166,38 @@ class PrecursorDBSearchTask extends AbstractTask {
     List<AbstractTask> tasks = new ArrayList<>();
     AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
       @Override
-      public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
+      public void processNextEntries(List<SpectralLibraryEntry> list, int alreadyProcessed) {
 
         AbstractTask task = new AbstractTask(null, Instant.now()) {
-          private int total = peakList.getNumberOfRows();
+          private final int total = peakList.getNumberOfRows();
           private int done = 0;
 
           @Override
           public void run() {
             for (FeatureListRow row : peakList.getRows()) {
-              if (this.isCanceled())
+              if (this.isCanceled()) {
                 break;
-              for (SpectralDBEntry db : list) {
-                if (this.isCanceled())
+              }
+              for (SpectralLibraryEntry db : list) {
+                if (this.isCanceled()) {
                   break;
+                }
 
-                if (checkRT(row, (Float) db.getField(DBEntryField.RT).orElse(null))
-                    && checkMZ(row, db.getPrecursorMZ())) {
+                if (checkRT(row, (Float) db.getField(DBEntryField.RT).orElse(null)) && checkMZ(row,
+                    db.getPrecursorMZ())) {
                   // add identity
                   row.addFeatureIdentity(
-                      new PrecursorDBFeatureIdentity(db, PrecursorDBSearchModule.MODULE_NAME), false);
+                      new PrecursorDBFeatureIdentity(db, PrecursorDBSearchModule.MODULE_NAME),
+                      false);
                   matches.getAndIncrement();
                 }
               }
               done++;
             }
 
-            if (!this.isCanceled())
+            if (!this.isCanceled()) {
               setStatus(TaskStatus.FINISHED);
+            }
           }
 
           @Override
@@ -202,8 +208,9 @@ class PrecursorDBSearchTask extends AbstractTask {
 
           @Override
           public double getFinishedPercentage() {
-            if (total == 0)
+            if (total == 0) {
               return 0;
+            }
             return done / (double) total;
           }
         };
@@ -215,7 +222,7 @@ class PrecursorDBSearchTask extends AbstractTask {
     });
 
     // return tasks
-    parser.parse(this, dataBaseFile);
+    parser.parse(this, dataBaseFile, null);
     return tasks;
   }
 

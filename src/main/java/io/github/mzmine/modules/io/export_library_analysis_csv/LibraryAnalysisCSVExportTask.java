@@ -42,8 +42,8 @@ import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -160,7 +160,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     List<FilteredSpec> spectra = new ArrayList<>();
     // prepare the spectra
     for (var lib : libraries) {
-      for (SpectralDBEntry entry : lib.getEntries()) {
+      for (SpectralLibraryEntry entry : lib.getEntries()) {
         final Double mz = entry.getPrecursorMZ();
         if (mz == null) {
           noMz++;
@@ -308,7 +308,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
       // data
       for (var spec : spectra) {
         StringBuilder line = new StringBuilder();
-        final SpectralDBEntry ea = spec.entry();
+        final SpectralLibraryEntry ea = spec.entry();
         append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
         append(line, ea.getOrElse(DBEntryField.NAME, ""));
         append(line, ea.getField(DBEntryField.PRECURSOR_MZ).map(Object::toString).orElse(""));
@@ -350,8 +350,8 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
 
     StringBuilder line = new StringBuilder();
     // add library specifics
-    final SpectralDBEntry ea = a.entry();
-    final SpectralDBEntry eb = b.entry();
+    final SpectralLibraryEntry ea = a.entry();
+    final SpectralLibraryEntry eb = b.entry();
 
     append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
     append(line, eb.getOrElse(DBEntryField.ENTRY_ID, ""));

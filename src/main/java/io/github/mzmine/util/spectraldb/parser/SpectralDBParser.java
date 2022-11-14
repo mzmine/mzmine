@@ -27,7 +27,8 @@ package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public abstract class SpectralDBParser {
   // process entries
   protected final LibraryEntryProcessor processor;
   protected final Object LOCK = new Object();
-  private List<SpectralDBEntry> list;
+  private List<SpectralLibraryEntry> list;
   private int processedEntries = 0;
 
   public SpectralDBParser(int bufferEntries, LibraryEntryProcessor processor) {
@@ -59,7 +60,7 @@ public abstract class SpectralDBParser {
    * @return the list or an empty list if something went wrong (e.g., wrong format)
    * @throws IOException exception while reading file
    */
-  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile)
+  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
       throws UnsupportedFormatException, IOException;
 
   /**
@@ -67,7 +68,7 @@ public abstract class SpectralDBParser {
    *
    * @param entry handle parsed library entry
    */
-  protected boolean addLibraryEntry(SpectralDBEntry entry) {
+  protected boolean addLibraryEntry(SpectralLibraryEntry entry) {
     // no 0 values allowed in entry
     if (Arrays.stream(entry.getDataPoints()).mapToDouble(DataPoint::getIntensity)
         .anyMatch(v -> Double.compare(v, 0) == 0)) {
@@ -79,13 +80,15 @@ public abstract class SpectralDBParser {
       // need double lock as list changes inside
       synchronized (list) {
         list.add(entry);
-        if (list.size() % bufferEntries == 0) {
-          // start new task for every 1000 entries
-          // push entries
-          processor.processNextEntries(list, processedEntries);
-          processedEntries += list.size();
-          // new list
-          list = new ArrayList<>();
+        if (bufferEntries > 0) {
+          if (list.size() % bufferEntries == 0) {
+            // start new task for every 1000 entries
+            // push entries
+            processor.processNextEntries(list, processedEntries);
+            processedEntries += list.size();
+            // new list
+            list = new ArrayList<>();
+          }
         }
       }
     }
@@ -110,6 +113,14 @@ public abstract class SpectralDBParser {
     logger.info(processedEntries + "  library entries imported");
   }
 
+  public int getProcessedEntries() {
+    return processedEntries + list.size();
+  }
+
   public abstract double getProgress();
+
+  public String getDescription() {
+    return "Importing library. Loaded entries:" + getProcessedEntries();
+  }
 
 }

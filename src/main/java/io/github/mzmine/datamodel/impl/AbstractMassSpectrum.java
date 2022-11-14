@@ -26,14 +26,12 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,6 +107,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
   }
 
   /**
+   *
    */
   @Override
   public @Nullable Integer getBasePeakIndex() {
@@ -145,10 +144,11 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
   @Override
   @Nullable
   public Double getBasePeakMz() {
-    if (basePeakIndex == null)
+    if (basePeakIndex == null) {
       return null;
-    else
+    } else {
       return getMzValues().get(basePeakIndex);
+    }
   }
 
   @Override
@@ -168,11 +168,6 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
   @Override
   public Iterator<DataPoint> iterator() {
     return new DataPointIterator(this);
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    return Streams.stream(this);
   }
 
   public static class DataPointIterator implements Iterator<DataPoint>, DataPoint {

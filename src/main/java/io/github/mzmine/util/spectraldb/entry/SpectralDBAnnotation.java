@@ -55,14 +55,14 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
 
   private static final Logger logger = Logger.getLogger(SpectralDBAnnotation.class.getName());
 
-  private final SpectralDBEntry entry;
+  private final SpectralLibraryEntry entry;
   private final SpectralSimilarity similarity;
   private final Float ccsError;
   @Nullable
   private final Scan queryScan;
 
-  public SpectralDBAnnotation(SpectralDBEntry entry, SpectralSimilarity similarity, Scan queryScan,
-      @Nullable Float ccsError) {
+  public SpectralDBAnnotation(SpectralLibraryEntry entry, SpectralSimilarity similarity,
+      Scan queryScan, @Nullable Float ccsError) {
     this.queryScan = queryScan;
     this.entry = entry;
     this.similarity = similarity;
@@ -80,7 +80,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
       throw new IllegalStateException("Current element is not a feature annotation element");
     }
 
-    SpectralDBEntry entry = null;
+    SpectralLibraryEntry entry = null;
     SpectralSimilarity similarity = null;
     Scan scan = null;
     Float ccsError = null;
@@ -93,7 +93,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
       }
 
       switch (reader.getLocalName()) {
-        case SpectralDBEntry.XML_ELEMENT -> entry = SpectralDBEntry.loadFromXML(reader);
+        case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
+            entry = SpectralLibraryEntry.loadFromXML(reader);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
         case XML_CCS_ERROR_ELEMENT -> {
@@ -224,7 +225,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
     return (float) similarity.getScore();
   }
 
-  public SpectralDBEntry getEntry() {
+  public SpectralLibraryEntry getEntry() {
     return entry;
   }
 
