@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_spectral_library;
@@ -22,14 +29,13 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,7 +47,6 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   private final MZmineProject project;
   private final File dataBaseFile;
-  private final List<SpectralDBEntry> entries = new ArrayList<>();
   private AutoLibraryParser parser;
 
   public SpectralLibraryImportTask(MZmineProject project, File dataBaseFile,
@@ -67,11 +72,13 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
     try {
       // will block until all library spectra are added to entries list
-      parseFile(dataBaseFile);
+      SpectralLibrary library = parseFile(dataBaseFile);
+      final List<SpectralLibraryEntry> entries = library.getEntries();
       if (entries.size() > 0) {
-        project.addSpectralLibrary(new SpectralLibrary(dataBaseFile, entries));
-        logger.log(Level.INFO, () -> String
-            .format("Library %s successfully added with %d entries", dataBaseFile, entries.size()));
+        project.addSpectralLibrary(library);
+        logger.log(Level.INFO,
+            () -> String.format("Library %s successfully added with %d entries", dataBaseFile,
+                entries.size()));
       } else {
         logger.log(Level.WARNING, "Library was empty or there was an error while reading");
       }
@@ -89,12 +96,15 @@ public class SpectralLibraryImportTask extends AbstractTask {
    *
    * @param dataBaseFile the target database file
    */
-  private void parseFile(File dataBaseFile) throws UnsupportedFormatException, IOException {
+  private SpectralLibrary parseFile(File dataBaseFile)
+      throws UnsupportedFormatException, IOException {
     //
+    SpectralLibrary library = new SpectralLibrary(MemoryMapStorage.forMassList(), dataBaseFile);
+    final List<SpectralLibraryEntry> entries = library.getEntries();
     parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> entries.addAll(list));
-
     // return tasks
-    parser.parse(this, dataBaseFile);
+    parser.parse(this, dataBaseFile, library);
+    return library;
   }
 
 }

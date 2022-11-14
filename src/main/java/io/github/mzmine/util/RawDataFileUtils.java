@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -82,56 +89,60 @@ public class RawDataFileUtils {
       Task newTask = null;
       switch (fileType) {
         case ICPMSMS_CSV:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new IcpMsCVSImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new IcpMsCVSImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case MZDATA:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new MzDataImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new MzDataImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
-        case MZML:
-          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters,moduleCallDate, storage);
+        case MZML, MZML_IMS:
+          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters, moduleCallDate,
+              storage);
           break;
         case IMZML:
-          newMZmineFile = MZmineCore
-              .createNewImagingFile(fileName.getName(), fileName.getAbsolutePath(), storage);
+          newMZmineFile = MZmineCore.createNewImagingFile(fileName.getName(),
+              fileName.getAbsolutePath(), storage);
           newTask = new ImzMLImportTask(project, fileName, (ImagingRawDataFile) newMZmineFile,
               module, parameters, moduleCallDate);
           break;
         case MZXML:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case NETCDF:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new NetCDFImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new NetCDFImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case THERMO_RAW:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
         case WATERS_RAW:
-          newMZmineFile = MZmineCore
-              .createNewFile(fileName.getName(), fileName.getAbsolutePath(), storage);
-          newTask = new WatersRawImportTask(project, fileName, newMZmineFile, module, parameters, moduleCallDate);
+          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+              storage);
+          newTask = new WatersRawImportTask(project, fileName, newMZmineFile, module, parameters,
+              moduleCallDate);
           break;
         case MZML_ZIP:
         case MZML_GZIP:
-          newTask = new ZipImportTask(project, fileName, module, parameters, moduleCallDate, storage);
+          newTask = new ZipImportTask(project, fileName, module, parameters, moduleCallDate,
+              storage);
           break;
         case BRUKER_TDF:
-          newMZmineFile = MZmineCore
-              .createNewIMSFile(fileName.getName(), fileName.getAbsolutePath(),
-                  MemoryMapStorage.forRawDataFile());
+          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(),
+              fileName.getAbsolutePath(), MemoryMapStorage.forRawDataFile());
           newTask = new TDFImportTask(project, fileName, (IMSRawDataFile) newMZmineFile, module,
               parameters, moduleCallDate);
-          break;
-        case MZML_IMS:
-          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters, moduleCallDate, storage);
           break;
         default:
           break;
@@ -151,9 +162,9 @@ public class RawDataFileUtils {
    * <p>
    * Assumes that fileNames doesn't contain null entries.
    */
-  public static @Nullable String askToRemoveCommonPrefix(@NotNull File fileNames[]) {
+  public static @Nullable String askToRemoveCommonPrefix(@NotNull File[] fileNames) {
 
-    if(true) {
+    if (true) {
       // currently this will break project load/save, because the files are renamed before they
       // exist. So let's just deactivate it for now.
       return null;
@@ -226,7 +237,7 @@ public class RawDataFileUtils {
     return null;
   }
 
-  public static @NotNull Range<Float> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
+  public static @NotNull Range<Float> findTotalRTRange(RawDataFile[] dataFiles, int msLevel) {
     Range<Float> rtRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Float> dfRange = file.getDataRTRange(msLevel);
@@ -245,7 +256,7 @@ public class RawDataFileUtils {
     return rtRange;
   }
 
-  public static @NotNull Range<Double> findTotalMZRange(RawDataFile dataFiles[], int msLevel) {
+  public static @NotNull Range<Double> findTotalMZRange(RawDataFile[] dataFiles, int msLevel) {
     Range<Double> mzRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Double> dfRange = file.getDataMZRange(msLevel);

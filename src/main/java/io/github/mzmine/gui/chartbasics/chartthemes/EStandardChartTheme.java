@@ -1,31 +1,42 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
+import java.io.Serial;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -34,10 +45,12 @@ import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -45,9 +58,6 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
-/*
-import io.github.mzmine.util.MirrorChartFactory;
-*/
 
 /**
  * More options for the StandardChartTheme
@@ -58,18 +68,18 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public static final Logger logger = Logger.getLogger(EStandardChartTheme.class.getName());
   public static final String XML_DESC = "ChartTheme";
+  @Serial
   private static final long serialVersionUID = 1L;
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
   private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
-  private static final double TITLE_TOP_MARGIN = 5.0;
   // master font
   protected Font masterFont;
   protected Color masterFontColor;
   // Chart appearance
-  protected boolean isAntiAliased = true;
+  protected boolean isAntiAliased;
   protected boolean showTitle = false;
   protected boolean showLegend = true;
   // orientation : 0 - 2 (90 CW)
@@ -84,9 +94,10 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected String xlabel, ylabel;
   protected Color clrXGrid, clrYGrid;
   // not final because we want themes without offsets for the export.
-  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(4, 4, 4, 4);
+  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(0, 0, 0, 0);
   private RectangleInsets MIRROR_PLOT_AXIS_OFFSET = new RectangleInsets(0, 4, 0, 4);
   private Font itemLabelFont;
+  private BasicStroke defaultDataStroke;
 
 
   public EStandardChartTheme(String name) {
@@ -188,7 +199,6 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   @Override
   public void apply(@NotNull JFreeChart chart) {
-    assert chart != null;
     final boolean oldNotify = chart.isNotify();
     chart.setNotify(false);
 
@@ -212,11 +222,19 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     // to get the correct font specified in this theme by the item label font, we need to reapply
     // it. (the normal theme sets the default font, too)
-    final XYPlot plot = chart.getXYPlot();
-    if (plot != null) {
-      int rendererCount = plot.getRendererCount();
+
+    if (chart.getPlot() instanceof XYPlot xyPlot) {
+      int rendererCount = xyPlot.getRendererCount();
       for (int i = 0; i < rendererCount; i++) {
-        XYItemRenderer r = plot.getRenderer(i);
+        XYItemRenderer r = xyPlot.getRenderer(i);
+        if (r instanceof AbstractRenderer renderer) {
+          applyToAbstractRenderer(renderer);
+        }
+      }
+    } else if (chart.getPlot() instanceof CategoryPlot categoryPlot) {
+      int rendererCount = categoryPlot.getRendererCount();
+      for (int i = 0; i < rendererCount; i++) {
+        CategoryItemRenderer r = categoryPlot.getRenderer(i);
         if (r instanceof AbstractRenderer renderer) {
           applyToAbstractRenderer(renderer);
         }
@@ -239,8 +257,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void applyToCrosshair(@NotNull JFreeChart chart) {
     Plot p = chart.getPlot();
-    if (p instanceof XYPlot) {
-      XYPlot xyp = (XYPlot) p;
+    if (p instanceof XYPlot xyp) {
       xyp.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
       xyp.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
       xyp.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
@@ -254,11 +271,10 @@ public class EStandardChartTheme extends StandardChartTheme {
     Plot p = chart.getPlot();
 
     // Only apply to XYPlot
-    if (!(p instanceof XYPlot)) {
+    if (!(p instanceof XYPlot xyp)) {
       return;
     }
 
-    XYPlot xyp = (XYPlot) p;
     Axis domainAxis = xyp.getDomainAxis();
     Axis rangeAxis = xyp.getRangeAxis();
 
@@ -299,8 +315,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
-    if (p instanceof CombinedDomainXYPlot) {
-      CombinedDomainXYPlot mirrorPlot = (CombinedDomainXYPlot) p;
+    if (p instanceof CombinedDomainXYPlot mirrorPlot) {
       mirrorPlot.setGap(0);
       mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
       for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {
@@ -339,8 +354,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     chart.getSubtitles().forEach(s -> {
-      if (s != chart.getTitle() && s instanceof TextTitle) {
-        TextTitle textTitle = (TextTitle) s;
+      if (s != chart.getTitle() && s instanceof TextTitle textTitle) {
         // ((TextTitle) s).setFont(getRegularFont());
         // ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
         textTitle.setVisible(isShowSubtitles());
@@ -352,8 +366,7 @@ public class EStandardChartTheme extends StandardChartTheme {
         // .setBackgroundPaint(this.getChartBackgroundPaint());
         // }
       }
-      if (s instanceof LegendTitle) {
-        LegendTitle legendTitle = (LegendTitle) s;
+      if (s instanceof LegendTitle legendTitle) {
         legendTitle.setVisible(isShowLegend());
       }
     });
@@ -374,11 +387,19 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   @Override
-  protected void applyToAbstractRenderer(AbstractRenderer renderer) {
+  public void applyToAbstractRenderer(AbstractRenderer renderer) {
     super.applyToAbstractRenderer(renderer);
-
+    // apply to all
     if (itemLabelFont != null) {
       renderer.setDefaultItemLabelFont(itemLabelFont);
+    }
+    // only apply to those renderers that we know should behave like this
+    if (renderer instanceof PeakRenderer || renderer instanceof ColoredXYLineRenderer
+        || renderer instanceof TICPlotRenderer) {
+      renderer.setAutoPopulateSeriesStroke(false);
+      renderer.setAutoPopulateSeriesOutlineStroke(false);
+      renderer.setDefaultStroke(defaultDataStroke);
+      renderer.setDefaultOutlineStroke(defaultDataStroke);
     }
   }
 
@@ -571,5 +592,18 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void setItemLabelFont(Font font) {
     this.itemLabelFont = font;
+  }
+
+  /**
+   * The default stroke used by many charts like the {@link TICPlot}
+   *
+   * @return a basic stroke with the width set by user
+   */
+  public BasicStroke getDefaultDataStroke() {
+    return defaultDataStroke;
+  }
+
+  public void setDefaultDataStroke(BasicStroke defaultDataStroke) {
+    this.defaultDataStroke = defaultDataStroke;
   }
 }

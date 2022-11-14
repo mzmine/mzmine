@@ -1,14 +1,26 @@
 /*
- * (C) Copyright 2015-2016 by MSDK Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This software is dual-licensed under either
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * (a) the terms of the GNU Lesser General Public License version 2.1 as published by the Free
- * Software Foundation
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * or (per the licensee's choosing)
- *
- * (b) the terms of the Eclipse Public License v1.0 as published by the Eclipse Foundation.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
@@ -51,13 +63,12 @@ public class MzMLMsScan implements MsScan {
   private final MzMLPrecursorList precursorList;
   private final MzMLProductList productList;
   private final MzMLScanList scanList;
-  private MzMLBinaryDataInfo mzBinaryDataInfo;
-  private MzMLBinaryDataInfo intensityBinaryDataInfo;
-  private @NotNull InputStream inputStream;
   private final @NotNull String id;
   private final @NotNull Integer scanNumber;
   private final int numOfDataPoints;
-
+  private final Logger logger = Logger.getLogger(getClass().getName());
+  private MzMLBinaryDataInfo mzBinaryDataInfo;
+  private MzMLBinaryDataInfo intensityBinaryDataInfo;
   private MsSpectrumType spectrumType;
   private Float tic;
   private Float retentionTime;
@@ -65,18 +76,18 @@ public class MzMLMsScan implements MsScan {
   private Range<Double> mzScanWindowRange;
   private double[] mzValues;
   private float[] intensityValues;
-
-  private Logger logger = Logger.getLogger(getClass().getName());
+  private @NotNull InputStream inputStream;
 
   /**
    * <p>
    * Constructor for {@link MzMLMsScan MzMLMsScan}
    * </p>
    *
-   * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the data in
-   * @param is an {@link InputStream InputStream} of the MzML format data
-   * @param id the Scan ID
-   * @param scanNumber the Scan Number
+   * @param dataFile        a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the
+   *                        data in
+   * @param is              an {@link InputStream InputStream} of the MzML format data
+   * @param id              the Scan ID
+   * @param scanNumber      the Scan Number
    * @param numOfDataPoints the number of data points in the m/z and intensity arrays
    */
   public MzMLMsScan(MzMLRawDataFile dataFile, InputStream is, String id, Integer scanNumber,
@@ -161,8 +172,6 @@ public class MzMLMsScan implements MsScan {
    * <p>
    * getInputStream.
    * </p>
-   *
-   * @return a {@link io.github.msdk.io.mzml2.util.io.ByteBufferInputStream} object.
    */
   public InputStream getInputStream() {
     return inputStream;
@@ -175,7 +184,7 @@ public class MzMLMsScan implements MsScan {
    *
    * @param inputStream a {@link InputStream} object.
    */
-  public void setInputStream(InputStream inputStream) {
+  public void setInputStream(@NotNull InputStream inputStream) {
     this.inputStream = inputStream;
   }
 
@@ -219,7 +228,7 @@ public class MzMLMsScan implements MsScan {
    *
    * @return a {@link String} object.
    */
-  public String getId() {
+  public @NotNull String getId() {
     return id;
   }
 
@@ -227,7 +236,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public Integer getNumberOfDataPoints() {
+  public @NotNull Integer getNumberOfDataPoints() {
     return getMzBinaryDataInfo().getArrayLength();
   }
 
@@ -235,7 +244,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public double[] getMzValues(double array[]) {
+  public double[] getMzValues(double[] array) {
     if (mzValues == null) {
       if (getMzBinaryDataInfo().getArrayLength() != numOfDataPoints) {
         logger.warning(
@@ -263,7 +272,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public float[] getIntensityValues(float array[]) {
+  public float[] getIntensityValues(float[] array) {
     if (intensityValues == null) {
       if (getIntensityBinaryDataInfo().getArrayLength() != numOfDataPoints) {
         logger.warning(
@@ -272,8 +281,8 @@ public class MzMLMsScan implements MsScan {
       }
 
       try {
-        intensityValues =
-            MzMLPeaksDecoder.decodeToFloat(inputStream, getIntensityBinaryDataInfo(), array);
+        intensityValues = MzMLPeaksDecoder.decodeToFloat(inputStream, getIntensityBinaryDataInfo(),
+            array);
       } catch (Exception e) {
         throw (new MSDKRuntimeException(e));
       }
@@ -292,7 +301,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public MsSpectrumType getSpectrumType() {
+  public @NotNull MsSpectrumType getSpectrumType() {
     if (spectrumType == null) {
       if (getCVValue(MzMLCV.cvCentroidSpectrum).isPresent()) {
         spectrumType = MsSpectrumType.CENTROIDED;
@@ -316,7 +325,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public Float getTIC() {
+  public @NotNull Float getTIC() {
     if (tic == null) {
       try {
         tic = MsSpectrumUtil.getTIC(getIntensityValues(), getNumberOfDataPoints());
@@ -337,7 +346,7 @@ public class MzMLMsScan implements MsScan {
     if (mzRange == null) {
       Optional<String> cvv = getCVValue(MzMLCV.cvLowestMz);
       Optional<String> cvv1 = getCVValue(MzMLCV.cvHighestMz);
-      if (!cvv.isPresent() || !cvv1.isPresent()) {
+      if (cvv.isEmpty() || cvv1.isEmpty()) {
         mzRange = MsSpectrumUtil.getMzRange(getMzValues(), getMzBinaryDataInfo().getArrayLength());
         return mzRange;
       }
@@ -363,7 +372,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public Integer getScanNumber() {
+  public @NotNull Integer getScanNumber() {
     return scanNumber;
   }
 
@@ -391,8 +400,8 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public Integer getMsLevel() {
-    Integer msLevel = 1;
+  public @NotNull Integer getMsLevel() {
+    int msLevel = 1;
     Optional<String> value = getCVValue(MzMLCV.cvMSLevel);
     if (value.isPresent()) {
       msLevel = Integer.parseInt(value.get());
@@ -404,7 +413,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public MsScanType getMsScanType() {
+  public @NotNull MsScanType getMsScanType() {
     return MsScanType.UNKNOWN;
   }
 
@@ -415,13 +424,13 @@ public class MzMLMsScan implements MsScan {
   public Range<Double> getScanningRange() {
     if (mzScanWindowRange == null) {
       if (!getScanList().getScans().isEmpty()) {
-        Optional<MzMLScanWindowList> scanWindowList =
-            getScanList().getScans().get(0).getScanWindowList();
+        Optional<MzMLScanWindowList> scanWindowList = getScanList().getScans().get(0)
+            .getScanWindowList();
         if (scanWindowList.isPresent() && !scanWindowList.get().getScanWindows().isEmpty()) {
           MzMLScanWindow scanWindow = scanWindowList.get().getScanWindows().get(0);
           Optional<String> cvv = getCVValue(scanWindow, MzMLCV.cvScanWindowLowerLimit);
           Optional<String> cvv1 = getCVValue(scanWindow, MzMLCV.cvScanWindowUpperLimit);
-          if (!cvv.isPresent() || !cvv1.isPresent()) {
+          if (cvv.isEmpty() || cvv1.isEmpty()) {
             mzScanWindowRange = getMzRange();
             return mzScanWindowRange;
           }
@@ -442,7 +451,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public PolarityType getPolarity() {
+  public @NotNull PolarityType getPolarity() {
     if (getCVValue(MzMLCV.cvPolarityPositive).isPresent()) {
       return PolarityType.POSITIVE;
     }
@@ -478,7 +487,7 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public List<IsolationInfo> getIsolations() {
+  public @NotNull List<IsolationInfo> getIsolations() {
     if (precursorList.getPrecursorElements().size() == 0) {
       return Collections.emptyList();
     }
@@ -493,13 +502,13 @@ public class MzMLMsScan implements MsScan {
       Optional<String> isolationWindowLower = Optional.empty();
       Optional<String> isolationWindowUpper = Optional.empty();
 
-      if (!precursor.getSelectedIonList().isPresent()) {
+      if (precursor.getSelectedIonList().isEmpty()) {
         return Collections.emptyList();
       }
 
       for (MzMLCVGroup cvGroup : precursor.getSelectedIonList().get().getSelectedIonList()) {
         precursorMz = getCVValue(cvGroup, MzMLCV.cvPrecursorMz);
-        if (!precursorMz.isPresent()) {
+        if (precursorMz.isEmpty()) {
           precursorMz = getCVValue(cvGroup, MzMLCV.cvMz);
         }
         precursorCharge = getCVValue(cvGroup, MzMLCV.cvChargeState);
@@ -513,26 +522,31 @@ public class MzMLMsScan implements MsScan {
       }
 
       if (precursorMz.isPresent()) {
-        if (!isolationWindowTarget.isPresent()) {
+        if (isolationWindowTarget.isEmpty()) {
           isolationWindowTarget = precursorMz;
         }
-        if (!isolationWindowLower.isPresent()) {
-          isolationWindowLower = Optional.ofNullable("0.5");
+        if (isolationWindowLower.isEmpty()) {
+          isolationWindowLower = Optional.of("0.5");
         }
-        if (!isolationWindowUpper.isPresent()) {
-          isolationWindowUpper = Optional.ofNullable("0.5");
+        if (isolationWindowUpper.isEmpty()) {
+          isolationWindowUpper = Optional.of("0.5");
         }
+        // this is the isolation window center or if not available the precursor mz specified as isolated ion
+        double targetWindowCenter = Double.parseDouble(isolationWindowTarget.get());
         Range<Double> isolationRange = Range.closed(
-            Double.valueOf(isolationWindowTarget.get())
-                - Double.valueOf(isolationWindowLower.get()),
-            Double.valueOf(isolationWindowTarget.get())
-                + Double.valueOf(isolationWindowLower.get()));
-        Integer precursorChargeInt =
-            precursorCharge.isPresent() ? Integer.valueOf(precursorCharge.get()) : null;
-        Integer precursorScanNumberInt =
-            precursorScanNumber.isPresent() ? Integer.valueOf(precursorScanNumber.get()) : null;
-        IsolationInfo isolation = new SimpleIsolationInfo(isolationRange, null,
-            Double.valueOf(precursorMz.get()), precursorChargeInt, null, precursorScanNumberInt);
+            targetWindowCenter - Double.parseDouble(isolationWindowLower.get()),
+            targetWindowCenter + Double.parseDouble(isolationWindowUpper.get()));
+        Integer precursorChargeInt = precursorCharge.map(Integer::valueOf).orElse(null);
+        Integer precursorScanNumberInt = precursorScanNumber.orElse(null);
+
+        /*
+         use center of isolation window. At least for Orbitrap instruments and
+         msconvert conversion we found that the isolated ion actually refers to the main peak in
+         an isotope pattern whereas the isolation window is the correct isolation mz
+         see issue https://github.com/mzmine/mzmine3/issues/717
+        */
+        IsolationInfo isolation = new SimpleIsolationInfo(isolationRange, null, targetWindowCenter,
+            precursorChargeInt, null, precursorScanNumberInt);
         isolations.add(isolation);
 
       }
@@ -640,8 +654,7 @@ public class MzMLMsScan implements MsScan {
    *
    * @param accession the CV Parameter accession as {@link String String}
    * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
-   *         accession, if present <br>
-   *         An empty {@link Optional Optional<String>} otherwise
+   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(String accession) {
     return getCVValue(cvParams, accession);
@@ -649,15 +662,14 @@ public class MzMLMsScan implements MsScan {
 
   /**
    * <p>
-   * Search for the CV Parameter value for the given accession in the given {@link MzMLCVGroup
-   * MzMLCVGroup}
+   * Search for the CV Parameter value for the given accession in the given
+   * {@link MzMLCVGroup MzMLCVGroup}
    * </p>
    *
-   * @param group the {@link MzMLCVGroup MzMLCVGroup} to search through
+   * @param group     the {@link MzMLCVGroup MzMLCVGroup} to search through
    * @param accession the CV Parameter accession as {@link String String}
    * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
-   *         accession, if present <br>
-   *         An empty {@link Optional Optional<String>} otherwise
+   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(MzMLCVGroup group, String accession) {
     Optional<String> value;
@@ -694,8 +706,6 @@ public class MzMLMsScan implements MsScan {
       Integer scanNumber = Integer.parseInt(matcher.group(1));
       return Optional.ofNullable(scanNumber);
     }
-
-
 
     return Optional.ofNullable(null);
   }

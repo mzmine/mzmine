@@ -1,23 +1,31 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -101,15 +109,16 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
     putIfNotNull(FormulaType.class, formula);
 
-    final IMolecularFormula neutralFormula = FormulaUtils.getNeutralFormula(formula);
+    final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
     if (neutralFormula != null) {
       put(NeutralMassType.class, MolecularFormulaManipulator.getMass(neutralFormula,
           MolecularFormulaManipulator.MonoIsotopic));
     }
   }
 
-  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException {
+  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader,
+      @NotNull final MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row)
+      throws XMLStreamException {
     final String startElementName = reader.getLocalName();
     final String startElementAttrValue = Objects.requireNonNullElse(
         reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE_OLD),
@@ -126,8 +135,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     final int numEntries = Integer.parseInt(reader.getAttributeValue(null, XML_NUM_ENTRIES_ATTR));
 
     int i = 0;
-    while (reader.hasNext() && !(reader.isEndElement() && (reader.getLocalName()
-        .equals(XML_ELEMENT_OLD) || reader.getLocalName().equals(XML_ELEMENT)))) {
+    while (reader.hasNext() && !(reader.isEndElement() && (
+        reader.getLocalName().equals(XML_ELEMENT_OLD) || reader.getLocalName()
+            .equals(XML_ELEMENT)))) {
       reader.next();
 
       if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
@@ -137,7 +147,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       final DataType<?> typeForId = DataTypes.getTypeForId(
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
-        Object o = typeForId.loadFromXML(reader, flist, row, null, null);
+        Object o = typeForId.loadFromXML(reader, project, flist, row, null, null);
         id.put((DataType) typeForId, o);
       }
       i++;
@@ -256,12 +266,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     }
 
     final Float ccs = getCCS();
-    if (percentCCSTolerance != null && ccs != null && (row.getAverageCCS() == null
-        || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
-      return false;
-    }
-
-    return true;
+    return percentCCSTolerance == null || ccs == null || (row.getAverageCCS() != null && !(
+        Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
   public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,

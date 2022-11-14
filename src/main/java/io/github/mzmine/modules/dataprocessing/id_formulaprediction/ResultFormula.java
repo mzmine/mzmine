@@ -1,24 +1,34 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.HashMap;
@@ -39,11 +49,12 @@ public class ResultFormula extends MolecularFormulaIdentity {
   public static final String MSMS_ANNOTATIONS_ELEMENT = "msms_annotations";
   public static final String ANNOTATION_ELEMENT = "msms_annotation";
   public static final String ANNOTATION_MZ_ATTR = "mz";
+  public static final String ANNOTATION_INTENSITY_ATTR = "intensity";
 
   private final Float isotopeScore;
   private final Float msmsScore;
   private final IsotopePattern predictedIsotopePattern;
-  private Map<Double, String> msmsAnnotation;
+  private Map<DataPoint, String> msmsAnnotation;
 
   protected ResultFormula(ResultFormula f) {
     this(f.cdkFormula, f.predictedIsotopePattern, f.getIsotopeScore(), f.getMSMSScore(),
@@ -51,7 +62,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
   }
 
   public ResultFormula(IMolecularFormula cdkFormula, IsotopePattern predictedIsotopePattern,
-      Float isotopeScore, Float msmsScore, Map<Double, String> msmsAnnotation,
+      Float isotopeScore, Float msmsScore, Map<DataPoint, String> msmsAnnotation,
       double searchedNeutralMass) {
     super(cdkFormula, searchedNeutralMass);
     this.predictedIsotopePattern = predictedIsotopePattern;
@@ -60,7 +71,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
     this.msmsAnnotation = msmsAnnotation;
   }
 
-  public Map<Double, String> getMSMSannotation() {
+  public Map<DataPoint, String> getMSMSannotation() {
     return msmsAnnotation;
   }
 
@@ -122,9 +133,12 @@ public class ResultFormula extends MolecularFormulaIdentity {
 
     if (msmsAnnotation != null) {
       writer.writeStartElement(MSMS_ANNOTATIONS_ELEMENT);
-      for (Entry<Double, String> entry : msmsAnnotation.entrySet()) {
+      for (Entry<DataPoint, String> entry : msmsAnnotation.entrySet()) {
         writer.writeStartElement(ANNOTATION_ELEMENT);
-        writer.writeAttribute(ANNOTATION_MZ_ATTR, ParsingUtils.numberToString(entry.getKey()));
+        writer.writeAttribute(ANNOTATION_MZ_ATTR,
+            ParsingUtils.numberToString(entry.getKey().getMZ()));
+        writer.writeAttribute(ANNOTATION_INTENSITY_ATTR,
+            ParsingUtils.numberToString(entry.getKey().getIntensity()));
         writer.writeCharacters(ParsingUtils.parseNullableString(entry.getValue()));
         writer.writeEndElement();
       }
@@ -143,7 +157,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
     Float isotopeScore = null;
     Float msmsScore = null;
     IsotopePattern pattern = null;
-    Map<Double, String> annotations = null;
+    Map<DataPoint, String> annotations = null;
     MolecularFormulaIdentity id = null;
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
@@ -167,17 +181,19 @@ public class ResultFormula extends MolecularFormulaIdentity {
         id.getSearchedNeutralMass());
   }
 
-  private static Map<Double, String> loadAnnotations(XMLStreamReader reader)
+  private static Map<DataPoint, String> loadAnnotations(XMLStreamReader reader)
       throws XMLStreamException {
-    var map = new HashMap<Double, String>();
+    var map = new HashMap<DataPoint, String>();
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(MSMS_ANNOTATIONS_ELEMENT))) {
       reader.next();
       if (reader.isStartElement() && reader.getLocalName().equals(ANNOTATION_ELEMENT)) {
-        Double key = ParsingUtils.stringToDouble(
-            reader.getAttributeValue(null, ANNOTATION_MZ_ATTR));
+        Double mz = ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_MZ_ATTR));
+        Double intensity = Objects.requireNonNullElse(
+            ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_INTENSITY_ATTR)),
+            1d);
         String value = ParsingUtils.readNullableString(reader.getElementText());
-        map.put(key, value);
+        map.put(new SimpleDataPoint(mz, intensity), value);
       }
     }
     return map;

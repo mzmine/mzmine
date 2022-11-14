@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -156,7 +163,8 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
   @NotNull
   public static int getRecommendedBinWidth(IMSRawDataFile file) {
-    final Frame frame = file.getFrame(0);
+    // timsTOF data can be empty in the early scans, so we use one from the middle
+    final Frame frame = file.getFrame(file.getNumberOfFrames() / 2);
     switch (frame.getMobilityType()) {
       case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS -> {
         return 1;
@@ -183,30 +191,24 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       if (method.getModule()
           .equals(MZmineCore.getModuleInstance(IonMobilityTraceBuilderModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
-        final var advancedParam = parameterSet
-            .getParameter(IonMobilityTraceBuilderParameters.advancedParameters).getValue();
+        final var advancedParam = parameterSet.getParameter(
+            IonMobilityTraceBuilderParameters.advancedParameters).getValue();
         binWidth = switch (mt) {
           case TIMS ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : getRecommendedBinWidth(
-                      (IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() ? advancedParam.getParameter(
+                      AdvancedImsTraceBuilderParameters.timsBinningWidth).getEmbeddedParameter()
+                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
           case DRIFT_TUBE ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : getRecommendedBinWidth(
-                      (IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() ? advancedParam.getParameter(
+                      AdvancedImsTraceBuilderParameters.dtimsBinningWidth).getEmbeddedParameter()
+                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
           case TRAVELING_WAVE ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : getRecommendedBinWidth(
-                      (IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() ? advancedParam.getParameter(
+                      AdvancedImsTraceBuilderParameters.twimsBinningWidth).getEmbeddedParameter()
+                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
           default -> null;
         };
         break;
@@ -215,30 +217,24 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       if (method.getModule()
           .equals(MZmineCore.getModuleInstance(RecursiveIMSBuilderModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
-        final var advancedParam = parameterSet
-            .getParameter(RecursiveIMSBuilderParameters.advancedParameters).getValue();
+        final var advancedParam = parameterSet.getParameter(
+            RecursiveIMSBuilderParameters.advancedParameters).getValue();
         binWidth = switch (mt) {
           case TIMS ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : getRecommendedBinWidth(
-                      (IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() ? advancedParam.getParameter(
+                      RecursiveIMSBuilderAdvancedParameters.timsBinningWidth).getEmbeddedParameter()
+                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
           case DRIFT_TUBE ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : getRecommendedBinWidth(
-                      (IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() ? advancedParam.getParameter(
+                      RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth).getEmbeddedParameter()
+                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
           case TRAVELING_WAVE ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : getRecommendedBinWidth(
-                      (IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() ? advancedParam.getParameter(
+                      RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth).getEmbeddedParameter()
+                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
           default -> null;
         };
         break;
@@ -247,12 +243,12 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       if (method.getModule().equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
         binWidth = switch (mt) {
-          case TIMS -> parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth)
-              .getValue();
-          case DRIFT_TUBE -> parameterSet
-              .getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
-          case TRAVELING_WAVE -> parameterSet
-              .getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
+          case TIMS ->
+              parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth).getValue();
+          case DRIFT_TUBE ->
+              parameterSet.getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
+          case TRAVELING_WAVE ->
+              parameterSet.getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
           default -> null;
         };
         break;
@@ -260,10 +256,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
       if (method.getModule().equals(MZmineCore.getModuleInstance(ImsExpanderModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
-        binWidth = parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth)
-            .getValue() ? parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth)
-            .getEmbeddedParameter().getValue() : getRecommendedBinWidth(
-            (IMSRawDataFile) flist.getRawDataFile(0));
+        binWidth = parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue()
+            ? parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth)
+            .getEmbeddedParameter().getValue()
+            : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
         break;
       }
     }
@@ -281,8 +277,8 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
   /**
    * Re-bins an already summed mobilogram. Note that re-binning an already binned mobilogram with a
-   * lower binnign width than before will lead to 0-intensity values. Consider using {@link
-   * #setMobilogram(List)} instead.
+   * lower binnign width than before will lead to 0-intensity values. Consider using
+   * {@link #setMobilogram(List)} instead.
    *
    * @param summedMobilogram
    */

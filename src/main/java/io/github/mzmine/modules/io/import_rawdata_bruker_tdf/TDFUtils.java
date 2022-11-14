@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
@@ -317,9 +324,6 @@ public class TDFUtils {
       }
       Arrays.fill(buffer, (byte) 0);
     }
-    if(dataPoints.get(0)[0].length != 0) {
-      logger.finest("data");
-    }
     return dataPoints;
   }
 
@@ -387,7 +391,7 @@ public class TDFUtils {
     final CentroidData data = new CentroidData();
 
     synchronized (tdfLib) {
-      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame(handle, frameId,
+      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId,
           startScanNum, endScanNum, data, Pointer.NULL);
 
       if (error == 0) {
@@ -439,6 +443,8 @@ public class TDFUtils {
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
 
     double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
@@ -458,12 +464,12 @@ public class TDFUtils {
       frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
+          MobilityType.TIMS, null, accumulationTime);
     } else {
       frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
+          MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
@@ -512,6 +518,8 @@ public class TDFUtils {
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
     final Range<Double> mzRange = metaDataTable.getMzRange();
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
 
     final int[] intensityData = extractProfileForFrame(frameId, 0, numScans);
 
@@ -530,18 +538,15 @@ public class TDFUtils {
     filteredMzIndices.add(intensityData.length - 1);
     filteredIntensities.add(intensityData[intensityData.length - 1]);
 
-    final double[] profileMzs = convertIndicesToMZ(handle, frameId,
-        filteredMzIndices.toIntArray());
+    final double[] profileMzs = convertIndicesToMZ(handle, frameId, filteredMzIndices.toIntArray());
 
     final double data[][];
     boolean massesDetected = false;
     if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
-      data = ms1Detector.getMassValues(profileMzs,
-          filteredIntensities.toDoubleArray(), ms1Param);
+      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms1Param);
       massesDetected = true;
     } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
-      data = ms2Detector.getMassValues(profileMzs,
-          filteredIntensities.toDoubleArray(), ms2Param);
+      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms2Param);
       massesDetected = true;
     } else {
       data = new double[2][];
@@ -554,12 +559,12 @@ public class TDFUtils {
       frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
-          polarity, scanDefinition, mzRange, MobilityType.TIMS, null);
+          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
     } else {
       frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
-          polarity, scanDefinition, mzRange, MobilityType.TIMS, null);
+          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
@@ -654,7 +659,7 @@ public class TDFUtils {
         final String errorMessage = new String(errorBuffer, "UTF-8");
         logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
             + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
-        if(errorMessage.contains("CorruptFrameDataError")) {
+        if (errorMessage.contains("CorruptFrameDataError")) {
           throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
         }
       } catch (UnsupportedEncodingException e) {

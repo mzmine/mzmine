@@ -1,50 +1,63 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Describes a common feature annotation. Future implementations should also extend the
+ * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)}
+ * method.
+ */
 public interface FeatureAnnotation {
 
   public static final String XML_ELEMENT = "feature_annotation";
   public static final String XML_TYPE_ATTR = "annotation_type";
 
-  public static FeatureAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException {
+  public static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
+      ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
     }
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
-      case SpectralDBAnnotation.XML_ATTR -> SpectralDBAnnotation.loadFromXML(reader,
-          flist.getRawDataFiles());
-      case SimpleCompoundDBAnnotation.XML_ATTR -> SimpleCompoundDBAnnotation.loadFromXML(reader,
-          flist, row);
+      case SpectralDBAnnotation.XML_ATTR ->
+          SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles());
+      case SimpleCompoundDBAnnotation.XML_ATTR ->
+          SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       default -> null;
     };
   }
@@ -78,10 +91,11 @@ public interface FeatureAnnotation {
   @NotNull String getXmlAttributeKey();
 
   /**
-   * Writes an opening tag that conforms with the {@link FeatureAnnotation#loadFromXML(XMLStreamReader,
-   * Collection)} method, so the type can be recognised and delegated to the correct subclass. This
-   * allows combination of multiple different {@link FeatureAnnotation} implementations in a single
-   * list.
+   * Writes an opening tag that conforms with the
+   * {@link FeatureAnnotation#loadFromXML(XMLStreamReader, MZmineProject, ModularFeatureList,
+   * ModularFeatureListRow)}  method, so the type can be recognised and delegated to the correct
+   * subclass. This allows combination of multiple different {@link FeatureAnnotation}
+   * implementations in a single list.
    * <p></p>
    * Uses {@link FeatureAnnotation#getXmlAttributeKey()} to write the correct tags.
    *
@@ -93,8 +107,8 @@ public interface FeatureAnnotation {
   }
 
   /**
-   * Convenience method to supply developers with a closing method for {@link
-   * FeatureAnnotation#writeOpeningTag(XMLStreamWriter)}.
+   * Convenience method to supply developers with a closing method for
+   * {@link FeatureAnnotation#writeOpeningTag(XMLStreamWriter)}.
    */
   public default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();
