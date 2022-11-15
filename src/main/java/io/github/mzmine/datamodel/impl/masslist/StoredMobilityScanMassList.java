@@ -26,7 +26,6 @@
 package io.github.mzmine.datamodel.impl.masslist;
 
 import com.google.common.collect.Range;
-import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -34,7 +33,6 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,11 +130,6 @@ public class StoredMobilityScanMassList implements MassList {
   @Override
   public Iterator<DataPoint> iterator() {
     return new DataPointIterator(this);
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    return Streams.stream(this);
   }
 
   private class DataPointIterator implements Iterator<DataPoint>, DataPoint {

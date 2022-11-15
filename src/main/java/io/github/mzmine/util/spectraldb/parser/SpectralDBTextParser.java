@@ -27,6 +27,7 @@ package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,19 +42,19 @@ public abstract class SpectralDBTextParser extends SpectralDBParser {
   private static final Logger logger = Logger.getLogger(SpectralDBTextParser.class.getName());
 
   protected long totalLines = 0L;
-  protected AtomicLong processedLines = new AtomicLong(0l);
+  protected AtomicLong processedLines = new AtomicLong(0L);
 
   public SpectralDBTextParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile)
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
       throws IOException {
     if (totalLines == 0L) {
       try {
-        logger
-            .fine(() -> "Reading the number of lines for file: " + dataBaseFile.getAbsolutePath());
+        logger.fine(
+            () -> "Reading the number of lines for file: " + dataBaseFile.getAbsolutePath());
         totalLines = FileAndPathUtil.countLines(dataBaseFile);
       } catch (Exception ex) {
         logger.log(Level.WARNING,

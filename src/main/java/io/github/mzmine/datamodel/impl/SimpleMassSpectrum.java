@@ -26,14 +26,12 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.impl.AbstractMassSpectrum.DataPointIterator;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +51,8 @@ public class SimpleMassSpectrum implements MassSpectrum {
     this(mzValues, intensityValues, MassSpectrumType.CENTROIDED);
   }
 
-  public SimpleMassSpectrum(double[] mzValues, double[] intensityValues, MassSpectrumType spectrumType) {
+  public SimpleMassSpectrum(double[] mzValues, double[] intensityValues,
+      MassSpectrumType spectrumType) {
     this.spectrumType = spectrumType;
     assert mzValues.length == intensityValues.length;
     this.mzValues = mzValues;
@@ -95,39 +94,38 @@ public class SimpleMassSpectrum implements MassSpectrum {
   @Override
   public Double getBasePeakMz() {
     Integer i = getBasePeakIndex();
-    return i!=null && i>=0 && i<getNumberOfDataPoints()? getMzValue(i) : null;
+    return i != null && i >= 0 && i < getNumberOfDataPoints() ? getMzValue(i) : null;
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
     Integer i = getBasePeakIndex();
-    return i!=null && i>=0 && i<getNumberOfDataPoints()? getIntensityValue(i) : null;
+    return i != null && i >= 0 && i < getNumberOfDataPoints() ? getIntensityValue(i) : null;
   }
 
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-  if(basePeakIndex == -1) {
-    double max = 0d;
-    for (int i = 0; i < getNumberOfDataPoints(); i++) {
-      if (basePeakIndex == -1 || max < getIntensityValue(i)) {
-        max = getIntensityValue(i);
-        basePeakIndex = i;
+    if (basePeakIndex == -1) {
+      double max = 0d;
+      for (int i = 0; i < getNumberOfDataPoints(); i++) {
+        if (basePeakIndex == -1 || max < getIntensityValue(i)) {
+          max = getIntensityValue(i);
+          basePeakIndex = i;
+        }
       }
     }
-  }
-  return basePeakIndex != -1? basePeakIndex : null;
+    return basePeakIndex != -1 ? basePeakIndex : null;
   }
 
   @Nullable
   @Override
   public Range<Double> getDataPointMZRange() {
-    if(mzRange == null) {
-      if(getNumberOfDataPoints()>1) {
-        mzRange = Range.closed(getMzValue(0), getMzValue(getNumberOfDataPoints()-1));
-      }
-      else if(getNumberOfDataPoints()==1) {
+    if (mzRange == null) {
+      if (getNumberOfDataPoints() > 1) {
+        mzRange = Range.closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1));
+      } else if (getNumberOfDataPoints() == 1) {
         mzRange = Range.singleton(getMzValue(0));
       }
     }
@@ -138,16 +136,11 @@ public class SimpleMassSpectrum implements MassSpectrum {
   @Nullable
   @Override
   public Double getTIC() {
-    if(tic == null) {
+    if (tic == null) {
       tic = Arrays.stream(intensityValues).sum();
     }
 
     return tic;
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    return Streams.stream(this);
   }
 
   @NotNull
