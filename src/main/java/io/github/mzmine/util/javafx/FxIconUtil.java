@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ImageUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import java.io.IOException;
@@ -88,6 +89,14 @@ public class FxIconUtil {
         + ";-fx-icon-size:" + size + ";";
     icon.setStyle(b);
     return icon;
+  }
+
+  public static FontIcon getCheckedIcon() {
+    return getFontIcon("bi-check2-circle", 12, MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor());
+  }
+
+  public static FontIcon getUncheckedIcon() {
+    return getFontIcon("bi-x-circle", 12, MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
   }
 
 }

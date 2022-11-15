@@ -59,6 +59,7 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.MergeFr
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
@@ -72,6 +73,8 @@ import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -82,6 +85,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.Layer;
 import org.jfree.chart.ui.RectangleEdge;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class IMSRawDataOverviewPane extends BorderPane {
 
@@ -128,6 +132,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private int selectedChromatogramDatasetIndex;
   private final Set<Integer> mzRangeTicDatasetIndices;
 
+  private FontIcon massDetectionScanIcon;
+  private FontIcon massDetectionFrameIcon;
+  private GridPane massDetectionPane;
+
   /**
    * Creates a BorderPane layout.
    */
@@ -165,6 +173,22 @@ public class IMSRawDataOverviewPane extends BorderPane {
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     setCenter(chartPanel);
+
+    massDetectionPane = new GridPane();
+    massDetectionScanIcon = new FontIcon();
+    Label massDetectionScanLabel = new Label("Masses detected in the selected scan");
+    massDetectionScanLabel.setTooltip(new Tooltip("Indication if the mass detection was "
+        + "performed successfully in the selected scan"));
+    massDetectionPane.add(massDetectionScanIcon, 1, 1);
+    massDetectionPane.add(massDetectionScanLabel, 0, 1);
+
+    massDetectionFrameIcon = new FontIcon();
+    Label massDetectionFrameLabel = new Label("Masses detected in selected frame");
+    massDetectionFrameLabel.setTooltip(new Tooltip("Indication if the mass detection was "
+        + "performed successfully in the selected frame"));
+    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+    massDetectionPane.add(massDetectionFrameLabel, 0, 2);
+    chartPanel.getChildren().add(massDetectionPane);
 
     selectedFrame = new SimpleObjectProperty<>();
     selectedFrame.addListener((observable, oldValue, newValue) -> onSelectedFrameChanged());
@@ -205,6 +229,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
+
+    massDetectionPane.getChildren().remove(massDetectionFrameIcon);
+    massDetectionFrameIcon =
+        selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
+            ? FxIconUtil.getCheckedIcon()
+            : FxIconUtil.getUncheckedIcon();
+    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+
     mzRangeTicDatasetIndices.clear();
     cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
         mobilityScanNoiseLevel);//selectedFrame.get();//
@@ -353,6 +385,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
       if (newValue.getValueIndex() != -1) {
         selectedMobilityScan.set(
             cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex() * binWidth));
+        massDetectionPane.getChildren().remove(massDetectionScanIcon);
+        massDetectionScanIcon = selectedFrame.get().getMobilityScan(selectedMobilityScan.get().getMobilityScanNumber()).getMassList() != null ?
+            FxIconUtil.getCheckedIcon()
+            : FxIconUtil.getUncheckedIcon();
+        massDetectionPane.add(massDetectionScanIcon, 1, 1);
       }
     }));
     singleSpectrumChart.cursorPositionProperty().addListener(
