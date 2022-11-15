@@ -70,7 +70,8 @@ public enum DBEntryField {
 
   // Quality measures in wrapper object
   QUALITY, // individual properties
-  QUALITY_CHIMERIC, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS;
+  QUALITY_CHIMERIC, QUALITY_EXPLAINED_INTENSITY(Float.class), QUALITY_EXPLAINED_SIGNALS(
+      Float.class);
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,

@@ -27,27 +27,24 @@ package io.github.mzmine.modules.tools.msmsscore;
 
 import io.github.mzmine.datamodel.DataPoint;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS data points to
  * interpreted formulas
  */
-public class MSMSScore {
+public record MSMSScore(float explainedIntensity, float explainedSignals,
+                        @NotNull Map<DataPoint, String> annotation) {
 
-  private final float score;
-  private final Map<DataPoint, String> annotation;
+  public static final MSMSScore FAILED_FILTERS = new MSMSScore(-10, -10, Map.of());
+  public static final MSMSScore SUCCESS_WITHOUT_FORMULA = new MSMSScore(-2, -2, Map.of());
 
-  public MSMSScore(float score, Map<DataPoint, String> annotation) {
-    this.score = score;
-    this.annotation = annotation;
+  public boolean isFailed() {
+    return isFailed(false);
   }
 
-  public float getScore() {
-    return score;
+  public boolean isFailed(boolean requireFormulaMatch) {
+    return FAILED_FILTERS.equals(this) || (requireFormulaMatch && SUCCESS_WITHOUT_FORMULA.equals(
+        this));
   }
-
-  public Map<DataPoint, String> getAnnotation() {
-    return annotation;
-  }
-
 }

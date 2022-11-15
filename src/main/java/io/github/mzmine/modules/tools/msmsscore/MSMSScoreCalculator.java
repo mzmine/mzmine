@@ -95,6 +95,7 @@ public class MSMSScoreCalculator {
     }
 
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
+    float totalIntensity = 0, explainedIntensity = 0;
     Map<DataPoint, String> msmsAnnotations = new Hashtable<>();
 
     // If getPrecursorCharge() returns 0, it means charge is unknown. In
@@ -112,8 +113,8 @@ public class MSMSScoreCalculator {
         // If we have any MS/MS peak with 1 neutron mass smaller m/z
         // and higher intensity, it means the current peak is an
         // isotope and we should ignore it
-        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity() > dp
-            .getIntensity())) {
+        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity()
+            > dp.getIntensity())) {
           continue msmsCycle;
         }
       }
@@ -138,8 +139,10 @@ public class MSMSScoreCalculator {
         String formulaString = MolecularFormulaManipulator.getString(formula);
         msmsAnnotations.put(dp, String.format("[M-%s]", formulaString));
         interpretedMSMSpeaks++;
+        explainedIntensity += dp.getIntensity();
       }
       totalMSMSpeaks++;
+      totalIntensity += dp.getIntensity();
     }
 
     // If we did not evaluate any MS/MS peaks, we cannot calculate a score
@@ -148,7 +151,8 @@ public class MSMSScoreCalculator {
     }
 
     float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
-    return new MSMSScore(msmsScore, msmsAnnotations);
+    explainedIntensity = explainedIntensity / totalIntensity;
+    return new MSMSScore(explainedIntensity, msmsScore, msmsAnnotations);
   }
 
 }

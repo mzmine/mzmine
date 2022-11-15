@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -211,20 +212,27 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 //      final DataPoint[] dataPoints = spectra.get(i);
 
       final Scan msmsScan = scans.get(i);
-      final List<DataPoint> explainedSignals = msMsQualityChecker.matchAndGetExplainedSignals(
-          msmsScan, match, row);
-      if (explainedSignals == null) {
+      final MSMSScore score = msMsQualityChecker.match(msmsScan, match);
+      if (score.isFailed(false)) {
         continue;
       }
 
-      DataPoint[] dps = msMsQualityChecker.exportExplainedSignalsOnly() ? explainedSignals.toArray(
-          DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
+      DataPoint[] dps =
+          msMsQualityChecker.exportExplainedSignalsOnly() ? score.annotation().keySet()
+              .toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
       // add instrument type etc by parameter
       Scan scan = scans.get(i);
       SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), scan, match,
           dps);
+      // add explained intensity and signals
       entry.putAll(metadataMap);
+
+      // score might be successful without having a formula - so check if we actually have scores
+      if (score.explainedSignals() > 0) {
+        entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_INTENSITY, score.explainedIntensity());
+        entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_SIGNALS, score.explainedSignals());
+      }
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed
         ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
