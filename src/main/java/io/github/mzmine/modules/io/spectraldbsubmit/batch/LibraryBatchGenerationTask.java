@@ -186,6 +186,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     if (scans.isEmpty() || matches.isEmpty()) {
       return;
     }
+    // first entry for the same molecule reflect the most common ion type, usually M+H
+    var match = matches.get(0);
+
+    if (!msMsQualityChecker.matchesName(match, row.getFeatureList())) {
+      return;
+    }
 
     // handle chimerics
     final Map<Scan, ChimericPrecursorResult> chimericMap;
@@ -203,9 +209,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       // merge spectra, find best spectrum for each MSn node in the tree and each energy
       scans = selection.getAllFragmentSpectra(scans);
     }
-
-    // first entry for the same molecule reflect the most common ion type, usually M+H
-    var match = matches.get(0);
 
     // filter matches
     for (int i = 0; i < scans.size(); i++) {
