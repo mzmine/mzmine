@@ -101,10 +101,12 @@
   <center>
     <TableView fx:id="rawDataTableView" BorderPane.alignment="CENTER">
       <columnResizePolicy>
-<!--        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />-->
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
 	  </columnResizePolicy>
       <columns>
         <TableColumn fx:id="scanColumn" editable="false" prefWidth="35" text="Scan"/>
+        <TableColumn fx:id="massDetectionColumn" editable="false" prefWidth="35"
+          text="Masses detected"/>
         <TableColumn fx:id="rtColumn" editable="false" prefWidth="35" text="RT"/>
         <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="80" text="Base peak"/>
         <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="55"

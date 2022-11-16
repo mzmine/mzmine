@@ -99,6 +99,14 @@
   -fx-text-fill: -text-color;
 }
 
+.table-row-cell:selected {
+    -fx-background-color: -highlight;
+}
+
+.table-row-cell:selected .text {
+       -fx-fill: black ;
+}
+
   /** also counts for TreeTableView **/
 .column-header, .filler {
   -fx-border-color: -default-border-color;
