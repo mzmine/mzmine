@@ -31,13 +31,14 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionTask;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -150,13 +151,15 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
       Scan scan = data.nextScan();
 
+      int msLevel = Objects.requireNonNullElse(scan.getMSLevel(), 1);
       double[][] mzIntensities = null;
-      if (ms1Detector != null && scan.getMSLevel() <= 1) {
+      if (ms1Detector != null && msLevel <= 1) {
         mzIntensities = ms1Detector.getModule().getMassValues(data, ms1Detector.getParameterSet());
-      } else if (ms2Detector != null && scan.getMSLevel() >= 2) {
+      } else if (ms2Detector != null && msLevel >= 2) {
         mzIntensities = ms2Detector.getModule().getMassValues(data, ms2Detector.getParameterSet());
         if (denormalizeMSnScans) {
-          MassDetectionTask.denormalizeMSnScans(scan, mzIntensities);
+          ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
+              scan.getInjectionTime());
         }
       }
 

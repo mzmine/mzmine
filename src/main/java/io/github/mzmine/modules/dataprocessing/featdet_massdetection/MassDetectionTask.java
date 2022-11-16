@@ -38,10 +38,12 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import ucar.ma2.ArrayDouble;
@@ -114,24 +116,6 @@ public class MassDetectionTask extends AbstractTask {
     return dataFile;
   }
 
-  /**
-   * multiplies the intensities with the injection time to denormalize the intensities
-   *
-   * @param scan    only applied to scans.getMSLevel>1
-   * @param mzPeaks [mzs, intensities]
-   */
-  public static void denormalizeMSnScans(final Scan scan, final double[][] mzPeaks) {
-    if (scan.getMSLevel() <= 1) {
-      return;
-    }
-    Float injectionTime = scan.getInjectionTime();
-    if (injectionTime != null && injectionTime > 0) {
-      for (int i = 0; i < mzPeaks[1].length; i++) {
-        mzPeaks[1][i] = mzPeaks[1][i] * injectionTime;
-      }
-    }
-  }
-
   @Override
   public void run() {
 
@@ -178,8 +162,9 @@ public class MassDetectionTask extends AbstractTask {
           // [mzs, intensities]
           mzPeaks = detector.getMassValues(data, parameterSet);
 
-          if (denormalizeMSnScans) {
-            denormalizeMSnScans(scan, mzPeaks);
+          if (denormalizeMSnScans && Objects.requireNonNullElse(scan.getMSLevel(), 1) > 1) {
+            ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzPeaks[1],
+                scan.getInjectionTime());
           }
 
           // add mass list to scans and frames
