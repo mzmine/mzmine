@@ -59,7 +59,7 @@ import org.junit.jupiter.api.Test;
 
 public class MobilityScanTest {
 
-  private static Logger logger = Logger.getLogger(MobilityScanTest.class.getName());
+  private static final Logger logger = Logger.getLogger(MobilityScanTest.class.getName());
 
   @Test
   public void doubleBufferTest() {
@@ -95,8 +95,8 @@ public class MobilityScanTest {
 
     for (int i = 0; i < numScans; i++) {
       int numDataPoints = (int) (rnd.nextFloat() * 200);
-      double mzs[] = new double[numDataPoints];
-      double intensities[] = new double[numDataPoints];
+      double[] mzs = new double[numDataPoints];
+      double[] intensities = new double[numDataPoints];
       for (int j = 0; j < numDataPoints; j++) {
         mzs[j] = rnd.nextDouble();
         intensities[j] = rnd.nextDouble();
@@ -254,8 +254,8 @@ public class MobilityScanTest {
     final List<Frame> frames = makeSomeFrames(file, 300);
     for (Frame frame : frames) {
       file.addScan(frame);
-      ((SimpleFrame) frame).getMobilityScanStorage()
-          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, param);
+      frame.getMobilityScanStorage()
+          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, param, false);
 
       for (MobilityScan mobilityScan : frame.getMobilityScans()) {
         final double[][] massValues = centroidMassDetector.getMassValues(mobilityScan, param);
@@ -317,7 +317,7 @@ public class MobilityScanTest {
     Assertions.assertEquals(mobilityScan.getMobilityScanNumber(), access.getMobilityScanNumber());
     Assertions.assertEquals(mobilityScan.getNumberOfDataPoints(), access.getNumberOfDataPoints());
 
-    for(int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
+    for (int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
       Assertions.assertEquals(mobilityScan.getIntensityValue(i), access.getIntensityValue(i));
       Assertions.assertEquals(mobilityScan.getMzValue(i), access.getMzValue(i));
     }

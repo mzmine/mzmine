@@ -44,7 +44,6 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionTask;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
@@ -63,6 +62,7 @@ import io.github.mzmine.util.DateTimeUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
 import java.io.IOException;
@@ -262,7 +262,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
         } else if (ms2Detector != null && wrapper.getMSLevel() >= 2) {
           mzIntensities = applyMassDetection(ms2Detector, wrapper);
           if (denormalizeMSnScans) {
-            MassDetectionTask.denormalizeMSnScans(wrapper, mzIntensities);
+            ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
+                wrapper.getInjectionTime());
           }
         }
 

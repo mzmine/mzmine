@@ -175,7 +175,8 @@ public class MassDetectionTask extends AbstractTask {
             || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
-              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector, parameterSet);
+              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector, parameterSet,
+                  denormalizeMSnScans);
         }
 
         if (this.saveToCDF && mzPeaks != null) {

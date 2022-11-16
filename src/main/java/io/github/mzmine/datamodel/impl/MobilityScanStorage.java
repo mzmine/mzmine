@@ -37,6 +37,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -46,9 +47,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Memory efficient storage of {@link MobilityScan}s. Methods return an instance of {@link
- * StoredMobilityScan} or {@link StoredMobilityScanMassList} which is garbage collected if not used
- * anymore.
+ * Memory efficient storage of {@link MobilityScan}s. Methods return an instance of
+ * {@link StoredMobilityScan} or {@link StoredMobilityScanMassList} which is garbage collected if
+ * not used anymore.
  *
  * @author https://github.com/steffenheu
  */
@@ -122,7 +123,8 @@ public class MobilityScanStorage {
    * @param massDetectorParameters The parameters for the mass detector.
    */
   public void generateAndAddMobilityScanMassLists(@Nullable MemoryMapStorage storage,
-      @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters) {
+      @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters,
+      boolean denormalizeMSnScans) {
 
     if (massDetector instanceof CentroidMassDetector &&
         Double.compare(massDetectorParameters.getValue(CentroidMassDetectorParameters.noiseLevel),
@@ -141,6 +143,10 @@ public class MobilityScanStorage {
 
     for (MobilityScan mobilityScan : getMobilityScans()) {
       double[][] mzIntensity = massDetector.getMassValues(mobilityScan, massDetectorParameters);
+      if (denormalizeMSnScans && frame.getMSLevel() > 1) {
+        ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensity[1],
+            frame.getInjectionTime());
+      }
       data.add(mzIntensity);
     }
 
