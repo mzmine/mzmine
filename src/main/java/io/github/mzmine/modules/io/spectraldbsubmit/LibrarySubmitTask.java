@@ -42,6 +42,7 @@ import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.GnpsLibrarySubmitParameters;
@@ -78,12 +79,20 @@ import org.jetbrains.annotations.NotNull;
  */
 public class LibrarySubmitTask extends AbstractTask {
 
-  //
+  public static final String SOURCE_DESCRIPTION = "MZmine library entry submission";
   public static final String GNPS_LIBRARY_SUBMIT_URL = "http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum";
-  private final Logger log = Logger.getLogger(this.getClass().getName());
-
-  public static final String SOURCE_DESCRIPTION = "mzmine2 library entry submission";
+  private static final Logger log = Logger.getLogger(LibrarySubmitTask.class.getName());
   private final Map<LibrarySubmitIonParameters, DataPoint[]> map;
+  private final String PASS;
+  private final String USER;
+  private final boolean saveLocal;
+  private final boolean submitGNPS;
+  private final File fileJson;
+  private final File fileMSP;
+  private final File fileMGF;
+  // window to show results
+  private final MSMSLibrarySubmissionWindow window;
+  private int done = 0;
 
   public LibrarySubmitTask(MSMSLibrarySubmissionWindow window,
       Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Instant moduleCallDate) {
@@ -101,32 +110,22 @@ public class LibrarySubmitTask extends AbstractTask {
     PASS = gnpsParam.getParameter(GnpsLibrarySubmitParameters.pass).getValue();
     USER = gnpsParam.getParameter(GnpsLibrarySubmitParameters.user).getValue();
     saveLocal = paramSubmit.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
-    exportGNPSJsonFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON)
+    boolean exportGNPSJsonFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON)
         .getValue();
-    exportMSPFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();
+    boolean exportMSPFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();
+    boolean exportMGFFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_MGF).getValue();
     if (saveLocal) {
       File tmpfile = paramSubmit.getParameter(LibrarySubmitParameters.LOCALFILE)
           .getEmbeddedParameter().getValue();
       fileJson = exportGNPSJsonFile ? FileAndPathUtil.getRealFilePath(tmpfile, "json") : null;
       fileMSP = exportMSPFile ? FileAndPathUtil.getRealFilePath(tmpfile, "msp") : null;
+      fileMGF = exportMGFFile ? FileAndPathUtil.getRealFilePath(tmpfile, "mgf") : null;
     } else {
       fileJson = null;
       fileMSP = null;
+      fileMGF = null;
     }
   }
-
-  private int done = 0;
-  private final String PASS;
-  private final String USER;
-  private final boolean saveLocal;
-  private final boolean submitGNPS;
-  private final boolean exportGNPSJsonFile;
-  private final boolean exportMSPFile;
-  private final File fileJson;
-  private final File fileMSP;
-
-  // window to show results
-  private final MSMSLibrarySubmissionWindow window;
 
   public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map,
       @NotNull Instant moduleCallDate) {
@@ -171,6 +170,15 @@ public class LibrarySubmitTask extends AbstractTask {
                 Result.ERROR);
           }
         }
+        if (fileMGF != null) {
+          if (writeToLocalMGFFIle(fileMGF, param, dps)) {
+            writeResults("MSP entry successfully writen to " + fileMGF.getAbsolutePath(),
+                Result.SUCCED);
+          } else {
+            writeResults("Error while writing msp entry to " + fileMGF.getAbsolutePath(),
+                Result.ERROR);
+          }
+        }
       }
       done++;
     }
@@ -185,10 +193,6 @@ public class LibrarySubmitTask extends AbstractTask {
 
   /**
    * Show results in window
-   *
-   * @param message
-   * @param type
-   * @param isLink
    */
   public void writeResults(final String message, final Result type) {
     writeResults(message, type, false);
@@ -233,9 +237,6 @@ public class LibrarySubmitTask extends AbstractTask {
 
   /**
    * Append entry to msp file
-   *
-   * @param file
-   * @param json
    */
   private boolean writeToLocalMSPFIle(File file, LibrarySubmitIonParameters param,
       DataPoint[] dps) {
@@ -255,6 +256,31 @@ public class LibrarySubmitTask extends AbstractTask {
       return true;
     } catch (Exception e) {
       log.log(Level.SEVERE, "Cannot save to msp file " + file.getAbsolutePath(), e);
+      return false;
+    }
+  }
+
+  /**
+   * Append entry to mgf file
+   */
+  private boolean writeToLocalMGFFIle(File file, LibrarySubmitIonParameters param,
+      DataPoint[] dps) {
+    try {
+      if (!file.getParentFile().exists()) {
+        file.getParentFile().mkdirs();
+      }
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot create folder " + file.getParent() + " ", e);
+    }
+
+    // export json
+    try {
+      CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
+      String entry = MGFEntryGenerator.createMGFEntry(param, dps);
+      chs.write(entry + "\n");
+      return true;
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot save to mgf file " + file.getAbsolutePath(), e);
       return false;
     }
   }
