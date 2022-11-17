@@ -23,29 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.msmsscore;
+package io.github.mzmine.util.spectraldb.parser.mzmine;
 
-import io.github.mzmine.datamodel.DataPoint;
-import java.util.Map;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.io.IOException;
 
-/**
- * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS data points to
- * interpreted formulas
- */
-public record MSMSScore(float explainedIntensity, float explainedSignals,
-                        @NotNull Map<DataPoint, String> annotation) {
+class SpectrumDeserializer extends JsonDeserializer<double[][]> {
 
-  public static final MSMSScore FAILED_FILTERS = new MSMSScore(-10, -10, Map.of());
-  public static final MSMSScore SUCCESS_WITHOUT_FORMULA = new MSMSScore(-2, -2, Map.of());
-  public static final MSMSScore SUCCESS_WITHOUT_PRECURSOR_MZ = new MSMSScore(-3, -3, Map.of());
-
-  public boolean isFailed() {
-    return isFailed(false);
-  }
-
-  public boolean isFailed(boolean requireFormulaMatch) {
-    return FAILED_FILTERS.equals(this) || (requireFormulaMatch && SUCCESS_WITHOUT_FORMULA.equals(
-        this));
+  @Override
+  public double[][] deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+    DoubleArrayList mzs = new DoubleArrayList();
+    DoubleArrayList intensities = new DoubleArrayList();
+    while (true) {
+      JsonToken token = p.nextToken();
+      if (token == null) {
+        break;
+      }
+      if (token == JsonToken.START_ARRAY) {
+        // read xy
+        p.nextToken();
+        mzs.add(p.getDoubleValue());
+        p.nextToken();
+        intensities.add(p.getDoubleValue());
+      }
+    }
+    return new double[][]{mzs.toDoubleArray(), intensities.toDoubleArray()};
   }
 }

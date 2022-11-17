@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
 import java.util.Map;
@@ -95,6 +97,7 @@ public class MSMSScoreCalculator {
     }
 
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
+    float totalIntensity = 0, explainedIntensity = 0;
     Map<DataPoint, String> msmsAnnotations = new Hashtable<>();
 
     // If getPrecursorCharge() returns 0, it means charge is unknown. In
@@ -112,8 +115,8 @@ public class MSMSScoreCalculator {
         // If we have any MS/MS peak with 1 neutron mass smaller m/z
         // and higher intensity, it means the current peak is an
         // isotope and we should ignore it
-        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity() > dp
-            .getIntensity())) {
+        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity()
+            > dp.getIntensity())) {
           continue msmsCycle;
         }
       }
@@ -138,8 +141,10 @@ public class MSMSScoreCalculator {
         String formulaString = MolecularFormulaManipulator.getString(formula);
         msmsAnnotations.put(dp, String.format("[M-%s]", formulaString));
         interpretedMSMSpeaks++;
+        explainedIntensity += dp.getIntensity();
       }
       totalMSMSpeaks++;
+      totalIntensity += dp.getIntensity();
     }
 
     // If we did not evaluate any MS/MS peaks, we cannot calculate a score
@@ -148,7 +153,47 @@ public class MSMSScoreCalculator {
     }
 
     float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
-    return new MSMSScore(msmsScore, msmsAnnotations);
+    explainedIntensity = explainedIntensity / totalIntensity;
+    return new MSMSScore(explainedIntensity, msmsScore, msmsAnnotations);
   }
 
+
+  public static MSMSScore evaluateMSMS(final MZTolerance mzTol,
+      final FormulaWithExactMz[] sortedFormulas, final DataPoint[] msmsIons,
+      final double precursorMZ, int precursorCharge) {
+    int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
+    float totalIntensity = 0, explainedIntensity = 0;
+    Map<DataPoint, String> msmsAnnotations = new Hashtable<>();
+
+    // If getPrecursorCharge() returns 0, it means charge is unknown. In
+    // that case let's assume charge 1
+    if (precursorCharge == 0) {
+      precursorCharge = 1;
+    }
+
+    for (DataPoint dp : msmsIons) {
+      // formulas are actually charged so search for a match with mz
+      double mass = dp.getMZ();
+//      double mass = precursorMZ * precursorCharge - dp.getMZ();
+      FormulaWithExactMz closestFormula = FormulaUtils.getClosestFormula(mass, sortedFormulas);
+      if (closestFormula != null && mzTol.checkWithinTolerance(closestFormula.mz(), mass)) {
+        // match
+        String formulaString = MolecularFormulaManipulator.getString(closestFormula.formula());
+        msmsAnnotations.put(dp, String.format("[%s]", formulaString));
+        interpretedMSMSpeaks++;
+        explainedIntensity += dp.getIntensity();
+      }
+      totalMSMSpeaks++;
+      totalIntensity += dp.getIntensity();
+    }
+
+    // If we did not evaluate any MS/MS peaks, we cannot calculate a score
+    if (totalMSMSpeaks == 0) {
+      return null;
+    }
+
+    float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
+    explainedIntensity = explainedIntensity / totalIntensity;
+    return new MSMSScore(explainedIntensity, msmsScore, msmsAnnotations);
+  }
 }

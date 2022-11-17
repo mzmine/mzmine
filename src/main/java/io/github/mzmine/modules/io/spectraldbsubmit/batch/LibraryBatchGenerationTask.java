@@ -49,10 +49,13 @@ import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsPara
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -79,6 +82,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Exports all files needed for GNPS
@@ -160,9 +164,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         description = "Exporting entries for feature list " + flist.getName();
         for (var row : flist.getRows()) {
           processRow(writer, row);
+          finishedRows.incrementAndGet();
         }
-
-        finishedRows.incrementAndGet();
       }
       //
       logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
@@ -186,6 +189,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     if (scans.isEmpty() || matches.isEmpty()) {
       return;
     }
+    // first entry for the same molecule reflect the most common ion type, usually M+H
+    var match = matches.get(0);
+
+    if (!msMsQualityChecker.matchesName(match, row.getFeatureList())) {
+      return;
+    }
 
     // handle chimerics
     final Map<Scan, ChimericPrecursorResult> chimericMap;
@@ -204,28 +213,36 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       scans = selection.getAllFragmentSpectra(scans);
     }
 
-    // first entry for the same molecule reflect the most common ion type, usually M+H
-    var match = matches.get(0);
+    // cache all formulas
+    IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
+    FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 15);
 
     // filter matches
     for (int i = 0; i < scans.size(); i++) {
 //      final DataPoint[] dataPoints = spectra.get(i);
 
       final Scan msmsScan = scans.get(i);
-      final List<DataPoint> explainedSignals = msMsQualityChecker.matchAndGetExplainedSignals(
-          msmsScan, match, row);
-      if (explainedSignals == null) {
+      final MSMSScore score = msMsQualityChecker.match(msmsScan, match, sortedFormulas);
+      if (score.isFailed(false)) {
         continue;
       }
 
-      DataPoint[] dps = msMsQualityChecker.exportExplainedSignalsOnly() ? explainedSignals.toArray(
-          DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
+      DataPoint[] dps =
+          msMsQualityChecker.exportExplainedSignalsOnly() ? score.annotation().keySet()
+              .toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
 
       // add instrument type etc by parameter
       Scan scan = scans.get(i);
       SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), scan, match,
           dps);
+      // add explained intensity and signals
       entry.putAll(metadataMap);
+
+      // score might be successful without having a formula - so check if we actually have scores
+      if (score.explainedSignals() > 0) {
+        entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_INTENSITY, score.explainedIntensity());
+        entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_SIGNALS, score.explainedSignals());
+      }
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed
         ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,

@@ -23,29 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.msmsscore;
+package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.DataPoint;
-import java.util.Map;
-import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
- * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS data points to
- * interpreted formulas
+ * Used to cache the formula + mz results
+ *
+ * @param mz exact mz
  */
-public record MSMSScore(float explainedIntensity, float explainedSignals,
-                        @NotNull Map<DataPoint, String> annotation) {
+public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
 
-  public static final MSMSScore FAILED_FILTERS = new MSMSScore(-10, -10, Map.of());
-  public static final MSMSScore SUCCESS_WITHOUT_FORMULA = new MSMSScore(-2, -2, Map.of());
-  public static final MSMSScore SUCCESS_WITHOUT_PRECURSOR_MZ = new MSMSScore(-3, -3, Map.of());
-
-  public boolean isFailed() {
-    return isFailed(false);
-  }
-
-  public boolean isFailed(boolean requireFormulaMatch) {
-    return FAILED_FILTERS.equals(this) || (requireFormulaMatch && SUCCESS_WITHOUT_FORMULA.equals(
-        this));
-  }
 }

@@ -113,8 +113,8 @@ public class SingleRowPredictionTask extends AbstractTask {
         .getEmbeddedParameters();
 
     if (checkIsotopes) {
-      minIsotopeScore = isoParam
-          .getValue(IsotopePatternScoreParameters.isotopePatternScoreThreshold);
+      minIsotopeScore = isoParam.getValue(
+          IsotopePatternScoreParameters.isotopePatternScoreThreshold);
       isotopeNoiseLevel = isoParam.getValue(IsotopePatternScoreParameters.isotopeNoiseLevel);
       isotopeMZTolerance = isoParam.getValue(IsotopePatternScoreParameters.mzTolerance);
     } else {
@@ -129,23 +129,24 @@ public class SingleRowPredictionTask extends AbstractTask {
           .getEmbeddedParameters();
 
       msmsMinScore = msmsParam.getValue(MSMSScoreParameters.msmsMinScore);
-      topNmsmsSignals = msmsParam.getValue(MSMSScoreParameters.useTopNSignals) ? msmsParam
-          .getParameter(MSMSScoreParameters.useTopNSignals).getEmbeddedParameter().getValue() : -1;
+      topNmsmsSignals =
+          msmsParam.getValue(MSMSScoreParameters.useTopNSignals) ? msmsParam.getParameter(
+              MSMSScoreParameters.useTopNSignals).getEmbeddedParameter().getValue() : -1;
       msmsMzTolerance = msmsParam.getValue(MSMSScoreParameters.msmsTolerance);
     }
 
     checkRDBE = parameters.getParameter(FormulaPredictionParameters.rdbeRestrictions).getValue();
     if (checkRDBE) {
-      ParameterSet rdbeParameters = parameters
-          .getParameter(FormulaPredictionParameters.rdbeRestrictions).getEmbeddedParameters();
+      ParameterSet rdbeParameters = parameters.getParameter(
+          FormulaPredictionParameters.rdbeRestrictions).getEmbeddedParameters();
       rdbeRange = rdbeParameters.getValue(RDBERestrictionParameters.rdbeRange);
       rdbeIsInteger = rdbeParameters.getValue(RDBERestrictionParameters.rdbeWholeNum);
     }
 
     checkRatios = parameters.getParameter(FormulaPredictionParameters.elementalRatios).getValue();
     if (checkRatios) {
-      final ParameterSet elementRatiosParam = parameters
-          .getParameter(FormulaPredictionParameters.elementalRatios).getEmbeddedParameters();
+      final ParameterSet elementRatiosParam = parameters.getParameter(
+          FormulaPredictionParameters.elementalRatios).getEmbeddedParameters();
       checkHCRatio = elementRatiosParam.getValue(ElementalHeuristicParameters.checkHC);
       checkMultipleRatios = elementRatiosParam.getValue(ElementalHeuristicParameters.checkMultiple);
       checkNOPSRatio = elementRatiosParam.getValue(ElementalHeuristicParameters.checkNOPS);
@@ -184,7 +185,7 @@ public class SingleRowPredictionTask extends AbstractTask {
     IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
     if ((checkIsotopes) && (detectedPattern == null)) {
       final String msg = "Cannot calculate isotope pattern scores, because selected"
-                         + " peak does not have any isotopes. Have you run the isotope peak grouper?";
+          + " peak does not have any isotopes. Have you run the isotope peak grouper?";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
@@ -213,7 +214,7 @@ public class SingleRowPredictionTask extends AbstractTask {
       }
 
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
-                    + " formulas");
+          + " formulas");
 
       MZmineCore.runLater(() -> resultWindowFX.setTitle(
           "Finished searching for " + MZmineCore.getConfiguration().getMZFormat()
@@ -237,8 +238,8 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     // Check elemental ratios
     if (checkRatios) {
-      boolean check = ElementalHeuristicChecker
-          .checkFormula(cdkFormula, checkHCRatio, checkNOPSRatio, checkMultipleRatios);
+      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, checkHCRatio,
+          checkNOPSRatio, checkMultipleRatios);
       if (!check) {
         return;
       }
@@ -263,16 +264,14 @@ public class SingleRowPredictionTask extends AbstractTask {
     // Fixed min abundance
     final double minPredictedAbundance = 0.00001;
 
-    final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator
-        .calculateIsotopePattern(clonedFormula, minPredictedAbundance, charge,
-            ionType.getPolarity());
+    final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
+        clonedFormula, minPredictedAbundance, charge, ionType.getPolarity());
 
     Float isotopeScore = null;
     if (checkIsotopes && detectedPattern != null && predictedIsotopePattern != null) {
 
-      isotopeScore = IsotopePatternScoreCalculator
-          .getSimilarityScore(detectedPattern, predictedIsotopePattern, isotopeMZTolerance,
-              isotopeNoiseLevel);
+      isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
+          predictedIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel);
 
       if (isotopeScore < minIsotopeScore) {
         return;
@@ -293,16 +292,16 @@ public class SingleRowPredictionTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + dataFile.getName()
-            + " does not have a mass list");
+                + " does not have a mass list");
         return;
       }
 
-      MSMSScore score = MSMSScoreCalculator
-          .evaluateMSMS(cdkFormula, msmsScan, msmsMzTolerance, topNmsmsSignals);
+      MSMSScore score = MSMSScoreCalculator.evaluateMSMS(cdkFormula, msmsScan, msmsMzTolerance,
+          topNmsmsSignals);
 
       if (score != null) {
-        msmsScore = score.getScore();
-        msmsAnnotations = score.getAnnotation();
+        msmsScore = score.explainedIntensity();
+        msmsAnnotations = score.annotation();
 
         // Check the MS/MS condition
         if (msmsScore < msmsMinScore) {

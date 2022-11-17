@@ -45,7 +45,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecti
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
-import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -204,8 +203,7 @@ public class MsMsQualityExportTask extends AbstractTask {
         RangeUtils.rangeAround(mergedMsMs.getPrecursorMz().doubleValue(), window * 2),
         info.getMobilityRange());
 
-    MSMSScore peakFormulaScore = new MSMSScore(0f, null);
-    MSMSScore intensityFormulaScore = new MSMSScore(0f, null);
+    final MSMSScore score;
 
     if (formula != null) {
       final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
@@ -223,16 +221,14 @@ public class MsMsQualityExportTask extends AbstractTask {
       final double[][] filtered = factorOfLowest.getMassValues(msmsScan, folParams);
       final DataPoint[] dataPoints = DataPointUtils.getDataPoints(filtered[0], filtered[1]);
 
-      peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula,
-          dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(), dataPoints.length);
-      intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(msmsFormulaTolerance,
-          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(),
-          dataPoints.length);
+      score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula, dataPoints,
+          msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(), dataPoints.length);
+    } else {
+      score = MSMSScore.SUCCESS_WITHOUT_FORMULA;
     }
 
-    return new SpectrumMsMsQuality((float) isolationChimerityScore, intensityFormulaScore,
-        peakFormulaScore, msmsScan.getNumberOfDataPoints(),
-        (float) ScanUtils.getSpectralEntropy(msmsScan),
+    return new SpectrumMsMsQuality((float) isolationChimerityScore, score,
+        msmsScan.getNumberOfDataPoints(), (float) ScanUtils.getSpectralEntropy(msmsScan),
         (float) ScanUtils.getNormalizedSpectralEntropy(msmsScan),
         (float) ScanUtils.getWeightedSpectralEntropy(msmsScan),
         (float) ScanUtils.getNormalizedWeightedSpectralEntropy(msmsScan), annotation);
