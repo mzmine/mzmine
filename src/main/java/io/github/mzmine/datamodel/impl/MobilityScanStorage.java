@@ -150,6 +150,17 @@ public class MobilityScanStorage {
       data.add(mzIntensity);
     }
 
+    setMassLists(storage, data);
+  }
+
+  /**
+   * Sets the new masslists
+   *
+   * @param storage memory storage for masslists
+   * @param data    the masslists as [0,1] as [mzs, intensities] arrays, one for each MobilityScan
+   *                in this frame
+   */
+  public void setMassLists(final @Nullable MemoryMapStorage storage, final List<double[][]> data) {
     AtomicInteger biggestOffset = new AtomicInteger(0);
     final int[] massListStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
     this.massListStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage,
