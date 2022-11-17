@@ -37,6 +37,7 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -101,8 +102,17 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
 
     final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
 
+    Double precursorMz = msmsScan.getPrecursorMz();
+    if (precursorMz == null) {
+      precursorMz = annotation.getPrecursorMZ();
+    }
+    if (precursorMz == null) {
+      return MSMSScore.SUCCESS_WITHOUT_PRECURSOR_MZ;
+    }
+
+    int precursorCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
     MSMSScore score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula,
-        dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(), dataPoints.length);
+        dataPoints, precursorMz, precursorCharge, dataPoints.length);
 
     if (minExplainedIntensity != null) {
       if (score == null || score.explainedIntensity() < minExplainedIntensity) {

@@ -155,4 +155,5 @@ public class MSMSScoreCalculator {
     return new MSMSScore(explainedIntensity, msmsScore, msmsAnnotations);
   }
 
+
 }
