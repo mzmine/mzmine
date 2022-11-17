@@ -183,7 +183,7 @@ public class MZmineJsonLibraryEntry {
       case GNPS_ID -> null;
       case MONA_ID -> null;
       case CHEMSPIDER -> null;
-      case DATAFILE_COLON_SCAN_NUMBER -> null;
+      case SCAN_NUMBER -> scanNumber;
     };
   }
 

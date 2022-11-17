@@ -67,7 +67,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, USI, SCAN_NUMBER(Integer.class), DATAFILE_COLON_SCAN_NUMBER, SPLASH,
+  DATASET_ID, USI, SCAN_NUMBER(Integer.class), SPLASH,
 
   // Quality measures in wrapper object
   QUALITY, // individual properties
@@ -177,7 +177,7 @@ public enum DBEntryField {
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY, QUALITY_CHIMERIC ->
+      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, QUALITY, QUALITY_CHIMERIC ->
           StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS -> IntegerType.class;
@@ -253,7 +253,6 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "isolation_window";
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
-      case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case QUALITY -> "quality";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
@@ -297,7 +296,6 @@ public enum DBEntryField {
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
       case MSN_ISOLATION_WINDOWS -> "MSn_isolation_windows";
       case USI -> "usi";
-      case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case DESCRIPTION -> "description";
       case QUALITY -> "quality";
       case DATASET_ID -> "dataset_id";
@@ -345,7 +343,6 @@ public enum DBEntryField {
       case FRAGMENTATION_METHOD -> "FRAGMENTATION_METHOD";
       case ISOLATION_WINDOW -> "ISOLATION_WINDOW";
       case USI -> "USI";
-      case DATAFILE_COLON_SCAN_NUMBER -> "DATAFILE_SCANNUMBER";
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
       case DATASET_ID -> "DATASET_ID";
       case QUALITY -> "QUALITY";
@@ -399,7 +396,6 @@ public enum DBEntryField {
       case FRAGMENTATION_METHOD -> "";
       case ISOLATION_WINDOW -> "";
       case USI -> "";
-      case DATAFILE_COLON_SCAN_NUMBER -> "";
       case QUALITY -> "";
       case DATASET_ID -> "";
       case QUALITY_CHIMERIC -> "";

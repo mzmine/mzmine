@@ -254,11 +254,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         }
       }
       // add file info
+      int scanNumber = msmsScan.getScanNumber();
       final String fileUSI = Path.of(
           Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
-              msmsScan.getDataFile().getName())).getFileName().toString() + ":"
-          + msmsScan.getScanNumber();
-      entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
+              msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
+
+      entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scanNumber);
       entry.getField(DBEntryField.DATASET_ID).ifPresent(
           dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
 
