@@ -55,7 +55,7 @@ public enum DBEntryField {
       Integer.class), MERGED_SPEC_TYPE,
 
   // MS2
-  COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, NUM_PEAKS(Integer.class), ACQUISITION,
+  COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
 
   // MSn
   MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS,
@@ -70,7 +70,10 @@ public enum DBEntryField {
   DATASET_ID, USI, SCAN_NUMBER(Integer.class), DATAFILE_COLON_SCAN_NUMBER, SPLASH,
 
   // Quality measures
-  QUALITY_CHIMERIC;
+  QUALITY_CHIMERIC,
+
+  // number of signals
+  NUM_PEAKS(Integer.class);
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -336,7 +339,7 @@ public enum DBEntryField {
       case USI -> "USI";
       case DATAFILE_COLON_SCAN_NUMBER -> "DATAFILE_SCANNUMBER";
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
-      case DATASET_ID -> "DATASETID";
+      case DATASET_ID -> "DATASET_ID";
     };
   }
 
