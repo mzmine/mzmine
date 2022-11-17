@@ -55,7 +55,7 @@ public enum DBEntryField {
       Integer.class), MERGED_SPEC_TYPE,
 
   // MS2
-  COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, NUM_PEAKS(Integer.class), ACQUISITION,
+  COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
 
   // MSn
   MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS,
@@ -72,7 +72,10 @@ public enum DBEntryField {
   // Quality measures in wrapper object
   QUALITY, // individual properties
   QUALITY_CHIMERIC, QUALITY_EXPLAINED_INTENSITY(Float.class), QUALITY_EXPLAINED_SIGNALS(
-      Float.class);
+      Float.class),
+
+  // number of signals
+  NUM_PEAKS(Integer.class);
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
