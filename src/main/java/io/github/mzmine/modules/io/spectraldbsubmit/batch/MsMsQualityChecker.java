@@ -29,44 +29,22 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSignals,
                                  Double minExplainedIntensity, MZTolerance msmsFormulaTolerance,
                                  boolean exportExplainedSignalsOnly,
                                  boolean exportFlistNameMatchOnly) {
-
-  @NotNull
-  private static IMolecularFormula getIonizedFormula(final FeatureAnnotation annotation,
-      final String formula) {
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        formula, SilentChemObjectBuilder.getInstance());
-
-    try {
-      FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    final IonType adductType = annotation.getAdductType();
-    if (adductType.getCDKFormula() != null) {
-      molecularFormula.add(adductType.getCDKFormula());
-    }
-    return molecularFormula;
-  }
 
   /**
    * Checks if feature list contains the name from {@link FeatureAnnotation#getCompoundName()}
@@ -88,17 +66,22 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
    * were successful
    */
   public @NotNull MSMSScore match(final Scan msmsScan, final FeatureAnnotation annotation) {
+    IMolecularFormula formula = FormulaUtils.getIonizedFormula(annotation);
+    FormulaWithExactMz[] sortedFormulas =
+        formula == null ? null : FormulaUtils.getAllFormulas(formula, 15);
+    return match(msmsScan, annotation, sortedFormulas);
+  }
+
+  public @NotNull MSMSScore match(final Scan msmsScan, final FeatureAnnotation annotation,
+      final FormulaWithExactMz[] sortedFormulas) {
 
     if (minNumSignals != null && msmsScan.getNumberOfDataPoints() < minNumSignals) {
       return MSMSScore.FAILED_FILTERS;
     }
 
-    final String formula = annotation != null ? annotation.getFormula() : null;
-    if (formula == null) {
+    if (sortedFormulas == null) {
       return MSMSScore.SUCCESS_WITHOUT_FORMULA;
     }
-
-    final IMolecularFormula molecularFormula = getIonizedFormula(annotation, formula);
 
     final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
 
@@ -111,8 +94,8 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
     }
 
     int precursorCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
-    MSMSScore score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula,
-        dataPoints, precursorMz, precursorCharge, dataPoints.length);
+    MSMSScore score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, sortedFormulas,
+        dataPoints, precursorMz, precursorCharge);
 
     if (minExplainedIntensity != null) {
       if (score == null || score.explainedIntensity() < minExplainedIntensity) {

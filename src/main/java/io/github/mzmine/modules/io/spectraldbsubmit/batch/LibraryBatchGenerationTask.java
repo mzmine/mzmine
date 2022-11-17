@@ -53,6 +53,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -79,6 +81,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Exports all files needed for GNPS
@@ -160,9 +163,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         description = "Exporting entries for feature list " + flist.getName();
         for (var row : flist.getRows()) {
           processRow(writer, row);
+          finishedRows.incrementAndGet();
         }
-
-        finishedRows.incrementAndGet();
       }
       //
       logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
@@ -210,12 +212,16 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       scans = selection.getAllFragmentSpectra(scans);
     }
 
+    // cache all formulas
+    IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
+    FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 15);
+
     // filter matches
     for (int i = 0; i < scans.size(); i++) {
 //      final DataPoint[] dataPoints = spectra.get(i);
 
       final Scan msmsScan = scans.get(i);
-      final MSMSScore score = msMsQualityChecker.match(msmsScan, match);
+      final MSMSScore score = msMsQualityChecker.match(msmsScan, match, sortedFormulas);
       if (score.isFailed(false)) {
         continue;
       }

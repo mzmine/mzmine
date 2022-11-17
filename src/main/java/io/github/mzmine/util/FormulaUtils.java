@@ -26,7 +26,9 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -682,5 +684,29 @@ public class FormulaUtils {
     } catch (CloneNotSupportedException e) {
       throw new IllegalArgumentException("Cannot clone given formula. " + formula);
     }
+  }
+
+  /**
+   * Creates the ionized formula combining the adduct from the feature annotation
+   */
+  public static @Nullable IMolecularFormula getIonizedFormula(final FeatureAnnotation annotation) {
+    if (annotation.getFormula() == null) {
+      return null;
+    }
+
+    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+        annotation.getFormula(), SilentChemObjectBuilder.getInstance());
+
+    try {
+      FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    final IonType adductType = annotation.getAdductType();
+    if (adductType.getCDKFormula() != null) {
+      molecularFormula.add(adductType.getCDKFormula());
+    }
+    return molecularFormula;
   }
 }
