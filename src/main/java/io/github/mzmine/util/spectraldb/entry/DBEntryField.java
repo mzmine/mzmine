@@ -25,6 +25,23 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SplashType;
+import io.github.mzmine.datamodel.features.types.annotations.UsiType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.apache.commons.lang3.StringUtils;
 
 public enum DBEntryField {
@@ -34,7 +51,7 @@ public enum DBEntryField {
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
-      Integer.class),
+      Integer.class), MERGED_SPEC_TYPE,
 
   // MS2
   COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, NUM_PEAKS(Integer.class), ACQUISITION,
@@ -49,7 +66,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, USI, DATAFILE_COLON_SCAN_NUMBER,
+  DATASET_ID, USI, DATAFILE_COLON_SCAN_NUMBER, SPLASH,
 
   // Quality measures
   QUALITY_CHIMERIC;
@@ -152,8 +169,39 @@ public enum DBEntryField {
   /**
    * @return The mzmine json format key or an empty String
    */
+  public Class<? extends DataType> getDataType() {
+    return switch (this) {
+      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC ->
+          StringType.class;
+      case MS_LEVEL, NUM_PEAKS -> IntegerType.class;
+      case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
+      case CHARGE -> ChargeType.class;
+      case COLLISION_ENERGY -> DoubleType.class;
+      case FORMULA -> FormulaType.class;
+      case INCHI -> InChIStructureType.class;
+      case INCHIKEY -> InChIKeyStructureType.class;
+      case ION_TYPE -> IonTypeType.class;
+      case NAME -> CompoundNameType.class;
+      case RT -> RTType.class;
+      case SMILES -> SmilesStructureType.class;
+      case CCS -> CCSType.class;
+      case ISOLATION_WINDOW -> DoubleType.class;
+      case DATASET_ID -> DatasetIdType.class;
+      case USI -> UsiType.class;
+      case SPLASH -> SplashType.class;
+      // TODO change to real data types instead of strings
+      // are there other formats that define those properly?
+      case MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
+          StringType.class;
+    };
+  }
+
+  /**
+   * @return The mzmine json format key or an empty String
+   */
   public String getMZmineJsonID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "merge_type";
       case ACQUISITION -> "acquisition";
       case SOFTWARE -> "softwaresource";
       case CAS -> "cas";
@@ -164,6 +212,7 @@ public enum DBEntryField {
       case DATA_COLLECTOR -> "datacollector";
       case EXACT_MASS -> "exact_mass";
       case FORMULA -> "formula";
+      case SPLASH -> "splash";
       case INCHI -> "inchi";
       case INCHIKEY -> "inchikey";
       case INSTRUMENT -> "instrument";
@@ -206,6 +255,7 @@ public enum DBEntryField {
    */
   public String getNistMspID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "merge_type";
       case ENTRY_ID -> "DB#";
       case COLLISION_ENERGY -> "Collision_energy";
       case COMMENT -> "Comments";
@@ -221,6 +271,7 @@ public enum DBEntryField {
       case ION_SOURCE -> "";
       case PRECURSOR_MZ -> "PrecursorMZ";
       case NAME -> "Name";
+      case SPLASH -> "Splash";
       case RT -> "RT";
       case MS_LEVEL -> "Spectrum_type";
       case NUM_PEAKS -> "Num Peaks";
@@ -246,6 +297,7 @@ public enum DBEntryField {
    */
   public String getMgfID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "MERGE_TYPE";
       case ENTRY_ID -> "SPECTRUMID";
       case CHARGE -> "CHARGE";
       case COMMENT -> "comment";
@@ -267,6 +319,7 @@ public enum DBEntryField {
       case SMILES -> "SMILES";
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
+      case SPLASH -> "SPLASH";
       case ACQUISITION, NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RT, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY ->
           toString();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
@@ -287,6 +340,7 @@ public enum DBEntryField {
    */
   public String getJdxID() {
     return switch (this) {
+      case MERGED_SPEC_TYPE -> "";
       case ENTRY_ID -> "";
       case ACQUISITION -> "";
       case SOFTWARE -> "";
@@ -302,7 +356,7 @@ public enum DBEntryField {
       case INCHIKEY -> "";
       case INSTRUMENT -> "";
       case INSTRUMENT_TYPE -> "";
-      case ION_TYPE -> "";
+      case ION_TYPE, SPLASH -> "";
       case POLARITY -> "";
       case ION_SOURCE -> "";
       case PRECURSOR_MZ -> "";

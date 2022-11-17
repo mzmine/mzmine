@@ -29,7 +29,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
@@ -56,8 +57,9 @@ public class MZmineJsonParser extends SpectralDBTextParser {
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
-    super.parse(mainTask, dataBaseFile);
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
+      throws IOException {
+    super.parse(mainTask, dataBaseFile, library);
 
     logger.info("Parsing MZmine spectral library " + dataBaseFile.getAbsolutePath());
 
@@ -75,7 +77,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
         try {
           reader = Json.createReader(new StringReader(l));
           JsonObject json = reader.readObject();
-          SpectralDBEntry entry = getDBEntry(json);
+          SpectralLibraryEntry entry = getDBEntry(library, json);
           if (entry != null) {
             correct++;
             // add entry and process
@@ -144,7 +146,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     return main.getJsonNumber(id);
   }
 
-  public SpectralDBEntry getDBEntry(JsonObject main) {
+  public SpectralLibraryEntry getDBEntry(SpectralLibrary library, JsonObject main) {
     // extract dps
     DataPoint[] dps = getDataPoints(main);
     if (dps == null) {
@@ -181,7 +183,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
       }
     }
 
-    return new SpectralDBEntry(map, dps);
+    return SpectralLibraryEntry.create(library.getStorage(), map, dps);
   }
 
   public static DataPoint[] getDataPointsFromJsonArray(JsonArray data) {

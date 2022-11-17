@@ -375,4 +375,10 @@ public class ScanSelection {
 
     return b.toString();
   }
+
+  public ScanSelection cloneWithNewRtRange(Range<Float> rtRange) {
+    return new ScanSelection(getScanNumberRange(), getBaseFilteringInteger(), rtRange,
+        getScanMobilityRange(), getPolarity(), getSpectrumType(), getMsLevel(),
+        getScanDefinition());
+  }
 }

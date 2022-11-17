@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -69,15 +68,14 @@ public class ImsExpanderSubTask extends AbstractTask {
   private long totalFrames = 1;
   private String desc;
   private final BinningMobilogramDataAccess mobilogramDataAccess;
-  private final ModularFeatureList newFlist;
-
   private final List<ExpandedTrace> expandedTraces;
+  private final IMSRawDataFile imsFile;
   private double createdRows = 0;
 
   public ImsExpanderSubTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final List<Frame> frames,
       @NotNull final ModularFeatureList flist, @NotNull final List<ExpandingTrace> expandingTraces,
-      BinningMobilogramDataAccess mobilogramDataAccess, ModularFeatureList newFlist) {
+      BinningMobilogramDataAccess mobilogramDataAccess, IMSRawDataFile imsFile) {
     super(storage, Instant.now()); // just a subtask, date irrelevant
     this.parameters = parameters;
     this.frames = frames;
@@ -95,8 +93,8 @@ public class ImsExpanderSubTask extends AbstractTask {
         + totalFrames + " m/z range: " + RangeUtils.formatRange(traceMzRange,
         MZmineCore.getConfiguration().getMZFormat());
     this.mobilogramDataAccess = mobilogramDataAccess;
-    this.newFlist = newFlist;
     expandedTraces = new ArrayList<>(expandingTraces.size());
+    this.imsFile = imsFile;
   }
 
   @Override
@@ -116,7 +114,6 @@ public class ImsExpanderSubTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    final IMSRawDataFile imsFile = (IMSRawDataFile) frames.get(0).getDataFile();
     logger.finest("Initialising data access for file " + imsFile.getName());
     final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
         useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.CENTROID, frames);
@@ -181,8 +178,6 @@ public class ImsExpanderSubTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
     }
 
-    // create the new rows here, so the memory can be released after
-    final List<FeatureListRow> newRows = new ArrayList<>(expandingTraces.size());
     for (var expandingTrace : expandingTraces) {
       desc = "Creating new features " + createdRows + "/" + expandingTraces.size();
 
@@ -191,15 +186,6 @@ public class ImsExpanderSubTask extends AbstractTask {
             getMemoryMapStorage(), mobilogramDataAccess);
         expandedTraces.add(new ExpandedTrace(series, expandingTrace.getRow(),
             expandingTrace.getRow().getFeature(imsFile)));
-
-//        final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
-//            expandingTrace.getRow(), false);
-//        final ModularFeature f = new ModularFeature(newFlist,
-//            expandingTrace.getRow().getFeature(imsFile));
-//        f.set(FeatureDataType.class, series);
-//        row.addFeature(imsFile, f);
-//        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
-//        newRows.add(row);
       }
 
       createdRows++;

@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PrecursorIonTree;
@@ -42,6 +43,7 @@ import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -76,6 +78,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1036,8 +1039,16 @@ public class ScanUtils {
   }
 
 
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(RawDataFile, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param raw build trees from this file
+   * @return list of trees
+   */
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw) {
-    return getMSnFragmentTrees(raw, new MZTolerance(0.015, 20));
+    return getMSnFragmentTrees(raw, SpectraMerging.defaultMs2MergeTol);
   }
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol) {
@@ -1046,13 +1057,44 @@ public class ScanUtils {
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol,
       AtomicDouble progress) {
+    return getMSnFragmentTrees(raw.getScans(), mzTol, progress);
+  }
+
+
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(FeatureList, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param flist build trees from this feature list
+   * @return list of trees
+   */
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist) {
+    return getMSnFragmentTrees(flist, SpectraMerging.defaultMs2MergeTol);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist, MZTolerance mzTol) {
+    return flist.stream().flatMap(row -> getMSnFragmentTrees(row, mzTol).stream()).sorted()
+        .toList();
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureListRow row, MZTolerance mzTol) {
+    return getMSnFragmentTrees(row.getAllFragmentScans(), mzTol, null);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(List<Scan> scans, MZTolerance mzTol,
+      AtomicDouble progress) {
+    if (scans == null || scans.isEmpty()) {
+      return List.of();
+    }
+
     // at any time in the flow there should only be the latest precursor with the same m/z
     MZToleranceRangeMap<PrecursorIonTreeNode> ms2Nodes = new MZToleranceRangeMap<>(mzTol);
 
     PrecursorIonTreeNode parent = null;
-    final int totalScans = raw.getNumOfScans();
+    final int totalScans = scans.size();
 
-    for (Scan scan : raw.getScans()) {
+    for (Scan scan : scans) {
       if (scan.getMSLevel() <= 1) {
         continue;
       }
@@ -1236,7 +1278,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1297,7 +1339,7 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1682,7 +1724,7 @@ public class ScanUtils {
    * no ions in the spectrum.
    */
   public static double getSpectralEntropy(@NotNull final double[] intensities) {
-    if(intensities.length == 0) {
+    if (intensities.length == 0) {
       return Double.POSITIVE_INFINITY;
     }
 
@@ -1704,7 +1746,7 @@ public class ScanUtils {
    * @see #getSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
-    if(spectrum.getNumberOfDataPoints() == 0) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
@@ -1715,7 +1757,7 @@ public class ScanUtils {
    * @see #getSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedSpectralEntropy(@NotNull final double[] intensities) {
-    if(intensities.length == 0) {
+    if (intensities.length == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getSpectralEntropy(intensities) / Math.log(intensities.length);
@@ -1786,7 +1828,7 @@ public class ScanUtils {
    * @see #getWeightedSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
-    if(spectrum.getNumberOfDataPoints() == 0) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
@@ -1797,7 +1839,7 @@ public class ScanUtils {
    * @see #getWeightedSpectralEntropy(MassSpectrum)
    */
   public static double getNormalizedWeightedSpectralEntropy(@NotNull final double[] intensities) {
-    if(intensities.length == 0) {
+    if (intensities.length == 0) {
       return Double.POSITIVE_INFINITY;
     }
     return getWeightedSpectralEntropy(intensities) / Math.log(intensities.length);
@@ -1820,6 +1862,26 @@ public class ScanUtils {
       }
     }
     return minIntensity < Double.POSITIVE_INFINITY ? minIntensity : null;
+  }
+
+  /**
+   * Split scans into lists for each fragmentation energy. Usually the MSn levels are split before
+   *
+   * @param scans input list
+   * @return map of fragmention energy to scans
+   */
+  public static Map<Float, List<Scan>> splitByFragmentationEnergy(final List<Scan> scans) {
+    return scans.stream().collect(Collectors.groupingBy(ScanUtils::getActivationEnergy));
+  }
+
+
+  public static @Nullable Float getActivationEnergy(final MassSpectrum spectrum) {
+    if (spectrum instanceof Scan scan && scan.getMsMsInfo() != null) {
+      return scan.getMsMsInfo().getActivationEnergy();
+    } else if (spectrum instanceof MergedMsMsSpectrum merged) {
+      return merged.getCollisionEnergy();
+    }
+    return null;
   }
 
   /**

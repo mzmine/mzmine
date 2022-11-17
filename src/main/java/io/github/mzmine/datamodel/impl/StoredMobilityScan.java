@@ -26,7 +26,6 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassList;
@@ -40,7 +39,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -194,11 +192,6 @@ public class StoredMobilityScan implements MobilityScan {
     return new DataPointIterator(this);
   }
 
-  @Override
-  public Stream<DataPoint> stream() {
-    return Streams.stream(this);
-  }
-
   private class DataPointIterator implements Iterator<DataPoint>, DataPoint {
 
     private final MassSpectrum spectrum;
@@ -246,9 +239,8 @@ public class StoredMobilityScan implements MobilityScan {
       return false;
     }
     StoredMobilityScan that = (StoredMobilityScan) o;
-    return index == that.index && Objects.equals(
-        getFrame(), ((StoredMobilityScan) o).getFrame()) && Objects.equals(getDataFile(),
-        ((StoredMobilityScan) o).getDataFile());
+    return index == that.index && Objects.equals(getFrame(), ((StoredMobilityScan) o).getFrame())
+        && Objects.equals(getDataFile(), ((StoredMobilityScan) o).getDataFile());
   }
 
   @Override

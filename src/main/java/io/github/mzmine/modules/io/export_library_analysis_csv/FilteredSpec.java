@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.io.export_library_analysis_csv;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 
 /**
  * this package private record holds precomputed filtered spectral and neutral loss data for a
@@ -34,7 +34,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
+record FilteredSpec(SpectralLibraryEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,
                     double precursorMZ) {
 
 }
