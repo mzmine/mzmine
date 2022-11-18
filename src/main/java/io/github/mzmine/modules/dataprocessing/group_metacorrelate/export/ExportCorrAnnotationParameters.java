@@ -36,34 +36,38 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-
 import java.util.List;
-
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ExportCorrAnnotationParameters extends SimpleParameterSet {
 
-    private static final List<ExtensionFilter> extensions = List.of( //
-            new ExtensionFilter("comma-separated values", "*.csv"), //
-            new ExtensionFilter("All files", "*.*") //
-    );
+  // NOT INCLUDED in sub
+  // General parameters
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
+  public static final BooleanParameter exportIIN = new BooleanParameter("Export IIN edges",
+      "Export all edges of Ion Identity Networks (IIN)", true);
+  public static final BooleanParameter exportIINRelationship = new BooleanParameter(
+      "Export IIN relationship edges", "Export relationships between Ion Identity Networks (IIN)",
+      false);
+  public static final MultiChoiceParameter<RowsRelationship.Type> exportTypes = new MultiChoiceParameter<>(
+      "Export row relationships", "Export all relationships of different rows to files",
+      Type.values(), Type.values(), 1);
+  public static final BooleanParameter allInOneFile = new BooleanParameter("Combine to one file",
+      "Either combine to one file or export one file per relationship type", false);
+  public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>(
+      "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+  public static final FileNameParameter filename = new FileNameParameter("Filename",
+      "Base file name of all edge files (Use {} to fill in the feature list name when exporting multiple feature lists at once)",
+      extensions, FileSelectionType.SAVE);
 
-    // NOT INCLUDED in sub
-    // General parameters
-    public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
-    public static final FileNameParameter filename = new FileNameParameter("Filename", "Base file name of all edge files (Use {} to fill in the feature list name when exporting multiple feature lists at once)", extensions, FileSelectionType.SAVE);
-    public static final BooleanParameter exportIIN = new BooleanParameter("Export IIN edges", "Export all edges of Ion Identity Networks (IIN)", true);
-    public static final BooleanParameter exportIINRelationship = new BooleanParameter("Export IIN relationship edges", "Export relationships between Ion Identity Networks (IIN)", false);
-
-    public static final MultiChoiceParameter<RowsRelationship.Type> exportTypes = new MultiChoiceParameter<>("Export row relationships", "Export all relationships of different rows to files", Type.values(), Type.values(), 1);
-
-    public static final BooleanParameter allInOneFile = new BooleanParameter("Combine to one file", "Either combine to one file or export one file per relationship type", false);
-
-    public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>("Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows", FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
-
-    // Constructor
-    public ExportCorrAnnotationParameters() {
-        super(new Parameter[] {featureLists, filename, exportTypes, allInOneFile, exportIIN, exportIINRelationship, filter});
-    }
+  // Constructor
+  public ExportCorrAnnotationParameters() {
+    super(new Parameter[]{featureLists, filename, exportTypes, allInOneFile, exportIIN,
+        exportIINRelationship, filter});
+  }
 }
