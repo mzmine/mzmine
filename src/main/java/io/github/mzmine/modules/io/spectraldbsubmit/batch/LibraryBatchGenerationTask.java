@@ -219,12 +219,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       }
 
       DataPoint[] dps = msMsQualityChecker.exportExplainedSignalsOnly() ? explainedSignals.toArray(
-          DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
+          DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan, true);
 
       // add instrument type etc by parameter
-      Scan scan = scans.get(i);
-      SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), scan, match,
-          dps);
+      SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan,
+          match, dps);
       entry.putAll(metadataMap);
       if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
         // default is passed

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -35,6 +36,7 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,7 +47,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSignals,
                                  Double minExplainedIntensity, MZTolerance msmsFormulaTolerance,
-                                 boolean exportExplainedSignalsOnly, boolean exportFlistNameMatchOnly) {
+                                 boolean exportExplainedSignalsOnly,
+                                 boolean exportFlistNameMatchOnly) {
 
   /**
    * @param msmsScan   The msms scan to evaluate
@@ -56,8 +59,12 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
    */
   public List<DataPoint> matchAndGetExplainedSignals(final Scan msmsScan,
       final FeatureAnnotation annotation, FeatureListRow f) {
+    MassList massList = msmsScan.getMassList();
+    if (massList == null) {
+      throw new MissingMassListException(msmsScan);
+    }
 
-    if (minNumSignals != null && msmsScan.getNumberOfDataPoints() < minNumSignals) {
+    if (minNumSignals != null && massList.getNumberOfDataPoints() < minNumSignals) {
       return null;
     }
 
@@ -86,7 +93,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
       molecularFormula.add(adductType.getCDKFormula());
     }
 
-    final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
+    final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan, true);
 
     if (minExplainedIntensity != null) {
       MSMSScore intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(
