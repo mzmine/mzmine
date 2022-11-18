@@ -72,6 +72,7 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -175,17 +176,18 @@ public class IMSRawDataOverviewPane extends BorderPane {
     setCenter(chartPanel);
 
     massDetectionPane = new GridPane();
+    massDetectionPane.setPadding(new Insets(5, 5, 5, 5));
     massDetectionScanIcon = new FontIcon();
-    Label massDetectionScanLabel = new Label("Masses detected in the selected scan");
-    massDetectionScanLabel.setTooltip(new Tooltip("Indication if the mass detection was "
-        + "performed successfully in the selected scan"));
+    Label massDetectionScanLabel = new Label("Masses detected in all mobility scans");
+    massDetectionScanLabel.setTooltip(new Tooltip(
+        "Indication if the mass detection was " + "performed successfully in all mobility scans"));
     massDetectionPane.add(massDetectionScanIcon, 1, 1);
     massDetectionPane.add(massDetectionScanLabel, 0, 1);
 
     massDetectionFrameIcon = new FontIcon();
     Label massDetectionFrameLabel = new Label("Masses detected in selected frame");
-    massDetectionFrameLabel.setTooltip(new Tooltip("Indication if the mass detection was "
-        + "performed successfully in the selected frame"));
+    massDetectionFrameLabel.setTooltip(new Tooltip(
+        "Indication if the mass detection was " + "performed successfully in the selected frame"));
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
     massDetectionPane.add(massDetectionFrameLabel, 0, 2);
     chartPanel.getChildren().add(massDetectionPane);
@@ -232,10 +234,16 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
     massDetectionFrameIcon =
+        selectedFrame.get().getMassList() != null ?
+            FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+
+    massDetectionPane.getChildren().remove(massDetectionScanIcon);
+    massDetectionScanIcon =
         selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
             ? FxIconUtil.getCheckedIcon()
             : FxIconUtil.getUncheckedIcon();
-    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+    massDetectionPane.add(massDetectionScanIcon, 1, 1);
 
     mzRangeTicDatasetIndices.clear();
     cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
@@ -385,11 +393,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
       if (newValue.getValueIndex() != -1) {
         selectedMobilityScan.set(
             cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex() * binWidth));
-        massDetectionPane.getChildren().remove(massDetectionScanIcon);
-        massDetectionScanIcon = selectedFrame.get().getMobilityScan(selectedMobilityScan.get().getMobilityScanNumber()).getMassList() != null ?
-            FxIconUtil.getCheckedIcon()
-            : FxIconUtil.getUncheckedIcon();
-        massDetectionPane.add(massDetectionScanIcon, 1, 1);
       }
     }));
     singleSpectrumChart.cursorPositionProperty().addListener(
