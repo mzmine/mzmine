@@ -25,70 +25,58 @@
 
 package io.github.mzmine.util.spectraldb.parser.mzmine;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonParseException;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import io.github.mzmine.util.spectraldb.parser.gnps.GNPSJsonParser;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.jupiter.api.Test;
 
 class MZmineJsonParserTest {
 
   File file = new File(
       MZmineJsonParserTest.class.getClassLoader().getResource("json/mzmine.json").getFile());
 
-
-  @Test
-  void testParse() throws IOException {
-    List<SpectralLibraryEntry> list = new ArrayList<>();
-    new GNPSJsonParser(0, (newList, alreadyProcessed) -> {
-      list.addAll(newList);
-    }).parse(null, file, null);
-
-    assert list.size() == 4;
-  }
-
-  @Test
-  public void testObjectMapper() throws JsonParseException, IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    List<MZmineJsonLibraryEntry> list = mapper.readValue(file, new TypeReference<>() {
-    });
-
-    assert list.size() == 4;
-  }
-
-  @Test
-  public void testJacksonStream() throws JsonParseException, IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    List<MZmineJsonLibraryEntry> list = new ArrayList<>();
-    // Create a JsonParser instance
-    try (JsonParser jsonParser = mapper.getFactory().createParser(file)) {
-
-      // Check the first token
-//      if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
-//        throw new IllegalStateException("Expected content to be an array");
+//  @Test
+//  void testParse() throws IOException {
+//    List<SpectralLibraryEntry> list = new ArrayList<>();
+//    new GNPSJsonParser(0, (newList, alreadyProcessed) -> {
+//      list.addAll(newList);
+//    }).parse(null, file, null);
+//
+//    assert list.size() == 4;
+//  }
+//
+//  @Test
+//  public void testObjectMapper() throws JsonParseException, IOException {
+//    ObjectMapper mapper = new ObjectMapper();
+//    List<MZmineJsonLibraryEntry> list = mapper.readValue(file, new TypeReference<>() {
+//    });
+//
+//    assert list.size() == 4;
+//  }
+//
+//  @Test
+//  public void testJacksonStream() throws JsonParseException, IOException {
+//    ObjectMapper mapper = new ObjectMapper();
+//    List<MZmineJsonLibraryEntry> list = new ArrayList<>();
+//    // Create a JsonParser instance
+//    try (JsonParser jsonParser = mapper.getFactory().createParser(file)) {
+//
+//      // Check the first token
+////      if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
+////        throw new IllegalStateException("Expected content to be an array");
+////      }
+//
+//      // Iterate over the tokens until the end of the array
+//
+//      while (true) {
+//        JsonToken token = jsonParser.nextToken();
+//        if (token == null || token == JsonToken.END_ARRAY) {
+//          break;
+//        } else if (token == JsonToken.START_OBJECT) {
+//          // Read a contact instance using ObjectMapper and do something with it
+//          MZmineJsonLibraryEntry entry = mapper.readValue(jsonParser, MZmineJsonLibraryEntry.class);
+//          list.add(entry);
+//        }
 //      }
-
-      // Iterate over the tokens until the end of the array
-
-      while (true) {
-        JsonToken token = jsonParser.nextToken();
-        if (token == null || token == JsonToken.END_ARRAY) {
-          break;
-        } else if (token == JsonToken.START_OBJECT) {
-          // Read a contact instance using ObjectMapper and do something with it
-          MZmineJsonLibraryEntry entry = mapper.readValue(jsonParser, MZmineJsonLibraryEntry.class);
-          list.add(entry);
-        }
-      }
-    }
-
-    assert list.size() == 4;
-  }
+//    }
+//
+//    assert list.size() == 4;
+//  }
 }
