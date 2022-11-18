@@ -236,13 +236,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
       DataPoint[] dps =
           msMsQualityChecker.exportExplainedSignalsOnly() ? score.annotation().keySet()
-              .toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan);
+              .toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan, true);
 
       // add instrument type etc by parameter
-      Scan scan = scans.get(i);
-      SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), scan, match,
-          dps);
-      // add explained intensity and signals
+      SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan,
+          match, dps);
       entry.putAll(metadataMap);
 
       // score might be successful without having a formula - so check if we actually have scores
