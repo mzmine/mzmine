@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -34,6 +35,7 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
 import java.util.Objects;
@@ -75,7 +77,12 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
   public @NotNull MSMSScore match(final Scan msmsScan, final FeatureAnnotation annotation,
       final FormulaWithExactMz[] sortedFormulas) {
 
-    if (minNumSignals != null && msmsScan.getNumberOfDataPoints() < minNumSignals) {
+    MassList massList = msmsScan.getMassList();
+    if (massList == null) {
+      throw new MissingMassListException(msmsScan);
+    }
+
+    if (minNumSignals != null && massList.getNumberOfDataPoints() < minNumSignals) {
       return MSMSScore.FAILED_FILTERS;
     }
 
@@ -83,7 +90,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
       return MSMSScore.SUCCESS_WITHOUT_FORMULA;
     }
 
-    final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
+    final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan, true);
 
     Double precursorMz = msmsScan.getPrecursorMz();
     if (precursorMz == null) {

@@ -185,19 +185,6 @@ public class ScanUtils {
   }
 
   @Deprecated
-  public static DataPoint[] extractDataPoints(Scan scan, boolean useMassList)
-      throws MissingMassListException {
-    if (useMassList) {
-      MassList massList = scan.getMassList();
-      if (massList == null) {
-        throw new MissingMassListException(scan);
-      }
-      return extractDataPoints(massList);
-    }
-    return extractDataPoints(scan);
-  }
-
-  @Deprecated
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
     int size = spectrum.getNumberOfDataPoints();
     DataPoint[] result = new DataPoint[size];
@@ -1925,6 +1912,7 @@ public class ScanUtils {
     return getMassSpectrum(scan, useMassList).getMzValues(new double[0]);
   }
 
+  @Deprecated
   public static DataPoint[] extractDataPoints(final Scan scan, final boolean useMassList)
       throws MissingMassListException {
     return extractDataPoints(getMassSpectrum(scan, useMassList));
