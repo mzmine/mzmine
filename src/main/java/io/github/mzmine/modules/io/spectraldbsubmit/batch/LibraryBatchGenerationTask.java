@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationParameters.ScanType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
@@ -102,6 +103,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final MsMsQualityChecker msMsQualityChecker;
   private final MZTolerance mzTolMerging;
   private final boolean enableMsnMerge;
+  private final ScanType scanFilter;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
@@ -128,6 +130,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
         .getEmbeddedParameters().toQualityChecker();
+
+    scanFilter = parameters.getValue(LibraryBatchGenerationParameters.scanFilter);
 
     enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
     mzTolMerging = parameters.getEmbeddedParameterValue(
@@ -189,6 +193,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     if (scans.isEmpty() || matches.isEmpty()) {
       return;
     }
+    // filter scans if selection is only MS2
+    getApplyScansFilter(scans);
+
     // first entry for the same molecule reflect the most common ion type, usually M+H
     var match = matches.get(0);
 
@@ -275,6 +282,19 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       exportEntry(writer, entry);
       exported.incrementAndGet();
     }
+  }
+
+  /**
+   * Filters the scans
+   *
+   * @param scans the list to filter
+   * @return true if any element was removed
+   */
+  private boolean getApplyScansFilter(final List<Scan> scans) {
+    return switch (scanFilter) {
+      case MS2 -> scans.removeIf(scan -> scan.getMSLevel() != 2);
+      case MSn -> scans.removeIf(scan -> scan.getMSLevel() <= 1);
+    };
   }
 
   private Map<Scan, ChimericPrecursorResult> checkChimericPrecursorIsolation(

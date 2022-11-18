@@ -53,8 +53,15 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  */
 public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
+  public static final ComboParameter<ScanType> scanFilter = new ComboParameter<>("Scan selection",
+      "Export MS2 or MSn spectra", ScanType.values(), ScanType.MSn);
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
+
+  public LibraryBatchGenerationParameters() {
+    super(new Parameter[]{flists, file, exportFormat, scanFilter, metadata, mergeMzTolerance,
+        handleChimerics, quality});
+  }
 
   public static final FileNameParameter file = new FileNameParameter("Export file",
       "Local library file", FileSelectionType.SAVE);
@@ -80,9 +87,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       "Quality parameters", "Quality parameters for MS/MS spectra to be exported to the library.",
       new LibraryExportQualityParameters());
 
-  public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, file, exportFormat, metadata, mergeMzTolerance, handleChimerics,
-        quality});
+  public enum ScanType {
+    MS2, MSn
   }
 
 }
