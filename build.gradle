@@ -49,8 +49,8 @@ semver {
 group = "io.github.mzmine"
 description = "MZmine"
 
-sourceCompatibility = "18"
-targetCompatibility = "18"
+sourceCompatibility = "17"
+targetCompatibility = "17"
 defaultTasks "test", "jpackage"
 
 // Check the OS
