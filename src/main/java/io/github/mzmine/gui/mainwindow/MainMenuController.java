@@ -170,6 +170,7 @@ public class MainMenuController {
         .getModuleParameters(moduleJavaClass);
 
     logger.info("Setting parameters for module " + module.getName());
+    moduleParameters.setModuleNameAttribute(module.getName());
 
     try {
       ExitCode exitCode = moduleParameters.showSetupDialog(true);

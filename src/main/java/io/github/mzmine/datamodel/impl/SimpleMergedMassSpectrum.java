@@ -37,7 +37,8 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -55,7 +56,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   private static final Logger logger = Logger.getLogger(SimpleMergedMsMsSpectrum.class.getName());
 
   protected final List<MassSpectrum> sourceSpectra;
-  protected final MergingType mergingType;
+  protected final IntensityMergingType intensityMergingType;
   protected final CenterFunction centerFunction;
   protected final RawDataFile rawDataFile;
   protected final float retentionTime;
@@ -64,51 +65,56 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   protected final PolarityType polarity;
   protected String scanDefinition; // cannot be final due to subclasses
   protected MassList massList = null;
+  private final MergingType mergingType;
 
   /**
    * Construncts a new SimpleMergedMassSpectrum. A {@link ScanPointerMassList} will be created by
    * default.
    *
-   * @param storage         The storage to use. may be null.
-   * @param mzValues        The merged mz values
-   * @param intensityValues The merged intensities
-   * @param msLevel         The ms level
-   * @param sourceSpectra   The source spectra used to create this spectrum
-   * @param mergingType     The merging type this spectrum was created with.
-   * @param centerFunction  The center function this spectrum was created with.
+   * @param storage              The storage to use. may be null.
+   * @param mzValues             The merged mz values
+   * @param intensityValues      The merged intensities
+   * @param msLevel              The ms level
+   * @param sourceSpectra        The source spectra used to create this spectrum
+   * @param intensityMergingType The merging type this spectrum was created with.
+   * @param centerFunction       The center function this spectrum was created with.
+   * @param mergingType
    */
   public SimpleMergedMassSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, int msLevel,
-      @NotNull List<? extends MassSpectrum> sourceSpectra, @NotNull MergingType mergingType,
-      @NotNull CenterFunction centerFunction) {
+      @NotNull List<? extends MassSpectrum> sourceSpectra,
+      @NotNull SpectraMerging.IntensityMergingType intensityMergingType,
+      @NotNull CenterFunction centerFunction, final MergingType mergingType) {
     super(storage, mzValues, intensityValues);
-
     assert !sourceSpectra.isEmpty();
 
+    this.mergingType = mergingType;
     RawDataFile file = null;
     PolarityType tempPolarity = null;
     Range<Double> tempScanningMzRange = null;
     float tempRt = 0f;
+    int numScans = 0;
     for (MassSpectrum spectrum : sourceSpectra) {
-      if (file == null) {
-        if (spectrum instanceof Scan) {
-          file = ((Scan) spectrum).getDataFile();
-          tempPolarity = ((Scan) spectrum).getPolarity();
-          tempScanningMzRange = ((Scan) spectrum).getScanningMZRange();
-          tempRt = ((Scan) spectrum).getRetentionTime();
+      if (spectrum instanceof Scan scan) {
+        if (file == null) { // set only once
+          file = scan.getDataFile();
+          tempPolarity = scan.getPolarity();
+          tempScanningMzRange = scan.getScanningMZRange();
         }
-      }
-      if (spectrum instanceof Scan && file != ((Scan) spectrum).getDataFile()) {
-        logger.warning("Merging spectra with different raw data files");
+        if (file != scan.getDataFile()) {
+          logger.warning("Merging spectra with different raw data files");
+        }
+        numScans++;
+        tempRt += scan.getRetentionTime();
       }
     }
     rawDataFile = file;
 
-    this.retentionTime = tempRt;
+    retentionTime = tempRt / numScans;
     this.polarity = tempPolarity;
     this.scanningMzRange = tempScanningMzRange;
     this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
-    this.mergingType = mergingType;
+    this.intensityMergingType = intensityMergingType;
     this.centerFunction = centerFunction;
     this.msLevel = msLevel;
     this.scanDefinition = ScanUtils.scanToString(this, true);
@@ -121,13 +127,18 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   }
 
   @Override
-  public MergingType getMergingType() {
-    return mergingType;
+  public IntensityMergingType getIntensityMergingType() {
+    return intensityMergingType;
   }
 
   @Override
   public CenterFunction getCenterFunction() {
     return centerFunction;
+  }
+
+  @Override
+  public MergingType getMergingType() {
+    return mergingType;
   }
 
   @NotNull

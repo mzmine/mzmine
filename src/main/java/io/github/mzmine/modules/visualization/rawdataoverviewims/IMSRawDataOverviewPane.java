@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -54,9 +55,11 @@ import io.github.mzmine.modules.visualization.frames.CanvasPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleMobilogramRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleTICRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSelectedRanges;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.MergeFrameThread;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
@@ -65,10 +68,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -79,8 +86,11 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.Layer;
 import org.jfree.chart.ui.RectangleEdge;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class IMSRawDataOverviewPane extends BorderPane {
+
+  private static final Logger logger = Logger.getLogger(IMSRawDataOverviewPane.class.getName());
 
   private static final int HEATMAP_LEGEND_HEIGHT = 50;
 
@@ -123,6 +133,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private int selectedChromatogramDatasetIndex;
   private final Set<Integer> mzRangeTicDatasetIndices;
 
+  private FontIcon massDetectionScanIcon;
+  private FontIcon massDetectionFrameIcon;
+  private GridPane massDetectionPane;
+
   /**
    * Creates a BorderPane layout.
    */
@@ -160,6 +174,23 @@ public class IMSRawDataOverviewPane extends BorderPane {
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     setCenter(chartPanel);
+
+    massDetectionPane = new GridPane();
+    massDetectionPane.setPadding(new Insets(5, 5, 5, 5));
+    massDetectionScanIcon = new FontIcon();
+    Label massDetectionScanLabel = new Label("Masses detected in all mobility scans");
+    massDetectionScanLabel.setTooltip(new Tooltip(
+        "Indication if the mass detection was " + "performed successfully in all mobility scans"));
+    massDetectionPane.add(massDetectionScanIcon, 1, 1);
+    massDetectionPane.add(massDetectionScanLabel, 0, 1);
+
+    massDetectionFrameIcon = new FontIcon();
+    Label massDetectionFrameLabel = new Label("Masses detected in selected frame");
+    massDetectionFrameLabel.setTooltip(new Tooltip(
+        "Indication if the mass detection was " + "performed successfully in the selected frame"));
+    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+    massDetectionPane.add(massDetectionFrameLabel, 0, 2);
+    chartPanel.getChildren().add(massDetectionPane);
 
     selectedFrame = new SimpleObjectProperty<>();
     selectedFrame.addListener((observable, oldValue, newValue) -> onSelectedFrameChanged());
@@ -200,6 +231,20 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
+
+    massDetectionPane.getChildren().remove(massDetectionFrameIcon);
+    massDetectionFrameIcon =
+        selectedFrame.get().getMassList() != null ?
+            FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+
+    massDetectionPane.getChildren().remove(massDetectionScanIcon);
+    massDetectionScanIcon =
+        selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
+            ? FxIconUtil.getCheckedIcon()
+            : FxIconUtil.getUncheckedIcon();
+    massDetectionPane.add(massDetectionScanIcon, 1, 1);
+
     mzRangeTicDatasetIndices.clear();
     cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
         mobilityScanNoiseLevel);//selectedFrame.get();//
@@ -366,6 +411,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }));
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
+    ticChart.getMouseAdapter().addGestureHandler(new SimpleDataDragGestureHandler((start, end) -> {
+      Range<Float> rtRange = Range.closed((float) start.getX(), (float) end.getX());
+      final ScanSelection selection = scanSelection.cloneWithNewRtRange(rtRange);
+      MZmineCore.getTaskController().addTask(
+          new MergeFrameThread(rawDataFile, selection, binWidth, mobilityScanNoiseLevel,
+              f -> MZmineCore.runLater(() -> setSelectedFrame(f))));
+    }));
+
     ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue.getDataset() == null || newValue.getValueIndex() == -1) {
         return;
@@ -441,8 +494,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     MZmineCore.runLater(() -> {
       if (selectedMobilogramDatasetIndex != -1) {
         mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
-        selectedMobilogramDatasetIndex = mobilogramChart.addDataset(mobilogram);
       }
+      selectedMobilogramDatasetIndex = mobilogramChart.addDataset(mobilogram);
     });
   }
 
@@ -450,8 +503,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     MZmineCore.runLater(() -> {
       if (selectedChromatogramDatasetIndex != -1) {
         ticChart.removeDataSet(selectedChromatogramDatasetIndex);
-        selectedChromatogramDatasetIndex = ticChart.addTICDataSet(dataset, color);
       }
+      selectedChromatogramDatasetIndex = ticChart.addTICDataSet(dataset, color);
     });
   }
 

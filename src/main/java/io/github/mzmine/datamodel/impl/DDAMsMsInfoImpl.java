@@ -36,6 +36,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWi
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import java.util.Objects;
@@ -163,7 +164,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
    * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
    * @return A loaded {@link DDAMsMsInfoImpl}.
    */
-  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
+  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file,
+      List<RawDataFile> allProjectFiles) {
 
     final double precursorMz = Double.parseDouble(
         reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
@@ -188,9 +190,18 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
         XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
+    final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
+        CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
+
+    // use the correct file if the ms info comes from a different file.
+    if (rawFileName != null && !rawFileName.equals(file != null ? file.getName() : null)) {
+      file = allProjectFiles.stream().filter(f -> f.getName().equals(rawFileName)).findFirst()
+          .orElse(file);
+    }
+
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
-        scanIndex != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null ? file.getScan(parentScanIndex) : null, msLevel, method,
+        scanIndex != null && scanIndex != -1 && file != null ? file.getScan(scanIndex) : null,
+        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(parentScanIndex) : null, msLevel, method,
         isolationWindow);
   }
 
@@ -263,6 +274,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     if (getMsMsScan() != null) {
       writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
           String.valueOf(getMsMsScan().getDataFile().getScans().indexOf(getMsMsScan())));
+      writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getMsMsScan().getDataFile().getName());
     }
 
     if (getParentScan() != null) {
@@ -295,15 +307,29 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     DDAMsMsInfoImpl that = (DDAMsMsInfoImpl) o;
     return Double.compare(that.getIsolationMz(), getIsolationMz()) == 0
         && getMsLevel() == that.getMsLevel() && Objects.equals(charge, that.charge)
-        && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && Objects.equals(
-        getMsMsScan(), that.getMsMsScan()) && Objects.equals(getParentScan(), that.getParentScan())
-        && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
+        && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && (
+        Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getMsMsScan() != null
+            && that.getMsMsScan() != null && getMsMsScan().getScanNumber() == that.getMsMsScan()
+            .getScanNumber())) && (Objects.equals(getParentScan(), that.getParentScan())
+        || Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getParentScan() != null
+        && that.getParentScan() != null && getParentScan().getScanNumber() == that.getParentScan()
+        .getScanNumber())
+
+    ) && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getIsolationMz(), charge, getActivationEnergy(), getMsMsScan(),
         getParentScan(), getMsLevel(), method, getIsolationWindow());
+  }
+
+  @Override
+  public String toString() {
+    return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
+        + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
+        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
+        + msMsScan + '}';
   }
 
   @Override

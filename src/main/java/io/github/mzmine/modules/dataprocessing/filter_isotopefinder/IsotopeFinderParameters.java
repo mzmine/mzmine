@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -35,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 public class IsotopeFinderParameters extends SimpleParameterSet {
 
@@ -82,5 +84,10 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
     public String toString() {
       return super.toString().replaceAll("_", " ");
     }
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

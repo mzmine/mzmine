@@ -94,7 +94,7 @@ public interface RawDataFile {
   /**
    * Returns sorted array of all scan numbers in given MS level
    *
-   * @param msLevel MS level (0 for all scans)
+   * @param msLevel MS level
    * @return Sorted array of scan numbers, never returns null
    */
   @NotNull List<Scan> getScanNumbers(int msLevel);
@@ -133,6 +133,13 @@ public interface RawDataFile {
    * @return true if <=0 in any scan
    */
   boolean isContainsZeroIntensity();
+
+  /**
+   * Contains at least one empty scan.
+   *
+   * @return true if m/z range is absent in any scan
+   */
+  boolean isContainsEmptyScans();
 
 
   /**

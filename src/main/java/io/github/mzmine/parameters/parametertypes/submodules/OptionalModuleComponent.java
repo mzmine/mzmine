@@ -32,10 +32,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
 /**
+ *
  */
 public class OptionalModuleComponent extends FlowPane {
 
-  private CheckBox checkBox;
+  private final CheckBox checkBox;
   private Button setButton;
 
   public OptionalModuleComponent(ParameterSet embeddedParameters) {
@@ -74,8 +75,5 @@ public class OptionalModuleComponent extends FlowPane {
     return checkBox;
   }
 
-  /*
-   * public void addItemListener(ItemListener il) { checkBox.addItemListener(il); }
-   */
 
 }

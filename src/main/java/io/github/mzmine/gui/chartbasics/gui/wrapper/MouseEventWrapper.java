@@ -25,13 +25,14 @@
 
 package io.github.mzmine.gui.chartbasics.gui.wrapper;
 
-import java.awt.Component;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Point2D;
-
 import javafx.scene.input.ScrollEvent;
 
 public class MouseEventWrapper {
@@ -335,6 +336,22 @@ public class MouseEventWrapper {
         break;
     }
 
+  }
+
+  public boolean isPressed() {
+    return switch (type){
+      case SWING -> swing.equals(MouseEvent.MOUSE_PRESSED);
+      case FX_MOUSE -> fx.getEventType().equals(MOUSE_PRESSED);
+      case FX_SCROLL -> false;
+    };
+  }
+
+  public boolean isReleased() {
+    return switch (type){
+      case SWING -> swing.equals(MouseEvent.MOUSE_RELEASED);
+      case FX_MOUSE -> fx.getEventType().equals(MOUSE_RELEASED);
+      case FX_SCROLL -> false;
+    };
   }
 
   public Point2D getPoint() {

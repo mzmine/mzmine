@@ -42,7 +42,8 @@ import org.w3c.dom.Element;
 public class OptionalModuleParameter<T extends ParameterSet> implements
     UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer, EmbeddedParameterSet {
 
-  private String name, description;
+  private final String name;
+  private final String description;
   private T embeddedParameters;
   private Boolean value;
 
@@ -87,8 +88,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     // parameters set
     if ((value != null) && (value)) {
       for (Parameter<?> p : embeddedParameters.getParameters()) {
-        if (p instanceof UserParameter) {
-          UserParameter<?, ?> up = (UserParameter<?, ?>) p;
+        if (p instanceof UserParameter<?, ?> up) {
           Object upValue = up.getValue();
           if (upValue == null) {
             return null;
@@ -144,7 +144,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
       errorMessages.add(name + " is not set properly");
       return false;
     }
-    if (value == true) {
+    if (value) {
       return embeddedParameters.checkParameterValues(errorMessages);
     }
     return true;
@@ -166,7 +166,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
       return false;
     }
 
-    return RawDataSavingUtils
-        .parameterSetsEqual(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(), false, false);
+    return RawDataSavingUtils.parameterSetsEqual(getEmbeddedParameters(),
+        thatOpt.getEmbeddedParameters(), false, false);
   }
 }

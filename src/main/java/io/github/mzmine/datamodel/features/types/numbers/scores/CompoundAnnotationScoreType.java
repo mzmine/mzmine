@@ -43,4 +43,9 @@ public class CompoundAnnotationScoreType extends ScoreType {
   public @NotNull String getHeaderString() {
     return "Score";
   }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

@@ -35,6 +35,7 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 
 /**
+ *
  */
 public class DirectoryComponent extends BorderPane {
 
@@ -80,8 +81,9 @@ public class DirectoryComponent extends BorderPane {
 
       // Open chooser.
       File selectedFile = fileChooser.showDialog(null);
-      if (selectedFile == null)
+      if (selectedFile == null) {
         return;
+      }
       txtDirectory.setText(selectedFile.getPath());
 
     });
@@ -96,7 +98,7 @@ public class DirectoryComponent extends BorderPane {
   }
 
   public void setValue(final File value) {
-    txtDirectory.setText(value.getPath());
+    txtDirectory.setText(value == null ? "" : value.getPath());
   }
 
   public void setToolTipText(final String text) {

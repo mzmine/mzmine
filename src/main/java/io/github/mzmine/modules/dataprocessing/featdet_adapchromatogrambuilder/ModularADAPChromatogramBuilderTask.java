@@ -134,6 +134,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     logger.info(() -> "Started chromatogram builder on " + dataFile);
 
     Scan[] scans = scanSelection.getMatchingScans(dataFile);
+    int emptyScanNumber = 0;
+
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
@@ -148,6 +150,11 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
 
+      if (s.isEmptyScan()) {
+        emptyScanNumber++;
+        continue;
+      }
+
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
         final String msg = "Retention time of scan #" + s.getScanNumber()
@@ -160,6 +167,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       prevRT = s.getRetentionTime();
     }
 
+    if (emptyScanNumber > 0) {
+      logger.info( emptyScanNumber + " scans were found to be empty.");
+    }
+
     // Check if the scans are MS1-only or MS2-only.
     int level = scans[0].getMSLevel();
     for (int i = 1; i < scans.length; i++) {
@@ -168,6 +179,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
             "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
                 + "This will likely produce wrong results. "
                 + "Please, set the scan filter parameter to a specific MS level");
+        break;
       }
     }
 

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.image;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -37,6 +38,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import java.awt.Color;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.layout.BorderPane;
 import org.jfree.chart.axis.AxisLocation;
@@ -47,6 +49,7 @@ import org.jfree.chart.axis.NumberAxis;
  */
 public class ImagingPlot extends BorderPane {
 
+  public static final double[] DEFAULT_IMAGING_QUANTILES = new double[]{0.50, 0.98};
   private static final Logger logger = Logger.getLogger(ImagingPlot.class.getName());
   private final SimpleXYZScatterPlot<FeatureImageProvider> chart;
   private ParameterSet parameters;
@@ -66,8 +69,9 @@ public class ImagingPlot extends BorderPane {
   }
 
   public void setData(ModularFeature feature) {
-    FeatureImageProvider prov = new FeatureImageProvider(feature,
-        parameters.getValue(ImageVisualizerParameters.normalize));
+    FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(feature,
+        (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+        parameters.getValue(ImageVisualizerParameters.imageNormalization));
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     setData(ds);
   }
@@ -84,7 +88,7 @@ public class ImagingPlot extends BorderPane {
     setData(raw);
   }
 
-  private void setData(ColoredXYZDataset ds) {
+  public void setData(ColoredXYZDataset ds) {
     chart.setDataset(ds);
   }
 

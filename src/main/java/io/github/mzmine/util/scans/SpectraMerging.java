@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
@@ -71,17 +72,21 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods to merge multiple spectra. Data points are sorted by intensity and grouped,
- * similar to ADAP chromatogram building {@link io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask}.
+ * similar to ADAP chromatogram building
+ * {@link
+ * io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask}.
  * Merging of data points from the same spectrum is prevented by indexing the data points prior to
  * sorting.
  *
  * @author https://github.com/SteffenHeu
  */
+@SuppressWarnings("UnstableApiUsage")
 public class SpectraMerging {
 
   public static final double EPSILON = 1E-15;
@@ -96,30 +101,35 @@ public class SpectraMerging {
   // for merging IMS-TOF MS2 scans ~Steffen
   public static final MZTolerance pasefMS2MergeTol = new MZTolerance(0.008, 25);
 
+  public static final MZTolerance defaultMs2MergeTol = new MZTolerance(0.008, 25);
+
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
-  private static Logger logger = Logger.getLogger(SpectraMerging.class.getName());
+  private static final Logger logger = Logger.getLogger(SpectraMerging.class.getName());
 
   /**
    * Calculates merged intensities and mz values of all data points in the given spectrum. Ideally,
    * {@link MassList}s should be used so noise is filtered out by the user.
    *
-   * @param source           The {@link MassSpectrum} source
-   * @param tolerance        m/z tolerance to merge peaks.
-   * @param mergingType      The way to calculate intensities (avg, sum, max)
-   * @param mzCenterFunction A function to center m/z values after merging.
-   * @param <T>              Any type of {@link MassSpectrum}
-   * @param inputNoiseLevel  A noise level to use. May be null or 0 if no noise level shall be
-   *                         used.
-   * @param outputNoiseLevel Minimum intensity to be achieved in the merged intensity. May be null
-   *                         or 0.
+   * @param source               The {@link MassSpectrum} source
+   * @param tolerance            m/z tolerance to merge peaks.
+   * @param intensityMergingType The way to calculate intensities (avg, sum, max)
+   * @param mzCenterFunction     A function to center m/z values after merging.
+   * @param <T>                  Any type of {@link MassSpectrum}
+   * @param inputNoiseLevel      A noise level to use. May be null or 0 if no noise level shall be
+   *                             used.
+   * @param outputNoiseLevel     Minimum intensity to be achieved in the merged intensity. May be
+   *                             null or 0.
+   * @param minNumPeaks          Minimum number of times that a peak has to appear in one of the
+   *                             source spectra to make it to the final merged spectrum.
    * @return double[2][] array, [0][] being the mzs, [1] being the intensities. Empty double[2][0]
    * if the source collection is empty.
    */
   public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensities(
       @NotNull final Collection<T> source, @NotNull final MZTolerance tolerance,
-      @NotNull final MergingType mergingType, @NotNull final CenterFunction mzCenterFunction,
-      @Nullable final Double inputNoiseLevel, @Nullable final Double outputNoiseLevel) {
+      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
+      @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,
+      @Nullable final Double outputNoiseLevel, @Nullable final Integer minNumPeaks) {
 
     if (source.isEmpty()) {
       return new double[][]{new double[0], new double[0]};
@@ -195,12 +205,16 @@ public class SpectraMerging {
     // now we got everything in place and have to calculate the new intensities and mzs
     for (Entry<Range<Double>, SortedSet<IndexedDataPoint>> entry : dataPointRanges.asMapOfRanges()
         .entrySet()) {
+      if (minNumPeaks != null && entry.getValue().size() < minNumPeaks) {
+        continue;
+      }
+
       double[] mzs = entry.getValue().stream().mapToDouble(IndexedDataPoint::getMZ).toArray();
       double[] intensities = entry.getValue().stream().mapToDouble(IndexedDataPoint::getIntensity)
           .toArray();
 
       double newMz = mzCenterFunction.calcCenter(mzs, intensities);
-      double newIntensity = switch (mergingType) {
+      double newIntensity = switch (intensityMergingType) {
         case SUMMED -> Arrays.stream(intensities).sum();
         case MAXIMUM -> Arrays.stream(intensities).max().orElse(0d);
         case AVERAGE -> Arrays.stream(intensities).average().orElse(0d);
@@ -276,21 +290,26 @@ public class SpectraMerging {
   /**
    * Creates a merged MS/MS spectrum for a PASEF {@link PasefMsMsInfo}.
    *
-   * @param info             The MS/MS info to create a merged spectrum for
-   * @param tolerance        The m/z tolerence to merge peaks from separate mobility scans with.
-   * @param mergingType      The merging type. Usually {@link MergingType#SUMMED}.
-   * @param storage          The storage to use or null.
-   * @param mobilityRange    If the MS/MS shall only be created for a specific mobility range, e.g.,
-   *                         in the case of isomeric features that have been resolved.
-   * @param outputNoiseLevel Minimum intensity to be achieved in the merged intensity. May be null *
-   *                         or 0.
+   * @param info                     The MS/MS info to create a merged spectrum for
+   * @param tolerance                The m/z tolerence to merge peaks from separate mobility scans
+   *                                 with.
+   * @param intensityMergingType     The merging type. Usually {@link IntensityMergingType#SUMMED}.
+   * @param storage                  The storage to use or null.
+   * @param mobilityRange            If the MS/MS shall only be created for a specific mobility
+   *                                 range, e.g., in the case of isomeric features that have been
+   *                                 resolved.
+   * @param outputNoiseLevelAbs      Minimum intensity to be achieved in the merged intensity. May
+   *                                 be null or 0.
+   * @param outputNoiseLevelRelative minimum relative intensity in the merged spectrum may be null.
    * @return A {@link MergedMsMsSpectrum} or null the spectrum would not have any data points.
    */
   @Nullable
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@NotNull final PasefMsMsInfo info,
-      @NotNull final MZTolerance tolerance, @NotNull final MergingType mergingType,
+      @NotNull final MZTolerance tolerance,
+      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
       @Nullable final MemoryMapStorage storage, @Nullable Range<Float> mobilityRange,
-      @Nullable final Double outputNoiseLevel) {
+      @Nullable final Double outputNoiseLevelAbs, @Nullable Double outputNoiseLevelRelative,
+      @Nullable final Integer minNumPeaks) {
 
     final Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
     final Frame frame = info.getMsMsFrame();
@@ -314,58 +333,84 @@ public class SpectraMerging {
       return null;
     }
 
-    final double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance, mergingType,
-        cf, null, outputNoiseLevel);
+    double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
+        intensityMergingType, cf, null, outputNoiseLevelAbs, minNumPeaks);
 
     if (merged[0].length == 0) {
       return null;
     }
 
+    if (outputNoiseLevelRelative != null) {
+      double minRelative = Arrays.stream(merged[1]).max().orElse(0d) * outputNoiseLevelRelative;
+      if (outputNoiseLevelAbs == null || (minRelative > outputNoiseLevelAbs)) {
+        // if the min relative intensity is smaller than the absolute, we don't need to recalc here
+        merged = calculatedMergedMzsAndIntensities(massLists, tolerance, intensityMergingType, cf,
+            null, minRelative, minNumPeaks);
+      }
+    }
+
     final MsMsInfo copy = info.createCopy();
     copy.setMsMsScan(frame);
     return new SimpleMergedMsMsSpectrum(storage, merged[0], merged[1], copy, frame.getMSLevel(),
-        mobilityScans, mergingType, cf);
+        mobilityScans, intensityMergingType, cf, MergingType.ALL);
   }
 
   /**
    * Merges Multiple MS/MS spectra with the same collision energy into a single MS/MS spectrum.
    *
-   * @param spectra     The source spectra, may be of multiple collision energies.
-   * @param tolerance   The mz tolerance to merch peaks in a spectrum
-   * @param mergingType Specifies the way to treat intensities (sum, avg, max)
-   * @param storage     The storage to use.
+   * @param spectra              The source spectra, may be of multiple collision energies.
+   * @param tolerance            The mz tolerance to merch peaks in a spectrum
+   * @param intensityMergingType Specifies the way to treat intensities (sum, avg, max)
+   * @param storage              The storage to use.
    * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
    */
-  public static List<Scan> mergeMsMsSpectra(
-      @NotNull final Collection<MergedMsMsSpectrum> spectra, @NotNull final MZTolerance tolerance,
-      @NotNull final MergingType mergingType, @Nullable final MemoryMapStorage storage) {
+  public static List<Scan> mergeMsMsSpectra(@NotNull final Collection<Scan> spectra,
+      @NotNull final MZTolerance tolerance,
+      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
+      @Nullable final MemoryMapStorage storage) {
 
     final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
 
     final List<Scan> mergedSpectra = new ArrayList<>();
     // group spectra with the same CE into the same list
-    final Map<Float, List<MergedMsMsSpectrum>> grouped = spectra.stream()
-        .collect(Collectors.groupingBy(spectrum -> spectrum.getCollisionEnergy()));
+    final Map<Float, List<Scan>> grouped = spectra.stream()
+        .collect(Collectors.groupingBy(SpectraMerging::getCollisionEnergy));
 
-    for (final Entry<Float, List<MergedMsMsSpectrum>> entry : grouped.entrySet()) {
-      final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
+    for (final Entry<Float, List<Scan>> entry : grouped.entrySet()) {
+      final Scan spectrum = entry.getValue().get(0);
       final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
-          tolerance, mergingType, cf, null, null);
+          tolerance, intensityMergingType, cf, null, null, null);
 
       if (mzIntensities[0].length == 0) {
         continue;
       }
 
-      final List<MassSpectrum> sourceSpectra = entry.getValue().stream()
-          .flatMap(s -> s.getSourceSpectra().stream()).collect(Collectors.toList());
+      final List<MassSpectrum> sourceSpectra = entry.getValue().stream().flatMap(s -> {
+        if (s instanceof MergedMassSpectrum spec) {
+          return spec.getSourceSpectra().stream();
+        } else {
+          return Stream.of(s);
+        }
+      }).collect(Collectors.toList());
 
       final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
           mzIntensities[0], mzIntensities[1], spectrum.getMsMsInfo(), spectrum.getMSLevel(),
-          sourceSpectra, mergingType, cf);
+          sourceSpectra, intensityMergingType, cf, MergingType.ALL);
       mergedSpectra.add(mergedMsMsSpectrum);
     }
 
     return mergedSpectra;
+  }
+
+  private static Float getCollisionEnergy(final Scan spec) {
+    if (spec instanceof MergedMsMsSpectrum merged) {
+      return merged.getCollisionEnergy();
+    }
+    MsMsInfo info = spec.getMsMsInfo();
+    if (info != null) {
+      return info.getActivationEnergy();
+    }
+    return null;
   }
 
   @Nullable
@@ -395,11 +440,11 @@ public class SpectraMerging {
 
     // todo use mass lists over raw scans to merge (separate PR)
 
-    final double merged[][] = calculatedMergedMzsAndIntensities(scans, tolerance,
-        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null);
+    final double[][] merged = calculatedMergedMzsAndIntensities(scans, tolerance,
+        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null, null);
 
-    return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans, MergingType.SUMMED,
-        DEFAULT_CENTER_FUNCTION);
+    return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
+        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL);
   }
 
   /**
@@ -407,28 +452,53 @@ public class SpectraMerging {
    */
   public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
       final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
+      final MergingType mergeType, @Nullable final MemoryMapStorage storage) {
+    return mergeSpectra(source, tolerance, IntensityMergingType.SUMMED, mergeType,
+        DEFAULT_CENTER_FUNCTION, storage);
+  }
+
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
+      final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
+      final MergingType mergeType, final IntensityMergingType intensityMergeType,
+      @Nullable final MemoryMapStorage storage) {
+    return mergeSpectra(source, tolerance, intensityMergeType, mergeType, DEFAULT_CENTER_FUNCTION,
+        storage);
+  }
+
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
+      final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
+      IntensityMergingType intensityMergingType, MergingType mergeType,
+      final CenterFunction centerFunction, @Nullable final MemoryMapStorage storage) {
+
+    return mergeSpectra(source, tolerance, intensityMergingType, mergeType, null, null, null,
+        centerFunction, storage);
+  }
+
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
+      final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
+      IntensityMergingType intensityMergingType, MergingType mergeType,
+      @Nullable Double inputNoiseLevel, @Nullable Double outputNoiseLevel,
+      @Nullable Integer minNumPeaks, CenterFunction centerFunction,
       @Nullable final MemoryMapStorage storage) {
 
     // if we have mass lists, use them to merge.
-    final List<? extends MassSpectrum> spectra;
-    if (source.stream().allMatch(s -> s instanceof Scan)) {
-      spectra = source.stream().map(s -> ((Scan) s).getMassList()).toList();
-    } else {
-      spectra = source;
-    }
+    final List<? extends MassSpectrum> spectra = source.stream()
+        .map(s -> s instanceof Scan scan ? scan.getMassList() : s).toList();
 
     final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
-        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null);
+        intensityMergingType, centerFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks);
     final int msLevel = source.stream().filter(s -> s instanceof Scan)
         .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
 
     return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
-        source, MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
+        source, intensityMergingType, centerFunction, mergeType);
   }
 
-  public static Frame getMergedFrame(@NotNull final Collection<Frame> frames,
-      @NotNull final MZTolerance tolerance, @Nullable final MemoryMapStorage storage,
-      final int mobilityScanBin, @NotNull final AtomicDouble progress) {
+  public static Frame getMergedFrame(@Nullable final MemoryMapStorage storage,
+      @NotNull final MZTolerance tolerance, @NotNull final Collection<Frame> frames,
+      final int mobilityScanBin, @NotNull final IntensityMergingType intensityMergingType,
+      @Nullable final Double inputNoiseLevel, @Nullable final Double outputNoiseLevelAbs,
+      @Nullable final Integer minMobilityPeaks, @NotNull final AtomicDouble progress) {
     if (frames.isEmpty()) {
       throw new IllegalStateException("No frames in collection to be merged.");
     }
@@ -473,8 +543,9 @@ public class SpectraMerging {
     final IMSRawDataFile file = (IMSRawDataFile) frames.stream().findAny().get().getDataFile();
 
     final SimpleFrame frame = new SimpleFrame(file, -1, msLevel, (highestRt + lowestRt) / 2, null,
-        null, MassSpectrumType.CENTROIDED, polarityType, "Merged frame (" + frames.stream() + ")",
-        scanMzRange, aFrame.getMobilityType(), null, null);
+        null, MassSpectrumType.CENTROIDED, polarityType,
+        String.format("Merged frame (%.2f-%.2f)", lowestRt, highestRt), scanMzRange,
+        aFrame.getMobilityType(), null, null);
 
     final AtomicInteger processed = new AtomicInteger(0);
     final double totalFrames = scanMap.size();
@@ -482,21 +553,27 @@ public class SpectraMerging {
     // create a merged spectrum for each mobility scan bin
     final List<BuildingMobilityScan> buildingMobilityScans = scanMap.entrySet().parallelStream()
         .map(entry -> {
+          final List<? extends MassSpectrum> spectra;
+
           final List<MassList> massLists = entry.getValue().stream().map(MobilityScan::getMassList)
-              .collect(Collectors.toList());
-          if (massLists.size() != entry.getValue().size()) {
-            throw new IllegalArgumentException(
-                "Not all mobility scans contain a mass list. Cannot merge Frames.");
+              .filter(Objects::nonNull).toList();
+          if (massLists.isEmpty()) {
+            spectra = entry.getValue();
+          } else {
+            if (massLists.size() != entry.getValue().size()) {
+              throw new IllegalArgumentException(
+                  "Not all mobility scans contain a mass list. Cannot merge Frames.");
+            }
+            spectra = massLists;
           }
-          double[][] mzIntensities = calculatedMergedMzsAndIntensities(massLists, tolerance,
-              MergingType.SUMMED, cf, null, null);
+          final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
+              intensityMergingType, cf, inputNoiseLevel, outputNoiseLevelAbs, minMobilityPeaks);
 
           processed.getAndIncrement();
           progress.set(processed.get() / totalFrames);
 
           return new BuildingMobilityScan(entry.getKey(), mzIntensities[0], mzIntensities[1]);
-        }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber))
-        .collect(Collectors.toList());
+        }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber)).toList();
 
     final double[] mobilities = new double[scanMap.size()];
     int i = 0;
@@ -509,24 +586,22 @@ public class SpectraMerging {
     frame.setMobilityScans(buildingMobilityScans, true);
     frame.setMobilities(mobilities);
     double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(buildingMobilityScans, tolerance,
-        MergingType.SUMMED, cf, null, null);
+        intensityMergingType, cf, null, null, null);
     frame.setDataPoints(mergedSpectrum[0], mergedSpectrum[1]);
     return frame;
   }
 
-  public enum MergingType {
-    SUMMED("Summed"),
-    MAXIMUM("Maximum value"),
-    AVERAGE("Average value");
+  public enum IntensityMergingType {
+    SUMMED("Summed"), MAXIMUM("Maximum value"), AVERAGE("Average value");
 
-    private String label;
+    private final String label;
 
     @Override
     public String toString() {
       return this.label;
     }
 
-    MergingType(String label) {
+    IntensityMergingType(String label) {
       this.label = label;
     }
   }

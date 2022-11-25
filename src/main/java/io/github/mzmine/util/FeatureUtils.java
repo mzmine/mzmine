@@ -29,22 +29,31 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,7 +79,7 @@ public class FeatureUtils {
    * @return String representation of the feature
    */
   public static String featureToString(@Nullable Feature feature) {
-    if(feature == null) {
+    if (feature == null) {
       return "null";
     }
     StringBuffer buf = new StringBuffer();
@@ -246,36 +255,12 @@ public class FeatureUtils {
    * @param mzRange
    * @return The result of the integration.
    */
-  public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
-    ManualFeature newFeature = new ManualFeature(dataFile);
-    boolean dataPointFound = false;
+  public static double integrateOverMzRtRange(RawDataFile dataFile, List<Scan> scans,
+      Range<Float> rtRange, Range<Double> mzRange) {
+    final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(dataFile, scans,
+        mzRange, rtRange, null);
 
-    Scan[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-
-    for (Scan scan : scanNumbers) {
-      // Find most intense m/z feature
-      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
-
-      if (basePeak != null) {
-        if (basePeak.getIntensity() > 0) {
-          dataPointFound = true;
-        }
-        newFeature.addDatapoint(scan, basePeak);
-      } else {
-        final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
-        DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newFeature.addDatapoint(scan, fakeDataPoint);
-      }
-
-    }
-
-    if (dataPointFound) {
-      newFeature.finalizeFeature();
-      return newFeature.getArea();
-    } else {
-      return 0.0;
-    }
+    return FeatureDataUtils.calculateArea(series);
   }
 
 
@@ -487,8 +472,8 @@ public class FeatureUtils {
   /**
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
-   * {@link ListWithSubsType} within the {@link FeatureListRow}'s {@link
-   * io.github.mzmine.datamodel.features.ModularDataModel}.
+   * {@link ListWithSubsType} within the {@link FeatureListRow}'s
+   * {@link io.github.mzmine.datamodel.features.ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.
@@ -508,5 +493,30 @@ public class FeatureUtils {
       }
     }
     return compoundAnnotations;
+  }
+
+  public static boolean isImsFeature(Feature f) {
+    return f.getRawDataFile() instanceof IMSRawDataFile
+        && f.getFeatureData() instanceof IonMobilogramTimeSeries;
+  }
+
+  /**
+   * Extracts the best (most confident) {@link FeatureAnnotation} from a feature/row.
+   * @param m The row/feature.
+   * @return The annotation or null.
+   */
+  @Nullable
+  public static FeatureAnnotation getBestFeatureAnnotation(ModularDataModel m) {
+    final List<SpectralDBAnnotation> specDb = m.get(SpectralLibraryMatchesType.class);
+    if (specDb != null && !specDb.isEmpty()) {
+      return specDb.get(0);
+    }
+
+    final List<CompoundDBAnnotation> comp = m.get(CompoundDatabaseMatchesType.class);
+    if (comp != null && !comp.isEmpty()) {
+      return comp.get(0);
+    }
+
+    return null;
   }
 }

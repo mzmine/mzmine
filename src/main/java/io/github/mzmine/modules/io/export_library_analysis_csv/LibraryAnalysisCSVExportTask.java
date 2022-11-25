@@ -42,8 +42,8 @@ import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -160,7 +160,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     List<FilteredSpec> spectra = new ArrayList<>();
     // prepare the spectra
     for (var lib : libraries) {
-      for (SpectralDBEntry entry : lib.getEntries()) {
+      for (SpectralLibraryEntry entry : lib.getEntries()) {
         final Double mz = entry.getPrecursorMZ();
         if (mz == null) {
           noMz++;
@@ -308,14 +308,14 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
       // data
       for (var spec : spectra) {
         StringBuilder line = new StringBuilder();
-        final SpectralDBEntry ea = spec.entry();
+        final SpectralLibraryEntry ea = spec.entry();
         append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
         append(line, ea.getOrElse(DBEntryField.NAME, ""));
-        append(line, ea.getField(DBEntryField.MZ).map(Object::toString).orElse(""));
+        append(line, ea.getField(DBEntryField.PRECURSOR_MZ).map(Object::toString).orElse(""));
         append(line, ea.getField(DBEntryField.EXACT_MASS).map(Object::toString).orElse(""));
         append(line, ea.getOrElse(DBEntryField.ION_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.FORMULA, ""));
-        append(line, ea.getOrElse(DBEntryField.ION_MODE, ""));
+        append(line, ea.getOrElse(DBEntryField.POLARITY, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.SMILES, ""));
@@ -350,8 +350,8 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
 
     StringBuilder line = new StringBuilder();
     // add library specifics
-    final SpectralDBEntry ea = a.entry();
-    final SpectralDBEntry eb = b.entry();
+    final SpectralLibraryEntry ea = a.entry();
+    final SpectralLibraryEntry eb = b.entry();
 
     append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
     append(line, eb.getOrElse(DBEntryField.ENTRY_ID, ""));
@@ -425,17 +425,13 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
         .sorted((a, b) -> Double.compare(b, a)).map(format::format).limit(4)
         .collect(Collectors.joining(";"));
 
-    StringBuilder line = new StringBuilder();
-    line.append(matched).append(fieldSeparator);
-    line.append(format.format(matchedRel)).append(fieldSeparator);
-    line.append(format.format(explainedIntensity)).append(fieldSeparator);
-    line.append(format.format(explainedIntensityA)).append(fieldSeparator);
-    line.append(format.format(explainedIntensityB)).append(fieldSeparator);
-    line.append(format.format(cosine)).append(fieldSeparator);
-    line.append(format.format(maxContribution)).append(fieldSeparator);
-    line.append(contributionString).append(fieldSeparator);
-    line.append(format.format(signalsGr0_05));
-    return line.toString();
+    final String line =
+        matched + fieldSeparator + format.format(matchedRel) + fieldSeparator + format.format(
+            explainedIntensity) + fieldSeparator + format.format(explainedIntensityA)
+            + fieldSeparator + format.format(explainedIntensityB) + fieldSeparator + format.format(
+            cosine) + fieldSeparator + format.format(maxContribution) + fieldSeparator
+            + contributionString + fieldSeparator + format.format(signalsGr0_05);
+    return line;
   }
 
   /**

@@ -40,7 +40,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -241,6 +240,11 @@ public abstract class ScanDataAccess implements Scan {
    */
   public abstract int getNumberOfScans();
 
+  public void reset() {
+    currentNumberOfDataPoints = -1;
+    scanIndex = -1;
+  }
+
   /**
    * Maximum number of data points is used to create the arrays that back the data
    *
@@ -343,9 +347,9 @@ public abstract class ScanDataAccess implements Scan {
   }
 
   @Override
-  public @NotNull Range<Double> getScanningMZRange() {
+  public @Nullable Range<Double> getScanningMZRange() {
     Scan scan = getCurrentScan();
-    return scan == null ? Range.singleton(0d) : scan.getScanningMZRange();
+    return (scan == null || scan.isEmptyScan()) ? Range.singleton(0d) : scan.getScanningMZRange();
   }
 
   @Override
@@ -380,12 +384,6 @@ public abstract class ScanDataAccess implements Scan {
         "The intended use of this class is to loop over all scans and data points");
   }
 
-  @Override
-  public Stream<DataPoint> stream() {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all scans and data points");
-  }
-
   @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
@@ -396,6 +394,6 @@ public abstract class ScanDataAccess implements Scan {
   @Override
   public @Nullable Float getInjectionTime() {
     Scan scan = getCurrentScan();
-    return scan == null ? null : scan.getInjectionTime();
+    return (scan == null || scan.isEmptyScan()) ? null : scan.getInjectionTime();
   }
 }

@@ -233,20 +233,26 @@ public class MainWindowController {
     try {
       ImageView rawIcon = new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor()));
       HBox box = new HBox(3, rawIcon);
-      if (rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
-          rawDataFile.getSpectraType())) {
+      if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
+          rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
         FontIcon fontIcon = FxIconUtil.getFontIcon("bi-exclamation-triangle", 15,
             MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
         box.getChildren().add(fontIcon);
 
-        Tooltip tip = new Tooltip("""
-            Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert. 
-            Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
-            a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
-            This leads to degraded mass accuracies.""");
+        Tooltip tip = new Tooltip();
+        if (rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
+            rawDataFile.getSpectraType())) {
+          tip.setText("""
+              Scans were detected as centroid but contain zero-intensity values. This might indicate incorrect conversion by msconvert. 
+              Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
+              a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
+              This leads to degraded mass accuracies.""");
+        } else if (rawDataFile.isContainsEmptyScans()) {
+          tip.setText("""
+              Some scans were recognized as empty (no detected peaks).
+              The possible reason might be the high noise levels influencing mzml conversion.""");
+        }
         Tooltip.install(box, tip);
-        Tooltip.install(fontIcon, tip);
-        Tooltip.install(rawIcon, tip);
       }
       return box;
     } catch (Exception ex) {

@@ -28,7 +28,6 @@ package io.github.mzmine.datamodel;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.ArrayUtils;
 import java.util.Arrays;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +39,8 @@ import org.jetbrains.annotations.Nullable;
  * incrementing an internal cursor. That means this code will work:
  * <p>
  * {@code for (DataPoint d : spectrum) System.out.println(d.getMz() + ":" + d.getIntensity();} but
- * this code will NOT work: {@code ArrayList<DataPoint> list = new ArrayList<>();
- * list.addAll(spectrum);}
+ * this code will NOT work:
+ * {@code ArrayList<DataPoint> list = new ArrayList<>(); list.addAll(spectrum);}
  */
 public interface MassSpectrum extends Iterable<DataPoint> {
 
@@ -216,17 +215,5 @@ public interface MassSpectrum extends Iterable<DataPoint> {
   default int indexOf(double mz, boolean defaultToClosestMz) {
     return binarySearch(mz, defaultToClosestMz);
   }
-
-  /**
-   * Creates a stream of DataPoints to iterate over this array. To avoid consuming memory for each
-   * DataPoint instance, we will iterate over the stored data points with a single DataPoint
-   * instance that is incrementing an internal cursor. That means this code will NOT work:
-   * <p>
-   * {@code ArrayList<DataPoint> list = spectrum.stream().collect();}
-   *
-   * @return A stream of DataPoint represented by a single DataPoint instance that is iterating over
-   * the spectrum.
-   */
-  Stream<DataPoint> stream();
 
 }

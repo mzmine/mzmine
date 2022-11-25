@@ -29,8 +29,13 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +44,19 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SimpleMassList extends AbstractStorableSpectrum implements MassList {
 
+  public static final String XML_ELEMENT = "simplemasslist";
+
   public SimpleMassList(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues) {
     super(storage, mzValues, intensityValues);
+  }
+
+  /**
+   * @param storage       the storage
+   * @param mzIntensities 2D array with mzs[0][] an d intensities[1][].
+   */
+  public SimpleMassList(@Nullable MemoryMapStorage storage, @NotNull double[][] mzIntensities) {
+    super(storage, mzIntensities[0], mzIntensities[1]);
   }
 
   /**
@@ -72,5 +87,48 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
     }
 
     return dps;
+  }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+    writer.writeCharacters(
+        ParsingUtils.doubleArrayToString(DataPointUtils.getDoubleBufferAsArray(mzValues)));
+    writer.writeEndElement();
+    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+    writer.writeCharacters(
+        ParsingUtils.doubleArrayToString(DataPointUtils.getDoubleBufferAsArray(intensityValues)));
+    writer.writeEndElement();
+
+    writer.writeEndElement();
+  }
+
+  public static MassList loadFromXML(XMLStreamReader reader, @Nullable MemoryMapStorage storage)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException("Wrong element.");
+    }
+
+    double[] intensities = null;
+    double[] mzs = null;
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
+      reader.next();
+
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+      }
+    }
+
+    return new SimpleMassList(storage, mzs, intensities);
   }
 }

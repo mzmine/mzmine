@@ -38,9 +38,9 @@ import javafx.scene.control.TableView;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class TableViewUitls {
+public class TableViewUtils {
 
-  private static final Logger logger = Logger.getLogger(TableViewUitls.class.getName());
+  private static final Logger logger = Logger.getLogger(TableViewUtils.class.getName());
 
   public static void autoFitLastColumn(TableView<?> table) {
     autoFitLastColumn(table, table.widthProperty().subtract(10));

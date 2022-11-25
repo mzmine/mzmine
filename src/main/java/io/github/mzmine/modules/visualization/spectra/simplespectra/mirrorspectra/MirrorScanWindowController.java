@@ -47,7 +47,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -227,6 +227,11 @@ public class MirrorScanWindowController {
 
   public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
       DataPoint[] dpsB) {
+    setScans(precursorMZA, dpsA, precursorMZB, dpsB, "", "");
+  }
+
+  public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB, DataPoint[] dpsB,
+      String labelA, String labelB) {
     this.precursorMZA = precursorMZA;
     this.dpsA = dpsA;
     this.precursorMZB = precursorMZB;
@@ -234,7 +239,7 @@ public class MirrorScanWindowController {
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     String precursorString = MessageFormat.format(": {0}↔{1}; top↔bottom",
-        mzFormat.format(precursorMZA), mzFormat.format(precursorMZB));
+        mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
     pnMirror.getChildren().removeAll();
     pnNLMirror.getChildren().removeAll();
@@ -250,8 +255,7 @@ public class MirrorScanWindowController {
     if (precursorMZA > 0 && precursorMZB > 0) {
       lbTitleNL.setText("Neutral loss mirror" + precursorString);
       neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
-          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
-          ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
+          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA, ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
       pnNLMirror.setCenter(neutralLossMirrorSpecrumPlot);
 
       //
@@ -436,8 +440,8 @@ public class MirrorScanWindowController {
 
   private void loadGnpsLibrary(String id1, String id2) {
     try {
-      final SpectralDBEntry top = GNPSUtils.accessLibraryOrUSISpectrum(id1);
-      final SpectralDBEntry bottom = GNPSUtils.accessLibraryOrUSISpectrum(id2);
+      final SpectralLibraryEntry top = GNPSUtils.accessLibraryOrUSISpectrum(id1);
+      final SpectralLibraryEntry bottom = GNPSUtils.accessLibraryOrUSISpectrum(id2);
 
       setScans(top.getPrecursorMZ(), top.getDataPoints(), bottom.getPrecursorMZ(),
           bottom.getDataPoints());
