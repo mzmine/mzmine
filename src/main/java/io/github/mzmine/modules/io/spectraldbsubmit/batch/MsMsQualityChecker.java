@@ -34,6 +34,7 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
@@ -117,6 +118,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
       return null;
     }
 
+    explainedSignals.sort(DataPointSorter.DEFAULT_MZ_ASCENDING);
     return explainedSignals;
   }
 }
