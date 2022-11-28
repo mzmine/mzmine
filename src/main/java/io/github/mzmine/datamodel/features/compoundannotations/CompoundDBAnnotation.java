@@ -96,6 +96,24 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   }
 
   /**
+   * @param baseAnnotation The annotation to check.
+   * @param useIonLibrary  true if an ion library shall be used later on to ionise the
+   *                       formula/smiles/neutral mass.
+   * @return True if the baseAnnotation contains a precursor m/z and useIonLibrary is false. Also
+   * true if useIonLibrary is true and the annotation contains a smiles, a formula or a neutral
+   * mass.
+   */
+  static boolean isBaseAnnotationValid(CompoundDBAnnotation baseAnnotation, boolean useIonLibrary) {
+    if (baseAnnotation.getPrecursorMZ() != null && !useIonLibrary) {
+      return true;
+    } else if (useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
+        || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Calculates the m/z for a given adduct.
    *
    * @param annotation
@@ -266,11 +284,15 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(DatabaseNameType.class);
   }
 
+  default void setScore(Float score) {
+    put(CompoundAnnotationScoreType.class, score);
+  }
+
   boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
-  Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  Float calculateScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 

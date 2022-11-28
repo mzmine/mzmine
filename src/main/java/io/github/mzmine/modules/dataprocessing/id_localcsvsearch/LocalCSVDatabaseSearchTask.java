@@ -245,7 +245,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       for (FeatureListRow peakRow : flist.getRows()) {
         if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
           final CompoundDBAnnotation clone = annotation.clone();
-          final Float score = clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance,
+          final Float score = clone.calculateScore(peakRow, mzTolerance, rtTolerance, mobTolerance,
               ccsTolerance);
           clone.put(CompoundAnnotationScoreType.class, score);
           clone.put(MzPpmDifferenceType.class,
