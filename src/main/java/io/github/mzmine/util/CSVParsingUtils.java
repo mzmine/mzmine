@@ -58,12 +58,15 @@ public class CSVParsingUtils {
    * Searches an array of strings for a specified list of import types. Returns all selected import
    * types or null if they were found.
    *
-   * @param importTypes A list of {@link ImportType}s. Only if a type
-   *                    {@link ImportType#isSelected()}, it will be included in the output list.
-   * @param firstLine   The column headers
+   * @param importTypes  A list of {@link ImportType}s. Only if a type
+   *                     {@link ImportType#isSelected()}, it will be included in the output list.
+   * @param firstLine    The column headers
+   * @param errorMessage A string property to place an error message on failure. Stored property is
+   *                     null unless an error occurs.
    * @return A new list of the selected import types with their line indices set, or null if a
    * selected column was not found.
    */
+  @Nullable
   public static List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine,
       @NotNull StringProperty errorMessage) {
     List<ImportType> lines = new ArrayList<>();
@@ -127,7 +130,7 @@ public class CSVParsingUtils {
               "Don't know how to parse data type " + type.getDataType().getClass().getName());
         }
       } catch (NumberFormatException e) {
-        // silent - e.g. #NV in excel
+        // silent - e.g. #NV from excel
       }
     }
 
