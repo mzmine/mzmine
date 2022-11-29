@@ -319,7 +319,7 @@ public class BatchWizardController {
             .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"));
 
     if (cbIonMobility.isSelected()) {
-      if (!isImsFromMzml) {
+      if (!isImsFromMzml) { // == Bruker file
         q.add(makeMassDetectionStep(msParameters, 1, SelectedScanTypes.FRAMES));
       }
       q.add(makeMassDetectionStep(msParameters, 1, SelectedScanTypes.MOBLITY_SCANS));
