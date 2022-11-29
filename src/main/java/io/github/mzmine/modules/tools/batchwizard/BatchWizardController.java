@@ -130,6 +130,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -165,6 +166,8 @@ public class BatchWizardController {
   public ToggleGroup massSpec;
   public RadioButton rbHPLC;
   public RadioButton rbUHPLC;
+  @FXML
+  private RadioButton rbHILIC;
   public ToggleGroup hplc;
   public CheckBox cbIonMobility;
   public Button btnSetMsDefaults;
@@ -221,7 +224,9 @@ public class BatchWizardController {
     cbPolarity.setItems(FXCollections.observableArrayList(Polarity.values()));
     cbPolarity.setValue(Polarity.Positive);
 
-    cbMobilityType.setItems(FXCollections.observableArrayList(MobilityType.values()));
+    cbMobilityType.setItems(
+        FXCollections.observableArrayList(MobilityType.TIMS, MobilityType.DRIFT_TUBE,
+            MobilityType.TRAVELING_WAVE));
     cbMobilityType.setValue(MobilityType.TIMS);
 
     rbUHPLC.setSelected(true);
@@ -256,6 +261,10 @@ public class BatchWizardController {
     }
     if (rbHPLC.isSelected()) {
       DefaultLcParameters.hplc.setToParameterSet(hplcParameters);
+      hplcDialog.setParameterValuesToComponents();
+    }
+    if (rbHILIC.isSelected()) {
+      DefaultLcParameters.hilic.setToParameterSet(hplcParameters);
       hplcDialog.setParameterValuesToComponents();
     }
     // TODO add GC workflow
@@ -304,19 +313,31 @@ public class BatchWizardController {
   private BatchQueue createQueue(boolean useExport, File exportPath) {
     final BatchQueue q = new BatchQueue();
     q.add(makeImportTask(files, libraryFiles));
-    q.add(makeMassDetectionStep(msParameters, 1));
-    q.add(makeMassDetectionStep(msParameters, 2));
 
-    if (cbIonMobility.isSelected() && Arrays.stream(filesComponent.getValue())
-        .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"))) {
+    final boolean isImsFromMzml =
+        cbIonMobility.isSelected() && Arrays.stream(filesComponent.getValue())
+            .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"));
+
+    if (cbIonMobility.isSelected()) {
+      if (!isImsFromMzml) {
+        q.add(makeMassDetectionStep(msParameters, 1, SelectedScanTypes.FRAMES));
+      }
+      q.add(makeMassDetectionStep(msParameters, 1, SelectedScanTypes.MOBLITY_SCANS));
+      q.add(makeMassDetectionStep(msParameters, 2, SelectedScanTypes.MOBLITY_SCANS));
+    } else {
+      q.add(makeMassDetectionStep(msParameters, 1, SelectedScanTypes.SCANS));
+      q.add(makeMassDetectionStep(msParameters, 2, SelectedScanTypes.SCANS));
+    }
+
+    if (isImsFromMzml) {
       q.add(makeMobilityScanMergerStep(msParameters));
     }
 
     q.add(makeAdapStep(msParameters, hplcParameters));
-
     q.add(makeSmoothingStep(hplcParameters, true, false));
     q.add(makeRtResolvingStep(msParameters, hplcParameters,
         cbIonMobility.isSelected() && cbMobilityType.getValue() == MobilityType.TIMS));
+
     if (cbIonMobility.isSelected()) {
       q.add(makeImsExpanderStep(msParameters, hplcParameters));
       q.add(makeSmoothingStep(hplcParameters, false, true));
@@ -380,9 +401,9 @@ public class BatchWizardController {
     param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minSamples > 1);
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
         .setValue((double) minSamples);
-    // use the new isotope filter instead of two isotope peaks
+
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
-    param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, true);
+    param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, filter13C);
 
     final Isotope13CFilterParameters filterIsoParam = param.getParameter(
         RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
@@ -481,15 +502,25 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeMassDetectionStep(
-      @NotNull final ParameterSet msParameters, int msLevel) {
+      @NotNull final ParameterSet msParameters, int msLevel, SelectedScanTypes scanTypes) {
 
     final ParameterSet detectorParam = MZmineCore.getConfiguration()
         .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
-    detectorParam.getParameter(AutoMassDetectorParameters.noiseLevel).setValue(
-        msLevel == 1 ? msParameters.getParameter(
-            BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
-            : msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel)
-                .getValue());
+
+    final double noiseLevel;
+    if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
+      noiseLevel =
+          msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
+              / 10; // lower threshold for mobility scans
+    } else if (msLevel >= 2) {
+      noiseLevel = msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel)
+          .getValue();
+    } else {
+      noiseLevel = msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel)
+          .getValue();
+    }
+    detectorParam.getParameter(AutoMassDetectorParameters.noiseLevel).setValue(noiseLevel);
+
     // per default do not detect isotope signals below noise. this might introduce too many signals
     // for the isotope finder later on and confuse users
     detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
@@ -508,7 +539,7 @@ public class BatchWizardController {
     param.getParameter(MassDetectionParameters.dataFiles)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
-    param.getParameter(MassDetectionParameters.scanTypes).setValue(SelectedScanTypes.SCANS);
+    param.getParameter(MassDetectionParameters.scanTypes).setValue(scanTypes);
     param.getParameter(MassDetectionParameters.massDetector).setValue(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));
