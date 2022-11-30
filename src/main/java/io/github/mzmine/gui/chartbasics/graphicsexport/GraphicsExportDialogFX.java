@@ -72,9 +72,9 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
 
     try {
       this.chart = (JFreeChart) chart.clone();
-    } catch (CloneNotSupportedException e1) {
-      e1.printStackTrace();
-      logger.severe("Chart could not be cloned.");
+    } catch (Exception e1) {
+      logger.log(Level.WARNING, "Clone not implemented for chart of class" + chart.getClass(), e1);
+      this.chart = chart;
     }
 
     theme = ChartThemeFactory2.createExportChartTheme("Export theme");
