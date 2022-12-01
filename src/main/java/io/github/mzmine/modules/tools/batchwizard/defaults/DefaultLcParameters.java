@@ -46,7 +46,7 @@ public class DefaultLcParameters {
       new RTTolerance(0.08f, Unit.MINUTES));
 
   public static final DefaultLcParameters hilic = new DefaultLcParameters(true,
-      Range.closed(1d, 10d), 5, 1, 10, new RTTolerance(0.1f, Unit.MINUTES),
+      Range.closed(0.5d, 30d), 5, 1, 10, new RTTolerance(0.1f, Unit.MINUTES),
       new RTTolerance(3, Unit.SECONDS), new RTTolerance(3, Unit.SECONDS));
 
   private final boolean stableIonizationAcrossSamples;
