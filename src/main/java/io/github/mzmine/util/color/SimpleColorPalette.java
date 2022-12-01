@@ -89,6 +89,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public static final ImmutableMap<Vision, SimpleColorPalette> DEFAULT = ImmutableMap.of(
       Vision.NORMAL_VISION, DEFAULT_NORMAL, Vision.DEUTERANOPIA, DEFAULT_DEUTERANOPIA,
       Vision.PROTANOPIA, DEFAULT_PROTANOPIA, Vision.TRITANOPIA, DEFAULT_TRITANOPIA);
+
+  public static final List<SimpleColorPalette> DEFAULT_PAINT_SCALES = List.of(BLUE_YELLOW,
+      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW);
   private static final String NAME_ATTRIBUTE = "name";
   private static final String POS_ATTRIBUTE = "positive_color";
   private static final String NEG_ATTRIBUTE = "negative_color";
