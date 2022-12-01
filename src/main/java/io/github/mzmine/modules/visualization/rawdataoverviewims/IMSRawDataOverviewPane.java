@@ -235,23 +235,26 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-    massDetectionFrameIcon =
-        selectedFrame.get().getMassList() != null ?
-            FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? FxIconUtil.getCheckedIcon()
+        : FxIconUtil.getUncheckedIcon();
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
     massDetectionPane.getChildren().remove(massDetectionScanIcon);
     massDetectionScanIcon =
         selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
-            ? FxIconUtil.getCheckedIcon()
-            : FxIconUtil.getUncheckedIcon();
+            ? FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
     massDetectionPane.add(massDetectionScanIcon, 1, 1);
 
     mzRangeTicDatasetIndices.clear();
+    setUseBinningRenderer(useBinningRenderer);
+
     cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
         mobilityScanNoiseLevel);//selectedFrame.get();//
-    setUseBinningRenderer(useBinningRenderer);
-    heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
+    final var frameDataset = new ColoredXYZDataset(new FrameHeatmapProvider(cachedFrame));
+    heatmapChart.setDataset(frameDataset,
+        useBinningRenderer ? new ColoredBinningRenderer(frameDataset)
+            : heatmapChart.getDefaultRenderer());
+
     mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame, binWidth));
     summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
     if (selectedMobilityScan.get() != null) {
@@ -259,8 +262,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
           Math.min(selectedMobilityScan.get().getMobilityScanNumber(),
               selectedFrame.get().getNumberOfMobilityScans() - 1))));
     }
-    MZmineCore.getTaskController().addTask(
-        new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
+    MZmineCore.getTaskController()
+        .addTask(new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
             Set.of(cachedFrame), rawDataFile, this::addMobilogramRangesToChart,
             rangesBinningMobilogramDataAccess, new Date()));
     if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
@@ -653,8 +656,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     this.useBinningRenderer = use;
     MZmineCore.runLater(() -> {
       if (useBinningRenderer) {
-        heatmapChart.getXYPlot().setRenderer(0, new ColoredBinningRenderer(
-            (ColoredXYZDataset) heatmapChart.getXYPlot().getDataset(0)));
+        heatmapChart.getXYPlot().setRenderer(0,
+            new ColoredBinningRenderer((ColoredXYZDataset) heatmapChart.getXYPlot().getDataset(0)));
       } else {
         heatmapChart.getXYPlot().setRenderer(0, heatmapChart.getDefaultRenderer());
       }
