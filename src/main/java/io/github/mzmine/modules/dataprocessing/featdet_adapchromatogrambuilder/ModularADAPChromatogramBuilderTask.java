@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -82,6 +83,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private final double minGroupIntensity;
   private final double minHighestPoint;
   private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> callingModule;
   private double progress = 0.0;
   private ModularFeatureList newFeatureList;
 
@@ -90,7 +92,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
    */
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
     super(storage, moduleCallDate);
     this.project = project;
     this.dataFile = dataFile;
@@ -110,6 +112,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     this.minHighestPoint = parameters.getParameter(
         ADAPChromatogramBuilderParameters.minHighestPoint).getValue();
     this.parameters = parameters;
+    this.callingModule = callingModule;
   }
 
   @Override
@@ -314,7 +317,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
     // Add new feature list to the project
     newFeatureList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class, parameters,
+        new SimpleFeatureListAppliedMethod(callingModule, parameters,
             getModuleCallDate()));
     project.addFeatureList(newFeatureList);
 

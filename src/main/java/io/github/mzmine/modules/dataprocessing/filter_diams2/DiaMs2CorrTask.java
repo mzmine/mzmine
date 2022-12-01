@@ -356,7 +356,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   private ModularFeatureList buildChromatograms(MZmineProject dummyProject, RawDataFile file) {
     adapTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
-        getMemoryMapStorage(), getModuleCallDate());
+        getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class);
     adapTask.run();
     adapTask = new FinishedTask(adapTask);
     currentTaksIndex++;
