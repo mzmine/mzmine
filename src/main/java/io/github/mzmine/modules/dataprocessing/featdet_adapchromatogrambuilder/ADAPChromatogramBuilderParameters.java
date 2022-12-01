@@ -104,18 +104,10 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-  @Override
-  public String getRestrictedIonMobilitySupportMessage() {
-    return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
-        + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
-        + "The mobility dimension can be added by the IMS expander module after feature resolving. "
-        + "Do you wish to continue?";
-  }
-
   @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.RESTRICTED;
+    return IonMobilitySupport.SUPPORTED;
   }
 
   @Override
