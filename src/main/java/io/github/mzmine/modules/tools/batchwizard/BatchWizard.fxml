@@ -25,22 +25,35 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
-
-<ScrollPane fitToHeight="true" fitToWidth="true" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController">
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<ScrollPane fitToHeight="true" fitToWidth="true" xmlns="http://javafx.com/javafx/17.0.2-ea"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController">
   <BorderPane>
     <center>
       <SplitPane dividerPositions="0.5" BorderPane.alignment="CENTER">
-            <ScrollPane fitToWidth="true">
-               <content>
-              <GridPane fx:id="pnParametersMS" hgap="5.0" vgap="5.0">
-                <Label styleClass="bold-title-label" text="MS data files" GridPane.rowIndex="2" />
-                <VBox spacing="4.0">
-                  <FlowPane hgap="5.0">
-                    <RadioButton fx:id="rbOrbitrap" mnemonicParsing="false" text="Orbitrap">
+        <ScrollPane fitToWidth="true">
+          <content>
+            <GridPane fx:id="pnParametersMS" hgap="5.0" vgap="5.0">
+              <Label styleClass="bold-title-label" text="MS data files" GridPane.rowIndex="2"/>
+              <VBox spacing="4.0">
+                <FlowPane hgap="5.0">
+                  <RadioButton fx:id="rbOrbitrap" mnemonicParsing="false" text="Orbitrap">
                       <toggleGroup>
                         <ToggleGroup fx:id="massSpec" />
                       </toggleGroup>
@@ -83,6 +96,8 @@
               </RadioButton>
               <!--              <RadioButton mnemonicParsing="false" text="GC" toggleGroup="$hplc" fx:id="rbGC"/>-->
               <RadioButton fx:id="rbUHPLC" mnemonicParsing="false" text="UHPLC" toggleGroup="$hplc" />
+              <RadioButton fx:id="rbHILIC" mnemonicParsing="false" text="HILIC"
+                toggleGroup="$hplc"/>
               <Button fx:id="btnSetLcDefaults" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#onSetLcDefaults" text="Set defaults" />
             </FlowPane>
             <Label styleClass="bold-title-label" text="HPLC presets" />
