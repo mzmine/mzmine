@@ -57,11 +57,15 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public static final SimpleColorPalette BLUE_RED_WHITE = new SimpleColorPalette(
       new Color[]{new Color(0d, 0d, 1d, 1d), new Color(1d, 0, 0, 1d), new Color(1d, 1d, 1d, 1d)},
-      "Default");
+      "Blue-Red-White");
 
   public static final SimpleColorPalette GREEN_YELLOW = new SimpleColorPalette(
       new Color[]{new Color(0.f, 0.620f, 0.451f, 1f), new Color(0.941f, 0.894f, 0.259f, 1f)},
-      "Green Yellow (Color blind friendly)");
+      "Green-Yellow (Color blind friendly)");
+
+  public static final SimpleColorPalette BLUE_YELLOW = new SimpleColorPalette(
+      new Color[]{Color.web("#2bb2ff", 1.0f), new Color(0.941f, 0.894f, 0.259f, 1f)},
+      "Blue-Yellow (Color blind friendly)");
 
   protected static final SimpleColorPalette DEFAULT_NORMAL = new SimpleColorPalette(
       ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",

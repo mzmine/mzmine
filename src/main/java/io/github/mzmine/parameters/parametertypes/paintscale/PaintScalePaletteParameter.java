@@ -58,10 +58,11 @@ public class PaintScalePaletteParameter implements
     this.name = name;
     this.descr = descr;
     palettes = new ArrayList<>();
+    palettes.add(SimpleColorPalette.BLUE_YELLOW);
     palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
     palettes.add(SimpleColorPalette.RAINBOW);
     palettes.add(SimpleColorPalette.GREEN_YELLOW);
-    value = SimpleColorPalette.GREEN_YELLOW;
+    value = SimpleColorPalette.BLUE_YELLOW;
   }
 
   @Override
@@ -111,6 +112,12 @@ public class PaintScalePaletteParameter implements
       palettes.add(SimpleColorPalette.GREEN_YELLOW);
       logger.info("Loaded color palettes did not contain default "
           + SimpleColorPalette.GREEN_YELLOW.getName() + " palette. Adding...");
+    }
+
+    if (!palettes.contains(SimpleColorPalette.BLUE_YELLOW)) {
+      palettes.add(SimpleColorPalette.BLUE_YELLOW);
+      logger.info("Loaded color palettes did not contain default "
+          + SimpleColorPalette.BLUE_YELLOW.getName() + " palette. Adding...");
     }
 
     if (!palettes.contains(SimpleColorPalette.BLUE_RED_WHITE)) {
