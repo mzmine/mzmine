@@ -1,35 +1,30 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_adap3d;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureConvertors;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.logging.Logger;
 import io.github.msdk.datamodel.Feature;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionMethod;
@@ -38,13 +33,27 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import javax.annotation.Nullable;
+import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ADAP3DTask extends AbstractTask {
 
@@ -62,8 +71,8 @@ public class ADAP3DTask extends AbstractTask {
    * @param parameters
    */
   public ADAP3DTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -173,7 +182,7 @@ public class ADAP3DTask extends AbstractTask {
     }
 
     newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ADAP3DModule.class, parameters));
+        ADAP3DModule.class, parameters, getModuleCallDate()));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.chromatogram;
@@ -34,6 +41,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,8 +50,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * TIC/XIC visualizer using JFreeChart library
@@ -94,7 +103,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       }
 
       myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(), p,
-          new ArrayList<Task>());
+          new ArrayList<Task>(), Instant.now()); // date is irrelevant
     }
 
   }
@@ -126,7 +135,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     for (ModularFeatureListRow row : rows) {
       for (final Feature f : row.getFeatures()) {
         final ModularFeature feature = (ModularFeature) f;
-        if(feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+        if(feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
           continue;
         }
         if (mzRange == null) {
@@ -169,6 +178,8 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     final ArrayList<Feature> allFeatures = new ArrayList<>();
     final ArrayList<Feature> selectedFeatures = new ArrayList<>();
     final Set<RawDataFile> allFiles = new HashSet<>();
+    allFiles.addAll(rows.stream().flatMap(row -> row.getRawDataFiles().stream()).
+        collect(Collectors.toSet()));
 
     for (final ModularFeatureListRow row : rows) {
 
@@ -176,6 +187,9 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final FeatureIdentity identity = row.getPreferredFeatureIdentity();
 
       for (final Feature feature : row.getFeatures()) {
+        if(feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
 
         allFeatures.add(feature);
         if (feature.getRawDataFile() == selectedFile) {
@@ -191,7 +205,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
         if (identity != null) {
           labelsMap.put(feature, identity.getName());
         }
-        allFiles.add(feature.getRawDataFile());
+//        allFiles.add(feature.getRawDataFile());
       }
     }
 
@@ -205,21 +219,21 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final RawDataFile[] dataFiles = parameters.getParameter(TICVisualizerParameters.DATA_FILES)
         .getValue().getMatchingRawDataFiles();
     final Range<Double> mzRange =
@@ -255,13 +269,13 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return TICVisualizerParameters.class;
   }

@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,27 +53,29 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.modules.io.import_all_data_files.AdvancedSpectraImportParameters;
-import io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
-import io.github.mzmine.util.maths.CenterMeasure;
 import java.io.File;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -84,16 +94,13 @@ import org.junit.jupiter.api.TestMethodOrder;
 @DisplayName("Test Feature Finding")
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
-@Disabled
+//@Disabled
 public class FeatureFindingTest {
 
   private static final Logger logger = Logger.getLogger(FeatureFindingTest.class.getName());
   private static MZmineProject project;
   private final String sample1 = "DOM_a.mzML";
   private final String sample2 = "DOM_b.mzXML";
-  private ModularFeatureList lastFlistA = null;
-  private ModularFeatureList lastFlistB = null;
-
   private final String chromSuffix = "chrom";
   private final String smoothSuffix = "smooth";
   private final String deconSuffix = "decon";
@@ -102,17 +109,24 @@ public class FeatureFindingTest {
   private final String rowFilterSuffix = "rowFilter";
   private final String alignedName = "aligned";
   private final String gapFilledSuffix = "gap";
-
+  private ModularFeatureList lastFlistA = null;
+  private ModularFeatureList lastFlistB = null;
 
   /**
    * Init MZmine core in headless mode with the options -r (keep running) and -m (keep in memory)
    */
   @BeforeAll
   public void init() {
-    logger.info("Running MZmine");
-    MZmineCore.main(new String[]{"-r", "-m", "all"});
+    //    logger.info("Running MZmine");
+    //    MZmineCore.main(new String[]{"-r", "-m", "all"});
     logger.info("Getting project");
     project = MZmineCore.getProjectManager().getCurrentProject();
+  }
+
+  @AfterAll
+  public void tearDown() {
+    // we need to clean the project after this integration test
+    MZmineTestUtil.cleanProject();
   }
 
 
@@ -120,16 +134,17 @@ public class FeatureFindingTest {
   @Order(1)
   @DisplayName("Test advanced data import of mzML and mzXML with mass detection")
   void dataImportTest() throws InterruptedException {
-    File[] files = new File[]{new File(FeatureFindingTest.class.getClassLoader()
-        .getResource("rawdatafiles/DOM_a.mzML").getFile()),
-        new File(FeatureFindingTest.class.getClassLoader()
-            .getResource("rawdatafiles/DOM_b.mzXML").getFile())};
+    File[] files = new File[]{new File(
+        FeatureFindingTest.class.getClassLoader().getResource("rawdatafiles/DOM_a.mzML").getFile()),
+        new File(FeatureFindingTest.class.getClassLoader().getResource("rawdatafiles/DOM_b.mzXML")
+            .getFile())};
 
     AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
     paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
+    paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
     paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, true);
-    AdvancedSpectraImportParameters advancedImport = paramDataImport
-        .getParameter(AllSpectralDataImportParameters.advancedImport).getEmbeddedParameters();
+    AdvancedSpectraImportParameters advancedImport = paramDataImport.getParameter(
+        AllSpectralDataImportParameters.advancedImport).getEmbeddedParameters();
     advancedImport.setParameter(AdvancedSpectraImportParameters.msMassDetection, true);
     advancedImport.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true);
     // create centroid mass detectors
@@ -139,16 +154,19 @@ public class FeatureFindingTest {
         .getEmbeddedParameter().setValue(createCentroidMassDetector(0));
 
     logger.info("Testing advanced data import of mzML and mzXML with direct mass detection");
-    boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, AllSpectralDataImportModule.class, paramDataImport);
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
+        AllSpectralDataImportModule.class, paramDataImport);
 
     // should have finished by now
-    assertTrue(finished, "Time out during file read task. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during data import. Not finished in time.";
+      case ERROR -> "Error during data import.";
+      case FINISHED -> "";
+    });
+
     assertEquals(2, project.getDataFiles().length);
-    // sort by name
-    project.getRawDataFiles().sort(Comparator.comparing(RawDataFile::getName));
     int filesTested = 0;
-    for (RawDataFile raw : project.getRawDataFiles()) {
+    for (RawDataFile raw : project.getCurrentRawDataFiles()) {
       // check all scans and mass lists
       for (Scan scan : raw.getScans()) {
         assertNotNull(scan);
@@ -211,34 +229,39 @@ public class FeatureFindingTest {
   void chromatogramBuilderTest() throws InterruptedException {
 
     ADAPChromatogramBuilderParameters paramChrom = new ADAPChromatogramBuilderParameters();
-    paramChrom.getParameter(ADAPChromatogramBuilderParameters.dataFiles).setValue(
-        RawDataFilesSelectionType.ALL_FILES);
+    paramChrom.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
+        .setValue(RawDataFilesSelectionType.ALL_FILES);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, 4);
-    paramChrom
-        .setParameter(ADAPChromatogramBuilderParameters.mzTolerance, new MZTolerance(0.002, 10));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.startIntensity, 3E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2, 1E5);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
+        new MZTolerance(0.002, 10));
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 3E5);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 1E5);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
 
     logger.info("Testing ADAPChromatogramBuilder");
-    boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, ModularADAPChromatogramBuilderModule.class, paramChrom);
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
+        ModularADAPChromatogramBuilderModule.class, paramChrom);
 
     // should have finished by now
-    assertTrue(finished, "Time out during ADAP chromatogram builder. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during chromatogram builder. Not finished in time.";
+      case ERROR -> "Error during chromatogram builder.";
+      case FINISHED -> "";
+    });
 
-    assertEquals(project.getFeatureLists().size(), 2);
+    assertEquals(project.getCurrentFeatureLists().size(), 2);
     // test feature lists
     int filesTested = 0;
-    for (FeatureList flist : project.getFeatureLists()) {
+    for (FeatureList flist : project.getCurrentFeatureLists()) {
       assertEquals(1, flist.getNumberOfRawDataFiles());
-      assertEquals(1, flist.getAppliedMethods().size());
+      assertEquals(2, flist.getAppliedMethods().size());
+
       // check default sorting of rows
-      // assertTrue(MZmineTestUtil.isSorted(flist));
+      assertTrue(MZmineTestUtil.isSorted(flist));
 
       if (equalsFeatureListName(flist, sample1, chromSuffix)) {
-        assertEquals(1011, flist.getNumberOfRows());
+        assertEquals(974, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
         assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
 
@@ -246,18 +269,19 @@ public class FeatureFindingTest {
         FeatureListRow row = flist.getRow(100);
         assertEquals(flist, row.getFeatureList());
         assertEquals(101, row.getID());
-        assertTrue(row.getAverageMZ() > 249.206);
-        assertTrue(row.getAverageRT() > 8.03);
-        assertTrue(row.getAverageHeight() > 320000);
-        assertTrue(row.getAverageArea() > 18354);
+        assertTrue(row.getAverageMZ() > 430.2075);
+        assertTrue(row.getAverageRT() > 7.26);
+        assertTrue(row.getAverageRT() < 7.27);
+        assertTrue(row.getAverageHeight() > 586139);
+        assertTrue(row.getAverageArea() > 160966);
 
         IonTimeSeries<? extends Scan> data = row.getFeatures().get(0).getFeatureData();
-        assertEquals(6, data.getNumberOfValues());
-        assertEquals(6, data.getSpectra().size());
+        assertEquals(44, data.getNumberOfValues());
+        assertEquals(44, data.getSpectra().size());
 
         filesTested++;
       } else if (equalsFeatureListName(flist, sample2, chromSuffix)) {
-        assertEquals(1068, flist.getNumberOfRows());
+        assertEquals(1027, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
         assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
 
@@ -267,10 +291,8 @@ public class FeatureFindingTest {
     // both files tested
     assertEquals(2, filesTested);
 
-    lastFlistA = (ModularFeatureList) project
-        .getFeatureList(getName(sample1, chromSuffix));
-    lastFlistB = (ModularFeatureList) project
-        .getFeatureList(getName(sample2, chromSuffix));
+    lastFlistA = (ModularFeatureList) project.getFeatureList(getName(sample1, chromSuffix));
+    lastFlistB = (ModularFeatureList) project.getFeatureList(getName(sample2, chromSuffix));
   }
 
   @Test
@@ -282,29 +304,36 @@ public class FeatureFindingTest {
     assertNotNull(lastFlistA);
     assertNotNull(lastFlistB);
 
+    ParameterSet sgParam = new SavitzkyGolayParameters().cloneParameterSet();
+    sgParam.setParameter(SavitzkyGolayParameters.mobilitySmoothing, false);
+    sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).setValue(true);
+    sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+
     SmoothingParameters paramSmooth = new SmoothingParameters();
     paramSmooth.getParameter(SmoothingParameters.featureLists)
         .setValue(new FeatureListsSelection(lastFlistA, lastFlistB));
-    paramSmooth.setParameter(SmoothingParameters.mobilitySmoothing, false);
-    paramSmooth.setParameter(SmoothingParameters.removeOriginal, false);
-    paramSmooth
-        .setParameter(SmoothingParameters.rtSmoothing, true);
-    paramSmooth.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+    paramSmooth.setParameter(SmoothingParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    paramSmooth.setParameter(SmoothingParameters.smoothingAlgorithm,
+        new MZmineProcessingStepImpl<>(SmoothingParameters.sgSmoothing, sgParam));
     paramSmooth.setParameter(SmoothingParameters.suffix, smoothSuffix);
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");
-    boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, SmoothingModule.class, paramSmooth);
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, SmoothingModule.class,
+        paramSmooth);
 
     // should have finished by now
-    assertTrue(finished, "Time out during chromatogram smoother. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during chromatogram smoothing. Not finished in time.";
+      case ERROR -> "Error during chromatogram smoothing.";
+      case FINISHED -> "";
+    });
 
-    assertEquals(4, project.getFeatureLists().size());
+    assertEquals(4, project.getCurrentFeatureLists().size());
     // test feature lists
-    ModularFeatureList processed1 = (ModularFeatureList) project
-        .getFeatureList(getName(sample1, chromSuffix, smoothSuffix));
-    ModularFeatureList processed2 = (ModularFeatureList) project
-        .getFeatureList(getName(sample2, chromSuffix, smoothSuffix));
+    ModularFeatureList processed1 = (ModularFeatureList) project.getFeatureList(
+        getName(sample1, chromSuffix, smoothSuffix));
+    ModularFeatureList processed2 = (ModularFeatureList) project.getFeatureList(
+        getName(sample2, chromSuffix, smoothSuffix));
 
     // already save feature lists to last for next steps
     ModularFeatureList lastFlistA = this.lastFlistA;
@@ -319,10 +348,8 @@ public class FeatureFindingTest {
     // same size
     assertEquals(lastFlistA.getNumberOfRows(), processed1.getNumberOfRows());
     assertEquals(lastFlistB.getNumberOfRows(), processed2.getNumberOfRows());
-    assertEquals(lastFlistA.getAppliedMethods().size() + 1,
-        processed1.getAppliedMethods().size());
-    assertEquals(lastFlistB.getAppliedMethods().size() + 1,
-        processed2.getAppliedMethods().size());
+    assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
+    assertEquals(lastFlistB.getAppliedMethods().size() + 1, processed2.getAppliedMethods().size());
 
     for (int i = 0; i < lastFlistA.getNumberOfRows(); i++) {
       // same order and number of data points after smoothing
@@ -336,10 +363,10 @@ public class FeatureFindingTest {
       assertEquals(a.getAverageMZ(), b.getAverageMZ(), 0.005, "mz change to high");
 
       // area change is greater than 25 % for some features
-//      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, maxRelAreaChange),
-//          () -> MessageFormat.format(
-//              "area change is too high (more then {4}) for IDs: {0} and {1} with areas: {2}, {3}",
-//              a.getID(), b.getID(), a.getAverageArea(), b.getAverageArea(), maxRelAreaChange));
+      //      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, maxRelAreaChange),
+      //          () -> MessageFormat.format(
+      //              "area change is too high (more then {4}) for IDs: {0} and {1} with areas: {2}, {3}",
+      //              a.getID(), b.getID(), a.getAverageArea(), b.getAverageArea(), maxRelAreaChange));
     }
 
     for (int i = 0; i < lastFlistB.getNumberOfRows(); i++) {
@@ -354,10 +381,10 @@ public class FeatureFindingTest {
       assertEquals(a.getAverageMZ(), b.getAverageMZ(), 0.005, "mz change to high");
 
       // area change is greater than 25 % for some features
-//      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, maxRelAreaChange),
-//          () -> MessageFormat.format(
-//              "area change is too high (more then {4}) for IDs: {0} and {1} with areas: {2}, {3}",
-//              a.getID(), b.getID(), a.getAverageArea(), b.getAverageArea(), maxRelAreaChange));
+      //      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, maxRelAreaChange),
+      //          () -> MessageFormat.format(
+      //              "area change is too high (more then {4}) for IDs: {0} and {1} with areas: {2}, {3}",
+      //              a.getID(), b.getID(), a.getAverageArea(), b.getAverageArea(), maxRelAreaChange));
     }
   }
 
@@ -373,45 +400,49 @@ public class FeatureFindingTest {
     MinimumSearchFeatureResolverParameters generalParam = new MinimumSearchFeatureResolverParameters();
     generalParam.getParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS)
         .setValue(new FeatureListsSelection(lastFlistA, lastFlistB));
-    generalParam.setParameter(MinimumSearchFeatureResolverParameters.AUTO_REMOVE, false);
-    generalParam
-        .setParameter(MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL, 0.8);
-    generalParam
-        .setParameter(MinimumSearchFeatureResolverParameters.dimension,
-            ResolvingDimension.RETENTION_TIME);
-    generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT, 1E5);
+    generalParam.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
+    generalParam.setParameter(
+        MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL, 0.8);
+    generalParam.setParameter(MinimumSearchFeatureResolverParameters.dimension,
+        ResolvingDimension.RETENTION_TIME);
+    generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT, 3E5);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 4);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 1.8);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
-    generalParam.getParameter(MinimumSearchFeatureResolverParameters.MZ_CENTER_FUNCTION)
-        .setValue(CenterMeasure.MEDIAN);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION,
         Range.closed(0.02, 1d));
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, 0.15);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, deconSuffix);
 
     // group ms2
-    GroupMS2SubParameters groupMS2SubParameters = generalParam
-        .getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters();
+    generalParam.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
+    GroupMS2SubParameters groupMS2SubParameters = generalParam.getParameter(
+        MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
     groupMS2SubParameters.setParameter(GroupMS2SubParameters.limitRTByFeature, false);
     groupMS2SubParameters.setParameter(GroupMS2SubParameters.mzTol, new MZTolerance(0.05, 10));
-    groupMS2SubParameters
-        .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(0.15f, Unit.MINUTES));
+    groupMS2SubParameters.setParameter(GroupMS2SubParameters.rtTol,
+        new RTTolerance(0.15f, Unit.MINUTES));
 
-    logger.info("Testing chromatogram smoothing (RT, 5 dp)");
-    boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, MinimumSearchFeatureResolverModule.class, generalParam);
+    logger.info("Testing chromatogram deconvolution");
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(45,
+        MinimumSearchFeatureResolverModule.class, generalParam);
 
     // should have finished by now
-    assertTrue(finished, "Time out during deconvolution smoother. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Time out during feature deconvolution. Not finished in time.";
+      case ERROR -> "Error during feature deconvolution.";
+      case FINISHED -> "";
+    });
 
-    assertEquals(6, project.getFeatureLists().size());
+    logger.info("Lists after deconvolution:  " + project.getCurrentFeatureLists().stream()
+        .map(FeatureList::getName).collect(Collectors.joining(", ")));
+    assertEquals(6, project.getCurrentFeatureLists().size());
     // test feature lists
-    ModularFeatureList processed1 = (ModularFeatureList) project
-        .getFeatureList(getName(sample1, chromSuffix, smoothSuffix, deconSuffix));
-    ModularFeatureList processed2 = (ModularFeatureList) project
-        .getFeatureList(getName(sample2, chromSuffix, smoothSuffix, deconSuffix));
+    ModularFeatureList processed1 = (ModularFeatureList) project.getFeatureList(
+        getName(sample1, chromSuffix, smoothSuffix, deconSuffix));
+    ModularFeatureList processed2 = (ModularFeatureList) project.getFeatureList(
+        getName(sample2, chromSuffix, smoothSuffix, deconSuffix));
 
     // already save feature lists to last for next steps
     ModularFeatureList lastFlistA = this.lastFlistA;
@@ -423,14 +454,16 @@ public class FeatureFindingTest {
     assertNotNull(processed1);
     assertNotNull(processed2);
 
-    // methods +1
-    assertEquals(lastFlistA.getAppliedMethods().size() + 1,
-        processed1.getAppliedMethods().size());
-    assertEquals(lastFlistB.getAppliedMethods().size() + 1,
-        processed2.getAppliedMethods().size());
+    // check default sorting of rows
+    assertTrue(MZmineTestUtil.isSorted(processed1));
+    assertTrue(MZmineTestUtil.isSorted(processed2));
 
-    assertEquals(158, processed1.getNumberOfRows());
-    assertEquals(169, processed2.getNumberOfRows());
+    // methods +1
+    assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
+    assertEquals(lastFlistB.getAppliedMethods().size() + 1, processed2.getAppliedMethods().size());
+
+    assertEquals(127, processed1.getNumberOfRows());
+    assertEquals(131, processed2.getNumberOfRows());
   }
 
 
@@ -445,30 +478,35 @@ public class FeatureFindingTest {
     IsotopeGrouperParameters generalParam = new IsotopeGrouperParameters();
     generalParam.getParameter(IsotopeGrouperParameters.peakLists)
         .setValue(new FeatureListsSelection(lastFlistA, lastFlistB));
-    generalParam.setParameter(IsotopeGrouperParameters.autoRemove, false);
+    generalParam.setParameter(IsotopeGrouperParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
     generalParam.setParameter(IsotopeGrouperParameters.maximumCharge, 2);
     generalParam.setParameter(IsotopeGrouperParameters.mobilityTolerace, false);
     generalParam.setParameter(IsotopeGrouperParameters.monotonicShape, true);
     generalParam.setParameter(IsotopeGrouperParameters.mzTolerance, new MZTolerance(0.003, 10));
-    generalParam
-        .setParameter(IsotopeGrouperParameters.rtTolerance, new RTTolerance(0.1f, Unit.MINUTES));
+    generalParam.setParameter(IsotopeGrouperParameters.rtTolerance,
+        new RTTolerance(0.1f, Unit.MINUTES));
     generalParam.setParameter(IsotopeGrouperParameters.representativeIsotope,
         IsotopeGrouperParameters.ChooseTopIntensity);
     generalParam.setParameter(IsotopeGrouperParameters.suffix, deisotopeSuffix);
 
     logger.info("Testing deisotoping");
-    boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, IsotopeGrouperModule.class, generalParam);
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, IsotopeGrouperModule.class,
+        generalParam);
 
     // should have finished by now
-    assertTrue(finished, "Time out during deisotoping. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during isotope grouper. Not finished in time.";
+      case ERROR -> "Error during isotope grouper.";
+      case FINISHED -> "";
+    });
 
-    assertEquals(8, project.getFeatureLists().size());
+    assertEquals(8, project.getCurrentFeatureLists().size());
     // test feature lists
-    ModularFeatureList processed1 = (ModularFeatureList) project
-        .getFeatureList(getName(sample1, chromSuffix, smoothSuffix, deconSuffix, deisotopeSuffix));
-    ModularFeatureList processed2 = (ModularFeatureList) project
-        .getFeatureList(getName(sample2, chromSuffix, smoothSuffix, deconSuffix, deisotopeSuffix));
+    ModularFeatureList processed1 = (ModularFeatureList) project.getFeatureList(
+        getName(sample1, chromSuffix, smoothSuffix, deconSuffix, deisotopeSuffix));
+    ModularFeatureList processed2 = (ModularFeatureList) project.getFeatureList(
+        getName(sample2, chromSuffix, smoothSuffix, deconSuffix, deisotopeSuffix));
 
     // already save feature lists to last for next steps
     ModularFeatureList lastFlistA = this.lastFlistA;
@@ -479,17 +517,19 @@ public class FeatureFindingTest {
     assertNotNull(processed1);
     assertNotNull(processed2);
 
+    // check default sorting of rows
+    assertTrue(MZmineTestUtil.isSorted(processed1));
+    assertTrue(MZmineTestUtil.isSorted(processed2));
+
     // methods +1
-    assertEquals(lastFlistA.getAppliedMethods().size() + 1,
-        processed1.getAppliedMethods().size());
-    assertEquals(lastFlistB.getAppliedMethods().size() + 1,
-        processed2.getAppliedMethods().size());
+    assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
+    assertEquals(lastFlistB.getAppliedMethods().size() + 1, processed2.getAppliedMethods().size());
     // less feature list rows
     assertTrue(lastFlistA.getNumberOfRows() > processed1.getNumberOfRows());
     assertTrue(lastFlistB.getNumberOfRows() > processed2.getNumberOfRows());
 
-    assertEquals(137, processed1.getNumberOfRows());
-    assertEquals(135, processed2.getNumberOfRows());
+    assertEquals(108, processed1.getNumberOfRows());
+    assertEquals(104, processed2.getNumberOfRows());
 
     // has isotope pattern
     assertNotNull(
@@ -524,24 +564,29 @@ public class FeatureFindingTest {
     generalParam.setParameter(JoinAlignerParameters.mobilityWeight, 0d);
     generalParam.setParameter(JoinAlignerParameters.MZTolerance, new MZTolerance(0.003, 10));
     generalParam.setParameter(JoinAlignerParameters.MZWeight, 3d);
-    generalParam
-        .setParameter(JoinAlignerParameters.RTTolerance, new RTTolerance(0.2f, Unit.MINUTES));
+    generalParam.setParameter(JoinAlignerParameters.RTTolerance,
+        new RTTolerance(0.2f, Unit.MINUTES));
     generalParam.setParameter(JoinAlignerParameters.RTWeight, 1d);
     generalParam.setParameter(JoinAlignerParameters.SameChargeRequired, false);
     generalParam.setParameter(JoinAlignerParameters.SameIDRequired, false);
+    generalParam.setParameter(JoinAlignerParameters.handleOriginal, OriginalFeatureListOption.KEEP);
     generalParam.setParameter(JoinAlignerParameters.peakListName, alignedName);
 
     logger.info("Testing join aligner");
-    boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, JoinAlignerModule.class, generalParam);
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, JoinAlignerModule.class,
+        generalParam);
 
     // should have finished by now
-    assertTrue(finished, "Time out during join aligner. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during feature join aligner. Not finished in time.";
+      case ERROR -> "Error during join aligner.";
+      case FINISHED -> "";
+    });
 
-    assertEquals(9, project.getFeatureLists().size());
+    assertEquals(9, project.getCurrentFeatureLists().size());
     // test feature lists
-    ModularFeatureList processed1 = (ModularFeatureList) project
-        .getFeatureList(getName(alignedName));
+    ModularFeatureList processed1 = (ModularFeatureList) project.getFeatureList(
+        getName(alignedName));
 
     // already save feature lists to last for next steps
     ModularFeatureList lastFlistA = this.lastFlistA;
@@ -549,14 +594,16 @@ public class FeatureFindingTest {
 
     assertNotNull(processed1);
 
+    // check default sorting of rows
+    assertTrue(MZmineTestUtil.isSorted(processed1));
+
     // 2 raw
     assertEquals(2, processed1.getRawDataFiles().size());
 
     // methods +1
-    assertEquals(lastFlistA.getAppliedMethods().size() + 1,
-        processed1.getAppliedMethods().size());
+    assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
     // less feature list rows
-    assertEquals(200, processed1.getNumberOfRows());
+    assertEquals(155, processed1.getNumberOfRows());
 
     // at least one row with 2 features
     assertTrue(processed1.stream()
@@ -564,16 +611,11 @@ public class FeatureFindingTest {
         "No row found with 2 features");
   }
 
-  @AfterAll
-  public void tearDown() {
-    // System.exit in tests are bad
-    // MZmineCore.exit();
-  }
-
   private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {
-    CentroidMassDetector detect = new CentroidMassDetector();
+    CentroidMassDetector detect = MZmineCore.getModuleInstance(CentroidMassDetector.class);
     CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
     param.setParameter(CentroidMassDetectorParameters.noiseLevel, noise);
+    param.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
     return new MZmineProcessingStepImpl<>(detect, param);
   }
 

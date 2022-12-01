@@ -1,41 +1,45 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- *
- * It is freely available under the GNU GPL licence of MZmine2.
- *
- * For any questions or concerns, please refer to:
- * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * An MS/MS scan with some statistics about its precursor in MS
@@ -56,11 +60,11 @@ class FragmentScan {
   /**
    * the MS1 scan that comes before the first MS/MS
    */
-  protected final Integer ms1ScanNumber;
+  protected final Scan ms1ScanNumber;
   /**
    * the MS1 scan that comes after the last MS/MS
    */
-  protected final Integer ms1SucceedingScanNumber;
+  protected final Scan ms1SucceedingScanNumber;
   /**
    * all consecutive(!) MS/MS scans. There should ne no other MS1 scan between them
    */
@@ -90,8 +94,13 @@ class FragmentScan {
     int i = 0;
     while (i < ms2.length) {
       Scan scan = ms2[i];
-      Scan precursorScan = ScanUtils.findPrecursorScan(scan);
-      Scan precursorScan2 = ScanUtils.findSucceedingPrecursorScan(scan);
+      Scan precursorScan = scan instanceof MergedMsMsSpectrum ?
+          ScanUtils.findPrecursorScanForMerged((MergedMsMsSpectrum) scan, massAccuracy)
+          : ScanUtils.findPrecursorScan(scan);
+      Scan precursorScan2 = scan instanceof MergedMsMsSpectrum ?
+          ScanUtils.findSucceedingPrecursorScanForMerged((MergedMsMsSpectrum) scan, massAccuracy)
+          : ScanUtils.findSucceedingPrecursorScan(scan);
+
       int j = precursorScan2 == null ? ms2.length
           : Arrays.binarySearch(ms2, precursorScan2);
       if (j < 0)
@@ -100,17 +109,15 @@ class FragmentScan {
       for (int k = i; k < j; ++k)
         subms2[k - i] = ms2[k];
 
-      fragmentScans.add(new FragmentScan(file, feature,
-          precursorScan != null ? precursorScan.getScanNumber() : null,
-          precursorScan2 != null ? precursorScan2.getScanNumber() : null, subms2, isolationWindow,
-          massAccuracy));
+      fragmentScans.add(new FragmentScan(file, feature, precursorScan, precursorScan2, subms2,
+          isolationWindow, massAccuracy));
       i = j;
     }
     return fragmentScans.toArray(new FragmentScan[0]);
   }
 
-  FragmentScan(RawDataFile origin, Feature feature, Integer ms1ScanNumber,
-      Integer ms1ScanNumber2, Scan[] ms2ScanNumbers, Range<Double> isolationWindow,
+  FragmentScan(RawDataFile origin, Feature feature, Scan ms1ScanNumber,
+      Scan ms1ScanNumber2, Scan[] ms2ScanNumbers, Range<Double> isolationWindow,
       MZTolerance massAccuracy) {
     this.origin = origin;
     this.feature = feature;
@@ -153,8 +160,8 @@ class FragmentScan {
       Arrays.fill(values[0], precursorIntensityLeft);
       Arrays.fill(values[1], chimericIntensityLeft);
     } else {
-      Scan left = origin.getScan(ms1ScanNumber);
-      Scan right = origin.getScan(ms1SucceedingScanNumber);
+      Scan left = ms1ScanNumber;
+      Scan right = ms1SucceedingScanNumber;
       for (int k = 0; k < ms2ScanNumbers.length; ++k) {
         Scan ms2 = ms2ScanNumbers[k];
         float rtRange = (ms2.getRetentionTime() - left.getRetentionTime())
@@ -178,10 +185,10 @@ class FragmentScan {
   /**
    * search for precursor peak in MS1
    */
-  private void detectPrecursor(int ms1Scan, double precursorMass, Range<Double> isolationWindow,
+  private void detectPrecursor(Scan spectrum, double precursorMass, Range<Double> isolationWindow,
       MZTolerance massAccuracy, double[] precInfo) {
-    Scan spectrum = origin.getScan(ms1Scan);
-    this.precursorCharge = spectrum.getPrecursorCharge();
+    this.precursorCharge = Objects.requireNonNullElse(spectrum.getPrecursorCharge(), 0);
+
     this.polarity = spectrum.getPolarity();
     Range<Double> mzRange = Range.closed(precursorMass + isolationWindow.lowerEndpoint(),
         precursorMass + isolationWindow.upperEndpoint());

@@ -1,8 +1,16 @@
 /** Controls **/
-.button, .combo-box, .choice-box, .check-box > .box  {
+.button, .combo-box, .choice-box, .check-box > .box {
   -fx-background-radius: 2, 2;
-  -fx-effect: dropshadow(gaussian , rgba(0,0,0,0.25) , 4,0,0,1 );
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 4, 0, 0, 1);
   -fx-border-radius: 2, 2;
+}
+
+.small-check-box > .box {
+  -fx-padding: 0.1em 0.1em 0.18em 0.18em;
+}
+
+.small-check-box > .box > .mark {
+  -fx-padding: 0.3em 0.3em 0.4em 0.4em;
 }
 
 .separator *.line {
@@ -55,6 +63,20 @@
 	-fx-padding : 1;
 }
 
+.notification-pane .notification-bar > .pane {
+  -fx-font-size : 13.0;
+  -fx-background-color: -menu-bg;
+  -fx-effect: dropshadow(three-pass-box, -selection-highlight-outline, 6, 0.0, 0, 3);
+}
+
+.notification-pane .notification-bar > .pane .label {
+  -fx-font-size : 14.0;
+}
+
+.ikonli-font-icon {
+  -fx-icon-color:-selection-highlight-outline;
+}
+
 /** ScrollPane **/
 .scroll-bar:horizontal .thumb,
 .scroll-bar:vertical .thumb {
@@ -80,11 +102,11 @@
 }
 
 .title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
 }
 
 .bold-title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
   -fx-font-weight: bold;
 }
 
@@ -107,4 +129,17 @@
   -fx-font-size: 20.0pt;
   -fx-font-weight: bold;
   -fx-text-fill: white;
+}
+
+.set-color-menu-item:hover, .set-color-menu-item:pressed, .set-color-menu-item {
+  -fx-background-color: inherit;
+}
+
+.web-view {
+  -fx-font-smoothing-type: LCD;
+}
+
+.accordion > .titled-pane > .title {
+    -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
+    -fx-background-radius: 0, 0, 0;
 }

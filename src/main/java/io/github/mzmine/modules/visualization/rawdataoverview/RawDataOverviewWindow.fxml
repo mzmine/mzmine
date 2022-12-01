@@ -5,33 +5,43 @@
 <?import javafx.scene.layout.*?>
 
 <?import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer?>
-<BorderPane fx:id="pnMaster" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-  prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+<!--
+  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<BorderPane fx:id="pnMaster" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
   xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
-  <top>
-    <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" BorderPane.alignment="CENTER">
-      <children>
-        <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0"
-          style="-fx-font-weight: bold;" text="Overview of raw data file: "
-          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-          AnchorPane.topAnchor="0.0">
-          <padding>
-            <Insets left="5.0"/>
-          </padding>
-        </Label>
-      </children>
-    </AnchorPane>
-   </top>
-   <center>
-     <SplitPane fx:id="pnMainSplit" dividerPositions="0.7" orientation="VERTICAL"
-       BorderPane.alignment="CENTER">
-       <items>
-         <ChromatogramAndSpectraVisualizer fx:id="visualizer" orientation="HORIZONTAL"
-           prefWidth="800" prefHeight="400"/>
-         <TabPane fx:id="tpRawDataInfo" tabClosingPolicy="ALL_TABS"
-           SplitPane.resizableWithParent="false"/>
-       </items>
-     </SplitPane>
-   </center>
+  <center>
+    <SplitPane fx:id="pnMainSplit" dividerPositions="0.5" orientation="VERTICAL"
+      BorderPane.alignment="CENTER">
+      <items>
+        <ChromatogramAndSpectraVisualizer fx:id="visualizer" orientation="HORIZONTAL"
+          prefWidth="800" prefHeight="400"/>
+        <TabPane fx:id="tpRawDataInfo" tabClosingPolicy="ALL_TABS"
+          SplitPane.resizableWithParent="false"/>
+      </items>
+    </SplitPane>
+  </center>
 </BorderPane>

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
@@ -34,22 +41,29 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.data.Range;
 
 public class FeatureShapeMobilogramChart extends StackPane {
 
-  public FeatureShapeMobilogramChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public FeatureShapeMobilogramChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
 
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
-    final MobilityType mt = ((IMSRawDataFile) row.getRawDataFiles().get(0)).getMobilityType();
-    SimpleXYChart<SummedMobilogramXYProvider> chart = new SimpleXYChart<>(
-        mt.getAxisLabel(), uf.format("Intensity", "cps"));
+    final IMSRawDataFile imsFile = (IMSRawDataFile) row.getRawDataFiles().stream()
+        .filter(file -> file instanceof IMSRawDataFile).findAny().orElse(null);
+    if(imsFile == null) {
+      return;
+    }
+    final MobilityType mt = imsFile.getMobilityType();
+    SimpleXYChart<SummedMobilogramXYProvider> chart = new SimpleXYChart<>(mt.getAxisLabel(),
+        uf.format("Intensity", "a.u."));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
     chart.setLegendItemsVisible(false);
@@ -71,10 +85,30 @@ public class FeatureShapeMobilogramChart extends StackPane {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
+    final ModularFeature bestFeature = row.getBestFeature();
+    org.jfree.data.Range defaultRange = null;
+    if (bestFeature != null && bestFeature.getRawDataFile() instanceof IMSRawDataFile imsRaw) {
+      com.google.common.collect.Range<Float> mobilityRange = bestFeature.getMobilityRange();
+      final Float mobility = bestFeature.getMobility();
+      if (mobilityRange != null && mobility != null && !Float.isNaN(mobility)) {
+        final Float length = RangeUtils.rangeLength(mobilityRange);
+        defaultRange = new org.jfree.data.Range(
+            Math.max(mobility - 3 * length, imsRaw.getDataMobilityRange().lowerEndpoint()),
+            Math.min(mobility + 3 * length, imsRaw.getDataMobilityRange().upperEndpoint()));
+      }
+    }
+    if (defaultRange == null) {
+      defaultRange = new Range(0, 1);
+    }
+
+    final var finalRange = defaultRange;
+
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     Platform.runLater(() -> {
       getChildren().add(chart);
       chart.addDatasets(datasets);
+      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(finalRange);
+      chart.getXYPlot().getDomainAxis().setRange(finalRange);
     });
   }
 }

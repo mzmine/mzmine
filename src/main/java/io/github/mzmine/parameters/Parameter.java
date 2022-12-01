@@ -1,26 +1,33 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters;
 
-import org.w3c.dom.Element;
-
+import java.util.Arrays;
 import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * Parameter interface, represents parameters or variables used in the project
@@ -29,7 +36,7 @@ public interface Parameter<ValueType> {
 
   /**
    * Returns this parameter's name. The name must be unique within one ParameterSet.
-   * 
+   *
    * @return Parameter name
    */
   public String getName();
@@ -58,4 +65,27 @@ public interface Parameter<ValueType> {
    */
   public Parameter<ValueType> cloneParameter();
 
+  public default boolean valueEquals(Parameter<?> that) {
+    if(that == null) {
+      return false;
+    }
+    if (!(this.getClass() == that.getClass())) {
+      return false;
+    }
+    if (getValue() == null && that.getValue() == null) {
+      return true;
+    }
+    if (getValue() instanceof Double) {
+      return Double.compare((Double) this.getValue(), (Double) that.getValue()) == 0;
+    } else if (getValue() instanceof Float) {
+      return Float.compare((Float) this.getValue(), (Float) that.getValue()) == 0;
+    } else if (getValue() instanceof Integer) {
+      return ((Integer) getValue()).equals((Integer) that.getValue());
+    } else if (getValue() instanceof String) {
+      return this.getValue().equals(that.getValue());
+    } else if (getValue() instanceof Object[]) {
+      return Arrays.deepEquals((Object[]) getValue(), (Object[]) that.getValue());
+    }
+    return this.getValue().equals(that.getValue());
+  }
 }

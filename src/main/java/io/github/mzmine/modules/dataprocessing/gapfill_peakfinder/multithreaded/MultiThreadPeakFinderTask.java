@@ -1,77 +1,90 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 class MultiThreadPeakFinderTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MultiThreadPeakFinderTask.class.getName());
 
-  private ModularFeatureList peakList, processedPeakList;
-  private double intTolerance;
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-  private int totalScans;
-  private AtomicInteger processedScans = new AtomicInteger(0);
-
+  private final ModularFeatureList peakList;
+  private final ModularFeatureList processedPeakList;
+  private final double intTolerance;
+  private final MZTolerance mzTolerance;
+  private final RTTolerance rtTolerance;
+  private final AtomicInteger processedScans = new AtomicInteger(0);
   // start and end (exclusive) for raw data file processing
-  private int start;
-  private int endexcl;
+  private final int start;
+  private final int endexcl;
+  private final int taskIndex;
+  private final int minDataPoints;
+  private int totalScans;
 
-  // takes care of adding the final result
-  private SubTaskFinishListener listener;
+  MultiThreadPeakFinderTask(ModularFeatureList peakList, ModularFeatureList processedPeakList,
+      ParameterSet parameters, int start, int endexcl, int taskIndex,
+      @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
 
-  private int taskIndex;
-
-  MultiThreadPeakFinderTask(MZmineProject project, ModularFeatureList peakList,
-      ModularFeatureList processedPeakList,
-      ParameterSet parameters, int start, int endexcl, SubTaskFinishListener listener,
-      int taskIndex) {
-    super(null);
-
-    this.listener = listener;
     this.taskIndex = taskIndex;
 
     this.peakList = peakList;
     this.processedPeakList = processedPeakList;
 
-    intTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.intTolerance).getValue();
-    mzTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.RTTolerance).getValue();
+    intTolerance = parameters.getValue(MultiThreadPeakFinderParameters.intTolerance);
+    mzTolerance = parameters.getValue(MultiThreadPeakFinderParameters.MZTolerance);
+    rtTolerance = parameters.getValue(MultiThreadPeakFinderParameters.RTTolerance);
+    minDataPoints = parameters.getValue(MultiThreadPeakFinderParameters.minDataPoints);
 
     this.start = start;
     this.endexcl = endexcl;
@@ -80,25 +93,32 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running multithreaded gap filler " + taskIndex + " on raw files " + (start + 1)
-        + "-" + endexcl + " of pkl:" + peakList);
+    logger.info(
+        "Running multithreaded gap filler " + taskIndex + " on raw files " + (start + 1) + "-"
+        + endexcl + " of pkl:" + peakList);
 
+    int totalDataFiles = endexcl - start;
     // Calculate total number of scans in all files
     for (int i = start; i < endexcl; i++) {
       RawDataFile dataFile = peakList.getRawDataFile(i);
-      totalScans += dataFile.getNumOfScans(1);
+      totalScans += peakList.getSeletedScans(dataFile).size();
     }
+
+    int filled = 0;
 
     // Process all raw data files
     for (int i = start; i < endexcl; i++) {
       RawDataFile dataFile = peakList.getRawDataFile(i);
+      final BinningMobilogramDataAccess mobilogramAccess = // todo how to determine previous bin width for an aligned list?
+          dataFile instanceof IMSRawDataFile ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
+              BinningMobilogramDataAccess.getRecommendedBinWidth((IMSRawDataFile) dataFile)) : null;
 
       // Canceled?
       if (isCanceled()) {
         return;
       }
 
-      List<Gap> gaps = new ArrayList<Gap>();
+      List<Gap> gaps = new ArrayList<>();
 
       // Fill each row of this raw data file column, create new empty
       // gaps
@@ -111,12 +131,18 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
         if (sourcePeak == null || sourcePeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
           // Create a new gap
-
           Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
           Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
 
-          Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
-          gaps.add(newGap);
+          if (peakList.hasFeatureType(MobilityType.class) && dataFile instanceof IMSRawDataFile) {
+            Range<Float> mobilityRange = sourceRow.getMobilityRange();
+            Gap newGap = new ImsGap(newRow, dataFile, mzRange, rtRange, mobilityRange, intTolerance,
+                mobilogramAccess);
+            gaps.add(newGap);
+          } else {
+            Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
+            gaps.add(newGap);
+          }
         }
       }
 
@@ -127,33 +153,46 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       }
 
       // Get all scans of this data file
-      dataFile.getScanNumbers(1).forEach(scan -> {
-        if(!isCanceled()) {
-          // Feed this scan to all gaps
-          for (Gap gap : gaps) {
-            gap.offerNextScan(scan);
-          }
+      processFile(dataFile, gaps);
 
-          processedScans.incrementAndGet();
-        }
-      });
-
-        if (isCanceled()) {
-          return;
-        }
-
-      // Finalize gaps
+      if (isCanceled()) {
+        return;
+      }
+      // Finalize gaps and add to feature list
       for (Gap gap : gaps) {
-        gap.noMoreOffers();
+        if (gap.noMoreOffers(minDataPoints)) {
+          filled++;
+        }
+      }
+
+      // log progress for long running tasks, different levels
+      final int processedDataFiles = i - start + 1;
+      if (processedDataFiles % 5 == 0) {
+        logger.fine(() -> String.format(
+            "Multithreaded gap filler (%d): %d of %d raw files processed (%.1f %%)", taskIndex,
+            processedDataFiles, totalDataFiles,
+            (processedDataFiles / (float) totalDataFiles) * 100));
+      } else {
+        logger.finest(() -> String.format(
+            "Multithreaded gap filler (%d): %d of %d raw files processed (%.1f %%)", taskIndex,
+            processedDataFiles, totalDataFiles,
+            (processedDataFiles / (float) totalDataFiles) * 100));
       }
     }
 
-    // first notify listener
-    listener.accept(processedPeakList);
-
-    logger.info("Finished sub task: Multithreaded gap filler " + taskIndex + " on raw files "
-        + (start + 1) + "-" + endexcl + " of pkl:" + peakList);
+    logger.info(String.format(
+        "Finished sub task: Multithreaded gap filler %d on raw files %d-%d in feature list %s. (Gaps filled: %d)",
+        taskIndex, (start + 1), endexcl, peakList.toString(), filled));
     setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Needed high priority so that sub tasks do not wait for free task slot. Main task is also taking
+   * one slot. Main task cannot be high because batch mode wont wait for that.
+   */
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH;
   }
 
   public double getFinishedPercentage() {
@@ -165,11 +204,45 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
   public String getTaskDescription() {
     return "Sub task " + taskIndex + ": Gap filling on raw files " + (start + 1) + "-" + endexcl
-        + " of pkl:" + peakList;
+           + " of pkl:" + peakList;
   }
 
-  FeatureList getPeakList() {
-    return peakList;
-  }
+  private void processFile(RawDataFile file, List<Gap> gaps) {
+    if (file instanceof IMSRawDataFile imsFile && peakList.hasFeatureType(MobilityType.class)) {
+      final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
+          MobilityScanDataType.CENTROID, (List<Frame>) peakList.getSeletedScans(file));
+      List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
 
+      while (access.hasNextFrame()) {
+        if (isCanceled()) {
+          return;
+        }
+
+        final Frame frame = access.nextFrame();
+        for (ImsGap gap : imsGaps) {
+          access.resetMobilityScan();
+          gap.offerNextScan(access);
+        }
+        processedScans.incrementAndGet();
+      }
+
+    } else {
+      // no IMS dimension
+
+      final ScanDataAccess scanAccess = EfficientDataAccess.of(file, ScanDataType.CENTROID,
+          peakList.getSeletedScans(file));
+      while (scanAccess.hasNextScan()) {
+        if (isCanceled()) {
+          return;
+        }
+        scanAccess.nextScan();
+        // Feed this scan to all gaps
+        for (Gap gap : gaps) {
+          gap.offerNextScan(scanAccess);
+        }
+
+        processedScans.incrementAndGet();
+      }
+    }
+  }
 }

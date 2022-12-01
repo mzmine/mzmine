@@ -1,27 +1,36 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General License as published by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * License for more details.
- *
- * You should have received a copy of the GNU General License along with MZmine; if not, write to
- * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import java.util.Collection;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a raw data file, that offers the additional mobility dimension within the scans.
@@ -40,23 +49,23 @@ public interface IMSRawDataFile extends RawDataFile {
   /**
    * @return Set of all frames in this raw data file. List may be empty if no frames exist.
    */
-  @Nonnull
-  Collection<? extends Frame> getFrames();
+  @NotNull
+  List<? extends Frame> getFrames();
 
   /**
    * @param msLevel The ms level
    * @return List of frames with the given msLevel. May be empty.
    */
-  @Nonnull
-  Collection<? extends Frame> getFrames(int msLevel);
+  @NotNull
+  List<? extends Frame> getFrames(int msLevel);
 
   /**
    * @param msLevel
    * @param rtRange
    * @return List of frames with given ms mlevel in the specified rt window. May be empty.
    */
-  @Nonnull
-  Collection<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
+  @NotNull
+  List<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
 
   /**
    * @return The number of frames in this raw data file. equivalent to
@@ -68,28 +77,28 @@ public interface IMSRawDataFile extends RawDataFile {
    * @param msLevel The ms level of the given frames.
    * @return The frame numbers in the specified ms level. Might be empty.
    */
-  @Nonnull
-  Set<Scan> getFrameNumbers(int msLevel);
+  @NotNull
+  List<Scan> getFrameNumbers(int msLevel);
 
   /**
    * @param msLevel
    * @param rtRange
    * @return The frame numbers in the specified ms level and rt range. Might be empty.
    */
-  @Nonnull
-  Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  @NotNull
+  List<Scan> getFrameNumbers(int msLevel, @NotNull Range<Float> rtRange);
 
   /**
    * @return The mobility range of this raw data file. Might be empty.
    */
-  @Nonnull
+  @NotNull
   Range<Double> getDataMobilityRange();
 
   /**
    * @param msLevel
    * @return The mobility range for the given ms level. Might be empty.
    */
-  @Nonnull
+  @NotNull
   Range<Double> getDataMobilityRange(int msLevel);
 
   /**
@@ -113,10 +122,14 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The {@link MobilityType} of this data file. {@link MobilityType#NONE} if no mobility
    *         dimension was recorded.
    */
-  @Nonnull
+  @NotNull
   MobilityType getMobilityType();
 
-//  double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
+  @Nullable CCSCalibration getCCSCalibration();
 
-//  Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
+  void setCCSCalibration(@Nullable CCSCalibration calibration);
+
+  int addMobilityValues(double[] mobilities);
+
+  DoubleImmutableList getSegmentMobilities(int segment);
 }

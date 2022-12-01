@@ -1,124 +1,53 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.ListProperty;
-import javafx.collections.FXCollections;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-public class ScanNumbersType extends ListDataType<Scan> implements BindingsFactoryType {
+public class ScanNumbersType extends ListDataType<Scan> {
+
+  @NotNull
+  @Override
+  public String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "scan_numbers";
+  }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "Scans";
   }
 
-
-  @Nonnull
+  @NotNull
   @Override
-  public String getFormattedString(@Nonnull ListProperty<Scan> property) {
-    return property.getValue() != null ? String.valueOf(property.getValue().size()) : "";
+  public String getFormattedString(List<Scan> list) {
+    return list != null ? String.valueOf(list.size()) : "";
   }
 
-  @Nonnull
-  @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value == null || !(value instanceof List)) {
-      return "";
-    }
-    return String.valueOf(((List) value).size());
-  }
-
-
-  @Override
-  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
-    // get all properties of all features
-    @SuppressWarnings("unchecked")
-    ListProperty[] prop = row.streamFeatures().map(f -> (ModularFeature) f)
-        .map(f -> f.get(this)).toArray(ListProperty[]::new);
-    switch (bind) {
-      case AVERAGE:
-        return Bindings.createObjectBinding(() -> {
-          float sum = 0;
-          int n = 0;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null) {
-              sum += p.size();
-              n++;
-            }
-          }
-          return n == 0 ? 0 : sum / n;
-        }, prop);
-      case MIN:
-        return Bindings.createObjectBinding(() -> {
-          int min = Integer.MAX_VALUE;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null && p.size() < min) {
-              min = p.size();
-            }
-          }
-          return min;
-        }, prop);
-      case MAX:
-        return Bindings.createObjectBinding(() -> {
-          int max = Integer.MIN_VALUE;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null && p.size() > max) {
-              max = p.size();
-            }
-          }
-          return max;
-        }, prop);
-      case SUM:
-        return Bindings.createObjectBinding(() -> {
-          int sum = 0;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null) {
-              sum += p.size();
-            }
-          }
-          return sum;
-        }, prop);
-      case CONSENSUS:
-        return Bindings.createObjectBinding(() -> {
-          List collect = (List) Stream.of(prop).filter(Objects::nonNull)
-              .flatMap(ListProperty::stream).collect(Collectors.toList());
-          return FXCollections.observableList(collect);
-        }, prop);
-      case COUNT:
-      case RANGE:
-      default:
-        throw new UndefinedRowBindingException(this, bind);
-    }
-  }
 }

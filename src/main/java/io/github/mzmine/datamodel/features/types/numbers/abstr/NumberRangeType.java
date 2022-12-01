@@ -1,73 +1,72 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class NumberRangeType<T extends Comparable<?>>
-    extends NumberType<ObjectProperty<Range<T>>>
-    implements SubColumnsFactory<ObjectProperty<Range<T>>>, BindingsFactoryType {
+public abstract class NumberRangeType<T extends Number & Comparable<?>>
+    extends NumberType<Range<T>> implements SubColumnsFactory {
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
   }
 
   @Override
+  public @NotNull DataType<?> getType(int subcolumn) {
+    return this;
+  }
+
+  @Override
   public abstract NumberFormat getFormatter();
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull ObjectProperty<Range<T>> value) {
-    return value.getValue() == null ? ""
-        : getFormatter().format(value.getValue().lowerEndpoint()) + "-"
-            + getFormatter().format(value.getValue().upperEndpoint());
+  @NotNull
+  public String getFormattedString(Range<T> value) {
+    return value == null ? ""
+        : getFormatter().format(value.lowerEndpoint()) + "-"
+          + getFormatter().format(value.upperEndpoint());
   }
 
-  /**
-   * A formatted string representation of the value
-   *
-   * @return the formatted representation of the value (or an empty String)
-   */
-  @Override
-  @Nonnull
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof Range) {
-      Range r = (Range) value;
-      return getFormatter().format(r.lowerEndpoint()) + "-"
-          + getFormatter().format(r.upperEndpoint());
-    } else
-      return "";
+  @NotNull
+  public String getFormattedString(T value) {
+    return value == null ? "" : getFormatter().format(value);
   }
 
   @Override
@@ -75,7 +74,7 @@ public abstract class NumberRangeType<T extends Comparable<?>>
     return new SimpleObjectProperty<Range<T>>();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public int getNumberOfSubColumns() {
     return 2;
@@ -84,31 +83,43 @@ public abstract class NumberRangeType<T extends Comparable<?>>
   @Nullable
   @Override
   public String getHeader(int subcolumn) {
+    // is also used as unique ID - do not change or make sure that unique ID is min / max
     switch (subcolumn) {
       case 0:
         return "min";
       case 1:
         return "max";
     }
-    if (subcolumn < getNumberOfSubColumns())
+    if (subcolumn < getNumberOfSubColumns()) {
       throw new IllegalArgumentException("Sub column index is not handled: " + subcolumn);
-    else
+    } else {
       throw new IndexOutOfBoundsException(
           "Sub column index " + subcolumn + " is out of range " + getNumberOfSubColumns());
+    }
   }
 
   @Override
-  @Nonnull
+  @Nullable
+  public String getUniqueID(int subcolumn) {
+    // do not change unique ID
+    return getHeader(subcolumn);
+  }
+
+  @Override
+  @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      @Nullable RawDataFile raw) {
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
+    // e.g. FloatType for FloatRangeType etc
+    DataType subColType = getType(0);
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>(getHeader(index));
-      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
+      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, subColType, this,
+          index);
       min.setCellValueFactory(cvFactoryMin);
-      min.setCellFactory(new DataTypeCellFactory(raw, this, index));
+      min.setCellFactory(new DataTypeCellFactory(raw, subColType, this, index));
       // add column
       cols.add(min);
     }
@@ -117,11 +128,10 @@ public abstract class NumberRangeType<T extends Comparable<?>>
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
-    if (value == null)
+  public String getFormattedSubColValue(int subcolumn, Object value) {
+    if (value == null) {
       return "";
+    }
     switch (subcolumn) {
       case 0:
         return getFormatter().format(((Range) value).lowerEndpoint());
@@ -131,5 +141,18 @@ public abstract class NumberRangeType<T extends Comparable<?>>
     return "";
   }
 
+  @Override
+  public @Nullable Object getSubColValue(int subcolumn, Object value) {
+    if (value == null) {
+      return null;
+    }
+    switch (subcolumn) {
+      case 0:
+        return ((Range) value).lowerEndpoint();
+      case 1:
+        return ((Range) value).upperEndpoint();
+    }
+    return null;
+  }
 
 }

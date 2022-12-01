@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -35,8 +43,10 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
@@ -112,6 +122,10 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     this.totalFeatures = totalFeatures;
   }
 
+  public Feature getFeature() {
+    return feature;
+  }
+
   /**
    * The maximum number of data points on a feature/chromatogram
    */
@@ -165,8 +179,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
             currentRowIndex = 0;
             currentRawFileIndex++;
           }
-          feature = getRow()
-              .getFeature(getRow().getRawDataFiles().get(currentRawFileIndex));
+          feature = getRow().getFeature(getRow().getRawDataFiles().get(currentRawFileIndex));
         } while (feature == null);
       } else {
         currentRowIndex++;
@@ -232,14 +245,14 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   // Unsupported methods due to different intended use
   @Override
   public IonTimeSeries<Scan> subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Scan> subset) {
+      @NotNull List<Scan> subset) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
 
   @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -251,7 +264,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -263,7 +276,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getMZValues() {
+  public DoubleBuffer getMZValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -306,6 +319,13 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   @Override
   public Spliterator<DataPoint> spliterator() {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans)
+      throws XMLStreamException {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }

@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -21,15 +28,15 @@ package io.github.mzmine.datamodel.impl;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_imzml.Coordinates;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMSImagingRawDataFile {
 
@@ -41,9 +48,9 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
   private Scan[][][] xyzScanNumbers;
 
 
-  public IMSImagingRawDataFileImpl(String dataFileName, @Nullable MemoryMapStorage storage)
-      throws IOException {
-    super(dataFileName, storage);
+  public IMSImagingRawDataFileImpl(String dataFileName, @Nullable final String absPath,
+      @Nullable MemoryMapStorage storage) throws IOException {
+    super(dataFileName, absPath, storage);
   }
 
   @Override
@@ -111,8 +118,7 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
   public Scan[][][] getXYZScanNumbers() {
     if (xyzScanNumbers == null) {
       // sort all scan numbers to xyz location
-      xyzScanNumbers = new Scan[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param
-          .getMaxNumberOfPixelZ()];
+      xyzScanNumbers = new Scan[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param.getMaxNumberOfPixelZ()];
       for (int x = 0; x < xyzScanNumbers.length; x++) {
         for (int y = 0; y < xyzScanNumbers[x].length; y++) {
           for (int z = 0; z < xyzScanNumbers[x][y].length; z++) {

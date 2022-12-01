@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.chromatogram;
@@ -24,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
@@ -44,7 +52,7 @@ import javafx.collections.ObservableList;
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
  * create separate data set for each file because the user may add/remove files later.
- *
+ * <p>
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
 public class TICDataSet extends AbstractXYZDataset implements Task {
@@ -75,6 +83,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   private final Range<Double> mzRange;
   private double intensityMin;
   private double intensityMax;
+  private TICVisualizerTab window;
 
   private TaskStatus status;
   private String errorMessage;
@@ -87,10 +96,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   /**
    * Create the data set.
    *
-   * @param file data file to plot.
-   * @param scans scans to plot.
+   * @param file    data file to plot.
+   * @param scans   scans to plot.
    * @param rangeMZ range of m/z to plot.
-   * @param window visualizer window.
+   * @param window  visualizer window.
    */
   public TICDataSet(final RawDataFile file, final ObservableList<Scan> scans,
       final Range<Double> rangeMZ, final TICVisualizerTab window) {
@@ -102,10 +111,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * Create the data set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
    * context.
    *
-   * @param file data file to plot.
-   * @param scans scans to plot.
-   * @param rangeMZ range of m/z to plot.
-   * @param window visualizer window.
+   * @param file     data file to plot.
+   * @param scans    scans to plot.
+   * @param rangeMZ  range of m/z to plot.
+   * @param window   visualizer window.
    * @param plotType plot type.
    */
   public TICDataSet(final RawDataFile file, final List<Scan> scans, final Range<Double> rangeMZ,
@@ -121,6 +130,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     processedScans = 0;
     intensityMin = 0.0;
     intensityMax = 0.0;
+    this.window = window;
 
     status = TaskStatus.WAITING;
     errorMessage = null;
@@ -248,7 +258,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * Returns index of data point which exactly matches given X and Y values
    *
    * @param retentionTime retention time.
-   * @param intensity intensity.
+   * @param intensity     intensity.
    * @return the nearest data point index.
    */
   public int getIndex(final double retentionTime, final double intensity) {
@@ -359,6 +369,15 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     // Determine plot type (now done from constructor).
     final TICPlotType plotType = this.plotType;
 
+    // fix for imZML files without a retention time in their scans -> crashes TIC Plot
+    boolean useScanNumberAsRt = Double
+        .compare(scans.get(0).getRetentionTime(), scans.get(scans.size() - 1).getRetentionTime())
+        == 0;
+    if(useScanNumberAsRt && window != null) {
+      final NumberAxis axis = (NumberAxis) window.getTICPlot().getXYPlot().getDomainAxis();
+      MZmineCore.runLater(() -> axis.setLabel("Scan number"));
+    }
+
     // Process each scan.
     for (int index = 0; status != TaskStatus.CANCELED && index < totalScans; index++) {
 
@@ -388,7 +407,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       }
 
       intensityValues[index] = intensity;
-      rtValues[index] = scan.getRetentionTime();
+      rtValues[index] = useScanNumberAsRt ? scan.getScanNumber() : scan.getRetentionTime();
 
       // Update min and max.
       if (index == 0) {

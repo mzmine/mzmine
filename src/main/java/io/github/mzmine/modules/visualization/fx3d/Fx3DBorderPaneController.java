@@ -1,41 +1,46 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.fx3d;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.util.components.ButtonCell;
+import io.github.mzmine.util.components.ColorPickerTableCell;
+import io.github.mzmine.util.components.SliderCell;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.controlsfx.glyphfont.Glyph;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.util.components.ButtonCell;
-import io.github.mzmine.util.components.ColorTableCell;
-import io.github.mzmine.util.components.SliderCell;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -68,6 +73,8 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
+import org.controlsfx.glyphfont.Glyph;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author akshaj The controller class of the Fx3DVisualizer which handles all user actions and
@@ -180,7 +187,7 @@ public class Fx3DBorderPaneController {
     HBox.setHgrow(leftRegion, Priority.ALWAYS);
     HBox.setHgrow(rightRegion, Priority.ALWAYS);
     plot.getChildren().add(axes);
-    colorCol.setCellFactory(column -> new ColorTableCell<Fx3DAbstractDataset>(column));
+    colorCol.setCellFactory(column -> new ColorPickerTableCell<Fx3DAbstractDataset>(column));
     double minValue = 0;
     double maxValue = 1;
     opacityCol
@@ -191,16 +198,17 @@ public class Fx3DBorderPaneController {
     axesBtn.setSelected(true);
     lightsBtn.setSelected(true);
     addLights();
-    rotateAnimationTimeline =
-        new Timeline(new KeyFrame(Duration.seconds(0), new KeyValue(yRotate.angleProperty(), 360)),
-            new KeyFrame(Duration.seconds(50), new KeyValue(yRotate.angleProperty(), 0)));
+    rotateAnimationTimeline = new Timeline(
+        new KeyFrame(Duration.seconds(0), new KeyValue(yRotate.angleProperty(), 360)),
+        new KeyFrame(Duration.seconds(50), new KeyValue(yRotate.angleProperty(), 0)));
     rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
     tableView.setItems(visualizedMeshPlots);
     plot.getChildren().add(meshViews);
     plot.getChildren().add(lights);
     allDataFiles = Arrays.asList(MZmineCore.getProjectManager().getCurrentProject().getDataFiles());
-    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(new FeatureList[0]);
+    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+        .toArray(new FeatureList[0]);
     scene3D.widthProperty().bind(root.widthProperty());
     scene3D.heightProperty().bind(root.heightProperty());
     scene3D.setCamera(camera);
@@ -317,7 +325,7 @@ public class Fx3DBorderPaneController {
     });
   }
 
-  @Nonnull
+  @NotNull
   public List<Object> getVisualizedFiles() {
     return visualizedFiles;
   }

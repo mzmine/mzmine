@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
@@ -26,10 +33,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import java.awt.Color;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -72,10 +80,10 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * @param controller
    * @param listener
    */
-  public DataPointProcessingTask(@Nonnull MassSpectrum dataPoints, @Nonnull SpectraPlot plot,
-      @Nonnull ParameterSet parameterSet, @Nonnull DataPointProcessingController controller,
-      @Nonnull TaskStatusListener listener) {
-    super(null); // no new data stored -> null
+  public DataPointProcessingTask(@NotNull MassSpectrum dataPoints, @NotNull SpectraPlot plot,
+      @NotNull ParameterSet parameterSet, @NotNull DataPointProcessingController controller,
+      @NotNull TaskStatusListener listener) {
+    super(null, Instant.now()); // no new data stored -> null, date irrelevant (not executed in batch)
     logger.warning("Rethink storage creation when re-implementing data point processing");
 
     setDataPoints(dataPoints);
@@ -91,19 +99,19 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   public abstract void displayResults();
 
-  public @Nonnull MassSpectrum getDataPoints() {
+  public @NotNull MassSpectrum getDataPoints() {
     return dataPoints;
   }
 
-  private void setDataPoints(@Nonnull MassSpectrum dataPoints) {
+  private void setDataPoints(@NotNull MassSpectrum dataPoints) {
     this.dataPoints = dataPoints;
   }
 
-  public @Nonnull SpectraPlot getTargetPlot() {
+  public @NotNull SpectraPlot getTargetPlot() {
     return targetPlot;
   }
 
-  private void setTargetPlot(@Nonnull SpectraPlot targetPlot) {
+  private void setTargetPlot(@NotNull SpectraPlot targetPlot) {
     this.targetPlot = targetPlot;
   }
 
@@ -112,7 +120,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * @return Array of ProcessedDataPoints. Make sure the task has finished. If results are not set a
    *         new ProcessedDataPoint[0] will be returned.
    */
-  public @Nonnull ProcessedDataPoint[] getResults() {
+  public @NotNull ProcessedDataPoint[] getResults() {
     if (results != null)
       return results;
     return new ProcessedDataPoint[0];
@@ -123,7 +131,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    *
    * @param dp Array the results shall be set to.
    */
-  public void setResults(@Nonnull ProcessedDataPoint[] dp) {
+  public void setResults(@NotNull ProcessedDataPoint[] dp) {
     this.results = dp;
   }
 
@@ -131,19 +139,19 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    *
    * @return The parameter set passed to this task.
    */
-  public @Nonnull ParameterSet getParameterSet() {
+  public @NotNull ParameterSet getParameterSet() {
     return parameterSet;
   }
 
-  private void setParameterSet(@Nonnull ParameterSet parameterSet) {
+  private void setParameterSet(@NotNull ParameterSet parameterSet) {
     this.parameterSet = parameterSet;
   }
 
-  public @Nonnull DataPointProcessingController getController() {
+  public @NotNull DataPointProcessingController getController() {
     return controller;
   }
 
-  private void setController(@Nonnull DataPointProcessingController controller) {
+  private void setController(@NotNull DataPointProcessingController controller) {
     this.controller = controller;
   }
 

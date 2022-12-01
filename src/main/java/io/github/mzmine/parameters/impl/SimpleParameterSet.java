@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.impl;
@@ -22,23 +29,30 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ButtonType;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -51,16 +65,25 @@ public class SimpleParameterSet implements ParameterSet {
 
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
+
+  private String moduleNameAttribute;
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
-  protected Parameter<?> parameters[];
+  private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
+  protected Parameter<?>[] parameters;
   private boolean skipSensitiveParameters = false;
+  protected String helpUrl = null;
 
   public SimpleParameterSet() {
-    this.parameters = new Parameter<?>[0];
+    this(new Parameter<?>[0], null);
   }
 
   public SimpleParameterSet(Parameter<?> parameters[]) {
+    this(parameters, null);
+  }
+
+  public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl) {
     this.parameters = parameters;
+    this.helpUrl = onlineHelpUrl;
   }
 
   @Override
@@ -142,16 +165,25 @@ public class SimpleParameterSet implements ParameterSet {
     return s.toString();
   }
 
+  @Override
+  public ParameterSet cloneParameterSet() {
+    return cloneParameterSet(false);
+  }
+
   /**
    * Make a deep copy
    */
   @Override
-  public ParameterSet cloneParameterSet() {
+  public ParameterSet cloneParameterSet(boolean keepSelection) {
 
     // Make a deep copy of the parameters
     Parameter<?> newParameters[] = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
-      newParameters[i] = parameters[i].cloneParameter();
+      if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
+        newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else {
+        newParameters[i] = parameters[i].cloneParameter();
+      }
     }
 
     try {
@@ -163,6 +195,8 @@ public class SimpleParameterSet implements ParameterSet {
       SimpleParameterSet newSet = this.getClass().getDeclaredConstructor().newInstance();
       newSet.parameters = newParameters;
       newSet.setSkipSensitiveParameters(skipSensitiveParameters);
+      newSet.setModuleNameAttribute(this.getModuleNameAttribute());
+      newSet.helpUrl = helpUrl;
 
       return newSet;
     } catch (Throwable e) {
@@ -184,13 +218,12 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
     assert Platform.isFxApplicationThread();
 
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -203,9 +236,14 @@ public class SimpleParameterSet implements ParameterSet {
       if (!pOK) {
         allParametersOK = false;
       }
-      if (p instanceof RawDataFilesParameter) {
-        pOK = checkRawDataFileIonMobilitySupport(
-            ((RawDataFilesParameter) p).getValue().getMatchingRawDataFiles(), errorMessages);
+      if(p instanceof HiddenParameter<?,?> hidden) {
+        p = hidden.getEmbeddedParameter();
+      }
+
+      if (p instanceof RawDataFilesParameter rfp) {
+        pOK = checkRawDataFileIonMobilitySupport(rfp.getValue().getMatchingRawDataFiles(),
+            errorMessages);
+        rfp.getValue().resetSelection(); // has to be reset after evaluation
       } else if (p instanceof FeatureListsParameter) {
         FeatureList[] lists = ((FeatureListsParameter) p).getValue().getMatchingFeatureLists();
         Set<RawDataFile> files = new HashSet<>();
@@ -224,17 +262,19 @@ public class SimpleParameterSet implements ParameterSet {
       Collection<String> errorMessages) {
     boolean onlyImsFiles = true;
     boolean containsImsFile = false;
+    List<String> nonImsFilesList = new ArrayList<>();
+
     for (RawDataFile file : rawDataFiles) {
       if (!(file instanceof IMSRawDataFile)) {
         onlyImsFiles = false;
-        errorMessages.add("Non-ion mobility spectrometry files: " + file.getName());
+        nonImsFilesList.add("Non-ion mobility spectrometry files: " + file.getName());
       } else {
         containsImsFile = true;
       }
     }
 
-    Map<String, Boolean> showMsgMap = MZmineCore.getConfiguration().getPreferences().getParameter(
-        MZminePreferences.imsModuleWarnings).getValue();
+    Map<String, Boolean> showMsgMap = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.imsModuleWarnings).getValue();
     String className = this.getClass().getName();
     Boolean showMsg = showMsgMap.getOrDefault(className, true);
 
@@ -264,15 +304,20 @@ public class SimpleParameterSet implements ParameterSet {
           "This module is designed for ion mobility data only. Cannot process non-ion mobility files.");
       errorMessages.add(
           "This module is designed for ion mobility data only. Cannot process non-ion mobility files.");
+      errorMessages.addAll(nonImsFilesList);
       return false;
     } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.UNSUPPORTED) {
       logger.warning("This module does not support ion mobility data.");
       errorMessages.add("This module does not support ion mobility data.");
-      return MZmineCore.getDesktop()
-          .displayConfirmation(
-              "This module does not support ion mobility data. This will lead to unexpected "
-                  + "results. Do you want to continue anyway?", ButtonType.YES, ButtonType.NO)
+
+      boolean returnVal = MZmineCore.getDesktop().displayConfirmation(
+          "This module does not support ion mobility data. This will lead to unexpected "
+              + "results. Do you want to continue anyway?", ButtonType.YES, ButtonType.NO)
           == ButtonType.YES;
+      if (!returnVal) {
+        errorMessages.addAll(nonImsFilesList);
+      }
+      return returnVal;
     } // dont have to check for IonMobilitySupport.SUPPORTED
 
     return true;
@@ -289,4 +334,26 @@ public class SimpleParameterSet implements ParameterSet {
     return "This module has certain restrictions when processing ion mobility data files. This "
         + "could lead to unexpected results. Do you want to continue anyway?";
   }
+
+  /**
+   * Returns BooleanProperty which value is changed when some parameter of this ParameterSet is
+   * changed. It is useful to perform operations directly dependant on the components corresponding
+   * to this ParameterSet (e.g. TextField of a parameter is changed -> preview plot is updated).
+   *
+   * @return BooleanProperty signalizing a change of any parameter of this ParameterSet
+   */
+  public BooleanProperty parametersChangeProperty() {
+    return parametersChangeProperty;
+  }
+
+  @Override
+  public @Nullable String getOnlineHelpUrl() {
+    return helpUrl;
+  }
+
+  @Override
+  public void setModuleNameAttribute(String moduleName) { this.moduleNameAttribute = moduleName; }
+
+  @Override
+  public String getModuleNameAttribute() { return moduleNameAttribute; }
 }

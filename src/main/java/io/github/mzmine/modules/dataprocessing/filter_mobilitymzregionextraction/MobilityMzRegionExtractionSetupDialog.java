@@ -1,26 +1,32 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
@@ -37,8 +43,8 @@ import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.List;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -58,15 +64,15 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
   private final NumberFormat intensityFormat;
   private final NumberFormat ccsFormat;
   private final UnitFormat unitFormat;
-  ComboBox<ModularFeatureList> comboBox;
+  private final ComboBox<FeatureList> comboBox;
 
   public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
   }
 
-  public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters, String message) {
+  public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+      String message) {
     super(valueCheckRequired, parameters, message);
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -80,7 +86,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     heatmap.setDomainAxisNumberFormatOverride(mzFormat);
     heatmap.setRangeAxisLabel("Mobility");
     heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
-    heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "counts"));
+    heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "a.u."));
     heatmap.setLegendNumberFormatOverride(intensityFormat);
     heatmap.getXYPlot().setBackgroundPaint(Color.BLACK);
     heatmap.getXYPlot().setDomainCrosshairPaint(Color.LIGHT_GRAY);
@@ -93,14 +99,13 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     FlowPane fp = new FlowPane(new Label("Feature list "));
     fp.setHgap(5);
 
-    comboBox = new ComboBox<>();
-    ObservableList<? extends FeatureList> featureLists = MZmineCore.getProjectManager()
-        .getCurrentProject().getFeatureLists();
-    comboBox.setItems((ObservableList<ModularFeatureList>) featureLists);
+    var featureLists = FXCollections.observableArrayList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
+    comboBox = new ComboBox<>(featureLists);
     comboBox.valueProperty().addListener(((observable, oldValue, newValue) -> parametersChanged()));
 
-    wrapper.getFinishedRegionListeners().addListener(
-        (ListChangeListener<RegionSelectionListener>) c -> {
+    wrapper.getFinishedRegionListeners()
+        .addListener((ListChangeListener<RegionSelectionListener>) c -> {
           parameters.getParameter(MobilityMzRegionExtractionParameters.regions)
               .setValue(wrapper.getFinishedRegionsAsListOfPointLists());
         });
@@ -126,8 +131,8 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     }
 
     heatmap.removeAllDatasets();
-    CalculateDatasetsTask calc = new CalculateDatasetsTask((Collection<ModularFeatureListRow>) features,
-        pt, false);
+    CalculateDatasetsTask calc = new CalculateDatasetsTask(
+        (Collection<ModularFeatureListRow>) features, pt, false);
     MZmineCore.getTaskController().addTask(calc);
     calc.addTaskStatusListener((task, newStatus, oldStatus) -> {
       if (newStatus == TaskStatus.FINISHED) {

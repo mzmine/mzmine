@@ -5,6 +5,31 @@
 
 <?import javafx.geometry.Insets?>
 
+<!--
+  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
 <BorderPane xmlns="http://javafx.com/javafx"
   xmlns:fx="http://javafx.com/fxml"
   fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataFileInfoPaneController"
@@ -79,18 +104,21 @@
         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
 	  </columnResizePolicy>
       <columns>
-        <TableColumn fx:id="scanColumn" editable="false" prefWidth="75.0" text="Scan #"/>
-        <TableColumn fx:id="rtColumn" editable="false" prefWidth="75.0" text="Retention time"/>
-        <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="75.0" text="Base peak"/>
-        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="75.0"
-          text="Base peak intenstity"/>
-        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="60.0" text="MS level"/>
-        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="75.0"
+        <TableColumn fx:id="scanColumn" editable="false" prefWidth="35" text="Scan"/>
+        <TableColumn fx:id="massDetectionColumn" editable="false" prefWidth="35"
+          text="Masses detected"/>
+        <TableColumn fx:id="rtColumn" editable="false" prefWidth="35" text="RT"/>
+        <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="80" text="Base peak"/>
+        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="55"
+          text="BP intensity"/>
+        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="42" text="MSn"/>
+        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="80"
           text="Precursor m/z"/>
-        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="75.0" text="m/z range"/>
-        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="65.0" text="Scan type"/>
-        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="60.0" text="Polarity"/>
-        <TableColumn fx:id="definitionColumn" minWidth="0.0" prefWidth="65.0"
+        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="115" text="m/z range"/>
+        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="95.0" text="Scan type"/>
+        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="62.0" text="Polarity"/>
+        <TableColumn fx:id="injectTimeColumn" editable="false" prefWidth="75" text="Inject time"/>
+        <TableColumn fx:id="definitionColumn" minWidth="15"  prefWidth="125.0"
           text="Scan definition" editable="false"/>
       </columns>
     </TableView>

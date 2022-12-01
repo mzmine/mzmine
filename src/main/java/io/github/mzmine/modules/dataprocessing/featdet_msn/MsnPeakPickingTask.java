@@ -1,27 +1,29 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.featdet_msn;
 
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.logging.Logger;
-import javax.annotation.Nullable;
-import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -29,6 +31,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -36,14 +40,18 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.Date;
+import java.util.logging.Logger;
+import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class MsnPeakPickingTask extends AbstractTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private int processedScans, totalScans;
-
   private final MZmineProject project;
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
@@ -52,12 +60,12 @@ public class MsnPeakPickingTask extends AbstractTask {
   private final RTTolerance rtTolerance;
   private final ParameterSet parameterSet;
   private final Scan[] scans;
-
   private final ModularFeatureList newFeatureList;
+  private int processedScans, totalScans;
 
-  public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+  public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -153,20 +161,22 @@ public class MsnPeakPickingTask extends AbstractTask {
 
         // Get ranges.
         float scanRT = scan.getRetentionTime();
-        double precursorMZ = scan.getPrecursorMZ();
+        double precursorMZ =
+            scan.getMsMsInfo() != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda
+                ? dda.getIsolationMz() : 0d;
 
         Range<Float> rtRange = rtTolerance.getToleranceRange(scanRT);
         Range<Double> mzRange = mzTolerance.getToleranceRange(precursorMZ);
 
         // Build simple feature for precursor in ranges.
-        ModularFeature newFeature =
-            FeatureUtils.buildSimpleModularFeature(newFeatureList, dataFile, rtRange, mzRange);
+        ModularFeature newFeature = FeatureUtils.buildSimpleModularFeature(newFeatureList, dataFile,
+            rtRange, mzRange);
 
         // Add feature to feature list.
         if (newFeature != null) {
 
-          ModularFeatureListRow newFeatureListRow =
-              new ModularFeatureListRow(newFeatureList, scan.getScanNumber(), dataFile, newFeature);
+          ModularFeatureListRow newFeatureListRow = new ModularFeatureListRow(newFeatureList,
+              scan.getScanNumber(), newFeature);
 
           newFeatureList.addRow(newFeatureListRow);
         }
@@ -185,8 +195,9 @@ public class MsnPeakPickingTask extends AbstractTask {
     }
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
-    newFeatureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        MsnFeatureDetectionModule.class, parameterSet));
+    newFeatureList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(MsnFeatureDetectionModule.class, parameterSet,
+            getModuleCallDate()));
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);
@@ -199,7 +210,7 @@ public class MsnPeakPickingTask extends AbstractTask {
 
   /**
    * Get scan numbers for input MS level.
-   * 
+   *
    * @param scan
    * @return
    */
@@ -212,9 +223,9 @@ public class MsnPeakPickingTask extends AbstractTask {
       return null;
     }
 
-    if (scan.getPrecursorMZ() == 0) {
-      return null;
-    }
+//    if (scan.getPrecursorMZ() == 0) {
+//      return null;
+//    }
 
     // int[] fragmentScanNumbers = scan.getFragmentScanNumbers();
     //

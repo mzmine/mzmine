@@ -1,35 +1,48 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.Comparators;
 import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -52,7 +65,8 @@ import javafx.stage.FileChooser;
 
 
 public class ResultWindowController {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");
@@ -64,15 +78,22 @@ public class ResultWindowController {
   @FXML
   private TableColumn<ResultFormula, String> Formula;
   @FXML
-  private TableColumn<ResultFormula, Double> absoluteMassDifference;
+  private TableColumn<ResultFormula, Float> absoluteMassDifference;
   @FXML
-  private TableColumn<ResultFormula, Double> massDifference;
+  private TableColumn<ResultFormula, Float> massDifference;
   @FXML
-  private TableColumn<ResultFormula, Double> RDBE;
+  private TableColumn<ResultFormula, Float> RDBE;
   @FXML
   private TableColumn<ResultFormula, String> isotopePattern;
   @FXML
   private TableColumn<ResultFormula, String> msScore;
+  @FXML
+  private TableColumn<ResultFormula, String> combinedScore;
+
+  private FeatureListRow featureListRow;
+  private Task searchTask;
+  private String title;
+  private double searchedMass;
 
   @FXML
   private void initialize() {
@@ -88,54 +109,49 @@ public class ResultWindowController {
 
     RDBE.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getRDBE()));
 
+    absoluteMassDifference.setComparator(Comparators.COMPARE_ABS_FLOAT);
     absoluteMassDifference.setCellValueFactory(cell -> {
       double exactMass = cell.getValue().getExactMass();
       double massDiff = searchedMass - exactMass;
 
-      return new ReadOnlyObjectWrapper<>(Double.parseDouble(massFormat.format(massDiff)));
+      return new ReadOnlyObjectWrapper<>(Float.parseFloat(massFormat.format(massDiff)));
     });
+
+    massDifference.setComparator(Comparators.COMPARE_ABS_FLOAT);
     massDifference.setCellValueFactory(cell -> {
       double ExactMass = cell.getValue().getExactMass();
       double MassDiff = searchedMass - ExactMass;
       MassDiff = (MassDiff / ExactMass) * 1E6;
 
-      return new ReadOnlyObjectWrapper<>(Double.parseDouble(ppmFormat.format(MassDiff)));
+      return new ReadOnlyObjectWrapper<>(Float.parseFloat(ppmFormat.format(MassDiff)));
     });
 
-
     isotopePattern.setCellValueFactory(cell -> {
-      String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
-      String cellVal = "";
-      if (cell.getValue().getIsotopeScore() != null) {
-        cellVal = percentFormat.format(Double.parseDouble(isotopeScore));
-      }
+      final Float score = cell.getValue().getIsotopeScore();
+      final String cellVal = score == null ? "" : percentFormat.format(score);
       return new ReadOnlyObjectWrapper<>(cellVal);
     });
 
     msScore.setCellValueFactory(cell -> {
-      String msScore = String.valueOf(cell.getValue().getMSMSScore());
-      String cellVal = "";
-      if (cell.getValue().getMSMSScore() != null) {
-        cellVal = percentFormat.format(Double.parseDouble(msScore));
-      }
+      final Float score = cell.getValue().getMSMSScore();
+      final String cellVal = score == null ? "" : percentFormat.format(score);
       return new ReadOnlyObjectWrapper<>(cellVal);
+    });
 
+    combinedScore.setCellValueFactory(cell -> {
+      final float score = cell.getValue().getScore(10, 3, 1);
+      final String cellVal = percentFormat.format(score);
+      return new ReadOnlyObjectWrapper<>(cellVal);
     });
 
     resultTable.setItems(formulas);
   }
 
-
-  private FeatureListRow peakListRow;
-  private Task searchTask;
-  private String title;
-  private double searchedMass;
-
   public void initValues(String title, FeatureListRow peakListRow, double searchedMass, int charge,
       Task searchTask) {
 
     this.title = title;
-    this.peakListRow = peakListRow;
+    this.featureListRow = peakListRow;
     this.searchTask = searchTask;
     this.searchedMass = searchedMass;
   }
@@ -151,7 +167,7 @@ public class ResultWindowController {
     }
 
     SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(formula.getFormulaAsString());
-    peakListRow.addFeatureIdentity(newIdentity, false);
+    featureListRow.addFeatureIdentity(newIdentity, false);
 
     dispose();
   }
@@ -179,14 +195,17 @@ public class ResultWindowController {
         writer.write(",");
         writer.write(String.valueOf(formula.getExactMass()));
         writer.write(",");
-        if (formula.getRDBE() != null)
+        if (formula.getRDBE() != null) {
           writer.write(String.valueOf(formula.getRDBE()));
+        }
         writer.write(",");
-        if (formula.getIsotopeScore() != null)
+        if (formula.getIsotopeScore() != null) {
           writer.write(String.valueOf(formula.getIsotopeScore()));
+        }
         writer.write(",");
-        if (formula.getMSMSScore() != null)
+        if (formula.getMSMSScore() != null) {
           writer.write(String.valueOf(formula.getMSMSScore()));
+        }
         writer.newLine();
       }
 
@@ -211,15 +230,46 @@ public class ResultWindowController {
     logger.finest("Showing isotope pattern for formula " + formula.getFormulaAsString());
     IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
-    if (predictedPattern == null)
+    if (predictedPattern == null) {
       return;
+    }
 
-    Feature peak = peakListRow.getBestFeature();
+    Feature peak = featureListRow.getBestFeature();
 
     RawDataFile dataFile = peak.getRawDataFile();
     Scan scanNumber = peak.getRepresentativeScan();
-    SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null, peak.getIsotopePattern(),
-        predictedPattern);
+    SpectraVisualizerModule
+        .addNewSpectrumTab(dataFile, scanNumber, null, peak.getIsotopePattern(), predictedPattern);
+  }
+
+  @FXML
+  private void viewIsotopeMirrorClick(ActionEvent ae) {
+    ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
+    if (formula == null) {
+      MZmineCore.getDesktop().displayMessage(null, "Select one result to copy");
+      return;
+    }
+
+    logger
+        .finest("Showing isotope pattern mirror match for formula " + formula.getFormulaAsString());
+    IsotopePattern predictedPattern = formula.getPredictedIsotopes();
+
+    if (predictedPattern == null) {
+      return;
+    }
+
+    Feature peak = featureListRow.getBestFeature();
+    final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensityCopy();
+
+    final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
+    EChartViewer mirrorChart = MirrorChartFactory
+        .createMirrorChartViewer(detectedPattern, predictedPattern,
+            uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"), false, true);
+
+    SimpleTab tab = new SimpleTab("Isotope mirror");
+    tab.setContent(mirrorChart);
+
+    MZmineCore.getDesktop().addTab(tab);
   }
 
   @FXML
@@ -244,24 +294,27 @@ public class ResultWindowController {
       return;
     }
 
-    Feature bestPeak = peakListRow.getBestFeature();
+    Feature bestPeak = featureListRow.getBestFeature();
 
     RawDataFile dataFile = bestPeak.getRawDataFile();
     Scan msmsScanNumber = bestPeak.getMostIntenseFragmentScan();
 
-    if (msmsScanNumber == null)
+    if (msmsScanNumber == null) {
       return;
+    }
 
-    SpectraVisualizerTab msmsPlot =
-        SpectraVisualizerModule.addNewSpectrumTab(dataFile, msmsScanNumber);
+    SpectraVisualizerTab msmsPlot = SpectraVisualizerModule
+        .addNewSpectrumTab(dataFile, msmsScanNumber);
 
-    if (msmsPlot == null)
+    if (msmsPlot == null) {
       return;
-    Map<Integer, String> annotation = formula.getMSMSannotation();
+    }
+    Map<DataPoint, String> annotation = formula.getMSMSannotation();
 
-    if (annotation == null)
+    if (annotation == null) {
       return;
-    msmsPlot.addAnnotation(annotation);
+    }
+    msmsPlot.addMzAnnotation(annotation);
   }
 
   public void addNewListItem(final ResultFormula formula) {

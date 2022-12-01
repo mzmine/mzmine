@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.chromatogram;
@@ -41,10 +48,12 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -59,7 +68,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.entity.ChartEntity;
@@ -111,7 +120,7 @@ public class TICVisualizerTab extends MZmineTab {
    * Constructor for total ion chromatogram visualizer
    */
   public TICVisualizerTab(RawDataFile dataFiles[], TICPlotType plotType,
-      ScanSelection scanSelection, Range<Double> mzRange, List<Feature> features,
+      ScanSelection scanSelection, Range<Double> mzRange, List<? extends Feature> features,
       Map<Feature, String> featureLabels) {
     super("TIC Visualizer", true, false);
 
@@ -391,19 +400,19 @@ public class TICVisualizerTab extends MZmineTab {
     ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<RawDataFile> getRawDataFiles() {
     return ticDataSets.keySet();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
@@ -486,7 +495,8 @@ public class TICVisualizerTab extends MZmineTab {
       final File exportFile = exportChooser.showSaveDialog(getTabPane().getScene().getWindow());
       if (exportFile != null) {
 
-        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));
+        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile,
+            Instant.now()));
       }
     }
   }

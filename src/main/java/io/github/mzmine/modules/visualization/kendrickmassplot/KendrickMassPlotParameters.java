@@ -1,34 +1,38 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
+import java.text.DecimalFormat;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.PaintScaleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import io.github.mzmine.util.ExitCode;
@@ -63,28 +67,34 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
       new OptionalParameter<>(new StringParameter("Kendrick mass base for z-Axis",
           "Enter a sum formula for a Kendrick mass base to display a Kendrick mass defect in form of a heatmap"));
 
-  public static final PaintScaleParameter paintScale =
-      new PaintScaleParameter("Color scale", "Select paint scale",
-          new PaintScale[] {
-              new PaintScale(PaintScaleColorStyle.RAINBOW, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.GRREN_RED, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.RED, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.GREEN, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.CYAN, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.YELLOW, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0))});
+  public static final ComboParameter<String> bubbleSize = new ComboParameter<>("Bubble Size",
+      "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
+      new String[] {"none", "Retention time", "Intensity", "Area", "Tailing factor",
+          "Asymmetry factor", "FWHM", "m/z"});
+
+  public static final ComboParameter<String> zScaleType = new ComboParameter<>("Z-Axis scale",
+      "Select Z-Axis scale", new String[] {"percentile", "custom"});
+
+  public static final DoubleRangeParameter zScaleRange = new DoubleRangeParameter(
+      "Range for z-Axis scale",
+      "Set the range for z-Axis scale."
+          + " If percentile is used for z-Axis scale type, you can remove extreme values of the scale."
+          + " E. g. type 0.5 and 99.5 to ignore the 0.5 smallest and 0.5 highest values. "
+          + "If you choose custom, set ranges manually "
+          + "Features out of scale range are displayed in magenta",
+      new DecimalFormat("##0.00"));
+
+  public static final ComboParameter<String> paintScale = new ComboParameter<>("Heatmap style",
+      "Select the style for the third dimension", new String[] {"Rainbow", "Monochrome red",
+          "Monochrome green", "Monochrome yellow", "Monochrome cyan"});
 
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public KendrickMassPlotParameters() {
     super(new Parameter[] {featureList, selectedRows, yAxisCustomKendrickMassBase, xAxisValues,
-        xAxisCustomKendrickMassBase, zAxisValues, zAxisCustomKendrickMassBase, paintScale,
-        windowSettings});
+        xAxisCustomKendrickMassBase, zAxisValues, zAxisCustomKendrickMassBase, bubbleSize,
+        zScaleType, zScaleRange, paintScale, windowSettings},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#kendrick-mass-plot");
   }
 
   @Override

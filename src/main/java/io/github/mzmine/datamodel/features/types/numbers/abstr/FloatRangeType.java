@@ -1,32 +1,46 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import io.github.mzmine.datamodel.features.ModularFeature;
-import java.text.NumberFormat;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.Property;
+import io.github.mzmine.util.ParsingUtils;
+import java.text.NumberFormat;
+import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class FloatRangeType extends NumberRangeType<Float> {
 
@@ -35,34 +49,74 @@ public abstract class FloatRangeType extends NumberRangeType<Float> {
   }
 
   @Override
-  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
-    // get all properties of all features
-    @SuppressWarnings("unchecked")
-    Property<Range<Float>>[] prop =
-        row.streamFeatures().map(f -> (ModularFeature) f)
-            .map(f -> f.get(this)).toArray(Property[]::new);
-    switch (bind) {
-      case RANGE:
-        return Bindings.createObjectBinding(() -> {
-          Range<Float> result = null;
-          for (Property<Range<Float>> p : prop) {
-            if (p.getValue() != null) {
-              if (result == null)
-                result = p.getValue();
-              else
-                result = result.span(p.getValue());
-            }
-          }
-          return result;
-        }, prop);
-      case AVERAGE:
-      case MIN:
-      case MAX:
-      case SUM:
-      case COUNT:
-      default:
-        throw new UndefinedRowBindingException(this, bind);
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    if (value instanceof Range r) {
+      writer.writeCharacters(ParsingUtils.rangeToString(r));
+    } else {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
     }
   }
 
+  @Override
+  public Class<Range<Float>> getValueClass() {
+    return (Class) Range.class;
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    return ParsingUtils.stringToFloatRange(reader.getElementText());
+  }
+
+  @Override
+  public Object evaluateBindings(@NotNull BindingsType bindingType,
+      @NotNull List<? extends ModularDataModel> models) {
+    Object result = super.evaluateBindings(bindingType, models);
+    if (result == null) {
+      // general cases here - special cases handled in other classes
+      switch (bindingType) {
+        case AVERAGE: {
+          // calc average center of ranges
+          float mean = 0f;
+          int c = 0;
+          for (var model : models) {
+            Range<Float> range = model.get(this);
+            if (range != null) {
+              float center = (range.upperEndpoint() - range.lowerEndpoint()) / 2f;
+              mean += center;
+              c++;
+            }
+          }
+          return c == 0 ? 0f : mean / c;
+        }
+        case SUM, CONSENSUS, RANGE: {
+          // calc average center of ranges
+          Range<Float> sum = null;
+          for (var model : models) {
+            Range<Float> range = model.get(this);
+            if (range != null) {
+              if (sum == null) {
+                sum = range;
+              } else {
+                sum = sum.span(range);
+              }
+            }
+          }
+          return sum;
+        }
+        case MIN, MAX: {
+          throw new UnsupportedOperationException("min max bindings are undefined for Ranges");
+        }
+      }
+    }
+    return result;
+  }
 }

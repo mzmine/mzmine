@@ -1,25 +1,31 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
@@ -30,21 +36,24 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class RTCalibrationTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
+  private final OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList originalFeatureLists[], normalizedFeatureLists[];
 
   // Processed rows counter
@@ -54,30 +63,30 @@ class RTCalibrationTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
   private double minHeight;
-  private boolean removeOriginal;
   private ParameterSet parameters;
 
-  public RTCalibrationTask(MZmineProject project, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+  public RTCalibrationTask(MZmineProject project, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
-    this.originalFeatureLists = (ModularFeatureList[]) parameters.getParameter(RTCalibrationParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+    this.originalFeatureLists = (ModularFeatureList[]) parameters.getParameter(
+        RTCalibrationParameters.featureLists).getValue().getMatchingFeatureLists();
     this.parameters = parameters;
 
     suffix = parameters.getParameter(RTCalibrationParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(RTCalibrationParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(RTCalibrationParameters.RTTolerance).getValue();
     minHeight = parameters.getParameter(RTCalibrationParameters.minHeight).getValue();
-    removeOriginal = parameters.getParameter(RTCalibrationParameters.autoRemove).getValue();
+    handleOriginal = parameters.getParameter(RTCalibrationParameters.handleOriginal).getValue();
 
   }
 
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0f;
+    }
     return (double) processedRows / (double) totalRows;
   }
 
@@ -127,8 +136,9 @@ class RTCalibrationTask extends AbstractTask {
 
       // Check that all features of this row have proper height
       for (Feature p : candidate.getFeatures()) {
-        if (p.getHeight() < minHeight)
+        if (p.getHeight() < minHeight) {
           continue standardIteration;
+        }
       }
 
       ModularFeatureListRow goodStandardCandidate[] = new ModularFeatureListRow[originalFeatureLists.length];
@@ -141,19 +151,20 @@ class RTCalibrationTask extends AbstractTask {
       for (int i = 1; i < originalFeatureLists.length; i++) {
         Range<Float> rtRange = rtTolerance.getToleranceRange(candidateRT);
         Range<Double> mzRange = mzTolerance.getToleranceRange(candidateMZ);
-        ModularFeatureListRow matchingRows[] =
-                originalFeatureLists[i].getRowsInsideScanAndMZRange(rtRange, mzRange)
-                        .toArray(new ModularFeatureListRow[0]);
+        ModularFeatureListRow matchingRows[] = originalFeatureLists[i].getRowsInsideScanAndMZRange(
+            rtRange, mzRange).toArray(new ModularFeatureListRow[0]);
 
         // If we have not found exactly 1 matching feature, move to next
         // standard candidate
-        if (matchingRows.length != 1)
+        if (matchingRows.length != 1) {
           continue standardIteration;
+        }
 
         // Check that all features of this row have proper height
         for (Feature p : matchingRows[0].getFeatures()) {
-          if (p.getHeight() < minHeight)
+          if (p.getHeight() < minHeight) {
             continue standardIteration;
+          }
         }
 
         // Save reference to matching peak in this feature list
@@ -179,14 +190,16 @@ class RTCalibrationTask extends AbstractTask {
     double averagedRTs[] = new double[goodStandards.size()];
     for (int i = 0; i < goodStandards.size(); i++) {
       double rtAverage = 0;
-      for (FeatureListRow row : goodStandards.get(i))
+      for (FeatureListRow row : goodStandards.get(i)) {
         rtAverage += row.getAverageRT();
+      }
       rtAverage /= originalFeatureLists.length;
       averagedRTs[i] = rtAverage;
     }
 
     // Normalize each feature list
-    for (int featureListIndex = 0; featureListIndex < originalFeatureLists.length; featureListIndex++) {
+    for (int featureListIndex = 0; featureListIndex < originalFeatureLists.length;
+        featureListIndex++) {
 
       // Get standard rows for this feature list only
       ModularFeatureListRow standards[] = new ModularFeatureListRow[goodStandards.size()];
@@ -194,8 +207,8 @@ class RTCalibrationTask extends AbstractTask {
         standards[i] = goodStandards.get(i)[featureListIndex];
       }
 
-      normalizeFeatureList(originalFeatureLists[featureListIndex], normalizedFeatureLists[featureListIndex],
-          standards, averagedRTs);
+      normalizeFeatureList(originalFeatureLists[featureListIndex],
+          normalizedFeatureLists[featureListIndex], standards, averagedRTs);
 
     }
 
@@ -207,8 +220,9 @@ class RTCalibrationTask extends AbstractTask {
     // Add new feature lists to the project
 
     for (int i = 0; i < originalFeatureLists.length; i++) {
-
-      project.addFeatureList(normalizedFeatureLists[i]);
+      // add or remove lists
+      handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureLists[i],
+          originalFeatureLists[i]);
 
       // Load previous applied methods
       for (FeatureListAppliedMethod proc : originalFeatureLists[i].getAppliedMethods()) {
@@ -218,11 +232,7 @@ class RTCalibrationTask extends AbstractTask {
       // Add task description to feature list
       normalizedFeatureLists[i].addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod("Retention time normalization",
-              RTCalibrationModule.class, parameters));
-
-      // Remove the original feature lists if requested
-      if (removeOriginal)
-        project.removeFeatureList(originalFeatureLists[i]);
+              RTCalibrationModule.class, parameters, getModuleCallDate()));
 
     }
 
@@ -235,15 +245,17 @@ class RTCalibrationTask extends AbstractTask {
    * Normalize retention time of all rows in given feature list and save normalized rows into new
    * feature list.
    *
-   * @param originalFeatureList Feature list to be normalized
+   * @param originalFeatureList   Feature list to be normalized
    * @param normalizedFeatureList New feature list, where normalized rows are to be saved
-   * @param standards Standard rows in same feature list
-   * @param normalizedStdRTs Normalized retention times of standard rows
+   * @param standards             Standard rows in same feature list
+   * @param normalizedStdRTs      Normalized retention times of standard rows
    */
-  private void normalizeFeatureList(ModularFeatureList originalFeatureList, ModularFeatureList normalizedFeatureList,
-                                    ModularFeatureListRow standards[], double normalizedStdRTs[]) {
+  private void normalizeFeatureList(ModularFeatureList originalFeatureList,
+      ModularFeatureList normalizedFeatureList, ModularFeatureListRow standards[],
+      double normalizedStdRTs[]) {
 
-    ModularFeatureListRow originalRows[] = originalFeatureList.getRows().toArray(ModularFeatureListRow[]::new);
+    ModularFeatureListRow originalRows[] = originalFeatureList.getRows()
+        .toArray(ModularFeatureListRow[]::new);
 
     // Iterate feature list rows
     for (ModularFeatureListRow originalRow : originalRows) {
@@ -254,13 +266,8 @@ class RTCalibrationTask extends AbstractTask {
       }
 
       // Normalize one row
-      ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList, originalRow, standards, normalizedStdRTs);
-
-      // Copy comment and identification
-      normalizedRow.setComment(originalRow.getComment());
-      for (FeatureIdentity ident : originalRow.getPeakIdentities())
-        normalizedRow.addFeatureIdentity(ident, false);
-      normalizedRow.setPreferredFeatureIdentity(originalRow.getPreferredFeatureIdentity());
+      ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList, originalRow,
+          standards, normalizedStdRTs);
 
       // Add the new row to normalized feature list
       normalizedFeatureList.addRow(normalizedRow);
@@ -274,15 +281,17 @@ class RTCalibrationTask extends AbstractTask {
   /**
    * Normalize retention time of given row using selected standards
    *
-   * @param originalRow Feature list row to be normalized
-   * @param standards Standard rows in same feature list
+   * @param originalRow      Feature list row to be normalized
+   * @param standards        Standard rows in same feature list
    * @param normalizedStdRTs Normalized retention times of standard rows
    * @return New feature list row with normalized retention time
    */
-  private ModularFeatureListRow normalizeRow(ModularFeatureList targetFeatureList, ModularFeatureListRow originalRow, ModularFeatureListRow standards[],
+  private ModularFeatureListRow normalizeRow(ModularFeatureList targetFeatureList,
+      ModularFeatureListRow originalRow, ModularFeatureListRow standards[],
       double normalizedStdRTs[]) {
 
-    ModularFeatureListRow normalizedRow = new ModularFeatureListRow(targetFeatureList, originalRow, false);
+    ModularFeatureListRow normalizedRow = new ModularFeatureListRow(targetFeatureList, originalRow,
+        false);
 
     // Standard rows preceding and following this row
     int prevStdIndex = -1, nextStdIndex = -1;
@@ -298,16 +307,18 @@ class RTCalibrationTask extends AbstractTask {
 
       // If this standard feature is before our originalRow
       if (standards[stdIndex].getAverageRT() < originalRow.getAverageRT()) {
-        if ((prevStdIndex == -1)
-            || (standards[stdIndex].getAverageRT() > standards[prevStdIndex].getAverageRT()))
+        if ((prevStdIndex == -1) || (standards[stdIndex].getAverageRT()
+                                     > standards[prevStdIndex].getAverageRT())) {
           prevStdIndex = stdIndex;
+        }
       }
 
       // If this standard feature is after our originalRow
       if (standards[stdIndex].getAverageRT() > originalRow.getAverageRT()) {
-        if ((nextStdIndex == -1)
-            || (standards[stdIndex].getAverageRT() < standards[nextStdIndex].getAverageRT()))
+        if ((nextStdIndex == -1) || (standards[stdIndex].getAverageRT()
+                                     < standards[nextStdIndex].getAverageRT())) {
           nextStdIndex = stdIndex;
+        }
       }
 
     }
@@ -317,15 +328,13 @@ class RTCalibrationTask extends AbstractTask {
 
     if ((prevStdIndex == -1) || (nextStdIndex == -1)) {
       normalizedRT = originalRow.getAverageRT();
-    } else
-
-    if (prevStdIndex == nextStdIndex) {
+    } else if (prevStdIndex == nextStdIndex) {
       normalizedRT = normalizedStdRTs[prevStdIndex];
     } else {
-      double weight = (originalRow.getAverageRT() - standards[prevStdIndex].getAverageRT())
-          / (standards[nextStdIndex].getAverageRT() - standards[prevStdIndex].getAverageRT());
-      normalizedRT = normalizedStdRTs[prevStdIndex]
-          + (weight * (normalizedStdRTs[nextStdIndex] - normalizedStdRTs[prevStdIndex]));
+      double weight = (originalRow.getAverageRT() - standards[prevStdIndex].getAverageRT()) / (
+          standards[nextStdIndex].getAverageRT() - standards[prevStdIndex].getAverageRT());
+      normalizedRT = normalizedStdRTs[prevStdIndex] + (weight * (normalizedStdRTs[nextStdIndex]
+                                                                 - normalizedStdRTs[prevStdIndex]));
     }
 
     // Set normalized retention time to all features in this row

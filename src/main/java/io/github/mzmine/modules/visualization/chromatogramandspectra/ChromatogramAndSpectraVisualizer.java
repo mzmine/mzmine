@@ -1,34 +1,30 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
-import java.awt.BasicStroke;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Objects;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.jfree.chart.plot.ValueMarker;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -48,8 +44,17 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExitCode;
+import java.awt.BasicStroke;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.beans.NamedArg;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -59,14 +64,19 @@ import javafx.collections.ObservableMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.HBox;
+import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.plot.ValueMarker;
 
 /**
  * This visualizer can be used to visualize chromatograms and spectra of multiple raw data files at
@@ -80,26 +90,11 @@ import javafx.scene.layout.StackPane;
  */
 public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
-  private final NumberFormat mzFormat;
-  private final NumberFormat rtFormat;
-
-  public static final Logger logger =
-      Logger.getLogger(ChromatogramAndSpectraVisualizer.class.getName());
-
-  private static final BasicStroke MARKER_STROKE = new BasicStroke(2.0f);
-
-  protected FlowPane pnSpectrumControls;
-  protected ChromatogramPlotControlPane pnChromControls;
-
+  public static final Logger logger = Logger.getLogger(
+      ChromatogramAndSpectraVisualizer.class.getName());
+  public static final BasicStroke MARKER_STROKE = new BasicStroke(2.0f);
   protected final TICPlot chromPlot;
   protected final SpectraPlot spectrumPlot;
-  protected ValueMarker rtMarker;
-  protected ValueMarker mzMarker;
-
-  protected ParameterSet parameterSet;
-
-  protected boolean showSpectraOfEveryRawFile;
-
   protected final ObjectProperty<ScanSelection> scanSelection;
   /**
    * Type of chromatogram to be displayed. This is bound bidirectional to the
@@ -107,38 +102,43 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * {@link ChromatogramAndSpectraVisualizerParameters#plotType} changes.
    */
   protected final ObjectProperty<TICPlotType> plotType;
-
   /**
    * Current position of the crosshair in the chromatogram plot. Changes to the position should be
    * reflected in the {@link ChromatogramAndSpectraVisualizer#spectrumPlot}.
    */
   protected final ObjectProperty<ChromatogramCursorPosition> chromPosition;
-
   /**
    * Current position of the crosshair in the spectrum plot. Changes in the position update the
    * {@link ChromatogramAndSpectraVisualizer#chromPlot} via
-   * {@link ChromatogramAndSpectraVisualizer#onSpectrumSelectionChanged(ObservableValue, SpectrumCursorPosition, SpectrumCursorPosition)}.
+   * {@link ChromatogramAndSpectraVisualizer#onSpectrumSelectionChanged(ObservableValue,
+   * SpectrumCursorPosition, SpectrumCursorPosition)}.
    */
   protected final ObjectProperty<SpectrumCursorPosition> spectrumPosition;
-
   /**
    * Tolerance range for the feature chromatograms of the base peak in the selected scan. Listener
    * calls {@link ChromatogramAndSpectraVisualizer#updateFeatureDataSets(double)}.
    */
   protected final ObjectProperty<MZTolerance> chromMzTolerance;
-
   /**
    * Tolerance for the generation of the TICDataset. If set to null, the whole m/z range is
    * displayed.
    */
   protected final ObjectProperty<Range<Double>> mzRange;
-
+  protected final PauseTransition chromDelay = new PauseTransition(Duration.millis(200));
+  protected final PauseTransition spectraDelay = new PauseTransition(Duration.millis(200));
+  private final NumberFormat mzFormat;
+  private final NumberFormat rtFormat;
+  protected FlowPane pnSpectrumControls;
+  protected ChromatogramPlotControlPane pnChromControls;
+  protected BooleanProperty showMassListProperty;
+  protected ValueMarker rtMarker;
+  protected ParameterSet parameterSet;
+  protected boolean showSpectraOfEveryRawFile;
   /**
    * Stores the raw data files ands tic data sets currently displayed. Could be observed by a
    * listener in the future, if needed.
    */
   protected ObservableMap<RawDataFile, TICDataSet> filesAndDataSets;
-
   protected SpectraDataSetCalc currentSpectraDataSetCalc;
   protected FeatureDataSetCalc currentFeatureDataSetCalc;
 
@@ -165,68 +165,57 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromMzTolerance = new SimpleObjectProperty<>(new MZTolerance(0, 10));
     chromPosition = new SimpleObjectProperty<>();
     spectrumPosition = new SimpleObjectProperty<>();
-    scanSelection =
-        new SimpleObjectProperty<>(new ScanSelection(null, null, null, null, null, null, 1, null));
+    scanSelection = new SimpleObjectProperty<>(
+        new ScanSelection(null, null, null, null, null, null, 1, null));
     mzRange = new SimpleObjectProperty<>();
 
     // initialise controls
-    pnChromControls = new ChromatogramPlotControlPane();
     pnSpectrumControls = new FlowPane();
     chromPlot = new TICPlot();
     spectrumPlot = new SpectraPlot();
     BorderPane pnWrapSpectrum = new BorderPane();
     BorderPane pnWrapChrom = new BorderPane();
     pnWrapChrom.setCenter(chromPlot);
-    pnWrapChrom.setBottom(pnChromControls);
 
     pnWrapSpectrum.setCenter(spectrumPlot);
     pnWrapSpectrum.setBottom(pnSpectrumControls);
     getItems().addAll(pnWrapChrom, pnWrapSpectrum);
 
-    // chrom plot top bar
-    Button btnChromSetup = new Button("...");
-    btnChromSetup.setOnAction(e -> {
-      if (parameterSet == null) {
-        parameterSet = MZmineCore.getConfiguration()
-            .getModuleParameters(ChromatogramAndSpectraVisualizerModule.class);
-      }
-      ExitCode code = parameterSet.showSetupDialog(true);
-      if (code == ExitCode.OK) {
-        MZTolerance tol = parameterSet
-            .getParameter(ChromatogramAndSpectraVisualizerParameters.chromMzTolerance).getValue();
-        ScanSelection sel = parameterSet
-            .getParameter(ChromatogramAndSpectraVisualizerParameters.scanSelection).getValue();
-        if (sel != null) {
-          scanSelection.set(sel);
-        }
-        if (tol != null) {
-          chromMzTolerance.set(tol);
-        }
-        TICPlotType pt = parameterSet
-            .getParameter(ChromatogramAndSpectraVisualizerParameters.plotType).getValue();
-        if (pt != null) {
-          plotType.set(pt);
-        }
+    // chrom plot settings bottom
+    pnChromControls = new ChromatogramPlotControlPane();
+    pnWrapChrom.setBottom(pnChromControls);
+    pnChromControls.setParameterListener(this::handleParametersChange);
+
+    HBox hBoxChromSetup = new HBox(10, pnChromControls);
+    hBoxChromSetup.setAlignment(Pos.BASELINE_RIGHT);
+    hBoxChromSetup.setPadding(new Insets(0));
+
+    TitledPane chromParamPane = new TitledPane("Chromatogram parameters", hBoxChromSetup);
+    chromParamPane.setPadding(new Insets(0));
+    Accordion accordChromParam = new Accordion(chromParamPane);
+    pnWrapChrom.setBottom(accordChromParam);
+
+    // spectrum plot bottom settings
+    ChoiceBox<SpectrumPlotType> cbSpectrumType = new ChoiceBox<>(
+        FXCollections.observableArrayList(SpectrumPlotType.values()));
+    cbSpectrumType.valueProperty().bindBidirectional(spectrumPlot.plotModeProperty());
+    CheckBox checkBoxShowMassList = new CheckBox("Show mass list");
+
+    HBox hBoxSpectrumSetup = new HBox(10, checkBoxShowMassList, cbSpectrumType);
+    hBoxSpectrumSetup.setAlignment(Pos.BASELINE_RIGHT);
+    hBoxSpectrumSetup.setPadding(new Insets(0));
+
+    TitledPane specParamPane = new TitledPane("Spectrum parameters", hBoxSpectrumSetup);
+    specParamPane.setPadding(new Insets(0));
+    Accordion accordSpecParam = new Accordion(specParamPane);
+    pnWrapSpectrum.setBottom(accordSpecParam);
+
+    showMassListProperty = checkBoxShowMassList.selectedProperty();
+    showMassListProperty.addListener((observable, oldValue, newValue) -> {
+      if (filesAndDataSets != null && chromPosition.getValue() != null) {
+        updateSpectraPlot(filesAndDataSets.keySet(), chromPosition.getValue());
       }
     });
-    FlowPane pnChromHeader = new FlowPane(new Label("Chromatrogram view"));
-    StackPane pnChromStack = new StackPane();
-    pnChromStack.setAlignment(Pos.TOP_RIGHT);
-    pnChromStack.setPadding(new Insets(5));
-    pnChromStack.getChildren().addAll(pnChromHeader, btnChromSetup);
-    pnWrapChrom.setTop(pnChromStack);
-
-    // spectrum plot top bar
-    ChoiceBox<SpectrumPlotType> cbSpectrumType =
-        new ChoiceBox<>(FXCollections.observableArrayList(SpectrumPlotType.values()));
-    cbSpectrumType.valueProperty().bindBidirectional(spectrumPlot.plotModeProperty());
-    StackPane pnSpectrumStack = new StackPane();
-    pnSpectrumStack.setAlignment(Pos.TOP_RIGHT);
-    pnSpectrumStack.setPadding(new Insets(5));
-    FlowPane pnSpectrumHeader = new FlowPane(new Label("Spectrum view"));
-    pnSpectrumHeader.setPadding(new Insets(5));
-    pnSpectrumStack.getChildren().addAll(pnSpectrumHeader, cbSpectrumType);
-    pnWrapSpectrum.setTop(pnSpectrumStack);
 
     chromPlot.setLabelColorMatch(true);
     spectrumPlot.setLabelColorMatch(true);
@@ -251,11 +240,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     });
 
     // update spectrum plot if the user clicks in chromatogram plot
-    chromPositionProperty()
-        .addListener((obs, old, pos) -> onChromatogramSelectionChanged(obs, old, pos));
+    chromPositionProperty().addListener(
+        (obs, old, pos) -> onChromatogramSelectionChanged(obs, old, pos));
 
-    spectrumPositionProperty()
-        .addListener(((obs, old, pos) -> onSpectrumSelectionChanged(obs, old, pos)));
+    spectrumPositionProperty().addListener(
+        ((obs, old, pos) -> onSpectrumSelectionChanged(obs, old, pos)));
 
     // update chromatogram plot if the ScanSelection changes
     scanSelectionProperty().addListener((obs, old, val) -> updateAllChromatogramDataSets());
@@ -286,15 +275,34 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     });
   }
 
+  private void handleParametersChange(ParameterSet params) {
+    parameterSet = params;
+    MZTolerance tol = parameterSet.getParameter(
+        ChromatogramAndSpectraVisualizerParameters.chromMzTolerance).getValue();
+    ScanSelection sel = parameterSet.getParameter(
+        ChromatogramAndSpectraVisualizerParameters.scanSelection).getValue();
+    if (sel != null) {
+      scanSelection.set(sel);
+    }
+    if (tol != null) {
+      chromMzTolerance.set(tol);
+    }
+    TICPlotType pt = parameterSet.getParameter(ChromatogramAndSpectraVisualizerParameters.plotType)
+        .getValue();
+    if (pt != null) {
+      plotType.set(pt);
+    }
+  }
+
   private Scan getScan(RawDataFile dataFile, Scan scan, int shift) {
     if (!Objects.equals(scan.getDataFile(), dataFile)) {
       throw new IllegalArgumentException("data file and the scan data file need to be the same");
     }
     ObservableList<Scan> scans = dataFile.getScans();
     int index = scans.indexOf(scan);
-    if (index == -1)
+    if (index == -1) {
       return null;
-    else if (shift > 0) {
+    } else if (shift > 0) {
       return scans.get(Math.min(index + shift, scans.size() - 1));
     } else {
       return scans.get(Math.max(index + shift, 0));
@@ -302,20 +310,21 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   private void updateAllChromatogramDataSets() {
-    List<RawDataFile> rawDataFiles = new ArrayList<>();
-    filesAndDataSets.keySet().forEach(raw -> rawDataFiles.add(raw));
-    chromPlot.getXYPlot().setNotify(false);
-    chromPlot.getXYPlot().clearDomainMarkers();
-    rawDataFiles.forEach(raw -> removeRawDataFile(raw));
-    rawDataFiles.forEach(raw -> addRawDataFile(raw));
-    chromPlot.getXYPlot().setNotify(true);
-    chromPlot.getChart().fireChartChanged();
+    List<RawDataFile> rawDataFiles = new ArrayList<>(filesAndDataSets.keySet());
+    // update all datasets and force update at the end by setting the state to true
+    chromPlot.applyWithNotifyChanges(false, true, () -> {
+      chromPlot.getXYPlot().clearDomainMarkers();
+      for (RawDataFile raw : rawDataFiles) {
+        removeRawDataFile(raw);
+        addRawDataFile(raw);
+      }
+    });
   }
 
   /**
    * @return The raw data files currently visualised.
    */
-  @Nonnull
+  @NotNull
   public Collection<RawDataFile> getRawDataFiles() {
     return filesAndDataSets.keySet();
   }
@@ -327,21 +336,25 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param rawDataFiles
    */
-  public void setRawDataFiles(@Nonnull Collection<RawDataFile> rawDataFiles) {
-    // remove files first
-    List<RawDataFile> filesToProcess = new ArrayList<>();
-    for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
-      if (!rawDataFiles.contains(rawDataFile)) {
-        filesToProcess.add(rawDataFile);
-      }
-    }
-    filesToProcess.forEach(r -> removeRawDataFile(r));
+  public void setRawDataFiles(@NotNull Collection<RawDataFile> rawDataFiles) {
+    // disable update until all changes are applied, then set true and force update
+    spectrumPlot.applyWithNotifyChanges(false, true, () -> {
+      chromPlot.applyWithNotifyChanges(false, true, () -> {
 
-    // presence of file is checked in the add method
-    rawDataFiles.forEach(r -> {
-      if (!(r instanceof ImagingRawDataFile)) {
-        addRawDataFile(r);
-      }
+        // remove files first
+        for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
+          if (!rawDataFiles.contains(rawDataFile)) {
+            removeRawDataFile(rawDataFile);
+          }
+        }
+
+        // presence of file is checked in the add method
+        for (RawDataFile r : rawDataFiles) {
+          if (!(r instanceof ImagingRawDataFile)) {
+            addRawDataFile(r);
+          }
+        }
+      });
     });
   }
 
@@ -350,9 +363,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param rawDataFile
    */
-  public void addRawDataFile(@Nonnull final RawDataFile rawDataFile) {
+  public void addRawDataFile(@NotNull final RawDataFile rawDataFile) {
 
-    if (filesAndDataSets.keySet().contains(rawDataFile)) {
+    if (filesAndDataSets.containsKey(rawDataFile)) {
       logger.fine("Raw data file " + rawDataFile.getName() + " already displayed.");
       return;
     }
@@ -368,8 +381,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         (getMzRange() != null && pnChromControls.cbXIC.isSelected()) ? getMzRange()
             : rawDataFile.getDataMZRange();
 
-    TICDataSet ticDataset =
-        new TICDataSet(rawDataFile, List.of(scans), rawMZRange, null, getPlotType());
+    TICDataSet ticDataset = new TICDataSet(rawDataFile, List.of(scans), rawMZRange, null,
+        getPlotType());
     filesAndDataSets.put(rawDataFile, ticDataset);
     chromPlot.addTICDataSet(ticDataset, rawDataFile.getColorAWT());
 
@@ -381,7 +394,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param file The raw data file
    */
-  public void removeRawDataFile(@Nonnull final RawDataFile file) {
+  public void removeRawDataFile(@NotNull final RawDataFile file) {
     logger.fine("Removing raw data file " + file.getName());
     TICDataSet dataset = filesAndDataSets.get(file);
     chromPlot.getXYPlot().setDataset(chromPlot.getXYPlot().indexOf(dataset), null);
@@ -397,13 +410,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private void onChromatogramSelectionChanged(
       ObservableValue<? extends ChromatogramCursorPosition> obs, ChromatogramCursorPosition old,
       ChromatogramCursorPosition pos) {
-    RawDataFile file = pos.getDataFile();
-
     updateChromatogramDomainMarker(pos);
     // update feature data sets
     Scan scan = pos.getScan();
-    if (scan.getBasePeakMz() != null)
+    if (scan.getBasePeakMz() != null) {
       updateFeatureDataSets(scan.getBasePeakMz());
+    }
     // update spectrum plots
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
   }
@@ -417,43 +429,33 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    */
   private void onSpectrumSelectionChanged(ObservableValue<? extends SpectrumCursorPosition> obs,
       SpectrumCursorPosition old, SpectrumCursorPosition pos) {
-    updateSpectrumDomainMarker(pos);
     mzRangeProperty().set(getChromMzTolerance().getToleranceRange(pos.getMz()));
     updateFeatureDataSets(pos.getMz());
   }
 
   /**
    * Changes the position of the domain marker. Is called by the mouse listener initialized in
-   * {@link ChromatogramAndSpectraVisualizer#onChromatogramSelectionChanged(ObservableValue, ChromatogramCursorPosition, ChromatogramCursorPosition)}
+   * {@link ChromatogramAndSpectraVisualizer#onChromatogramSelectionChanged(ObservableValue,
+   * ChromatogramCursorPosition, ChromatogramCursorPosition)}
    *
    * @param pos
    */
-  private void updateChromatogramDomainMarker(@Nonnull ChromatogramCursorPosition pos) {
-    chromPlot.getXYPlot().clearDomainMarkers();
+  private void updateChromatogramDomainMarker(@NotNull ChromatogramCursorPosition pos) {
+    chromPlot.applyWithNotifyChanges(false, () -> {
 
-    if (rtMarker == null) {
-      rtMarker = new ValueMarker(pos.getScan().getRetentionTime());
-      rtMarker.setStroke(MARKER_STROKE);
-    } else {
-      rtMarker.setValue(pos.getScan().getRetentionTime());
-    }
-    rtMarker.setPaint(MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
+      chromPlot.getXYPlot().clearDomainMarkers();
 
-    chromPlot.getXYPlot().addDomainMarker(rtMarker);
-  }
+      if (rtMarker == null) {
+        rtMarker = new ValueMarker(pos.getScan().getRetentionTime());
+        rtMarker.setStroke(MARKER_STROKE);
+      } else {
+        rtMarker.setValue(pos.getScan().getRetentionTime());
+      }
+      rtMarker.setPaint(
+          MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
 
-  private void updateSpectrumDomainMarker(@Nonnull SpectrumCursorPosition pos) {
-    spectrumPlot.getXYPlot().clearDomainMarkers();
-
-    if (mzMarker == null) {
-      mzMarker = new ValueMarker(pos.getMz());
-      mzMarker.setStroke(MARKER_STROKE);
-    } else {
-      mzMarker.setValue(pos.getMz());
-    }
-    mzMarker.setPaint(MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
-
-    spectrumPlot.getXYPlot().addDomainMarker(mzMarker);
+      chromPlot.getXYPlot().addDomainMarker(rtMarker);
+    });
   }
 
   /**
@@ -461,14 +463,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * {@link ChromatogramAndSpectraVisualizer#chromPositionProperty()}'s listeners.
    *
    * @param rawDataFile The rawDataFile to focus.
-   * @param scanNum The scan number.
+   * @param scanNum     The scan number.
    */
-  public void setFocusedScan(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
-    if (!filesAndDataSets.keySet().contains(rawDataFile) || scanNum == null) {
+  public void setFocusedScan(@NotNull RawDataFile rawDataFile, Scan scanNum) {
+    if (!filesAndDataSets.containsKey(rawDataFile) || scanNum == null) {
       return;
     }
-    ChromatogramCursorPosition pos =
-        new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0, 0, rawDataFile, scanNum);
+    ChromatogramCursorPosition pos = new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0,
+        0, rawDataFile, scanNum);
     setChromPosition(pos);
   }
 
@@ -477,13 +479,15 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * {@link ChromatogramAndSpectraVisualizer#chromPosition}.
    *
    * @param rawDataFile The raw data file
-   * @param scanNum The number of the scan
+   * @param scanNum     The number of the scan
    */
-  private void forceScanDataSet(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
-    spectrumPlot.removeAllDataSets();
-    ScanDataSet dataSet = new ScanDataSet(scanNum);
-    spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false);
-    spectrumPlot.setTitle(rawDataFile.getName() + "(#" + scanNum + ")", "");
+  private void forceScanDataSet(@NotNull RawDataFile rawDataFile, Scan scanNum) {
+    spectrumPlot.applyWithNotifyChanges(false, () -> {
+      spectrumPlot.removeAllDataSets();
+      ScanDataSet dataSet = new ScanDataSet(scanNum);
+      spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false, false);
+      spectrumPlot.setTitle(rawDataFile.getName() + "(#" + scanNum + ")", "");
+    });
   }
 
   /**
@@ -491,14 +495,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * {@link ChromatogramAndSpectraVisualizer#chromPositionProperty()}'s listeners. Use with care.
    *
    * @param rawDataFile The rawDataFile to focus.
-   * @param scanNum The scan number.
+   * @param scanNum     The scan number.
    */
-  public void setFocusedScanSilent(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
-    if (!filesAndDataSets.keySet().contains(rawDataFile) || scanNum == null) {
+  public void setFocusedScanSilent(@NotNull RawDataFile rawDataFile, Scan scanNum) {
+    if (!filesAndDataSets.containsKey(rawDataFile) || scanNum == null) {
       return;
     }
-    ChromatogramCursorPosition pos =
-        new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0, 0, rawDataFile, scanNum);
+    ChromatogramCursorPosition pos = new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0,
+        0, rawDataFile, scanNum);
     updateChromatogramDomainMarker(pos);
     forceScanDataSet(rawDataFile, scanNum);
   }
@@ -521,7 +525,17 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param mz
    */
-  private void updateFeatureDataSets(double mz) {
+  private void updateFeatureDataSets(final double mz) {
+    chromDelay.setOnFinished((event) -> delayedFeatureDataUpdate(mz));
+    chromDelay.playFromStart();
+  }
+
+  /**
+   * Accumulate all updates for x ms
+   *
+   * @param mz
+   */
+  private void delayedFeatureDataUpdate(final double mz) {
     // mz of the base peak in the selected scan of the selected raw data file.
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
@@ -549,12 +563,24 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * {@link ChromatogramAndSpectraVisualizer#chromPlot}.
    *
    * @param rawDataFiles The raw data files in the chromatogram plot.
-   * @param pos the currently selected {@link ChromatogramCursorPosition}.
+   * @param pos          the currently selected {@link ChromatogramCursorPosition}.
    */
-  private void updateSpectraPlot(@Nonnull Collection<RawDataFile> rawDataFiles,
-      @Nonnull ChromatogramCursorPosition pos) {
+  private void updateSpectraPlot(@NotNull Collection<RawDataFile> rawDataFiles,
+      @NotNull ChromatogramCursorPosition pos) {
+    spectraDelay.setOnFinished((event) -> delayedUpdateSpectraPlot(rawDataFiles, pos));
+    spectraDelay.playFromStart();
+  }
+
+  /**
+   * Accumulate update calls
+   *
+   * @param rawDataFiles
+   * @param pos
+   */
+  private void delayedUpdateSpectraPlot(@NotNull Collection<RawDataFile> rawDataFiles,
+      @NotNull ChromatogramCursorPosition pos) {
     SpectraDataSetCalc thread = new SpectraDataSetCalc(rawDataFiles, pos, getScanSelection(),
-        showSpectraOfEveryRawFile, getSpectrumPlot());
+        showSpectraOfEveryRawFile, getSpectrumPlot(), showMassListProperty);
 
     thread.addTaskStatusListener((task, newStatus, oldStatus) -> {
       // logger
@@ -573,49 +599,49 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   // ----- Property getters and setters -----
 
+  @NotNull
+  public TICPlotType getPlotType() {
+    return plotType.get();
+  }
+
   /**
    * Changes the plot type. Also recalculates the all data sets if changed from BPC to TIC.
    *
    * @param plotType The new plot type.
    */
-  public void setPlotType(@Nonnull TICPlotType plotType) {
+  public void setPlotType(@NotNull TICPlotType plotType) {
     this.plotType.set(plotType);
   }
 
-  @Nonnull
-  public TICPlotType getPlotType() {
-    return plotType.get();
-  }
-
-  @Nonnull
+  @NotNull
   public ObjectProperty<TICPlotType> plotTypeProperty() {
     return plotType;
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<ChromatogramCursorPosition> chromPositionProperty() {
     return chromPosition;
   }
 
-  private void setChromPosition(@Nonnull ChromatogramCursorPosition chromPosition) {
-    this.chromPosition.set(chromPosition);
-  }
-
-  @Nonnull
+  @NotNull
   public ChromatogramCursorPosition getChromPosition() {
     return chromPosition.get();
+  }
+
+  private void setChromPosition(@NotNull ChromatogramCursorPosition chromPosition) {
+    this.chromPosition.set(chromPosition);
   }
 
   public SpectrumCursorPosition getSpectrumPosition() {
     return spectrumPosition.get();
   }
 
-  public ObjectProperty<SpectrumCursorPosition> spectrumPositionProperty() {
-    return spectrumPosition;
-  }
-
   public void setSpectrumPosition(SpectrumCursorPosition spectrumPosition) {
     this.spectrumPosition.set(spectrumPosition);
+  }
+
+  public ObjectProperty<SpectrumCursorPosition> spectrumPositionProperty() {
+    return spectrumPosition;
   }
 
   /**
@@ -639,9 +665,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     this.mzRange.set(mzRange);
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<Range<Double>> mzRangeProperty() {
     return mzRange;
+  }
+
+  @NotNull
+  public ScanSelection getScanSelection() {
+    return scanSelection.get();
   }
 
   /**
@@ -649,34 +680,28 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param selection The new scan selection.
    */
-  public void setScanSelection(@Nonnull ScanSelection selection) {
+  public void setScanSelection(@NotNull ScanSelection selection) {
     scanSelection.set(selection);
   }
 
-  @Nonnull
-  public ScanSelection getScanSelection() {
-    return scanSelection.get();
-  }
-
-  @Nonnull
+  @NotNull
   public ObjectProperty<ScanSelection> scanSelectionProperty() {
     return scanSelection;
   }
 
-  @Nonnull
+  @NotNull
   public MZTolerance getChromMzTolerance() {
     return chromMzTolerance.get();
   }
 
-  @Nonnull
-  public ObjectProperty<MZTolerance> chromMzToleranceProperty() {
-    return chromMzTolerance;
-  }
-
-  public void setChromMzTolerance(@Nonnull MZTolerance chromMzTolerance) {
+  public void setChromMzTolerance(@NotNull MZTolerance chromMzTolerance) {
     this.chromMzTolerance.set(chromMzTolerance);
   }
 
+  @NotNull
+  public ObjectProperty<MZTolerance> chromMzToleranceProperty() {
+    return chromMzTolerance;
+  }
 
   // ----- Object method overrides -----
   @Override
@@ -688,14 +713,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       return false;
     }
     ChromatogramAndSpectraVisualizer that = (ChromatogramAndSpectraVisualizer) o;
-    return showSpectraOfEveryRawFile == that.showSpectraOfEveryRawFile
-        && chromPlot.equals(that.chromPlot) && spectrumPlot.equals(that.spectrumPlot)
-        && Objects.equals(scanSelection.get(), that.scanSelection.get())
-        && Objects.equals(mzRange.get(), that.mzRange.get())
-        && Objects.equals(chromPosition.get(), that.chromPosition.get())
-        && Objects.equals(rtMarker, that.rtMarker)
-        && chromMzTolerance.get().equals(that.chromMzTolerance.get())
-        && Objects.equals(filesAndDataSets, that.filesAndDataSets);
+    return showSpectraOfEveryRawFile == that.showSpectraOfEveryRawFile && chromPlot.equals(
+        that.chromPlot) && spectrumPlot.equals(that.spectrumPlot) && Objects.equals(
+        scanSelection.get(), that.scanSelection.get()) && Objects.equals(mzRange.get(),
+        that.mzRange.get()) && Objects.equals(chromPosition.get(), that.chromPosition.get())
+        && Objects.equals(rtMarker, that.rtMarker) && chromMzTolerance.get()
+        .equals(that.chromMzTolerance.get()) && Objects.equals(filesAndDataSets,
+        that.filesAndDataSets);
   }
 
   @Override

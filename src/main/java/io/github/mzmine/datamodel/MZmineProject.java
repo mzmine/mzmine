@@ -1,34 +1,45 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
+import io.github.mzmine.project.impl.ProjectChangeListener;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.Hashtable;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.parameters.UserParameter;
-import javafx.beans.property.ListProperty;
-import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- *
- * MZmineProject collects all items user has opened or created during an MZmine session. This
+ * MZmineProject collects all item's user has opened or created during an MZmine session. This
  * includes
  * <ul>
  * <li>Experimental parameters and their values for each RawDataFile. Experimental parameters are
@@ -44,7 +55,6 @@ import javax.annotation.Nullable;
  * @see UserParameter
  * @see RawDataFile
  * @see FeatureList
- *
  */
 public interface MZmineProject {
 
@@ -55,15 +65,11 @@ public interface MZmineProject {
 
   /**
    * Adds a new experimental parameter to the project
-   *
-   * @param parameter
    */
   void addParameter(UserParameter<?, ?> parameter);
 
   /**
    * Removes an experimental parameter from the project
-   *
-   * @param parameter
    */
   void removeParameter(UserParameter<?, ?> parameter);
 
@@ -84,29 +90,26 @@ public interface MZmineProject {
    * <p>
    * If the parameter does not exists in the project, it is added to the project. If parameter
    * already has a value corresponding the given file, previous value is replaced.
-   *
    */
   void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile, Object value);
 
   /**
    * Returns experimental parameter's value corresponding to a RawDataFile.
-   *
    */
   Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
 
   /**
    * Adds a new RawDataFile to the project.
    */
-  void addFile(RawDataFile newFile);
+  void addFile(@NotNull RawDataFile newFile);
 
   /**
    * Removes a RawDataFile from the project.
    */
-  void removeFile(RawDataFile file);
+  void removeFile(@NotNull RawDataFile... file);
 
   /**
    * Returns all RawDataFiles of the project.
-   *
    */
   RawDataFile[] getDataFiles();
 
@@ -118,18 +121,27 @@ public interface MZmineProject {
   /**
    * Removes a feature list from the project
    */
-  void removeFeatureList(FeatureList featureList);
+  void removeFeatureList(@NotNull FeatureList... featureList);
 
   /**
-   * Returns all feature lists of the project
+   * Unmodifiable copy of current list
+   *
+   * @return copy of the current feature lists
    */
-  ObservableList<FeatureList> getFeatureLists();
+  @NotNull List<FeatureList> getCurrentFeatureLists();
 
-  ObservableList<RawDataFile> getRawDataFiles();
+  /**
+   * Unmodifiable copy of current list
+   *
+   * @return copy of current raw data files
+   */
+  @NotNull List<RawDataFile> getCurrentRawDataFiles();
 
-  ListProperty<RawDataFile> rawDataFilesProperty();
+  void addProjectListener(ProjectChangeListener newListener);
 
-  ListProperty<FeatureList> featureListsProperty();
+  void removeProjectListener(ProjectChangeListener newListener);
+
+  void removeFeatureLists(@NotNull List<FeatureList> featureLists);
 
   /**
    * Returns all feature lists which contain given data file
@@ -143,16 +155,80 @@ public interface MZmineProject {
 
   /**
    * Feature list for name
+   *
    * @param name the exact name of the feature list
    * @return the last feature list with that name or null
    */
-  @Nullable
-  FeatureList getFeatureList(String name);
+  @Nullable FeatureList getFeatureList(String name);
 
-  // void notifyObjectChanged(Object object, boolean structureChanged);
+  @Nullable Boolean isStandalone();
 
-  // void addProjectListener(MZmineProjectListener newListener);
+  void setStandalone(Boolean standalone);
 
-  // void removeProjectListener(MZmineProjectListener listener);
+  /**
+   * Enables/disables usage of {@link CachedIMSRawDataFile}s for {@link IMSRawDataFile}s in the
+   * project. Cached files are used during feature list import to avoid multiple copies of {@link
+   * io.github.mzmine.datamodel.MobilityScan}s, since the main implementation ({@link
+   * io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on demand and passed through
+   * data types.
+   * <p></p>
+   * After the project import, the files have to be replaced to lower ram consumption and allow
+   * further processing.
+   */
+  void setProjectLoadImsImportCaching(boolean enabled);
 
+  /**
+   * Add a spectral library that can be reused later
+   *
+   * @param library new library
+   */
+  void addSpectralLibrary(final SpectralLibrary... library);
+
+  /**
+   * The observable list of spectral preloaded libraries
+   *
+   * @return current list of preloaded libraries
+   */
+  @NotNull List<SpectralLibrary> getCurrentSpectralLibraries();
+
+  /**
+   * Remove preloaded spectral library
+   *
+   * @param library library to be removed
+   */
+  void removeSpectralLibrary(SpectralLibrary... library);
+
+  int getNumberOfFeatureLists();
+
+  int getNumberOfLibraries();
+
+  /**
+   * Finds and sets a unique name for a data file
+   *
+   * @param raw  the target data file thats renamed
+   * @param name the new name candidate
+   * @return the unique name that was set
+   */
+  String setUniqueDataFileName(RawDataFile raw, String name);
+
+  /**
+   * Finds and sets a unique name for a feature list
+   *
+   * @param featureList the target feature list thats renamed
+   * @param name        the new name candidate
+   * @return the unique name that was set
+   */
+  String setUniqueFeatureListName(FeatureList featureList, String name);
+
+  void fireLibrariesChangeEvent(List<SpectralLibrary> libraries, Type type);
+
+  void fireFeatureListsChangeEvent(List<FeatureList> featureLists, Type type);
+
+  void fireDataFilesChangeEvent(List<RawDataFile> dataFiles, Type type);
+
+  int getNumberOfDataFiles();
+
+  MetadataTable getProjectMetadata();
+
+  void setProjectMetadata(MetadataTable metadata);
 }

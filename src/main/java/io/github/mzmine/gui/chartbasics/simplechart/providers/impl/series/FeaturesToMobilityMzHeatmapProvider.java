@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
@@ -32,10 +39,9 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 public class FeaturesToMobilityMzHeatmapProvider implements
@@ -51,7 +57,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
   private double boxWidth;
   private double boxHeight;
 
-  public FeaturesToMobilityMzHeatmapProvider(@Nonnull final List<ModularFeature> f) {
+  public FeaturesToMobilityMzHeatmapProvider(@NotNull final List<ModularFeature> f) {
     features = f;
     seriesKey = (f.isEmpty()) ? "No features found" : f.get(0).getFeatureList().getName();
 
@@ -62,13 +68,13 @@ public class FeaturesToMobilityMzHeatmapProvider implements
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -86,7 +92,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
@@ -112,7 +118,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
     if (f.getRawDataFile() instanceof IMSRawDataFile) {
       sb.append(((IMSRawDataFile) f.getRawDataFile()).getMobilityType().getAxisLabel());
       sb.append(": ");
-      Range<Float> mobrange = f.get(MobilityRangeType.class).get();
+      Range<Float> mobrange = f.get(MobilityRangeType.class);
       sb.append(mobilityFormat.format(mobrange.lowerEndpoint()));
       sb.append(" - ");
       sb.append(mobilityFormat.format(mobrange.upperEndpoint()));
@@ -151,10 +157,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
 
   @Override
   public double getRangeValue(int index) {
-    return Objects
-        .requireNonNullElse(features.get(index).get(MobilityType.class),
-            new SimpleDoubleProperty(0))
-        .getValue().doubleValue();
+    return Objects.requireNonNullElse(features.get(index).get(MobilityType.class), 0f);
   }
 
   @Override

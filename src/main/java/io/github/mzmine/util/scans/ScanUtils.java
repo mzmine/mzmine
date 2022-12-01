@@ -1,41 +1,62 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.scans;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import com.google.common.util.concurrent.AtomicDouble;
+import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PrecursorIonTree;
+import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedMobilityScan;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceRangeMap;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
@@ -56,13 +77,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Scan related utilities
@@ -70,37 +89,78 @@ import javax.annotation.Nullable;
 public class ScanUtils {
 
   /**
+   * tolerance to compute and combine precursor m/z
+   */
+  public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 100;
+
+  private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
+
+  /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
    *
    * @param scan Scan to be converted to String
    * @return String representation of the scan
    */
-  public static @Nonnull String scanToString(@Nonnull Scan scan, @Nonnull Boolean includeFileName) {
-    StringBuffer buf = new StringBuffer();
+  public static @NotNull String scanToString(@NotNull Scan scan) {
+    return scanToString(scan, false);
+  }
+
+  /**
+   * Common utility method to be used as Scan.toString() method in various Scan implementations
+   *
+   * @param scan Scan to be converted to String
+   * @return String representation of the scan
+   */
+  public static @NotNull String scanToString(@Nullable Scan scan,
+      @NotNull Boolean includeFileName) {
+    if (scan == null) {
+      return "null";
+    }
+
+    StringBuilder buf = new StringBuilder();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    Format mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+    UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     if (includeFileName) {
       buf.append(scan.getDataFile().getName());
     }
-    buf.append("#");
-    buf.append(scan.getScanNumber());
+    if (scan instanceof Frame) {
+      buf.append("Frame");
+    } else if (scan instanceof MobilityScan) {
+      buf.append("Mobility scan");
+    } else {
+      buf.append("Scan");
+    }
+    buf.append(" #");
+    buf.append(scan instanceof MobilityScan ? ((MobilityScan) scan).getMobilityScanNumber()
+        : scan.getScanNumber());
     buf.append(" @");
-    buf.append(rtFormat.format(scan.getRetentionTime()));
+    buf.append(rtFormat.format(scan.getRetentionTime())).append("min");
+
+    if (scan instanceof MobilityScan ms) {
+      buf.append(" ");
+      buf.append(mobilityFormat.format(ms.getMobility()));
+      buf.append(ms.getMobilityType().getUnit());
+    }
+    if (scan instanceof Frame f) {
+      buf.append(" ");
+      buf.append(mobilityFormat.format(f.getMobilityRange().lowerEndpoint()));
+      buf.append("-");
+      buf.append(mobilityFormat.format(f.getMobilityRange().upperEndpoint()));
+      buf.append(f.getMobilityType().getUnit());
+    }
+
     buf.append(" MS");
     buf.append(scan.getMSLevel());
-    if (scan.getMSLevel() > 1) {
-      buf.append(" (" + mzFormat.format(scan.getPrecursorMZ()) + ")");
+    if (scan.getMSLevel() > 1 && !(scan instanceof CachedMobilityScan)
+        && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+      buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
     switch (scan.getSpectrumType()) {
-      case CENTROIDED:
-        buf.append(" c");
-        break;
-      case PROFILE:
-        buf.append(" p");
-        break;
-      case THRESHOLDED:
-        buf.append(" t");
-        break;
+      case CENTROIDED -> buf.append(" c");
+      case PROFILE -> buf.append(" p");
+      case THRESHOLDED -> buf.append(" t");
     }
 
     buf.append(" ");
@@ -110,7 +170,7 @@ public class ScanUtils {
       buf.append(" merged ");
       buf.append(((MergedMassSpectrum) scan).getSourceSpectra().size());
       buf.append(" spectra");
-      if(scan instanceof MergedMsMsSpectrum) {
+      if (scan instanceof MergedMsMsSpectrum) {
         buf.append(", CE: ");
         buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
       }
@@ -126,9 +186,12 @@ public class ScanUtils {
 
   @Deprecated
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
-    DataPoint result[] = new DataPoint[spectrum.getNumberOfDataPoints()];
-    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
-      result[i] = new SimpleDataPoint(spectrum.getMzValue(i), spectrum.getIntensityValue(i));
+    int size = spectrum.getNumberOfDataPoints();
+    DataPoint[] result = new DataPoint[size];
+    double[] mz = spectrum.getMzValues(new double[size]);
+    double[] intensity = spectrum.getIntensityValues(new double[size]);
+    for (int i = 0; i < size; i++) {
+      result[i] = new SimpleDataPoint(mz[i], intensity[i]);
     }
     return result;
   }
@@ -136,40 +199,49 @@ public class ScanUtils {
   /**
    * Find a base peak of a given scan in a given m/z range
    *
-   * @param scan Scan to search
+   * @param scan    Scan to search
    * @param mzRange mz range to search in
-   * @return double[2] containing base peak m/z and intensity
+   * @return data point containing base peak m/z and intensity
    */
   @Nullable
-  public static DataPoint findBasePeak(@Nonnull Scan scan, @Nonnull Range<Double> mzRange) {
+  public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
+    final Double scanBasePeakMz = scan.getBasePeakMz();
+    if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
+      return new SimpleDataPoint(scanBasePeakMz, scan.getBasePeakIntensity());
+    }
 
+    final double lower = mzRange.lowerEndpoint();
+    final double upper = mzRange.upperEndpoint();
+
+    boolean found = false;
     double baseMz = 0d;
     double baseIntensity = 0d;
+
     for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
       double mz = scan.getMzValue(i);
-      if (!mzRange.contains(mz)) {
+      if (mz < lower) {
         continue;
+      } else if (mz > upper) {
+        break;
       }
+
       double intensity = scan.getIntensityValue(i);
       if (intensity > baseIntensity) {
+        found = true;
         baseIntensity = intensity;
         baseMz = mz;
       }
     }
-    return new SimpleDataPoint(baseMz, baseIntensity);
+    return found ? new SimpleDataPoint(baseMz, baseIntensity) : null;
   }
 
   /**
-   *
-   * @param mzs
-   * @param intensities
-   * @param mzRange
    * @param numValues The number of values to be scanned.
    * @return The base peak or null
    */
   @Nullable
-  public static DataPoint findBasePeak(@Nonnull double[] mzs, @Nonnull double[] intensities,
-      @Nonnull Range<Double> mzRange, final int numValues) {
+  public static DataPoint findBasePeak(@NotNull double[] mzs, @NotNull double[] intensities,
+      @NotNull Range<Double> mzRange, final int numValues) {
 
     assert mzs.length == intensities.length;
     assert numValues <= mzs.length;
@@ -195,7 +267,7 @@ public class ScanUtils {
   /**
    * Calculate the total ion count of a scan within a given mass range.
    *
-   * @param scan the scan.
+   * @param scan    the scan.
    * @param mzRange mass range.
    * @return the total ion count of the scan within the mass range.
    */
@@ -209,16 +281,11 @@ public class ScanUtils {
   }
 
   /**
-   *
-   * @param mzs
-   * @param intensities
-   * @param mzRange
    * @param numValues The number of values to be scanned.
-   * @return
+   * @return the tic summed intensity of all signals within range
    */
-  @Nullable
-  public static double calculateTIC(@Nonnull double[] mzs, @Nonnull double[] intensities,
-      @Nonnull Range<Double> mzRange, final int numValues) {
+  public static double calculateTIC(@NotNull double[] mzs, @NotNull double[] intensities,
+      @NotNull Range<Double> mzRange, final int numValues) {
 
     assert mzs.length == intensities.length;
     assert numValues <= mzs.length;
@@ -241,8 +308,8 @@ public class ScanUtils {
   /**
    * Selects data points within given m/z range
    */
-  public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[], Range<Double> mzRange) {
-    ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
+  public static DataPoint[] selectDataPointsByMass(DataPoint[] dataPoints, Range<Double> mzRange) {
+    ArrayList<DataPoint> goodPoints = new ArrayList<>();
     for (DataPoint dp : dataPoints) {
       if (mzRange.contains(dp.getMZ())) {
         goodPoints.add(dp);
@@ -254,9 +321,9 @@ public class ScanUtils {
   /**
    * Selects data points with intensity >= given intensity
    */
-  public static DataPoint[] selectDataPointsOverIntensity(DataPoint dataPoints[],
+  public static DataPoint[] selectDataPointsOverIntensity(DataPoint[] dataPoints,
       double minIntensity) {
-    ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
+    ArrayList<DataPoint> goodPoints = new ArrayList<>();
     for (DataPoint dp : dataPoints) {
       if (dp.getIntensity() >= minIntensity) {
         goodPoints.add(dp);
@@ -269,13 +336,14 @@ public class ScanUtils {
    * This method bins values on x-axis. Each bin is assigned biggest y-value of all values in the
    * same bin.
    *
-   * @param x X-coordinates of the data
-   * @param y Y-coordinates of the data
-   * @param binRange x coordinates of the left and right edge of the first bin
+   * @param x            X-coordinates of the data
+   * @param y            Y-coordinates of the data
+   * @param binRange     x coordinates of the left and right edge of the first bin
    * @param numberOfBins Number of bins
-   * @param interpolate If true, then empty bins will be filled with interpolation using other bins
-   * @param binningType Type of binning (sum of all 'y' within a bin, max of 'y', min of 'y', avg of
-   *        'y')
+   * @param interpolate  If true, then empty bins will be filled with interpolation using other
+   *                     bins
+   * @param binningType  Type of binning (sum of all 'y' within a bin, max of 'y', min of 'y', avg
+   *                     of 'y')
    * @return Values for each bin
    */
   public static double[] binValues(double[] x, double[] y, Range<Double> binRange, int numberOfBins,
@@ -383,8 +451,8 @@ public class ScanUtils {
 
           // Find exisiting left neighbour
           double leftNeighbourValue = beforeY;
-          int leftNeighbourBinIndex =
-              (int) Math.floor((beforeX - binRange.lowerEndpoint()) / binWidth);
+          int leftNeighbourBinIndex = (int) Math.floor(
+              (beforeX - binRange.lowerEndpoint()) / binWidth);
           for (int anotherBinIndex = binIndex - 1; anotherBinIndex >= 0; anotherBinIndex--) {
             if (binValues[anotherBinIndex] != null) {
               leftNeighbourValue = binValues[anotherBinIndex];
@@ -395,10 +463,10 @@ public class ScanUtils {
 
           // Find existing right neighbour
           double rightNeighbourValue = afterY;
-          int rightNeighbourBinIndex = (binValues.length - 1)
-              + (int) Math.ceil((afterX - binRange.upperEndpoint()) / binWidth);
-          for (int anotherBinIndex =
-              binIndex + 1; anotherBinIndex < binValues.length; anotherBinIndex++) {
+          int rightNeighbourBinIndex = (binValues.length - 1) + (int) Math.ceil(
+              (afterX - binRange.upperEndpoint()) / binWidth);
+          for (int anotherBinIndex = binIndex + 1; anotherBinIndex < binValues.length;
+              anotherBinIndex++) {
             if (binValues[anotherBinIndex] != null) {
               rightNeighbourValue = binValues[anotherBinIndex];
               rightNeighbourBinIndex = anotherBinIndex;
@@ -406,8 +474,8 @@ public class ScanUtils {
             }
           }
 
-          double slope = (rightNeighbourValue - leftNeighbourValue)
-              / (rightNeighbourBinIndex - leftNeighbourBinIndex);
+          double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -439,13 +507,13 @@ public class ScanUtils {
    * the given mass range
    *
    * @param dataPoints sorted(!) list of datapoints
-   * @param mzRange m/z range to search in
+   * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findFirstFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint =
-        Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
-            (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+    final int insertionPoint = Arrays.binarySearch(dataPoints,
+        new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
+        Comparator.comparingDouble(DataPoint::getMZ));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 1;
       if (k < dataPoints.length && mzRange.contains(dataPoints[k].getMZ())) {
@@ -463,13 +531,13 @@ public class ScanUtils {
    * the given mass range
    *
    * @param dataPoints sorted(!) list of datapoints
-   * @param mzRange m/z range to search in
+   * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findLastFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint =
-        Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
-            (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+    final int insertionPoint = Arrays.binarySearch(dataPoints,
+        new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
+        Comparator.comparingDouble(DataPoint::getMZ));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 2;
       if (k >= 0 && mzRange.contains(dataPoints[k].getMZ())) {
@@ -487,7 +555,7 @@ public class ScanUtils {
    * within the given mass range
    *
    * @param dataPoints sorted(!) list of datapoints
-   * @param mzRange m/z range to search in
+   * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findMostIntenseFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
@@ -513,7 +581,7 @@ public class ScanUtils {
    *
    * @return index of best match, or -1 if no datapoint was found
    */
-  public static int findClosestDatapoint(double key, double mzValues[], double mzTolerance) {
+  public static int findClosestDatapoint(double key, double[] mzValues, double mzTolerance) {
 
     int index = Arrays.binarySearch(mzValues, key);
 
@@ -556,7 +624,7 @@ public class ScanUtils {
    * msdk-spectra-spectrumtypedetection/src/main/java/io/github/
    * msdk/spectra/spectrumtypedetection/SpectrumTypeDetectionAlgorithm.java
    */
-  public static MassSpectrumType detectSpectrumType(@Nonnull double[] mzValues,
+  public static MassSpectrumType detectSpectrumType(@NotNull double[] mzValues,
       double[] intensityValues) {
 
     // If the spectrum has less than 5 data points, it should be centroided.
@@ -615,20 +683,30 @@ public class ScanUtils {
   }
 
   /**
-   * Finds the MS/MS scan with highest intensity, within given retention time range and with
-   * precursor m/z within given m/z range
+   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
+   * within given m/z range
+   *
+   * @return stream sorted by default sorting (highest TIC)
    */
-  public static Scan findBestFragmentScan(RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
+  public static Stream<Scan> streamAllMS2FragmentScans(@NotNull RawDataFile dataFile,
+      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange) {
+    return streamAllMS2FragmentScans(dataFile, rtRange, mzRange, FragmentScanSorter.DEFAULT_TIC);
+  }
 
-    assert dataFile != null;
-    assert rtRange != null;
-    assert mzRange != null;
+  /**
+   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
+   * within given m/z range. Applies sorting if sorter is not null
+   *
+   * @param sorter sorted stream see {@link FragmentScanSorter}. Unsorted if null
+   * @return sorted stream
+   */
+  public static Stream<Scan> streamAllMS2FragmentScans(@NotNull RawDataFile dataFile,
+      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @Nullable Comparator<Scan> sorter) {
 
-    return dataFile.getScanNumbers(2).stream()
-        .filter(s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime())
-            && mzRange.contains(s.getPrecursorMZ()))
-        .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
+    final Stream<Scan> stream = dataFile.getScanNumbers(2).stream()
+        .filter(s -> matchesMS2Scan(s, rtRange, mzRange));
+    return sorter == null ? stream : stream.sorted(sorter);
   }
 
   /**
@@ -637,33 +715,39 @@ public class ScanUtils {
    */
   public static Scan[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
-    assert dataFile != null;
-    assert rtRange != null;
-    assert mzRange != null;
-
-    return dataFile.getScanNumbers(2).stream()
-        .filter(s -> rtRange.contains(s.getRetentionTime()) && mzRange.contains(s.getPrecursorMZ()))
-        .toArray(Scan[]::new);
+    return streamAllMS2FragmentScans(dataFile, rtRange, mzRange).toArray(Scan[]::new);
   }
 
   /**
-   * @param dataFile
+   * Checks if scan precursor mz and rt is in ranges
+   *
+   * @param s tested scan
+   * @return true if scan precursor mz is in range and rt
+   */
+  public static boolean matchesMS2Scan(Scan s, Range<Float> rtRange, Range<Double> mzRange) {
+    if (rtRange != null && !rtRange.contains(s.getRetentionTime())) {
+      return false;
+    }
+    final Double precursorMz = s.getPrecursorMz();
+    return precursorMz != null && mzRange.contains(precursorMz);
+  }
+
+  /**
    * @param msLevel 0 for all scans
-   * @return
    */
   public static Stream<Scan> streamScans(RawDataFile dataFile, int msLevel) {
     return dataFile.getScanNumbers(msLevel).stream();
   }
 
   @Nullable
-  public static List<ImsMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
+  public static List<PasefMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
       Range<Double> mzRange, Range<Float> rtRange) {
-    List<ImsMsMsInfo> featureMsMsInfos = new ArrayList<>();
+    List<PasefMsMsInfo> featureMsMsInfos = new ArrayList<>();
     Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
     for (Frame frame : ms2Frames) {
-      Set<ImsMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
-      for (ImsMsMsInfo msmsInfo : frameMsMsInfos) {
-        if (mzRange.contains(msmsInfo.getLargestPeakMz())) {
+      Set<PasefMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
+      for (PasefMsMsInfo msmsInfo : frameMsMsInfos) {
+        if (mzRange.contains(msmsInfo.getIsolationMz())) {
           featureMsMsInfos.add(msmsInfo);
         }
       }
@@ -677,7 +761,7 @@ public class ScanUtils {
   /**
    * Find the highest data point in array
    */
-  public static @Nonnull DataPoint findTopDataPoint(@Nonnull DataPoint dataPoints[]) {
+  public static @NotNull DataPoint findTopDataPoint(@NotNull DataPoint[] dataPoints) {
 
     DataPoint topDP = null;
 
@@ -693,7 +777,7 @@ public class ScanUtils {
   /**
    * Find the highest data point index in array
    */
-  public static int findTopDataPoint(@Nonnull double intensityValues[]) {
+  public static int findTopDataPoint(@NotNull double[] intensityValues) {
 
     int basePeak = 0;
     for (int i = 0; i < intensityValues.length; i++) {
@@ -709,7 +793,7 @@ public class ScanUtils {
    * Find the m/z range of the data points in the array. We assume there is at least one data point,
    * and the data points are sorted by m/z.
    */
-  public static @Nonnull Range<Double> findMzRange(@Nonnull DataPoint dataPoints[]) {
+  public static @NotNull Range<Double> findMzRange(@NotNull DataPoint[] dataPoints) {
 
     assert dataPoints.length > 0;
 
@@ -732,7 +816,7 @@ public class ScanUtils {
    * Find the m/z range of the data points in the array. We assume there is at least one data point,
    * and the data points are sorted by m/z.
    */
-  public static @Nonnull Range<Double> findMzRange(@Nonnull double mzValues[]) {
+  public static @NotNull Range<Double> findMzRange(@NotNull double[] mzValues) {
 
     assert mzValues.length > 0;
 
@@ -754,7 +838,7 @@ public class ScanUtils {
   /**
    * Find the RT range of given scans. We assume there is at least one scan.
    */
-  public static @Nonnull Range<Float> findRtRange(@Nonnull Scan scans[]) {
+  public static @NotNull Range<Float> findRtRange(@NotNull Scan[] scans) {
 
     assert scans.length > 0;
 
@@ -773,7 +857,7 @@ public class ScanUtils {
     return Range.closed(lowRt, highRt);
   }
 
-  public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {
+  public static byte[] encodeDataPointsToBytes(DataPoint[] dataPoints) {
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     DataOutputStream featureStream = new DataOutputStream(byteStream);
     for (int i = 0; i < dataPoints.length; i++) {
@@ -785,17 +869,17 @@ public class ScanUtils {
         e.printStackTrace();
       }
     }
-    byte featureBytes[] = byteStream.toByteArray();
+    byte[] featureBytes = byteStream.toByteArray();
     return featureBytes;
   }
 
-  public static char[] encodeDataPointsBase64(DataPoint dataPoints[]) {
-    byte featureBytes[] = encodeDataPointsToBytes(dataPoints);
-    char encodedData[] = Base64.getEncoder().encodeToString(featureBytes).toCharArray();
+  public static char[] encodeDataPointsBase64(DataPoint[] dataPoints) {
+    byte[] featureBytes = encodeDataPointsToBytes(dataPoints);
+    char[] encodedData = Base64.getEncoder().encodeToString(featureBytes).toCharArray();
     return encodedData;
   }
 
-  public static DataPoint[] decodeDataPointsFromBytes(byte bytes[]) {
+  public static DataPoint[] decodeDataPointsFromBytes(byte[] bytes) {
     // each double is 8 bytes and we need one for m/z and one for intensity
     int dpCount = bytes.length / 2 / 8;
 
@@ -803,7 +887,7 @@ public class ScanUtils {
     ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
     DataInputStream featureStream = new DataInputStream(byteStream);
 
-    DataPoint dataPoints[] = new DataPoint[dpCount];
+    DataPoint[] dataPoints = new DataPoint[dpCount];
 
     for (int i = 0; i < dataPoints.length; i++) {
       try {
@@ -818,32 +902,32 @@ public class ScanUtils {
     return dataPoints;
   }
 
-  public static DataPoint[] decodeDataPointsBase64(char encodedData[]) {
+  public static DataPoint[] decodeDataPointsBase64(char[] encodedData) {
     byte[] bytes = Base64.getDecoder().decode(new String(encodedData));
-    DataPoint dataPoints[] = decodeDataPointsFromBytes(bytes);
+    DataPoint[] dataPoints = decodeDataPointsFromBytes(bytes);
     return dataPoints;
   }
 
   public static Stream<Scan> streamAllFragmentScans(FeatureListRow row) {
-    return row.getAllMS2Fragmentations().stream();
+    return row.getAllFragmentScans().stream();
   }
 
   /**
    * Sorted list (best first) of all MS2 fragmentation scans with n signals >= noiseLevel in the
    * specified or first massList, if none was specified
    *
-   * @param row all MS2 scans of all features in this row
+   * @param row                all MS2 scans of all features in this row
    * @param noiseLevel
    * @param minNumberOfSignals
-   * @param sort the sorting property (best first, index=0)
+   * @param sort               the sorting property (best first, index=0)
    * @return
    */
-  @Nonnull
+  @NotNull
   public static List<Scan> listAllFragmentScans(FeatureListRow row, double noiseLevel,
       int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
     List<Scan> scans = listAllFragmentScans(row, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    scans.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
+    scans.sort(new ScanSorter(noiseLevel, sort).reversed());
     return scans;
   }
 
@@ -856,10 +940,10 @@ public class ScanUtils {
    * @param minNumberOfSignals
    * @return
    */
-  @Nonnull
-  public static ObservableList<Scan> listAllFragmentScans(FeatureListRow row, double noiseLevel,
+  @NotNull
+  public static List<Scan> listAllFragmentScans(FeatureListRow row, double noiseLevel,
       int minNumberOfSignals) throws MissingMassListException {
-    ObservableList<Scan> scans = row.getAllMS2Fragmentations();
+    List<Scan> scans = row.getAllFragmentScans();
     return listAllScans(scans, noiseLevel, minNumberOfSignals);
   }
 
@@ -867,13 +951,13 @@ public class ScanUtils {
    * Sorted list of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n
    * signals >= noiseLevel in the specified or first massList, if none was specified
    *
-   * @param row all representative MS1 scans of all features in this row
+   * @param row                all representative MS1 scans of all features in this row
    * @param noiseLevel
    * @param minNumberOfSignals
-   * @param sort the sorting property (best first, index=0)
+   * @param sort               the sorting property (best first, index=0)
    * @return
    */
-  @Nonnull
+  @NotNull
   public static List<Scan> listAllMS1Scans(FeatureListRow row, double noiseLevel,
       int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
     List<Scan> scans = listAllMS1Scans(row, noiseLevel, minNumberOfSignals);
@@ -891,10 +975,10 @@ public class ScanUtils {
    * @param minNumberOfSignals
    * @return
    */
-  @Nonnull
-  public static ObservableList<Scan> listAllMS1Scans(FeatureListRow row, double noiseLevel,
+  @NotNull
+  public static List<Scan> listAllMS1Scans(FeatureListRow row, double noiseLevel,
       int minNumberOfSignals) throws MissingMassListException {
-    ObservableList<Scan> scans = getAllMostIntenseMS1Scans(row);
+    List<Scan> scans = getAllMostIntenseMS1Scans(row);
     return listAllScans(scans, noiseLevel, minNumberOfSignals);
   }
 
@@ -904,9 +988,9 @@ public class ScanUtils {
    * @param row
    * @return
    */
-  public static ObservableList<Scan> getAllMostIntenseMS1Scans(FeatureListRow row) {
+  public static List<Scan> getAllMostIntenseMS1Scans(FeatureListRow row) {
     return row.getFeatures().stream().map(Feature::getRepresentativeScan).filter(Objects::nonNull)
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+        .toList();
   }
 
   /**
@@ -917,10 +1001,10 @@ public class ScanUtils {
    * @param minNumberOfSignals
    * @return
    */
-  @Nonnull
-  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans, double noiseLevel,
-      int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
-    ObservableList<Scan> filtered = listAllScans(scans, noiseLevel, minNumberOfSignals);
+  @NotNull
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals,
+      ScanSortMode sort) throws MissingMassListException {
+    List<Scan> filtered = listAllScans(scans, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
     filtered.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
     return filtered;
@@ -934,10 +1018,10 @@ public class ScanUtils {
    * @param minNumberOfSignals
    * @return
    */
-  @Nonnull
-  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans, double noiseLevel,
-      int minNumberOfSignals) throws MissingMassListException {
-    ObservableList<Scan> filtered = FXCollections.observableArrayList();
+  @NotNull
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals)
+      throws MissingMassListException {
+    List<Scan> filtered = new ArrayList<>();
     for (Scan scan : scans) {
       // find mass list: with name or first
       final MassList massList = scan.getMassList();
@@ -952,6 +1036,107 @@ public class ScanUtils {
       }
     }
     return filtered;
+  }
+
+
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(RawDataFile, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param raw build trees from this file
+   * @return list of trees
+   */
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw) {
+    return getMSnFragmentTrees(raw, SpectraMerging.defaultMs2MergeTol);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol) {
+    return getMSnFragmentTrees(raw, mzTol, null);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol,
+      AtomicDouble progress) {
+    return getMSnFragmentTrees(raw.getScans(), mzTol, progress);
+  }
+
+
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(FeatureList, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param flist build trees from this feature list
+   * @return list of trees
+   */
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist) {
+    return getMSnFragmentTrees(flist, SpectraMerging.defaultMs2MergeTol);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist, MZTolerance mzTol) {
+    return flist.stream().flatMap(row -> getMSnFragmentTrees(row, mzTol).stream()).sorted()
+        .toList();
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureListRow row, MZTolerance mzTol) {
+    return getMSnFragmentTrees(row.getAllFragmentScans(), mzTol, null);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(List<Scan> scans, MZTolerance mzTol,
+      AtomicDouble progress) {
+    if (scans == null || scans.isEmpty()) {
+      return List.of();
+    }
+
+    // at any time in the flow there should only be the latest precursor with the same m/z
+    MZToleranceRangeMap<PrecursorIonTreeNode> ms2Nodes = new MZToleranceRangeMap<>(mzTol);
+
+    PrecursorIonTreeNode parent = null;
+    final int totalScans = scans.size();
+
+    for (Scan scan : scans) {
+      if (scan.getMSLevel() <= 1) {
+        continue;
+      }
+      // add MS2 scans to existing or create new
+      if (scan.getMSLevel() == 2) {
+        Double ms2PrecursorMz = scan.getPrecursorMz();
+        if (ms2PrecursorMz != null) {
+          PrecursorIonTreeNode node = ms2Nodes.computeIfAbsent(ms2PrecursorMz,
+              (key) -> new PrecursorIonTreeNode(2, ms2PrecursorMz, null));
+          node.addFragmentScan(scan);
+        }
+      } else if (scan.getMsMsInfo() instanceof MSnInfoImpl msn) {
+        // add MSn scans to MS2 precursor
+        Double ms2PrecursorMz = msn.getMS2PrecursorMz();
+        if ((parent = ms2Nodes.get(ms2PrecursorMz)) != null) {
+          boolean added = parent.addChildFragmentScan(scan, msn);
+          if (!added) {
+            logger.warning(
+                () -> String.format("Scan#%d was not added to parent %.4f", scan.getScanNumber(),
+                    ms2PrecursorMz));
+          }
+        } else {
+          logger.warning(
+              () -> String.format("Scan#%d: Cannot find MS2 precursor scan for m/z: %.4f",
+                  scan.getScanNumber(), ms2PrecursorMz));
+        }
+        //
+        if (progress != null) {
+          progress.addAndGet(1d / totalScans);
+        }
+      }
+    }
+    // get all values
+    List<PrecursorIonTree> result = ms2Nodes.asMapOfRanges().values().stream()
+        .map(PrecursorIonTree::new).sorted().toList();
+    // sort
+    result.forEach(PrecursorIonTree::sort);
+    return result;
+  }
+
+  private static long getMzKey(double precursorMZ) {
+    return Math.round(precursorMZ * DEFAULT_PRECURSOR_MZ_TOLERANCE);
   }
 
   /**
@@ -1045,11 +1230,9 @@ public class ScanUtils {
   /**
    * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
    */
-  public static @Nullable Scan findPrecursorScan(@Nonnull Scan scan) {
-
-    assert scan != null;
+  public static @Nullable Scan findPrecursorScan(@NotNull Scan scan) {
     final RawDataFile dataFile = scan.getDataFile();
-    final ObservableList<Scan> scanNumbers = dataFile.getScans();
+    final List<Scan> scanNumbers = dataFile.getScans();
 
     int startIndex = scanNumbers.indexOf(scan);
 
@@ -1064,14 +1247,52 @@ public class ScanUtils {
     return null;
   }
 
+  @Nullable
+  public static Scan findPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged,
+      MZTolerance mzTolerance) {
+    final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
+    if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
+      // this was an IMS file, so scans have been merged
+
+      final List<MobilityScan> mobilityScans = sourceSpectra.stream()
+          .<MobilityScan>mapMulti((s, consumer) -> consumer.accept(((MobilityScan) s))).toList();
+      final double lowestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .min().orElse(0d);
+      final double highestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .max().orElse(mobilityScans.get(0).getFrame().getMobilityRange().upperEndpoint());
+      final Range<Double> mobilityRange = Range.closed(lowestMobility, highestMobility);
+
+      // get the MS2 frames - usually this should be one, but we also provide the option to merge
+      // all MS/MS scans for a precursor together
+      final List<Frame> ms2Frames = mobilityScans.stream().map(MobilityScan::getFrame).distinct()
+          .toList();
+      final List<Frame> ms1Frames = ms2Frames.stream()
+          .map(scan -> (Frame) ScanUtils.findPrecursorScan(scan)).filter(Objects::nonNull).toList();
+
+      final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
+          .<MobilityScan>mapMulti((f, c) -> {
+            for (var mobscan : f.getMobilityScans()) {
+              if (mobilityRange.contains(mobscan.getMobility())) {
+                c.accept(mobscan);
+              }
+            }
+          }).toList();
+
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
+    } else {
+      logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
+      return null;
+    }
+  }
+
   /**
    * Finds the first MS1 scan succeeding the given MS2 scan. If no such scan exists, returns null.
    */
   @Nullable
-  public static Scan findSucceedingPrecursorScan(@Nonnull Scan scan) {
+  public static Scan findSucceedingPrecursorScan(@NotNull Scan scan) {
     assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
-    final ObservableList<Scan> scanNumbers = dataFile.getScans();
+    final List<Scan> scanNumbers = dataFile.getScans();
 
     int startIndex = scanNumbers.indexOf(scan);
 
@@ -1086,33 +1307,65 @@ public class ScanUtils {
     return null;
   }
 
+  @Nullable
+  public static Scan findSucceedingPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged,
+      MZTolerance mzTolerance) {
+    final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
+    if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
+      // this was an IMS file, so scans have been merged
+
+      final List<MobilityScan> mobilityScans = sourceSpectra.stream()
+          .<MobilityScan>mapMulti((s, consumer) -> consumer.accept(((MobilityScan) s))).toList();
+      final double lowestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .min().orElse(0d);
+      final double highestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .max().orElse(mobilityScans.get(0).getFrame().getMobilityRange().upperEndpoint());
+      final Range<Double> mobilityRange = Range.closed(lowestMobility, highestMobility);
+
+      // get the MS2 frames - usually this should be one, but we also provide the option to merge
+      // all MS/MS scans for a precursor together
+      final List<Frame> ms2Frames = mobilityScans.stream().map(MobilityScan::getFrame).distinct()
+          .toList();
+      final List<Frame> ms1Frames = ms2Frames.stream()
+          .map(scan -> (Frame) ScanUtils.findSucceedingPrecursorScan(scan)).filter(Objects::nonNull)
+          .toList();
+
+      final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
+          .<MobilityScan>mapMulti((f, c) -> {
+            for (var mobscan : f.getMobilityScans()) {
+              if (mobilityRange.contains(mobscan.getMobility())) {
+                c.accept(mobscan);
+              }
+            }
+          }).toList();
+
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
+    } else {
+      logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
+      return null;
+    }
+  }
+
   /**
    * Selects best N MS/MS scans from a feature list row
    */
-  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull FeatureListRow row,
-      @Nonnull Integer topN) throws MissingMassListException {
-    final @Nonnull List<Scan> allMS2Scans = row.getAllMS2Fragmentations();
+  public static @NotNull Collection<Scan> selectBestMS2Scans(@NotNull FeatureListRow row,
+      @NotNull Integer topN) throws MissingMassListException {
+    final @NotNull List<Scan> allMS2Scans = row.getAllFragmentScans();
     return selectBestMS2Scans(allMS2Scans, topN);
   }
 
   /**
    * Selects best N MS/MS scans from a collection of scans
    */
-  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull Collection<Scan> scans,
-      @Nonnull Integer topN) throws MissingMassListException {
+  public static @NotNull Collection<Scan> selectBestMS2Scans(@NotNull Collection<Scan> scans,
+      @NotNull Integer topN) throws MissingMassListException {
     assert scans != null;
     assert topN != null;
 
     // Keeps MS2 scans sorted by decreasing quality
-    TreeSet<Scan> sortedScans =
-        new TreeSet<>(Collections.reverseOrder(new ScanSorter(0, ScanSortMode.MAX_TIC)));
-    sortedScans.addAll(scans);
-
     // Filter top N scans into an immutable list
-    final List<Scan> topNScansList =
-        sortedScans.stream().limit(topN).collect(ImmutableList.toImmutableList());
-
-    return topNScansList;
+    return scans.stream().sorted(new ScanSorter(0, ScanSortMode.MAX_TIC)).limit(topN).toList();
   }
 
   /**
@@ -1121,8 +1374,8 @@ public class ScanUtils {
    * robust method to remove most noise in the spectrum without having to estimate any noise
    * intensity parameter.
    *
-   * @param dataPoints spectrum
-   * @param binRange sliding mass window. Is shifted in each step by its width.
+   * @param dataPoints             spectrum
+   * @param binRange               sliding mass window. Is shifted in each step by its width.
    * @param numberOfFeaturesPerBin number of features to keep within the sliding mass window
    * @return
    */
@@ -1140,7 +1393,7 @@ public class ScanUtils {
     final List<DataPoint> finalDataPoints = new ArrayList<>();
     for (Integer bin : bins.keySet()) {
       List<DataPoint> list = bins.get(bin);
-      Collections.sort(list, (u, v) -> Double.compare(v.getIntensity(), u.getIntensity()));
+      list.sort((u, v) -> Double.compare(v.getIntensity(), u.getIntensity()));
       for (int i = 0; i < Math.min(list.size(), numberOfFeaturesPerBin); ++i) {
         finalDataPoints.add(list.get(i));
       }
@@ -1159,13 +1412,14 @@ public class ScanUtils {
    * As for cosine similarity it is recommended to first take the square root of all feature
    * intensities, before calling this method.
    *
-   * @param scanLeft the first spectrum
-   * @param scanRight the second spectrum
+   * @param scanLeft                   the first spectrum
+   * @param scanRight                  the second spectrum
    * @param expectedMassDeviationInPPM the width of the gaussians (corresponds to the expected mass
-   *        deviation). Rather use a larger than a small value! Value is given in ppm and Dalton.
-   * @param noiseLevel the lowest intensity for a feature to be considered
-   * @param mzRange the m/z range in which the features are compared. use null for the whole
-   *        spectrum
+   *                                   deviation). Rather use a larger than a small value! Value is
+   *                                   given in ppm and Dalton.
+   * @param noiseLevel                 the lowest intensity for a feature to be considered
+   * @param mzRange                    the m/z range in which the features are compared. use null
+   *                                   for the whole spectrum
    */
   public static double probabilityProduct(DataPoint[] scanLeft, DataPoint[] scanRight,
       MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable Range<Double> mzRange) {
@@ -1220,8 +1474,8 @@ public class ScanUtils {
       }
       final double difference = lp.getMZ() - rp.getMZ();
       if (Math.abs(difference) <= allowedDifference) {
-        final double mzabs = expectedMassDeviationInPPM
-            .getMzToleranceForMass(Math.round((lp.getMZ() + rp.getMZ()) / 2d));
+        final double mzabs = expectedMassDeviationInPPM.getMzToleranceForMass(
+            Math.round((lp.getMZ() + rp.getMZ()) / 2d));
         final double variance = mzabs * mzabs;
         double matchScore = probabilityProductScore(lp, rp, variance);
         score += matchScore;
@@ -1274,7 +1528,7 @@ public class ScanUtils {
    * Function adapted from module: adap.mspexport.
    *
    * @param dataPoints spectra to convert.
-   * @param intMode conversion method: MAX or SUM.
+   * @param intMode    conversion method: MAX or SUM.
    * @return DataPoint array converted to integers.
    */
   public static DataPoint[] integerDataPoints(final DataPoint[] dataPoints,
@@ -1316,9 +1570,9 @@ public class ScanUtils {
    * @param mzRange
    * @return
    */
-  @Nonnull
-  public static DataPoint[] getDataPointsByMass(@Nonnull DataPoint[] dataPoints,
-      @Nonnull Range<Double> mzRange) {
+  @NotNull
+  public static DataPoint[] getDataPointsByMass(@NotNull DataPoint[] dataPoints,
+      @NotNull Range<Double> mzRange) {
 
     int startIndex, endIndex;
     for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
@@ -1333,7 +1587,7 @@ public class ScanUtils {
       }
     }
 
-    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+    DataPoint[] pointsWithinRange = new DataPoint[endIndex - startIndex];
 
     // Copy the relevant points
     System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
@@ -1341,18 +1595,307 @@ public class ScanUtils {
     return pointsWithinRange;
   }
 
+  /**
+   * Most abundant n signals
+   *
+   * @param scan
+   * @param n
+   * @return
+   */
+  public static DataPoint[] getMostAbundantSignals(DataPoint[] scan, int n) {
+    if (scan.length <= n) {
+      return scan;
+    } else {
+      Arrays.sort(scan,
+          new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+      return Arrays.copyOf(scan, n);
+    }
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(DataPoint[] dps, double precursorMZ) {
+    return getNeutralLossSpectrum(Arrays.stream(dps), precursorMZ);
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(List<DataPoint> dps, double precursorMZ) {
+    return getNeutralLossSpectrum(dps.stream(), precursorMZ);
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(Stream<DataPoint> dps, double precursorMZ) {
+    return dps.map(d -> new SimpleDataPoint(precursorMZ - d.getMZ(), d.getIntensity()))
+        .toArray(DataPoint[]::new);
+  }
+
+  /**
+   * Remove all data points within mz and tolerance
+   *
+   * @param dps       original data points
+   * @param mz        the filter center
+   * @param tolerance the filter tolerance
+   * @return a new filtered array
+   */
+  public static DataPoint[] removeSignals(DataPoint[] dps, double mz, MZTolerance tolerance) {
+    Range<Double> range = tolerance.getToleranceRange(mz);
+    return Arrays.stream(dps).filter(dp -> !range.contains(dp.getMZ())).toArray(DataPoint[]::new);
+  }
+
+  /**
+   * Filters the raw mz + intensity data of a scan to remove neighbouring zeros.
+   *
+   * @param scan The scan, [][0] are mzs, [][1] are intensities
+   * @return A multidimensional array with the filtered values. [][0] are mzs, [][1] are
+   * intensities.
+   */
+  public static double[][] removeExtraZeros(double[][] scan) {
+    // remove all extra zeros
+    final int numDp = scan.length;
+    final TDoubleArrayList filteredMzs = new TDoubleArrayList();
+    final TDoubleArrayList filteredIntensities = new TDoubleArrayList();
+    filteredMzs.add(scan[0][0]);
+    filteredIntensities.add(scan[0][1]);
+    for (int i = 1; i < numDp - 1;
+        i++) { // previous , this and next are zero --> do not add this data point
+      if (scan[i - 1][1] != 0 || scan[i][1] != 0 || scan[i + 1][1] != 0) {
+        filteredMzs.add(scan[i][0]);
+        filteredIntensities.add(scan[i][1]);
+      }
+    }
+    filteredMzs.add(scan[numDp - 1][0]);
+    filteredIntensities.add(scan[numDp - 1][1]);
+
+    //Convert the ArrayList to an array.
+    double[][] filteredScan = new double[filteredMzs.size()][2];
+    for (int i = 0; i < filteredMzs.size(); i++) {
+      filteredScan[i][0] = filteredMzs.get(i);
+      filteredScan[i][1] = filteredIntensities.get(i);
+    }
+
+    return filteredScan;
+  }
+
+  /**
+   * Calculates the spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p = peak
+   * index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   *
+   * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    final Double tic = spectrum.getTIC();
+    if (tic == null || tic <= 0 || spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      final double normalizedIntensity = spectrum.getIntensityValue(i) / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * Calculates the spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p = peak
+   * index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   *
+   * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getSpectralEntropy(@NotNull final double[] intensities) {
+    if (intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    final Double tic = Arrays.stream(intensities).sum();
+    if (tic <= 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      final double normalizedIntensity = intensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final double[] intensities) {
+    if (intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getSpectralEntropy(intensities) / Math.log(intensities.length);
+  }
+
+  /**
+   * Calculates the weighted spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p =
+   * peak index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   * For entropies S < 3, the intensities are reweighted.
+   *
+   * @return The weighted spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    final double entropy = getSpectralEntropy(spectrum);
+    if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
+      return entropy;
+    }
+
+    final double[] weightedIntensities = new double[spectrum.getNumberOfDataPoints()];
+    double tic = 0d;
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      weightedIntensities[i] = Math.pow(spectrum.getIntensityValue(i), 0.25 + entropy * 0.25);
+      tic += weightedIntensities[i];
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < weightedIntensities.length; i++) {
+      final double normalizedIntensity = weightedIntensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * Calculates the weighted spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p =
+   * peak index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   * For entropies S < 3, the intensities are reweighted.
+   *
+   * @return The weighted spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    final double entropy = getSpectralEntropy(intensities);
+    if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
+      return entropy;
+    }
+
+    final double[] weightedIntensities = new double[intensities.length];
+    double tic = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      weightedIntensities[i] = Math.pow(intensities[i], 0.25 + entropy * 0.25);
+      tic += weightedIntensities[i];
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < weightedIntensities.length; i++) {
+      final double normalizedIntensity = weightedIntensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    if (intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getWeightedSpectralEntropy(intensities) / Math.log(intensities.length);
+  }
+
+  /**
+   * @param msms The spectrum
+   * @return The lowest non-zero intensity or null if there are no data points..
+   */
+  @Nullable
+  public static Double getLowestIntensity(@NotNull final MassSpectrum msms) {
+    if (msms.getNumberOfDataPoints() == 0) {
+      return null;
+    }
+    double minIntensity = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+      final double intensity = msms.getIntensityValue(i);
+      if (intensity < minIntensity && intensity > 0) {
+        minIntensity = intensity;
+      }
+    }
+    return minIntensity < Double.POSITIVE_INFINITY ? minIntensity : null;
+  }
+
+  /**
+   * Split scans into lists for each fragmentation energy. Usually the MSn levels are split before
+   *
+   * @param scans input list
+   * @return map of fragmention energy to scans
+   */
+  public static Map<Float, List<Scan>> splitByFragmentationEnergy(final List<Scan> scans) {
+    return scans.stream().collect(Collectors.groupingBy(ScanUtils::getActivationEnergy));
+  }
+
+
+  public static @Nullable Float getActivationEnergy(final MassSpectrum spectrum) {
+    if (spectrum instanceof Scan scan && scan.getMsMsInfo() != null) {
+      return scan.getMsMsInfo().getActivationEnergy();
+    } else if (spectrum instanceof MergedMsMsSpectrum merged) {
+      return merged.getCollisionEnergy();
+    }
+    return null;
+  }
 
   /**
    * Binning modes
    */
-  public static enum BinningType {
+  public enum BinningType {
     SUM, MAX, MIN, AVG
   }
+
 
   /**
    * Integer conversion methods.
    */
-  public static enum IntegerMode {
+  public enum IntegerMode {
 
     SUM("Merging mode: Sum"), MAX("Merging mode: Maximum");
 

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules;
@@ -22,6 +29,7 @@ public enum MZmineModuleCategory {
 
   PROJECTIO("Project I/O"), //
   PROJECT("Project"), //
+  PROJECTMETADATA("Project metadata"), //
   RAWDATAIMPORT("Raw data import"), //
   RAWDATA("Raw data methods"), //
   RAWDATAFILTERING("Raw data filtering"), //
@@ -31,11 +39,13 @@ public enum MZmineModuleCategory {
   ISOTOPES("Isotopes"), //
   FEATURELIST("Feature list methods"), //
   FEATURE_RESOLVING("Resolving"), //
+  FEATURE_GROUPING("Feature grouping"), //
+  ION_IDENTITY_NETWORKS("Ion identity networking"), //
   SPECTRALDECONVOLUTION("Spectral deconvolution"), //
   FEATURELISTFILTERING("Feature list filtering"), //
   ALIGNMENT("Alignment"), //
   NORMALIZATION("Normalization"), //
-  IDENTIFICATION("Annotation"), // todo: rename to annotation
+  ANNOTATION("Annotation"), //
   FEATURELISTEXPORT("Feature list export"), //
   FEATURELISTIMPORT("Feature list import"), //
   VISUALIZATIONRAWDATA("Visualization"), //
@@ -57,16 +67,16 @@ public enum MZmineModuleCategory {
 
   public MainCategory getMainCategory() {
     return switch (this) {
-      case PROJECT, PROJECTIO -> MainCategory.PROJECT;
+      case PROJECT, PROJECTIO, PROJECTMETADATA -> MainCategory.PROJECT;
       case RAWDATAIMPORT, RAWDATAEXPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
-      case EIC_DETECTION, FEATURELIST, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT -> MainCategory.FEATURE_DETECTION;
+      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST -> MainCategory.FEATURE_DETECTION;
       case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
-      case NORMALIZATION, IDENTIFICATION, DATAANALYSIS -> MainCategory.FEATURE_PROCESSING;
+      case NORMALIZATION, ANNOTATION, DATAANALYSIS, FEATURE_GROUPING, ION_IDENTITY_NETWORKS -> MainCategory.FEATURE_PROCESSING;
       case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
       case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST -> MainCategory.VISUALIZATION;
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
-      default -> throw new IllegalArgumentException("Category " + this + " has no main category.");
+      // no default so that the compiler marks missing cases
     };
   }
 
@@ -77,8 +87,7 @@ public enum MZmineModuleCategory {
     FEATURE_FILTERING("Feature filtering"), //
     FEATURE_PROCESSING("Feature processing"), //
     FEATURE_IO("Feature IO"), //
-    VISUALIZATION("Visualization"),
-    OTHER("Other");
+    VISUALIZATION("Visualization"), OTHER("Other");
 
     private final String name;
 

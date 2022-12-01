@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.featuredata.IonSeries;
@@ -5,11 +30,14 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to store lists of arrays into a single DoubleBuffer to safe memory.
@@ -17,6 +45,13 @@ import javax.annotation.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class StorageUtils {
+
+  public static <T> List<double[][]> mapTo2dDoubleArrayList(List<T> objects,
+      Function<T, double[]> firstDimension, Function<T, double[]> secondDimension) {
+    return objects.stream().<double[][]>mapMulti((scan, c) -> {
+      c.accept(new double[][]{firstDimension.apply(scan), secondDimension.apply(scan)});
+    }).toList();
+  }
 
   /**
    * @param storage    The storage the m/z and intensity values shall be saved to. If null, the
@@ -36,13 +71,13 @@ public class StorageUtils {
     final List<double[][]> mzIntensities = new ArrayList<>();
 
     for (final T series : seriesList) {
-      double[][] mzIntensity = DataPointUtils
-          .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
+      double[][] mzIntensity = DataPointUtils.getDataPointsAsDoubleArray(series.getMZValueBuffer(),
+          series.getIntensityValueBuffer());
       mzIntensities.add(mzIntensity);
     }
 
     // generate and copy the offsets to the array passed as an argument.
-    final int[] generatedOffsets = generateOffsets(mzIntensities);
+    final int[] generatedOffsets = generateOffsets(mzIntensities, new AtomicInteger(0));
     System.arraycopy(generatedOffsets, 0, offsets, 0, generatedOffsets.length);
 
     final int numDp =
@@ -71,12 +106,19 @@ public class StorageUtils {
    * @return An array of integer offsets. The indices in the array correspond to the indices in the
    * given list.
    */
-  public static int[] generateOffsets(List<double[][]> dataArrayList) {
+  public static int[] generateOffsets(List<double[][]> dataArrayList,
+      @NotNull AtomicInteger biggestOffset) {
     final int[] offsets = new int[dataArrayList.size()];
     offsets[0] = 0;
+    int biggest = 0;
     for (int i = 1; i < offsets.length; i++) {
-      offsets[i] = offsets[i - 1] + dataArrayList.get(i - 1)[0].length;
+      final int numPoints = dataArrayList.get(i - 1)[0].length;
+      offsets[i] = offsets[i - 1] + numPoints;
+      if (numPoints > biggest) {
+        biggest = numPoints;
+      }
     }
+    biggestOffset.set(biggest);
     return offsets;
   }
 
@@ -86,8 +128,8 @@ public class StorageUtils {
    * @param dst        the destination array of an appropriate size.
    * @return An array of base peak indices if arrayIndex == 1.
    */
-  public static int[] putAllValuesIntoOneArray(final List<double[][]> values,
-      final int arrayIndex, double[] dst) {
+  public static int[] putAllValuesIntoOneArray(final List<double[][]> values, final int arrayIndex,
+      double[] dst) {
     int[] basePeakIndices = null;
     if (arrayIndex == 1) {
       basePeakIndices = new int[values.size()];
@@ -124,9 +166,9 @@ public class StorageUtils {
    *                DoubleBuffer.
    * @return The double buffer the values were stored in.
    */
-  @Nonnull
+  @NotNull
   public static DoubleBuffer storeValuesToDoubleBuffer(@Nullable final MemoryMapStorage storage,
-      @Nonnull final double[] values) {
+      @NotNull final double[] values) {
 
     DoubleBuffer buffer;
     if (storage != null) {
@@ -138,6 +180,34 @@ public class StorageUtils {
       }
     } else {
       buffer = DoubleBuffer.wrap(values);
+    }
+    return buffer;
+  }
+
+  /**
+   * Stores the given array into an int buffer.
+   *
+   * @param storage The storage to be used. If null, the values will be wrapped using {@link
+   *                IntBuffer#wrap(int[])}.
+   * @param values  The values to be stored. If storage is null, an int buffer will be wrapped
+   *                around this array. Changes in the array will therefore be reflected in the
+   *                DoubleBuffer.
+   * @return The int buffer the values were stored in.
+   */
+  @NotNull
+  public static IntBuffer storeValuesToIntBuffer(@Nullable final MemoryMapStorage storage,
+      @NotNull final int[] values) {
+
+    IntBuffer buffer;
+    if (storage != null) {
+      try {
+        buffer = storage.storeData(values);
+      } catch (IOException e) {
+        e.printStackTrace();
+        buffer = IntBuffer.wrap(values);
+      }
+    } else {
+      buffer = IntBuffer.wrap(values);
     }
     return buffer;
   }

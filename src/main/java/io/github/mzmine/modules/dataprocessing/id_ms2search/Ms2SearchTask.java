@@ -1,38 +1,48 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ms2search;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 
 class Ms2SearchTask extends AbstractTask {
@@ -52,8 +62,8 @@ class Ms2SearchTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2) {
-    super(null); // no new data stored -> null
+  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList1 = peakList1;
     this.peakList2 = peakList2;
@@ -112,8 +122,8 @@ class Ms2SearchTask extends AbstractTask {
         Feature featureB = rows2[j].getBestFeature();
         // Complication. The "best" peak, may not have the "best"
         // fragmentation
-        Scan scanA = rows1[i].getBestFragmentation();
-        Scan scanB = rows2[j].getBestFragmentation();
+        Scan scanA = rows1[i].getMostIntenseFragmentScan();
+        Scan scanB = rows2[j].getMostIntenseFragmentScan();
 
         searchResult =
             simpleMS2similarity(scanA, scanB, intensityThreshold, mzTolerance);
@@ -134,7 +144,7 @@ class Ms2SearchTask extends AbstractTask {
     // Add task description to peakList
     ((ModularFeatureList) peakList1).addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Identification of similar MS2s",
-            Ms2SearchModule.class, parameters));
+            Ms2SearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

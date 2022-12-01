@@ -1,47 +1,48 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
-import java.awt.Dimension;
-import java.io.File;
-import java.text.DecimalFormat;
-import org.jfree.chart.JFreeChart;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ColorParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.DimensionUnitUtil;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.awt.Dimension;
+import java.io.File;
+import java.text.DecimalFormat;
 import javafx.application.Platform;
-import javafx.scene.paint.Color;
+import org.jfree.chart.JFreeChart;
 
 public class GraphicsExportParameters extends SimpleParameterSet {
 
@@ -79,7 +80,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
       "Unit for width and height dimensions", DimUnit.values(), DimUnit.CM);
 
   public static final ParameterSetParameter chartParameters = new ParameterSetParameter(
-      "Chart parameters", "Manually set the chart parameters", new ChartThemeParameters());
+      "Chart parameters", "Manually set the chart parameters", (new ExportChartThemeParameters()));
 
   public static final ColorPaletteParameter colorPalette = new ColorPaletteParameter("Color palette", "The color palette used for export.");
 
@@ -88,7 +89,6 @@ public class GraphicsExportParameters extends SimpleParameterSet {
         chartParameters, colorPalette});
     height.setValue(true);
   }
-
 
   public ExitCode showSetupDialog(boolean valueCheckRequired, JFreeChart chart) {
 

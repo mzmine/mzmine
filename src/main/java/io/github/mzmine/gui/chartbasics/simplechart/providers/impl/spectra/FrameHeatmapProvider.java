@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
@@ -26,14 +33,15 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvide
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MathUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
+import smile.math.DoubleArrayList;
 
 /**
  * Used to plot a Frame in a {@link io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot}.
@@ -51,21 +59,15 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   protected final UnitFormat unitFormat;
   private final Frame frame;
 
-  private final List<Double> domainValues;
-  private final List<Double> rangeValues;
-  private final List<Double> zValues;
+  private final DoubleArrayList domainValues;
+  private final DoubleArrayList rangeValues;
+  private final DoubleArrayList zValues;
   private final List<MobilityScan> mobilityScanAtValueIndex;
-  private final PaintScaleTransform transform;
+
+  protected PaintScale paintScale;
   private double finishedPercentage;
-  private PaintScale paintScale;
-  private double boxHeight;
 
-  public FrameHeatmapProvider(@Nonnull final Frame frame) {
-    this(frame, null);
-  }
-
-  public FrameHeatmapProvider(@Nonnull final Frame frame,
-      @Nullable final PaintScaleTransform transform) {
+  public FrameHeatmapProvider(Frame frame) {
     this.frame = frame;
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -73,14 +75,11 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
-    domainValues = new ArrayList<>();
-    rangeValues = new ArrayList<>();
-    zValues = new ArrayList<>();
+    domainValues = new DoubleArrayList();
+    rangeValues = new DoubleArrayList();
+    zValues = new DoubleArrayList();
     mobilityScanAtValueIndex = new ArrayList<>();
     finishedPercentage = 0d;
-
-    this.transform = transform != null ? transform : PaintScaleTransform.LINEAR;
-    boxHeight = 1;
   }
 
   @Override
@@ -106,8 +105,8 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " "
-        + rtFormat.format(frame.getRetentionTime()) + " min";
+    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " " + rtFormat.format(
+        frame.getRetentionTime()) + " min";
   }
 
   @Override
@@ -117,35 +116,22 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    int numScans = frame.getNumberOfMobilityScans();
-    double finishedScans = 0;
-
-    double minZ = Double.POSITIVE_INFINITY;
-    double maxZ = Double.NEGATIVE_INFINITY;
-
+    double numScans = frame.getNumberOfMobilityScans();
+    int finishedScans = 0;
     for (MobilityScan mobilityScan : frame.getSortedMobilityScans()) {
       for (int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
         rangeValues.add(mobilityScan.getMobility());
         domainValues.add(mobilityScan.getMzValue(i));
-
-        double z = mobilityScan.getIntensityValue(i);
-        zValues.add(z);
-        minZ = Math.min(z, minZ);
-        maxZ = Math.max(z, maxZ);
-
+        zValues.add(mobilityScan.getIntensityValue(i));
         mobilityScanAtValueIndex.add(mobilityScan);
       }
       finishedScans++;
       finishedPercentage = finishedScans / numScans;
     }
 
-    boxHeight = Math.abs(
-        frame.getMobilityScan(numScans / 2).getMobility() - frame.getMobilityScan(numScans / 2 - 1)
-            .getMobility());
-
-    this.paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
-        .toPaintScale(transform,
-            Range.closed(minZ, maxZ));
+    final double[] quantiles = MathUtils.calcQuantile(zValues.toArray(), new double[]{0.50, 0.98});
+    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+        .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }
 
   public MobilityScan getMobilityScanAtValueIndex(int index) {
@@ -180,7 +166,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   @Nullable
   @Override
   public Double getBoxHeight() {
-    return boxHeight;
+    return null;
   }
 
   @Nullable

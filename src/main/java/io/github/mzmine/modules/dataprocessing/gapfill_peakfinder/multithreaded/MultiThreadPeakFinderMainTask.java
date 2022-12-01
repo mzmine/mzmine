@@ -1,38 +1,53 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The main task creates sub tasks to perform the PeakFinder algorithm on multiple threads. Each sub
@@ -42,40 +57,46 @@ import javax.annotation.Nullable;
  */
 class MultiThreadPeakFinderMainTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
+  private static final Logger logger = Logger.getLogger(
+      MultiThreadPeakFinderMainTask.class.getName());
   private final MZmineProject project;
-  private ParameterSet parameters;
-  private ModularFeatureList peakList, processedPeakList;
-  private String suffix;
-  private boolean removeOriginal;
-
-  private double progress = 0;
-  private Collection<Task> batchTasks;
+  private final OriginalFeatureListOption originalFeatureListOption;
+  private final ParameterSet parameters;
+  private final ModularFeatureList peakList;
+  private final String suffix;
+  private final AtomicDouble progress = new AtomicDouble(0);
+  private ModularFeatureList processedPeakList;
 
   /**
    * @param batchTasks all sub tasks are registered to the batchtasks list
    */
   public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
-      ParameterSet parameters, Collection<Task> batchTasks, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      ParameterSet parameters, Collection<Task> batchTasks, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
     this.parameters = parameters;
-    this.batchTasks = batchTasks;
 
     suffix = parameters.getParameter(MultiThreadPeakFinderParameters.suffix).getValue();
-    removeOriginal = parameters.getParameter(MultiThreadPeakFinderParameters.autoRemove).getValue();
+    originalFeatureListOption = parameters.getValue(MultiThreadPeakFinderParameters.handleOriginal);
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running multithreaded gap filler on " + peakList);
+    logger.info(
+        () -> String.format("Running multithreaded gap filler on %s (handle original list:%s)",
+            peakList.toString(), originalFeatureListOption.toString()));
 
     // Create new results feature list
-    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage());
-    progress = 0.5;
+    processedPeakList = switch (originalFeatureListOption) {
+      case PROCESS_IN_PLACE -> peakList;
+      case KEEP, REMOVE -> peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage(),
+          false);
+    };
+
+    progress.getAndSet(0.1);
 
     // split raw data files into groups for each thread (task)
     // Obtain the settings of max concurrent threads
@@ -84,58 +105,71 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // raw files
     int raw = processedPeakList.getNumberOfRawDataFiles();
 
-    // create consumer of resultpeaklist
-    SubTaskFinishListener listener =
-        new SubTaskFinishListener(project, parameters, peakList, removeOriginal, maxRunningThreads);
-
     // Submit the tasks to the task controller for processing
-    Task[] tasks = createSubTasks(raw, maxRunningThreads, listener);
+    List<AbstractTask> tasks = createSubTasks(raw, maxRunningThreads);
 
-    // listener for status change: Cancel / error
-    TaskStatusListener list = new TaskStatusListener() {
+    final AbstractTask thistask = this;
+    new AllTasksFinishedListener(tasks, true,
+        // succeed
+        l -> {
+          logger.info(
+              "All sub tasks of multithreaded gap-filling have finished. Finalising results.");
+
+          // Add task description to peakList
+          processedPeakList.addDescriptionOfAppliedTask(
+              new SimpleFeatureListAppliedMethod("Gap filling ", MultiThreadPeakFinderModule.class,
+                  parameters, getModuleCallDate()));
+
+          // update all rows by row bindings (average values)
+          // this needs to be done after all tasks finish because values were not updated when
+          // adding features
+          processedPeakList.applyRowBindings();
+
+          // add / remove or rename the new feature list in project
+          originalFeatureListOption.reflectNewFeatureListToProject(suffix, project,
+              processedPeakList, peakList);
+
+          logger.info("Completed: Multithreaded gap-filling successfull");
+
+          if (thistask.getStatus() == TaskStatus.PROCESSING) {
+            thistask.setStatus(TaskStatus.FINISHED);
+          }
+        }, lerror -> {
+      setErrorMessage("Error in gap filling");
+      thistask.setStatus(TaskStatus.ERROR);
+      for (AbstractTask task : tasks) {
+        task.setStatus(TaskStatus.ERROR);
+      }
+    },
+        // cancel if one was cancelled
+        listCancelled -> cancel()) {
       @Override
       public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-        if (newStatus.equals(TaskStatus.CANCELED) || newStatus.equals(TaskStatus.ERROR)) {
-          // if one is cancelled, stop all
-          synchronized (this) {
-            // remove listener
-            // cancel all
-            for (Task t : tasks) {
-              if (t instanceof AbstractTask) {
-                ((AbstractTask) t).removeTaskStatusListener(this);
-              }
-              t.cancel();
-            }
-          }
+        super.taskStatusChanged(task, newStatus, oldStatus);
+        // show progress
+        if (oldStatus != newStatus && newStatus == TaskStatus.FINISHED) {
+          progress.getAndAdd(0.9 / tasks.size());
         }
       }
     };
 
-    // add listener to all sub tasks
-    for (Task t : tasks) {
-      if (t instanceof AbstractTask) {
-        ((AbstractTask) t).addTaskStatusListener(list);
-      }
-      // add to batchMode collection
-      if (batchTasks != null) {
-        batchTasks.add(t);
+    // start
+    MZmineCore.getTaskController().addTasks(tasks.toArray(AbstractTask[]::new));
+
+    // wait till finish
+    while (!(isCanceled() || isFinished())) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        logger.log(Level.SEVERE, "Error in GNPS export/submit task", e);
       }
     }
-
-    // start
-    MZmineCore.getTaskController().addTasks(tasks);
-
-    // listener will take care of adding the final list
-    progress = 1;
-    // end
-    logger.info("All sub tasks started for multithreaded gap-filling on " + peakList);
-    setStatus(TaskStatus.FINISHED);
   }
 
   private int getMaxThreads() {
     int maxRunningThreads = 1;
-    NumOfThreadsParameter parameter =
-        MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.numOfThreads);
+    NumOfThreadsParameter parameter = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.numOfThreads);
     if (parameter.isAutomatic() || (parameter.getValue() == null)) {
       maxRunningThreads = Runtime.getRuntime().availableProcessors();
     } else {
@@ -154,10 +188,10 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   /**
    * Distributes the RawDataFiles on different tasks
    */
-  private Task[] createSubTasks(int raw, int maxRunningThreads, SubTaskFinishListener listener) {
+  private List<AbstractTask> createSubTasks(int raw, int maxRunningThreads) {
     int numPerTask = raw / maxRunningThreads;
     int rest = raw % maxRunningThreads;
-    Task[] tasks = new Task[maxRunningThreads];
+    List<AbstractTask> tasks = new ArrayList<>();
     for (int i = 0; i < maxRunningThreads; i++) {
       int start = numPerTask * i;
       int endexcl = numPerTask * (i + 1);
@@ -172,25 +206,21 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
       }
 
       // create task
-      tasks[i] = new MultiThreadPeakFinderTask(project, peakList, processedPeakList, parameters,
-          start, endexcl, listener, i);
+      tasks.add(
+          new MultiThreadPeakFinderTask(peakList, processedPeakList, parameters, start, endexcl, i,
+              getModuleCallDate()));
     }
     return tasks;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return progress;
-
+    return progress.get();
   }
 
   @Override
   public String getTaskDescription() {
     return "Main task: Gap filling " + peakList;
-  }
-
-  FeatureList getPeakList() {
-    return peakList;
   }
 
 }

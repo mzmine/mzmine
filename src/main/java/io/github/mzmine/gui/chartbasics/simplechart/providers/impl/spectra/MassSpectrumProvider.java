@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
 import com.google.common.collect.Range;
@@ -11,10 +36,9 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.Iterator;
-import java.util.stream.Stream;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MassSpectrumProvider implements PlotXYDataProvider {
 
@@ -51,12 +75,12 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
       }
 
       @Override
-      public double[] getMzValues(@Nonnull double[] dst) {
+      public double[] getMzValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
       @Override
-      public double[] getIntensityValues(@Nonnull double[] dst) {
+      public double[] getIntensityValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
@@ -100,16 +124,12 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
         return null;
       }
 
-      @Override
-      public Stream<DataPoint> stream() {
-        return null;
-      }
-
-      @Nonnull
+      @NotNull
       @Override
       public Iterator<DataPoint> iterator() {
         return null;
       }
+
     };
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -117,13 +137,13 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
     this.seriesKey = seriesKey;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return color;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return FxColorUtil.awtColorToFX(color);
@@ -135,7 +155,7 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
     return mzFormat.format(spectrum.getMzValue(index));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
@@ -144,9 +164,8 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    return "m/z: " + mzFormat
-        .format(spectrum.getMzValue(itemIndex)) + "\nIntensity: " + intensityFormat
-        .format(spectrum.getIntensityValue(itemIndex));
+    return "m/z: " + mzFormat.format(spectrum.getMzValue(itemIndex)) + "\nIntensity: "
+        + intensityFormat.format(spectrum.getIntensityValue(itemIndex));
   }
 
   @Override

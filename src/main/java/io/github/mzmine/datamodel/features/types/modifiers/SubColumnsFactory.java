@@ -1,63 +1,91 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types.modifiers;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
+import io.github.mzmine.datamodel.features.types.DataType;
+import java.util.List;
 import javafx.scene.control.TreeTableColumn;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This data type contains sub columns. Master column is not visualized. Only sub columns
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public interface SubColumnsFactory<T> {
+public interface SubColumnsFactory {
+
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
-   * 
-   * @return
+   *
+   * @return list of sub columns
    */
-  @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      final @Nullable RawDataFile raw);
+  @NotNull List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
+      final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType);
 
-  @Nonnull
-  public int getNumberOfSubColumns();
+  int getNumberOfSubColumns();
+
+  @Nullable String getHeader(int subcolumn);
+
+  /**
+   * The unique ID in a machine readable format
+   *
+   * @param subcolumn
+   * @return parsable format of ID
+   */
+  @Nullable String getUniqueID(int subcolumn);
+
+  /**
+   * The data type of the subcolumn
+   *
+   * @param subcolumn index of subcolumn
+   * @return datatype of subcolumn
+   */
+  @NotNull DataType<?> getType(int subcolumn);
 
   @Nullable
-  public String getHeader(int subcolumn);
+  String getFormattedSubColValue(int subcolumn, Object cellData);
 
   @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw);
+  Object getSubColValue(int subcolumn, Object cellData);
 
-
-  @Nullable
-  default public Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    return null;
+  /**
+   * Handle value change in this parent type
+   *
+   * @param model          original data model that holds the parent Type (this)
+   * @param subType        the sub type that was changed
+   * @param subColumnIndex the index of the sub column that was changed in this parent type
+   * @param newValue       the new value for the subType in this parent type
+   * @param <T>            value type of DataType
+   */
+  default <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
+      T newValue) {
   }
+
 }

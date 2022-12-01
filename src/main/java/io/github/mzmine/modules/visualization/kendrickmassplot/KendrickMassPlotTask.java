@@ -1,27 +1,38 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Paint;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -33,21 +44,22 @@ import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
@@ -71,6 +83,7 @@ public class KendrickMassPlotTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private ParameterSet parameters;
+  private XYDataset dataset2D;
   private XYZDataset dataset3D;
   private JFreeChart chart;
   private FeatureList featureList;
@@ -78,12 +91,15 @@ public class KendrickMassPlotTask extends AbstractTask {
   private String xAxisLabel;
   private String yAxisLabel;
   private String zAxisLabel;
-  private PaintScale paintScaleParameter;
-  private FeatureListRow rows[];
+  private String zAxisScaleType;
+  private String bubbleSizeLabel;
+  private Range<Double> zScaleRange;
+  private String paintScaleStyle;
+  private FeatureListRow[] rows;
   private int totalSteps = 3, appliedSteps = 0;
 
-  public KendrickMassPlotTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public KendrickMassPlotTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
     featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 
@@ -113,7 +129,13 @@ public class KendrickMassPlotTask extends AbstractTask {
       zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
     }
 
-    paintScaleParameter = parameters.getParameter(KendrickMassPlotParameters.paintScale).getValue();
+    zAxisScaleType = parameters.getParameter(KendrickMassPlotParameters.zScaleType).getValue();
+
+    zScaleRange = parameters.getParameter(KendrickMassPlotParameters.zScaleRange).getValue();
+
+    bubbleSizeLabel = parameters.getParameter(KendrickMassPlotParameters.bubbleSize).getValue();
+
+    paintScaleStyle = parameters.getParameter(KendrickMassPlotParameters.paintScale).getValue();
 
     rows =
         parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(featureList);
@@ -138,7 +160,16 @@ public class KendrickMassPlotTask extends AbstractTask {
     if (isCanceled())
       return;
 
-    chart = create3DKendrickMassPlot();
+    JFreeChart chart = null;
+
+    // 2D, if no third dimension was selected
+    if (zAxisLabel.equals("none")) {
+      chart = create2DKendrickMassPlot();
+    }
+    // 3D, if a third dimension was selected
+    else {
+      chart = create3DKendrickMassPlot();
+    }
     chart.setBackgroundPaint(Color.white);
 
     // create chartViewer
@@ -205,6 +236,61 @@ public class KendrickMassPlotTask extends AbstractTask {
   }
 
   /**
+   * create 2D Kendrick mass plot
+   */
+  private JFreeChart create2DKendrickMassPlot() {
+
+    if (zAxisLabel.equals("none")) {
+      logger.info("Creating new 2D chart instance");
+      appliedSteps++;
+
+      // load dataset
+      dataset2D = new KendrickMassPlotXYDataset(parameters);
+
+      // create chart
+      chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset2D,
+          PlotOrientation.VERTICAL, true, true, true);
+
+      XYPlot plot = (XYPlot) chart.getPlot();
+      plot.setBackgroundPaint(
+          MZmineCore.getConfiguration().getDefaultChartTheme().getPlotBackgroundPaint());
+      plot.setDomainCrosshairPaint(
+          MZmineCore.getConfiguration().getDefaultChartTheme().getCrosshairPaint());
+      plot.setRangeCrosshairPaint(
+          MZmineCore.getConfiguration().getDefaultChartTheme().getCrosshairPaint());
+      plot.setDomainCrosshairVisible(true);
+      plot.setRangeCrosshairVisible(true);
+      appliedSteps++;
+
+      // set axis
+      NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+      NumberAxis range = (NumberAxis) plot.getRangeAxis();
+      range.setRange(0, 1);
+      if (xAxisLabel.contains("KMD")) {
+        domain.setRange(0, 1);
+      }
+
+      // set renderer
+      XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
+
+      // set tooltip generator
+      ScatterPlotToolTipGenerator tooltipGenerator =
+          new ScatterPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
+      renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
+      plot.setRenderer(renderer);
+
+      // set item label generator
+      NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
+      renderer.setDefaultItemLabelGenerator(generator);
+      renderer.setDefaultItemLabelsVisible(false);
+      renderer.setDefaultItemLabelFont(legendFont);
+      renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
+          TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
+    }
+    return chart;
+  }
+
+  /**
    * create 3D Kendrick mass plot
    */
   private JFreeChart create3DKendrickMassPlot() {
@@ -215,18 +301,48 @@ public class KendrickMassPlotTask extends AbstractTask {
     dataset3D = new KendrickMassPlotXYZDataset(parameters);
 
     // copy and sort z-Values for min and max of the paint scale
-    Double[] copyZValues = new Double[dataset3D.getItemCount(0)];
+    double[] copyZValues = new double[dataset3D.getItemCount(0)];
     for (int i = 0; i < dataset3D.getItemCount(0); i++) {
       copyZValues[i] = dataset3D.getZValue(0, i);
     }
     Arrays.sort(copyZValues);
-    double min = copyZValues[0];
-    double max = copyZValues[copyZValues.length - 1];
-    PaintScale paintScale = createPaintScale(copyZValues);
+    // get index in accordance to percentile windows
+    int minScaleIndex = 0;
+    int maxScaleIndex = copyZValues.length - 1;
+    double min = 0;
+    double max = 0;
 
-    PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
-    paintScaleFactoy.createColorsForPaintScale(paintScale);
-    // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
+    if (zAxisScaleType.equals("percentile")) {
+      minScaleIndex = (int) Math.ceil(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
+      maxScaleIndex = copyZValues.length
+          - (int) (Math.ceil(copyZValues.length * ((100 - zScaleRange.upperEndpoint()) / 100)));
+      if (zScaleRange.upperEndpoint() == 100) {
+        maxScaleIndex = copyZValues.length - 1;
+      }
+      if (zScaleRange.lowerEndpoint() == 0) {
+        minScaleIndex = 0;
+      }
+      min = copyZValues[minScaleIndex];
+      max = copyZValues[maxScaleIndex];
+    }
+    if (zAxisScaleType.equals("custom")) {
+      min = zScaleRange.lowerEndpoint();
+      max = zScaleRange.upperEndpoint();
+    }
+
+    Paint[] contourColors =
+        XYBlockPixelSizePaintScales.getPaintColors(zAxisScaleType, zScaleRange, paintScaleStyle);
+    LookupPaintScale scale = null;
+    scale = new LookupPaintScale(copyZValues[0], copyZValues[copyZValues.length - 1],
+        new Color(0, 0, 0));
+    double[] scaleValues = new double[contourColors.length];
+    double delta = (max - min) / (contourColors.length - 1);
+    double value = min;
+    for (int i = 0; i < contourColors.length; i++) {
+      scale.add(value, contourColors[i]);
+      scaleValues[i] = value;
+      value = value + delta;
+    }
 
     // create chart
     chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset3D,
@@ -241,11 +357,11 @@ public class KendrickMassPlotTask extends AbstractTask {
       domain.setRange(0, 1);
     }
     // set renderer
-    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+    XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
     appliedSteps++;
 
     // Set paint scale
-    renderer.setPaintScale(paintScale);
+    renderer.setPaintScale(scale);
 
     ScatterPlotToolTipGenerator tooltipGenerator =
         new ScatterPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
@@ -260,13 +376,17 @@ public class KendrickMassPlotTask extends AbstractTask {
         TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
 
     plot.setRenderer(renderer);
-    plot.setBackgroundPaint(Color.white);
-    plot.setRangeGridlinePaint(Color.white);
+    plot.setBackgroundPaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getPlotBackgroundPaint());
+    plot.setRangeGridlinePaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getPlotBackgroundPaint());
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-    plot.setOutlinePaint(Color.black);
-    plot.setBackgroundPaint(Color.white);
-    plot.setDomainCrosshairPaint(Color.GRAY);
-    plot.setRangeCrosshairPaint(Color.GRAY);
+    plot.setOutlinePaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getPlotOutlinePaint());
+    plot.setDomainCrosshairPaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getCrosshairPaint());
+    plot.setRangeCrosshairPaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getCrosshairPaint());
     plot.setDomainCrosshairVisible(true);
     plot.setRangeCrosshairVisible(true);
 
@@ -275,13 +395,16 @@ public class KendrickMassPlotTask extends AbstractTask {
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
-    PaintScaleLegend legend = new PaintScaleLegend(paintScale, scaleAxis);
+    PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
 
+    legend.setBackgroundPaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getChartBackgroundPaint());
     legend.setStripOutlineVisible(false);
     legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     legend.setAxisOffset(5.0);
     legend.setMargin(new RectangleInsets(5, 5, 5, 5));
-    legend.setFrame(new BlockBorder(Color.white));
+    legend.setFrame(new BlockBorder(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getChartBackgroundPaint()));
     legend.setPadding(new RectangleInsets(10, 10, 10, 10));
     legend.setStripWidth(10);
     legend.setPosition(RectangleEdge.LEFT);
@@ -290,12 +413,6 @@ public class KendrickMassPlotTask extends AbstractTask {
     chart.addSubtitle(legend);
 
     return chart;
-  }
-
-  private PaintScale createPaintScale(Double[] zValues) {
-    Range<Double> zValueRange = Range.closed(zValues[0], zValues[zValues.length - 1]);
-    return new PaintScale(paintScaleParameter.getPaintScaleColorStyle(),
-        paintScaleParameter.getPaintScaleBoundStyle(), zValueRange);
   }
 
 }

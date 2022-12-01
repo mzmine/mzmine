@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -21,21 +28,20 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * During raw data import, we need to cache the m/z and intensity values of mobility scans, so we
@@ -51,9 +57,16 @@ public class BuildingMobilityScan implements MobilityScan {
   int basePeakIndex;
 
   /**
-   *
-   * @param scanNumber The scan number beginning with 0
-   * @param mzs The m/z values
+   * @param scanNumber    The scan number beginning with 0
+   * @param mzIntensities The m/z values [0][n] and intensity values [1][n]
+   */
+  public BuildingMobilityScan(int scanNumber, double[][] mzIntensities) {
+    this(scanNumber, mzIntensities[0], mzIntensities[1]);
+  }
+
+  /**
+   * @param scanNumber  The scan number beginning with 0
+   * @param mzs         The m/z values
    * @param intensities The intensity values.
    */
   public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
@@ -62,7 +75,7 @@ public class BuildingMobilityScan implements MobilityScan {
     this.scanNumber = scanNumber;
     boolean haveToSort = false;
 
-    // -1 is intended to be used in mobility scans. The SimpleMobilityScan will return null,
+    // -1 is intended to be used in mobility scans. The MobilityScan will return null,
     // it this value is -1
     basePeakIndex = -1;
     if (mzs.length > 1) {
@@ -126,13 +139,13 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     System.arraycopy(mzValues, 0, dst, 0, mzValues.length);
     return dst;
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     System.arraycopy(intensityValues, 0, dst, 0, intensityValues.length);
     return dst;
   }
@@ -177,12 +190,7 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @Override
-  public Stream<DataPoint> stream() {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
-
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
@@ -215,12 +223,12 @@ public class BuildingMobilityScan implements MobilityScan {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getMsMsInfo() {
+  public PasefMsMsInfo getMsMsInfo() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
@@ -229,9 +237,14 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
+  }
+
+  @Override
+  public @Nullable Float getInjectionTime() {
+    return null;
   }
 }

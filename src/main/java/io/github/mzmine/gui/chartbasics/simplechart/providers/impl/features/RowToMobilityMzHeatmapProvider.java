@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features;
@@ -32,8 +39,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRawDataFile> {
 
@@ -53,7 +60,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   private double deltaDiameter = 1d;
   private double deltaValue = 1d;
 
-  public RowToMobilityMzHeatmapProvider(@Nonnull final Collection<ModularFeatureListRow> f) {
+  public RowToMobilityMzHeatmapProvider(@NotNull final Collection<ModularFeatureListRow> f) {
     // copy the list, so we don't run into problems in case the flist is modified
     rows = new ArrayList<>(f);
     seriesKey = (f.isEmpty()) ? "No features found" : rows.get(0).getFeatureList().getName();
@@ -68,13 +75,13 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
         .filter(file -> file instanceof IMSRawDataFile).distinct().toArray(IMSRawDataFile[]::new);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -93,7 +100,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
     return sb.toString();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
@@ -111,7 +118,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
     sb.append(mzFormat.format(f.getMZRange().upperEndpoint()));
     sb.append("\n");
     sb.append("Height: ");
-    sb.append(intensityFormat.format(f.getHeight()));
+    sb.append(intensityFormat.format(f.getAverageHeight()));
     sb.append("\n");
     sb.append("Retention time");
     sb.append(": ");
@@ -128,7 +135,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
       final ModularFeatureListRow row = rows.get(i);
       for (final IMSRawDataFile file : files) {
         final ModularFeature feature = row.getFeature(file);
-        if (feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+        if (feature != null && feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
           summedValues[i] += feature.getHeight();
         }
         minValue = Math.min(summedValues[i], minValue);
@@ -177,13 +184,13 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   public double getZValue(int series, int item) {
     final ModularFeatureListRow row = rows.get(item);
     final ModularFeature f = row.getFeature(files[series]);
-    if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+    if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
       return f.getHeight();
     }
     return 0d;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getSliceColor(int series) {
     return files[series].getColorAWT();

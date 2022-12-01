@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
@@ -43,6 +50,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -50,6 +58,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -64,8 +73,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 public class RecursiveIMSBuilderTask extends AbstractTask {
@@ -83,15 +92,15 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
   private final boolean enableRecursive = true;
   private final int numConsecutiveFrames;
   private final int numDataPoints;
-  private final double binWidth;
+  private final int binWidth;
   private AtomicInteger stepProcessed = new AtomicInteger(0);
   private int stepTotal = 0;
   private int currentStep = 0;
 
   public RecursiveIMSBuilderTask(@Nullable MemoryMapStorage storage,
-      @Nonnull final IMSRawDataFile file,
-      @Nonnull final ParameterSet parameters, MZmineProject project) {
-    super(storage);
+      @NotNull final IMSRawDataFile file,
+      @NotNull final ParameterSet parameters, MZmineProject project, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.file = file;
     this.parameters = parameters;
@@ -110,20 +119,20 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TIMS_BIN_WIDTH;
+              : BinningMobilogramDataAccess.getRecommendedBinWidth(file);
       case DRIFT_TUBE ->
           advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : RecursiveIMSBuilderAdvancedParameters.DEFAULT_DTIMS_BIN_WIDTH;
+              : BinningMobilogramDataAccess.getRecommendedBinWidth(file);
       case TRAVELING_WAVE ->
           advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TWIMS_BIN_WIDTH;
-      default -> 0.0008;
+              : BinningMobilogramDataAccess.getRecommendedBinWidth(file);
+      default -> 1;
     };
 
     this.project = project;
@@ -218,18 +227,22 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
         return;
       }
 
-      final ModularFeature f = FeatureConvertors
-          .tempIMTraceToModularFeature(trace, file, binningMobilogramDataAccess, flist);
+      final ModularFeature f = FeatureConvertors.tempIMTraceToModularFeature(trace, file,
+          binningMobilogramDataAccess, flist);
       final ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f);
-      row.set(FeatureShapeMobilogramType.class, false);
+      row.set(FeatureShapeMobilogramType.class, true);
       flist.addRow(row);
       id++;
       stepProcessed.getAndIncrement();
     }
 
+    // sort and reset IDs here to have the same sorting for every feature list
+    FeatureListUtils.sortByDefaultRT(flist, true);
+
     flist.getAppliedMethods().addAll(file.getAppliedMethods());
-    flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(RecursiveIMSBuilderModule.class, parameters));
+    flist.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(RecursiveIMSBuilderModule.class, parameters,
+            getModuleCallDate()));
     DataTypeUtils.addDefaultIonMobilityTypeColumns(flist);
     project.addFeatureList(flist);
 
@@ -427,7 +440,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     return sortedMobilograms;
   }
 
-  @Nonnull
+  @NotNull
   private Set<TempMobilogram> calcMobilograms(Collection<RetentionTimeMobilityDataPoint> dps,
       final MZTolerance tolerance) {
     final RangeMap<Double, TempMobilogram> map = TreeRangeMap.create();

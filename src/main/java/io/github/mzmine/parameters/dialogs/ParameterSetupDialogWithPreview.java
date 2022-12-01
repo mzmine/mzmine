@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.dialogs;
@@ -23,7 +30,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import javafx.geometry.Orientation;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 
@@ -46,23 +52,28 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
   protected final CheckBox cbShowPreview;
   private Runnable onPreviewShown;
 
-  public ParameterSetupDialogWithPreview(boolean valueCheckRequired,
-      ParameterSet parameters) {
+  public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, "");
   }
 
-  public ParameterSetupDialogWithPreview(boolean valueCheckRequired,
-      ParameterSet parameters, String message) {
+  public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters,
+      String message) {
     super(valueCheckRequired, parameters, message);
 
     paramPreviewSplit = new SplitPane();
+    paramPreviewSplit.getItems().add(getParamPane());
     paramPreviewSplit.setOrientation(Orientation.HORIZONTAL);
+    mainPane.setCenter(paramPreviewSplit);
+
     previewWrapperPane = new BorderPane();
     cbShowPreview = new CheckBox();
 
-    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 2, 2, 1);
-    paramsPane.add(new Label("Show preview"), 0, getNumberOfParameters() + 3);
-    paramsPane.add(cbShowPreview, 1, getNumberOfParameters() + 3);
+    Label previewLabel = new Label("Show preview");
+    previewLabel.setStyle("-fx-font-style: italic");
+    paramsPane.add(previewLabel, 0, getNumberOfParameters() + 2);
+    paramsPane.add(cbShowPreview, 1, getNumberOfParameters() + 2);
+    paramsPane.setHgap(7d);
+    paramsPane.setVgap(1d);
 
     cbShowPreview.selectedProperty()
         .addListener(((observable, oldValue, newValue) -> showPreview(newValue)));
@@ -71,10 +82,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
   protected void showPreview(boolean show) {
     if (show) {
-      mainPane.setCenter(null);
-      paramPreviewSplit.getItems().addAll(mainScrollPane, previewWrapperPane);
-      previewWrapperPane.setVisible(true);
-      mainPane.setCenter(paramPreviewSplit);
+      paramPreviewSplit.getItems().add(previewWrapperPane);
       mainPane.getScene().getWindow().sizeToScene();
       if (onPreviewShown != null) {
         try {
@@ -83,11 +91,9 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
           e.printStackTrace();
         }
       }
+      paramPreviewSplit.setDividerPosition(0, 0.5);
     } else {
-      mainPane.setCenter(null);
-      paramPreviewSplit.getItems().clear();
-      previewWrapperPane.setVisible(false);
-      mainPane.setCenter(mainScrollPane);
+      paramPreviewSplit.getItems().remove(previewWrapperPane);
       mainPane.getScene().getWindow().sizeToScene();
     }
   }

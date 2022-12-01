@@ -1,47 +1,46 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains no data - listens to changes in all {@link ModularFeature} in a {@link
@@ -49,10 +48,16 @@ import javax.annotation.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class FeatureShapeType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class FeatureShapeType extends LinkedGraphicalType {
 
-  @Nonnull
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "feature_shape";
+  }
+
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Shapes";
@@ -60,10 +65,9 @@ public class FeatureShapeType extends LinkedDataType
 
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll,
-      Boolean cellData, RawDataFile raw) {
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null) {
+    if (row == null || !cellData) {
       return null;
     }
 
@@ -84,6 +88,7 @@ public class FeatureShapeType extends LinkedDataType
     return pane;
   }
 
+
   @Override
   public double getColumnWidth() {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
@@ -91,22 +96,16 @@ public class FeatureShapeType extends LinkedDataType
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> rawDataFiles) {
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> rawDataFiles, DataType<?> superType, @Nullable final Object value) {
 
-    List<Feature> features = new ArrayList<>();
-    rawDataFiles.forEach(rawDataFile -> features.add(row.getFeature(rawDataFile)));
-    if (features.isEmpty()) {
-      return null;
-    }
     return () -> {
-      ScanSelection selection = new ScanSelection(1);
-      Map<Feature, String> labels = new HashMap<>();
-      features.forEach(f -> labels.put(f, FeatureUtils.featureToString(f)));
-      ChromatogramVisualizerModule
-          .showNewTICVisualizerWindow(rawDataFiles.toArray(new RawDataFile[0]), features, labels,
-              selection, TICPlotType.BASEPEAK, rawDataFiles.get(0).getDataMZRange(1));
+      MZmineCore.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     };
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

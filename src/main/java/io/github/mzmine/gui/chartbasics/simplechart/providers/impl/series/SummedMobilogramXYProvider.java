@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
@@ -22,7 +29,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -31,8 +38,8 @@ import java.text.NumberFormat;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to plot a {@link SummedIntensityMobilitySeries} in an XY chart.
@@ -47,11 +54,11 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   private final ObjectProperty<Color> color;
   private final boolean swapAxes;
 
-  public SummedMobilogramXYProvider(final ModularFeature f) {
+  public SummedMobilogramXYProvider(final Feature f) {
     this(f, false);
   }
 
-  public SummedMobilogramXYProvider(final ModularFeature f, boolean swapAxes) {
+  public SummedMobilogramXYProvider(final Feature f, boolean swapAxes) {
     IonTimeSeries<? extends Scan> series = f.getFeatureData();
     if (!(series instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException(
@@ -76,13 +83,13 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     this.swapAxes = swapAxes;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public java.awt.Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color.get());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color.get();
@@ -94,7 +101,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

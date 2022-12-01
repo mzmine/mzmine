@@ -1,24 +1,34 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,20 +36,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.NotNull;
 
 /*
  * Raw data overview window controller class
@@ -48,20 +54,16 @@ import javafx.scene.layout.BorderPane;
  */
 public class RawDataOverviewWindowController {
 
-  public static final Logger logger =
-      Logger.getLogger(RawDataOverviewWindowController.class.getName());
+  public static final Logger logger = Logger.getLogger(
+      RawDataOverviewWindowController.class.getName());
 
   private boolean initialized = false;
 
-  private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers =
-      FXCollections.observableMap(new HashMap<>());
-  private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections.observableMap(
+      new HashMap<>());
+  private final ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections.observableMap(
+      new HashMap<>());
 
-  private boolean scroll;
-
-  @FXML
-  private Label rawDataLabel;
 
   @FXML
   private ChromatogramAndSpectraVisualizer visualizer;
@@ -77,13 +79,8 @@ public class RawDataOverviewWindowController {
 
   public void initialize() {
 
-    // this.rawDataFile = rawDataFile;
-    // add meta data
-    rawDataLabel.setText("Overview of raw data file(s): ");
-
     addChromatogramSelectedScanListener();
 
-    scroll = true;
     initialized = true;
   }
 
@@ -91,7 +88,7 @@ public class RawDataOverviewWindowController {
    * Sets the raw data files to be displayed. Already present files are not removed to optimise
    * performance. This should be called over
    * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
-   * 
+   * <p>
    * Only add LC-MS data sets, exclude imaging
    *
    * @param rawDataFiles
@@ -104,7 +101,7 @@ public class RawDataOverviewWindowController {
         filesToProcess.add(rawDataFile);
       }
     }
-    filesToProcess.forEach(r -> removeRawDataFile(r));
+    filesToProcess.forEach(this::removeRawDataFile);
 
     // presence of file is checked in the add method
     rawDataFiles.forEach(r -> {
@@ -143,7 +140,7 @@ public class RawDataOverviewWindowController {
               // in that case we just select the table.
               return;
             }
-            visualizer.setFocusedScan(raw, newValue.getScan());
+            visualizer.setFocusedScan(raw, newValue);
           }));
 
       Tab rawDataFileTab = new Tab(raw.getName());
@@ -151,8 +148,7 @@ public class RawDataOverviewWindowController {
       tpRawDataInfo.getTabs().add(rawDataFileTab);
 
       rawDataFileTab.selectedProperty().addListener((obs, o, n) -> {
-        if (n == true) {
-          logger.fine("Populating table for raw data file " + raw.getName());
+        if (n) {
           con.populate(raw);
         }
       });
@@ -190,25 +186,25 @@ public class RawDataOverviewWindowController {
 
     visualizer.chromPositionProperty().addListener((observable, oldValue, pos) -> {
       RawDataFile selectedRawDataFile = pos.getDataFile();
-      if (selectedRawDataFile instanceof ImagingRawDataFileImpl) {
+      if (selectedRawDataFile == null || selectedRawDataFile instanceof ImagingRawDataFileImpl) {
         return;
       }
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
-      if (con == null || selectedRawDataFile == null) {
+      if (con == null) {
         logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
         return;
       }
 
-      TableView<ScanDescription> rawDataTableView = con.getRawDataTableView();
+      TableView<Scan> rawDataTableView = con.getRawDataTableView();
       tpRawDataInfo.getSelectionModel().select(rawDataFilesAndTabs.get(selectedRawDataFile));
 
       if (rawDataTableView.getItems() != null) {
         try {
           Scan scan = pos.getScan();
-          rawDataTableView.getItems().stream()
-              .filter(item -> item.getScan().equals(scan)).findFirst()
+          rawDataTableView.getItems().stream().filter(item -> item.equals(scan)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
+                rawDataTableView.getSelectionModel().focus(rawDataTableView.getItems().indexOf(item));
                 if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
                   rawDataTableView.scrollTo(item);
                 }
@@ -225,7 +221,7 @@ public class RawDataOverviewWindowController {
     return visualizer.getSelectedRawDataFile();
   }
 
-  @Nonnull
+  @NotNull
   public Collection<RawDataFile> getRawDataFiles() {
     return visualizer.getRawDataFiles();
   }

@@ -1,56 +1,66 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import java.util.Map;
-import javax.annotation.Nonnull;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
+import java.util.Objects;
+import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
+public class MolecularFormulaIdentity {
 
-  private final @Nonnull IMolecularFormula cdkFormula;
-  private Double rdbe;
-  private Double isotopeScore;
-  private Double msmsScore;
-  private double neutralMass;
+  private static final Logger logger = Logger.getLogger(MolecularFormulaIdentity.class.getName());
 
-  public MolecularFormulaIdentity(IMolecularFormula cdkFormula, double neutralMass,
-      Double isotopeScore, Double msmsScore) {
-    super("");
+  @NotNull
+  protected final IMolecularFormula cdkFormula;
+  protected final Float rdbe;
+  protected final double searchedNeutralMass;
+
+  public static final String XML_ELEMENT = "molecular_formula_identity";
+  public static final String SEARCHED_NEUTRAL_MASS_ATTR = "searched_neutral_mass";
+
+  public MolecularFormulaIdentity(IMolecularFormula cdkFormula, double searchedNeutralMass) {
     this.cdkFormula = cdkFormula;
-    this.neutralMass = neutralMass;
-    this.isotopeScore = isotopeScore;
-    this.msmsScore = msmsScore;
-    rdbe = RDBERestrictionChecker.calculateRDBE(cdkFormula);
-    setPropertyValue(PROPERTY_NAME, getFormulaAsString());
-    setPropertyValue(PROPERTY_FORMULA, getFormulaAsString());
+    Double rdbe = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+    this.rdbe = rdbe == null ? null : rdbe.floatValue();
+    this.searchedNeutralMass = searchedNeutralMass;
   }
 
-  public MolecularFormulaIdentity(String formula, double neutralMass, Double isotopeScore,
-      Double msmsScore) {
-    this(FormulaUtils.createMajorIsotopeMolFormula(formula), neutralMass, isotopeScore, msmsScore);
+  public MolecularFormulaIdentity(String formula, double searchedNeutralMass) {
+    this(FormulaUtils.createMajorIsotopeMolFormula(formula), searchedNeutralMass);
   }
 
   public String getFormulaAsString() {
@@ -69,9 +79,9 @@ public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
     return MolecularFormulaManipulator.getTotalExactMass(cdkFormula);
   }
 
-  public double getPpmDiff(double neutralMass) {
+  public float getPpmDiff(double neutralMass) {
     double exact = getExactMass();
-    return (neutralMass - exact) / exact * 1E6;
+    return (float) ((neutralMass - exact) / exact * 1E6);
   }
 
   @Override
@@ -80,61 +90,65 @@ public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
   }
 
   /**
-   * Merged score
-   * 
-   * @param neutralMass
-   * @param ppmMax
-   * @return
+   * The initially searched neutral mass
+   *
+   * @return the neutral mass
    */
-  public double getScore(double ppmMax) {
-    return getScore(ppmMax, 0, 0);
+  public double getSearchedNeutralMass() {
+    return searchedNeutralMass;
   }
 
   /**
-   * Merged score with weights
-   * 
-   * @param ppmMax weight for ppm distance
+   * Merged score
+   *
+   * @param ppmMax
+   * @return
+   */
+  public float getScore(float ppmMax) {
+    return getScore(ppmMax, 1, 1);
+  }
+
+  /**
+   * Merged score with weights. Uses the initial set neutral mass
+   *
+   * @param ppmMax        weight for ppm distance
    * @param fIsotopeScore
    * @param fMSMSscore
    * @return
    */
-  public double getScore(double ppmMax, double fIsotopeScore, double fMSMSscore) {
-    return getPPMScore(neutralMass, ppmMax) + fIsotopeScore * getIsotopeScore()
-        + fMSMSscore * getMSMSScore();
+  public float getScore(float ppmMax, float fIsotopeScore, float fMSMSscore) {
+    return this.getScore(searchedNeutralMass, ppmMax, fIsotopeScore, fMSMSscore);
+  }
+
+  /**
+   * Merged score with weights. {@link ResultFormula}
+   *
+   * @param neutralMass   overrides the initally set (searched) neutral mass
+   * @param ppmMax        weight for ppm distance
+   * @param fIsotopeScore
+   * @param fMSMSscore
+   * @return
+   */
+  public float getScore(double neutralMass, float ppmMax, float fIsotopeScore, float fMSMSscore) {
+    return getPPMScore(neutralMass, ppmMax);
   }
 
   /**
    * Score for ppm distance
-   * 
-   * @param neutralMass
+   *
    * @param ppmMax
    * @return
    */
-  public double getPPMScore(double neutralMass, double ppmMax) {
-    if (ppmMax <= 0)
-      ppmMax = 50;
-    return (ppmMax - Math.abs(getPpmDiff(neutralMass))) / ppmMax;
-  }
-
-  /**
-   * 
-   * @return The isotope score or null
-   */
-  public Double getIsotopeScore() {
-    return isotopeScore == null ? 0 : isotopeScore;
-  }
-
-  /**
-   * 
-   * @return the msms score or null
-   */
-  public Double getMSMSScore() {
-    return msmsScore == null ? 0 : msmsScore;
+  public float getPPMScore(double neutralMass, float ppmMax) {
+    if (ppmMax <= 0) {
+      ppmMax = 50f;
+    }
+    return (float) (ppmMax - Math.abs(getPpmDiff(neutralMass))) / ppmMax;
   }
 
   /**
    * Only checks molecular formula as with toString method
-   * 
+   *
    * @param f
    * @return
    */
@@ -142,25 +156,31 @@ public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
     return this.toString().equals(f.toString());
   }
 
-  public Double getRDBE() {
+  public Float getRDBE() {
     return rdbe;
   }
 
-  /**
-   * MSMS annotations of MS/MS scans (sub molecular formulas)
-   * 
-   * @return
-   */
-  public Map<DataPoint, String> getMSMSannotation() {
-    return null;
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(SEARCHED_NEUTRAL_MASS_ATTR,
+        ParsingUtils.numberToString(searchedNeutralMass));
+    writer.writeCharacters(getFormulaAsString());
+    writer.writeEndElement();
   }
 
-  /**
-   * The predicted isotopes pattern
-   * 
-   * @return
-   */
-  public IsotopePattern getPredictedIsotopes() {
-    return null;
+  public static MolecularFormulaIdentity loadFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
+    if (!reader.isStartElement() || !reader.getLocalName().equals(XML_ELEMENT)) {
+      throw new IllegalStateException(
+          "Unexpected xml element for MolecularFormulaIdentity: " + reader.getLocalName());
+    }
+    Double mass = ParsingUtils.stringToDouble(
+        reader.getAttributeValue(null, SEARCHED_NEUTRAL_MASS_ATTR));
+    final String formula = reader.getElementText();
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    var molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+
+
+    return new MolecularFormulaIdentity(molFormula, Objects.requireNonNull(mass));
   }
 }

@@ -1,45 +1,43 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
 
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import java.awt.Color;
-import java.io.File;
-import java.io.FileReader;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.chart.labels.ItemLabelAnchor;
-import org.jfree.chart.labels.ItemLabelPosition;
-import org.jfree.chart.ui.TextAnchor;
 import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.FieldItem;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
@@ -47,6 +45,18 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.Color;
+import java.io.File;
+import java.io.FileReader;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.ui.TextAnchor;
 
 /**
  * Task to search spectra with a custom database
@@ -55,7 +65,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
  */
 public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      SpectraIdentificationCustomDatabaseTask.class.getName());
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
@@ -80,8 +91,8 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
    * @param parameters task parameters.
    */
   public SpectraIdentificationCustomDatabaseTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
-    super(null); // no new data stored -> null
+      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
@@ -92,7 +103,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     fieldSeparator = parameters
         .getParameter(SpectraIdentificationCustomDatabaseParameters.fieldSeparator).getValue();
 
-    fieldOrder = parameters.getParameter(SpectraIdentificationCustomDatabaseParameters.fieldOrder)
+    fieldOrder = (FieldItem[]) parameters.getParameter(SpectraIdentificationCustomDatabaseParameters.fieldOrder)
         .getValue();
 
     ignoreFirstLine = parameters
@@ -222,7 +233,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     // Add label generator for the dataset
     SpectraDatabaseSearchLabelGenerator labelGenerator =
         new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
+    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator, true);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
     spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(

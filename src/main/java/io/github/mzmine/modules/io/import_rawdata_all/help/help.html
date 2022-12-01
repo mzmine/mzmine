@@ -1,0 +1,80 @@
+<!--
+  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<html>
+<head>
+  <title>Import - Advanced data import</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" type="text/css"
+        href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Advanced data import</h1>
+
+<h2>Description</h2>
+
+<p>
+  Imports MS data files in different MS data formats in one module. Either choose files directly or
+  use the buttons to list all files with a specific file format in a directory or in all sub
+  directories.
+</p>
+
+<h4>Method parameters</h4>
+
+<dl>
+
+  <dt>File names</dt>
+  <dd>List of all MS data files to be imported in different MS data formats</dd>
+
+  <dt>Advanced import</dt>
+  <dd>Apply mass detection (centroiding and thresholding) to all scans directly. CAUTION: While
+    it is slightly more efficient to do this during data import, only the processed data is stored
+    and the unprocessed data is discarded. Only use this method if you have tested that the final
+    results are the same, compared to splitting the data import and mass detection into two separate
+    steps.
+  </dd>
+
+  <dt>MS1 detector (Advanced)</dt>
+  <dd>Apply mass detection (centroiding and thresholding) to all MS1 scans directly. CAUTION: While
+    it is slightly more efficient to do this during data import, only the processed data is stored
+    and the unprocessed data is discarded. Only use this method if you have tested that the final
+    results are the same, compared to splitting the data import and mass detection into two separate
+    steps.
+  </dd>
+
+  <dt>MS2 detector (Advanced)</dt>
+  <dd>Apply mass detection (centroiding and thresholding) to all MS2 scans directly (all ms level>1
+    scans). CAUTION: While it is slightly more efficient to do this during data import, only the
+    processed data is stored and the unprocessed data is discarded. Only use this method if you have
+    tested that the final results are the same, compared to splitting the data import and mass
+    detection into two separate steps.
+  </dd>
+
+</dl>
+
+</body>
+</html>

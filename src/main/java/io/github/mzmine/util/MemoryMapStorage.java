@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -33,8 +40,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 /**
@@ -100,7 +107,7 @@ public class MemoryMapStorage {
     return storeMassListsInRam ? null : new MemoryMapStorage();
   }
 
-  @Nonnull
+  @NotNull
   public static MemoryMapStorage create() {
     return new MemoryMapStorage();
   }
@@ -157,8 +164,8 @@ public class MemoryMapStorage {
    * @return a read-only DoubleBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized DoubleBuffer storeData(@Nonnull final double data[])
+  @NotNull
+  public synchronized DoubleBuffer storeData(@NotNull final double data[])
       throws IOException {
     return storeData(data, 0, data.length);
   }
@@ -173,8 +180,8 @@ public class MemoryMapStorage {
    * @return a read-only DoubleBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized DoubleBuffer storeData(@Nonnull final double data[], int offset,
+  @NotNull
+  public synchronized DoubleBuffer storeData(@NotNull final double data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
@@ -214,8 +221,8 @@ public class MemoryMapStorage {
    * @return a read-only FloatBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized FloatBuffer storeData(@Nonnull final float data[])
+  @NotNull
+  public synchronized FloatBuffer storeData(@NotNull final float data[])
       throws IOException {
     return storeData(data, 0, data.length);
   }
@@ -230,13 +237,13 @@ public class MemoryMapStorage {
    * @return a read-only FloatBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized FloatBuffer storeData(@Nonnull final float data[], int offset,
+  @NotNull
+  public synchronized FloatBuffer storeData(@NotNull final float data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
     if ((currentMappedFile == null)
-        || (currentMappedFile.position() + length > STORAGE_FILE_CAPACITY)) {
+        || (currentMappedFile.position() + (length * Float.BYTES) > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 
@@ -271,8 +278,8 @@ public class MemoryMapStorage {
    * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized IntBuffer storeData(@Nonnull final int data[]) throws IOException {
+  @NotNull
+  public synchronized IntBuffer storeData(@NotNull final int data[]) throws IOException {
     return storeData(data, 0, data.length);
   }
 
@@ -286,13 +293,13 @@ public class MemoryMapStorage {
    * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized IntBuffer storeData(@Nonnull final int data[], int offset,
+  @NotNull
+  public synchronized IntBuffer storeData(@NotNull final int data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
     if ((currentMappedFile == null)
-        || (currentMappedFile.position() + length > STORAGE_FILE_CAPACITY)) {
+        || (currentMappedFile.position() + (length * Integer.BYTES) > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 

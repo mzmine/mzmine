@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch;
@@ -21,18 +28,16 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidIdentity;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
@@ -42,71 +47,102 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
-import java.util.ArrayList;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.ui.TextAnchor;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Task to search and annotate lipids in spectra
- *
+ * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
+  private static final LipidFactory LIPID_FACTORY = new LipidFactory();
+
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private Object[] selectedObjects;
+  private DataPoint[] massList;
   private LipidClasses[] selectedLipids;
-  private int minChainLength, maxChainLength, maxDoubleBonds, minDoubleBonds;
+  private int minChainLength;
+  private int maxChainLength;
+  private int maxDoubleBonds;
+  private int minDoubleBonds;
   private MZTolerance mzTolerance;
   private IonizationType ionizationType;
-  private Boolean searchForModifications;
-  private double noiseLevel;
-  private double[] lipidModificationMasses;
-  private LipidModification[] lipidModification;
+  private Boolean searchForCustomLipidClasses;
+  private CustomLipidClass[] customLipidClasses;
+  private Boolean searchForMSMSFragments;
+  private Boolean ionizationAutoSearch;
   private Scan currentScan;
   private SpectraPlot spectraPlot;
+  private Map<DataPoint, String> annotatedMassList = new HashMap<>();
 
-  private int finishedSteps = 0, totalSteps;
-  private double searchedMass;
+  private int finishedSteps = 0;
+  private int totalSteps;
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   /**
    * Create the task.
-   *
+   * 
    * @param parameters task parameters.
    */
   public SpectraIdentificationLipidSearchTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
-    super(null); // no new data stored here -> null
-
+      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
 
-    minChainLength = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.minChainLength).getValue();
-    maxChainLength = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.maxChainLength).getValue();
-    maxDoubleBonds = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.maxDoubleBonds).getValue();
-    minDoubleBonds = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.minDoubleBonds).getValue();
-    mzTolerance =
+    this.minChainLength =
+        parameters.getParameter(SpectraIdentificationLipidSearchParameters.chainLength).getValue()
+            .lowerEndpoint();
+    this.maxChainLength =
+        parameters.getParameter(SpectraIdentificationLipidSearchParameters.chainLength).getValue()
+            .upperEndpoint();
+    this.minDoubleBonds =
+        parameters.getParameter(SpectraIdentificationLipidSearchParameters.doubleBonds).getValue()
+            .lowerEndpoint();
+    this.maxDoubleBonds =
+        parameters.getParameter(SpectraIdentificationLipidSearchParameters.doubleBonds).getValue()
+            .upperEndpoint();
+    this.mzTolerance =
         parameters.getParameter(SpectraIdentificationLipidSearchParameters.mzTolerance).getValue();
-    selectedObjects =
+    this.selectedObjects =
         parameters.getParameter(SpectraIdentificationLipidSearchParameters.lipidClasses).getValue();
-    ionizationType = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.ionizationMethod).getValue();
-    searchForModifications = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.useModification).getValue();
-    lipidModification =
-        parameters.getParameter(SpectraIdentificationLipidSearchParameters.modification).getValue();
-    noiseLevel =
-        parameters.getParameter(SpectraIdentificationLipidSearchParameters.noiseLevel).getValue();
-
+    this.searchForMSMSFragments = parameters
+        .getParameter(SpectraIdentificationLipidSearchParameters.searchForMSMSFragments).getValue();
+    if (searchForMSMSFragments.booleanValue()) {
+      this.ionizationAutoSearch =
+          parameters.getParameter(SpectraIdentificationLipidSearchParameters.searchForMSMSFragments)
+              .getEmbeddedParameters()
+              .getParameter(LipidSpeactraSearchMSMSParameters.ionizationAutoSearch).getValue();
+    } else {
+      this.ionizationAutoSearch = false;
+    }
+    this.searchForCustomLipidClasses = parameters
+        .getParameter(SpectraIdentificationLipidSearchParameters.customLipidClasses).getValue();
+    if (searchForCustomLipidClasses.booleanValue()) {
+      this.customLipidClasses = SpectraIdentificationLipidSearchParameters.customLipidClasses
+          .getEmbeddedParameter().getChoices();
+    }
+    if (currentScan.getMassList() == null) {
+      setErrorMessage("Mass List cannot be found.\nCheck if MS2 Scans have a Mass List");
+      setStatus(TaskStatus.ERROR);
+      return;
+    } else {
+      massList = currentScan.getMassList().getDataPoints();
+    }
     // Convert Objects to LipidClasses
     selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
         .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
@@ -138,94 +174,35 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    // create mass list for scan
-    double[][] massList = null;
-    ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
-    MassDetector massDetector = null;
-    ArrayList<String> allCompoundIDs = new ArrayList<>();
+    Set<DataPoint> massesSet = new HashSet<>(Arrays.asList(massList));
 
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile
-    // or centroid mode
-    if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-      massDetector = new CentroidMassDetector();
-      CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
-      CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan, parameters);
-    } else {
-      massDetector = new ExactMassDetector();
-      ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
-      ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan, parameters);
-    }
     totalSteps = massList.length;
     // loop through every peak in mass list
     if (getStatus() != TaskStatus.PROCESSING) {
       return;
     }
 
-    // Check if lipids should be modified
-    if (searchForModifications == true) {
-      lipidModificationMasses = getLipidModificationMasses(lipidModification);
-    }
-    // Calculate how many possible lipids we will try
-    totalSteps = (((maxChainLength - minChainLength + 1) * (maxDoubleBonds - minDoubleBonds + 1))
-        * selectedLipids.length);
-    // Combine Strings
-    String annotation = "";
-    // Try all combinations of fatty acid lengths and double bonds
-    for (int j = 0; j < selectedLipids.length; j++) {
-      int numberOfAcylChains = selectedLipids[j].getNumberOfAcylChains();
-      int numberOfAlkylChains = selectedLipids[j].getNumberofAlkyChains();
-      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds =
-            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
-          for (int i = 0; i < massList.length; i++) {
-            searchedMass = massList[0][i];
-            // Task canceled?
-            if (isCanceled())
-              return;
+    // build lipid species database
+    Set<ILipidAnnotation> lipidDatabase = buildLipidDatabase();
 
-            // If we have non-zero fatty acid, which is shorter
-            // than minimal length, skip this lipid
-            if (((chainLength > 0) && (chainLength < minChainLength))) {
-              continue;
-            }
-
-            // If we have more double bonds than carbons, it
-            // doesn't make sense, so let's skip such lipids
-            if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
-              continue;
-            }
-            // Prepare a lipid instance
-            LipidIdentity lipidChain = new LipidIdentity(selectedLipids[j], chainLength,
-                chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
-            annotation = findPossibleLipid(lipidChain, searchedMass);
-            if (annotation != "") {
-              allCompoundIDs.add(annotation);
-              massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
-            }
-            annotation = findPossibleLipidModification(lipidChain, searchedMass);
-            if (annotation != "") {
-              allCompoundIDs.add(annotation);
-              massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
-            }
-          }
-          finishedSteps++;
-        }
+    // start lipid search
+    massesSet.parallelStream().forEach(dataPoint -> {
+      for (ILipidAnnotation lipid : lipidDatabase) {
+        findPossibleLipid(lipid, dataPoint);
       }
-    }
+      finishedSteps++;
+    });
 
     // new mass list
-    DataPoint[] annotatedMassList = new DataPoint[massListAnnotated.size()];
-    massListAnnotated.toArray(annotatedMassList);
-    String[] annotations = new String[annotatedMassList.length];
-    allCompoundIDs.toArray(annotations);
+    DataPoint[] massListAnnotated = annotatedMassList.keySet().toArray(new DataPoint[0]);
+    String[] annotations = annotatedMassList.values().toArray(new String[0]);
     DataPointsDataSet detectedCompoundsDataset =
-        new DataPointsDataSet("Detected compounds", annotatedMassList);
+        new DataPointsDataSet("Detected compounds", massListAnnotated);
+
     // Add label generator for the dataset
     SpectraDatabaseSearchLabelGenerator labelGenerator =
         new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
+    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator, true);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
     spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
@@ -234,62 +211,107 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
   }
 
-  private String findPossibleLipid(LipidIdentity lipid, double searchedMass) {
-    String lipidAnnoation = "";
-    double lipidIonMass = 0.0;
-    double lipidMass = lipid.getMass();
-    lipidIonMass = lipidMass + ionizationType.getAddedMass();
-    logger.info("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
-    Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(searchedMass);
-    if (mzTolRange12C.contains(lipidIonMass)) {
-      // Calc rel mass deviation;
-      double relMassDev = ((lipidIonMass - searchedMass) / lipidIonMass) * 1000000;
-      lipidAnnoation = lipid.getName() + ionizationType.getAdductName() + ", Δ "
-          + NumberFormat.getInstance().format(relMassDev) + " ppm"; // Format relativ mass
+  private Set<ILipidAnnotation> buildLipidDatabase() {
+
+    Set<ILipidAnnotation> lipidDatabase = new HashSet<>();
+
+    // add selected lipids
+    buildLipidCombinations(lipidDatabase, selectedLipids);
+
+    // add custom lipids
+    if (customLipidClasses != null && customLipidClasses.length > 0) {
+      buildLipidCombinations(lipidDatabase, selectedLipids);
     }
-    return lipidAnnoation;
+
+    return lipidDatabase;
   }
 
-  private String findPossibleLipidModification(LipidIdentity lipid, double searchedMass) {
-    String lipidAnnoation = "";
-    double lipidIonMass = 0.0;
-    double lipidMass = lipid.getMass();
-    lipidIonMass = lipidMass + ionizationType.getAddedMass();
-    logger.info("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
-    Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(searchedMass);
-    // If search for modifications is selected search for modifications in
-    // MS1
-    if (searchForModifications == true) {
-      lipidAnnoation = searchModifications(searchedMass, lipidIonMass, lipid,
-          lipidModificationMasses, mzTolRange12C);
+  private void buildLipidCombinations(Set<ILipidAnnotation> lipidDatabase,
+      ILipidClass[] lipidClasses) {
+    // Try all combinations of fatty acid lengths and double bonds
+    for (int i = 0; i < lipidClasses.length; i++) {
+      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
+        for (int chainDoubleBonds =
+            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
+
+          // If we have non-zero fatty acid, which is shorter
+          // than minimal length, skip this lipid
+          if (((chainLength > 0) && (chainLength < minChainLength))) {
+            finishedSteps++;
+            continue;
+          }
+
+          // If we have more double bonds than carbons, it
+          // doesn't make sense, so let's skip such lipids
+          if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
+            finishedSteps++;
+            continue;
+          }
+
+          // Prepare a lipid instance
+          lipidDatabase.add(
+              LIPID_FACTORY.buildSpeciesLevelLipid(lipidClasses[i], chainLength, chainDoubleBonds));
+        }
+      }
     }
-    return lipidAnnoation;
   }
 
-  private String searchModifications(double searchedMass, double lipidIonMass, LipidIdentity lipid,
-      double[] lipidModificationMasses, Range<Double> mzTolModification) {
-    String lipidAnnoation = "";
-    for (int j = 0; j < lipidModificationMasses.length; j++) {
-      if (mzTolModification.contains(lipidIonMass + (lipidModificationMasses[j]))) {
-        // Calc relativ mass deviation
-        double relMassDev = ((lipidIonMass + (lipidModificationMasses[j]) - searchedMass)
-            / (lipidIonMass + lipidModificationMasses[j])) * 1000000;
-        // Add row identity
-        lipidAnnoation = lipid + " " + ionizationType.getAdductName() + " " + lipidModification[j]
-            + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm";
-        logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
+  private void findPossibleLipid(ILipidAnnotation lipid, DataPoint dataPoint) {
+    if (isCanceled())
+      return;
+    Set<IonizationType> ionizationTypeList = new HashSet<>();
+    if (ionizationAutoSearch.booleanValue()) {
+      LipidFragmentationRule[] fragmentationRules = lipid.getLipidClass().getFragmentationRules();
+      for (int i = 0; i < fragmentationRules.length; i++) {
+        ionizationTypeList.add(fragmentationRules[i].getIonizationType());
+      }
+    } else {
+      ionizationTypeList.add(ionizationType);
+    }
+    for (IonizationType ionization : ionizationTypeList) {
+      if (!currentScan.getPolarity().equals(ionization.getPolarity())) {
+        continue;
+      }
+      double lipidIonMass = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
+          AtomContainerManipulator.MonoIsotopic) + ionization.getAddedMass();
+      Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(dataPoint.getMZ());
+      if (mzTolRange12C.contains(lipidIonMass)) {
+
+        // Calc rel mass deviation;
+        double relMassDev = ((lipidIonMass - dataPoint.getMZ()) / lipidIonMass) * 1000000;
+        annotatedMassList.put(dataPoint, lipid.getAnnotation() + " " + ionization.getAdductName()
+            + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm");
+
+        // If search for MSMS fragments is selected search for fragments
+        if (searchForMSMSFragments.booleanValue()) {
+          searchMsmsFragments(ionization, lipid);
+        }
+
+        logger.info("Found lipid: " + lipid.getAnnotation() + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
       }
     }
-    return lipidAnnoation;
+
   }
 
-  private double[] getLipidModificationMasses(LipidModification[] lipidModification) {
-    double[] lipidModificationMasses = new double[lipidModification.length];
-    for (int i = 0; i < lipidModification.length; i++) {
-      lipidModificationMasses[i] = lipidModification[i].getModificationMass();
+  private void searchMsmsFragments(IonizationType ionization, ILipidAnnotation lipid) {
+    MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
+    LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
+    if (rules.length > 0) {
+      for (int i = 0; i < massList.length; i++) {
+        Range<Double> mzTolRange = mzTolerance.getToleranceRange(massList[i].getMZ());
+        LipidFragment annotatedFragment = msmsLipidTools.checkForClassSpecificFragment(mzTolRange,
+            lipid, ionization, rules, massList[i], currentScan);
+        if (annotatedFragment != null) {
+          double relMassDev = ((annotatedFragment.getMzExact() - massList[i].getMZ())
+              / annotatedFragment.getMzExact()) * 1000000;
+          annotatedMassList.put(massList[i],
+              annotatedFragment.getLipidClass().getAbbr() + " " + annotatedFragment.getRuleType()
+                  + " " + ionization.getAdductName() + ", Δ "
+                  + NumberFormat.getInstance().format(relMassDev) + " ppm");
+        }
+      }
     }
-    return lipidModificationMasses;
   }
 
 }

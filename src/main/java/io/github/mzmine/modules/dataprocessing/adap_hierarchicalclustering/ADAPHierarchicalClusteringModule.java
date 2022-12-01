@@ -1,17 +1,26 @@
 /*
- * Copyright (C) 2016 Du-Lab Team <dulab.binf@gmail.com>
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
@@ -23,11 +32,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class ADAPHierarchicalClusteringModule implements MZmineProcessingModule {
@@ -37,36 +46,37 @@ public class ADAPHierarchicalClusteringModule implements MZmineProcessingModule 
       + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.SPECTRALDECONVOLUTION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ADAP3DecompositionV1_5Parameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     FeatureList[] peakLists = parameters.getParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new ADAP3DecompositionV1_5Task(project, peakList, parameters, storage);
+      Task newTask = new ADAP3DecompositionV1_5Task(project, peakList, parameters, storage,
+          moduleCallDate);
       tasks.add(newTask);
     }
 

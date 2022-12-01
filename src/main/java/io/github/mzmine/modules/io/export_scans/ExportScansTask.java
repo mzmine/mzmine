@@ -1,30 +1,30 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_scans;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.FileType;
 import io.github.msdk.datamodel.MsScan;
@@ -40,6 +40,15 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Exports a spectrum to a file.
@@ -57,9 +66,10 @@ public class ExportScansTask extends AbstractTask {
   private int progressMax;
 
   private boolean useMassList;
+  private MzMLFileExportMethod method;
 
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+    super(null, Instant.now()); // no new data stored -> null, date irrelevant (not used in batch)
     progress = 0;
     progressMax = 0;
     this.scans = scans;
@@ -85,7 +95,12 @@ public class ExportScansTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return progressMax == 0 ? 0.0 : (double) progress / (double) progressMax;
+    if(method != null) {
+      return Objects.requireNonNullElse(method.getFinishedPercentage(), 0f);
+    } else if(progressMax != 0) {
+      return (double) progress / (double) progressMax;
+    }
+    return 0;
   }
 
   @Override
@@ -140,9 +155,9 @@ public class ExportScansTask extends AbstractTask {
           case "mgf":
             writer.write("BEGIN IONS");
             writer.newLine();
-            writer.write("PEPMASS=" + scan.getPrecursorMZ());
+            writer.write("PEPMASS=" + Objects.requireNonNullElse(scan.getPrecursorMz(), 0));
             writer.newLine();
-            writer.write("CHARGE=" + scan.getPrecursorCharge());
+            writer.write("CHARGE=" + Objects.requireNonNullElse(scan.getPrecursorCharge(), 0));
             writer.newLine();
             writer.write("MSLEVEL=" + scan.getMSLevel());
             writer.newLine();
@@ -202,6 +217,7 @@ public class ExportScansTask extends AbstractTask {
 
   public void exportmzML() throws MSDKException {
 
+    progressMax = scans.length;
     // Initialize objects
     SimpleRawDataFile msdkRawFile =
         new SimpleRawDataFile("MZmine mzML export", Optional.empty(), FileType.MZML);
@@ -210,7 +226,7 @@ public class ExportScansTask extends AbstractTask {
       msdkRawFile.addScan(MSDKscan);
     }
     // Actually write to disk
-    MzMLFileExportMethod method = new MzMLFileExportMethod(msdkRawFile, exportFile,
+    method = new MzMLFileExportMethod(msdkRawFile, exportFile,
         MzMLCompressionType.ZLIB, MzMLCompressionType.ZLIB);
     method.execute();
   }

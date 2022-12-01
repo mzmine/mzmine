@@ -1,29 +1,42 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- */
-
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
+import com.google.common.base.Functions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.RangeUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -31,7 +44,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
 import org.rsc.chemspider.ApiException;
 import org.rsc.chemspider.api.FilterByMassRequest;
 import org.rsc.chemspider.api.FilterByMassRequest.OrderByEnum;
@@ -40,19 +52,6 @@ import org.rsc.chemspider.api.FilteringApi;
 import org.rsc.chemspider.api.QueryResultResponse;
 import org.rsc.chemspider.api.RecordResponse;
 import org.rsc.chemspider.api.RecordsApi;
-
-import com.google.common.base.Functions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.RangeUtils;
 
 /**
  * Searches the ChemSpider database.
@@ -114,7 +113,7 @@ public class ChemSpiderGateway implements DBGateway {
   }
 
   @Override
-  public DBCompound getCompound(final String ID, ParameterSet parameters) throws IOException {
+  public CompoundDBAnnotation getCompound(final String ID, ParameterSet parameters) throws IOException {
 
     logger.finest("Fetching compound info for CSID #" + ID);
 
@@ -140,7 +139,7 @@ public class ChemSpiderGateway implements DBGateway {
         formula = FORMULA_PATTERN.matcher(formula).replaceAll("");
 
       // Create and return the compound record.
-      return new DBCompound(OnlineDatabases.CHEMSPIDER, ID, name, formula,
+      return new SimpleCompoundDBAnnotation(OnlineDatabases.CHEMSPIDER, ID, name, formula,
           new URL(STRUCTURE_URL_PATTERN.replaceFirst("CSID", ID)),
           new URL(STRUCTURE2D_URL_PATTERN.replaceFirst("CSID", ID)),
           new URL(STRUCTURE3D_URL_PATTERN.replaceFirst("CSID", ID)));

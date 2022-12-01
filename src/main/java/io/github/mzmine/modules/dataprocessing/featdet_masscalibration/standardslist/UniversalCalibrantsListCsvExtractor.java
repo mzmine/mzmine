@@ -1,26 +1,32 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.LabeledCSVParser;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,11 +35,9 @@ import java.util.logging.Logger;
 
 
 /**
- * UniversalCalibrantsListExtractor for csv files
- * expects columns at fixed positions for storing needed data
- * first column is mz
- * second column is optional name
- * first row (column headers) is skipped
+ * UniversalCalibrantsListExtractor for csv files expects columns at fixed positions for storing
+ * needed data first column is mz second column is optional name first row (column headers) is
+ * skipped
  */
 public class UniversalCalibrantsListCsvExtractor implements StandardsListExtractor {
 
@@ -62,11 +66,12 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
   /**
    * Creates the extractor
    *
-   * @param filename csv filename
-   * @param inputStream input stream to use
+   * @param filename    csv filename
+   * @param inputStream input stream to use.
    * @throws IOException exception thrown when issues opening given file occur
    */
-  public UniversalCalibrantsListCsvExtractor(String filename, InputStream inputStream) throws IOException {
+  public UniversalCalibrantsListCsvExtractor(String filename, InputStream inputStream)
+      throws IOException {
     this.filename = filename;
     this.csvReader = new LabeledCSVParser(new CSVParser(inputStream));
   }
@@ -84,7 +89,7 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
       logger.fine("Using cached list");
       return new StandardsList(this.extractedData);
     }
-    this.extractedData = new ArrayList<StandardsListItem>();
+    this.extractedData = new ArrayList<>();
 
     String[] lineValues;
     while ((lineValues = csvReader.getLine()) != null) {
@@ -104,12 +109,21 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
     }
 
     logger.info("Extracted " + extractedData.size() + " universal calibrants from "
-            + csvReader.getLastLineNumber() + " rows");
+        + csvReader.getLastLineNumber() + " rows");
     if (extractedData.size() < csvReader.getLastLineNumber()) {
       logger.warning("Skipped " + (csvReader.getLastLineNumber() - extractedData.size())
-              + " rows when reading universal calibrants in csv file " + filename);
+          + " rows when reading universal calibrants in csv file " + filename);
     }
 
     return new StandardsList(extractedData);
+  }
+
+  @Override
+  public void closeInputStreams() {
+    try {
+      csvReader.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
@@ -21,34 +28,25 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 public class LipidClassDescription {
 
   private String id;
-  private String lipidCoreClass;
-  private String lipidMainClass;
   private String lipidClass;
   private String molecularFormula;
   private String abbreviation;
-  private String ionization;
   private String exactMass;
   private String info;
   private String status;
   private String msmsFragmentsPos;
-  private String msmsFragmentsNeg;
 
-  public LipidClassDescription(String id, String lipidCoreClass, String lipidMainClass, String lipidClass,
-      String molecularFormula, String abbreviation, String ionization, String exactMass,
-      String info, String status, String msmsFragmentsPos, String msmsFragmentsNeg) {
+  public LipidClassDescription(String id, String lipidClass, String molecularFormula,
+      String abbreviation, String exactMass, String info, String status, String msmsFragmentsPos) {
 
     this.id = id;
-    this.lipidCoreClass = lipidCoreClass;
-    this.lipidMainClass = lipidMainClass;
     this.lipidClass = lipidClass;
     this.molecularFormula = molecularFormula;
     this.abbreviation = abbreviation;
-    this.ionization = ionization;
     this.exactMass = exactMass;
     this.info = info;
     this.status = status;
     this.msmsFragmentsPos = msmsFragmentsPos;
-    this.msmsFragmentsNeg = msmsFragmentsNeg;
   }
 
   public String getId() {
@@ -57,22 +55,6 @@ public class LipidClassDescription {
 
   public void setId(String id) {
     this.id = id;
-  }
-
-  public String getLipidCoreClass() {
-    return lipidCoreClass;
-  }
-
-  public void setLipidCoreClass(String lipidCoreClass) {
-    this.lipidCoreClass = lipidCoreClass;
-  }
-
-  public String getLipidMainClass() {
-    return lipidMainClass;
-  }
-
-  public void setLipidMainClass(String lipidMainClass) {
-    this.lipidMainClass = lipidMainClass;
   }
 
   public String getLipidClass() {
@@ -99,14 +81,6 @@ public class LipidClassDescription {
     this.abbreviation = abbreviation;
   }
 
-  public String getIonization() {
-    return ionization;
-  }
-
-  public void setIonization(String ionization) {
-    this.ionization = ionization;
-  }
-
   public String getExactMass() {
     return exactMass;
   }
@@ -129,14 +103,6 @@ public class LipidClassDescription {
 
   public void setStatus(String status) {
     this.status = status;
-  }
-
-  public String getMsmsFragmentsNeg() {
-    return msmsFragmentsNeg;
-  }
-
-  public void setMsmsFragmentsNeg(String msmsFragmentsNeg) {
-    this.msmsFragmentsNeg = msmsFragmentsNeg;
   }
 
   public String getMsmsFragmentsPos() {

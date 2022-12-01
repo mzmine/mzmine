@@ -1,25 +1,33 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -28,45 +36,56 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.exception.InvalidSmilesException;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 
 public class FormulaUtils {
 
+  /**
+   * https://physics.nist.gov/cgi-bin/cuu/Value?meu|search_for=electron+mass 2022/05/04
+   */
+  public static final double electronMass = 0.000548579909065;
   private static Logger logger = Logger.getLogger(FormulaUtils.class.getName());
-  private static final double electronMass = 0.00054857990946;
 
   /**
    * Sort all molecular formulas by score of ppm distance, isotope sccore and msms score (with
    * weighting). Best will be at first position
-   * 
-   * @param list
-   * @param neutralMass
-   * @param ppmMax
-   * @param weightIsotopeScore
-   * @param weightMSMSscore
    */
-  public static void sortFormulaList(List<MolecularFormulaIdentity> list, double ppmMax,
-      double weightIsotopeScore, double weightMSMSscore) {
-    if (list == null)
+  public static void sortFormulaList(List<? extends MolecularFormulaIdentity> list, float ppmMax,
+      float weightIsotopeScore, float weightMSMSscore) {
+    if (list == null) {
       return;
-    list.sort(new Comparator<MolecularFormulaIdentity>() {
-      @Override
-      public int compare(MolecularFormulaIdentity a, MolecularFormulaIdentity b) {
-        double scoreA = a.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
-        double scoreB = b.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
-        // best to position 0 (therefore change A B)
-        return Double.compare(scoreB, scoreA);
-      }
+    }
+
+    list.sort((a, b) -> {
+      float scoreA = a.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
+      float scoreB = b.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
+      // best to position 0 (therefore change A B)
+      return Double.compare(scoreB, scoreA);
+    });
+  }
+
+  public static void sortFormulaList(List<? extends MolecularFormulaIdentity> list,
+      double neutralMassOverride, float ppmMax, float weightIsotopeScore, float weightMSMSscore) {
+    if (list == null) {
+      return;
+    }
+
+    list.sort((a, b) -> {
+      double scoreA = a.getScore(neutralMassOverride, ppmMax, weightIsotopeScore, weightMSMSscore);
+      double scoreB = b.getScore(neutralMassOverride, ppmMax, weightIsotopeScore, weightMSMSscore);
+      // best to position 0 (therefore change A B)
+      return Double.compare(scoreB, scoreA);
     });
   }
 
@@ -81,8 +100,7 @@ public class FormulaUtils {
       if (majorIsotope == null) {
         return 0;
       }
-      double mass = majorIsotope.getExactMass();
-      return mass;
+      return majorIsotope.getExactMass();
     } catch (IOException e) {
       e.printStackTrace();
       return 0;
@@ -91,8 +109,9 @@ public class FormulaUtils {
 
   public static boolean containsElement(IMolecularFormula f, String element) {
     for (IIsotope iso : f.isotopes()) {
-      if (iso.getSymbol().equals(element))
+      if (iso.getSymbol().equals(element)) {
         return true;
+      }
     }
     return false;
   }
@@ -100,16 +119,17 @@ public class FormulaUtils {
   public static int countElement(IMolecularFormula f, String element) {
     int count = 0;
     for (IIsotope iso : f.isotopes()) {
-      if (iso.getSymbol().equals(element))
+      if (iso.getSymbol().equals(element)) {
         count += f.getIsotopeCount(iso);
+      }
     }
     return count;
   }
 
-  @Nonnull
+  @NotNull
   public static Map<String, Integer> parseFormula(String formula) {
 
-    Map<String, Integer> parsedFormula = new Hashtable<String, Integer>();
+    Map<String, Integer> parsedFormula = new Hashtable<>();
 
     Pattern pattern = Pattern.compile("([A-Z][a-z]?)(-?[0-9]*)");
     Matcher matcher = pattern.matcher(formula);
@@ -118,8 +138,9 @@ public class FormulaUtils {
       String element = matcher.group(1);
       String countString = matcher.group(2);
       int addCount = 1;
-      if ((countString.length() > 0) && (!countString.equals("-")))
+      if ((countString.length() > 0) && (!countString.equals("-"))) {
         addCount = Integer.parseInt(countString);
+      }
       int currentCount = 0;
       if (parsedFormula.containsKey(element)) {
         currentCount = parsedFormula.get(element);
@@ -130,57 +151,56 @@ public class FormulaUtils {
     return parsedFormula;
   }
 
-  @Nonnull
-  public static String formatFormula(@Nonnull Map<String, Integer> parsedFormula) {
+  @NotNull
+  public static String formatFormula(@NotNull Map<String, Integer> parsedFormula) {
 
     StringBuilder formattedFormula = new StringBuilder();
 
     // Use TreeSet to sort the elements by alphabet
-    TreeSet<String> elements = new TreeSet<String>(parsedFormula.keySet());
+    TreeSet<String> elements = new TreeSet<>(parsedFormula.keySet());
 
     if (elements.contains("C")) {
       int countC = parsedFormula.get("C");
       formattedFormula.append("C");
-      if (countC > 1)
+      if (countC > 1) {
         formattedFormula.append(countC);
+      }
       elements.remove("C");
       if (elements.contains("H")) {
         int countH = parsedFormula.get("H");
         formattedFormula.append("H");
-        if (countH > 1)
+        if (countH > 1) {
           formattedFormula.append(countH);
+        }
         elements.remove("H");
       }
     }
     for (String element : elements) {
       formattedFormula.append(element);
       int count = parsedFormula.get(element);
-      if (count > 1)
+      if (count > 1) {
         formattedFormula.append(count);
+      }
     }
     return formattedFormula.toString();
   }
 
   /**
    * Calculate m/z ratio for given ionic formula string
+   * <p>
+   * This method utilizes existing cdk codebase to parse the ionic formula string and then obtain
+   * its exact mass and charge Seems like the cdk builder used does not support isotopic notation
+   * such as (15N)5 but recursive subformulas should be supported If no charge is given then +1 is
+   * used For charge of more than -1 or +1 use square brackets Uses monoisotopic masses of each atom
+   * present in the compound
+   * <p>
+   * Example outputs C23H39N7O17P3S+    gives 810.1330500980904 (charge is +1) C23H39N7O17P3S- gives
+   * 810.1341472579095 (charge is -1) C10H16N5O10P2+     gives 428.03669139209063 (charge is +1)
+   * C5H6(CH2)5N5O10P2+ gives 428.03669139209063 (charge is +1) [C21H30N7O17P3]2+  gives
+   * 372.54500261509054 (charge is +2)
    *
-   * This method utilizes existing cdk codebase to parse the ionic formula string
-   * and then obtain its exact mass and charge
-   * Seems like the cdk builder used does not support isotopic notation such as (15N)5
-   * but recursive subformulas should be supported
-   * If no charge is given then +1 is used
-   * For charge of more than -1 or +1 use square brackets
-   * Uses monoisotopic masses of each atom present in the compound
-   *
-   * Example outputs
-   * C23H39N7O17P3S+    gives 810.1330500980904 (charge is +1)
-   * C23H39N7O17P3S-    gives 810.1341472579095 (charge is -1)
-   * C10H16N5O10P2+     gives 428.03669139209063 (charge is +1)
-   * C5H6(CH2)5N5O10P2+ gives 428.03669139209063 (charge is +1)
-   * [C21H30N7O17P3]2+  gives 372.54500261509054 (charge is +2)
-   * 
-   * @param  ionicFormula ionic formula string
-   * @return              ion m/z ratio
+   * @param ionicFormula ionic formula string
+   * @return ion m/z ratio
    */
   public static double calculateMzRatio(String ionicFormula) {
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
@@ -188,18 +208,34 @@ public class FormulaUtils {
 
     int charge = 1;
     char lastChar = ionicFormula.charAt(ionicFormula.length() - 1);
-    if(lastChar == '-') {
+    if (lastChar == '-') {
       charge = -1;
     }
-    if(mf.getCharge() != null) {
+    if (mf.getCharge() != null) {
       charge = mf.getCharge();
     }
 
     double mass = MolecularFormulaManipulator.getMass(mf, MolecularFormulaManipulator.MonoIsotopic);
     mass -= charge * electronMass;
 
-    double mz = Math.abs(mass / charge);
-    return mz;
+    return Math.abs(mass / charge);
+  }
+
+  /**
+   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the
+   *
+   * @param formula The formula.
+   * @return the calculated m/z ratio. if the formula's charge is null or 0,
+   * Double.POSITIVE_INFINITY is returned.
+   */
+  public static double calculateMzRatio(@NotNull final IMolecularFormula formula) {
+    final Integer charge = formula.getCharge();
+    if (charge == null || charge == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    return (MolecularFormulaManipulator.getMass(formula, MolecularFormulaManipulator.MonoIsotopic)
+        - charge * electronMass) / Math.abs(charge);
   }
 
   public static double calculateExactMass(String formula) {
@@ -213,8 +249,9 @@ public class FormulaUtils {
    */
   public static double calculateExactMass(String formula, int charge) {
 
-    if (formula.trim().length() == 0)
+    if (formula.trim().length() == 0) {
       return 0;
+    }
 
     Map<String, Integer> parsedFormula = parseFormula(formula);
 
@@ -230,50 +267,22 @@ public class FormulaUtils {
     return totalMass;
   }
 
-  /**
-   * Modifies the formula according to the ionization type
-   */
-  public static String ionizeFormula(String formula, IonType ionType, int charge) {
-    StringBuilder combinedFormula = new StringBuilder();
-    combinedFormula.append(formula);
-    for (int i = 0; i < charge; i++) {
-      combinedFormula.append(ionType.getName());
-    }
-
-    Map<String, Integer> parsedFormula = parseFormula(combinedFormula.toString());
-    return formatFormula(parsedFormula);
-  }
-
-  /**
-   * Modifies the formula according to the ionization type
-   */
-  public static String ionizeFormula(String formula, IonizationType ionType, int charge) {
-
-    // No ionization
-    if (ionType == IonizationType.NO_IONIZATION)
-      return formula;
-
-    StringBuilder combinedFormula = new StringBuilder();
-    combinedFormula.append(formula);
-    for (int i = 0; i < charge; i++) {
-      combinedFormula.append(ionType.getAdductName());
-    }
-
-    Map<String, Integer> parsedFormula = parseFormula(combinedFormula.toString());
-    return formatFormula(parsedFormula);
+  public static String ionizeFormula(String formula, IonizationType ionType) {
+    final IMolecularFormula form = ionType.ionizeFormula(formula);
+    return MolecularFormulaManipulator.getString(form);
   }
 
   /**
    * Checks if a formula string only contains valid isotopes/elements.
-   * 
+   *
    * @param formula String of the molecular formula.
    * @return true / false
    */
   public static boolean checkMolecularFormula(String formula) {
     if (formula.matches(".*[äöüÄÖÜß°§$%&/()=?ß²³´`+*~'#;:<>|]")) { // check
-                                                                   // for
-                                                                   // this
-                                                                   // first
+      // for
+      // this
+      // first
       logger.info("Formula contains illegal characters.");
       return false;
     }
@@ -281,6 +290,9 @@ public class FormulaUtils {
     IMolecularFormula molFormula;
 
     molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+    if (molFormula == null) {
+      return false;
+    }
 
     boolean valid = true;
 
@@ -303,19 +315,19 @@ public class FormulaUtils {
   /**
    * Creates a formula with the major isotopes (important to use this method for exact mass
    * calculation over the CDK version, which generates formulas without an exact mass)
-   * 
-   * @param formula
+   *
    * @return the formula or null
    */
   public static IMolecularFormula createMajorIsotopeMolFormula(String formula) {
     try {
       // new formula consists of isotopes without exact mass
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula f = MolecularFormulaManipulator
-          .getMajorIsotopeMolecularFormula(formula.replace(" ", ""), builder);
+      IMolecularFormula f = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+          formula.replace(" ", ""), builder);
 
-      if (f == null)
+      if (f == null) {
         return null;
+      }
       // replace isotopes
       // needed, as MolecularFormulaManipulator method returns isotopes
       // without exact mass info
@@ -334,9 +346,7 @@ public class FormulaUtils {
 
   /**
    * Searches for all isotopes exactmass=null and replaces them with the major isotope
-   * 
-   * @param f
-   * @return
+   *
    * @throws IOException
    */
   public static IMolecularFormula replaceAllIsotopesWithoutExactMass(IMolecularFormula f)
@@ -350,8 +360,9 @@ public class FormulaUtils {
         // replace
         IsotopeFactory iFac = Isotopes.getInstance();
         IIsotope major = iFac.getMajorIsotope(iso.getAtomicNumber());
-        if (major != null)
+        if (major != null) {
           f.addIsotope(major, isotopeCount);
+        }
         return replaceAllIsotopesWithoutExactMass(f);
       }
     }
@@ -360,10 +371,7 @@ public class FormulaUtils {
   }
 
   /**
-   * 
    * @param result is going to be changed. is also the returned value
-   * @param sub
-   * @return
    */
   public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub) {
     for (IIsotope isotope : sub.isotopes()) {
@@ -378,8 +386,9 @@ public class FormulaUtils {
             int realCount = result.getIsotopeCount(realIsotope);
             int remaining = realCount - count;
             result.removeIsotope(realIsotope);
-            if (remaining > 0)
+            if (remaining > 0) {
               result.addIsotope(realIsotope, remaining);
+            }
             count -= realCount;
             break;
           }
@@ -390,10 +399,7 @@ public class FormulaUtils {
   }
 
   /**
-   * 
    * @param result is going to be changed. is also the returned value
-   * @param add
-   * @return
    */
   public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add) {
     result.add(add);
@@ -409,8 +415,7 @@ public class FormulaUtils {
    * @return True, if both isotope are the same
    */
   private static boolean equalIsotopes(IIsotope isotopeOne, IIsotope isotopeTwo) {
-    if (!isotopeOne.getSymbol().equals(isotopeTwo.getSymbol()))
-      return false;
+    return isotopeOne.getSymbol().equals(isotopeTwo.getSymbol());
     // exactMass and naturalAbundance is null when using
     // createMajorIsotopeMolFormula
     // // XXX: floating point comparision!
@@ -420,8 +425,6 @@ public class FormulaUtils {
     // if (!Objects.equals(isotopeOne.getExactMass(),
     // isotopeTwo.getExactMass()))
     // return false;
-
-    return true;
   }
 
   public static long getFormulaSize(String formula) {
@@ -458,5 +461,91 @@ public class FormulaUtils {
     }
 
     return size;
+  }
+
+  /**
+   * @param smiles The smiles string.
+   * @return A molecular formula representing the smiles or null, if the smiles cannot be parsed.
+   */
+  @Nullable
+  public static IMolecularFormula getFomulaFromSmiles(@Nullable String smiles) {
+    if (smiles == null) {
+      return null;
+    }
+    try {
+      final IAtomContainer iAtomContainer = new SmilesParser(
+          SilentChemObjectBuilder.getInstance()).parseSmiles(smiles);
+      return MolecularFormulaManipulator.getMolecularFormula(iAtomContainer);
+    } catch (InvalidSmilesException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+    }
+    return null;
+  }
+
+  /**
+   * Creates a neutral formula from the given formula string. In case the formula is not neutral,
+   * the formula is neutralized using protons.
+   *
+   * @param formula The formula.
+   * @return The neutral formula.
+   */
+  @Nullable
+  public static IMolecularFormula neutralizeFormulaWithHydrogen(@Nullable final String formula) {
+    if (formula == null) {
+      return null;
+    }
+    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
+        formula, SilentChemObjectBuilder.getInstance());
+    return neutralizeFormulaWithHydrogen(molecularFormula);
+  }
+
+  /**
+   * Creates a neutral formula from the given formula string. In case the formula is not neutral,
+   * the formula is neutralized using protons.
+   *
+   * @param formula The formula. Remains unaltered, cloned during this method.
+   * @return The neutral or null if the formula cannot be cloned or neutralized by protonation.
+   */
+  @Nullable
+  public static IMolecularFormula neutralizeFormulaWithHydrogen(
+      @Nullable final IMolecularFormula formula) {
+    if (formula == null) {
+      return null;
+    }
+
+    try {
+      final IMolecularFormula molecularFormula = (IMolecularFormula) formula.clone();
+      final Integer charge = molecularFormula.getCharge();
+      if (charge != null && charge != 0) {
+        final String string = MolecularFormulaManipulator.getString(molecularFormula);
+
+        logger.finest(
+            () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "
+                + charge + ". Adjusting protonation.");
+
+        final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
+            -charge);
+        if (!adjusted || molecularFormula.getCharge() != 0) {
+          logger.info(() -> "Cannot determine neutral formula by adjusting protons. " + string);
+          return null;
+        }
+      }
+      return molecularFormula;
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      return null;
+    }
+  }
+
+  @Nullable
+  public static IMolecularFormula cloneFormula(@Nullable final IMolecularFormula formula) {
+    if(formula == null) {
+      return null;
+    }
+    try {
+      return (IMolecularFormula) formula.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new IllegalArgumentException("Cannot clone given formula. " + formula);
+    }
   }
 }

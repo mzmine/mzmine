@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.project.impl;
@@ -21,13 +28,14 @@ package io.github.mzmine.project.impl;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_imzml.Coordinates;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRawDataFile {
@@ -42,8 +50,9 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
   private Scan[][][] xyzScanNumbers;
 
 
-  public ImagingRawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
-    super(dataFileName, storage);
+  public ImagingRawDataFileImpl(String dataFileName, @Nullable final String absPath,
+      MemoryMapStorage storage) throws IOException {
+    super(dataFileName, absPath, storage);
   }
 
   @Override
@@ -65,10 +74,11 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     int ix = (int) (x / param.getPixelWidth());
 
     if (ix >= 0 && ix < numbers.length && iy >= 0 && iy < numbers[ix].length
-        && numbers[ix][iy][0] != null)
+        && numbers[ix][iy][0] != null) {
       return numbers[ix][iy][0];
-    else
+    } else {
       return null;
+    }
   }
 
   @Override
@@ -93,8 +103,9 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     if (ix >= 0 && ix2 < numbers.length && iy >= 0 && iy2 < numbers[ix2].length) {
       for (int i = ix; i <= ix2; i++) {
         for (int k = iy; k <= iy2; k++) {
-          if (numbers[i][k][0] != null)
+          if (numbers[i][k][0] != null) {
             list.add(numbers[i][k][0]);
+          }
         }
       }
     }
@@ -124,8 +135,9 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
         if (numbers.get(i) instanceof ImagingScan) {
           Coordinates c = ((ImagingScan) numbers.get(i)).getCoordinates();
           if (c.getX() < param.getMaxNumberOfPixelX() && c.getY() < param.getMaxNumberOfPixelY()
-              && c.getZ() < param.getMaxNumberOfPixelZ())
+              && c.getZ() < param.getMaxNumberOfPixelZ()) {
             xyzScanNumbers[c.getX()][c.getY()][c.getZ()] = numbers.get(i);
+          }
         }
       }
     }

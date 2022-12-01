@@ -1,40 +1,49 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.main.MZmineCore;
-import java.text.Format;
-import java.util.Collection;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.text.Format;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.TreeMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class represents a manually picked chromatographic feature.
@@ -58,10 +67,10 @@ public class ManualFeature {
   private TreeMap<Scan, DataPoint> dataPointMap;
 
   // Number of most intense fragment scan
-  private Scan fragmentScan, representativeScan;
+  private Scan representativeScan;
 
   // Number of all MS2 fragment scans
-  private Scan[] allMS2FragmentScanNumbers;
+  private List<Scan> allMS2FragmentScanNumbers;
 
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
@@ -73,13 +82,13 @@ public class ManualFeature {
    */
   public ManualFeature(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    dataPointMap = new TreeMap<Scan, DataPoint>();
+    dataPointMap = new TreeMap<>();
   }
 
   /**
    * This feature is always a result of manual feature detection, therefore MANUAL
    */
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public @NotNull FeatureStatus getFeatureStatus() {
     return FeatureStatus.MANUAL;
   }
 
@@ -114,38 +123,38 @@ public class ManualFeature {
   /**
    * This method returns numbers of scans that contain this feature
    */
-  public @Nonnull Scan[] getScanNumbers() {
+  public @NotNull Scan[] getScanNumbers() {
     return dataPointMap.keySet().toArray(Scan[]::new);
   }
 
   /**
    * This method returns a representative datapoint of this feature in a given scan
    */
-  public DataPoint getDataPoint(int scanNumber) {
+  public DataPoint getDataPoint(Scan scanNumber) {
     return dataPointMap.get(scanNumber);
   }
 
-  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
+  public @NotNull Range<Float> getRawDataPointsIntensityRange() {
     return intensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @NotNull Range<Double> getRawDataPointsMZRange() {
     return mzRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @NotNull Range<Float> getRawDataPointsRTRange() {
     return rtRange;
   }
 
   /**
    * @see Feature#getRawDataFile()
    */
-  public @Nonnull RawDataFile getRawDataFile() {
+  public @NotNull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
   public String getName() {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
     buf.append("m/z ");
@@ -160,7 +169,7 @@ public class ManualFeature {
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
@@ -245,14 +254,15 @@ public class ManualFeature {
     double[] mzArray = dataPointMap.values().stream().mapToDouble(dp -> dp.getMZ()).toArray();
     this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
-    fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
+    allMS2FragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(dataFile, rtRange, mzRange)
+        .toList();
 
-    allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
-
-    if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
-      if ((precursorCharge > 0) && (this.charge == 0))
+    if (!allMS2FragmentScanNumbers.isEmpty()) {
+      Scan fragmentScan = allMS2FragmentScanNumbers.get(0);
+      int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);
+      if ((precursorCharge > 0) && (this.charge == 0)) {
         this.charge = precursorCharge;
+      }
     }
 
   }
@@ -261,11 +271,7 @@ public class ManualFeature {
     return representativeScan;
   }
 
-  public Scan getMostIntenseFragmentScanNumber() {
-    return fragmentScan;
-  }
-
-  public Scan[] getAllMS2FragmentScanNumbers() {
+  public List<Scan> getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
@@ -314,24 +320,8 @@ public class ManualFeature {
     return featureInfo;
   }
 
-  public void setFragmentScanNumber(Scan fragmentScanNumber) {
-    this.fragmentScan = fragmentScanNumber;
-  }
-
-  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScanNumbers(List<Scan> allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
-    // also set best scan by TIC
-    Scan best = null;
-    double tic = 0;
-    if (allMS2FragmentScanNumbers != null) {
-      for (Scan scan : allMS2FragmentScanNumbers) {
-        if (tic < scan.getTIC()) {
-          best = scan;
-          tic = scan.getTIC();
-        }
-      }
-    }
-    setFragmentScanNumber(best);
   }
   // End dulab Edit
 

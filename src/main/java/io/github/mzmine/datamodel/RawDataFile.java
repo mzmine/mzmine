@@ -1,32 +1,43 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General License as published by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * License for more details.
- *
- * You should have received a copy of the GNU General License along with MZmine; if not, write to
- * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface RawDataFile {
 
@@ -34,13 +45,26 @@ public interface RawDataFile {
    * Returns the name of this data file (can be a descriptive name, not necessarily the original
    * file name)
    */
-  @Nonnull
-  String getName();
+  @NotNull String getName();
 
   /**
-   * Change the name of this data file
+   * Change the name of this data file.
+   * <p></p>
+   * Setting the name of a file via this function is not reproducible in MZmine projects if the name
+   * is not predetermined in by a parameter. In that case,
+   * {@link
+   * io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
+   * String)} should be used.
+   *
+   * @return the actually set name after checking restricted symbols and for duplicate names
    */
-  void setName(@Nonnull String name);
+  String setName(@NotNull String name);
+
+  /**
+   * @return The absolute path this file was loaded from. Null if the file does not exist on the
+   * file space or was created as a dummy file by mzTab-m import.
+   */
+  @Nullable String getAbsolutePath();
 
   int getNumOfScans();
 
@@ -51,31 +75,29 @@ public interface RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return
+   * @return max number of data points in masslist
    */
   int getMaxCentroidDataPoints();
 
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return
+   * @return max raw data points in scans
    */
   int getMaxRawDataPoints();
 
   /**
    * Returns sorted array of all MS levels in this file
    */
-  @Nonnull
-  int[] getMSLevels();
+  @NotNull int[] getMSLevels();
 
   /**
    * Returns sorted array of all scan numbers in given MS level
    *
-   * @param msLevel MS level (0 for all scans)
+   * @param msLevel MS level
    * @return Sorted array of scan numbers, never returns null
    */
-  @Nonnull
-  List<Scan> getScanNumbers(int msLevel);
+  @NotNull List<Scan> getScanNumbers(int msLevel);
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
@@ -84,35 +106,64 @@ public interface RawDataFile {
    * @param rtRange Retention time range
    * @return Sorted array of scan numbers, never returns null
    */
-  @Nonnull
-  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
 
   /**
-   * @param rt The rt
+   * @param rt      The rt
    * @param mslevel The ms level
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   *         the rt range of this file.
+   * the rt range of this file.
    */
   Scan getScanNumberAtRT(float rt, int mslevel);
 
   /**
    * @param rt The rt
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   *         the rt range of this file.
+   * the rt range of this file.
    */
   Scan getScanNumberAtRT(float rt);
 
-  @Nonnull
-  Range<Double> getDataMZRange();
+  @NotNull Range<Double> getDataMZRange();
 
-  @Nonnull
-  Range<Float> getDataRTRange();
 
-  @Nonnull
-  Range<Double> getDataMZRange(int msLevel);
+  /**
+   * Contains at least one zero intensity (or negative). This might be a sign that the conversion
+   * with msconvert had incorrect settings. Peak picking needs to be the first step NOT title maker
+   *
+   * @return true if <=0 in any scan
+   */
+  boolean isContainsZeroIntensity();
 
-  @Nonnull
-  Range<Float> getDataRTRange(Integer msLevel);
+  /**
+   * Contains at least one empty scan.
+   *
+   * @return true if m/z range is absent in any scan
+   */
+  boolean isContainsEmptyScans();
+
+
+  /**
+   * The spectrum type of all spectra or {@link MassSpectrumType#MIXED}
+   *
+   * @return the type of all spectra
+   */
+  MassSpectrumType getSpectraType();
+
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required,
+   * {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range, Number)}
+   */
+  @NotNull Range<Float> getDataRTRange();
+
+  @NotNull Range<Double> getDataMZRange(int msLevel);
+
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required,
+   * {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range, Number)}
+   */
+  @NotNull Range<Float> getDataRTRange(Integer msLevel);
 
   double getDataMaxBasePeakIntensity(int msLevel);
 
@@ -123,8 +174,7 @@ public interface RawDataFile {
    *
    * @return Scan polarity types.
    */
-  @Nonnull
-  List<PolarityType> getDataPolarity();
+  @NotNull List<PolarityType> getDataPolarity();
 
   java.awt.Color getColorAWT();
 
@@ -139,18 +189,18 @@ public interface RawDataFile {
    */
   void close();
 
-  @Nonnull
-  MemoryMapStorage getMemoryMapStorage();
+  @Nullable MemoryMapStorage getMemoryMapStorage();
 
   void addScan(Scan newScan) throws IOException;
 
-  void setRTRange(int msLevel, Range<Float> rtRange);
 
-  void setMZRange(int msLevel, Range<Double> mzRange);
+  String setNameNoChecks(@NotNull String name);
 
+  @NotNull ObservableList<Scan> getScans();
 
-  ObservableList<Scan> getScans();
-
+  default @NotNull Stream<Scan> stream() {
+    return getScans().stream();
+  }
 
   /**
    * Mass list has changed. reset all precomputed values
@@ -164,10 +214,10 @@ public interface RawDataFile {
   /**
    * The scan at the specified scan number or null
    *
-   * @param scanNumber
-   * @return
+   * @param scanNumber the number defined in the scan
+   * @return scan or null
    */
-  default Scan getScanAtNumber(int scanNumber) {
+  default @Nullable Scan getScanAtNumber(int scanNumber) {
     return getScans().stream().filter(s -> s.getScanNumber() == scanNumber).findFirst()
         .orElse(null);
   }
@@ -175,13 +225,32 @@ public interface RawDataFile {
   /**
    * Scan at index i in list getScans()
    *
-   * @param i
-   * @return
+   * @param i index
+   * @return scan or null
    */
-  default Scan getScan(int i) {
+  default @Nullable Scan getScan(int i) {
     return getScans().get(i);
   }
 
-  @Nonnull
-  ObservableList<FeatureListAppliedMethod> getAppliedMethods();
+  @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods();
+
+  /**
+   * JavaFX safe copy of the name
+   */
+  StringProperty nameProperty();
+
+  /**
+   * Get the start time stamp of the sample.
+   *
+   * @return a datetime stamp (or null in case if it wasn't mentioned in the RawDataFile)
+   */
+  default LocalDateTime getStartTimeStamp() {
+    return null;
+  }
+
+  /**
+   * Set the start time stamp of the sample.
+   */
+  default void setStartTimeStamp(LocalDateTime localDateTime) {
+  }
 }

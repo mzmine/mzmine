@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.swing;
@@ -21,7 +28,7 @@ package io.github.mzmine.util.swing;
 import java.awt.Image;
 import java.net.URL;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
@@ -32,7 +39,7 @@ import javax.swing.ImageIcon;
  */
 public class IconUtil {
 
-  public static @Nonnull ImageIcon loadIconFromResources(final @Nonnull String resourcePath) {
+  public static @NotNull ImageIcon loadIconFromResources(final @NotNull String resourcePath) {
     final URL iconResourcePath = IconUtil.class.getClassLoader().getResource(resourcePath);
     if (iconResourcePath == null)
       throw new IllegalArgumentException("Could not find an icon file at path " + resourcePath);
@@ -40,14 +47,14 @@ public class IconUtil {
     return icon;
   }
 
-  public static @Nonnull Icon loadIconFromResources(final @Nonnull String resourcePath,
+  public static @NotNull Icon loadIconFromResources(final @NotNull String resourcePath,
       final int width) {
     final ImageIcon icon = loadIconFromResources(resourcePath);
     final ImageIcon scaledIcon = scaled(icon, width);
     return scaledIcon;
   }
 
-  public static @Nonnull ImageIcon scaled(final ImageIcon icon, final int width) {
+  public static @NotNull ImageIcon scaled(final ImageIcon icon, final int width) {
     int height = Math.round(icon.getIconHeight() / (float) icon.getIconWidth() * width);
     Image image = icon.getImage();
     Image newimg = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);

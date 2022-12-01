@@ -1,9 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>
 <?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
@@ -20,6 +47,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.Scene?>
 <?import org.controlsfx.control.StatusBar?>
+<?import org.controlsfx.control.NotificationPane?>
+<?import javafx.stage.Screen?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -27,7 +56,9 @@
     <URL value="@/themes/MZmine_default.css"/>
   </stylesheets>
   <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400" minWidth="600"
-    prefWidth="1300" prefHeight="800" xmlns="http://javafx.com/javafx/14.0.1"
+    prefWidth="${screen.visualBounds.width*0.9}"
+    prefHeight="${screen.visualBounds.height*0.9}"
+    xmlns="http://javafx.com/javafx/14.0.1"
     xmlns:fx="http://javafx.com/fxml/1">
     <top>
       <fx:include source="MainMenu.fxml"/>
@@ -50,31 +81,35 @@
                             <contextMenu>
                               <ContextMenu fx:id="rawDataContextMenu">
                                 <items>
+                                  <MenuItem text="Show raw data overview" onAction="#handleShowRawDataOverview"/>
+                                  <MenuItem text="Show ion mobility raw data overview" onAction="#handleShowIMSDataOverview"/>
+                                  <MenuItem text="Show image viewer" onAction="#handleShowImageViewer" />
+
+                                  <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleShowChromatogram"
                                     text="Show chromatogram"/>
                                   <MenuItem onAction="#handleShowMsSpectrum"
                                     text="Show mass spectrum"/>
                                   <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
                                   <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
-                                  <MenuItem onAction="#handleShowMsMsPlot" text="Show MS/MS plot"/>
+                                  <MenuItem onAction="#handleShowMsMsPlot"
+                                    text="Show MS/MS scatter plot"/>
 
                                   <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleRawDataSort" text="Sort alphabetically"/>
                                   <MenuItem fx:id="rawDataRemoveExtensionMenuItem"
                                     onAction="#handleRemoveFileExtension"
                                     text="Remove file extension"/>
+                                  <MenuItem onAction="#handleShowFileSummary" text="Show file summary"/>
 
                                   <SeparatorMenuItem/>
                                   <Menu text="Raw data export">
                                     <MenuItem text="Export raw data file to mzML"
                                       onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
+                                      userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule" />
                                     <MenuItem text="Export scans mgf, txt, msp and mzML"
                                       onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.exportscans.ExportScansFromRawFilesModule" />
-                                    <MenuItem text="Extract scans to CSV file"
-                                      onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.exportscans.ExportScansModule" />
+                                      userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule" />
                                   </Menu>
                                   <MenuItem fx:id="rawDataRenameMenuItem"
                                     onAction="#handleRenameRawData" text="Rename"/>
@@ -84,9 +119,9 @@
                                     onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem fx:id="rawDataSetColorMenuItem"
-                                    onAction="#handleSetRawDataFileColor" text="Set color"/>
-
+                                  <Menu text="Set color" fx:id="rawDataSetColorMenu">
+                                    <ColorPickerMenuItem fx:id="rawDataFileColorPicker" />
+                                  </Menu>
                                 </items>
                               </ContextMenu>
                             </contextMenu>
@@ -127,20 +162,46 @@
                       </AnchorPane>
                     </content>
                   </Tab>
+                  <Tab closable="false" text="Libraries">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0">
+                        <children>
+                          <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                            editable="true" fx:id="spectralLibraryList">
+                            <contextMenu>
+                              <ContextMenu fx:id="spectralLibraryContextMenu">
+                                <items>
+                                  <MenuItem onAction="#handleSpectralLibrarySort"
+                                    text="Sort alphabetically"/>
+                                  <MenuItem onAction="#handleSpectralLibraryRemove"
+                                    text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
+                                </items>
+                              </ContextMenu>
+                            </contextMenu>
+                          </ListView>
+                        </children>
+                      </AnchorPane>
+                    </content>
+                  </Tab>
                 </tabs>
               </TabPane>
             </items>
           </SplitPane>
 
           <!--          Right side, main panel -->
-          <TabPane fx:id="mainTabPane"
-            tabClosingPolicy="ALL_TABS">
-          </TabPane>
+
+          <NotificationPane fx:id="notificationPane">
+            <content>
+              <TabPane fx:id="mainTabPane" tabClosingPolicy="ALL_TABS">
+              </TabPane>
+            </content>
+          </NotificationPane>
         </items>
       </SplitPane>
     </center>
     <bottom>
-      <VBox>
+      <VBox fx:id="bottomBox">
         <TableView fx:id="tasksView" minHeight="100" prefHeight="100.0">
           <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
@@ -190,5 +251,8 @@
         </StatusBar>
       </VBox>
     </bottom>
+    <fx:define>
+      <Screen fx:factory="getPrimary" fx:id="screen"/>
+    </fx:define>
   </BorderPane>
 </Scene>

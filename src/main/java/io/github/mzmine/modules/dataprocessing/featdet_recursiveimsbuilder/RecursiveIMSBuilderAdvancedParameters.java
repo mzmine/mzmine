@@ -1,56 +1,60 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
+import static io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters.DEFAULT_DTIMS_BIN_WIDTH;
+import static io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
+import static io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
+
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 
 public class RecursiveIMSBuilderAdvancedParameters extends SimpleParameterSet {
 
-  public static final double DEFAULT_TIMS_BIN_WIDTH = 0.0008;
-  public static final double DEFAULT_DTIMS_BIN_WIDTH = 0.005;
-  public static final double DEFAULT_TWIMS_BIN_WIDTH = 0.005;
-  private static final NumberFormat binFormat = new DecimalFormat("0.00000");
-
-  public static final OptionalParameter<DoubleParameter> timsBinningWidth = new OptionalParameter<>(
-      new DoubleParameter("Override default TIMS binning width (Vs/cm²)",
+  public static final OptionalParameter<IntegerParameter> timsBinningWidth = new OptionalParameter<>(
+      new IntegerParameter("Override default TIMS binning width (Vs/cm²)",
           "The binning width in mobility units of the selected raw data file.\n"
-              + " The default binning width is " + binFormat.format(DEFAULT_TIMS_BIN_WIDTH) + ".",
-          binFormat, DEFAULT_TIMS_BIN_WIDTH, 0.00001, 1E6));
+              + " The default binning width is " + DEFAULT_TIMS_BIN_WIDTH + ".",
+          DEFAULT_TIMS_BIN_WIDTH, 1, 1000));
 
-  public static final OptionalParameter<DoubleParameter> twimsBinningWidth = new OptionalParameter(
-      new DoubleParameter(
+  public static final OptionalParameter<IntegerParameter> twimsBinningWidth = new OptionalParameter(
+      new IntegerParameter(
           "Travelling wave binning width (ms)",
           "The binning width in mobility units of the selected raw data file."
-              + "The default binning width is " + binFormat.format(DEFAULT_TWIMS_BIN_WIDTH) + ".",
-          binFormat, DEFAULT_TWIMS_BIN_WIDTH, 0.00001, 1E6));
+              + "The default binning width is " + DEFAULT_TWIMS_BIN_WIDTH + ".",
+          DEFAULT_TWIMS_BIN_WIDTH, 1, 1000));
 
-  public static final OptionalParameter<DoubleParameter> dtimsBinningWidth = new OptionalParameter<>(
-      new DoubleParameter(
+  public static final OptionalParameter<IntegerParameter> dtimsBinningWidth = new OptionalParameter<>(
+      new IntegerParameter(
           "Drift tube binning width (ms)",
           "The binning width in mobility units of the selected raw data file.\n"
-              + "The default binning width is " + binFormat.format(DEFAULT_TIMS_BIN_WIDTH) + ".",
-          binFormat, DEFAULT_DTIMS_BIN_WIDTH, 0.00001, 1E6));
+              + "The default binning width is " + DEFAULT_TIMS_BIN_WIDTH + ".",
+          DEFAULT_DTIMS_BIN_WIDTH, 1, 1000));
 
   public RecursiveIMSBuilderAdvancedParameters() {
     super(new Parameter[]{timsBinningWidth, dtimsBinningWidth, twimsBinningWidth});

@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
@@ -29,6 +36,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -39,28 +47,30 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
 /**
- * Default dataset class for {@link SimpleXYChart}. Any class implementing {@link
- * PlotXYDataProvider} can be used to construct this dataset. The dataset implements the interfaces,
- * too, because the default renderers can then generate labels and tooltips based on the interface
- * methods and therefore be more reusable.
+ * Default dataset class for {@link SimpleXYChart}. Any class implementing
+ * {@link PlotXYDataProvider} can be used to construct this dataset. The dataset implements the
+ * interfaces, too, because the default renderers can then generate labels and tooltips based on the
+ * interface methods and therefore be more reusable.
  *
  * @author https://github.com/SteffenHeu
  */
 public class ColoredXYDataset extends AbstractXYDataset implements Task, IntervalXYDataset,
     SeriesKeyProvider, LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
 
-  private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
+  private static final Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
   protected final XYValueProvider xyValueProvider;
   protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
   protected final IntervalWidthProvider intervalWidthProvider;
+
+  protected final XYItemObjectProvider xyItemObjectProvider;
   private final RunOption runOption;
   // dataset stuff
   private final int seriesCount = 1;
@@ -80,20 +90,20 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
       ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
-      @Nonnull final RunOption runOption) {
+      XYItemObjectProvider xyItemObjectProvider, @NotNull final RunOption runOption) {
 
     // Task stuff
     this.computed = false;
     this.valuesComputed = false;
     status = new SimpleObjectProperty<>(TaskStatus.WAITING);
     errorMessage = "";
-    this.runOption = runOption;
 
     // dataset stuff
     this.xyValueProvider = xyValueProvider;
     this.seriesKeyProvider = seriesKeyProvider;
     this.labelTextProvider = labelTextProvider;
     this.toolTipTextProvider = toolTipTextProvider;
+    this.xyItemObjectProvider = xyItemObjectProvider;
     if (xyValueProvider instanceof IntervalWidthProvider) {
       this.intervalWidthProvider = (IntervalWidthProvider) xyValueProvider;
     } else {
@@ -104,7 +114,16 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     this.computedItemCount = 0;
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
+    this.runOption = checkRunOption(runOption);
     handleRunOption(runOption);
+  }
+
+  private ColoredXYDataset(XYValueProvider xyValueProvider,
+      SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
+      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
+      @NotNull final RunOption runOption) {
+    this(xyValueProvider, seriesKeyProvider, labelTextProvider, toolTipTextProvider, colorProvider,
+        xyValueProvider instanceof XYItemObjectProvider objProv ? objProv : null, runOption);
   }
 
   /**
@@ -113,36 +132,45 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    * <p></p>
    * Note: Computation task has to be started by the respective extending class.
    */
-  public ColoredXYDataset(PlotXYDataProvider datasetProvider,
-      @Nonnull final RunOption runOption) {
-    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, runOption);
+  public ColoredXYDataset(PlotXYDataProvider datasetProvider, @NotNull final RunOption runOption) {
+    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider, datasetProvider,
+        datasetProvider instanceof XYItemObjectProvider objProv ? objProv : null, runOption);
   }
 
-  public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
-    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, RunOption.NEW_THREAD);
+  public ColoredXYDataset(@NotNull PlotXYDataProvider datasetProvider) {
+    this(datasetProvider, RunOption.NEW_THREAD);
   }
 
   /**
    *
    */
-  protected void handleRunOption(@Nonnull final RunOption runOption) {
+  protected void handleRunOption(@NotNull final RunOption runOption) {
     switch (runOption) {
-      case THIS_THREAD -> {
-        if (Platform.isFxApplicationThread()) {
-          logger.severe(() -> "Calculation of data set values was started on the JavaFX thread."
-              + " Creating a new thread instead.\nProvider: " + xyValueProvider.getClass()
-              .getName());
-          MZmineCore.getTaskController().addTask(this);
-        } else {
-          run();
-        }
-      }
+      case THIS_THREAD -> run();
       case NEW_THREAD -> MZmineCore.getTaskController().addTask(this);
       case DO_NOT_RUN -> {
       }
     }
+  }
+
+  /**
+   * Checks if the thread and given run option are valid. Running on the FX thread is not allowed.
+   *
+   * @param runOption The requested run option.
+   * @return a valid run option.
+   */
+  protected final RunOption checkRunOption(final RunOption runOption) {
+    if (runOption == RunOption.THIS_THREAD && Platform.isFxApplicationThread()) {
+      logger.warning(() -> "Calculation of data set values was started on the JavaFX thread."
+          + " Creating a new thread instead. Provider: " + xyValueProvider.getClass().getName());
+      return RunOption.NEW_THREAD;
+    } else {
+      return runOption;
+    }
+  }
+
+  public ToolTipTextProvider getToolTipTextProvider() {
+    return toolTipTextProvider;
   }
 
   public java.awt.Color getAWTColor() {
@@ -437,8 +465,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    * Returns the {@link RunOption} this data set was created with. Extending classes need to
    * override this method in case they need to do additional assignments in the constructor and
    * therefore pass {{@link RunOption#DO_NOT_RUN} in the constructor, as it is a protected variable
-   * in this class. Alternatively, the extending class can override {@link
-   * #onCalculationsFinished()}.
+   * in this class. Alternatively, the extending class can override
+   * {@link #onCalculationsFinished()}.
    *
    * @return The {@link RunOption} this data set was created with.
    */

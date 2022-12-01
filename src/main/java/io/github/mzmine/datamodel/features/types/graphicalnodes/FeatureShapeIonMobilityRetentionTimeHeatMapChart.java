@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
@@ -36,7 +43,7 @@ import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 
 /*
@@ -44,7 +51,7 @@ import org.jfree.chart.axis.NumberAxis;
  */
 public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane {
 
-  public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@Nonnull ModularFeature f,
+  public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@NotNull ModularFeature f,
       AtomicDouble progress) {
 
     SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
@@ -71,9 +78,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     // todo: save min/max values of dataset in dataset iself so jfreechart does not have to loop
     //  over all data points (also means the renderers have to support it)
     chart.getXYPlot().getDomainAxis()
-        .setRange(RangeUtils.guavaToJFree(dataset.getDomainValueRange()), false, true);
+        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getDomainValueRange(), 0.001d)), false, true);
     chart.getXYPlot().getRangeAxis()
-        .setRange(RangeUtils.guavaToJFree(dataset.getRangeValueRange()), false, true);
+        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
     BufferedImage img = chart.getChart()
         .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
             GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);

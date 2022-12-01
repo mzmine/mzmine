@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 import com.google.common.collect.Range;
@@ -50,12 +57,12 @@ class IonTimeSeriesTest {
 
   public static IonTimeSeries<? extends Scan> makeSimpleTimeSeries() throws IOException {
 
-    RawDataFile file = new RawDataFileImpl("test", null, Color.BLACK);
+    RawDataFile file = new RawDataFileImpl("test", null, null, Color.BLACK);
     List<Scan> scans = new ArrayList();
-    scans.add(new SimpleScan(file, 0, 1, 1f, 0, 0, new double[]{10d, 10d}, new double[]{10d, 10d},
+    scans.add(new SimpleScan(file, 0, 1, 1f, null, new double[]{10d, 10d}, new double[]{10d, 10d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(10d, 10d)));
-    scans.add(new SimpleScan(file, 1, 1, 1f, 0, 0, new double[]{11d, 11d}, new double[]{11d, 11d},
+    scans.add(new SimpleScan(file, 1, 1, 1f, null, new double[]{11d, 11d}, new double[]{11d, 11d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(11d, 11d)));
     SimpleIonTimeSeries series = new SimpleIonTimeSeries(null,
@@ -64,13 +71,13 @@ class IonTimeSeriesTest {
   }
 
   public static IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
-    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, Color.BLACK);
+    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, null, Color.BLACK);
 
     List<Frame> frames = new ArrayList<>();
-    SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
+    SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f,
         new double[]{1d}, new double[]{1d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
-        Range.closed(11d, 11d), MobilityType.TIMS, null);
+        Range.closed(11d, 11d), MobilityType.TIMS, null, null);
     frame.setMobilities(new double[]{1d, 2d});
 
     List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
@@ -79,14 +86,13 @@ class IonTimeSeriesTest {
     mobilityScans
         .add(new BuildingMobilityScan(1, new double[]{2d, 2d}, new double[]{4d, 4d}));
 
-    frame.setMobilityScans(mobilityScans);
+    frame.setMobilityScans(mobilityScans, false);
 
     SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(null,
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
     return IonMobilogramTimeSeriesFactory
-        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 0.001));
-
+        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 1));
   }
 
   @Disabled

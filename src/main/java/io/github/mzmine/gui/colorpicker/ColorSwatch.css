@@ -1,0 +1,18 @@
+.color-grid {
+  -fx-border-color: derive(#ececec, -20%);
+}
+
+.color-choice {
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-border-color: white;
+  -fx-border-width: 0.5px;
+  -fx-border-style: solid;
+}
+
+.color-choice:hover {
+  -fx-scale-x: 1.5;
+  -fx-scale-y: 1.5;
+  -fx-scale-z: 2;
+  -fx-view-order: -10;
+}

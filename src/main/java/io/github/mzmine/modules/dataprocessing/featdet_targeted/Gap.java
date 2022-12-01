@@ -1,35 +1,42 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import java.util.List;
-import java.util.Vector;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.List;
+import java.util.Vector;
 
 class Gap {
 
@@ -175,24 +182,22 @@ class Gap {
         double intensityEnd = bestPeakDataPoints.get(i + 1).getIntensity();
 
         // calculate area of the interval
-        area += (rtDifference * (intensityStart + intensityEnd) / 2);
+        area += (float) (rtDifference * (intensityStart + intensityEnd) / 2);
 
       }
 
       // Calculate average m/z value
       mz /= bestPeakDataPoints.size();
 
-      // Find the best fragmentation scan, if available
-      Scan fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
-
       // Find all MS2 fragment scans, if available
-      Scan[] allMS2fragmentScanNumbers =
-          ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
+      List<Scan> allMS2fragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(rawDataFile,
+          finalRTRange, finalMZRange).toList();
 
       // Is intensity above the noise level?
       if (height >= noiseLevel) {
-        ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area, scanNumbers,
-            finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
+        ModularFeature newPeak = new ModularFeature(
+            (ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area,
+            scanNumbers, finalDataPoint, FeatureStatus.ESTIMATED, representativeScan,
             allMS2fragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 
         // Fill the gap

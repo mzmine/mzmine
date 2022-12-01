@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
@@ -44,14 +51,16 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
   protected final NumberFormat intensityFormat;
   protected final UnitFormat unitFormat;
   private final Frame frame;
+  private final int binWidth;
 
   private double[] mobilites;
   private double[] intensities;
 
   private double finishedPercentage;
 
-  public FrameSummedMobilogramProvider(Frame frame) {
+  public FrameSummedMobilogramProvider(Frame frame, int binWidth) {
     this.frame = frame;
+    this.binWidth = binWidth;
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
@@ -60,7 +69,11 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
     finishedPercentage = 0d;
   }
 
-  @Override
+  public FrameSummedMobilogramProvider(Frame frame) {
+    this(frame, 1);
+  }
+
+      @Override
   public double getDomainValue(int index) {
     return intensities[index];
   }
@@ -86,7 +99,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   @Override
   public String getToolTipText(int itemIndex) {
-    MobilityScan scan = frame.getSortedMobilityScans().get(itemIndex);
+    MobilityScan scan = frame.getSortedMobilityScans().get(itemIndex / binWidth);
     if (scan == null || scan.getBasePeakMz() == null || scan.getBasePeakIntensity() == null) {
       return null;
     }
@@ -121,12 +134,13 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     List<MobilityScan> scans = frame.getSortedMobilityScans();
 
-    int numScans = scans.size();
-    mobilites = new double[numScans];
-    intensities = new double[numScans];
+    final int numScans = ((int)(scans.size() / binWidth)) * binWidth;
+    mobilites = new double[numScans / binWidth];
+    intensities = new double[numScans / binWidth];
     for (int i = 0; i < numScans; i++) {
-      mobilites[i] = scans.get(i).getMobility();
-      intensities[i] = scans.get(i).getTIC();
+      final int index = i / binWidth;
+      mobilites[index] += scans.get(i).getMobility() / binWidth;
+      intensities[index] += scans.get(i).getTIC();
       finishedPercentage = (double) i / numScans;
     }
     finishedPercentage = 1.0;

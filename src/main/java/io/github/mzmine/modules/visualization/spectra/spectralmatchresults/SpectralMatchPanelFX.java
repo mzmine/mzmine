@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
@@ -32,8 +39,8 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -82,60 +89,45 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class SpectralMatchPanelFX extends GridPane {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private static final int ICON_WIDTH = 50;
-  protected static final Image iconAll = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_all.png");
-  protected static final Image iconPdf = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_pdf.png");
-  protected static final Image iconEps = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_eps.png");
-  protected static final Image iconEmf = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_emf.png");
-  protected static final Image iconSvg = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_svg.png");
-
-  private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
-
-  private static Font font;
-
   public static final int META_WIDTH = 500;
   public static final int ENTRY_HEIGHT = 500;
   public static final int STRUCTURE_HEIGHT = 150;
-
   public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
-
+  protected static final Image iconAll = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_all.png");
+  protected static final Image iconPdf = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_pdf.png");
+  protected static final Image iconEps = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_eps.png");
+  protected static final Image iconEmf = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_emf.png");
+  protected static final Image iconSvg = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_svg.png");
+  private static final int ICON_WIDTH = 50;
+  private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   // min color is a darker red
   // max color is a darker green
   public static Color MAX_COS_COLOR = Color.web("0x388E3C");
   public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
-
+  private static Font font;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final EChartViewer mirrorChart;
-
+  private final SpectralDBAnnotation hit;
   private boolean setCoupleZoomY;
-
   private XYPlot queryPlot;
   private XYPlot libraryPlot;
-
   private VBox metaDataPanel;
   private ScrollPane metaDataScroll;
   private GridPane pnTitle;
   private GridPane pnExport;
-
-  private BorderPane mirrorChartWrapper;
-
+  private final BorderPane mirrorChartWrapper;
   private Label lblScore;
   private Label lblHit;
-
-  private EStandardChartTheme theme;
-
-  private final SpectralDBFeatureIdentity hit;
-
+  private final EStandardChartTheme theme;
   private SpectralMatchPanel swingPanel;
 
-  public SpectralMatchPanelFX(SpectralDBFeatureIdentity hit) {
+  public SpectralMatchPanelFX(SpectralDBAnnotation hit) {
     super();
 
     this.hit = hit;
@@ -161,8 +153,7 @@ public class SpectralMatchPanelFX extends GridPane {
 
     // put into main
     ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
-        Priority.ALWAYS, HPos.CENTER,
-        true);
+        Priority.ALWAYS, HPos.CENTER, true);
     ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 30, META_WIDTH + 30,
         Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
 
@@ -183,20 +174,21 @@ public class SpectralMatchPanelFX extends GridPane {
 
     // create Top panel
     double simScore = hit.getSimilarity().getScore();
-    Color gradientCol = FxColorUtil.awtColorToFX(ColorScaleUtil
-        .getColor(FxColorUtil.fxColorToAWT(MIN_COS_COLOR), FxColorUtil.fxColorToAWT(MAX_COS_COLOR),
-            MIN_COS_COLOR_VALUE, MAX_COS_COLOR_VALUE, simScore));
+    Color gradientCol = FxColorUtil.awtColorToFX(
+        ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_COS_COLOR),
+            FxColorUtil.fxColorToAWT(MAX_COS_COLOR), MIN_COS_COLOR_VALUE, MAX_COS_COLOR_VALUE,
+            simScore));
     pnTitle.setBackground(
         new Background(new BackgroundFill(gradientCol, CornerRadii.EMPTY, Insets.EMPTY)));
 
-    lblHit = new Label(hit.getName());
+    lblHit = new Label(hit.getCompoundName());
     lblHit.getStyleClass().add("white-larger-label");
 
     lblScore = new Label(COS_FORM.format(simScore));
     lblScore.getStyleClass().add("white-score-label");
-    lblScore
-        .setTooltip(new Tooltip("Cosine similarity of raw data scan (top, blue) and database scan: "
-            + COS_FORM.format(simScore)));
+    lblScore.setTooltip(new Tooltip(
+        "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM.format(
+            simScore)));
 
     pnTitle.add(lblHit, 0, 0);
     pnTitle.add(lblScore, 1, 0);
@@ -272,17 +264,17 @@ public class SpectralMatchPanelFX extends GridPane {
     g1.getStyleClass().add("region");
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
         DBEntryField.COMPOUND_FIELDS);
-    BorderPane panelInstrument =
-        extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
+    BorderPane panelInstrument = extractMetaData("Instrument information", hit.getEntry(),
+        DBEntryField.INSTRUMENT_FIELDS);
     g1.add(pnCompounds, 0, 0);
     g1.add(panelInstrument, 1, 0);
     g1.getColumnConstraints().add(0, ccMetadata1);
     g1.getColumnConstraints().add(1, ccMetadata2);
 
-    BorderPane pnDB =
-        extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
-    BorderPane pnOther =
-        extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
+    BorderPane pnDB = extractMetaData("Database links", hit.getEntry(),
+        DBEntryField.DATABASE_FIELDS);
+    BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
+        DBEntryField.OTHER_FIELDS);
     g1.add(pnDB, 0, 1);
     g1.add(pnOther, 1, 1);
 
@@ -330,12 +322,17 @@ public class SpectralMatchPanelFX extends GridPane {
   private void rangeHasChanged(Range range) {
     if (setCoupleZoomY) {
       ValueAxis axis = libraryPlot.getRangeAxis();
-      if (!axis.getRange().equals(range)) {
-        axis.setRange(range);
-      }
       ValueAxis axisQuery = queryPlot.getRangeAxis();
-      if (!axisQuery.getRange().equals(range)) {
-        axisQuery.setRange(range);
+      // is this range still active or was it changed again?
+      final Range axisRange = axis.getRange();
+      final Range queryRange = axisQuery.getRange();
+      if (axisRange.equals(range) ^ queryRange.equals(range)) {
+        if (!axisRange.equals(range)) {
+          axis.setRange(range);
+        }
+        if (!queryRange.equals(range)) {
+          axisQuery.setRange(range);
+        }
       }
     }
   }
@@ -348,7 +345,7 @@ public class SpectralMatchPanelFX extends GridPane {
     setCoupleZoomY = selected;
   }
 
-  private IAtomContainer parseInChi(SpectralDBFeatureIdentity hit) {
+  private IAtomContainer parseInChi(SpectralDBAnnotation hit) {
     String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
     InChIGeneratorFactory factory;
     IAtomContainer molecule;
@@ -356,8 +353,8 @@ public class SpectralMatchPanelFX extends GridPane {
       try {
         factory = InChIGeneratorFactory.getInstance();
         // Get InChIToStructure
-        InChIToStructure inchiToStructure =
-            factory.getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
+        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
+            DefaultChemObjectBuilder.getInstance());
         molecule = inchiToStructure.getAtomContainer();
         return molecule;
       } catch (CDKException e) {
@@ -370,7 +367,7 @@ public class SpectralMatchPanelFX extends GridPane {
     }
   }
 
-  private IAtomContainer parseSmiles(SpectralDBFeatureIdentity hit) {
+  private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
     SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
     String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
     IAtomContainer molecule;
@@ -389,7 +386,8 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
 
-  private BorderPane extractMetaData(String title, SpectralDBEntry entry, DBEntryField[] other) {
+  private BorderPane extractMetaData(String title, SpectralLibraryEntry entry,
+      DBEntryField[] other) {
     VBox panelOther = new VBox();
     panelOther.getStyleClass().add("region");
     panelOther.setAlignment(Pos.TOP_LEFT);
@@ -399,7 +397,7 @@ public class SpectralMatchPanelFX extends GridPane {
       if (!o.equals("N/A")) {
         Label text = new Label();
         text.getStyleClass().add("text-label");
-        text.setText(db.toString() + ": " + o.toString());
+        text.setText(db.toString() + ": " + o);
         panelOther.getChildren().add(text);
       }
     }
@@ -424,15 +422,20 @@ public class SpectralMatchPanelFX extends GridPane {
   private void addExportButtons(ParameterSet param) {
     Button btnExport = null;
 
-    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
-      ImageView img = new ImageView(iconAll);
-      img.setPreserveRatio(true);
-      img.setFitWidth(ICON_WIDTH);
-      btnExport = new Button(null, img);
-      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-      btnExport.setOnAction(e -> exportToGraphics("all"));
-      pnExport.add(btnExport, 0, 0);
-    }
+    // TODO does not work - so remove
+    //    if (true) {
+    //      return;
+    //    }
+
+    //    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
+    //      ImageView img = new ImageView(iconAll);
+    //      img.setPreserveRatio(true);
+    //      img.setFitWidth(ICON_WIDTH);
+    //      btnExport = new Button(null, img);
+    //      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+    //      btnExport.setOnAction(e -> exportToGraphics("all"));
+    //      pnExport.add(btnExport, 0, 0);
+    //    }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
       ImageView img = new ImageView(iconPdf);
@@ -464,15 +467,16 @@ public class SpectralMatchPanelFX extends GridPane {
       pnExport.add(btnExport, 0, 3);
     }
 
-    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
-      ImageView img = new ImageView(iconSvg);
-      img.setPreserveRatio(true);
-      img.setFitWidth(ICON_WIDTH);
-      btnExport = new Button(null, img);
-      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-      btnExport.setOnAction(e -> exportToGraphics("svg"));
-      pnExport.add(btnExport, 0, 4);
-    }
+    //TODO SVG broken somehow
+    //    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
+    //      ImageView img = new ImageView(iconSvg);
+    //      img.setPreserveRatio(true);
+    //      img.setFitWidth(ICON_WIDTH);
+    //      btnExport = new Button(null, img);
+    //      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+    //      btnExport.setOnAction(e -> exportToGraphics("svg"));
+    //      pnExport.add(btnExport, 0, 4);
+    //    }
   }
 
   /**
@@ -483,9 +487,9 @@ public class SpectralMatchPanelFX extends GridPane {
   public void exportToGraphics(String format) {
 
     // old path
-    FileNameParameter param =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraIdentificationResultsModule.class)
-            .getParameter(SpectraIdentificationResultsParameters.file);
+    FileNameParameter param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraIdentificationResultsModule.class)
+        .getParameter(SpectraIdentificationResultsParameters.file);
     final FileChooser chooser;
     if (param.getValue() != null) {
       chooser = new FileChooser();
@@ -520,7 +524,7 @@ public class SpectralMatchPanelFX extends GridPane {
     // it works though, until we figure something out
   }
 
-  public SpectralDBFeatureIdentity getHit() {
+  public SpectralDBAnnotation getHit() {
     return hit;
   }
 

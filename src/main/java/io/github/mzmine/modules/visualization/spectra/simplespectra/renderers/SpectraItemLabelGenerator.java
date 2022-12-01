@@ -1,24 +1,35 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javafx.util.Pair;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
@@ -41,8 +52,11 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
   protected NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
+  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords;
+
   public SpectraItemLabelGenerator(SpectraPlot plot) {
     this.plot = plot;
+    this.datasetToLabelsCoords = plot.getDatasetToLabelsCoords();
   }
 
   /**
@@ -58,6 +72,7 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
     // Calculate data size of 1 screen pixel
     double xLength = (double) plot.getXYPlot().getDomainAxis().getRange().getLength();
     double pixelX = xLength / plot.getWidth();
+    double yLength = (double) plot.getXYPlot().getRangeAxis().getRange().getLength();
 
     // Size of data set
     int itemCount = dataset.getItemCount(series);
@@ -86,6 +101,34 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
       if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i)))
         return null;
 
+    }
+
+    // Avoid overlapping of labels from distinct datasets
+    // Iterate over datasets
+    for (XYDataset labelsDataset : datasetToLabelsCoords.keySet()) {
+
+      // If a dataset is equal to this one, do nothing
+      if (labelsDataset.equals(dataset)) {
+        continue;
+      }
+
+      // If a label with coordinates close to the actual ones was already generated in another dataset,
+      // do not generate a new overlapping label
+      List<Pair<Double, Double>> coords = datasetToLabelsCoords.get(labelsDataset);
+      for (Pair<Double, Double> coord : coords) {
+        if ((Math.abs(originalX - coord.getKey()) / xLength < 0.05)
+            && (Math.abs(originalY - coord.getValue()) / yLength < 0.05)) {
+          return null;
+        }
+      }
+    }
+
+    // Update datasetToLabelsCoords if new label is to be generated
+    Pair<Double, Double> newCoord = new Pair<>(originalX, originalY);
+    if (datasetToLabelsCoords.get(dataset) != null) {
+      datasetToLabelsCoords.get(dataset).add(newCoord);
+    } else {
+      datasetToLabelsCoords.put(dataset, new ArrayList<>(List.of(newCoord)));
     }
 
     // Create label

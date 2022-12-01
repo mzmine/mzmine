@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.align_join;
@@ -23,14 +30,14 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 /**
  * This class represents a score between feature list row and aligned feature list row
  */
-class RowVsRowScore implements Comparable<RowVsRowScore> {
+public class RowVsRowScore implements Comparable<RowVsRowScore> {
 
   double score;
-  private FeatureListRow peakListRow, alignedRow;
+  private final FeatureListRow peakListRow;
+  private final FeatureListRow alignedRow;
 
-  RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight,
-      double rtMaxDiff, double rtWeight) {
+  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
+      double mzWeight, double rtMaxDiff, double rtWeight) {
 
     this.peakListRow = peakListRow;
     this.alignedRow = alignedRow;
@@ -44,9 +51,9 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
   }
 
-  RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight,
-      double rtMaxDiff, double rtWeight, double mobilityMaxDiff, double mobilityWeight) {
+  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
+      double mzWeight, double rtMaxDiff, double rtWeight, double mobilityMaxDiff,
+      double mobilityWeight) {
 
     this.peakListRow = peakListRow;
     this.alignedRow = alignedRow;
@@ -56,13 +63,12 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
     double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
 
-    double mobilityDiff;
-    float row1Mobility = peakListRow.getAverageMobility();
-    float row2Mobility = alignedRow.getAverageMobility();
-    if (!Float.isNaN(peakListRow.getAverageMobility()) && !Float.isNaN(alignedRow.getAverageMobility())) {
-      mobilityDiff = Math.abs(row1Mobility - row2Mobility);
-      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight)
-          + ((1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);
+    Float row1Mobility = peakListRow.getAverageMobility();
+    Float row2Mobility = alignedRow.getAverageMobility();
+    if (row1Mobility != null && row2Mobility != null) {
+      float mobilityDiff = Math.abs(row1Mobility - row2Mobility);
+      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight) + (
+          (1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);
     } else {
       score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
     }
@@ -71,37 +77,29 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   /**
    * This method returns the feature list row which is being aligned
    */
-  FeatureListRow getPeakListRow() {
+  public FeatureListRow getRowToAdd() {
     return peakListRow;
   }
 
   /**
    * This method returns the row of aligned feature list
    */
-  FeatureListRow getAlignedRow() {
+  public FeatureListRow getAlignedBaseRow() {
     return alignedRow;
   }
 
   /**
    * This method returns score between the these two peaks (the lower score, the better match)
    */
-  double getScore() {
+  public double getScore() {
     return score;
   }
 
   /**
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   * Sorts in descending order
    */
   public int compareTo(RowVsRowScore object) {
-
-    // We must never return 0, because the TreeSet in JoinAlignerTask would
-    // treat such elements as equal
-    if (score < object.getScore()) {
-      return 1;
-    } else {
-      return -1;
-    }
-
+    return Double.compare(object.getScore(), score);
   }
 
 }

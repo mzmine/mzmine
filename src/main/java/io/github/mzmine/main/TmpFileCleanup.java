@@ -1,24 +1,33 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.main;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
+import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
@@ -29,9 +38,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 public class TmpFileCleanup implements Runnable {
@@ -46,13 +57,14 @@ public class TmpFileCleanup implements Runnable {
 
     logger.fine("Checking for old temporary files...");
     try {
-
       // Find all temporary files with the mask mzmine*.scans
       File tempDir = new File(System.getProperty("java.io.tmpdir"));
       File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
-          if (name.matches("mzmine.*\\.tmp")) {
+          if (name.matches("mzmine.*\\.tmp") || name.matches(
+              "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*") || name.matches(
+              "(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*")) {
             return true;
           }
           return false;
@@ -67,10 +79,22 @@ public class TmpFileCleanup implements Runnable {
             continue;
           }
 
+          if (remainingTmpFile.isDirectory()) {
+            // delete directory we used to store raw files on project import.
+            FileUtils.deleteDirectory(remainingTmpFile);
+            continue;
+          }
+
           // Try to obtain a lock on the file
           RandomAccessFile rac = new RandomAccessFile(remainingTmpFile, "rw");
 
-          FileLock lock = rac.getChannel().tryLock();
+          FileLock lock = null;
+          try {
+            lock = rac.getChannel().tryLock();
+          } catch (OverlappingFileLockException e) {
+            logger.finest("The lock for a temporary file " + remainingTmpFile.getAbsolutePath()
+                + " can not be acquired");
+          }
           rac.close();
 
           if (lock != null) {
@@ -104,14 +128,14 @@ public class TmpFileCleanup implements Runnable {
       return;
     }
 
-    if(theUnsafe == null) {
+    if (theUnsafe == null) {
       theUnsafe = initUnsafe();
-      if(theUnsafe == null) {
+      if (theUnsafe == null) {
         return;
       }
     }
 
-    for(final MemoryMapStorage storage : MZmineCore.getStorageList()) {
+    for (final MemoryMapStorage storage : MZmineCore.getStorageList()) {
       try {
         storage.discard(theUnsafe);
       } catch (IOException e) {
@@ -140,8 +164,7 @@ public class TmpFileCleanup implements Runnable {
 
       return (Unsafe) theUnsafe;
 
-    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-        NoSuchFieldException | ClassCastException e) {
+    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | NoSuchFieldException | ClassCastException e) {
       // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
       // but that method should be added if sun.misc.Unsafe is removed.
       e.printStackTrace();
