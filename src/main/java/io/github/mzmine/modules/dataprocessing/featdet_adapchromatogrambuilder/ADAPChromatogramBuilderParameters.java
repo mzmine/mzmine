@@ -25,9 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -106,29 +104,10 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-  @Override
-  public String getRestrictedIonMobilitySupportMessage() {
-    return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
-        + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
-        + "The mobility dimension can be added by the IMS expander module after feature resolving. "
-        + "Do you wish to continue?";
-  }
-
   @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.RESTRICTED;
-  }
-
-  @Override
-  public boolean checkRawDataFileIonMobilitySupport(RawDataFile[] rawDataFiles,
-      Collection<String> errorMessages) {
-    // no restricted message in batch mode
-    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
-      return true;
-    } else {
-      return super.checkRawDataFileIonMobilitySupport(rawDataFiles, errorMessages);
-    }
+    return IonMobilitySupport.SUPPORTED;
   }
 
   @Override
