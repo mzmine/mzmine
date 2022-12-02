@@ -38,17 +38,18 @@ import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 
 /**
- * Task for creating graphical nodes, having (ModularFeatureListRow row, AtomicDouble progress) constructor
+ * Task for creating graphical nodes, having (ModularFeatureListRow row, AtomicDouble progress)
+ * constructor
  */
 public class FeaturesGraphicalNodeTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(FeaturesGraphicalNodeTask.class.getName());
 
   Class<? extends Node> nodeClass;
-  private StackPane pane;
-  private ModularFeatureListRow row;
-  private String collHeader;
-  private AtomicDouble progress = new AtomicDouble(0d);
+  private final StackPane pane;
+  private final ModularFeatureListRow row;
+  private final String collHeader;
+  private final AtomicDouble progress = new AtomicDouble(0d);
   private final int rowID;
 
   public FeaturesGraphicalNodeTask(Class<? extends Node> nodeClass, StackPane pane,
@@ -59,6 +60,8 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
     this.row = row;
     rowID = row.getID();
     this.collHeader = collHeader;
+    // save chart for later - use placeholder wrapper pane for that - chart is added later on jfx thread
+    row.addBufferedColChart(collHeader, pane);
   }
 
   @Override
@@ -72,8 +75,6 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
 
       if (n != null) {
         final Node node = n;
-        // save chart for later
-        row.addBufferedColChart(collHeader, n);
 
         Platform.runLater(() -> {
           pane.getChildren().add(node);
@@ -83,8 +84,8 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
             () -> String.format("Cannot create graphical column for row %d and %s", rowID,
                 nodeClass.toString()));
       }
-    } catch (NoSuchMethodException | IllegalAccessException | InstantiationException
-        | InvocationTargetException e) {
+    } catch (NoSuchMethodException | IllegalAccessException | InstantiationException |
+             InvocationTargetException e) {
       e.printStackTrace();
       logger.log(Level.SEVERE, e.getMessage(), e);
       setStatus(TaskStatus.ERROR);
@@ -97,8 +98,7 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Creating a graphical column for col: " + collHeader
-        + " in row: " + rowID;
+    return "Creating a graphical column for col: " + collHeader + " in row: " + rowID;
   }
 
   @Override

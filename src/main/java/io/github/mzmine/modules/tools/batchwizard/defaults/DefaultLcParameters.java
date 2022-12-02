@@ -45,6 +45,10 @@ public class DefaultLcParameters {
       3, 1, 50, new RTTolerance(0.03f, Unit.MINUTES), new RTTolerance(0.03f, Unit.MINUTES),
       new RTTolerance(0.08f, Unit.MINUTES));
 
+  public static final DefaultLcParameters hilic = new DefaultLcParameters(true,
+      Range.closed(0.5d, 30d), 5, 1, 10, new RTTolerance(0.1f, Unit.MINUTES),
+      new RTTolerance(3, Unit.SECONDS), new RTTolerance(3, Unit.SECONDS));
+
   private final boolean stableIonizationAcrossSamples;
   private final Range<Double> cropRtRange;
   private final int minNumberDataPoints;

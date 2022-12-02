@@ -35,6 +35,7 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,7 +46,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSignals,
                                  Double minExplainedIntensity, MZTolerance msmsFormulaTolerance,
-                                 boolean exportExplainedSignalsOnly, boolean exportFlistNameMatchOnly) {
+                                 boolean exportExplainedSignalsOnly,
+                                 boolean exportFlistNameMatchOnly) {
 
   /**
    * @param msmsScan   The msms scan to evaluate
@@ -67,7 +69,8 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
     }
 
     if (exportFlistNameMatchOnly && !f.getFeatureList().getName()
-        .contains(annotation.getCompoundName())) {
+        // annotations may have unsafe characters, flists not
+        .contains(FileAndPathUtil.safePathEncode(annotation.getCompoundName()))) {
       return null;
     }
 

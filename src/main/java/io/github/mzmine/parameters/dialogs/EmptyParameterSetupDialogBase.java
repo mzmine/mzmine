@@ -115,8 +115,9 @@ public class EmptyParameterSetupDialogBase extends Stage {
     scene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(scene);
+    
+    setTitle(parameterSet.getModuleNameAttribute());
 
-    setTitle("Please set the parameters");
     setMinWidth(500.0);
     setMinHeight(400.0);
 

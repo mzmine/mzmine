@@ -142,6 +142,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       }
 
       // Add the parameter set to the configuration
+      parameters.setModuleNameAttribute(MZmineCore.getModuleInstance(moduleClass).getName());
       moduleParameters.put(moduleClass, parameters);
 
     }
