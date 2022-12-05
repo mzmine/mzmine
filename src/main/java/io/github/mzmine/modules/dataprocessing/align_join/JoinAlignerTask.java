@@ -37,8 +37,9 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.numbers.AlignmentExtraFeaturesType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
@@ -337,9 +338,9 @@ public class JoinAlignerTask extends AbstractTask {
       originalRowsMap.put(flist.getRawDataFile(0), flist.getRows().sorted(rowsMzAscending));
     }
 
+    int totalSamples = originalRowsMap.size();
     // add the new types to the feature list
-    alignedFeatureList.addRowType(DataTypes.get(AlignmentExtraFeaturesType.class));
-    alignedFeatureList.addFeatureType(DataTypes.get(AlignmentExtraFeaturesType.class));
+    alignedFeatureList.addRowType(DataTypes.get(AlignmentMainType.class));
 
     SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(rowsMzAscending);
 
@@ -366,14 +367,37 @@ public class JoinAlignerTask extends AbstractTask {
         int candidates = getCandidates(mzRange, rtRange, mobilityRange, originals, insertIndex);
         var feature = alignedRow.getFeature(raw);
         // if the row has a feature, remove 1 and then add to the total
-        candidates = Math.max(0, candidates - (feature == null ? 1 : 0));
+        candidates = Math.max(0, candidates - (feature != null ? 1 : 0));
         sumExtra += candidates;
-        if (feature instanceof ModularFeature mf) {
-          mf.set(AlignmentExtraFeaturesType.class, candidates);
+      }
+      // calculate difference
+      double mzDiff = 0;
+      float rtDiff = 0;
+      float mobilityDiff = 0;
+      for (var f : alignedRow.getFeatures()) {
+        if (f != null) {
+          if (mz != null && f.getMZ() != null) {
+            mzDiff += Math.abs(f.getMZ() - mz);
+          }
+          if (rt != null && f.getRT() != null) {
+            rtDiff += Math.abs(f.getRT() - rt);
+          }
+          if (mobility != null && f.getMobility() != null) {
+            mobilityDiff += Math.abs(f.getMobility() - mobility);
+          }
         }
       }
+
       // rows
-      alignedRow.set(AlignmentExtraFeaturesType.class, sumExtra);
+      int alignedFeatures = alignedRow.getNumberOfFeatures();
+      mobilityDiff = mobilityDiff / alignedFeatures;
+      rtDiff = rtDiff / alignedFeatures;
+      mzDiff = mzDiff / alignedFeatures;
+      float ppm = (float) (mzDiff / mz * 1_000_000f);
+      float rate = alignedFeatures / (float) totalSamples;
+      AlignmentScores score = new AlignmentScores(rate, alignedFeatures, sumExtra, ppm, mzDiff,
+          rt != null ? rtDiff : null, mobility != null ? mobilityDiff : null);
+      alignedRow.set(AlignmentMainType.class, score);
     });
   }
 
@@ -429,7 +453,7 @@ public class JoinAlignerTask extends AbstractTask {
             score = new RowVsRowScore(row, candidateInAligned,
                 RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
                 RangeUtils.rangeLength(rtRange) / 2.0, rtWeight,
-                RangeUtils.rangeLength(mobilityRange), mobilityWeight);
+                RangeUtils.rangeLength(mobilityRange) / 2.0, mobilityWeight);
           }
           scoresList.add(score);
         }
