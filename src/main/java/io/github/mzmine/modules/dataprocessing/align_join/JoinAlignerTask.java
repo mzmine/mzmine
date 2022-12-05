@@ -37,6 +37,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.numbers.AlignmentExtraFeaturesType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
@@ -61,11 +63,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -164,13 +170,50 @@ public class JoinAlignerTask extends AbstractTask {
     return "Join aligner, " + featureListName + " (" + featureLists.size() + " feature lists)";
   }
 
+  private static int getCandidates(final Range<Double> mzRange, final Range<Float> rtRange,
+      final Range<Float> mobilityRange, final List<FeatureListRow> originals,
+      final int insertIndex) {
+    int candidates = 0;
+    // right
+    for (int i = insertIndex; i < originals.size(); i++) {
+      FeatureListRow row = originals.get(i);
+      // test only mz to short circuit
+      if (mzRange.contains(row.getAverageMZ())) {
+        var rowMobility = row.getAverageMobility();
+        var rowRT = row.getAverageRT();
+        if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
+            || rtRange.contains(rowRT))) {
+          candidates++;
+        }
+      } else {
+        break;
+      }
+    }
+    // left
+    for (int i = insertIndex - 1; i >= 0; i--) {
+      FeatureListRow row = originals.get(i);
+      // test only mz to short circuit
+      if (mzRange.contains(row.getAverageMZ())) {
+        var rowMobility = row.getAverageMobility();
+        var rowRT = row.getAverageRT();
+        if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
+            || rtRange.contains(rowRT))) {
+          candidates++;
+        }
+      } else {
+        break;
+      }
+    }
+    return candidates;
+  }
+
   @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
       return 0f;
     }
     return alignedFeatureList != null ? (alignedFeatureList.getNumberOfRows() + alignedRows.get())
-                                        / (double) totalRows : 0d;
+        / (double) totalRows : 0d;
   }
 
   @Override
@@ -257,6 +300,11 @@ public class JoinAlignerTask extends AbstractTask {
     alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
         .forEach(FeatureListRow::applyRowBindings);
 
+    // score alignment by the number of features that fall within the mz, RT, mobility range
+    // do not apply all the advanced filters to keep it simple
+    addAlignmentScores();
+
+    // applied methods
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
     alignedFeatureList.addDescriptionOfAppliedTask(
@@ -274,6 +322,59 @@ public class JoinAlignerTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  /**
+   *
+   */
+  private void addAlignmentScores() {
+    logger.info("Calculating alignment score");
+    final FeatureListRowSorter rowsMzAscending = new FeatureListRowSorter(SortingProperty.MZ,
+        SortingDirection.Ascending);
+    Map<RawDataFile, SortedList<FeatureListRow>> originalRowsMap = new HashMap<>(
+        featureLists.size());
+    for (FeatureList flist : featureLists) {
+      originalRowsMap.put(flist.getRawDataFile(0), flist.getRows().sorted(rowsMzAscending));
+    }
+
+    // add the new types to the feature list
+    alignedFeatureList.addRowType(DataTypes.get(AlignmentExtraFeaturesType.class));
+    alignedFeatureList.addFeatureType(DataTypes.get(AlignmentExtraFeaturesType.class));
+
+    SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(rowsMzAscending);
+
+    // find the number of rows that match RT,MZ,Mobility in each original feature list
+    rows.stream().parallel().forEach(alignedRow -> {
+      Float rt = alignedRow.getAverageRT();
+      Float mobility = alignedRow.getAverageMobility();
+      Double mz = alignedRow.getAverageMZ();
+      var mzRange = mzTolerance.getToleranceRange(mz);
+      Range<Float> rtRange = rt != null ? rtTolerance.getToleranceRange(rt) : Range.all();
+      Range<Float> mobilityRange =
+          compareMobility && mobility != null ? mobilityTolerance.getToleranceRange(mobility)
+              : Range.all();
+
+      int sumExtra = 0;
+
+      for (var raw : alignedRow.getRawDataFiles()) {
+        List<FeatureListRow> originals = originalRowsMap.get(raw);
+        int insertIndex = Collections.binarySearch(originals, alignedRow, rowsMzAscending);
+        if (insertIndex < 0) {
+          insertIndex = -insertIndex - 1;
+        }
+        // result is the number of possible features for this raw data file
+        int candidates = getCandidates(mzRange, rtRange, mobilityRange, originals, insertIndex);
+        var feature = alignedRow.getFeature(raw);
+        // if the row has a feature, remove 1 and then add to the total
+        candidates = Math.max(0, candidates - (feature == null ? 1 : 0));
+        sumExtra += candidates;
+        if (feature instanceof ModularFeature mf) {
+          mf.set(AlignmentExtraFeaturesType.class, candidates);
+        }
+      }
+      // rows
+      alignedRow.set(AlignmentExtraFeaturesType.class, sumExtra);
+    });
   }
 
   /**
@@ -321,10 +422,12 @@ public class JoinAlignerTask extends AbstractTask {
 
           final RowVsRowScore score;
           if (!compareMobility) {
-            score = new RowVsRowScore(row, candidateInAligned, RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
+            score = new RowVsRowScore(row, candidateInAligned,
+                RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
                 RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
           } else {
-            score = new RowVsRowScore(row, candidateInAligned, RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
+            score = new RowVsRowScore(row, candidateInAligned,
+                RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
                 RangeUtils.rangeLength(rtRange) / 2.0, rtWeight,
                 RangeUtils.rangeLength(mobilityRange), mobilityWeight);
           }
@@ -437,9 +540,7 @@ public class JoinAlignerTask extends AbstractTask {
         // check if similarity is null. Similarity is not
         // null if similarity score is >= the
         // user set threshold
-        if (sim == null) {
-          return false;
-        }
+        return sim != null;
       }
     }
     return true;
@@ -468,7 +569,7 @@ public class JoinAlignerTask extends AbstractTask {
 
   private boolean checkMobility(FeatureListRow candidate, Range<Float> mobilityRange) {
     return !compareMobility || mobilityWeight <= 0 || candidate.getAverageMobility() == null
-           || mobilityRange.contains(candidate.getAverageMobility());
+        || mobilityRange.contains(candidate.getAverageMobility());
   }
 
   /**
