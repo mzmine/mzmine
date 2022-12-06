@@ -324,6 +324,15 @@ public final class MZmineCore {
     return getInstance().initializedModules.values();
   }
 
+  /**
+   * Creates a new empty raw data file with the same type and name+suffix like raw
+   *
+   * @param raw     defines base name and type of raw data file, standard, IMS, or imaging
+   * @param suffix  add a suffix to the raw.name
+   * @param storage the storage to store data on disk for this file
+   * @return new data file of the same type
+   * @throws IOException
+   */
   public static RawDataFile createNewFile(@NotNull RawDataFile raw, @NotNull final String suffix,
       @Nullable final MemoryMapStorage storage) throws IOException {
     String newName = raw.getName() + " " + suffix;
