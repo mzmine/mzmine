@@ -1885,6 +1885,81 @@ public class ScanUtils {
   }
 
   /**
+   * Use scan or mass list
+   *
+   * @return the input scan or the corresponding mass list
+   * @throws MissingMassListException
+   */
+  public static @NotNull MassSpectrum getMassSpectrum(final Scan scan, final boolean useMassList)
+      throws MissingMassListException {
+    if (useMassList) {
+      MassList masses = scan.getMassList();
+      if (masses == null) {
+        throw new MissingMassListException(scan);
+      }
+      return masses;
+    }
+    return scan;
+  }
+
+  public static double[] getIntensityValues(final Scan scan, final boolean useMassList)
+      throws MissingMassListException {
+    return getMassSpectrum(scan, useMassList).getIntensityValues(new double[0]);
+  }
+
+  public static double[] getMzValues(final Scan scan, final boolean useMassList)
+      throws MissingMassListException {
+    return getMassSpectrum(scan, useMassList).getMzValues(new double[0]);
+  }
+
+  public static DataPoint[] extractDataPoints(final Scan scan, final boolean useMassList)
+      throws MissingMassListException {
+    return extractDataPoints(getMassSpectrum(scan, useMassList));
+  }
+
+
+  /**
+   * multiplies the intensities with the injection time to denormalize the intensities. In trapped
+   * MS, the injection time is used to divide the intensities to make them comparable. We use this
+   * method to bring all intensities of MSn scans to the same levels before merging. And also for
+   * noise level detection.
+   *
+   * @param scan        provides the data and inject time
+   * @param useMassList use scan or scan.masslist intensities
+   * @return original input if injectTime is unset or <=0 otherwise the array multiplied by
+   * injection time - changes the array in place
+   */
+  public static double[] denormalizeIntensitiesMultiplyByInjectTime(final Scan scan,
+      boolean useMassList) {
+    final double[] intensities = getIntensityValues(scan, useMassList);
+    Float injectTime = scan.getInjectionTime();
+    return denormalizeIntensitiesMultiplyByInjectTime(intensities, injectTime);
+  }
+
+  /**
+   * multiplies the intensities with the injection time to denormalize the intensities. In trapped
+   * MS, the injection time is used to divide the intensities to make them comparable. We use this
+   * method to bring all intensities of MSn scans to the same levels before merging. And also for
+   * noise level detection.
+   *
+   * @param injectTime  used as a factor to denormalize spectra
+   * @param intensities the array of intensities - original array is changed
+   * @return original input if injectTime is unset or <=0 otherwise the array multiplied by
+   * injection time - changes the array in place
+   */
+  public static double[] denormalizeIntensitiesMultiplyByInjectTime(final double[] intensities,
+      Float injectTime) {
+    if (injectTime == null || injectTime <= 0) {
+      return intensities;
+    }
+
+    for (int i = 0; i < intensities.length; i++) {
+      intensities[i] = intensities[i] * injectTime;
+    }
+    return intensities;
+  }
+
+  /**
    * Binning modes
    */
   public enum BinningType {
