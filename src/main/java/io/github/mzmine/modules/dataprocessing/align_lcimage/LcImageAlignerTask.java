@@ -47,8 +47,6 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -149,9 +147,8 @@ public class LcImageAlignerTask extends AbstractTask {
     FeatureListUtils.transferSelectedScans(alignedFlist, sourceLists);
 
     final List<FeatureListRow> lcRows = this.lcFeatureList.getRows().stream().map(
-            row -> (FeatureListRow) new ModularFeatureListRow(alignedFlist, (ModularFeatureListRow) row,
-                true)).sorted(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending))
-        .toList();
+        row -> (FeatureListRow) new ModularFeatureListRow(alignedFlist, (ModularFeatureListRow) row,
+            true)).sorted(FeatureListRowSorter.MZ_ASCENDING).toList();
 
     logger.finest(() -> "Copied " + lcRows.size() + " LC rows.");
 
@@ -169,11 +166,11 @@ public class LcImageAlignerTask extends AbstractTask {
       final double maxMobDiff = mobRange.equals(Range.all()) ? Double.POSITIVE_INFINITY
           : RangeUtils.rangeLength(mobRange) / 2;
 
-      final List<FeatureListRow> matchingLcRows = FeatureListUtils.getRows(lcRows, Range.all(),
-          mzRange, mobRange, true);
+      final List<FeatureListRow> matchingLcRows = FeatureListUtils.getCandidatesWithinRanges(
+          mzRange, Range.all(), mobRange, lcRows, true);
       for (FeatureListRow lcRow : matchingLcRows) {
-        final RowVsRowScore score = new RowVsRowScore(imageRow, lcRow, maxMzDiff, mzWeight,
-            Double.POSITIVE_INFINITY, 0, maxMobDiff, mobWeight);
+        RowVsRowScore score = new RowVsRowScore(imageRow, lcRow, mzRange, null, mobRange, mzWeight,
+            0, mobWeight);
         scores.add(score);
       }
       scoredRows.getAndIncrement();
