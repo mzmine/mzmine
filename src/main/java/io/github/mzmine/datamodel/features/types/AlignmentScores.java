@@ -87,7 +87,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
   public <T> AlignmentScores modify(final DataType<T> sub, T value) {
     return switch (sub) {
       case RateType ignored ->
-          new AlignmentScores((Integer) value, alignedFeatures, extraFeatures, mzPpmDelta, mzDelta,
+          new AlignmentScores((Float) value, alignedFeatures, extraFeatures, mzPpmDelta, mzDelta,
               rtDelta, mobilityDelta);
       case AlignedFeaturesNType ignored ->
           new AlignmentScores(rate, (Integer) value, extraFeatures, mzPpmDelta, mzDelta, rtDelta,
