@@ -31,7 +31,9 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.RateType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.WeightedDistanceScore;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Saves scores on the alignment
@@ -43,20 +45,22 @@ import java.util.List;
  * @param rtDelta
  * @param mobilityDelta
  */
-public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures, Float mzPpmDelta,
-                              Double mzDelta, Float rtDelta, Float mobilityDelta) {
+public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures,
+                              Double weightedDistanceScore, Float mzPpmDelta, Double mzDelta,
+                              Float rtDelta, Float mobilityDelta) {
 
   // Unmodifiable list of all subtypes
   public static final List<DataType> subTypes = List.of(new RateType(), new AlignedFeaturesNType(),
-      new AlignExtraFeaturesType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
-      new RtAbsoluteDifferenceType(), new MobilityAbsoluteDifferenceType());
+      new AlignExtraFeaturesType(), new WeightedDistanceScore(), new MzPpmDifferenceType(),
+      new MzAbsoluteDifferenceType(), new RtAbsoluteDifferenceType(),
+      new MobilityAbsoluteDifferenceType());
 
 
   public AlignmentScores {
   }
 
   public AlignmentScores() {
-    this(0, 0, 0, null, null, null, null);
+    this(0, 0, 0, null, null, null, null, null);
   }
 
   /**
@@ -70,6 +74,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
       case RateType ignored -> rate;
       case AlignedFeaturesNType ignored -> alignedFeatures;
       case AlignExtraFeaturesType ignored -> extraFeatures;
+      case WeightedDistanceScore ignored -> weightedDistanceScore;
       case MzPpmDifferenceType ignored -> mzPpmDelta;
       case MzAbsoluteDifferenceType ignored -> mzDelta;
       case RtAbsoluteDifferenceType ignored -> rtDelta;
@@ -88,27 +93,81 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
   public <T> AlignmentScores modify(final DataType<T> sub, T value) {
     return switch (sub) {
       case RateType ignored ->
-          new AlignmentScores((Float) value, alignedFeatures, extraFeatures, mzPpmDelta, mzDelta,
-              rtDelta, mobilityDelta);
+          new AlignmentScores((Float) value, alignedFeatures, extraFeatures, weightedDistanceScore,
+              mzPpmDelta, mzDelta, rtDelta, mobilityDelta);
       case AlignedFeaturesNType ignored ->
-          new AlignmentScores(rate, (Integer) value, extraFeatures, mzPpmDelta, mzDelta, rtDelta,
-              mobilityDelta);
+          new AlignmentScores(rate, (Integer) value, extraFeatures, weightedDistanceScore,
+              mzPpmDelta, mzDelta, rtDelta, mobilityDelta);
       case AlignExtraFeaturesType ignored ->
-          new AlignmentScores(rate, alignedFeatures, (Integer) value, mzPpmDelta, mzDelta, rtDelta,
-              mobilityDelta);
+          new AlignmentScores(rate, alignedFeatures, (Integer) value, weightedDistanceScore,
+              mzPpmDelta, mzDelta, rtDelta, mobilityDelta);
+      case WeightedDistanceScore ignored ->
+          new AlignmentScores(rate, alignedFeatures, extraFeatures, (Double) value, mzPpmDelta,
+              mzDelta, rtDelta, mobilityDelta);
       case MzPpmDifferenceType ignored ->
-          new AlignmentScores(rate, alignedFeatures, extraFeatures, (Float) value, mzDelta, rtDelta,
-              mobilityDelta);
+          new AlignmentScores(rate, alignedFeatures, extraFeatures, weightedDistanceScore,
+              (Float) value, mzDelta, rtDelta, mobilityDelta);
       case MzAbsoluteDifferenceType ignored ->
-          new AlignmentScores(rate, alignedFeatures, extraFeatures, mzPpmDelta, (Double) value,
-              rtDelta, mobilityDelta);
+          new AlignmentScores(rate, alignedFeatures, extraFeatures, weightedDistanceScore,
+              mzPpmDelta, (Double) value, rtDelta, mobilityDelta);
       case RtAbsoluteDifferenceType ignored ->
-          new AlignmentScores(rate, alignedFeatures, extraFeatures, mzPpmDelta, mzDelta,
-              (Float) value, mobilityDelta);
+          new AlignmentScores(rate, alignedFeatures, extraFeatures, weightedDistanceScore,
+              mzPpmDelta, mzDelta, (Float) value, mobilityDelta);
       case MobilityAbsoluteDifferenceType ignored ->
-          new AlignmentScores(rate, alignedFeatures, extraFeatures, mzPpmDelta, mzDelta, rtDelta,
-              (Float) value);
+          new AlignmentScores(rate, alignedFeatures, extraFeatures, weightedDistanceScore,
+              mzPpmDelta, mzDelta, rtDelta, (Float) value);
       default -> throw new IllegalStateException("Unexpected value: " + sub);
     };
+  }
+
+  /**
+   * Merge scores
+   *
+   * @param other
+   * @return merged score
+   */
+  public AlignmentScores merge(@Nullable AlignmentScores other) {
+    if (other == null) {
+      return this;
+    }
+    int total = Math.round(rate * alignedFeatures);
+    int otherTotal = Math.round(other.rate * other.alignedFeatures);
+    int totalFeatures = Math.round(total + otherTotal);
+
+    return new AlignmentScores(average(rate, other.rate, total, otherTotal, totalFeatures),
+        alignedFeatures + other.alignedFeatures, extraFeatures + other.extraFeatures,
+        average(weightedDistanceScore, other.weightedDistanceScore, total, otherTotal,
+            totalFeatures), average(mzPpmDelta, other.mzPpmDelta, total, otherTotal, totalFeatures),
+        average(mzDelta, other.mzDelta, total, otherTotal, totalFeatures),
+        average(rtDelta, other.rtDelta, total, otherTotal, totalFeatures),
+        average(mobilityDelta, other.mobilityDelta, total, otherTotal, totalFeatures));
+  }
+
+  private Double average(final Double a, final Double b, final int total, final int otherTotal,
+      final int totalFeatures) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return (a * total + b * otherTotal) / totalFeatures;
+  }
+
+  private Float average(final Float a, final Float b, final int total, final int otherTotal,
+      final int totalFeatures) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return (a * total + b * otherTotal) / totalFeatures;
   }
 }

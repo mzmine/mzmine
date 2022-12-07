@@ -30,11 +30,16 @@ import static io.github.mzmine.util.RangeUtils.rangeLength;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,6 +47,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -233,6 +239,54 @@ public class FeatureListUtils {
   }
 
   /**
+   * Calculates alignment scores based on the original lists and the output aligned feature list.
+   * Needs original lists to get the number of features that might have matched
+   *
+   * @param alignedFeatureList the aligned list with average values for mz,RT, mobility
+   * @param calculator         the calculator holds tolerances and the orginal feature lists to
+   *                           score the alignment
+   * @param mergeScores        merge or override scores
+   */
+  public static void addAlignmentScores(@NotNull FeatureList alignedFeatureList,
+      RowAlignmentScoreCalculator calculator, boolean mergeScores) {
+    // add the new types to the feature list
+    alignedFeatureList.addRowType(DataTypes.get(AlignmentMainType.class));
+
+    SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(MZ_ASCENDING);
+
+    // find the number of rows that match RT,MZ,Mobility in each original feature list
+    rows.stream().parallel().forEach(alignedRow -> {
+      AlignmentScores score = calculator.calcScore(alignedRow);
+      if (mergeScores) {
+        AlignmentScores oldScore = alignedRow.get(AlignmentMainType.class);
+        score = score.merge(oldScore);
+      }
+      alignedRow.set(AlignmentMainType.class, score);
+    });
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param feature        target feature
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Feature feature, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange, double mzWeight,
+      double rtWeight, double mobilityWeight) {
+    return getAlignmentScore(feature.getMZ(), feature.getRT(), feature.getMobility(), mzRange,
+        rtRange, mobilityRange, mzWeight, rtWeight, mobilityWeight);
+  }
+
+  /**
    * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
    * mobility values based on tolerances -> ranges). General score is SUM((difference
    * row-center(range)) / rangeLength * factor) / sum(factors)
@@ -249,6 +303,30 @@ public class FeatureListUtils {
   public static double getAlignmentScore(FeatureListRow row, @Nullable Range<Double> mzRange,
       @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange, double mzWeight,
       double rtWeight, double mobilityWeight) {
+    return getAlignmentScore(row.getAverageMZ(), row.getAverageRT(), row.getAverageMobility(),
+        mzRange, rtRange, mobilityRange, mzWeight, rtWeight, mobilityWeight);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param testMz         tested value
+   * @param testRt         tested value
+   * @param testMobility   tested value
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Double testMz, Float testRt, Float testMobility,
+      @Nullable Range<Double> mzRange, @Nullable Range<Float> rtRange,
+      @Nullable Range<Float> mobilityRange, double mzWeight, double rtWeight,
+      double mobilityWeight) {
 
     // don't score range.all, will distort the scoring.
     mzRange = mzRange == null || mzRange.equals(Range.all()) ? null : mzRange;
@@ -260,25 +338,25 @@ public class FeatureListUtils {
 
     double score = 0f;
     // values are "matched" if the given value exists in this class and falls within the tolerance.
-    if (mzWeight > 0 && mzRange != null && row.getAverageMZ() != null) {
+    if (mzWeight > 0 && mzRange != null && testMz != null) {
       final double exactMass = RangeUtils.rangeCenter(mzRange);
-      double diff = Math.abs(row.getAverageMZ() - exactMass);
+      double diff = Math.abs(testMz - exactMass);
       double maxAllowedDiff = rangeLength(mzRange) / 2;
       // no negative numbers
       score += Math.max(0, (1 - diff / maxAllowedDiff) * mzWeight);
       scorers += mzWeight;
     }
 
-    if (rtWeight > 0 && rtRange != null && row.getAverageRT() != null) {
+    if (rtWeight > 0 && rtRange != null && testRt != null) {
       final Float rt = RangeUtils.rangeCenter(rtRange);
-      float diff = Math.abs(row.getAverageRT() - rt);
+      float diff = Math.abs(testRt - rt);
       score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2)) * rtWeight);
       scorers += rtWeight;
     }
 
-    if (mobilityWeight > 0 && mobilityRange != null && row.getAverageMobility() != null) {
+    if (mobilityWeight > 0 && mobilityRange != null && testMobility != null) {
       final Float mobility = RangeUtils.rangeCenter(mobilityRange);
-      float diff = Math.abs(row.getAverageMobility() - mobility);
+      float diff = Math.abs(testMobility - mobility);
       score += Math.max(0, 1 - (diff / (rangeLength(mobilityRange) / 2)) * mobilityWeight);
       scorers += mobilityWeight;
     }

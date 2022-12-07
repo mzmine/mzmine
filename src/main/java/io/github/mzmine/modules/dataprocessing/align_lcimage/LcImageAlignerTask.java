@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.dataprocessing.align_join.RowVsRowScore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -192,6 +193,13 @@ public class LcImageAlignerTask extends AbstractTask {
     alignedFlist.getAppliedMethods().addAll(
         new SimpleFeatureListAppliedMethod(LcImageAlignerModule.class, parameters,
             getModuleCallDate()));
+
+    // score alignment by the number of features that fall within the mz, RT, mobility range
+    // do not apply all the advanced filters to keep it simple
+    MobilityTolerance mobTol = useMobTol ? this.mobTol : null;
+    RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(imageLists, mzTol,
+        null, mobTol, mzWeight, 0, mobWeight);
+    FeatureListUtils.addAlignmentScores(alignedFlist, calculator, true);
 
     if (isCanceled()) {
       return;

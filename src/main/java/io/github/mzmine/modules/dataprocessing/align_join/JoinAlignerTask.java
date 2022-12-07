@@ -40,9 +40,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
-import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
@@ -63,14 +60,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -179,84 +173,6 @@ public class JoinAlignerTask extends AbstractTask {
         / (double) totalRows : 0d;
   }
 
-  /**
-   * Add alignment scores
-   *
-   * @param originalFeatureLists
-   * @param alignedFeatureList
-   * @param mzTolerance
-   * @param rtTolerance
-   * @param mobilityTolerance
-   */
-  public static void addAlignmentScores(final List<FeatureList> originalFeatureLists,
-      final ModularFeatureList alignedFeatureList, final MZTolerance mzTolerance,
-      final RTTolerance rtTolerance, final MobilityTolerance mobilityTolerance) {
-    logger.info("Calculating alignment score");
-    Map<RawDataFile, SortedList<FeatureListRow>> originalRowsMap = new HashMap<>(
-        originalFeatureLists.size());
-    for (FeatureList flist : originalFeatureLists) {
-      originalRowsMap.put(flist.getRawDataFile(0), flist.getRows().sorted(MZ_ASCENDING));
-    }
-
-    int totalSamples = originalRowsMap.size();
-    // add the new types to the feature list
-    alignedFeatureList.addRowType(DataTypes.get(AlignmentMainType.class));
-
-    SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(MZ_ASCENDING);
-
-    // find the number of rows that match RT,MZ,Mobility in each original feature list
-    rows.stream().parallel().forEach(alignedRow -> {
-      Float rt = alignedRow.getAverageRT();
-      Float mobility = alignedRow.getAverageMobility();
-      Double mz = alignedRow.getAverageMZ();
-      var mzRange = mzTolerance.getToleranceRange(mz);
-      Range<Float> rtRange = rt != null ? rtTolerance.getToleranceRange(rt) : Range.all();
-      Range<Float> mobilityRange =
-          mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
-              mobility) : Range.all();
-
-      int sumExtra = 0;
-
-      for (var raw : alignedRow.getRawDataFiles()) {
-        List<FeatureListRow> originals = originalRowsMap.get(raw);
-        // result is the number of possible features for this raw data file
-        List<FeatureListRow> matchedRows = FeatureListUtils.getCandidatesWithinRanges(mzRange,
-            rtRange, mobilityRange, originals, true);
-        var feature = alignedRow.getFeature(raw);
-        // if the row has a feature, remove 1 and then add to the total
-        sumExtra += Math.max(0, matchedRows.size() - (feature != null ? 1 : 0));
-      }
-      // calculate difference
-      double mzDiff = 0;
-      float rtDiff = 0;
-      float mobilityDiff = 0;
-      for (var f : alignedRow.getFeatures()) {
-        if (f != null) {
-          if (mz != null && f.getMZ() != null) {
-            mzDiff += Math.abs(f.getMZ() - mz);
-          }
-          if (rt != null && f.getRT() != null) {
-            rtDiff += Math.abs(f.getRT() - rt);
-          }
-          if (mobility != null && f.getMobility() != null) {
-            mobilityDiff += Math.abs(f.getMobility() - mobility);
-          }
-        }
-      }
-
-      // rows
-      int alignedFeatures = alignedRow.getNumberOfFeatures();
-      mobilityDiff = mobilityDiff / alignedFeatures;
-      rtDiff = rtDiff / alignedFeatures;
-      mzDiff = mzDiff / alignedFeatures;
-      float ppm = (float) (mzDiff / mz * 1_000_000f);
-      float rate = alignedFeatures / (float) totalSamples;
-      AlignmentScores score = new AlignmentScores(rate, alignedFeatures, sumExtra, ppm, mzDiff,
-          rt != null ? rtDiff : null, mobility != null ? mobilityDiff : null);
-      alignedRow.set(AlignmentMainType.class, score);
-    });
-  }
-
   @Override
   public void run() {
 
@@ -341,8 +257,10 @@ public class JoinAlignerTask extends AbstractTask {
 
     // score alignment by the number of features that fall within the mz, RT, mobility range
     // do not apply all the advanced filters to keep it simple
-    addAlignmentScores(featureLists, alignedFeatureList, mzTolerance, rtTolerance,
-        compareMobility ? mobilityTolerance : null);
+    MobilityTolerance mobTol = compareMobility ? mobilityTolerance : null;
+    RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(featureLists,
+        mzTolerance, rtTolerance, mobTol, mzWeight, rtWeight, mobilityWeight);
+    FeatureListUtils.addAlignmentScores(alignedFeatureList, calculator, false);
 
     // applied methods
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
