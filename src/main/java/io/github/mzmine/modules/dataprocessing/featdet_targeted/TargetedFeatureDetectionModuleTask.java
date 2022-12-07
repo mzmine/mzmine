@@ -207,7 +207,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
 
     // Get all scans of this data file
     if (dataFile instanceof IMSRawDataFile imsFile) {
-      if (processImsFile((List<? extends Gap>) gaps, imsFile)) {
+      if (!processImsFile(gaps, imsFile)) {
         return;
       }
     } else if (dataFile instanceof RawDataFile) {
@@ -250,7 +250,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
 
     while (access.hasNextFrame()) {
       if (isCanceled()) {
-        return true;
+        return false;
       }
 
       final Frame frame = access.nextFrame();
@@ -267,7 +267,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         processedFeatureList.addRow(row);
       }
     }
-    return false;
+    return true;
   }
 
   private boolean processLcmsFile(List<Gap> gaps) {
@@ -318,7 +318,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       final Range<Double> doubleToleranceRange = doubleTolerance.getToleranceRange(
           annotation.getPrecursorMZ());
       final double upperBreakPoint = doubleToleranceRange.upperEndpoint();
-      final double lowerBreakPoint = doubleToleranceRange.upperEndpoint();
+      final double lowerBreakPoint = doubleToleranceRange.lowerEndpoint();
 
       final OverlappingCompoundAnnotation overlappingAnnotation = new OverlappingCompoundAnnotation(
           annotation, mzTol, rtTol, mobTol);

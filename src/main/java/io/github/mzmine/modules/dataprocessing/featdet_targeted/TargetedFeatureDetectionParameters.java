@@ -62,14 +62,18 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter rawDataFile = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
-  public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to feature list name", "detectedPeak");
-  public static final FileNameParameter featureListFile = new FileNameParameter("Feature list file",
+  public static final StringParameter suffix = new StringParameter(
+      "Name suffix", "Suffix to be added to feature list name", "detectedPeak");
+  public static final FileNameParameter featureListFile = new FileNameParameter(
+      "Database file",
       "Name of the file that contains a list of peaks for targeted feature detection.",
       FileSelectionType.OPEN);
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file", ",");
-  public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
+  public static final StringParameter fieldSeparator = new StringParameter(
+      "Field separator",
+      "Character(s) used to separate fields in the database file. Use '\\t' for tab separated files.",
+      ",");
+  public static final PercentParameter intTolerance = new PercentParameter(
+      "Intensity tolerance",
       "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
   public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
