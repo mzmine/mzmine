@@ -101,7 +101,7 @@ public class RowAlignmentScoreCalculator {
     double mzDiff = 0;
     float rtDiff = 0;
     float mobilityDiff = 0;
-    double alignmentScore = 0;
+    float alignmentScore = 0;
     // extra features more than the aligned
     int sumExtra = 0;
     for (var entry : originalRowsMap.entrySet()) {

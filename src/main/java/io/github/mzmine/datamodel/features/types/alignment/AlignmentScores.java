@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
  * @param mobilityDelta
  */
 public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures,
-                              Double weightedDistanceScore, Float mzPpmDelta, Double mzDelta,
+                              Float weightedDistanceScore, Float mzPpmDelta, Double mzDelta,
                               Float rtDelta, Float mobilityDelta) {
 
   // Unmodifiable list of all subtypes
@@ -102,7 +102,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
           new AlignmentScores(rate, alignedFeatures, (Integer) value, weightedDistanceScore,
               mzPpmDelta, mzDelta, rtDelta, mobilityDelta);
       case WeightedDistanceScore ignored ->
-          new AlignmentScores(rate, alignedFeatures, extraFeatures, (Double) value, mzPpmDelta,
+          new AlignmentScores(rate, alignedFeatures, extraFeatures, (Float) value, mzPpmDelta,
               mzDelta, rtDelta, mobilityDelta);
       case MzPpmDifferenceType ignored ->
           new AlignmentScores(rate, alignedFeatures, extraFeatures, weightedDistanceScore,

@@ -69,15 +69,15 @@ public class GeneralTypeTests {
   void alignmentScoreTest() {
     AlignmentMainType type = new AlignmentMainType();
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 0.999, 5.1f, 0.000123, 0.12f, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, 0.43213f));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 0.999, 5.1f, 0.000123, 0.12f, null));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, null));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 0.999, 5.1f, 0.000123, null, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, null, 0.43213f));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 0.999, 5.1f, null, 0.12f, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, null, 0.12f, 0.43213f));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 0.999, null, 0.000123, 0.12f, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, null, 0.000123, 0.12f, 0.43213f));
     simpleDataTypeSaveLoadTest(type,
         new AlignmentScores(0.9f, 12, 46, null, 5.1f, 0.000123, 0.12f, 0.43213f));
   }
@@ -85,7 +85,7 @@ public class GeneralTypeTests {
   @Test
   @DisplayName("AlignmentScores sub types test")
   void alignmentScoreSubTypesTest() {
-    AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 0.999, 5.1f, 0.000123, 0.12f,
+    AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f,
         0.43213f);
     for (final DataType su : AlignmentScores.subTypes) {
       assert value.getValue(su) != null;
