@@ -114,7 +114,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.RESTRICTED;
+    return IonMobilitySupport.SUPPORTED;
   }
 
   @Override

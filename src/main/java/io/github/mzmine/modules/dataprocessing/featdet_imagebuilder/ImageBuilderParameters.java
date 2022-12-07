@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -35,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * These parameters must have the same name as the ones in
@@ -69,5 +71,10 @@ public class ImageBuilderParameters extends SimpleParameterSet {
   public ImageBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minHighest, minTotalSignals,
         suffix});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
