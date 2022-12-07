@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -36,32 +38,42 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
-/*
+/**
+ * These parameters must have the same name as the ones in
+ * {@link
+ * io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters}
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class ImageBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter("Scan " + "selection",
-          "Filter scans based on their properties. Different noise levels ( -> mass "
-              + "lists) are recommended for MS1 and MS/MS scans",
-          new ScanSelection());
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.005, 5,
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      "Scan to scan accuracy (m/z)",
+      "m/z tolerance between scans to be placed in the same image.", 0.005, 15,
       false);
 
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
-      "Minimum total Signals", "Minimum number of signals (data points) to form an image", 200);
+      "Min group size in # of scans",
+      "Minimum number of consecutive signals (data points) to form an image",
+      50);
+
+  public static final DoubleParameter minHighest = new DoubleParameter(
+      "Min highest intensity",
+      "Minimum intensity of an m/z to be considered as an image.",
+      MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "images");
 
   public ImageBuilderParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minTotalSignals, suffix});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minHighest,
+        minTotalSignals, suffix});
   }
 
   @Override

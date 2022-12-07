@@ -40,7 +40,6 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 
 /*
@@ -51,8 +50,7 @@ import org.jetbrains.annotations.NotNull;
 public class ImageBuilderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Image builder";
-  private static final String MODULE_DESCRIPTION =
-      "This module connects data points from mass lists and builds images.";
+  private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds images.";
 
   @Override
   public @NotNull String getName() {
@@ -81,7 +79,7 @@ public class ImageBuilderModule implements MZmineProcessingModule {
         continue;
       }
       Task task = new ModularADAPChromatogramBuilderTask(project, file, parametersFromImageBuilder,
-          storage, moduleCallDate);
+          storage, moduleCallDate, ImageBuilderModule.class);
       tasks.add(task);
     }
 
@@ -100,9 +98,8 @@ public class ImageBuilderModule implements MZmineProcessingModule {
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.suffix,
         parameters.getParameter(ImageBuilderParameters.suffix).getValue());
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 0.0);
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 0.0);
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.allowSingleScans,
-        new HashMap<String, Boolean>());
+    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint,
+        parameters.getValue(ImageBuilderParameters.minHighest));
     return newParameterSet;
   }
 

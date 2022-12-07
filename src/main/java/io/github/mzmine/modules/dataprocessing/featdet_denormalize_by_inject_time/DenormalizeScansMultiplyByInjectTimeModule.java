@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -37,10 +37,14 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class ModularADAPChromatogramBuilderModule implements MZmineProcessingModule {
+public class DenormalizeScansMultiplyByInjectTimeModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "ADAP Chromatogram Builder";
-  private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds chromatograms.";
+  private static final String MODULE_NAME = "Denormalize scans (multiply by injection time)";
+  private static final String MODULE_DESCRIPTION =
+      "This module multiplies the intensities of a scan"
+          + " or mass list by the injection time to denormalize scans that were acquired in a trapped MS "
+          + "instrument. The intensities are usually divided by the injection time (accumulation time "
+          + "for normalization - this is reverted). Without injection time, this module leaves the original data.";
 
   @Override
   public @NotNull String getName() {
@@ -56,30 +60,29 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    // one memory map storage per module call to reduce number of files and connect related feature lists
-    MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
-    RawDataFile[] dataFiles = parameters.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
-
-    for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask = new ModularADAPChromatogramBuilderTask(project, dataFiles[i],
-          parameters.cloneParameterSet(true), storage, moduleCallDate,
-          ModularADAPChromatogramBuilderModule.class);
+    RawDataFile[] dataFiles = parameters.getParameter(
+            DenormalizeScansMultiplyByInjectTimeParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
+    final MemoryMapStorage storage = MemoryMapStorage.forMassList();
+    for (RawDataFile dataFile : dataFiles) {
+      Task newTask = new DenormalizeScansMultiplyByInjectTimeTask(project, dataFile, parameters,
+          storage, moduleCallDate);
       tasks.add(newTask);
     }
 
     return ExitCode.OK;
+
   }
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.EIC_DETECTION;
+    return MZmineModuleCategory.RAWDATAFILTERING;
   }
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ADAPChromatogramBuilderParameters.class;
+    return DenormalizeScansMultiplyByInjectTimeParameters.class;
   }
 
 }
