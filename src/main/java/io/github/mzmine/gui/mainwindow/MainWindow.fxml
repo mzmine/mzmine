@@ -46,9 +46,9 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.Scene?>
-<?import org.controlsfx.control.StatusBar?>
-<?import org.controlsfx.control.NotificationPane?>
 <?import javafx.stage.Screen?>
+<?import org.controlsfx.control.NotificationPane?>
+<?import org.controlsfx.control.StatusBar?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">

@@ -140,7 +140,7 @@ public class ParameterSetupPane extends BorderPane {
     mainPane = this;
 
     // Use main CSS
-    mainPane.getStylesheets()
+    getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     centerPane = new BorderPane();
