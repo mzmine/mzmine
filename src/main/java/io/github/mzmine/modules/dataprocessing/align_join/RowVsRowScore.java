@@ -80,7 +80,7 @@ public record RowVsRowScore(double score, FeatureListRow rowToAdd,
    * Sorts in descending order
    */
   public int compareTo(RowVsRowScore object) {
-    return Double.compare(object.getScore(), score);
+    return Double.compare(object.getScore(), score); // reversed order
   }
 
 }

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.align_join;
 
 import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
+import static java.util.Comparator.comparingInt;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -297,8 +298,9 @@ public class JoinAlignerTask extends AbstractTask {
 
     // still contains rows from unaligned feature lists
     while (!allRows.isEmpty()) {
-      // sort remaining unaligned rows by size (feature list with highest number of unaligned rows)
-      allRows.sort((a, b) -> Integer.compare(b.size(), a.size())); // reverse sort
+      // sort remaining unaligned rows by size
+      // feature list with the highest number of unaligned rows first
+      allRows.sort(comparingInt(value -> ((List<?>) value).size()).reversed());
 
       // remove next feature list's rows
       // select the next base feature list with max number of rows
@@ -410,9 +412,8 @@ public class JoinAlignerTask extends AbstractTask {
 
     // after an iteration, rows of all other featureLists have been given a mapping
     // now we have to find the best match
-    final RowVsRowScore[] scores = scoresList.stream().sorted().toArray(RowVsRowScore[]::new);
     // track all aligned rows - only align to highest scoring row
-    final var alignedRowsMap = addFeaturesBasedOnScores(scores);
+    final var alignedRowsMap = addFeaturesBasedOnScores(scoresList);
 
     // keep track of unaligned rows for the next interation.
     removeAlignedRows(unalignedRows, alignedRowsMap);
@@ -428,7 +429,11 @@ public class JoinAlignerTask extends AbstractTask {
 
   @NotNull
   private Object2BooleanOpenHashMap<FeatureListRow> addFeaturesBasedOnScores(
-      RowVsRowScore[] scores) {
+      ConcurrentLinkedDeque<RowVsRowScore> scoresList) {
+    // natural order is reversed so best highest score is first element
+    final RowVsRowScore[] scores = scoresList.stream().sorted().toArray(RowVsRowScore[]::new);
+
+    // track if row was aligned
     final Object2BooleanOpenHashMap<FeatureListRow> alignedRowsMap = new Object2BooleanOpenHashMap<>(
         scores.length);
 

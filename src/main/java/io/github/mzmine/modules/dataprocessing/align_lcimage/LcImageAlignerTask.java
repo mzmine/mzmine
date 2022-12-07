@@ -51,7 +51,6 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -182,12 +181,10 @@ public class LcImageAlignerTask extends AbstractTask {
       return;
     }
 
-    final RowVsRowScore[] sortedScores = scores.stream().sorted(Comparator.reverseOrder())
-        .toArray(RowVsRowScore[]::new);
     totalScores.set(scores.size());
 
     logger.finest("Aligning best images to their LC rows.");
-    addFeaturesBasedOnScores(sortedScores, alignedFlist);
+    addFeaturesBasedOnScores(scores, alignedFlist);
 
     lcRows.forEach(alignedFlist::addRow);
 
@@ -209,16 +206,18 @@ public class LcImageAlignerTask extends AbstractTask {
    * Copied from the join aligner, with the difference that we don't use the alignedRowsMap here, to
    * keep track of the candidate (=image) rows that we align on the base feature list. Instead, an
    * image feature may be present more than once in the resulting aligned feature list.
-   *
-   * @param scores Sorted descending 1 -> 0
    */
   @NotNull
-  private Object2BooleanOpenHashMap<FeatureListRow> addFeaturesBasedOnScores(RowVsRowScore[] scores,
-      ModularFeatureList alignedList) {
-    final Object2BooleanOpenHashMap<FeatureListRow> alignedRowsMap = new Object2BooleanOpenHashMap<>(
-        scores.length);
+  private Object2BooleanOpenHashMap<FeatureListRow> addFeaturesBasedOnScores(
+      ConcurrentLinkedDeque<RowVsRowScore> scoresList, ModularFeatureList alignedList) {
+    // natural order is reversed so best highest score is first element
+    final RowVsRowScore[] sortedScores = scoresList.stream().sorted().toArray(RowVsRowScore[]::new);
 
-    for (RowVsRowScore score : scores) {
+    // track if row was aligned
+    final Object2BooleanOpenHashMap<FeatureListRow> alignedRowsMap = new Object2BooleanOpenHashMap<>(
+        sortedScores.length);
+
+    for (RowVsRowScore score : sortedScores) {
       final FeatureListRow alignedRow = score.getAlignedBaseRow(); // lc row = aligned row
       final FeatureListRow imageRow = score.getRowToAdd();
 //      if (alignedRowsMap.getOrDefault(row, false)) {
