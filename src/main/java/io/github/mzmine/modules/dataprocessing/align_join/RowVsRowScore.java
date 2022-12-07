@@ -31,7 +31,8 @@ import io.github.mzmine.util.FeatureListUtils;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class represents a score between feature list row and aligned feature list row
+ * This class represents a score between feature list row and aligned feature list row. Natural
+ * order sorting puts the highest, best score first
  */
 public record RowVsRowScore(double score, FeatureListRow rowToAdd,
                             FeatureListRow alignedRow) implements Comparable<RowVsRowScore> {

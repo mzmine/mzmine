@@ -101,7 +101,7 @@ public class RowAlignmentScoreCalculator {
     double mzDiff = 0;
     float rtDiff = 0;
     float mobilityDiff = 0;
-    float alignmentScore = 0;
+    double alignmentScore = 0;
     // extra features more than the aligned
     int sumExtra = 0;
     for (var entry : originalRowsMap.entrySet()) {
@@ -139,7 +139,7 @@ public class RowAlignmentScoreCalculator {
     float ppm = (float) (mzDiff / mz * 1_000_000f);
     float rate = testedAlignedFeatures / (float) totalSamples;
 
-    return new AlignmentScores(rate, testedAlignedFeatures, sumExtra, alignmentScore, ppm, mzDiff,
-        rt != null ? rtDiff : null, mobility != null ? mobilityDiff : null);
+    return new AlignmentScores(rate, testedAlignedFeatures, sumExtra, (float) alignmentScore, ppm,
+        mzDiff, rt != null ? rtDiff : null, mobility != null ? mobilityDiff : null);
   }
 }
