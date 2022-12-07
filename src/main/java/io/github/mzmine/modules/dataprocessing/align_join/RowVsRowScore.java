@@ -38,21 +38,22 @@ public record RowVsRowScore(double score, FeatureListRow rowToAdd,
                             FeatureListRow alignedRow) implements Comparable<RowVsRowScore> {
 
   /**
-   * @param rowToAdd       row to add/compare to aligned row
-   * @param alignedRow     the alignedRow, where all ranges were extracted from
-   * @param mzRange        range based on alignedRow or null if deactivated for scoring
-   * @param rtRange        range based on alignedRow or null if deactivated for scoring
-   * @param mobilityRange  range based on alignedRow or null if deactivated for scoring
-   * @param mzWeight       factors for contribution
-   * @param rtWeight       factors for contribution
-   * @param mobilityWeight factors for contribution
+   * @param rowToAddProviderOfRanges row to add/compare to aligned row, all ranges were provided
+   *                                 from here are
+   * @param alignedRow               the alignedRow, where all ranges were extracted from
+   * @param mzRange                  range based on alignedRow or null if deactivated for scoring
+   * @param rtRange                  range based on alignedRow or null if deactivated for scoring
+   * @param mobilityRange            range based on alignedRow or null if deactivated for scoring
+   * @param mzWeight                 factors for contribution
+   * @param rtWeight                 factors for contribution
+   * @param mobilityWeight           factors for contribution
    */
-  public RowVsRowScore(final FeatureListRow rowToAdd, final FeatureListRow alignedRow,
-      @Nullable Range<Double> mzRange, @Nullable Range<Float> rtRange,
-      @Nullable Range<Float> mobilityRange, final double mzWeight, final double rtWeight,
-      final double mobilityWeight) {
-    this(FeatureListUtils.getAlignmentScore(rowToAdd, mzRange, rtRange, mobilityRange, mzWeight,
-        rtWeight, mobilityWeight), rowToAdd, alignedRow);
+  public RowVsRowScore(final FeatureListRow rowToAddProviderOfRanges,
+      final FeatureListRow alignedRow, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange, final double mzWeight,
+      final double rtWeight, final double mobilityWeight) {
+    this(FeatureListUtils.getAlignmentScore(alignedRow, mzRange, rtRange, mobilityRange, mzWeight,
+        rtWeight, mobilityWeight), rowToAddProviderOfRanges, alignedRow);
   }
 
 
