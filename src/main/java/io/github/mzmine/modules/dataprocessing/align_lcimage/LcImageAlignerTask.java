@@ -68,8 +68,8 @@ public class LcImageAlignerTask extends AbstractTask {
   private final Boolean useMobTol;
   private final String flistName;
 
-  private String description;
-  private double totalRows;
+  private final String description;
+  private final double totalRows;
 
   private final double mobWeight;
   private final double mzWeight;
@@ -167,7 +167,7 @@ public class LcImageAlignerTask extends AbstractTask {
       final Range<Float> mobRange =
           mobility != null && useMobTol ? mobTol.getToleranceRange(mobility) : Range.all();
       final double maxMobDiff = mobRange.equals(Range.all()) ? Double.POSITIVE_INFINITY
-          : RangeUtils.rangeLength(mobRange);
+          : RangeUtils.rangeLength(mobRange) / 2;
 
       final List<FeatureListRow> matchingLcRows = FeatureListUtils.getRows(lcRows, Range.all(),
           mzRange, mobRange, true);
