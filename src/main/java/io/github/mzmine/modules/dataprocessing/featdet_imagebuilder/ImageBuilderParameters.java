@@ -53,14 +53,17 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       new ScanSelection(1));
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-      "Scan to scan accuracy (m/z)", "m/z tolerance between scans to be placed in the same image.",
-      0.005, 15, false);
+      "Scan to scan accuracy (m/z)",
+      "m/z tolerance between scans to be placed in the same image.", 0.005, 15,
+      false);
 
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
       "Min group size in # of scans",
-      "Minimum number of consecutive signals (data points) to form an image", 50);
+      "Minimum number of consecutive signals (data points) to form an image",
+      50);
 
-  public static final DoubleParameter minHighest = new DoubleParameter("Min highest intensity",
+  public static final DoubleParameter minHighest = new DoubleParameter(
+      "Min highest intensity",
       "Minimum intensity of an m/z to be considered as an image.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
@@ -69,8 +72,8 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       "This string is added to filename as suffix", "images");
 
   public ImageBuilderParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minHighest, minTotalSignals,
-        suffix});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minHighest,
+        minTotalSignals, suffix});
   }
 
   @Override
