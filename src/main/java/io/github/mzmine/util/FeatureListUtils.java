@@ -344,21 +344,21 @@ public class FeatureListUtils {
       double maxAllowedDiff = rangeLength(mzRange) / 2;
       // no negative numbers
       score += Math.max(0, (1 - diff / maxAllowedDiff) * mzWeight);
-      scorers += Math.round(mzWeight);
+      scorers += (int) Math.round(mzWeight);
     }
 
     if (rtWeight > 0 && rtRange != null && testRt != null) {
       final Float rt = RangeUtils.rangeCenter(rtRange);
       float diff = Math.abs(testRt - rt);
       score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2)) * rtWeight);
-      scorers += Math.round(rtWeight);
+      scorers += (int) Math.round(rtWeight);
     }
 
     if (mobilityWeight > 0 && mobilityRange != null && testMobility != null) {
       final Float mobility = RangeUtils.rangeCenter(mobilityRange);
       float diff = Math.abs(testMobility - mobility);
       score += Math.max(0, 1 - (diff / (rangeLength(mobilityRange) / 2)) * mobilityWeight);
-      scorers += Math.round(mobilityWeight);
+      scorers += (int) Math.round(mobilityWeight);
     }
 
     if (scorers == 0) {
