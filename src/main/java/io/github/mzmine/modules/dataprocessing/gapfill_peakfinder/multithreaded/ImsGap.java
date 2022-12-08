@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.GapDataPoint;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,10 +69,19 @@ public class ImsGap extends Gap {
    * @param intTolerance
    * @param mobilogramBinning
    */
-  public ImsGap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
-      Range<Float> rtRange, Range<Float> mobilityRange, double intTolerance,
-      BinningMobilogramDataAccess mobilogramBinning) {
-    super(peakListRow, rawDataFile, mzRange, rtRange, intTolerance);
+  public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
+      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull Range<Float> mobilityRange, double intTolerance,
+      @NotNull BinningMobilogramDataAccess mobilogramBinning) {
+    this(peakListRow, rawDataFile, mzRange, rtRange, mobilityRange, intTolerance, mobilogramBinning,
+        true);
+  }
+
+  public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
+      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull Range<Float> mobilityRange, double intTolerance,
+      @NotNull BinningMobilogramDataAccess mobilogramBinning, boolean validateRtShape) {
+    super(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, validateRtShape);
     this.mobilityRange = mobilityRange;
     this.mobilogramBinning = mobilogramBinning;
   }
@@ -117,7 +127,8 @@ public class ImsGap extends Gap {
 
     final Frame frame = access.getFrame();
     final MobilityType mobilityType = frame.getMobilityType();
-    final double featureMz = peakListRow.getAverageMZ();
+//    final double featureMz = peakListRow.getAverageMZ();
+    final double featureMz = RangeUtils.rangeCenter(mzRange);
 
     /*if (frame.getRetentionTime() < rtRange.lowerEndpoint()) {
       return null;
@@ -139,13 +150,13 @@ public class ImsGap extends Gap {
       }
 
       if ((mobilityType != MobilityType.TIMS && scan.getMobility() < mobilityRange.lowerEndpoint())
-          || (mobilityType == MobilityType.TIMS && scan.getMobility() > mobilityRange
-          .upperEndpoint())) {
+          || (mobilityType == MobilityType.TIMS
+          && scan.getMobility() > mobilityRange.upperEndpoint())) {
         continue;
       } else if (
           (mobilityType != MobilityType.TIMS && scan.getMobility() > mobilityRange.upperEndpoint())
-              || (mobilityType == MobilityType.TIMS && scan.getMobility() < mobilityRange
-              .lowerEndpoint())) {
+              || (mobilityType == MobilityType.TIMS
+              && scan.getMobility() < mobilityRange.lowerEndpoint())) {
         break;
       }
 
@@ -183,14 +194,14 @@ public class ImsGap extends Gap {
   @Override
   protected boolean addFeatureToRow() {
     final IonMobilogramTimeSeries trace = IonMobilogramTimeSeriesFactory.of(
-        ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(),
+        ((ModularFeatureList) featureListRow.getFeatureList()).getMemoryMapStorage(),
         (List<IonMobilitySeries>) (List<? extends IonMobilitySeries>) (List<? extends GapDataPoint>) bestPeakDataPoints,
         mobilogramBinning);
 
-    ModularFeature f = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+    ModularFeature f = new ModularFeature((ModularFeatureList) featureListRow.getFeatureList(),
         rawDataFile, trace, FeatureStatus.ESTIMATED);
 
-    peakListRow.addFeature(rawDataFile, f, false);
+    featureListRow.addFeature(rawDataFile, f, false);
     return true;
   }
 }

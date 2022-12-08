@@ -22,10 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
-package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
-
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -49,109 +47,66 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
-import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-/**
- *
- */
-public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
+public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
-
-  public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "Name of file that contains information for peak identification", FileSelectionType.OPEN);
-
+  public static final RawDataFilesParameter rawDataFile = new RawDataFilesParameter();
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
+  public static final StringParameter suffix = new StringParameter(
+      "Name suffix", "Suffix to be added to feature list name", "detectedPeak");
+  public static final FileNameParameter featureListFile = new FileNameParameter(
+      "Database file",
+      "Name of the file that contains a list of peaks for targeted feature detection.",
+      FileSelectionType.OPEN);
   public static final StringParameter fieldSeparator = new StringParameter(
       "Field separator",
-      "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
+      "Character(s) used to separate fields in the database file. Use '\\t' for tab separated files.",
       ",");
-  public static final StringParameter commentFields = new StringParameter(
-      "Append comment fields",
-      "Multiple fields separated by comma that are appended to the comment. Like: Pathway,Synonyms",
-      "", false);
-
-  public static final OptionalParameter<StringParameter> filterSamples = new OptionalParameter<>(
-      new StringParameter("Filter filename header",
-          "Column header to filter matches to only occur in the given sample. Used for library generation workflows.",
-          "raw_filename"), false);
-
-
+  public static final PercentParameter intTolerance = new PercentParameter(
+      "Intensity tolerance",
+      "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
-  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
-  public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter(
-      new MobilityTolerance(0.01f));
-  public static final PercentParameter ccsTolerance = new PercentParameter("CCS tolerance (%)",
-      "Maximum allowed difference (in per cent) for two ccs values.", 0.05);
+  public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
+      new RTToleranceParameter());
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance = new OptionalParameter<>(
+      new MobilityToleranceParameter());
+
   public static final OptionalModuleParameter<IonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
-      "Use adducts",
-      "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
-      (IonLibraryParameterSet) new IonLibraryParameterSet().cloneParameterSet());
+      "Calculate adduct masses",
+      "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
+      new IonLibraryParameterSet());
+
   private static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), new ImportType(true, "formula", new FormulaType()),
+      new ImportType(true, "rt", new RTType()), //
+      new ImportType(true, "formula", new FormulaType()),
       new ImportType(true, "smiles", new SmilesStructureType()),
+      new ImportType(false, "adduct", new IonAdductType()),
       new ImportType(false, "inchi", new InChIStructureType()),
       new ImportType(false, "inchi key", new InChIKeyStructureType()),
       new ImportType(false, "name", new CompoundNameType()),
       new ImportType(false, "CCS", new CCSType()),
       new ImportType(false, "mobility", new MobilityType()),
-      new ImportType(true, "comment", new CommentType()),
-      new ImportType(false, "adduct", new IonAdductType()),
-      new ImportType(false, "PubChemCID", new PubChemIdType()));
+      new ImportType(true, "comment", new CommentType()));
+
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
 
-  public LocalCSVDatabaseSearchParameters() {
-    super(
-        new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance, ionLibrary, filterSamples, commentFields},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html");
-  }
-
-  @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
-
-    final List<ImportType> selectedTypes = getParameter(columns).getValue().stream()
-        .filter(ImportType::isSelected).toList();
-
-    boolean compoundNameSelected = true;
-    if (!importTypeListContainsType(selectedTypes, new CompoundNameType())) {
-      compoundNameSelected = false;
-      errorMessages.add(new CompoundNameType().getHeaderString() + " must be selected.");
-    }
-
-    boolean canDetermineMz = false;
-    if (importTypeListContainsType(selectedTypes, new NeutralMassType()) && getValue(ionLibrary)) {
-      canDetermineMz = true;
-    } else if (importTypeListContainsType(selectedTypes, new PrecursorMZType())) {
-      canDetermineMz = true;
-    } else if (importTypeListContainsType(selectedTypes, new FormulaType()) && getValue(
-        ionLibrary)) {
-      canDetermineMz = true;
-    } else if (importTypeListContainsType(selectedTypes, new SmilesStructureType()) && getValue(
-        ionLibrary)) {
-      canDetermineMz = true;
-    }
-
-    if (!canDetermineMz) {
-      errorMessages.add("Cannot determine precursor mz with currently selected data types.");
-    }
-
-    return superCheck && compoundNameSelected && canDetermineMz;
-  }
-
-  private boolean importTypeListContainsType(List<ImportType> importTypes, DataType<?> type) {
-    return importTypes.stream().anyMatch(importType -> importType.getDataType().equals(type));
+  public TargetedFeatureDetectionParameters() {
+    super(new Parameter[]{rawDataFile, scanSelection, suffix, featureListFile, fieldSeparator,
+            columns, intTolerance, mzTolerance, rtTolerance, mobilityTolerance, ionLibrary},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/targeted_featdet/targeted-featdet.html");
   }
 
   @Override
