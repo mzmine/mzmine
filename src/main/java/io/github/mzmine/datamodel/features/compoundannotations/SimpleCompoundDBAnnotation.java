@@ -44,7 +44,6 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
-import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import java.net.URL;
 import java.util.Collections;
@@ -268,26 +267,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     final Float ccs = getCCS();
     return percentCCSTolerance == null || ccs == null || (row.getAverageCCS() != null && !(
         Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
-  }
-
-  public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
-      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance) {
-    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
-      return null;
-    }
-    // setup ranges around the annotation and test for row average values
-    Double mz = getPrecursorMZ();
-    final Float rt = getRT();
-    final Float mobility = getMobility();
-    var mzRange = mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
-    var rtRange = rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
-    var mobilityRange =
-        mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
-            mobility) : null;
-
-    return (float) FeatureListUtils.getAlignmentScore(row.getAverageMZ(), row.getAverageRT(),
-        row.getAverageMobility(), mzRange, rtRange, mobilityRange, 1, 1, 1);
   }
 
   @Override

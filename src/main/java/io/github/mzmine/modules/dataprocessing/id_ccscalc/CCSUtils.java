@@ -186,7 +186,7 @@ public class CCSUtils {
               r.getBestFeature().getRepresentativeScan().getPolarity(),
               PolarityType.fromInt(potentialCalibrant.libraryCharge()))).toList();
       final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(candidates, mzRange, null,
-          mobRange, 1, 1, 1).orElse(null);
+          mobRange, null, 1, 1, 1, 1).orElse(null);
 
       if (calibrantRow != null) {
         var calibrant = potentialCalibrant;
