@@ -33,11 +33,10 @@ public enum Themes {
       false), //
   MZMINE_DARK("MZmine dark", List.of("themes/MZmine_default.css", "themes/MZmine_dark.css"),
       true), //
-  MZMINE_AKK("MZmine AKK", List.of("themes/MZmine_AKK.css"), true), //
-  MZMINE_JFX_DARK("JavaFX Dark", List.of("themes/JavaFX-DarkTheme.css"), true), //
-  JABREF_LIGHT("JabRef light", List.of("themes/jabref_light.css"), false), //
-  JABREF_DARK("JabRef dark", List.of("themes/jabref_light.css", "themes/jabref_dark.css"), true), //
-  JABREF_DARK_CUSTOM("JabRef dark custom", List.of("themes/jabref_light.css", "themes/jabref_dark_2.css"), true) //
+  /*MZMINE_AKK("MZmine AKK", List.of("themes/MZmine_AKK.css"), true), *///
+  JABREF_LIGHT("JabRef light (https://github.com/JabRef/jabref)", List.of("themes/jabref_light.css"), false), //
+  JABREF_DARK("JabRef dark (https://github.com/JabRef/jabref)", List.of("themes/jabref_light.css", "themes/jabref_dark.css"), true), //
+  JABREF_DARK_CUSTOM("JabRef dark custom (https://github.com/JabRef/jabref)", List.of("themes/jabref_light.css", "themes/jabref_dark_2.css"), true) //
   ;
 
   private final String name;

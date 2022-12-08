@@ -68,10 +68,6 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Dark.css
     -js-summary-text-color-selected: derive( -fx-dark-text-color, 70%);
 }
 
-.region-match-chart-bg, .tool-bar, .status-bar {
-  -fx-background-color: -jr-menu-background;
-}
-
 .unchanged {
 
 }

@@ -53,10 +53,6 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -background-color: -fx-base;
 }
 
-.region-match-chart-bg, .tool-bar, .status-bar {
-  -fx-background-color: -pane-bg-match;
-}
-
 .label{
   -fx-text-fill: -text-color;
 }

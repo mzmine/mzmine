@@ -283,7 +283,7 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Base.css
   -fx-background-color: -jr-menu-background;
 }
 
-BorderPane {
+BorderPane, .tab-pane {
   -fx-background-color: -jr-base
 }
 
