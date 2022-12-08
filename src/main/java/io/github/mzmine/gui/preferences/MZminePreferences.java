@@ -122,8 +122,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Chart parameters", "The default chart parameters to be used throughout MZmine",
       new ChartThemeParameters());
 
-  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
-      "Enables dark mode", false);
+  public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
+      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.MZMINE_LIGHT);
 
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
@@ -166,6 +166,8 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
+  private boolean isDarkMode = false;
+
   public MZminePreferences() {
     super(new Parameter[]{
         // start with performance
@@ -177,7 +179,7 @@ public class MZminePreferences extends SimpleParameterSet {
         // how to format unit strings
         unitFormat,
         // other preferences
-        defaultColorPalette, defaultPaintScale, chartParam, darkMode, presentationMode,
+        defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
         imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
         // silent parameters without controls
         showTempFolderAlert});
@@ -200,7 +202,7 @@ public class MZminePreferences extends SimpleParameterSet {
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
-        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, darkMode,
+        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme,
             presentationMode, showPrecursorWindow, imageNormalization});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
@@ -224,30 +226,20 @@ public class MZminePreferences extends SimpleParameterSet {
       // Repaint windows to update number formats
       // MZmineCore.getDesktop().getMainWindow().repaint();
 
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("_dark.css"));
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("_light.css"));
-      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.darkMode).getValue();
-      if (darkMode) {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
-      } else {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-      }
+      final Themes theme = getValue(MZminePreferences.theme);
+      theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("MZmine_default"));
+      System.out.println(
+          MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets().toString());
+
       Boolean presentation = MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.presentationMode).getValue();
       if (presentation) {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets().add(
-            getClass().getResource("/themes/MZmine_default_presentation.css").toExternalForm());
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add("themes/MZmine_default_presentation.css");
       } else {
         MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_default.css").toExternalForm());
+            .removeIf(e -> e.contains("MZmine_default_presentation"));
       }
     }
 
@@ -285,4 +277,7 @@ public class MZminePreferences extends SimpleParameterSet {
     }
   }
 
+  public boolean isDarkMode() {
+    return getValue(MZminePreferences.theme).isDark();
+  }
 }
