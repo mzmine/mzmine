@@ -65,6 +65,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -263,6 +264,9 @@ public class TDFImportTask extends AbstractTask {
         return;
       }
     }
+
+    final LocalDateTime acqDate = metaDataTable.getAcquisitionDateTime();
+    newMZmineFile.setStartTimeStamp(acqDate);
 
     rawDataFileName = tdfBin.getParentFile().getName();
 
@@ -564,4 +568,5 @@ public class TDFImportTask extends AbstractTask {
       }
     }
   }*/
+
 }
