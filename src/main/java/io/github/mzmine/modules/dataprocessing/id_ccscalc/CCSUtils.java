@@ -51,6 +51,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import javafx.beans.property.SimpleStringProperty;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 
@@ -132,7 +133,8 @@ public class CCSUtils {
             new ImportType(true, "mobility", DataTypes.get(
                 io.github.mzmine.datamodel.features.types.numbers.MobilityType.class)), //
             new ImportType(true, "ccs", DataTypes.get(CCSType.class)), //
-            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0]);
+            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0],
+        new SimpleStringProperty());
 
     if (importTypes == null) {
       return null;

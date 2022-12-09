@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +44,8 @@ import org.w3c.dom.NodeList;
 public class FileNamesParameter implements UserParameter<File[], FileNamesComponent> {
 
   private String name, description;
-  private File value[];
+  private final Path defaultDir;
+  private File[] value;
   private List<ExtensionFilter> filters;
 
   public FileNamesParameter(String name) {
@@ -51,9 +53,15 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters) {
+    this(name, description, filters, null, null);
+  }
+
+  public FileNamesParameter(String name, String description, List<ExtensionFilter> filters, Path defaultDir, File[] defaultFiles) {
     this.name = name;
     this.description = description;
     this.filters = ImmutableList.copyOf(filters);
+    this.defaultDir = defaultDir;
+    value = defaultFiles;
   }
 
   /**
@@ -72,7 +80,7 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   @Override
   public FileNamesComponent createEditingComponent() {
-    return new FileNamesComponent(filters);
+    return new FileNamesComponent(filters, defaultDir);
   }
 
   @Override
