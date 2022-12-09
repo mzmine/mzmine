@@ -75,6 +75,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   public void loadValueFromXML(Element xmlElement) {
     NodeList pathElements = xmlElement.getElementsByTagName(PATH_ELEMENT);
 
+    value.clear();
     for (int i = 0; i < pathElements.getLength(); i++) {
       Element pathElement = (Element) pathElements.item(i);
       NodeList pointElements = pathElement.getElementsByTagName(POINT_ELEMENT);
