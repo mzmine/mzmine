@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -52,6 +53,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -315,10 +317,41 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
       @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
-  Float calculateScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
-      @Nullable RTTolerance rtTolerance,
-      @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance);
+  /**
+   * @param row                 tested row
+   * @param mzTolerance         matching tolerance
+   * @param rtTolerance         matching tolerance
+   * @param mobilityTolerance   matching tolerance
+   * @param percentCCSTolerance matching tolerance
+   * @return
+   */
+  @Nullable
+  default Float calculateScore(@NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
+      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
+      @Nullable Double percentCCSTolerance) {
+    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
+      return null;
+    }
+    // setup ranges around the annotation and test for row average values
+    Double mz = getPrecursorMZ();
+    final Float rt = getRT();
+    final Float mobility = getMobility();
+    final Float ccs = getCCS();
+    var mzRange = mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
+    var rtRange = rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
+    var mobilityRange =
+        mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
+            mobility) : null;
+
+    Range<Float> ccsRange = null;
+    if (percentCCSTolerance != null && ccs != null && row.getAverageCCS() != null) {
+      float tol = (float) (ccs * percentCCSTolerance);
+      ccsRange = Range.closed(ccs - tol, ccs + tol);
+    }
+    return (float) FeatureListUtils.getAlignmentScore(row.getAverageMZ(), row.getAverageRT(),
+        row.getAverageMobility(), row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, 1,
+        1, 1, 1);
+  }
 
   /**
    * @return Returns the 2D structure URL.

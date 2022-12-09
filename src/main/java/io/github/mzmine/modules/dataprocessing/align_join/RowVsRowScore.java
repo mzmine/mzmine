@@ -25,60 +25,44 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.FeatureListUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * This class represents a score between feature list row and aligned feature list row
+ * This class represents a score between feature list row and aligned feature list row. Natural
+ * order sorting puts the highest, best score first
  */
-public class RowVsRowScore implements Comparable<RowVsRowScore> {
+public record RowVsRowScore(double score, FeatureListRow rowToAdd,
+                            FeatureListRow alignedRow) implements Comparable<RowVsRowScore> {
 
-  double score;
-  private final FeatureListRow peakListRow;
-  private final FeatureListRow alignedRow;
-
-  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight, double rtMaxDiff, double rtWeight) {
-
-    this.peakListRow = peakListRow;
-    this.alignedRow = alignedRow;
-
-    // Calculate differences between m/z and RT values
-    double mzDiff = Math.abs(peakListRow.getAverageMZ() - alignedRow.getAverageMZ());
-
-    double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
-
-    score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
-
+  /**
+   * @param rowToAddProviderOfRanges row to add/compare to aligned row, all ranges were provided
+   *                                 from here are
+   * @param alignedRow               the alignedRow, where all ranges were extracted from
+   * @param mzRange                  range based on alignedRow or null if deactivated for scoring
+   * @param rtRange                  range based on alignedRow or null if deactivated for scoring
+   * @param mobilityRange            range based on alignedRow or null if deactivated for scoring
+   * @param mzWeight                 factors for contribution
+   * @param rtWeight                 factors for contribution
+   * @param mobilityWeight           factors for contribution
+   */
+  public RowVsRowScore(final FeatureListRow rowToAddProviderOfRanges,
+      final FeatureListRow alignedRow, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, final double mzWeight, final double rtWeight,
+      final double mobilityWeight, final double ccsWeight) {
+    this(FeatureListUtils.getAlignmentScore(alignedRow, mzRange, rtRange, mobilityRange, ccsRange,
+        mzWeight, rtWeight, mobilityWeight, ccsWeight), rowToAddProviderOfRanges, alignedRow);
   }
 
-  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight, double rtMaxDiff, double rtWeight, double mobilityMaxDiff,
-      double mobilityWeight) {
-
-    this.peakListRow = peakListRow;
-    this.alignedRow = alignedRow;
-
-    // Calculate differences between m/z and RT values
-    double mzDiff = Math.abs(peakListRow.getAverageMZ() - alignedRow.getAverageMZ());
-
-    double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
-
-    Float row1Mobility = peakListRow.getAverageMobility();
-    Float row2Mobility = alignedRow.getAverageMobility();
-    if (row1Mobility != null && row2Mobility != null) {
-      float mobilityDiff = Math.abs(row1Mobility - row2Mobility);
-      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight) + (
-          (1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);
-    } else {
-      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
-    }
-  }
 
   /**
    * This method returns the feature list row which is being aligned
    */
   public FeatureListRow getRowToAdd() {
-    return peakListRow;
+    return rowToAdd;
   }
 
   /**
@@ -99,7 +83,7 @@ public class RowVsRowScore implements Comparable<RowVsRowScore> {
    * Sorts in descending order
    */
   public int compareTo(RowVsRowScore object) {
-    return Double.compare(object.getScore(), score);
+    return Double.compare(object.getScore(), score); // reversed order
   }
 
 }

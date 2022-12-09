@@ -23,27 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+.region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
+  -fx-background-color: -jr-menu-background;
+}
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import org.jetbrains.annotations.NotNull;
+BorderPane, GridPane, .tab-pane {
+  -fx-background-color: -jr-base
+}
 
-/**
- * number of aligned features
- */
-public class AlignedFeaturesNType extends IntegerType {
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "aligned_features_n";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Aligned features";
-  }
-
+Text, Text:hover {
+  -fx-fill: -fx-light-text-color
 }

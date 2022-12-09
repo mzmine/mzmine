@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
@@ -95,12 +96,11 @@ public class CCSUtils {
     //Valid Mobility Check for CCS calculation in the function
     if (file.getMobilityType() == MobilityType.TIMS) {
       return true;
-    } else if ((file.getMobilityType() == MobilityType.DRIFT_TUBE
-        || file.getMobilityType() == MobilityType.TRAVELING_WAVE)
-        && file.getCCSCalibration() != null) {
-      return true;
+    } else {
+      return (file.getMobilityType() == MobilityType.DRIFT_TUBE
+          || file.getMobilityType() == MobilityType.TRAVELING_WAVE)
+          && file.getCCSCalibration() != null;
     }
-    return false;
   }
 
   /**
@@ -182,13 +182,13 @@ public class CCSUtils {
       final Range<Float> mobRange = mobTol.getToleranceRange(potentialCalibrant.libraryMobility());
       final Range<Double> mzRange = mzTol.getToleranceRange(potentialCalibrant.libraryMz());
 
-      final List<FeatureListRow> rows = FeatureListUtils.getRows(rowsByMz, rtRange, mzRange,
-              mobRange, true).stream().filter(
-              r -> r.getAverageHeight() > minHeight && r.getBestFeature().getRepresentativeScan()
-                  .getPolarity().equals(PolarityType.fromInt(potentialCalibrant.libraryCharge())))
-          .toList();
-      final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(rows, mzRange, null,
-          mobRange);
+      final List<FeatureListRow> candidates = FeatureListUtils.getCandidatesWithinRanges(mzRange,
+          rtRange, mobRange, rowsByMz, true).stream().filter(
+          r -> r.getAverageHeight() > minHeight && Objects.equals(
+              r.getBestFeature().getRepresentativeScan().getPolarity(),
+              PolarityType.fromInt(potentialCalibrant.libraryCharge()))).toList();
+      final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(candidates, mzRange, null,
+          mobRange, null, 1, 1, 1, 1).orElse(null);
 
       if (calibrantRow != null) {
         var calibrant = potentialCalibrant;
