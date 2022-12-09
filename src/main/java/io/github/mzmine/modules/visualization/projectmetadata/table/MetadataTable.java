@@ -219,6 +219,15 @@ public class MetadataTable {
     this.tableExportUtility = tableExportUtility;
   }
 
+  /**
+   * Column titles
+   *
+   * @return array of column titles
+   */
+  public String[] getColumnTitles() {
+    return getColumns().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
+  }
+
   // define the header fields names of the file with imported metadata
   private enum HeaderFields {
     NAME, DESC, TYPE, FILE, VALUE

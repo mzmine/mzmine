@@ -264,6 +264,8 @@ public class TDFImportTask extends AbstractTask {
       }
     }
 
+    newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+
     rawDataFileName = tdfBin.getParentFile().getName();
 
     if (!(newMZmineFile instanceof IMSRawDataFileImpl)) {
@@ -564,4 +566,5 @@ public class TDFImportTask extends AbstractTask {
       }
     }
   }*/
+
 }
