@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.DateTimeUtils;
 import java.sql.Connection;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -148,8 +149,13 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
     if(date == null) {
       return null;
     }
-
-    return DateTimeUtils.parse(date);
+    try {
+      return DateTimeUtils.parse(date);
+    } catch (DateTimeParseException e) {
+      var sampleName = valueCol.get(keyCol.indexOf(Keys.SampleName));
+      logger.warning(() -> "Cannot parse acquisition date of sample " + sampleName);
+      return null;
+    }
   }
 
   // we only keep these keys from the metadata table. Add more, if we need anything else.
