@@ -125,6 +125,8 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Exit MZmine");
@@ -146,6 +148,8 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Close project");
@@ -614,7 +618,8 @@ public class MZmineGUI extends Application implements Desktop {
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
       final Text text = new Text();
-      text.getStyleClass().add("text-id");
+//      text.getStyleClass().add("label");
+//      text.getStyleClass().add("text-id");
 
       text.setWrappingWidth(400);
       text.setText(msg);
