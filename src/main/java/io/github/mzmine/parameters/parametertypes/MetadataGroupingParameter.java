@@ -23,33 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.project;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import javax.xml.stream.XMLStreamReader;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.main.MZmineCore;
 
-/**
- * Project manager
- */
-public interface ProjectManager {
+public class MetadataGroupingParameter extends ComboParameter<String> {
 
-  /**
-   * Contract: Should not be used during raw data import to retrieve a list of possible raw data
-   * files. The list should be provided as a parameter to the
-   * {@link io.github.mzmine.datamodel.features.types.DataType#loadFromXML(XMLStreamReader,
-   * MZmineProject, ModularFeatureList, ModularFeatureListRow, ModularFeature, RawDataFile)}
-   * method.
-   *
-   * @return The current project.
-   */
-  @NotNull MZmineProject getCurrentProject();
+  public MetadataGroupingParameter(final String name, final String description) {
+    // extract column titles from metadata
+    super(name, description, MZmineCore.getProjectMetadata().getColumnTitles());
+  }
 
-  void setCurrentProject(@NotNull MZmineProject newProject);
+  public MetadataGroupingParameter() {
+    this("Metadata grouping",
+        "Group based on metadata column. Open sample metadata from the FIle menu");
+  }
 
-  void clearProject();
+  public static void updateMetadataGroups(ComboParameter<String> p) {
+    p.setChoices(MZmineCore.getProjectMetadata().getColumnTitles());
+  }
+
 }

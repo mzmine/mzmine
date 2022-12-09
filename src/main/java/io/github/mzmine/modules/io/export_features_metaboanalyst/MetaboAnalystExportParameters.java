@@ -25,48 +25,76 @@
 
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
+import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
+
+  public static final FileNameParameter filename = new FileNameParameter("Filename",
+      "Use pattern \"{}\" in the file name to substitute with feature list name. "
+          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+          + "If the file already exists, it will be overwritten.", extensions,
+      FileSelectionType.SAVE);
 
   private static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("comma-separated values", "*.csv") //
   );
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
-
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-      + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
-
-  public static final ComboParameter<UserParameter<?, ?>> groupParameter =
-      new ComboParameter<UserParameter<?, ?>>("Grouping parameter",
-          "Project parameter that will be used to obtain group information to each sample (e.g. control vs disease). Please set parameters in the Project/Set sample parameters menu.",
-          new UserParameter[0]);
+  public static final MetadataGroupingParameter grouping = new MetadataGroupingParameter();
 
   public MetaboAnalystExportParameters() {
-    super(new Parameter[] {featureLists, filename, groupParameter});
+    super(new Parameter[]{featureLists, filename,
+//        format,
+        grouping});
   }
+
+//  public static final ComboParameter<StatsFormat> format = new ComboParameter<>("Export format",
+//      "Different formats are supported by MetaboAnalyst and other software tools.",
+//      StatsFormat.values(), StatsFormat.ONE_FACTOR);
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
 
-    UserParameter<?, ?> projectParams[] =
-        MZmineCore.getProjectManager().getCurrentProject().getParameters();
-    getParameter(MetaboAnalystExportParameters.groupParameter).setChoices(projectParams);
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+    // make sure to show the latest groups
+    MetadataGroupingParameter.updateMetadataGroups(getParameter(grouping));
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
 
-    return super.showSetupDialog(valueCheckRequired);
+    // handle visibility
+//    final var groupComp = dialog.getComponentForParameter(getParameter(grouping));
+//    ComboBox<StatsFormat> combo = dialog.getComponentForParameter(getParameter(format));
+//    combo.getSelectionModel().selectedItemProperty()
+//        .addListener((observable, oldValue, newValue) -> {
+//          groupComp.setEditable(newValue == StatsFormat.ONE_FACTOR);
+//        });
+
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+  public enum StatsFormat {
+    ONE_FACTOR, METADATA_TABLE, ALL_FACTORS;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case ONE_FACTOR -> "One factor";
+        case METADATA_TABLE -> "Metadata table";
+        case ALL_FACTORS -> "All factors (not MetaboAnalyst)";
+      };
+    }
   }
 }
