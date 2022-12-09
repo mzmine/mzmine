@@ -270,7 +270,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
-  public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  public Float calculateScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance) {
     if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {

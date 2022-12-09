@@ -57,11 +57,13 @@ public class PaintScalePaletteParameter implements
   public PaintScalePaletteParameter(String name, String descr) {
     this.name = name;
     this.descr = descr;
+    value = SimpleColorPalette.BLUE_RED_WHITE;
     palettes = new ArrayList<>();
+    palettes.add(SimpleColorPalette.BLUE_YELLOW);
     palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
     palettes.add(SimpleColorPalette.RAINBOW);
     palettes.add(SimpleColorPalette.GREEN_YELLOW);
-    value = SimpleColorPalette.GREEN_YELLOW;
+    value = SimpleColorPalette.BLUE_YELLOW;
   }
 
   @Override
@@ -107,27 +109,15 @@ public class PaintScalePaletteParameter implements
 
     selected = (selected != -1) ? selected : 0;
 
-    if (!palettes.contains(SimpleColorPalette.GREEN_YELLOW)) {
-      palettes.add(SimpleColorPalette.GREEN_YELLOW);
-      logger.info("Loaded color palettes did not contain default "
-          + SimpleColorPalette.GREEN_YELLOW.getName() + " palette. Adding...");
-    }
-
-    if (!palettes.contains(SimpleColorPalette.BLUE_RED_WHITE)) {
-      palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
-      logger.info("Loaded color palettes did not contain default "
-          + SimpleColorPalette.BLUE_RED_WHITE.getName() + " palette. Adding...");
-    }
-
-    if (!palettes.contains(SimpleColorPalette.RAINBOW)) {
-      palettes.add(SimpleColorPalette.RAINBOW);
-      logger.info(
-          "Loaded color palettes did not contain default " + SimpleColorPalette.RAINBOW.getName()
-              + " palette. Adding...");
+    for (SimpleColorPalette defaultPaintScale : SimpleColorPalette.DEFAULT_PAINT_SCALES) {
+      if (!palettes.contains(defaultPaintScale)) {
+        palettes.add(defaultPaintScale);
+        logger.info("Loaded color palettes did not contain default " + defaultPaintScale.getName()
+            + " palette. Adding...");
+      }
     }
 
     setValue(palettes.get(selected));
-
   }
 
   @Override

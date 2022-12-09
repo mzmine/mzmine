@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
@@ -46,6 +47,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,13 +116,18 @@ public interface SpectralLibraryEntry extends MassList {
           extractJsonList(precursors, DDAMsMsInfo::getIsolationMz));
       entry.putIfNotNull(DBEntryField.MSN_FRAGMENTATION_METHODS,
           extractJsonList(precursors, DDAMsMsInfo::getActivationMethod));
-      entry.putIfNotNull(DBEntryField.MSN_ISOLATION_WINDOWS,
-          extractJsonList(precursors, DDAMsMsInfo::getIsolationWindow));
+      entry.putIfNotNull(DBEntryField.MSN_ISOLATION_WINDOWS, extractJsonList(precursors, info -> {
+        Range<Double> window = info.getIsolationWindow();
+        return window == null ? null : RangeUtils.rangeLength(window);
+      }));
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msnInfo.getMsLevel());
     } else if (msMsInfo != null) {
       entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, msMsInfo.getActivationEnergy());
       entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, msMsInfo.getActivationMethod());
-      entry.putIfNotNull(DBEntryField.ISOLATION_WINDOW, msMsInfo.getIsolationWindow());
+      Range<Double> window = msMsInfo.getIsolationWindow();
+      if (window != null) {
+        entry.putIfNotNull(DBEntryField.ISOLATION_WINDOW, RangeUtils.rangeLength(window));
+      }
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
     }
 

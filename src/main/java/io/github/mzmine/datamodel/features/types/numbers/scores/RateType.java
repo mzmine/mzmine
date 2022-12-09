@@ -23,43 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_targeted;
+package io.github.mzmine.datamodel.features.types.numbers.scores;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * DataPoint implementation extended with retention time and scan number
+ * The rate can for example be the alignment rate
  */
-class GapDataPoint implements DataPoint {
+public class RateType extends ScoreType {
 
-  private Scan scan;
-  private double mz, rt, intensity;
-
-  /**
-   */
-  GapDataPoint(Scan scan, double mz, double rt, double intensity) {
-    this.scan = scan;
-    this.mz = mz;
-    this.rt = rt;
-    this.intensity = intensity;
-
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "rate";
   }
 
-  Scan getScan() {
-    return scan;
-  }
-
-  public double getIntensity() {
-    return intensity;
-  }
-
-  public double getMZ() {
-    return mz;
-  }
-
-  public double getRT() {
-    return rt;
+  @NotNull
+  @Override
+  public String getHeaderString() {
+    return "Rate";
   }
 
 }

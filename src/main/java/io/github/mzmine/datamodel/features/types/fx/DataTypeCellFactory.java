@@ -85,6 +85,15 @@ public class DataTypeCellFactory implements
       protected void updateItem(Object item, boolean empty) {
         try {
           super.updateItem(item, empty);
+          // needs to check for row visibility
+          // this makes scrambles the column order - rows seem to be flagged invisible wrongly
+          if (
+            //!getTableRow().isVisible() ||
+              empty || item == null) {
+            setGraphic(null);
+            setText(null);
+            return;
+          }
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
           if (type instanceof LinkedGraphicalType lgType) {
             // convert Boolean to boolean

@@ -27,8 +27,10 @@ package io.github.mzmine.parameters;
 
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,9 +51,27 @@ public interface ParameterSet extends ParameterContainer {
     return actualParam == null ? null : actualParam.getValue();
   }
 
-  default <V, T extends UserParameter<V, ?>> V getEmbeddedParameterValue(OptionalParameter<T> parameter) {
+  default <V, T extends UserParameter<V, ?>> V getEmbeddedParameterValue(
+      OptionalParameter<T> parameter) {
     final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
     return actualParam == null ? null : actualParam.getValue();
+  }
+
+  /**
+   * @param defaultValueSupplier A supplier for the default value. may be null.
+   */
+  default <V, T extends UserParameter<V, ?>> V getEmbeddedParameterValueIfSelectedOrElse(
+      OptionalParameter<T> parameter, @Nullable Supplier<V> defaultValueSupplier) {
+    if (getValue(parameter)) {
+      final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
+      return actualParam == null ? null : actualParam.getValue();
+    }
+    return defaultValueSupplier != null ? defaultValueSupplier.get() : null;
+  }
+
+  default <T extends ParameterSet> ParameterSet getEmbeddedParameterValue(
+      OptionalModuleParameter<T> parameter) {
+    return getParameter(parameter).getEmbeddedParameters();
   }
 
   void loadValuesFromXML(Element element);
@@ -113,4 +133,8 @@ public interface ParameterSet extends ParameterContainer {
   BooleanProperty parametersChangeProperty();
 
   @Nullable String getOnlineHelpUrl();
+
+  void setModuleNameAttribute(String moduleName);
+
+  String getModuleNameAttribute();
 }

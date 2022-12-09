@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -299,22 +300,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
   private void exportEntry(final BufferedWriter writer, final SpectralLibraryEntry entry)
       throws IOException {
-    switch (format) {
-      case msp -> exportMsp(writer, entry);
-      case json -> exportGnpsJson(writer, entry);
-    }
-  }
-
-  private void exportGnpsJson(final BufferedWriter writer, final SpectralLibraryEntry entry)
-      throws IOException {
-    String json = MZmineJsonGenerator.generateJSON(entry);
-    writer.append(json).append("\n");
-  }
-
-  private void exportMsp(final BufferedWriter writer, final SpectralLibraryEntry entry)
-      throws IOException {
-    String msp = MSPEntryGenerator.createMSPEntry(entry);
-    writer.append(msp);
+    String stringEntry = switch (format) {
+      case msp -> MSPEntryGenerator.createMSPEntry(entry);
+      case json -> MZmineJsonGenerator.generateJSON(entry);
+      case mgf -> MGFEntryGenerator.createMGFEntry(entry);
+    };
+    writer.append(stringEntry).append("\n");
   }
 
   @Override

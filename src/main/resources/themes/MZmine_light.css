@@ -53,10 +53,6 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -background-color: -fx-base;
 }
 
-.region-match-chart-bg, .tool-bar, .status-bar {
-  -fx-background-color: -pane-bg-match;
-}
-
 .label{
   -fx-text-fill: -text-color;
 }
@@ -97,6 +93,22 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 .tree-cell:odd {
   -fx-control-inner-background: -cell-odd-bg;
   -fx-text-fill: -text-color;
+}
+
+.table-row-cell:odd,
+.list-cell:odd,
+.tree-table-row-cell:odd,
+.tree-cell:odd {
+  -fx-control-inner-background: -cell-odd-bg;
+  -fx-text-fill: -text-color;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -highlight;
+}
+
+.table-row-cell:selected .text {
+       -fx-fill: white ;
 }
 
   /** also counts for TreeTableView **/

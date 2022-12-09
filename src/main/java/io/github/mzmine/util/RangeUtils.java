@@ -265,7 +265,15 @@ public class RangeUtils {
     return format.format(range.lowerEndpoint()) + " - " + format.format(range.upperEndpoint());
   }
 
+  /**
+   * @param center the center of the range
+   * @param length the total length of the range, divided by 2 on each side to creat the range.
+   */
   public static Range<Double> rangeAround(double center, double length) {
+    return Range.closed(center - length / 2, center + length / 2);
+  }
+
+  public static Range<Float> rangeAround(float center, float length) {
     return Range.closed(center - length / 2, center + length / 2);
   }
 }

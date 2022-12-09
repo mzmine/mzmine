@@ -181,6 +181,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
       <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
+      <MenuItem text="Denormalize scans (multiply by inject time)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
       <MenuItem text="Maldi pseudo file generator" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
     </Menu>
