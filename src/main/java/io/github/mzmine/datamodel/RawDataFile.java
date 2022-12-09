@@ -244,6 +244,7 @@ public interface RawDataFile {
    *
    * @return a datetime stamp (or null in case if it wasn't mentioned in the RawDataFile)
    */
+  @Nullable
   default LocalDateTime getStartTimeStamp() {
     return null;
   }
@@ -251,6 +252,6 @@ public interface RawDataFile {
   /**
    * Set the start time stamp of the sample.
    */
-  default void setStartTimeStamp(LocalDateTime localDateTime) {
+  default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
 }
