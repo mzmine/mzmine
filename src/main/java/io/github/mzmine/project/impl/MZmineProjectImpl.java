@@ -70,7 +70,7 @@ public class MZmineProjectImpl implements MZmineProject {
   private final ReadWriteLock featureLock = new ReentrantReadWriteLock();
 
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
-  private MetadataTable projectMetadata;
+  private final MetadataTable projectMetadata;
   private File projectFile;
 
   @Nullable
@@ -100,13 +100,8 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public MetadataTable getProjectMetadata() {
+  public @NotNull MetadataTable getProjectMetadata() {
     return projectMetadata;
-  }
-
-  @Override
-  public void setProjectMetadata(MetadataTable metadata) {
-    this.projectMetadata = metadata;
   }
 
   @Override
