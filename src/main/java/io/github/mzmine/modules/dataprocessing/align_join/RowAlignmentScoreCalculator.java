@@ -126,8 +126,8 @@ public class RowAlignmentScoreCalculator {
         if (mobility != null && feature.getMobility() != null) {
           mobilityDiff += Math.abs(feature.getMobility() - mobility);
         }
-        alignmentScore += FeatureListUtils.getAlignmentScore(feature, mzRange, rtRange,
-            mobilityRange, mzWeight, rtWeight, mobilityWeight);
+        alignmentScore += FeatureListUtils.getAlignmentScore(feature, mzRange, rtRange, null,
+            mobilityRange, mzWeight, rtWeight, mobilityWeight, 1);
       }
     }
 

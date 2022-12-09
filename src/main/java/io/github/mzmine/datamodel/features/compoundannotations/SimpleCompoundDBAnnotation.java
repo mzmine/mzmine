@@ -45,7 +45,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.RangeUtils;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -270,55 +269,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
-  public Float calculateScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
-      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance) {
-    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
-      return null;
-    }
-
-    int scorers = 0;
-
-    float score = 0f;
-    final Double exactMass = getPrecursorMZ();
-    // values are "matched" if the given value exists in this class and falls within the tolerance.
-    if (mzTolerance != null && exactMass != null && !(row.getAverageMZ() == null
-        || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
-      score += 1 - ((float) ((Math.abs(row.getAverageMZ() - exactMass)) / (
-          RangeUtils.rangeLength(mzTolerance.getToleranceRange(exactMass)) / 2)));
-      scorers++;
-    }
-
-    final Float rt = getRT();
-    if (rtTolerance != null && rt != null && !(row.getAverageRT() == null
-        || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
-      score += 1 - ((Math.abs(row.getAverageRT() - rt)) / (
-          RangeUtils.rangeLength(rtTolerance.getToleranceRange(rt)) / 2));
-      scorers++;
-    }
-
-    final Float mobility = getMobility();
-    if (mobilityTolerance != null && mobility != null && !(row.getAverageMobility() == null
-        || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
-      score += 1 - ((Math.abs(row.getAverageMobility() - mobility)) / (
-          RangeUtils.rangeLength(mobilityTolerance.getToleranceRange(mobility)) / 2));
-      scorers++;
-    }
-
-    final Float ccs = getCCS();
-    if (percentCCSTolerance != null && ccs != null && !(row.getAverageCCS() == null
-        || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
-      score += 1 - ((float) (Math.abs(1 - (row.getAverageCCS() / ccs)) / percentCCSTolerance));
-      scorers++;
-    }
-
-    if (scorers == 0) {
-      return null;
-    }
-
-    return score / scorers;
-  }
-
   @Override
   public Map<DataType<?>, Object> getReadOnlyMap() {
     return Collections.unmodifiableMap(data);
@@ -341,10 +291,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof SimpleCompoundDBAnnotation)) {
+    if (!(o instanceof SimpleCompoundDBAnnotation that)) {
       return false;
     }
-    SimpleCompoundDBAnnotation that = (SimpleCompoundDBAnnotation) o;
     return Objects.equals(data, that.data);
   }
 

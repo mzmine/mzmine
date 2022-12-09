@@ -212,10 +212,10 @@ public class FeatureListUtils {
    */
   public static <T extends FeatureListRow> Optional<T> getBestRow(@NotNull final List<T> rows,
       @Nullable Range<Double> mzRange, @Nullable Range<Float> rtRange,
-      @Nullable Range<Float> mobilityRange, double mzWeight, double rtWeight,
-      double mobilityWeight) {
-    return getBestRow(rows, mzRange, rtRange, mobilityRange, mzWeight, rtWeight, mobilityWeight,
-        t -> true);
+      @Nullable Range<Float> mobilityRange, @Nullable Range<Float> ccsRange, double mzWeight,
+      double rtWeight, double mobilityWeight, double ccsWeight) {
+    return getBestRow(rows, mzRange, rtRange, mobilityRange, ccsRange, mzWeight, rtWeight,
+        mobilityWeight, ccsWeight, t -> true);
   }
 
   /**
@@ -231,11 +231,12 @@ public class FeatureListUtils {
    */
   public static <T extends FeatureListRow> Optional<T> getBestRow(@NotNull final List<T> rows,
       @Nullable Range<Double> mzRange, @Nullable Range<Float> rtRange,
-      @Nullable Range<Float> mobilityRange, double mzWeight, double rtWeight, double mobilityWeight,
+      @Nullable Range<Float> mobilityRange, @Nullable Range<Float> ccsRange, double mzWeight,
+      double rtWeight, double mobilityWeight, double ccsWeight,
       @NotNull Predicate<T> additionalRowFilter) {
     return rows.stream().filter(additionalRowFilter).max(Comparator.comparingDouble(
-        r -> getAlignmentScore(r, mzRange, rtRange, mobilityRange, mzWeight, rtWeight,
-            mobilityWeight)));
+        r -> getAlignmentScore(r, mzRange, rtRange, mobilityRange, ccsRange, mzWeight, rtWeight,
+            mobilityWeight, ccsWeight)));
   }
 
   /**
@@ -280,10 +281,12 @@ public class FeatureListUtils {
    * @return the alignment score between 0-1 with 1 being a perfect match
    */
   public static double getAlignmentScore(Feature feature, @Nullable Range<Double> mzRange,
-      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange, double mzWeight,
-      double rtWeight, double mobilityWeight) {
-    return getAlignmentScore(feature.getMZ(), feature.getRT(), feature.getMobility(), mzRange,
-        rtRange, mobilityRange, mzWeight, rtWeight, mobilityWeight);
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, double mzWeight, double rtWeight, double mobilityWeight,
+      double ccsWeight) {
+    return getAlignmentScore(feature.getMZ(), feature.getRT(), feature.getMobility(),
+        feature.getCCS(), mzRange, rtRange, mobilityRange, ccsRange, mzWeight, rtWeight,
+        mobilityWeight, ccsWeight);
   }
 
   /**
@@ -301,10 +304,12 @@ public class FeatureListUtils {
    * @return the alignment score between 0-1 with 1 being a perfect match
    */
   public static double getAlignmentScore(FeatureListRow row, @Nullable Range<Double> mzRange,
-      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange, double mzWeight,
-      double rtWeight, double mobilityWeight) {
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, double mzWeight, double rtWeight, double mobilityWeight,
+      double ccsWeight) {
     return getAlignmentScore(row.getAverageMZ(), row.getAverageRT(), row.getAverageMobility(),
-        mzRange, rtRange, mobilityRange, mzWeight, rtWeight, mobilityWeight);
+        row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, mzWeight, rtWeight,
+        mobilityWeight, ccsWeight);
   }
 
   /**
@@ -324,15 +329,16 @@ public class FeatureListUtils {
    * @return the alignment score between 0-1 with 1 being a perfect match
    */
   public static double getAlignmentScore(Double testMz, Float testRt, Float testMobility,
-      @Nullable Range<Double> mzRange, @Nullable Range<Float> rtRange,
-      @Nullable Range<Float> mobilityRange, double mzWeight, double rtWeight,
-      double mobilityWeight) {
+      Float testCCS, @Nullable Range<Double> mzRange, @Nullable Range<Float> rtRange,
+      @Nullable Range<Float> mobilityRange, @Nullable Range<Float> ccsRange, double mzWeight,
+      double rtWeight, double mobilityWeight, double ccsWeight) {
 
     // don't score range.all, will distort the scoring.
     mzRange = mzRange == null || mzRange.equals(Range.all()) ? null : mzRange;
     rtRange = rtRange == null || rtRange.equals(Range.all()) ? null : rtRange;
     mobilityRange =
         mobilityRange == null || mobilityRange.equals(Range.all()) ? null : mobilityRange;
+    ccsRange = ccsRange == null || ccsRange.equals(Range.all()) ? null : ccsRange;
 
     int scorers = 0;
 
@@ -359,6 +365,13 @@ public class FeatureListUtils {
       float diff = Math.abs(testMobility - mobility);
       score += Math.max(0, 1 - (diff / (rangeLength(mobilityRange) / 2)) * mobilityWeight);
       scorers += (int) Math.round(mobilityWeight);
+    }
+
+    if (ccsWeight > 0 && ccsRange != null && testCCS != null) {
+      final Float ccs = RangeUtils.rangeCenter(ccsRange);
+      float diff = Math.abs(testCCS - ccs);
+      score += Math.max(0, 1 - (diff / (rangeLength(ccsRange) / 2)) * ccsWeight);
+      scorers += (int) Math.round(ccsWeight);
     }
 
     if (scorers == 0) {
