@@ -31,13 +31,13 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.features.types.AlignmentMainType;
-import io.github.mzmine.datamodel.features.types.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -69,21 +69,24 @@ public class GeneralTypeTests {
   void alignmentScoreTest() {
     AlignmentMainType type = new AlignmentMainType();
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 5.1f, 0.000123, 0.12f, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, 0.43213f));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 5.1f, 0.000123, 0.12f, null));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, null));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 5.1f, 0.000123, null, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, null, 0.43213f));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, 5.1f, null, 0.12f, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, null, 0.12f, 0.43213f));
     simpleDataTypeSaveLoadTest(type,
-        new AlignmentScores(0.9f, 12, 46, null, 0.000123, 0.12f, 0.43213f));
+        new AlignmentScores(0.9f, 12, 46, 0.999f, null, 0.000123, 0.12f, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, null, 5.1f, 0.000123, 0.12f, 0.43213f));
   }
 
   @Test
   @DisplayName("AlignmentScores sub types test")
   void alignmentScoreSubTypesTest() {
-    AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 5.1f, 0.000123, 0.12f, 0.43213f);
+    AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f,
+        0.43213f);
     for (final DataType su : AlignmentScores.subTypes) {
       assert value.getValue(su) != null;
     }

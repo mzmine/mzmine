@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -52,13 +53,10 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityUtils {
-
-  private static final Logger logger = Logger.getLogger(IonMobilityUtils.class.getName());
 
   public static double getSmallestMobilityDelta(Frame frame) {
     double minDelta = Double.MAX_VALUE;
@@ -241,16 +239,14 @@ public class IonMobilityUtils {
       }
     }
 
-    final float startMobility = (float) MathUtils
-        .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
-            series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
-            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)),
-            halfIntensity);
+    final float startMobility = (float) MathUtils.twoPointGetXForY(series.getMobility(before),
+        series.getIntensity(before),
+        series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
+        series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
 
-    final float endMobility = (float) MathUtils
-        .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
-            series.getIntensity(Math.max(after - 1, 0)), series.getMobility(after),
-            series.getIntensity(after), halfIntensity);
+    final float endMobility = (float) MathUtils.twoPointGetXForY(
+        series.getMobility(Math.max(after - 1, 0)), series.getIntensity(Math.max(after - 1, 0)),
+        series.getMobility(after), series.getIntensity(after), halfIntensity);
 
 //    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
     return Range.closed(Math.min(startMobility, endMobility), Math.max(startMobility, endMobility));
@@ -299,7 +295,7 @@ public class IonMobilityUtils {
    * @return The maximum number of data points or null if there is no
    * {@link IonMobilogramTimeSeries}.
    */
-  public static Integer getMaxNumTraceDatapoints(ModularFeatureListRow row) {
+  public static Integer getMaxNumTraceDatapoints(FeatureListRow row) {
     int max = row.streamFeatures()
         .filter(f -> f != null && f.getFeatureData() instanceof IonMobilogramTimeSeries)
         .mapToInt(f -> getTraceDatapoints((IonMobilogramTimeSeries) f.getFeatureData())).max()
