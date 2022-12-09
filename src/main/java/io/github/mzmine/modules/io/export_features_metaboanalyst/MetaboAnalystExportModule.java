@@ -25,23 +25,20 @@
 
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class MetaboAnalystExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to MetaboAnalyst file";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list contents into a CSV (comma-separated values) file that is formatted for easy processing by the MetaboAnalyst service (http://www.metaboanalyst.ca).";
+  private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into a CSV (comma-separated values) file that is formatted for easy processing by the MetaboAnalyst service (http://www.metaboanalyst.ca).";
 
   @Override
   public @NotNull String getName() {
@@ -57,7 +54,7 @@ public class MetaboAnalystExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    MetaboAnalystExportTask task = new MetaboAnalystExportTask(project, parameters, moduleCallDate);
+    MetaboAnalystExportTask task = new MetaboAnalystExportTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

@@ -39,15 +39,16 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
 
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv") //
+  );
+  
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
           + "If the file already exists, it will be overwritten.", extensions,
       FileSelectionType.SAVE);
 
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("comma-separated values", "*.csv") //
-  );
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
   public static final MetadataGroupingParameter grouping = new MetadataGroupingParameter();

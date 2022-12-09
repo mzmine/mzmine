@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -44,7 +43,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -56,7 +57,6 @@ class MetaboAnalystExportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(MetaboAnalystExportTask.class.getName());
   private static final String fieldSeparator = ",";
 
-  private final MZmineProject project;
   private final FeatureList[] featureLists;
   private final @NotNull MetadataTable metadata;
   private final MetadataColumn<?> metadataColumn;
@@ -66,11 +66,9 @@ class MetaboAnalystExportTask extends AbstractTask {
   // parameter values
   private final File fileName;
 
-  MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  MetaboAnalystExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
-    this.project = project;
     this.featureLists = parameters.getValue(MetaboAnalystExportParameters.featureLists)
         .getMatchingFeatureLists();
 
@@ -157,10 +155,11 @@ class MetaboAnalystExportTask extends AbstractTask {
   }
 
   private boolean checkFeatureList(FeatureList featureList) {
+    var raws = new HashSet<>(featureList.getRawDataFiles());
     // Check if each sample group has at least 3 samples
     Map<RawDataFile, Object> data = metadata.getData().get(metadataColumn);
-    Map<Object, Integer> counts = data.values().stream()
-        .collect(Collectors.toMap(v -> v, value -> 1, Math::addExact));
+    Map<Object, Integer> counts = data.entrySet().stream().filter(e -> raws.contains(e.getKey()))
+        .map(Entry::getValue).collect(Collectors.toMap(v -> v, value -> 1, Math::addExact));
 
     return counts.values().stream().noneMatch(count -> count < 3);
   }
