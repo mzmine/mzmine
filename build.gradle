@@ -34,6 +34,8 @@ plugins {
     // versioning now in version.properties file
     // https://github.com/ethauvin/semver-gradle
     id "net.thauvin.erik.gradle.semver" version "1.0.4"
+
+    id "de.undercouch.download" version "5.3.0"
 }
 
 // save version to main resources
@@ -273,6 +275,14 @@ tasks.withType(Test) {
 
 tasks.withType(JavaExec) {
     jvmArgs += '--enable-preview'
+}
+
+apply plugin: 'de.undercouch.download'
+//import de.undercouch.gradle.tasks.download.Download
+task downloadDocumentation(type: de.undercouch.gradle.tasks.download.Download) {
+    src 'https://raw.githubusercontent.com/mzmine/mzmine_documentation/gh-pages/documentation.pdf'
+    dest new File(buildDir, '/jpackage/MZmine/Documentation.pdf')
+    println buildDir
 }
 
 /*
