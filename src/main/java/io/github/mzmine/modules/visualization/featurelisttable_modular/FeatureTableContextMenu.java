@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 
@@ -26,17 +33,25 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
@@ -44,37 +59,51 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
+import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
-import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -92,6 +121,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeatureTableContextMenu extends ContextMenu {
 
+  private static final Logger logger = Logger.getLogger(FeatureTableContextMenu.class.getName());
   final Menu showMenu;
   final Menu searchMenu;
   final Menu idsMenu;
@@ -133,7 +163,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRows.size() == 1 && selectedFeature != null);
     manuallyDefineItem.setOnAction(
         e -> XICManualPickerModule.runManualDetection(selectedFeature.getRawDataFile(),
-            selectedRows.get(0), table.getFeatureList(), table));
+            selectedRows.get(0), table.getFeatureList()));
 
     getItems().addAll(new SeparatorMenuItem(), manuallyDefineItem, deleteRowsItem);
   }
@@ -159,7 +189,38 @@ public class FeatureTableContextMenu extends ContextMenu {
     clearIdsItem.setOnAction(e -> selectedRows.forEach(
         row -> row.setPeakIdentities(FXCollections.observableArrayList())));
 
-    idsMenu.getItems().addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem);
+    // add the same menu for all datatypes
+    final Menu clearAnnotationsMenu = new Menu("Clear annotations");
+    DataTypes.getInstances().stream().forEach(dt -> {
+      if (!(dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType)) {
+        return;
+      }
+      if (dt instanceof IonIdentityListType) {
+        // disabled for now, remove operation requires further implementations
+        return;
+      }
+
+      final MenuItem deleteTopAnnotation = new ConditionalMenuItem(
+          "Delete selected " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+      deleteTopAnnotation.setOnAction(e -> {
+        var value = selectedRow.get(listType);
+        List<?> newList = new ArrayList<>(value);
+        newList.remove(0);
+        selectedRow.set(dt, newList);
+        table.refresh();
+      });
+      final MenuItem clearAllAnnotations = new ConditionalMenuItem(
+          "Clear all " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+      clearAllAnnotations.setOnAction(e -> {
+        selectedRow.set(listType, null);
+        table.refresh();
+      });
+      clearAnnotationsMenu.getItems()
+          .addAll(deleteTopAnnotation, clearAllAnnotations, new SeparatorMenuItem());
+    });
+
+    idsMenu.getItems()
+        .addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem, clearAnnotationsMenu);
   }
 
   private void initExportMenu() {
@@ -225,14 +286,20 @@ public class FeatureTableContextMenu extends ContextMenu {
     nistSearchItem.setOnAction(
         e -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.get(0)));
 
+    // submit GNPS MASST search job
+    final MenuItem masstSearch = new ConditionalMenuItem(
+        "Submit MASST public data search (on GNPS)",
+        () -> selectedRows.size() == 1 && getNumberOfRowsWithFragmentScans(selectedRows) >= 1);
+    masstSearch.setOnAction(e -> submitMasstGNPSSearch(selectedRows));
+
     final MenuItem formulaPredictionItem = new ConditionalMenuItem("Predict molecular formula",
         () -> selectedRows.size() == 1);
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
     searchMenu.getItems()
-        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem,
-            new SeparatorMenuItem(), formulaPredictionItem);
+        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
+            formulaPredictionItem, new SeparatorMenuItem(), masstSearch);
   }
 
   private void initShowMenu() {
@@ -256,8 +323,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
         () -> !selectedRows.isEmpty() && selectedFeature != null
             && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
-    showImageFeatureItem.setOnAction(
-        e -> MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature)));
+    showImageFeatureItem.setOnAction(e -> {
+      ParameterSet params = MZmineCore.getConfiguration()
+          .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
+      params.setParameter(ImageVisualizerParameters.imageNormalization,
+          MZmineCore.getConfiguration().getImageNormalization()); // same as in feature table.
+      MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature, params));
+    });
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
         () -> selectedFeature != null);
@@ -310,7 +382,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         List<Scan> scans = (List<Scan>) selectedFeature.getFeatureData().getSpectra().stream()
             .filter(s -> range.contains(s.getRetentionTime())).toList();
         MergedMassSpectrum spectrum = SpectraMerging.mergeSpectra(scans,
-            SpectraMerging.defaultMs1MergeTol, null);
+            SpectraMerging.defaultMs1MergeTol, MergingType.ALL, null);
         SpectraVisualizerModule.addNewSpectrumTab(spectrum);
       }
     });
@@ -345,19 +417,30 @@ public class FeatureTableContextMenu extends ContextMenu {
       if (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
       } else if (selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1) {
-        MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
+        SpectraStackVisualizerModule.addMsMsStackVisualizer(selectedRows,
             table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
-        MZmineCore.getDesktop().addTab(multi);
       } else if (selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedRow.getMostIntenseFragmentScan());
       }
     });
 
+    final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ion shapes",
+        () -> selectedFeature != null
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showDiaIons.setOnAction(e -> showDiaMsMsIons());
+
+    final MenuItem showDiaMirror = new ConditionalMenuItem(
+        "DIA spectral mirror: Correlated-to-all signals",
+        () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showDiaMirror.setOnAction(e -> showDiaMirror());
+
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
-      MirrorScanWindowFX mirrorScanTab = new MirrorScanWindowFX();
-      mirrorScanTab.setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
+      MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
+      mirrorScanTab.getController().setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
           selectedRows.get(1).getMostIntenseFragmentScan());
       mirrorScanTab.show();
     });
@@ -403,9 +486,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
-            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem);
+            showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
+            showCompoundDBResults, showSpectralDBResults, showMatchedLipidSignals,
+            new SeparatorMenuItem(), showPeakRowSummaryItem);
   }
 
   private void onShown() {
@@ -426,6 +509,24 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     for (MenuItem item : getItems()) {
       updateItem(item);
+    }
+  }
+
+  /**
+   * Mass spectrometry search tool job on GNPS
+   */
+  private void submitMasstGNPSSearch(List<ModularFeatureListRow> rows) {
+    // single
+    if (rows.size() == 1) {
+      final ModularFeatureListRow row = rows.get(0);
+      final Scan ms2 = row.getMostIntenseFragmentScan();
+      if (ms2 != null) {
+        if (ms2.getMassList() == null) {
+          logger.warning("Missing mass list. Run mass detection on MS2 scans to run MASST search");
+          return;
+        }
+        GnpsMasstSubmitModule.submitSingleMASSTJob(row, row.getAverageMZ(), ms2.getMassList());
+      }
     }
   }
 
@@ -487,5 +588,66 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     final RawDataFile file = selectedFeature.getRawDataFile();
     return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
+  }
+
+  private void showDiaMsMsIons() {
+    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
+    final RawDataFile file = selectedFeature.getRawDataFile();
+    ScanSelection selection = new ScanSelection(
+        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 1,
+            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 1), 2);
+    final List<Scan> matchingScans = selection.getMatchingScans(file.getScans());
+    MZTolerance tol = new MZTolerance(0.005, 15);
+
+    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{file}, TICPlotType.BASEPEAK,
+        new ScanSelection(1), tol.getToleranceRange(selectedFeature.getMZ()), null, null);
+
+    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+      TICDataSet dataSet = new TICDataSet(file, matchingScans,
+          tol.getToleranceRange(msms.getMzValue(i)), null, TICPlotType.BASEPEAK);
+      dataSet.setCustomSeriesKey(String.format("m/z %s", mzFormat.format(msms.getMzValue(i))));
+      window.getTICPlot().addTICDataSet(dataSet,
+          ColorUtils.getContrastPaletteColorAWT(file.getColor(),
+              MZmineCore.getConfiguration().getDefaultColorPalette()));
+    }
+
+    MZmineCore.getDesktop().addTab(window);
+  }
+
+  private void showDiaMirror() {
+    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
+    final RawDataFile file = selectedFeature.getRawDataFile();
+
+    final MirrorScanWindowFXML window = new MirrorScanWindowFXML();
+    final MirrorScanWindowController controller = window.getController();
+
+    final IonTimeSeries<? extends Scan> featureData = selectedFeature.getFeatureData();
+    if (!(featureData instanceof IonMobilogramTimeSeries ims)
+        || !(selectedFeature.getRawDataFile() instanceof IMSRawDataFile imsFile)) {
+      return;
+    }
+
+    final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(ims.getSummedMobilogram());
+    ScanSelection scanSelection = new ScanSelection(selectedFeature.getRawDataPointsRTRange(), 2);
+    List<Scan> ms2Scans = scanSelection.getMatchingScans(imsFile.getScans());
+
+    final List<MobilityScan> mobilityScans = ms2Scans.stream().<MobilityScan>mapMulti((f, c) -> {
+      Frame frame = (Frame) f;
+      for (MobilityScan ms : frame.getMobilityScans()) {
+        if (mobilityFWHM.contains((float) ms.getMobility())) {
+          c.accept(ms);
+        }
+      }
+    }).toList();
+
+    final MergedMassSpectrum uncorrelatedSpectrum = SpectraMerging.mergeSpectra(mobilityScans,
+        SpectraMerging.pasefMS2MergeTol, MergingType.ALL, null);
+
+    controller.setScans(selectedFeature.getMZ(), ScanUtils.extractDataPoints(msms),
+        selectedFeature.getMZ(), ScanUtils.extractDataPoints(uncorrelatedSpectrum), " (correlated)",
+        " (no correlation)");
+
+    window.show();
   }
 }

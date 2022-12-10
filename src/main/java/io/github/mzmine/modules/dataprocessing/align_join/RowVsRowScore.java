@@ -1,76 +1,68 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.FeatureListUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * This class represents a score between feature list row and aligned feature list row
+ * This class represents a score between feature list row and aligned feature list row. Natural
+ * order sorting puts the highest, best score first
  */
-public class RowVsRowScore implements Comparable<RowVsRowScore> {
+public record RowVsRowScore(double score, FeatureListRow rowToAdd,
+                            FeatureListRow alignedRow) implements Comparable<RowVsRowScore> {
 
-  double score;
-  private FeatureListRow peakListRow, alignedRow;
-
-  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight, double rtMaxDiff, double rtWeight) {
-
-    this.peakListRow = peakListRow;
-    this.alignedRow = alignedRow;
-
-    // Calculate differences between m/z and RT values
-    double mzDiff = Math.abs(peakListRow.getAverageMZ() - alignedRow.getAverageMZ());
-
-    double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
-
-    score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
-
+  /**
+   * @param rowToAddProviderOfRanges row to add/compare to aligned row, all ranges were provided
+   *                                 from here are
+   * @param alignedRow               the alignedRow, where all ranges were extracted from
+   * @param mzRange                  range based on alignedRow or null if deactivated for scoring
+   * @param rtRange                  range based on alignedRow or null if deactivated for scoring
+   * @param mobilityRange            range based on alignedRow or null if deactivated for scoring
+   * @param mzWeight                 factors for contribution
+   * @param rtWeight                 factors for contribution
+   * @param mobilityWeight           factors for contribution
+   */
+  public RowVsRowScore(final FeatureListRow rowToAddProviderOfRanges,
+      final FeatureListRow alignedRow, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, final double mzWeight, final double rtWeight,
+      final double mobilityWeight, final double ccsWeight) {
+    this(FeatureListUtils.getAlignmentScore(alignedRow, mzRange, rtRange, mobilityRange, ccsRange,
+        mzWeight, rtWeight, mobilityWeight, ccsWeight), rowToAddProviderOfRanges, alignedRow);
   }
 
-  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight, double rtMaxDiff, double rtWeight, double mobilityMaxDiff,
-      double mobilityWeight) {
-
-    this.peakListRow = peakListRow;
-    this.alignedRow = alignedRow;
-
-    // Calculate differences between m/z and RT values
-    double mzDiff = Math.abs(peakListRow.getAverageMZ() - alignedRow.getAverageMZ());
-
-    double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
-
-    Float row1Mobility = peakListRow.getAverageMobility();
-    Float row2Mobility = alignedRow.getAverageMobility();
-    if (row1Mobility != null && row2Mobility != null) {
-      float mobilityDiff = Math.abs(row1Mobility - row2Mobility);
-      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight) + (
-          (1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);
-    } else {
-      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
-    }
-  }
 
   /**
    * This method returns the feature list row which is being aligned
    */
   public FeatureListRow getRowToAdd() {
-    return peakListRow;
+    return rowToAdd;
   }
 
   /**
@@ -88,18 +80,10 @@ public class RowVsRowScore implements Comparable<RowVsRowScore> {
   }
 
   /**
-   * @see Comparable#compareTo(Object)
+   * Sorts in descending order
    */
   public int compareTo(RowVsRowScore object) {
-
-    // We must never return 0, because the TreeSet in JoinAlignerTask would
-    // treat such elements as equal
-    if (score < object.getScore()) {
-      return 1;
-    } else {
-      return -1;
-    }
-
+    return Double.compare(object.getScore(), score); // reversed order
   }
 
 }

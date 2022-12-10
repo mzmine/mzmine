@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.batchmode;
@@ -21,12 +28,18 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -37,6 +50,9 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,17 +66,53 @@ import org.jetbrains.annotations.NotNull;
 public class BatchTask extends AbstractTask {
 
   private final BatchQueue queue;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private int totalSteps, processedSteps;
-  private MZmineProject project;
-  private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
-  private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
+  // advanced parameters
+  private final int stepsPerDataset;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final int totalSteps;
+  private final MZmineProject project;
+  private int processedSteps;
+  private final boolean useAdvanced;
+  private final int datasets;
+  private List<File> subDirectories;
+  private List<RawDataFile> createdDataFiles;
+  private List<RawDataFile> previousCreatedDataFiles;
+  private List<FeatureList> createdFeatureLists;
+  private List<FeatureList> previousCreatedFeatureLists;
+  private Boolean skipOnError;
+  private Boolean searchSubdirs;
+  private Boolean createResultsDir;
+  private File parentDir;
+  private int currentDataset;
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // we don't create any new data here, date is irrelevant, too.
+    this(project, parameters, moduleCallDate,
+        null); // we don't create any new data here, date is irrelevant, too.
+  }
+
+  public BatchTask(final MZmineProject project, final ParameterSet parameters,
+      final Instant moduleCallDate, final List<File> subDirectories) {
+    super(null, moduleCallDate);
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
-    totalSteps = queue.size();
+    // advanced parameters
+    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
+    if (useAdvanced) {
+      // if sub directories is set - the input and output files are changed to each sub directory
+      // each sub dir is processed sequentially as a different dataset
+      AdvancedBatchModeParameters advanced = parameters.getParameter(BatchModeParameters.advanced)
+          .getEmbeddedParameters();
+      skipOnError = advanced.getValue(AdvancedBatchModeParameters.skipOnError);
+      searchSubdirs = advanced.getValue(AdvancedBatchModeParameters.includeSubdirectories);
+      createResultsDir = advanced.getValue(AdvancedBatchModeParameters.createResultsDirectory);
+      parentDir = advanced.getValue(AdvancedBatchModeParameters.processingParentDir);
+      this.subDirectories = subDirectories;
+      datasets = subDirectories == null || subDirectories.isEmpty() ? 1 : subDirectories.size();
+    } else {
+      datasets = 1;
+    }
+    stepsPerDataset = queue.size();
+    totalSteps = stepsPerDataset * datasets;
     createdDataFiles = new ArrayList<>();
     createdFeatureLists = new ArrayList<>();
     previousCreatedDataFiles = new ArrayList<>();
@@ -73,26 +125,123 @@ public class BatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
-    // unmodifiable copies of currents lists
-    startFeatureLists = project.getCurrentFeatureLists();
-    startDataFiles = project.getCurrentRawDataFiles();
-
+    int errorDataset = 0;
+    currentDataset = -1;
+    String datasetName = "";
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
+      // at the end of one dataset, clear the project and start over again
+      if (useAdvanced && processedSteps % stepsPerDataset == 0) {
+        // clear the old project
+        MZmineCore.getProjectManager().clearProject();
+        currentDataset++;
 
-      processQueueStep(i);
+        // change files
+        File datasetDir = subDirectories.get(currentDataset);
+        datasetName = datasetDir.getName();
+        File[] allFiles = FileAndPathUtil.findFilesInDirFlat(datasetDir,
+            AllSpectralDataImportParameters.ALL_MS_DATA_FILTER, searchSubdirs);
+
+        logger.info(
+            String.format("Processing batch dataset %s (%d/%d)", datasetName, currentDataset + 1,
+                datasets));
+
+        if (allFiles.length != 0) {
+          // set files to import
+          setImportFiles(allFiles);
+
+          // set files to output
+          setOutputFiles(parentDir, createResultsDir, datasetName);
+        } else {
+          errorDataset++;
+          logger.info("No data files found in directory: " + datasetName);
+          // no data files
+          if (skipOnError) {
+            processedSteps += stepsPerDataset;
+            continue;
+          } else {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("No data files found in directory: " + datasetName);
+            return;
+          }
+        }
+      }
+
+      // run step
+      processQueueStep(i % stepsPerDataset);
       processedSteps++;
 
       // If we are canceled or ran into error, stop here
-      if (isCanceled() || (getStatus() == TaskStatus.ERROR)) {
+      if (isCanceled()) {
         return;
+      } else if (getStatus() == TaskStatus.ERROR) {
+        errorDataset++;
+        if (skipOnError && datasets - currentDataset > 0) {
+          // skip to next dataset
+          logger.info("Error in dataset: " + datasetName + " total error datasets:" + errorDataset);
+          processedSteps = (processedSteps / stepsPerDataset + 1) * stepsPerDataset;
+          continue;
+        } else {
+          return;
+        }
       }
-
     }
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
+  }
 
+  private void setOutputFiles(final File parentDir, final boolean createResultsDir,
+      final String datasetName) {
+    int changedOutputSteps = 0;
+    for (MZmineProcessingStep<?> currentStep : queue) {
+      // only change for export modules
+      if (currentStep.getModule() instanceof MZmineRunnableModule mod && (
+          mod.getModuleCategory() == MZmineModuleCategory.FEATURELISTEXPORT
+              || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
+        ParameterSet params = currentStep.getParameterSet();
+        for (final Parameter<?> p : params.getParameters()) {
+          if (p instanceof FileNameParameter fnp) {
+            File old = fnp.getValue();
+            String oldName = FileAndPathUtil.eraseFormat(old).getName();
+            fnp.setValue(
+                createDatasetExportPath(parentDir, createResultsDir, datasetName, oldName));
+            changedOutputSteps++;
+          }
+        }
+      }
+    }
+    if (changedOutputSteps == 0) {
+      logger.info(
+          "No output steps were changes... Make sure to include steps that include filename parameters for export");
+      throw new IllegalStateException(
+          "No output steps were changes... Make sure to include steps that include filename parameters for export");
+    } else {
+      logger.info("Changed output for n steps=" + changedOutputSteps);
+    }
+  }
+
+  private File createDatasetExportPath(final File parentDir, final boolean createResultsDir,
+      final String datasetName, final String oldName) {
+    if (createResultsDir) {
+      return Paths.get(parentDir.getPath(), "results", datasetName, oldName + datasetName).toFile();
+    } else {
+      return Paths.get(parentDir.getPath(), datasetName, oldName + datasetName).toFile();
+    }
+  }
+
+  private void setImportFiles(final File[] allFiles) {
+    MZmineProcessingStep<?> currentStep = queue.get(0);
+    ParameterSet importParameters = currentStep.getParameterSet();
+    FileNamesParameter importParam = importParameters.getParameter(
+        AllSpectralDataImportParameters.fileNames);
+    if (importParam == null) {
+      logger.warning(
+          "When running advanced batch, the first step in the batch needs to be the all spectral data import module.");
+      throw new IllegalStateException(
+          "When running advanced batch, the first step in the batch needs to be the all spectral data import module");
+    }
+    importParam.setValue(allFiles);
   }
 
   private void processQueueStep(int stepNumber) {
@@ -119,14 +268,13 @@ public class BatchTask extends AbstractTask {
     // Update the RawDataFilesParameter parameters to reflect the current
     // state of the batch
     for (Parameter<?> p : batchStepParameters.getParameters()) {
-      if (p instanceof RawDataFilesParameter) {
-        RawDataFilesParameter rdp = (RawDataFilesParameter) p;
-        RawDataFile createdFiles[] = createdDataFiles.toArray(new RawDataFile[0]);
+      if (p instanceof RawDataFilesParameter rdp) {
+        RawDataFile[] createdFiles = createdDataFiles.toArray(new RawDataFile[0]);
         final RawDataFilesSelection selectedFiles = rdp.getValue();
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -147,7 +295,7 @@ public class BatchTask extends AbstractTask {
               messages.toArray()));
     }
 
-    List<Task> currentStepTasks = new ArrayList<Task>();
+    List<Task> currentStepTasks = new ArrayList<>();
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString());
     ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
@@ -157,6 +305,9 @@ public class BatchTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not start batch step " + method.getName());
       return;
+    } else {
+      // track step by module
+      GoogleAnalyticsTracker.trackModule(method);
     }
 
     // If current step didn't produce any tasks, continue with next step
@@ -244,8 +395,6 @@ public class BatchTask extends AbstractTask {
    * Recursively sets the last feature lists to the parameters since there might be embedded
    * parameters.
    *
-   * @param method
-   * @param batchStepParameters
    * @return false on error
    */
   private boolean setBatchlastFeatureListsToParamSet(MZmineProcessingModule method,
@@ -254,12 +403,12 @@ public class BatchTask extends AbstractTask {
     // state of the batch
     for (Parameter<?> p : batchStepParameters.getParameters()) {
       if (p instanceof FeatureListsParameter featureListsParameter) {
-        FeatureList createdFlists[] = createdFeatureLists.toArray(new FeatureList[0]);
+        FeatureList[] createdFlists = createdFeatureLists.toArray(new FeatureList[0]);
         final FeatureListsSelection selectedFeatureLists = featureListsParameter.getValue();
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
@@ -288,7 +437,16 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Batch of " + totalSteps + " steps";
+    if (datasets > 1) {
+      if (stepsPerDataset == 0) {
+        return "Batch mode";
+      } else {
+        return String.format("Batch step %d/%d of dataset %d/%d",
+            processedSteps % stepsPerDataset + 1, stepsPerDataset, currentDataset + 1, datasets);
+      }
+    } else {
+      return String.format("Batch step %d/%d", processedSteps + 1, totalSteps);
+    }
   }
 
 }

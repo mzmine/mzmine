@@ -1,25 +1,42 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -28,21 +45,28 @@ public class SpectralLibrary {
 
   private final @NotNull String name;
   private final @NotNull File path;
-  private final @NotNull List<SpectralDBEntry> entries;
+  // spectra
+  private final @NotNull List<SpectralLibraryEntry> entries = new ArrayList<>();
 
-  public SpectralLibrary(@NotNull File path, @NotNull List<SpectralDBEntry> entries) {
-    this(path.getName(), path, entries);
+  // internals
+  @Nullable
+  private final MemoryMapStorage storage;
+  private final ObservableMap<Class<? extends DataType>, DataType> types = FXCollections.observableMap(
+      new LinkedHashMap<>());
+
+  public SpectralLibrary(@Nullable MemoryMapStorage storage, @NotNull File path) {
+    this(storage, path.getName(), path);
   }
 
-  public SpectralLibrary(@NotNull String name, @NotNull File path,
-      @NotNull List<SpectralDBEntry> entries) {
+  public SpectralLibrary(@Nullable MemoryMapStorage storage, @NotNull String name,
+      @NotNull File path) {
+    this.storage = storage;
     this.path = path;
-    this.entries = entries;
-    this.name = String.format("%s (%d spectra)", name, size());
+    this.name = name;
   }
 
   @NotNull
-  public List<SpectralDBEntry> getEntries() {
+  public List<SpectralLibraryEntry> getEntries() {
     return entries;
   }
 
@@ -53,7 +77,7 @@ public class SpectralLibrary {
 
   @NotNull
   public String getName() {
-    return name;
+    return String.format("%s (%d spectra)", name, size());
   }
 
   public int size() {
@@ -63,6 +87,24 @@ public class SpectralLibrary {
   @Override
   public String toString() {
     return getName();
+  }
+
+  public MemoryMapStorage getStorage() {
+    return storage;
+  }
+
+  public void addType(Collection<DataType> newTypes) {
+    for (DataType<?> type : newTypes) {
+      if (!types.containsKey(type.getClass())) {
+        // add row type - all rows will automatically generate a default property for this type in
+        // their data map
+        types.put(type.getClass(), type);
+      }
+    }
+  }
+
+  public void addType(@NotNull DataType<?>... types) {
+    addType(Arrays.asList(types));
   }
 
   /**

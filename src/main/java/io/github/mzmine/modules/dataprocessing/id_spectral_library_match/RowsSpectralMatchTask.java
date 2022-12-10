@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
@@ -46,8 +53,8 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -258,7 +265,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   public void run() {
 
     // combine libraries
-    List<SpectralDBEntry> entries = new ArrayList<>();
+    List<SpectralLibraryEntry> entries = new ArrayList<>();
     for (var lib : libraries) {
       entries.addAll(lib.getEntries());
     }
@@ -298,7 +305,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param entries combined library entries
    * @param scan    target scan
    */
-  public void matchScan(List<SpectralDBEntry> entries, Scan scan) {
+  public void matchScan(List<SpectralLibraryEntry> entries, Scan scan) {
     try {
       // get mass list and perform deisotoping if active
       DataPoint[] masses = getDataPoints(scan, true);
@@ -333,12 +340,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-                   == MobilityType.TIMS)) {
+          == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
-            MobilityType.TIMS, ddaInfo.getPrecursorCharge(), (IMSRawDataFile) mobScan.getDataFile());
+            MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
+            (IMSRawDataFile) mobScan.getDataFile());
       }
     } else if (scan instanceof MergedMsMsSpectrum merged
-               && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
+        && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
       MobilityScan mobScan = (MobilityScan) merged.getSourceSpectra().stream()
           .filter(MobilityScan.class::isInstance).max(Comparator.comparingDouble(
               s -> Objects.requireNonNullElse(((MobilityScan) s).getMobility(), 0d))).orElse(null);
@@ -346,9 +354,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && mobScan != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-                   == MobilityType.TIMS)) {
+          == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
-            MobilityType.TIMS, ddaInfo.getPrecursorCharge(), (IMSRawDataFile) mobScan.getDataFile());
+            MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
+            (IMSRawDataFile) mobScan.getDataFile());
       }
     }
     return precursorCCS;
@@ -360,7 +369,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param entries combined library entries
    * @param row     target row
    */
-  public void matchRowToLibraries(List<SpectralDBEntry> entries, FeatureListRow row) {
+  public void matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
     try {
       // All MS2 or only best MS2 scan
       // best MS1 scan
@@ -376,7 +385,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       final Float rowCCS = row.getAverageCCS();
       List<SpectralDBAnnotation> ids = null;
       // match against all library entries
-      for (SpectralDBEntry ident : entries) {
+      for (SpectralLibraryEntry ident : entries) {
         final Float libCCS = ident.getOrElse(DBEntryField.CCS, null);
         SpectralDBAnnotation best = null;
         // match all scans against this ident to find best match
@@ -385,8 +394,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
               rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
               mzToleranceSpectra, minMatchedIsoSignals)) && (best == null
-                                                             || best.getSimilarity().getScore()
-                                                                < sim.getScore())) {
+              || best.getSimilarity().getScore() < sim.getScore())) {
 
             Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
 
@@ -431,7 +439,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @return spectral similarity or null if no match
    */
   private SpectralSimilarity matchSpectrum(Float rowRT, double rowMZ, Float rowCCS,
-      DataPoint[] rowMassList, SpectralDBEntry ident) {
+      DataPoint[] rowMassList, SpectralLibraryEntry ident) {
     // retention time
     // MS level 1 or check precursorMZ
     if (checkRT(rowRT, ident) && (msLevel == 1 || checkPrecursorMZ(rowMZ, ident)) && checkCCS(
@@ -466,7 +474,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     return null;
   }
 
-  private boolean checkCCS(Float rowCCS, SpectralDBEntry ident) {
+  private boolean checkCCS(Float rowCCS, SpectralLibraryEntry ident) {
     return ccsTolerance == null || ccsTolerance.matches(rowCCS,
         ident.getOrElse(DBEntryField.CCS, null));
   }
@@ -494,7 +502,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         .getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra, minMatch, library, query);
   }
 
-  private boolean checkPrecursorMZ(double rowMZ, SpectralDBEntry ident) {
+  private boolean checkPrecursorMZ(double rowMZ, SpectralLibraryEntry ident) {
     if (ident.getPrecursorMZ() == null) {
       return false;
     } else {
@@ -502,7 +510,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
   }
 
-  private boolean checkRT(Float retentionTime, SpectralDBEntry ident) {
+  private boolean checkRT(Float retentionTime, SpectralLibraryEntry ident) {
     if (!useRT || retentionTime == null) {
       return true;
     }

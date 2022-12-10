@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.spectraldb.entry;
@@ -48,14 +55,14 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
 
   private static final Logger logger = Logger.getLogger(SpectralDBAnnotation.class.getName());
 
-  private final SpectralDBEntry entry;
+  private final SpectralLibraryEntry entry;
   private final SpectralSimilarity similarity;
   private final Float ccsError;
   @Nullable
   private final Scan queryScan;
 
-  public SpectralDBAnnotation(SpectralDBEntry entry, SpectralSimilarity similarity, Scan queryScan,
-      @Nullable Float ccsError) {
+  public SpectralDBAnnotation(SpectralLibraryEntry entry, SpectralSimilarity similarity,
+      Scan queryScan, @Nullable Float ccsError) {
     this.queryScan = queryScan;
     this.entry = entry;
     this.similarity = similarity;
@@ -73,7 +80,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
       throw new IllegalStateException("Current element is not a feature annotation element");
     }
 
-    SpectralDBEntry entry = null;
+    SpectralLibraryEntry entry = null;
     SpectralSimilarity similarity = null;
     Scan scan = null;
     Float ccsError = null;
@@ -86,7 +93,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
       }
 
       switch (reader.getLocalName()) {
-        case SpectralDBEntry.XML_ELEMENT -> entry = SpectralDBEntry.loadFromXML(reader);
+        case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
+            entry = SpectralLibraryEntry.loadFromXML(reader);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
         case XML_CCS_ERROR_ELEMENT -> {
@@ -217,7 +225,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
     return (float) similarity.getScore();
   }
 
-  public SpectralDBEntry getEntry() {
+  public SpectralLibraryEntry getEntry() {
     return entry;
   }
 

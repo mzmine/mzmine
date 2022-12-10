@@ -1,62 +1,67 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.controlsfx.control.CheckListView;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.CollectionUtils;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 /**
  * Simple Parameter implementation
- *
- *
  */
-public class MultiChoiceParameter<ValueType>
-    implements UserParameter<ValueType[], CheckListView<ValueType>> {
+public class MultiChoiceParameter<ValueType> implements
+    UserParameter<ValueType[], CheckListView<ValueType>> {
 
   private final String name, description;
-  private ValueType choices[], values[];
-  private int minNumber;
+  private final int minNumber;
+  private ValueType[] choices, values;
 
   /**
    * We need the choices parameter non-null even when the length may be 0. We need it to determine
    * the class of the ValueType.
    */
-  public MultiChoiceParameter(String name, String description, ValueType choices[]) {
+  public MultiChoiceParameter(String name, String description, ValueType[] choices) {
     this(name, description, choices, null, 1);
   }
 
-  public MultiChoiceParameter(String name, String description, ValueType choices[],
-      ValueType values[]) {
+  public MultiChoiceParameter(String name, String description, ValueType[] choices,
+      ValueType[] values) {
     this(name, description, choices, values, 1);
   }
 
-  public MultiChoiceParameter(String name, String description, ValueType choices[],
-      ValueType values[], int minNumber) {
+  public MultiChoiceParameter(String name, String description, ValueType[] choices,
+      ValueType[] values, int minNumber) {
 
     assert choices != null;
 
@@ -68,13 +73,14 @@ public class MultiChoiceParameter<ValueType>
   }
 
   /**
+   *
    */
   @Override
   public String getName() {
     return name;
   }
 
-  public void setChoices(ValueType choices[]) {
+  public void setChoices(ValueType[] choices) {
     this.choices = choices;
   }
 
@@ -83,6 +89,7 @@ public class MultiChoiceParameter<ValueType>
   }
 
   /**
+   *
    */
   @Override
   public String getDescription() {
@@ -91,8 +98,8 @@ public class MultiChoiceParameter<ValueType>
 
   @Override
   public CheckListView<ValueType> createEditingComponent() {
-    final ObservableList<ValueType> choicesList =
-        FXCollections.observableArrayList(Arrays.asList(choices));
+    final ObservableList<ValueType> choicesList = FXCollections.observableArrayList(
+        Arrays.asList(choices));
     final CheckListView<ValueType> comp = new CheckListView<>(choicesList);
     comp.setPrefHeight(150);
     return comp;
@@ -110,8 +117,8 @@ public class MultiChoiceParameter<ValueType>
 
   @Override
   public MultiChoiceParameter<ValueType> cloneParameter() {
-    MultiChoiceParameter<ValueType> copy =
-        new MultiChoiceParameter<ValueType>(name, description, choices, values);
+    MultiChoiceParameter<ValueType> copy = new MultiChoiceParameter<ValueType>(name, description,
+        choices, values);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -127,8 +134,11 @@ public class MultiChoiceParameter<ValueType>
   @Override
   public void setValueToComponent(CheckListView<ValueType> component, ValueType[] newValue) {
     component.getSelectionModel().clearSelection();
-    for (ValueType v : newValue)
+    component.getCheckModel().clearChecks();
+    for (ValueType v : newValue) {
       component.getSelectionModel().select(v);
+      component.getCheckModel().check(v);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -145,14 +155,15 @@ public class MultiChoiceParameter<ValueType>
       }
     }
     Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
-    Object newArray[] = newValues.toArray();
+    Object[] newArray = newValues.toArray();
     this.values = CollectionUtils.changeArrayType(newArray, arrayType);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (values == null)
+    if (values == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     for (ValueType item : values) {
       Element newElement = parentDocument.createElement("item");
