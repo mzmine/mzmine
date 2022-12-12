@@ -70,6 +70,13 @@ public interface Desktop extends MZmineModule {
   void setStatusBarText(String text, Color textColor);
 
   /**
+   * Opens the URL in the default browser - only for the graphical user interface
+   *
+   * @param url to open
+   */
+  void setOnStatusBarClickUrl(String url);
+
+  /**
    * Displays a message box with a given text
    *
    * @param msg Text to show
@@ -84,6 +91,15 @@ public interface Desktop extends MZmineModule {
    * @param msg   Text to show
    */
   void displayMessage(String title, String msg);
+
+  /**
+   * Displays a message box with a given text
+   *
+   * @param title Message box title
+   * @param msg   Text to show
+   * @[param url url to open
+   */
+  void displayMessage(String title, String msg, String url);
 
   /**
    * Displays an error message box with a given text
