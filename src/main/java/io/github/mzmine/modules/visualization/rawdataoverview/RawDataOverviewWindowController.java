@@ -79,8 +79,6 @@ public class RawDataOverviewWindowController {
 
   public void initialize() {
 
-    // this.rawDataFile = rawDataFile;
-
     addChromatogramSelectedScanListener();
 
     initialized = true;
@@ -206,6 +204,7 @@ public class RawDataOverviewWindowController {
           rawDataTableView.getItems().stream().filter(item -> item.equals(scan)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
+                rawDataTableView.getSelectionModel().focus(rawDataTableView.getItems().indexOf(item));
                 if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
                   rawDataTableView.scrollTo(item);
                 }

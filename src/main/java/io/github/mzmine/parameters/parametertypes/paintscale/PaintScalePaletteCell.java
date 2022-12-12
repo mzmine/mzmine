@@ -54,8 +54,6 @@ public class PaintScalePaletteCell extends ListCell<SimpleColorPalette> {
 
   private final static int MAX_PREVIEW_COLORS = 15;
   private static final Color BORDER_CLR = Color.DARKGRAY;
-  private static final Color TEXT_CLR = Color.BLACK;
-  private static final Color STROKE_CLR = Color.BLACK;
   private static final double STROKE_WIDTH = 0.5;
 
   private static final Logger logger = Logger.getLogger(PaintScalePaletteCell.class.getName());
@@ -84,7 +82,6 @@ public class PaintScalePaletteCell extends ListCell<SimpleColorPalette> {
 
     rects = new ArrayList<Rectangle>();
     lblName = new Label();
-    lblName.setTextFill(TEXT_CLR);
 
     // nasty way to align the palettes in the dropdown menu
     lblName.setMinWidth(80);
@@ -135,7 +132,6 @@ public class PaintScalePaletteCell extends ListCell<SimpleColorPalette> {
   protected Rectangle makeRect(@NotNull Color clr) {
     Rectangle rect = new Rectangle(height - STROKE_WIDTH * 2, height - STROKE_WIDTH * 2);
     rect.setFill(clr);
-    rect.setStroke(STROKE_CLR);
     rect.setStrokeWidth(STROKE_WIDTH);
     return rect;
   }

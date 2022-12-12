@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -40,7 +39,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -158,7 +156,7 @@ class ScanFilteringTask extends AbstractTask {
           newFile.getAppliedMethods().add(appliedMethod);
         }
         newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            BaselineCorrectionModule.class, parameters, getModuleCallDate()));
+            ScanFiltersModule.class, parameters, getModuleCallDate()));
 
         project.addFile(newFile);
 

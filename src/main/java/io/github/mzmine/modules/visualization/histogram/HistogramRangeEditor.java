@@ -42,6 +42,7 @@ public class HistogramRangeEditor extends BorderPane {
 
     dataTypeCombo = new ComboBox<HistogramDataType>(
         FXCollections.observableArrayList(HistogramDataType.values()));
+    dataTypeCombo.getSelectionModel().select(0);
     dataTypeCombo.setOnAction(e -> {
       HistogramDataType selectedType = dataTypeCombo.getSelectionModel().getSelectedItem();
       if (selectedType == null)

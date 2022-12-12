@@ -92,8 +92,8 @@ public interface FeatureListRow extends ModularDataModel {
    * @param rawData             associated raw data file
    * @param feature             added feature
    * @param updateByRowBindings updates values by row bindings if true. In case multiple features
-   *                            are added, this option may be set to false. Remember to call {@link
-   *                            #applyRowBindings()}.
+   *                            are added, this option may be set to false. Remember to call
+   *                            {@link #applyRowBindings()}.
    */
   void addFeature(RawDataFile rawData, Feature feature, boolean updateByRowBindings);
 
@@ -186,6 +186,8 @@ public interface FeatureListRow extends ModularDataModel {
   @Deprecated
   @ScheduledForRemoval
   void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
+
+  @NotNull List<MatchedLipid> getLipidMatches();
 
   /**
    * Remove identity candidate
@@ -280,19 +282,18 @@ public interface FeatureListRow extends ModularDataModel {
   void setFeatureList(@NotNull FeatureList flist);
 
   /**
-   *
    * @return A list of all compound annotations.
    */
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
   /**
    * Appends a compound annotation.
+   *
    * @param id
    */
   void addCompoundAnnotation(CompoundDBAnnotation id);
 
   /**
-   *
    * @param annotations sets all compound annotations.
    */
   void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
@@ -488,4 +489,13 @@ public interface FeatureListRow extends ModularDataModel {
    * @return true if isotope pattern available with at least two signals
    */
   boolean hasIsotopePattern();
+
+  Object getPreferredAnnotation();
+
+  /**
+   * Uses {@link #getPreferredAnnotation()}
+   *
+   * @return preferred compound name
+   */
+  String getPreferredAnnotationName();
 }

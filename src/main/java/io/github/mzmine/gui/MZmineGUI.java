@@ -47,7 +47,6 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
@@ -125,6 +124,8 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Exit MZmine");
@@ -146,6 +147,8 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Close project");
@@ -185,7 +188,7 @@ public class MZmineGUI extends Application implements Desktop {
     return newStage;
   }
 
-  public static void activateProject(MZmineProject project) {
+  public static void activateProject(@NotNull MZmineProject project) {
 
     MZmineCore.runLater(() -> {
 
@@ -441,17 +444,7 @@ public class MZmineGUI extends Application implements Desktop {
       rootScene = loader.load();
       mainWindowController = loader.getController();
       stage.setScene(rootScene);
-      rootScene.getStylesheets()
-          .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-
-      Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
-      if (darkMode != null && darkMode) {
-        rootScene.getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
-      } else {
-        rootScene.getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-      }
+      preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -517,9 +510,7 @@ public class MZmineGUI extends Application implements Desktop {
      */
 
     // Activate project - bind it to the desktop's project tree
-    MZmineProjectImpl currentProject = (MZmineProjectImpl) MZmineCore.getProjectManager()
-        .getCurrentProject();
-    MZmineGUI.activateProject(currentProject);
+    MZmineGUI.activateProject(MZmineCore.getProject());
 
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
@@ -624,7 +615,8 @@ public class MZmineGUI extends Application implements Desktop {
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
       final Text text = new Text();
-      text.getStyleClass().add("text-id");
+//      text.getStyleClass().add("label");
+//      text.getStyleClass().add("text-id");
 
       text.setWrappingWidth(400);
       text.setText(msg);

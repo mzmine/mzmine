@@ -141,6 +141,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       }
 
       // Add the parameter set to the configuration
+      parameters.setModuleNameAttribute(MZmineCore.getModuleInstance(moduleClass).getName());
       moduleParameters.put(moduleClass, parameters);
 
     }
@@ -450,7 +451,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @Override
   public boolean isDarkMode() {
-    Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
+        Boolean darkMode = preferences.isDarkMode();
     return darkMode != null && darkMode;
   }
 

@@ -160,6 +160,8 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
 
+    newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
     final MassSpectrumType importSpectrumType =

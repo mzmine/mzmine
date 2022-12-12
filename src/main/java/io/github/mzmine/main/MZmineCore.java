@@ -39,6 +39,7 @@ import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -324,6 +325,28 @@ public final class MZmineCore {
     return getInstance().initializedModules.values();
   }
 
+  /**
+   * Creates a new empty raw data file with the same type and name+suffix like raw
+   *
+   * @param raw     defines base name and type of raw data file, standard, IMS, or imaging
+   * @param suffix  add a suffix to the raw.name
+   * @param storage the storage to store data on disk for this file
+   * @return new data file of the same type
+   * @throws IOException
+   */
+  public static RawDataFile createNewFile(@NotNull RawDataFile raw, @NotNull final String suffix,
+      @Nullable final MemoryMapStorage storage) throws IOException {
+    String newName = raw.getName() + " " + suffix;
+    String absPath = raw.getAbsolutePath();
+    if (raw instanceof IMSRawDataFile) {
+      return createNewIMSFile(newName, absPath, storage);
+    } else if (raw instanceof ImagingRawDataFileImpl) {
+      return createNewImagingFile(newName, absPath, storage);
+    } else {
+      return new RawDataFileImpl(newName, absPath, storage);
+    }
+  }
+
   public static RawDataFile createNewFile(@NotNull final String name,
       @Nullable final String absPath, @Nullable final MemoryMapStorage storage) throws IOException {
     return new RawDataFileImpl(name, absPath, storage);
@@ -450,6 +473,17 @@ public final class MZmineCore {
     return getInstance().storageList;
   }
 
+  public static @NotNull MetadataTable getProjectMetadata() {
+    return getProject().getProjectMetadata();
+  }
+
+  /**
+   * @return the current project
+   */
+  public static @NotNull MZmineProject getProject() {
+    return getProjectManager().getCurrentProject();
+  }
+
   private void init() {
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
@@ -463,13 +497,10 @@ public final class MZmineCore {
     configuration = new MZmineConfigurationImpl();
 
     // Create instances of core modules
-    projectManager = new ProjectManagerImpl();
-    taskController = new TaskControllerImpl();
+    projectManager = ProjectManagerImpl.getInstance();
+    taskController = TaskControllerImpl.getInstance();
 
     logger.fine("Initializing core classes..");
-
-    projectManager.initModule();
-    taskController.initModule();
   }
 
   public boolean isTdfPseudoProfile() {

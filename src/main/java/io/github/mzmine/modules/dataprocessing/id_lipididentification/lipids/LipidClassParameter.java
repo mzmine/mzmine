@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.CollectionUtils;
 
 /**
  * 
@@ -135,6 +135,7 @@ public class LipidClassParameter<ValueType>
       for (int j = 0; j < choices.length; j++) {
         if (choices[j].toString().equals(itemString)) {
           newValues.add(choices[j]);
+          break;
         }
       }
     }
