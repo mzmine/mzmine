@@ -46,9 +46,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class MoblityScanMergerTask extends AbstractTask {
+public class MobilityScanMergerTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(MoblityScanMergerTask.class.getName());
+  private static final Logger logger = Logger.getLogger(MobilityScanMergerTask.class.getName());
 
   private final ScanSelection scanSelection;
   private final IMSRawDataFile rawDataFile;
@@ -60,7 +60,7 @@ public class MoblityScanMergerTask extends AbstractTask {
   private int totalFrames;
   private int processedFrames;
 
-  public MoblityScanMergerTask(final IMSRawDataFile file, ParameterSet parameters,
+  public MobilityScanMergerTask(final IMSRawDataFile file, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null,
         moduleCallDate); // for now, the merged data points are added to the frame on the raw data
@@ -102,7 +102,7 @@ public class MoblityScanMergerTask extends AbstractTask {
         SimpleFrame frame = (SimpleFrame) f;
         double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
             frame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
-            mergingType, cf, noiseLevel, null, null);
+            mergingType, cf, null, noiseLevel, null);
 
         frame.setDataPoints(merged[0], merged[1]);
         frame.addMassList(new ScanPointerMassList(frame));

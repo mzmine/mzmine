@@ -43,12 +43,13 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Data points below this threshold will be ignored.",
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Frane noise level",
+      "Noise level for the merged frame. Merged signals below this threshold will be ignored.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, 1E12);
 
   public static final ComboParameter<IntensityMergingType> mergingType = new ComboParameter<>(
-      "Merging type", "Spectra merging algorithm", IntensityMergingType.values(), IntensityMergingType.SUMMED);
+      "Merging type", "Spectra merging algorithm", IntensityMergingType.values(),
+      IntensityMergingType.SUMMED);
 
   public static final ComboParameter<Weighting> weightingType = new ComboParameter<>(
       "m/z weighting", "Weights m/z values by their intensities with the given function.",
@@ -57,7 +58,7 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "", 0.0001, 2, false);
+      "", 0.003, 15, false);
 
   public MobilityScanMergerParameters() {
     super(new Parameter[]{rawDataFiles, noiseLevel, mergingType, weightingType, scanSelection,
