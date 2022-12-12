@@ -124,7 +124,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -464,7 +463,7 @@ public class MainWindowController {
         progressBar.prefWidthProperty().bind(taskProgressColumn.widthProperty().subtract(20));
         String labelText = percentFormat.format(value);
         Label percentLabel = new Label(labelText);
-        percentLabel.setTextFill(Color.BLACK);
+//        percentLabel.setTextFill(Color.BLACK);
         StackPane stack = new StackPane();
         stack.setManaged(true);
         stack.getChildren().addAll(progressBar, percentLabel);

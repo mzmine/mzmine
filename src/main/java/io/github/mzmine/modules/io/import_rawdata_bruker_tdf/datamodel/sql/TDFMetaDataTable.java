@@ -27,10 +27,14 @@ package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.DateTimeUtils;
 import java.sql.Connection;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 
 public class TDFMetaDataTable extends TDFDataTable<String> {
 
@@ -137,12 +141,30 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
     return index != -1 && Integer.parseInt(valueCol.get(index)) == 1;
   }
 
+  @Nullable
+  public LocalDateTime getAcquisitionDateTime() {
+    int index = keyCol.indexOf(Keys.AcquisitionDateTime.name());
+    String date = index != -1 ? valueCol.get(index) : null;
+
+    if(date == null) {
+      return null;
+    }
+    try {
+      return DateTimeUtils.parse(date);
+    } catch (DateTimeParseException e) {
+      var sampleName = valueCol.get(keyCol.indexOf(Keys.SampleName));
+      logger.warning(() -> "Cannot parse acquisition date of sample " + sampleName);
+      return null;
+    }
+  }
+
   // we only keep these keys from the metadata table. Add more, if we need anything else.
   public enum Keys {
-    SchemaType, SchemaVersionMajor, SchemaVersionMinor, MzAcqRangeLower, MzAcqRangeUpper, //
-    OneOverK0AcqRangeLower, OneOverK0AcqRangeUpper, AcquisitionSoftwareVersion, InstrumentName, //
-    Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra, ImagingAreaMinXIndexPos, //
-    Geometry, ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos;
+    SchemaType, SchemaVersionMajor, SchemaVersionMinor, MzAcqRangeLower, MzAcqRangeUpper,
+    OneOverK0AcqRangeLower, OneOverK0AcqRangeUpper, AcquisitionSoftwareVersion, InstrumentName,
+    Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra, ImagingAreaMinXIndexPos,
+    Geometry, ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos,
+    AcquisitionDateTime;
   }
 
   public String getValueForKey(Keys key) {

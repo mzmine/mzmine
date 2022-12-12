@@ -304,14 +304,6 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Base.css
     -fx-background-color: -jr-background-alt;
 }
 
-.region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
-  -fx-background-color: -jr-menu-background;
-}
-
-BorderPane, GridPane, .tab-pane {
-    -fx-background-color: -jr-base
-}
-
 /*
  * The base css file defining the style that is valid for every pane and dialog.
  */

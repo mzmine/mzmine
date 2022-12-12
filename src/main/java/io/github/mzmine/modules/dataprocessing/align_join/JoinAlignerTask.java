@@ -322,7 +322,7 @@ public class JoinAlignerTask extends AbstractTask {
         // retention time and m/z is already checked for candidates
         if (additionalChecks(rowToAdd, candidateInAligned)) {
           final RowVsRowScore score = new RowVsRowScore(rowToAdd, candidateInAligned, mzRange,
-              rtRange, mobilityRange, mzWeight, rtWeight, mobilityWeight);
+              rtRange, mobilityRange, null, mzWeight, rtWeight, mobilityWeight, 0);
           scoresList.add(score);
         }
       }

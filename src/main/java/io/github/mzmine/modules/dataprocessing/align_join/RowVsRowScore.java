@@ -50,10 +50,11 @@ public record RowVsRowScore(double score, FeatureListRow rowToAdd,
    */
   public RowVsRowScore(final FeatureListRow rowToAddProviderOfRanges,
       final FeatureListRow alignedRow, @Nullable Range<Double> mzRange,
-      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange, final double mzWeight,
-      final double rtWeight, final double mobilityWeight) {
-    this(FeatureListUtils.getAlignmentScore(alignedRow, mzRange, rtRange, mobilityRange, mzWeight,
-        rtWeight, mobilityWeight), rowToAddProviderOfRanges, alignedRow);
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, final double mzWeight, final double rtWeight,
+      final double mobilityWeight, final double ccsWeight) {
+    this(FeatureListUtils.getAlignmentScore(alignedRow, mzRange, rtRange, mobilityRange, ccsRange,
+        mzWeight, rtWeight, mobilityWeight, ccsWeight), rowToAddProviderOfRanges, alignedRow);
   }
 
 

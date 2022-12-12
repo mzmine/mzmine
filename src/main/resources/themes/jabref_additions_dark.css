@@ -23,33 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.project;
+.region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
+  -fx-background-color: -jr-menu-background;
+}
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import javax.xml.stream.XMLStreamReader;
-import org.jetbrains.annotations.NotNull;
+BorderPane, GridPane, .tab-pane {
+  -fx-background-color: -jr-base
+}
 
-/**
- * Project manager
- */
-public interface ProjectManager {
-
-  /**
-   * Contract: Should not be used during raw data import to retrieve a list of possible raw data
-   * files. The list should be provided as a parameter to the
-   * {@link io.github.mzmine.datamodel.features.types.DataType#loadFromXML(XMLStreamReader,
-   * MZmineProject, ModularFeatureList, ModularFeatureListRow, ModularFeature, RawDataFile)}
-   * method.
-   *
-   * @return The current project.
-   */
-  @NotNull MZmineProject getCurrentProject();
-
-  void setCurrentProject(@NotNull MZmineProject newProject);
-
-  void clearProject();
+Text, Text:hover {
+  -fx-fill: -fx-light-text-color
 }

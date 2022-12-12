@@ -169,8 +169,8 @@ public class LcImageAlignerTask extends AbstractTask {
       final List<FeatureListRow> matchingLcRows = FeatureListUtils.getCandidatesWithinRanges(
           mzRange, Range.all(), mobRange, lcRows, true);
       for (FeatureListRow lcRow : matchingLcRows) {
-        RowVsRowScore score = new RowVsRowScore(imageRow, lcRow, mzRange, null, mobRange, mzWeight,
-            0, mobWeight);
+        RowVsRowScore score = new RowVsRowScore(imageRow, lcRow, mzRange, null, mobRange, null,
+            mzWeight, 0, mobWeight, 0);
         scores.add(score);
       }
       scoredRows.getAndIncrement();
