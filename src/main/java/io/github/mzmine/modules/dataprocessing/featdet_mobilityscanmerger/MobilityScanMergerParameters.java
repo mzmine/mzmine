@@ -43,7 +43,7 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Frane noise level",
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Frame noise level",
       "Noise level for the merged frame. Merged signals below this threshold will be ignored.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, 1E12);
 
