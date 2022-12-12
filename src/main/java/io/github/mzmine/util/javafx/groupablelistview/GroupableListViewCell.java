@@ -37,7 +37,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import org.jetbrains.annotations.Nullable;
 
@@ -148,8 +147,8 @@ public class GroupableListViewCell<T> extends
     // Set expand/hide button as item's graphic. if it's group header
     if (item instanceof GroupEntity) {
       setGraphic(((GroupEntity) item).isExpanded() ? expandButton : hiddenButton);
-      textFillProperty().unbind();
-      textFillProperty().setValue(Color.BLACK);
+//      textFillProperty().unbind();
+//      textFillProperty().setValue(Color.BLACK); // leads to readability issues in dark mode
     }
   }
 
