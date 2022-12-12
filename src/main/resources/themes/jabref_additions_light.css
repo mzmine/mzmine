@@ -34,3 +34,16 @@ BorderPane, GridPane, .tab-pane {
 .text, .text:hover {
   -fx-fill: -fx-dark-text-color
 }
+
+.title-label {
+  -fx-font-size: 14.0pt;
+}
+
+.bold-title-label {
+  -fx-font-size: 14.0pt;
+  -fx-font-weight: bold;
+}
+
+.text-label {
+  -fx-wrap-text: true;
+}
