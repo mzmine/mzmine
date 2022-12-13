@@ -105,8 +105,9 @@ public class BioTransformerParameters extends SimpleParameterSet {
     }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, """
         Please cite:
-        Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction and Metabolite Identification; Journal of Cheminformatics; 2019; Journal of Cheminformatics 11:2; 
-        DOI: 10.1186/s13321-018-0324-5
+        <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0324-5">Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction and Metabolite Identification; Journal of Cheminformatics; 2019; Journal of Cheminformatics 11:2; 
+        DOI: 10.1186/s13321-018-0324-5</a>
+        Wishart DS, Tian S, Allen D, Oler E, Peters H, Lui VW, Gautam V, Djoumbou Feunang Y, Greiner R, Metz TO; BioTransformer 3.0 – A Web Server for Accurately Predicting Metabolic Transformation Products [Submitted in Nucleic Acids Research, Webserver Issue.Apr.2022]\s
         """);
     dialog.showAndWait();
     return dialog.getExitCode();

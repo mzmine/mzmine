@@ -121,7 +121,6 @@ public class BioTransformerTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-
     return numEducts == 0 ? 0d : (predictions - 1d) / numEducts;
   }
 
