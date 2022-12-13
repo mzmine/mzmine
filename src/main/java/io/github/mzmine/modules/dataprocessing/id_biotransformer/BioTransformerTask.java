@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
-import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -46,6 +45,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
@@ -179,8 +179,12 @@ public class BioTransformerTask extends AbstractTask {
       AtomicInteger numAnnotations = new AtomicInteger(0);
       for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
         flist.stream().filter(this::filterProductRow).forEach(r -> {
-          if (LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance, null,
-              null, null)) {
+          final CompoundDBAnnotation clone = annotation.checkMatchAndGetErrors(r, mzTolerance, null,
+              null, null);
+          if (clone != null) {
+            r.addCompoundAnnotation(clone);
+            row.getCompoundAnnotations()
+                .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
             numAnnotations.getAndIncrement();
           }
         });

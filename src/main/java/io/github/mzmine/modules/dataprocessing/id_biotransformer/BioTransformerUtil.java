@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
@@ -40,7 +39,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -125,8 +126,13 @@ public class BioTransformerUtil {
   public static void matchLibraryToRow(List<CompoundDBAnnotation> annotations,
       FeatureListRow row, @Nullable final MZTolerance mzTolerance) {
     for (CompoundDBAnnotation annotation : annotations) {
-      LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, row, mzTolerance, null, null,
-          null);
+      final CompoundDBAnnotation clone = annotation.checkMatchAndGetErrors(row, mzTolerance, null,
+          null, null);
+      if (clone != null) {
+        row.addCompoundAnnotation(clone);
+        row.getCompoundAnnotations()
+            .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+      }
     }
   }
 
@@ -168,7 +174,7 @@ public class BioTransformerUtil {
   public static CompoundDBAnnotation fromCsvLine(String[] lineValues, IonType ionType) {
 
     final String smiles = lineValues[SMILES_INDEX];
-    final IMolecularFormula neutralFormula = FormulaUtils.getNeutralFormula(
+    final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(
         FormulaUtils.getFomulaFromSmiles(smiles));
 
     final double mz = ionType.getMZ(MolecularFormulaManipulator.getMass(neutralFormula,

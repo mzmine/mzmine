@@ -53,30 +53,28 @@ import org.jetbrains.annotations.Nullable;
 
 public class CSVParsingUtils {
 
-  private static final Logger logger = Logger.getLogger(
-      CSVParsingUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(CSVParsingUtils.class.getName());
 
   /**
-   * Searches an array of strings for a specified list of import types. Returns
-   * all selected import types or null if they were found.
+   * Searches an array of strings for a specified list of import types. Returns all selected import
+   * types or null if they were found.
    *
    * @param importTypes  A list of {@link ImportType}s. Only if a type
-   *                     {@link ImportType#isSelected()}, it will be included in
-   *                     the output list.
+   *                     {@link ImportType#isSelected()}, it will be included in the output list.
    * @param firstLine    The column headers
-   * @param errorMessage A string property to place an error message on failure.
-   *                     Stored property is null unless an error occurs.
-   * @return A new list of the selected import types with their line indices
-   * set, or null if a selected column was not found.
+   * @param errorMessage A string property to place an error message on failure. Stored property is
+   *                     null unless an error occurs.
+   * @return A new list of the selected import types with their line indices set, or null if a
+   * selected column was not found.
    */
   @Nullable
-  public static List<ImportType> findLineIds(List<ImportType> importTypes,
-      String[] firstLine, @NotNull StringProperty errorMessage) {
+  public static List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine,
+      @NotNull StringProperty errorMessage) {
     List<ImportType> lines = new ArrayList<>();
     for (ImportType importType : importTypes) {
       if (importType.isSelected()) {
-        ImportType type = new ImportType(importType.isSelected(),
-            importType.getCsvColumnName(), importType.getDataType());
+        ImportType type = new ImportType(importType.isSelected(), importType.getCsvColumnName(),
+            importType.getDataType());
         lines.add(type);
       }
     }
@@ -84,23 +82,20 @@ public class CSVParsingUtils {
     for (ImportType importType : lines) {
       for (int i = 0; i < firstLine.length; i++) {
         String columnName = firstLine[i];
-        if (columnName.trim()
-            .equalsIgnoreCase(importType.getCsvColumnName().trim())) {
+        if (columnName.trim().equalsIgnoreCase(importType.getCsvColumnName().trim())) {
           if (importType.getColumnIndex() != -1) {
             logger.warning(
-                () -> "Library file contains two columns called \"" + columnName
-                    + "\".");
+                () -> "Library file contains two columns called \"" + columnName + "\".");
           }
           importType.setColumnIndex(i);
         }
       }
     }
-    final List<ImportType> nullMappings = lines.stream()
-        .filter(val -> val.getColumnIndex() == -1).toList();
+    final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
+        .toList();
     if (!nullMappings.isEmpty()) {
       final String error = "Did not find specified column " + Arrays.toString(
-          nullMappings.stream().map(ImportType::getCsvColumnName).toArray())
-          + " in file.";
+          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file.";
       logger.warning(() -> error);
       errorMessage.set(error);
       return null;
@@ -108,34 +103,29 @@ public class CSVParsingUtils {
     return lines;
   }
 
-  public static CompoundDBAnnotation csvLineToCompoundDBAnnotation(
-      final String[] line, final List<ImportType> types) {
+  public static CompoundDBAnnotation csvLineToCompoundDBAnnotation(final String[] line,
+      final List<ImportType> types) {
 
     final CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
     for (ImportType type : types) {
       final int columnIndex = type.getColumnIndex();
 
-      if (columnIndex == -1 || line[columnIndex] == null
-          || line[columnIndex].isBlank()) {
+      if (columnIndex == -1 || line[columnIndex] == null || line[columnIndex].isBlank()) {
         continue;
       }
 
       try {
         switch (type.getDataType()) {
-          case FloatType ft ->
-              annotation.put(ft, Float.parseFloat(line[columnIndex]));
-          case IntegerType it ->
-              annotation.put(it, Integer.parseInt(line[columnIndex]));
-          case DoubleType dt ->
-              annotation.put(dt, Double.parseDouble(line[columnIndex]));
+          case FloatType ft -> annotation.put(ft, Float.parseFloat(line[columnIndex]));
+          case IntegerType it -> annotation.put(it, Integer.parseInt(line[columnIndex]));
+          case DoubleType dt -> annotation.put(dt, Double.parseDouble(line[columnIndex]));
           case IonAdductType iat -> {
             final IonType ionType = IonType.parseFromString(line[columnIndex]);
             annotation.put(IonTypeType.class, ionType);
           }
           case StringType st -> annotation.put(st, line[columnIndex]);
           default -> throw new RuntimeException(
-              "Don't know how to parse data type " + type.getDataType()
-                  .getClass().getName());
+              "Don't know how to parse data type " + type.getDataType().getClass().getName());
         }
       } catch (NumberFormatException e) {
         // silent - e.g. #NV from excel
@@ -152,46 +142,41 @@ public class CSVParsingUtils {
   }
 
   /**
-   * Reads the given csv file and returns a {@link CompoundDbLoadResult}
-   * containing a list of valid (see
-   * {@link CompoundDBAnnotation#isBaseAnnotationValid(CompoundDBAnnotation,
-   * boolean)} annotations or an error message.
+   * Reads the given csv file and returns a {@link CompoundDbLoadResult} containing a list of valid
+   * (see {@link CompoundDBAnnotation#isBaseAnnotationValid(CompoundDBAnnotation, boolean)}
+   * annotations or an error message.
    *
    * @param peakListFile   The csv file.
    * @param fieldSeparator The field separator.
-   * @param types          The list of possible import types. All types that are
-   *                       selected ({@link ImportType#isSelected()} must be
-   *                       found in the csv file.
-   * @param ionLibrary     An ion library or null. If the library is null, a
-   *                       precursor mz must be given in the file. Otherwise,
-   *                       all formulas will be ionised by
+   * @param types          The list of possible import types. All types that are selected
+   *                       ({@link ImportType#isSelected()} must be found in the csv file.
+   * @param ionLibrary     An ion library or null. If the library is null, a precursor mz must be
+   *                       given in the file. Otherwise, all formulas will be ionised by
    *                       {@link
    *                       CompoundDBAnnotation#buildCompoundsWithAdducts(CompoundDBAnnotation,
    *                       IonNetworkLibrary)}.
    */
-  public static CompoundDbLoadResult getAnnotationsFromCsvFile(
-      final File peakListFile, char fieldSeparator,
-      @NotNull List<ImportType> types, @Nullable IonNetworkLibrary ionLibrary) {
+  public static CompoundDbLoadResult getAnnotationsFromCsvFile(final File peakListFile,
+      char fieldSeparator, @NotNull List<ImportType> types,
+      @Nullable IonNetworkLibrary ionLibrary) {
     try (final FileReader dbFileReader = new FileReader(peakListFile)) {
       List<CompoundDBAnnotation> list = new ArrayList<>();
 
       String[][] peakListValues = CSVParser.parse(dbFileReader, fieldSeparator);
 
       final SimpleStringProperty errorMessage = new SimpleStringProperty();
-      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types,
-          peakListValues[0], errorMessage);
+      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues[0],
+          errorMessage);
 
       if (lineIds == null) {
-        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-            errorMessage.get());
+        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, errorMessage.get());
       }
 
       for (int i = 1; i < peakListValues.length; i++) {
         final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.csvLineToCompoundDBAnnotation(
             peakListValues[i], lineIds);
 
-        if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation,
-            ionLibrary != null)) {
+        if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation, ionLibrary != null)) {
           logger.info(String.format(
               "Invalid base annotation for compound %s in line %d. Skipping annotation.",
               baseAnnotation, i));
@@ -216,14 +201,12 @@ public class CSVParsingUtils {
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
-      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-          e.getMessage());
+      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, e.getMessage());
     }
   }
 
-  public record CompoundDbLoadResult(
-      @NotNull List<CompoundDBAnnotation> annotations,
-      @NotNull TaskStatus status, @Nullable String errorMessage) {
+  public record CompoundDbLoadResult(@NotNull List<CompoundDBAnnotation> annotations,
+                                     @NotNull TaskStatus status, @Nullable String errorMessage) {
 
   }
 

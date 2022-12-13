@@ -28,14 +28,15 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -105,9 +106,15 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     final ModularFeatureList flist = row.getFeatureList();
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
-      flist.stream().forEach(
-          r -> LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance, null,
-              null, null));
+      flist.stream().forEach(r -> {
+        final CompoundDBAnnotation clone = annotation.checkMatchAndGetErrors(r, mzTolerance, null,
+            null, null);
+        if (clone != null) {
+          r.addCompoundAnnotation(clone);
+          row.getCompoundAnnotations()
+              .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+        }
+      });
     }
 
     setStatus(TaskStatus.FINISHED);
