@@ -31,7 +31,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
 
-public class ProjectMetadataParameters extends SimpleParameterSet {
+public class ProjectMetadataColumnParameters extends SimpleParameterSet {
 
   public static final StringParameter title = new StringParameter("Title",
       "Title of the new parameter", "", true, true);
@@ -44,10 +44,9 @@ public class ProjectMetadataParameters extends SimpleParameterSet {
   }
 
   public static final ComboParameter<AvailableTypes> valueType = new ComboParameter<>("Type",
-      "Type of the new parameter",
-      AvailableTypes.values(), AvailableTypes.values()[0]);
+      "Type of the new parameter", AvailableTypes.values(), AvailableTypes.values()[0]);
 
-  public ProjectMetadataParameters() {
+  public ProjectMetadataColumnParameters() {
     super(new Parameter[]{title, description, valueType});
   }
 }

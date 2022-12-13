@@ -41,7 +41,8 @@
   </center>
   <bottom>
     <VBox>
-      <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">
+<!--      <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">-->
+      <ButtonBar>
         <buttons>
           <Button onAction="#addParameter" mnemonicParsing="false" text="Add new column"
             ButtonBar.buttonData="LEFT"/>

@@ -30,7 +30,9 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExporter;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImporter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
@@ -199,15 +201,15 @@ public class ProjectMetadataPaneController {
 
   @FXML
   public void addParameter(ActionEvent actionEvent) {
-    ProjectMetadataParameters projectMetadataParameters = new ProjectMetadataParameters();
-    ExitCode exitCode = projectMetadataParameters.showSetupDialog(true);
+    ProjectMetadataColumnParameters projectMetadataColumnParameters = new ProjectMetadataColumnParameters();
+    ExitCode exitCode = projectMetadataColumnParameters.showSetupDialog(true);
 
-    StringParameter parameterTitle = projectMetadataParameters.getParameter(
-        ProjectMetadataParameters.title);
-    TextParameter parameterDescription = projectMetadataParameters.getParameter(
-        ProjectMetadataParameters.description);
-    ComboParameter<AvailableTypes> parameterType = projectMetadataParameters.getParameter(
-        ProjectMetadataParameters.valueType);
+    StringParameter parameterTitle = projectMetadataColumnParameters.getParameter(
+        ProjectMetadataColumnParameters.title);
+    TextParameter parameterDescription = projectMetadataColumnParameters.getParameter(
+        ProjectMetadataColumnParameters.description);
+    ComboParameter<AvailableTypes> parameterType = projectMetadataColumnParameters.getParameter(
+        ProjectMetadataColumnParameters.valueType);
 
     if (exitCode == ExitCode.OK) {
       // in case if the new parameter is not unique

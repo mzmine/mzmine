@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -147,10 +147,9 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
     if (this == o) {
       return true;
     }
-    if (!(o instanceof MetadataColumn)) {
+    if (!(o instanceof MetadataColumn<?> that)) {
       return false;
     }
-    MetadataColumn<?> that = (MetadataColumn<?>) o;
     return title.equals(that.title) && description.equals(that.description);
   }
 

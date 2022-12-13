@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.util.DateTimeUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;

@@ -23,14 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportParameters;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -75,7 +72,8 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     // get the all selected files
-    File[] fileNames = parameters.getParameter(ProjectMetadataImportParameters.fileNames).getValue();
+    File[] fileNames = parameters.getParameter(ProjectMetadataImportParameters.fileNames)
+        .getValue();
 
     // null check
     if (Arrays.asList(fileNames).contains(null)) {

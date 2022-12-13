@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 
 /**
  * Specific Double-type implementation of the project parameter.

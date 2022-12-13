@@ -27,7 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import java.io.BufferedReader;
@@ -58,16 +58,10 @@ public class WideTableExportUtility implements TableExportUtility {
   }
 
   /**
-   * File header would be:
-   * ============================================
-   * Title         |  Datafile  | Path        |
-   * Description   |  file name |  file path  | ...
-   * Type          |  TEXT      | TEXT        |
-   * --------------------------------------------
-   *                a.mzML        ../../a.mzML
-   *                b.mzML        ../../b.mzML
-   * ...
-   * ============================================
+   * File header would be: ============================================ Title         |  Datafile  |
+   * Path        | Description   |  file name |  file path  | ... Type          |  TEXT      | TEXT
+   * | -------------------------------------------- a.mzML        ../../a.mzML b.mzML ../../b.mzML
+   * ... ============================================
    *
    * @param file the file in which exported metadata will be stored
    * @return true if the export was successful, false otherwise
@@ -155,10 +149,10 @@ public class WideTableExportUtility implements TableExportUtility {
       // compare the headers
       if (!parametersTitles.get(0).equals(HeaderFields.TITLE.toString())
           || !parametersDescriptions.get(0).equals(HeaderFields.DESC.toString())
-          || !parametersTypes.get(0).equals(HeaderFields.TYPE.toString())
-          || !parametersTitles.get(1).equals(dataFileCol.getTitle())
-          || !parametersDescriptions.get(1).equals(dataFileCol.getDescription())
-          || !parametersTypes.get(1).equals(dataFileCol.getType().toString())
+          || !parametersTypes.get(0).equals(HeaderFields.TYPE.toString()) || !parametersTitles.get(
+          1).equals(dataFileCol.getTitle()) || !parametersDescriptions.get(1)
+          .equals(dataFileCol.getDescription()) || !parametersTypes.get(1)
+          .equals(dataFileCol.getType().toString())
           || parametersTitles.size() != parametersDescriptions.size()
           || parametersTitles.size() != parametersTypes.size()) {
         logger.severe("Import failed: wrong format of the header");

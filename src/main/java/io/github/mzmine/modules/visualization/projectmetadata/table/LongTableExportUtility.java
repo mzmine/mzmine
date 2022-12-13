@@ -27,7 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -43,11 +43,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * According to the current implementation parameter would be imported only in case if
- * value for it is set at least for one of the RawDataFiles
- *
- * [IMPORTANT] "" would be treated as a valid value for the Text parameters, whilst for
- * the other types of parameters this value would be invalid
+ * According to the current implementation parameter would be imported only in case if value for it
+ * is set at least for one of the RawDataFiles
+ * <p>
+ * [IMPORTANT] "" would be treated as a valid value for the Text parameters, whilst for the other
+ * types of parameters this value would be invalid
  */
 public class LongTableExportUtility implements TableExportUtility {
 
@@ -65,10 +65,8 @@ public class LongTableExportUtility implements TableExportUtility {
   }
 
   /**
-   * ====================================================================
-   * NAME  - parameter name
-   * DESC  - description of the parameter
-   * FILE  - name of the file to which the parameter belong to
+   * ==================================================================== NAME  - parameter name
+   * DESC  - description of the parameter FILE  - name of the file to which the parameter belong to
    * VALUE - value of the parameter
    *
    * @param file the file in which exported metadata will be stored
@@ -120,7 +118,8 @@ public class LongTableExportUtility implements TableExportUtility {
 
       logger.info("The metadata table was successfully exported");
     } catch (FileNotFoundException fileNotFoundException) {
-      logger.severe("Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
+      logger.severe(
+          "Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
       return false;
     } catch (IOException ioException) {
       logger.severe("Error while writing the exported metadata down: " + ioException.getMessage());
@@ -132,7 +131,7 @@ public class LongTableExportUtility implements TableExportUtility {
 
   @Override
   public boolean importFrom(File file, boolean appendMode) {
-    try  (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
+    try (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
         fr)) {
       // we will need HeaderFields enum converted into array
       String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
@@ -199,7 +198,8 @@ public class LongTableExportUtility implements TableExportUtility {
           // otherwise abort importing
           Object convertedParameterInput = parameterMatched.convert(splitLine[valuePos], null);
           if (parameterMatched.checkInput(convertedParameterInput)) {
-            metadataTable.setValue(parameterMatched, files[rawDataFileInd], convertedParameterInput);
+            metadataTable.setValue(parameterMatched, files[rawDataFileInd],
+                convertedParameterInput);
           } else {
             logger.severe("Import failed: wrong parameter value format");
             return false;
@@ -213,7 +213,8 @@ public class LongTableExportUtility implements TableExportUtility {
       logger.info("Metadata table: ");
       metadataTable.getData().forEach((par, value) -> logger.info(par.getTitle() + ":" + value));
     } catch (FileNotFoundException fileNotFoundException) {
-      logger.severe("Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
+      logger.severe(
+          "Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
       return false;
     } catch (IOException ioException) {
       logger.severe("Error while reading the metadata: " + ioException.getMessage());

@@ -23,30 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ProjectMetadataImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ProjectMetadataImportTask.class.getName());
-  private File[] files;
+  private final File[] files;
   private final int totalFilesNumber;
   private int importedFilesNumber = 0;
 
-  protected ProjectMetadataImportTask(File[] files,
-      @NotNull Instant moduleCallDate) {
+  protected ProjectMetadataImportTask(File[] files, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.files = files;
     this.totalFilesNumber = files.length;
@@ -66,7 +61,8 @@ public class ProjectMetadataImportTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    MetadataTable metadataTable = MZmineCore.getProjectManager().getCurrentProject().getProjectMetadata();
+    MetadataTable metadataTable = MZmineCore.getProjectManager().getCurrentProject()
+        .getProjectMetadata();
     // try to import parameters from each selected .tsv file
     for (File fileName : files) {
       if ((!fileName.exists()) || (!fileName.canRead())) {
