@@ -58,7 +58,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
 
-public class ProjectParametersSetupPaneController {
+public class ProjectMetadataPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
@@ -239,7 +239,7 @@ public class ProjectParametersSetupPaneController {
 
   @FXML
   public void importParameters(ActionEvent ev) {
-    ProjectParametersImporter importer = new ProjectParametersImporter(currentStage);
+    ProjectMetadataImporter importer = new ProjectMetadataImporter(currentStage);
     if (importer.importParameters()) {
       logger.info("Successfully imported parameters from file");
       updateParametersToTable();
@@ -250,7 +250,7 @@ public class ProjectParametersSetupPaneController {
 
   @FXML
   public void exportParameters(ActionEvent ev) {
-    ProjectParametersExporter exporter = new ProjectParametersExporter(currentStage);
+    ProjectMetadataExporter exporter = new ProjectMetadataExporter(currentStage);
     if (exporter.exportParameters()) {
       logger.info("Successfully exported parameters");
       updateParametersToTable();

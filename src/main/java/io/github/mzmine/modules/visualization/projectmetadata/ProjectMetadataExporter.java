@@ -25,40 +25,38 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import java.io.File;
 import java.util.logging.Logger;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
- * This class imports project parameters and their values from a tsv-format file to the main project
- * parameter setup dialog.
+ * This class exports project parameters and their values into a tsv-format file.
  */
-public class ProjectParametersImporter {
+public class ProjectMetadataExporter {
 
-  private static final Logger logger = Logger.getLogger(ProjectParametersImporter.class.getName());
+  private static final Logger logger = Logger.getLogger(ProjectMetadataExporter.class.getName());
   private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private final Stage currentStage;
 
-  public ProjectParametersImporter(Stage stage) {
+  public ProjectMetadataExporter(Stage stage) {
     this.currentStage = stage;
   }
 
-  public boolean importParameters() {
+  public boolean exportParameters() {
     // Let user choose a file for importing
     File parameterFile = chooseFile();
     if (parameterFile == null) {
-      logger.info("Parameter importing cancelled.");
+      logger.info("Parameter exporting cancelled.");
       return false;
     }
 
     // Read and interpret parameters
-    return metadataTable.importMetadata(parameterFile, false);
+    return metadataTable.exportMetadata(parameterFile);
   }
 
   private File chooseFile() {
@@ -77,6 +75,6 @@ public class ProjectParametersImporter {
       }
     }
 
-    return fileChooser.showOpenDialog(currentStage.getScene().getWindow());
+    return fileChooser.showSaveDialog(currentStage.getScene().getWindow());
   }
 }

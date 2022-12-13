@@ -34,29 +34,30 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
- * This class exports project parameters and their values into a tsv-format file.
+ * This class imports project parameters and their values from a tsv-format file to the main project
+ * parameter setup dialog.
  */
-public class ProjectParametersExporter {
+public class ProjectMetadataImporter {
 
-  private static final Logger logger = Logger.getLogger(ProjectParametersExporter.class.getName());
+  private static final Logger logger = Logger.getLogger(ProjectMetadataImporter.class.getName());
   private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private final Stage currentStage;
 
-  public ProjectParametersExporter(Stage stage) {
+  public ProjectMetadataImporter(Stage stage) {
     this.currentStage = stage;
   }
 
-  public boolean exportParameters() {
+  public boolean importParameters() {
     // Let user choose a file for importing
     File parameterFile = chooseFile();
     if (parameterFile == null) {
-      logger.info("Parameter exporting cancelled.");
+      logger.info("Parameter importing cancelled.");
       return false;
     }
 
     // Read and interpret parameters
-    return metadataTable.exportMetadata(parameterFile);
+    return metadataTable.importMetadata(parameterFile, false);
   }
 
   private File chooseFile() {
@@ -75,6 +76,6 @@ public class ProjectParametersExporter {
       }
     }
 
-    return fileChooser.showSaveDialog(currentStage.getScene().getWindow());
+    return fileChooser.showOpenDialog(currentStage.getScene().getWindow());
   }
 }

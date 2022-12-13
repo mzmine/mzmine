@@ -43,9 +43,9 @@ public class ProjectMetadataTab extends SimpleTab {
 
     try {
       // try to load the markdown object from the FXML file
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectParametersSetupPane.fxml"));
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectMetadataPane.fxml"));
       BorderPane borderPane = loader.load();
-      ProjectParametersSetupPaneController controller = loader.getController();
+      ProjectMetadataPaneController controller = loader.getController();
       // set stage for a controller of the loaded object
       controller.setStage(MZmineCore.getDesktop().getMainWindow());
 
