@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
@@ -42,8 +49,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "deisotoped");
+  public static final StringParameter suffix = new StringParameter("Name suffix",
+      "Suffix to be added to feature list name", "deisotoped");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
@@ -52,7 +59,7 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerace = new OptionalParameter<>(
       new MobilityToleranceParameter("Mobility tolerance",
           "If enabled (and mobility dimension was recorded), "
-          + "isotopic peaks will only be grouped if they fit within the given tolerance."));
+              + "isotopic peaks will only be grouped if they fit within the given tolerance."));
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
       "If true, then monotonically decreasing height of isotope pattern is required");
@@ -69,9 +76,9 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
   public static final ComboParameter<String> representativeIsotope = new ComboParameter<String>(
       "Representative isotope",
       "Which peak should represent the whole isotope pattern. For small molecular weight\n"
-      + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
-      + "should be representative. For high molecular weight peptides, the lowest m/z\n"
-      + "peptides, the lowest m/z isotope may be the representative.",
+          + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
+          + "should be representative. For high molecular weight peptides, the lowest m/z\n"
+          + "peptides, the lowest m/z isotope may be the representative.",
       representativeIsotopeValues);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
@@ -79,7 +86,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
   public IsotopeGrouperParameters() {
     super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, mobilityTolerace,
-        monotonicShape, maximumCharge, representativeIsotope, keepAllMS2, handleOriginal});
+            monotonicShape, maximumCharge, representativeIsotope, keepAllMS2, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_filter/isotope_filter.html");
   }
 
   @Override

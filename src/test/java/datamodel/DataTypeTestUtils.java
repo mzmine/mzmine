@@ -1,42 +1,52 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package datamodel;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javafx.scene.paint.Color;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 
 /**
@@ -65,20 +75,25 @@ public class DataTypeTestUtils {
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
     final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1);
     flist.addRow(row);
+
+    final MZmineProject project = new MZmineProjectImpl();
+    project.addFile(file);
+    project.addFeatureList(flist);
+
     row.set(type, value);
-    testSaveLoad(type, value, flist, row, null, null);
+    testSaveLoad(type, value, project, flist, row, null, null);
 
     // test save/load for row null value
-    testSaveLoad(type, null, flist, row, null, null);
+    testSaveLoad(type, null, project, flist, row, null, null);
 
     // test load/save for features
     final ModularFeature feature = new ModularFeature(flist, file, null, null);
     feature.set(type, value);
     row.addFeature(file, feature);
-    testSaveLoad(type, value, flist, row, feature, file);
+    testSaveLoad(type, value, project, flist, row, feature, file);
 
     // test save/load for feature null value
-    testSaveLoad(type, null, flist, row, feature, file);
+    testSaveLoad(type, null, project, flist, row, feature, file);
 
     file.close();
   }
@@ -89,10 +104,11 @@ public class DataTypeTestUtils {
    * implementation of {@link Object#equals(Object)} for the given datatype.).
    */
   public static void testSaveLoad(@NotNull DataType<?> type, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) {
+      @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) {
 
-    final Object loadedValue = saveAndLoad(type, value, flist, row, feature, file);
+    final Object loadedValue = saveAndLoad(type, value, project, flist, row, feature, file);
     Assertions.assertEquals(value, loadedValue,
         () -> "Loaded value does not equal saved value." + (feature == null ? " (row type)"
             : " (feature type)"));
@@ -106,8 +122,9 @@ public class DataTypeTestUtils {
    * @return The loaded value or null if an error occurred.
    */
   public static Object saveAndLoad(@NotNull DataType<?> type, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) {
+      @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) {
 
     // test row save
     final ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -163,10 +180,12 @@ public class DataTypeTestUtils {
         Assertions.fail("Did not find data type element.");
       }
       final int preReadNumber = reader.getLocation().getLineNumber();
-      Object loadedValue = type.loadFromXML(reader, flist, row, feature, file);
+      Object loadedValue = type.loadFromXML(reader, project, flist, row, feature, file);
       final int diff = reader.getLocation().getLineNumber() - preReadNumber;
-      if(diff >= numLines - preReadNumber) {
-        Assertions.fail("Data type " + type.getUniqueID() + " for overshot it's data type for value " + value + ".");
+      if (diff >= numLines - preReadNumber) {
+        Assertions.fail(
+            "Data type " + type.getUniqueID() + " for overshot it's data type for value " + value
+                + ".");
       }
       reader.close();
 

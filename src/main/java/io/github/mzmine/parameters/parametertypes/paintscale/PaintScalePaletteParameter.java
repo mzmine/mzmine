@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.paintscale;
@@ -34,8 +41,8 @@ import org.w3c.dom.NodeList;
  *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
-public class PaintScalePaletteParameter
-    implements UserParameter<SimpleColorPalette, PaintScalePaletteComponent> {
+public class PaintScalePaletteParameter implements
+    UserParameter<SimpleColorPalette, PaintScalePaletteComponent> {
 
   private static final String PALETTE_ELEMENT = "paintscale_palette";
   private static final String SELECTED_INDEX = "selected";
@@ -50,10 +57,12 @@ public class PaintScalePaletteParameter
   public PaintScalePaletteParameter(String name, String descr) {
     this.name = name;
     this.descr = descr;
-    value = SimpleColorPalette.BLUE_RED_WHITE;
     palettes = new ArrayList<>();
-    palettes.add(value);
+    palettes.add(SimpleColorPalette.BLUE_YELLOW);
+    palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
     palettes.add(SimpleColorPalette.RAINBOW);
+    palettes.add(SimpleColorPalette.GREEN_YELLOW);
+    value = SimpleColorPalette.BLUE_YELLOW;
   }
 
   @Override
@@ -99,22 +108,15 @@ public class PaintScalePaletteParameter
 
     selected = (selected != -1) ? selected : 0;
 
-    if (!palettes.contains(SimpleColorPalette.BLUE_RED_WHITE)) {
-      palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
-      logger.info(
-          "Loaded color palettes did not contain default " + SimpleColorPalette.BLUE_RED_WHITE
-              .getName() + " palette. Adding...");
-    }
-
-    if (!palettes.contains(SimpleColorPalette.RAINBOW)) {
-      palettes.add(SimpleColorPalette.RAINBOW);
-      logger.info(
-          "Loaded color palettes did not contain default " + SimpleColorPalette.RAINBOW.getName()
-              + " palette. Adding...");
+    for (SimpleColorPalette defaultPaintScale : SimpleColorPalette.DEFAULT_PAINT_SCALES) {
+      if (!palettes.contains(defaultPaintScale)) {
+        palettes.add(defaultPaintScale);
+        logger.info("Loaded color palettes did not contain default " + defaultPaintScale.getName()
+            + " palette. Adding...");
+      }
     }
 
     setValue(palettes.get(selected));
-
   }
 
   @Override
@@ -153,8 +155,7 @@ public class PaintScalePaletteParameter
     component.setValue(newValue);
   }
 
-  protected @NotNull
-  List<SimpleColorPalette> getPalettes() {
+  protected @NotNull List<SimpleColorPalette> getPalettes() {
     return palettes;
   }
 

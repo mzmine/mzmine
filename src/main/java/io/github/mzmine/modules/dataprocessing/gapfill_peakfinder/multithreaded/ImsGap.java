@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
@@ -36,6 +43,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.GapDataPoint;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,10 +69,19 @@ public class ImsGap extends Gap {
    * @param intTolerance
    * @param mobilogramBinning
    */
-  public ImsGap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
-      Range<Float> rtRange, Range<Float> mobilityRange, double intTolerance,
-      BinningMobilogramDataAccess mobilogramBinning) {
-    super(peakListRow, rawDataFile, mzRange, rtRange, intTolerance);
+  public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
+      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull Range<Float> mobilityRange, double intTolerance,
+      @NotNull BinningMobilogramDataAccess mobilogramBinning) {
+    this(peakListRow, rawDataFile, mzRange, rtRange, mobilityRange, intTolerance, mobilogramBinning,
+        true);
+  }
+
+  public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
+      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull Range<Float> mobilityRange, double intTolerance,
+      @NotNull BinningMobilogramDataAccess mobilogramBinning, boolean validateRtShape) {
+    super(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, validateRtShape);
     this.mobilityRange = mobilityRange;
     this.mobilogramBinning = mobilogramBinning;
   }
@@ -110,7 +127,8 @@ public class ImsGap extends Gap {
 
     final Frame frame = access.getFrame();
     final MobilityType mobilityType = frame.getMobilityType();
-    final double featureMz = peakListRow.getAverageMZ();
+//    final double featureMz = peakListRow.getAverageMZ();
+    final double featureMz = RangeUtils.rangeCenter(mzRange);
 
     /*if (frame.getRetentionTime() < rtRange.lowerEndpoint()) {
       return null;
@@ -132,13 +150,13 @@ public class ImsGap extends Gap {
       }
 
       if ((mobilityType != MobilityType.TIMS && scan.getMobility() < mobilityRange.lowerEndpoint())
-          || (mobilityType == MobilityType.TIMS && scan.getMobility() > mobilityRange
-          .upperEndpoint())) {
+          || (mobilityType == MobilityType.TIMS
+          && scan.getMobility() > mobilityRange.upperEndpoint())) {
         continue;
       } else if (
           (mobilityType != MobilityType.TIMS && scan.getMobility() > mobilityRange.upperEndpoint())
-              || (mobilityType == MobilityType.TIMS && scan.getMobility() < mobilityRange
-              .lowerEndpoint())) {
+              || (mobilityType == MobilityType.TIMS
+              && scan.getMobility() < mobilityRange.lowerEndpoint())) {
         break;
       }
 
@@ -176,14 +194,14 @@ public class ImsGap extends Gap {
   @Override
   protected boolean addFeatureToRow() {
     final IonMobilogramTimeSeries trace = IonMobilogramTimeSeriesFactory.of(
-        ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(),
+        ((ModularFeatureList) featureListRow.getFeatureList()).getMemoryMapStorage(),
         (List<IonMobilitySeries>) (List<? extends IonMobilitySeries>) (List<? extends GapDataPoint>) bestPeakDataPoints,
         mobilogramBinning);
 
-    ModularFeature f = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+    ModularFeature f = new ModularFeature((ModularFeatureList) featureListRow.getFeatureList(),
         rawDataFile, trace, FeatureStatus.ESTIMATED);
 
-    peakListRow.addFeature(rawDataFile, f, false);
+    featureListRow.addFeature(rawDataFile, f, false);
     return true;
   }
 }

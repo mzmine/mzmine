@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
@@ -21,8 +28,8 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -48,10 +55,12 @@ public class FileNamesComponent extends BorderPane {
   private final CheckBox useSubFolders;
 
   private final List<ExtensionFilter> filters;
+  private final Path defaultDir;
 
-  public FileNamesComponent(List<ExtensionFilter> filters) {
+  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir) {
 
     this.filters = ImmutableList.copyOf(filters);
+    this.defaultDir = defaultDir;
 
     txtFilename = new TextArea();
     txtFilename.setPrefColumnCount(65);
@@ -64,6 +73,9 @@ public class FileNamesComponent extends BorderPane {
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
+      if(defaultDir != null) {
+        fileChooser.setInitialDirectory(defaultDir.toFile());
+      }
       fileChooser.setTitle("Select files");
 
       fileChooser.getExtensionFilters().addAll(this.filters);
@@ -149,10 +161,7 @@ public class FileNamesComponent extends BorderPane {
         }
 
         // list all files in sub directories
-        List<File[]> filesInDir = FileAndPathUtil.findFilesInDir(dir, filter,
-            useSubFolders.isSelected());
-        // all files in dir or sub dirs
-        setValue(filesInDir.stream().flatMap(Arrays::stream).toArray(File[]::new));
+        setValue(FileAndPathUtil.findFilesInDirFlat(dir, filter, useSubFolders.isSelected()));
       });
     }
     return btns;

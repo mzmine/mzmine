@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
@@ -33,6 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.numbers.RtMs2ApexDistanceType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -44,7 +52,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.SpectraMerging;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,15 +73,16 @@ public class GroupMS2Task extends AbstractTask {
   private final MZmineProject project;
   // Parameters.
   private final ParameterSet parameters;
-  private final Double minMs2Intensity;
+  private final Double minMs2IntensityAbs;
   private final boolean combineTimsMS2;
+  private final Double minMs2IntensityRel;
   // Processed rows counter
   private int processedRows, totalRows;
-  private FeatureList list;
-  private RTTolerance rtTol;
-  private MZTolerance mzTol;
-  private boolean limitRTByFeature;
-  private boolean lockToFeatureMobilityRange;
+  private final FeatureList list;
+  private final RTTolerance rtTol;
+  private final MZTolerance mzTol;
+  private final boolean limitRTByFeature;
+  private final boolean lockToFeatureMobilityRange;
 
   /**
    * Create the task.
@@ -94,9 +103,14 @@ public class GroupMS2Task extends AbstractTask {
     combineTimsMS2 = parameterSet.getParameter(GroupMS2Parameters.combineTimsMsMs).getValue();
     lockToFeatureMobilityRange = parameterSet.getParameter(
         GroupMS2Parameters.lockMS2ToFeatureMobilityRange).getValue();
-    minMs2Intensity = parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevel).getValue()
+    minMs2IntensityAbs = parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevel).getValue()
         ? parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
         .getValue() : null;
+    minMs2IntensityRel =
+        parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevelRelative).getValue()
+            ? parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevelRelative)
+            .getEmbeddedParameter().getValue() : null;
+
     this.list = list;
     processedRows = 0;
     totalRows = 0;
@@ -169,6 +183,18 @@ public class GroupMS2Task extends AbstractTask {
 
         // set list to feature and sort
         f.setAllMS2FragmentScans(scans);
+
+        // get proximity
+        if (!scans.isEmpty()) {
+          float apexDistance = Float.MAX_VALUE;
+          for (Scan s : scans) {
+            float dist = s.getRetentionTime() - frt;
+            if (dist < apexDistance) {
+              apexDistance = dist;
+            }
+          }
+          f.set(RtMs2ApexDistanceType.class, apexDistance);
+        }
       }
     }
   }
@@ -183,8 +209,8 @@ public class GroupMS2Task extends AbstractTask {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
     return (!limitRTByFeature || featureRtRange.contains(scan.getRetentionTime()))
-           && rtTol.checkWithinTolerance(frt, scan.getRetentionTime()) && precursorMZ != 0
-           && mzTol.checkWithinTolerance(fmz, precursorMZ);
+        && rtTol.checkWithinTolerance(frt, scan.getRetentionTime()) && precursorMZ != 0
+        && mzTol.checkWithinTolerance(fmz, precursorMZ);
   }
 
   private void processTimsFeature(ModularFeature feature) {
@@ -232,13 +258,13 @@ public class GroupMS2Task extends AbstractTask {
     }
     feature.set(MsMsInfoType.class, eligibleMsMsInfos);
 
-    List<MergedMsMsSpectrum> msmsSpectra = new ArrayList<>();
+    List<Scan> msmsSpectra = new ArrayList<>();
     for (MsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
-          (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, MergingType.SUMMED,
+          (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
           ((ModularFeatureList) list).getMemoryMapStorage(),
           lockToFeatureMobilityRange && feature.getMobilityRange() != null
-              ? feature.getMobilityRange() : null, minMs2Intensity);
+              ? feature.getMobilityRange() : null, minMs2IntensityAbs, minMs2IntensityRel, null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
@@ -247,12 +273,24 @@ public class GroupMS2Task extends AbstractTask {
     if (!msmsSpectra.isEmpty()) {
       if (combineTimsMS2) {
         List<Scan> sameCEMerged = SpectraMerging.mergeMsMsSpectra(msmsSpectra,
-            SpectraMerging.pasefMS2MergeTol, MergingType.SUMMED,
+            SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
             ((ModularFeatureList) list).getMemoryMapStorage());
         feature.setAllMS2FragmentScans(sameCEMerged, true);
-
+        msmsSpectra = sameCEMerged;
       } else {
-        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) msmsSpectra, true);
+        feature.setAllMS2FragmentScans(msmsSpectra, true);
+      }
+
+      // get proximity
+      if (!msmsSpectra.isEmpty()) {
+        float apexDistance = Float.MAX_VALUE;
+        for (Scan s : msmsSpectra) {
+          float dist = s.getRetentionTime() - frt;
+          if (dist < apexDistance) {
+            apexDistance = dist;
+          }
+        }
+        feature.set(RtMs2ApexDistanceType.class, apexDistance);
       }
     }
   }

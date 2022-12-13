@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.batchwizard.defaults;
@@ -38,6 +45,10 @@ public class DefaultLcParameters {
       3, 1, 50, new RTTolerance(0.03f, Unit.MINUTES), new RTTolerance(0.03f, Unit.MINUTES),
       new RTTolerance(0.08f, Unit.MINUTES));
 
+  public static final DefaultLcParameters hilic = new DefaultLcParameters(true,
+      Range.closed(0.5d, 30d), 5, 1, 10, new RTTolerance(0.1f, Unit.MINUTES),
+      new RTTolerance(3, Unit.SECONDS), new RTTolerance(3, Unit.SECONDS));
+
   private final boolean stableIonizationAcrossSamples;
   private final Range<Double> cropRtRange;
   private final int minNumberDataPoints;
@@ -49,7 +60,7 @@ public class DefaultLcParameters {
 
   public DefaultLcParameters(Range<Double> rtRange, RTTolerance fwhm,
       RTTolerance intraSampleTolerance, RTTolerance interSampleTolerance) {
-    this(true, rtRange, 3, 1, 15, fwhm, intraSampleTolerance, interSampleTolerance);
+    this(true, rtRange, 4, 1, 15, fwhm, intraSampleTolerance, interSampleTolerance);
   }
 
   public DefaultLcParameters(boolean stableIonizationAcrossSamples, Range<Double> cropRtRange,

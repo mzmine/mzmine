@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
@@ -22,129 +29,87 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import java.awt.Font;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 /**
  * Spectra visualizer's bottom panel
  */
-class SpectraBottomPanel extends BorderPane {
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+class SpectraBottomPanel extends VBox {
 
   // Get arrow characters by their UTF16 code
-  public static final String leftArrow = new String(new char[] {'\u2190'});
-  public static final String rightArrow = new String(new char[] {'\u2192'});
-
-  public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
-
-  private FlowPane topPanel, bottomPanel;
-  private ComboBox<Scan> msmsSelector;
-  private ComboBox<FeatureList> peakListSelector;
-  private CheckBox processingCbx;
-  private Button processingParametersBtn;
-
-  private RawDataFile dataFile;
-  private SpectraVisualizerTab masterFrame;
-
-  // Last time the data set was redrawn.
-  private static long lastRebuildTime = System.currentTimeMillis();
-
+  public static final String leftArrow = "←";
+  public static final String rightArrow = "→";
+  private static final Logger logger = Logger.getLogger(SpectraBottomPanel.class.getName());
   // Refresh interval (in milliseconds).
   private static final long REDRAW_INTERVAL = 1000L;
+  // Last time the data set was redrawn.
+  private static final long lastRebuildTime = System.currentTimeMillis();
+  private final FlowPane topPanel;
+  private final FlowPane bottomPanel;
+  private final ComboBox<Scan> msmsSelector;
+  private final ComboBox<FeatureList> peakListSelector;
+  private final MZToleranceComponent mzTolerance;
+  private final RawDataFile dataFile;
+  private final SpectraVisualizerTab masterFrame;
 
   SpectraBottomPanel(SpectraVisualizerTab masterFrame, RawDataFile dataFile) {
-
-    // super(new BorderLayout());
     this.dataFile = dataFile;
     this.masterFrame = masterFrame;
 
-    // setBackground(Color.white);
-
-    topPanel = new FlowPane();
-    // topPanel.setBackground(Color.white);
-    // topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-    setCenter(topPanel);
-
-    // topPanel.add(Box.createHorizontalStrut(10));
-
     Button prevScanBtn = new Button(leftArrow);
     prevScanBtn.setOnAction(e -> masterFrame.loadPreviousScan());
-    // prevScanBtn.setBackground(Color.white);
-    // prevScanBtn.setFont(smallFont);
-
-    // topPanel.add(Box.createHorizontalGlue());
-
     Label featureListLabel = new Label("Feature list: ");
 
     peakListSelector = new ComboBox<>(FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()));
-    // peakListSelector.setBackground(Color.white);
-    // peakListSelector.setFont(smallFont);
     peakListSelector.setOnAction(
         e -> masterFrame.loadPeaks(peakListSelector.getSelectionModel().getSelectedItem()));
-
-    processingCbx = new CheckBox("Enable Processing");
-    processingCbx.setTooltip(new Tooltip("Enables quick scan processing."));
-    processingCbx.setOnAction(e -> masterFrame.enableProcessing());
-    updateProcessingCheckbox();
-
-    processingParametersBtn = new Button("Spectra processing");
-    processingParametersBtn
-        .setTooltip(new Tooltip("Set the parameters for quick spectra processing."));
-    processingParametersBtn.setOnAction(e -> masterFrame.setProcessingParams());
-    updateProcessingButton();
-
-    // topPanel.add(Box.createHorizontalGlue());
 
     Button nextScanBtn = new Button(rightArrow);
     nextScanBtn.setOnAction(e -> masterFrame.loadNextScan());
 
-    topPanel.getChildren().addAll(prevScanBtn, featureListLabel, peakListSelector, processingCbx,
-        processingParametersBtn, nextScanBtn);
+    mzTolerance = new MZToleranceComponent();
+    mzTolerance.setToolTipText("m/z tolerance used around selected signals");
+    PauseTransition delay = new PauseTransition(Duration.seconds(1));
+    delay.setOnFinished(event -> masterFrame.setMzTolerance(getMzTolerance()));
+    mzTolerance.setListener(delay::playFromStart);
 
-    // nextScanBtn.setBackground(Color.white);
-    // nextScanBtn.setFont(smallFont);
+    topPanel = new FlowPane(4, 2);
+    topPanel.getChildren().addAll(prevScanBtn, featureListLabel, peakListSelector, nextScanBtn,
+        new Label("m/z tolerance"), mzTolerance);
 
-    // topPanel.add(Box.createHorizontalStrut(10));
+    bottomPanel = new FlowPane(4, 2);
 
-    bottomPanel = new FlowPane();
-    // bottomPanel.setBackground(Color.white);
-    // bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-    setBottom(bottomPanel);
-
-    // bottomPanel.add(Box.createHorizontalGlue());
+    this.getChildren().addAll(topPanel, bottomPanel);
 
     Label msmsLabel = new Label("MS/MS: ");
 
     msmsSelector = new ComboBox<>();
-    // msmsSelector.setBackground(Color.white);
-    // msmsSelector.setFont(smallFont);
 
     Button showButton = new Button("Show");
     bottomPanel.getChildren().addAll(msmsLabel, msmsSelector, showButton);
 
-    // showButton.setBackground(Color.white);
     showButton.setOnAction(e -> {
       Scan selectedScan = msmsSelector.getSelectionModel().getSelectedItem();
-      if (selectedScan == null)
+      if (selectedScan == null) {
         return;
+      }
 
       SpectraVisualizerModule.addNewSpectrumTab(dataFile, selectedScan);
     });
-    // showButton.setFont(smallFont);
 
-    // bottomPanel.add(Box.createHorizontalGlue());
-
+    // bind mztolerance
+    masterFrame.mzToleranceProperty().addListener((o, old, newValue) -> setMzTolerance(newValue));
   }
 
   ComboBox<Scan> getMSMSSelector() {
@@ -155,21 +120,11 @@ class SpectraBottomPanel extends BorderPane {
     bottomPanel.setVisible(visible);
   }
 
-  /**
-   * Returns selected feature list
-   */
-  FeatureList getSelectedPeakList() {
-    FeatureList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
-    return selectedPeakList;
+  public MZTolerance getMzTolerance() {
+    return mzTolerance.getValue();
   }
 
-
-
-  public void updateProcessingCheckbox() {
-    processingCbx.setSelected(DataPointProcessingManager.getInst().isEnabled());
-  }
-
-  public void updateProcessingButton() {
-    processingParametersBtn.setDisable(!DataPointProcessingManager.getInst().isEnabled());
+  public void setMzTolerance(MZTolerance mzTol) {
+    mzTolerance.setValue(mzTol);
   }
 }

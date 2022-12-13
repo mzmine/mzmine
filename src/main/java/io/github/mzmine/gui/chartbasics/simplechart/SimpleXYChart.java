@@ -1,23 +1,31 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
@@ -59,15 +67,19 @@ import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.statistics.Regression;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
- * Generic plot class that can be used to plot everything that implements the {@link
- * PlotXYDataProvider} interface or is a {@link ColoredXYDataset}.
+ * Generic plot class that can be used to plot everything that implements the
+ * {@link PlotXYDataProvider} interface or is a {@link ColoredXYDataset}.
  *
  * @param <T>
  * @author https://github.com/SteffenHeu
@@ -79,7 +91,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     SimpleChart<T> {
 
   private static final double AXIS_MARGINS = 0.01;
-  private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
+  private static final Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
   protected final JFreeChart chart;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
@@ -472,5 +484,23 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
   public BooleanProperty itemLabelsVisibleProperty() {
     return itemLabelsVisible;
+  }
+
+  public void addRegression(ColoredXYDataset dataset, int series) {
+    var regressionRenderer = new XYLineAndShapeRenderer(true, false);
+    regressionRenderer.setSeriesPaint(series, dataset.getAWTColor());
+
+    double[] coefficients = Regression.getOLSRegression(dataset, series);
+    double b = coefficients[0]; // intercept
+    double m = coefficients[1]; // slope
+
+    Range<Double> xrange = dataset.getDomainValueRange();
+    XYSeries trend = new XYSeries(String.format("y=%.3f+%.3f", b, m));
+    double x = xrange.lowerEndpoint();
+    trend.add(x, m * x + b);
+    x = xrange.upperEndpoint();
+    trend.add(x, m * x + b);
+
+    addDataset(new XYSeriesCollection(trend), regressionRenderer);
   }
 }

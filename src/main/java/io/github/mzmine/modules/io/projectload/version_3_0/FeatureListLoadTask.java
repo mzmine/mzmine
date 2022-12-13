@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
@@ -96,20 +103,29 @@ public class FeatureListLoadTask extends AbstractTask {
     this.zip = zip;
   }
 
+  /**
+   * @param reader  The xml reader.
+   * @param type    the data type to be read.
+   * @param project The current project.
+   * @param flist   The current feature list.
+   * @param row     The row.
+   * @param feature The current feature. Can be null.
+   * @param file    The data file of the current feature. null if the feature is null.
+   * @return
+   */
   public static Object parseDataType(XMLStreamReader reader, DataType<?> type,
-      ModularFeatureList flist, ModularFeatureListRow row, ModularFeature feature,
-      RawDataFile file) {
+      MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row,
+      ModularFeature feature, RawDataFile file) {
     if (type != null) {
       try {
-        return type.loadFromXML(reader, flist, row, feature, file);
+        return type.loadFromXML(reader, project, flist, row, feature, file);
       } catch (Exception e) {
         logger.log(Level.WARNING, e,
             () -> "Error loading data type " + type.getHeaderString() + " in row (id=" + row.getID()
-                  + ") feature " + (file != null ? file.getName() : "") + " from XML.");
+                + ") feature " + (file != null ? file.getName() : "") + " from XML.");
       }
     } else {
-      logger.info(() -> "No data type for id " + reader
-          .getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+      logger.info(() -> "No data type for id " + reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
     }
     return null;
   }
@@ -168,7 +184,7 @@ public class FeatureListLoadTask extends AbstractTask {
                     + metadataFile.getAbsolutePath());
           continue;
         }
-        parseFeatureList(storage, flist, flistFile);
+        parseFeatureList(storage, project, flist, flistFile);
 
         // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
         flist.replaceCachedFilesAndScans();
@@ -190,8 +206,8 @@ public class FeatureListLoadTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private void parseFeatureList(MemoryMapStorage storage, ModularFeatureList flist,
-      File flistFile) {
+  private void parseFeatureList(MemoryMapStorage storage, MZmineProject project,
+      ModularFeatureList flist, File flistFile) {
     currentFlist = flist.getName();
     processedRows = 0;
     totalRows = flist.getNumberOfRows();
@@ -217,7 +233,7 @@ public class FeatureListLoadTask extends AbstractTask {
                       .getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR));
             }
           } else if (CONST.XML_ROW_ELEMENT.equals(localName)) {
-            parseRow(reader, storage, flist);
+            parseRow(reader, storage, project, flist);
             processedRows++;
           }
         }
@@ -356,15 +372,16 @@ public class FeatureListLoadTask extends AbstractTask {
 
       }
       return flist;
-    } catch (XPathExpressionException | ParserConfigurationException | SAXException | IOException e) {
+    } catch (XPathExpressionException | ParserConfigurationException | SAXException |
+             IOException e) {
       e.printStackTrace();
       logger.log(Level.SEVERE, e.getMessage(), e);
       return null;
     }
   }
 
-  private void parseRow(XMLStreamReader reader, MemoryMapStorage storage, ModularFeatureList flist)
-      throws XMLStreamException {
+  private void parseRow(XMLStreamReader reader, MemoryMapStorage storage, MZmineProject project,
+      ModularFeatureList flist) throws XMLStreamException {
     if (!reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
       throw new IllegalStateException("Cannot parse row if current element is not a row element");
     }
@@ -387,11 +404,11 @@ public class FeatureListLoadTask extends AbstractTask {
                                  + ". File does not exist in project.");
             continue;
           }
-          parseFeature(reader, storage, flist, row, file);
+          parseFeature(reader, storage, project, flist, row, file);
         } else if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-          DataType type = DataTypes
-              .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-          Object value = parseDataType(reader, type, flist, row, null, null);
+          DataType type = DataTypes.getTypeForId(
+              reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+          Object value = parseDataType(reader, type, project, flist, row, null, null);
           if (type != null && value != null) {
             try {
               row.set(type, value);
@@ -410,7 +427,7 @@ public class FeatureListLoadTask extends AbstractTask {
   }
 
   private void parseFeature(@NotNull XMLStreamReader reader, @Nullable MemoryMapStorage storage,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      MZmineProject project, @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @NotNull RawDataFile file) throws XMLStreamException {
 
     // create feature with original file, but use buffered file for data type loading.
@@ -426,9 +443,9 @@ public class FeatureListLoadTask extends AbstractTask {
 
       if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         // the data types are responsible for loading their values
-        DataType type = DataTypes
-            .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-        Object value = parseDataType(reader, type, flist, row, feature, file);
+        DataType type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        Object value = parseDataType(reader, type, project, flist, row, feature, file);
         if (type != null && value != null) {
           try {
             feature.set(type, value);

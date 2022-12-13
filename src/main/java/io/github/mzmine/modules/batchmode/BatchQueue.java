@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.batchmode;
@@ -45,20 +52,6 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
-
-  @Override
-  public BatchQueue clone() {
-    // Clone the parameters.
-    final BatchQueue clonedQueue = new BatchQueue();
-    for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
-      final ParameterSet parameters = step.getParameterSet();
-      final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy =
-          new MZmineProcessingStepImpl<>(step.getModule(),
-              parameters.cloneParameterSet());
-      clonedQueue.add(stepCopy);
-    }
-    return clonedQueue;
-  }
 
   /**
    * De-serialize from XML.
@@ -93,8 +86,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       // Find a matching module.
       MZmineModule moduleFound = null;
       for (MZmineModule module : allModules) {
-        if (module instanceof MZmineProcessingModule
-            && module.getClass().getName().equals(methodName)) {
+        if (module instanceof MZmineProcessingModule && module.getClass().getName()
+            .equals(methodName)) {
           moduleFound = module;
           break;
         }
@@ -102,8 +95,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
       if (moduleFound == null) {
         try {
-          moduleFound = MZmineCore
-              .getModuleInstance((Class<MZmineModule>) Class.forName(methodName));
+          moduleFound = MZmineCore.getModuleInstance(
+              (Class<MZmineModule>) Class.forName(methodName));
         } catch (ClassNotFoundException e) {
           logger.warning(
               "Module not found for class " + methodName + " (maybe recreate the batch file)");
@@ -112,16 +105,29 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       }
       if (moduleFound != null) {
         // Get parameters and add step to queue.
-        final ParameterSet parameterSet =
-            MZmineCore.getConfiguration().getModuleParameters(moduleFound.getClass());
+        final ParameterSet parameterSet = MZmineCore.getConfiguration()
+            .getModuleParameters(moduleFound.getClass());
         final ParameterSet methodParams = parameterSet.cloneParameterSet();
         methodParams.loadValuesFromXML(stepElement);
-        queue.add(new MZmineProcessingStepImpl<>(
-            (MZmineProcessingModule) moduleFound, methodParams));
+        queue.add(
+            new MZmineProcessingStepImpl<>((MZmineProcessingModule) moduleFound, methodParams));
       }
     }
 
     return queue;
+  }
+
+  @Override
+  public BatchQueue clone() {
+    // Clone the parameters.
+    final BatchQueue clonedQueue = new BatchQueue();
+    for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
+      final ParameterSet parameters = step.getParameterSet();
+      final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy = new MZmineProcessingStepImpl<>(
+          step.getModule(), parameters.cloneParameterSet());
+      clonedQueue.add(stepCopy);
+    }
+    return clonedQueue;
   }
 
   /**

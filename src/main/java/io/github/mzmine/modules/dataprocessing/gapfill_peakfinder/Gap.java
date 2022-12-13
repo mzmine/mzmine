@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
@@ -37,11 +44,12 @@ import java.util.List;
 
 public class Gap {
 
-  protected FeatureListRow peakListRow;
+  protected FeatureListRow featureListRow;
   protected RawDataFile rawDataFile;
 
   protected Range<Double> mzRange;
   protected Range<Float> rtRange;
+  private final boolean validateRtShape;
   protected double intTolerance;
 
   // These store information about peak that is currently under construction
@@ -57,12 +65,18 @@ public class Gap {
    */
   public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
       Range<Float> rtRange, double intTolerance) {
+    this(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, true);
+  }
 
-    this.peakListRow = peakListRow;
+  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
+      Range<Float> rtRange, double intTolerance, boolean validateRtShape) {
+
+    this.featureListRow = peakListRow;
     this.rawDataFile = rawDataFile;
     this.intTolerance = intTolerance;
     this.mzRange = mzRange;
     this.rtRange = rtRange;
+    this.validateRtShape = validateRtShape;
   }
 
   public void offerNextScan(Scan scan) {
@@ -139,14 +153,15 @@ public class Gap {
   protected boolean addFeatureToRow() {
     final double[][] mzIntensities = DataPointUtils.getDataPointsAsDoubleArray(bestPeakDataPoints);
     final IonTimeSeries<?> series = new SimpleIonTimeSeries(
-        ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(), mzIntensities[0],
-        mzIntensities[1], bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
+        ((ModularFeatureList) featureListRow.getFeatureList()).getMemoryMapStorage(),
+        mzIntensities[0], mzIntensities[1],
+        bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
 
-    final Feature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+    final Feature newPeak = new ModularFeature((ModularFeatureList) featureListRow.getFeatureList(),
         rawDataFile, series, FeatureStatus.ESTIMATED);
 
     // Fill the gap
-    peakListRow.addFeature(rawDataFile, newPeak, false);
+    featureListRow.addFeature(rawDataFile, newPeak, false);
     return true;
   }
 
@@ -155,6 +170,9 @@ public class Gap {
    * to add given m/z peak at the end of the peak.
    */
   protected boolean checkRTShape(GapDataPoint dp) {
+    if (!validateRtShape) {
+      return true;
+    }
 
     if (dp.getRT() < rtRange.lowerEndpoint()) {
       double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
@@ -247,4 +265,7 @@ public class Gap {
 
   }
 
+  public FeatureListRow getFeatureListRow() {
+    return featureListRow;
+  }
 }

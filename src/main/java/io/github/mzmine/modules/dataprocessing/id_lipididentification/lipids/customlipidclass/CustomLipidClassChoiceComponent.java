@@ -1,37 +1,30 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonReader;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import com.google.gson.Gson;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
@@ -42,6 +35,18 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -52,6 +57,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class CustomLipidClassChoiceComponent extends BorderPane {
 
@@ -70,16 +77,17 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
 
   public CustomLipidClassChoiceComponent(CustomLipidClass[] choices) {
 
-    ObservableList<CustomLipidClass> choicesList =
-        FXCollections.observableArrayList(Arrays.asList(choices));
+    ObservableList<CustomLipidClass> choicesList = FXCollections.observableArrayList(
+        Arrays.asList(choices));
 
     checkList.setItems(choicesList);
     setCenter(checkList);
     setMaxHeight(100);
     addButton.setOnAction(e -> {
       final ParameterSet parameters = new AddCustomLipidClassParameters();
-      if (parameters.showSetupDialog(true) != ExitCode.OK)
+      if (parameters.showSetupDialog(true) != ExitCode.OK) {
         return;
+      }
 
       // Create new custom lipid class
       CustomLipidClass customLipidClass = new CustomLipidClass(
@@ -106,8 +114,9 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
 
       // Select a file.
       final File file = chooser.showOpenDialog(this.getScene().getWindow());
-      if (file == null)
+      if (file == null) {
         return;
+      }
 
       try {
         FileInputStream fileInputStream = new FileInputStream(file);
@@ -125,10 +134,9 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
                   .getString("Backbone"), //
               gson.fromJson(jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
                   .getJsonArray("Chain types").toString(), LipidChainType[].class), //
-              gson.fromJson(
-                  jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
-                      .getJsonArray("Fragmentation rules").toString(),
-                  LipidFragmentationRule[].class) //
+              gson.fromJson(jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
+                  .getJsonArray("Fragmentation rules").toString(), LipidFragmentationRule[].class)
+              //
           );
           checkList.getItems().add(customLipidClass);
         }
@@ -145,8 +153,9 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       chooser.getExtensionFilters().add(new ExtensionFilter("JSON", FILENAME_EXTENSION));
 
       final File file = chooser.showSaveDialog(this.getScene().getWindow());
-      if (file == null)
+      if (file == null) {
         return;
+      }
 
       try {
         FileWriter fileWriter = new FileWriter(file);
@@ -184,8 +193,9 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
 
   void setValue(List<CustomLipidClass> checkedItems) {
     checkList.getSelectionModel().clearSelection();
-    for (CustomLipidClass mod : checkedItems)
+    for (CustomLipidClass mod : checkedItems) {
       checkList.getSelectionModel().select(mod);
+    }
   }
 
   public List<CustomLipidClass> getChoices() {
@@ -201,9 +211,9 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
    */
   public static class AddCustomLipidClassParameters extends SimpleParameterSet {
 
-    // lipid modification
-    private static final StringParameter name =
-        new StringParameter("Custom lipid class name", "Enter the name of the custom lipid class");
+    public static final OptionalParameter<CustomLipidClassFragmentationRulesChoiceParameters> customLipidClassFragmentationRules = new OptionalParameter<>(
+        new CustomLipidClassFragmentationRulesChoiceParameters("Add fragmentation rules",
+            "Add custom lipid class fragmentation rules", new LipidFragmentationRule[0]));
 
     private static final StringParameter abbr = new StringParameter(
         "Custom lipid class abbreviation", "Enter a abbreviation for the custom lipid class");
@@ -211,18 +221,14 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
     private static final StringParameter backBoneFormula = new StringParameter(
         "Lipid Backbone Molecular Formula",
         "Enter the backbone molecular formula of the custom lipid class. Include all elements of the original molecular, e.g. in case of glycerol based  lipid classes add C3H8O3");
-
-    private static final CustomLipidChainChoiceParameter lipidChainTypes =
-        new CustomLipidChainChoiceParameter("Add Lipid Chains", "Add Lipid Chains",
-            new LipidChainType[0]);
-
-    public static final OptionalParameter<CustomLipidClassFragmentationRulesChoiceParameters> customLipidClassFragmentationRules =
-        new OptionalParameter<>(
-            new CustomLipidClassFragmentationRulesChoiceParameters("Add fragmentation rules",
-                "Add custom lipid class fragmentation rules", new LipidFragmentationRule[0]));
+    // lipid modification
+    private static final StringParameter name = new StringParameter("Custom lipid class name",
+        "Enter the name of the custom lipid class");
+    private static final CustomLipidChainChoiceParameter lipidChainTypes = new CustomLipidChainChoiceParameter(
+        "Add Lipid Chains", "Add Lipid Chains", new LipidChainType[0]);
 
     public AddCustomLipidClassParameters() {
-      super(new Parameter[] {name, abbr, backBoneFormula, lipidChainTypes,
+      super(new Parameter[]{name, abbr, backBoneFormula, lipidChainTypes,
           customLipidClassFragmentationRules});
     }
   }

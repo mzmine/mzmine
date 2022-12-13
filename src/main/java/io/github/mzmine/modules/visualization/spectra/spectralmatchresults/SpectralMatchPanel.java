@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
@@ -37,7 +44,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -102,9 +109,9 @@ public class SpectralMatchPanel extends JPanel {
   public static Color MAX_COS_COLOR = new Color(0x388E3C);
   public static Color MIN_COS_COLOR = new Color(0xE30B0B);
 
-  private Font headerFont = new Font("Dialog", Font.BOLD, 16);
-  private Font titleFont = new Font("Dialog", Font.BOLD, 18);
-  private Font scoreFont = new Font("Dialog", Font.BOLD, 30);
+  private final Font headerFont = new Font("Dialog", Font.BOLD, 16);
+  private final Font titleFont = new Font("Dialog", Font.BOLD, 18);
+  private final Font scoreFont = new Font("Dialog", Font.BOLD, 30);
 
   private EChartPanel mirrorChart;
 
@@ -114,7 +121,7 @@ public class SpectralMatchPanel extends JPanel {
 
   private XYPlot libraryPlot;
   private Font chartFont;
-  private JPanel pnExport;
+  private final JPanel pnExport;
 
   private final JPanel metaDataPanel;
   private final JPanel boxTitlePanel;
@@ -163,8 +170,9 @@ public class SpectralMatchPanel extends JPanel {
     JPanel panelScore = new JPanel();
     panelScore.setLayout(new BoxLayout(panelScore, BoxLayout.Y_AXIS));
     JLabel score = new JLabel(COS_FORM.format(simScore));
-    score.setToolTipText("Cosine similarity of raw data scan (top, blue) and database scan: "
-        + COS_FORM.format(simScore));
+    score.setToolTipText(
+        "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM.format(
+            simScore));
     score.setFont(scoreFont);
     score.setForeground(Color.WHITE);
     panelScore.setBackground(gradientCol);
@@ -223,12 +231,12 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     // information on compound
-    JPanel panelCompounds =
-        extractMetaData("Compound information", hit.getEntry(), DBEntryField.COMPOUND_FIELDS);
+    JPanel panelCompounds = extractMetaData("Compound information", hit.getEntry(),
+        DBEntryField.COMPOUND_FIELDS);
 
     // instrument info
-    JPanel panelInstrument =
-        extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
+    JPanel panelInstrument = extractMetaData("Instrument information", hit.getEntry(),
+        DBEntryField.INSTRUMENT_FIELDS);
 
     JPanel g1 = new JPanel(new GridLayout(1, 2, 4, 0));
     g1.setBackground(Color.WHITE);
@@ -237,12 +245,12 @@ public class SpectralMatchPanel extends JPanel {
     metaDataPanel.add(g1);
 
     // database links
-    JPanel panelDB =
-        extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
+    JPanel panelDB = extractMetaData("Database links", hit.getEntry(),
+        DBEntryField.DATABASE_FIELDS);
 
     // // Other info
-    JPanel panelOther =
-        extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
+    JPanel panelOther = extractMetaData("Other information", hit.getEntry(),
+        DBEntryField.OTHER_FIELDS);
 
     JPanel g2 = new JPanel(new GridLayout(1, 2, 4, 0));
     g2.setBackground(Color.WHITE);
@@ -260,9 +268,9 @@ public class SpectralMatchPanel extends JPanel {
     scrollpn.setScrollableHeight(ScrollablePanel.ScrollableSizeHint.STRETCH);
     scrollpn.add(metaDataPanel);
 
-    JScrollPane metaDataPanelScrollPane =
-        new JScrollPane(scrollpn, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    JScrollPane metaDataPanelScrollPane = new JScrollPane(scrollpn,
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     mirrorChart = mirrorWindow.getMirrorSpecrumPlot();
     // use no buffer for later pdf export
@@ -271,8 +279,8 @@ public class SpectralMatchPanel extends JPanel {
 
     CombinedDomainXYPlot plot = (CombinedDomainXYPlot) mirrorChart.getChart().getPlot();
 
-    for(Object o : plot.getSubplots()) {
-      if(o instanceof XYPlot p) {
+    for (Object o : plot.getSubplots()) {
+      if (o instanceof XYPlot p) {
         p.setDomainGridlinesVisible(false);
         p.setDomainMinorGridlinesVisible(false);
         p.setRangeGridlinesVisible(false);
@@ -350,9 +358,9 @@ public class SpectralMatchPanel extends JPanel {
    */
   public void exportToGraphics(String format) {
     // old path
-    FileNameParameter param =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraIdentificationResultsModule.class)
-            .getParameter(SpectraIdentificationResultsParameters.file);
+    FileNameParameter param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraIdentificationResultsModule.class)
+        .getParameter(SpectraIdentificationResultsParameters.file);
     final JFileChooser chooser;
     if (param.getValue() != null) {
       chooser = new JFileChooser();
@@ -407,10 +415,9 @@ public class SpectralMatchPanel extends JPanel {
 
   public void exportToGraphics(String format, File file) {
     try {
-       SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
+      SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
-    } finally {
     }
   }
 
@@ -454,7 +461,7 @@ public class SpectralMatchPanel extends JPanel {
     }
   }
 
-  private JPanel extractMetaData(String title, SpectralDBEntry entry, DBEntryField[] other) {
+  private JPanel extractMetaData(String title, SpectralLibraryEntry entry, DBEntryField[] other) {
     JPanel panelOther = new JPanel();
     panelOther.setLayout(new BoxLayout(panelOther, BoxLayout.Y_AXIS));
     panelOther.setBackground(Color.WHITE);
@@ -465,7 +472,7 @@ public class SpectralMatchPanel extends JPanel {
       Object o = entry.getField(db).orElse("N/A");
       if (!o.equals("N/A")) {
         CustomTextPane textPane = new CustomTextPane(true);
-        textPane.setText(db.toString() + ": " + o.toString());
+        textPane.setText(db.toString() + ": " + o);
         panelOther.add(textPane);
       }
     }
@@ -490,8 +497,8 @@ public class SpectralMatchPanel extends JPanel {
       try {
         factory = InChIGeneratorFactory.getInstance();
         // Get InChIToStructure
-        InChIToStructure inchiToStructure =
-            factory.getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
+        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
+            DefaultChemObjectBuilder.getInstance());
         molecule = inchiToStructure.getAtomContainer();
         return molecule;
       } catch (CDKException e) {

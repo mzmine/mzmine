@@ -1,29 +1,36 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
@@ -35,8 +42,9 @@ import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsJsonGenerator;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.GnpsLibrarySubmitParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitParameters;
@@ -48,7 +56,6 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -67,36 +74,25 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class LibrarySubmitTask extends AbstractTask {
 
-  private enum Result {
-    ERROR, SUCCED, INFO;
-  }
-
-  //
-  public static final String GNPS_LIBRARY_SUBMIT_URL =
-      "http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum";
-
-  public static final String SOURCE_DESCRIPTION = "mzmine2 library entry submission";
-
-  private Logger log = Logger.getLogger(this.getClass().getName());
-  private Map<LibrarySubmitIonParameters, DataPoint[]> map;
-  private int done = 0;
+  public static final String SOURCE_DESCRIPTION = "MZmine library entry submission";
+  public static final String GNPS_LIBRARY_SUBMIT_URL = "http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum";
+  private static final Logger log = Logger.getLogger(LibrarySubmitTask.class.getName());
+  private final Map<LibrarySubmitIonParameters, DataPoint[]> map;
   private final String PASS;
   private final String USER;
   private final boolean saveLocal;
   private final boolean submitGNPS;
-  private final boolean exportGNPSJsonFile;
-  private final boolean exportMSPFile;
   private final File fileJson;
   private final File fileMSP;
-
+  private final File fileMGF;
   // window to show results
   private final MSMSLibrarySubmissionWindow window;
+  private int done = 0;
 
   public LibrarySubmitTask(MSMSLibrarySubmissionWindow window,
       Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Instant moduleCallDate) {
@@ -109,32 +105,31 @@ public class LibrarySubmitTask extends AbstractTask {
         .getParameter(LibrarySubmitIonParameters.SUBMIT_PARAM).getValue();
 
     submitGNPS = paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
-    GnpsLibrarySubmitParameters gnpsParam =
-        paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getEmbeddedParameters();
+    GnpsLibrarySubmitParameters gnpsParam = paramSubmit.getParameter(
+        LibrarySubmitParameters.SUBMIT_GNPS).getEmbeddedParameters();
     PASS = gnpsParam.getParameter(GnpsLibrarySubmitParameters.pass).getValue();
     USER = gnpsParam.getParameter(GnpsLibrarySubmitParameters.user).getValue();
     saveLocal = paramSubmit.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
-    exportGNPSJsonFile =
-        paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON).getValue();
-    exportMSPFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();
+    boolean exportGNPSJsonFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON)
+        .getValue();
+    boolean exportMSPFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();
+    boolean exportMGFFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_MGF).getValue();
     if (saveLocal) {
       File tmpfile = paramSubmit.getParameter(LibrarySubmitParameters.LOCALFILE)
           .getEmbeddedParameter().getValue();
       fileJson = exportGNPSJsonFile ? FileAndPathUtil.getRealFilePath(tmpfile, "json") : null;
       fileMSP = exportMSPFile ? FileAndPathUtil.getRealFilePath(tmpfile, "msp") : null;
+      fileMGF = exportMGFFile ? FileAndPathUtil.getRealFilePath(tmpfile, "mgf") : null;
     } else {
       fileJson = null;
       fileMSP = null;
+      fileMGF = null;
     }
   }
 
-  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Instant moduleCallDate) {
+  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map,
+      @NotNull Instant moduleCallDate) {
     this(null, map, moduleCallDate);
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    return map.isEmpty() ? 0 : (done / map.size());
   }
 
   @Override
@@ -150,27 +145,39 @@ public class LibrarySubmitTask extends AbstractTask {
       if (dps != null && dps.length > 2) {
         // export / submit json?
         if (fileJson != null || submitGNPS) {
-          String json = GnpsJsonGenerator.generateJSON(param, dps);
+          String json = MZmineJsonGenerator.generateJSON(param, dps);
           log.info(json);
           if (saveLocal && fileJson != null) {
-            if (writeToLocalGnpsJsonFile(fileJson, json))
+            if (writeToLocalGnpsJsonFile(fileJson, json)) {
               writeResults("GNPS json entry successfully writen" + fileJson.getAbsolutePath(),
                   Result.SUCCED);
-            else
+            } else {
               writeResults("Error while writing GNPS json entry to " + fileJson.getAbsolutePath(),
                   Result.ERROR);
+            }
           }
-          if (submitGNPS)
+          if (submitGNPS) {
             submitGNPS(json);
+          }
         }
         // export msp?
         if (fileMSP != null) {
-          if (writeToLocalMSPFIle(fileMSP, param, dps))
+          if (writeToLocalMSPFIle(fileMSP, param, dps)) {
             writeResults("MSP entry successfully writen to " + fileMSP.getAbsolutePath(),
                 Result.SUCCED);
-          else
+          } else {
             writeResults("Error while writing msp entry to " + fileMSP.getAbsolutePath(),
                 Result.ERROR);
+          }
+        }
+        if (fileMGF != null) {
+          if (writeToLocalMGFFIle(fileMGF, param, dps)) {
+            writeResults("MSP entry successfully writen to " + fileMGF.getAbsolutePath(),
+                Result.SUCCED);
+          } else {
+            writeResults("Error while writing msp entry to " + fileMGF.getAbsolutePath(),
+                Result.ERROR);
+          }
         }
       }
       done++;
@@ -179,19 +186,16 @@ public class LibrarySubmitTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  @Override
+  public double getFinishedPercentage() {
+    return map.isEmpty() ? 0 : (done / map.size());
+  }
+
   /**
    * Show results in window
-   * 
-   * @param message
-   * @param type
-   * @param isLink
    */
   public void writeResults(final String message, final Result type) {
     writeResults(message, type, false);
-  }
-
-  public void writeResults(final String message, final Result type, boolean isLink) {
-    writeResults(message, message, type, isLink);
   }
 
   public void writeResults(final String url, final String message, final Result type,
@@ -202,39 +206,44 @@ public class LibrarySubmitTask extends AbstractTask {
       SwingUtilities.invokeLater(() -> {
         switch (type) {
           case ERROR:
-            if (isLink)
+            if (isLink) {
               pane.appendErrorLink(message, url);
-            else
+            } else {
               pane.appendErrorText(message);
+            }
             break;
           case INFO:
-            if (isLink)
+            if (isLink) {
               pane.appendInfoLink(message, url);
-            else
+            } else {
               pane.appendInfoText(message);
+            }
             break;
           case SUCCED:
-            if (isLink)
+            if (isLink) {
               pane.appendSuccedLink(message, url);
-            else
+            } else {
               pane.appendSuccedText(message);
+            }
             break;
         }
       });
     }
   }
 
+  public void writeResults(final String message, final Result type, boolean isLink) {
+    writeResults(message, message, type, isLink);
+  }
+
   /**
    * Append entry to msp file
-   * 
-   * @param file
-   * @param json
    */
   private boolean writeToLocalMSPFIle(File file, LibrarySubmitIonParameters param,
       DataPoint[] dps) {
     try {
-      if (!file.getParentFile().exists())
+      if (!file.getParentFile().exists()) {
         file.getParentFile().mkdirs();
+      }
     } catch (Exception e) {
       log.log(Level.SEVERE, "Cannot create folder " + file.getParent() + " ", e);
     }
@@ -252,8 +261,33 @@ public class LibrarySubmitTask extends AbstractTask {
   }
 
   /**
+   * Append entry to mgf file
+   */
+  private boolean writeToLocalMGFFIle(File file, LibrarySubmitIonParameters param,
+      DataPoint[] dps) {
+    try {
+      if (!file.getParentFile().exists()) {
+        file.getParentFile().mkdirs();
+      }
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot create folder " + file.getParent() + " ", e);
+    }
+
+    // export json
+    try {
+      CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
+      String entry = MGFEntryGenerator.createMGFEntry(param, dps);
+      chs.write(entry + "\n");
+      return true;
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot save to mgf file " + file.getAbsolutePath(), e);
+      return false;
+    }
+  }
+
+  /**
    * Submit json library entry to GNPS webserver
-   * 
+   *
    * @param json
    */
   private void submitGNPS(String json) {
@@ -311,14 +345,15 @@ public class LibrarySubmitTask extends AbstractTask {
 
   /**
    * Append json to file
-   * 
+   *
    * @param file
    * @param json
    */
   private boolean writeToLocalGnpsJsonFile(File file, String json) {
     try {
-      if (!file.getParentFile().exists())
+      if (!file.getParentFile().exists()) {
         file.getParentFile().mkdirs();
+      }
     } catch (Exception e) {
       log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
     }
@@ -332,6 +367,10 @@ public class LibrarySubmitTask extends AbstractTask {
       log.log(Level.SEVERE, "Cannot create or write to file " + file.getAbsolutePath(), e);
       return false;
     }
+  }
+
+  private enum Result {
+    ERROR, SUCCED, INFO
   }
 
   @Override

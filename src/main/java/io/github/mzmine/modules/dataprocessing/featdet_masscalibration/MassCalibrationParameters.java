@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
@@ -93,7 +100,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
     }
   };
 
-  public static final ComboParameter<String> ionizationMode = new ComboParameter<String>(
+  public static final ComboParameter<String> ionizationMode = new ComboParameter<>(
       "Ionization mode",
       "Ionization mode for which to use an appropriate universal calibrants list",
       ionizationModeChoices.keySet().toArray(new String[0]));
@@ -228,16 +235,15 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public static final NestedComboParameter biasEstimationMethod = new NestedComboParameter(
       "Mass calibration method",
-      "To estimate mass measurement bias more accurately, we can model the trend exhibited by the"
-          + " error size vs m/z value relation obtained by matching the mass peaks. With the estimation model"
-          + " we can shift/calibrate the mass peaks at different particular m/z values more accurately."
-          + " Select the bias estimation method, a global arithmetic mean estimate, or a regression method"
-          + " for error size vs m/z value. Please see the help file for more details.",
+      """
+          Model the trend exhibited by the error size vs m/z value relation obtained by matching the mass peaks.
+          See the help file for more details.""",
       biasEstimationChoices, BiasEstimationChoice.ARITHMETIC_MEAN.toString(), true, 250);
 
   public MassCalibrationParameters() {
     super(new Parameter[]{dataFiles, intensityThreshold, duplicateErrorFilter, referenceLibrary,
-        rangeExtractionMethod, biasEstimationMethod});
+        rangeExtractionMethod, biasEstimationMethod},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-calibration.html");
   }
 
   @Override
