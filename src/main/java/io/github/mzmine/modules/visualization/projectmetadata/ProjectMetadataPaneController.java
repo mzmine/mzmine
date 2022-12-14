@@ -241,12 +241,13 @@ public class ProjectMetadataPaneController {
 
   @FXML
   public void importParameters(ActionEvent ev) {
-    ExitCode exitCode = MZmineCore.setupAndRunModule(ProjectMetadataImportModule.class);
-    if (exitCode == ExitCode.OK) {
-      logger.info("Successfully imported parameters from file");
-      updateParametersToTable();
-    } else if (exitCode == ExitCode.ERROR) {
-      logger.info("Importing parameters from file failed");
+    final ExitCode exitCode = MZmineCore.setupAndRunModule(ProjectMetadataImportModule.class,
+        () -> {
+          logger.info("Successfully imported parameters from file");
+          MZmineCore.runLater(() -> updateParametersToTable());
+        }, () -> logger.warning("Importing parameters from file failed"));
+    if (exitCode == ExitCode.ERROR) {
+      logger.warning("Setup of metadata import failes");
     }
   }
 
