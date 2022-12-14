@@ -37,7 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
 import org.jetbrains.annotations.Nullable;
@@ -45,9 +45,9 @@ import org.jfree.chart.util.SortOrder;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
-  private MsMsDataProvider dataProvider;
-  private ColoredXYZDataset dataset;
-  private ColoredXYZDotRenderer renderer;
+  private final MsMsDataProvider dataProvider;
+  private final ColoredXYZDataset dataset;
+  private final ColoredXYZDotRenderer renderer;
   private SortOrder zOrder;
 
   public MsMsChart(ParameterSet parameters) {
@@ -83,11 +83,12 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
         return;
       }
 
-      MsMsDataPoint clickedDataPoint = dataProvider.getDataPoint(getCursorPosition().getValueIndex());
+      MsMsDataPoint clickedDataPoint = dataProvider.getDataPoint(
+          getCursorPosition().getValueIndex());
 
       // Run spectrum module
-      ParameterSet spectrumParameters =
-          MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+      ParameterSet spectrumParameters = MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraVisualizerModule.class);
       spectrumParameters.getParameter(SpectraVisualizerParameters.dataFiles)
           .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, dataFiles);
       spectrumParameters.getParameter(SpectraVisualizerParameters.scanNumber)
@@ -146,7 +147,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     dataset.fireDatasetChanged();
   }
 
-  public SimpleObjectProperty<TaskStatus> datasetStatusProperty() {
+  public Property<TaskStatus> datasetStatusProperty() {
     return dataset.statusProperty();
   }
 

@@ -222,15 +222,15 @@ public class CDADataset extends AbstractTaskXYDataset implements ProjectionPlotD
   @Override
   public void run() {
 
-    status = TaskStatus.PROCESSING;
+    setStatus(TaskStatus.PROCESSING);
 
     if (selectedRows.length == 0) {
-      this.status = TaskStatus.ERROR;
+      setStatus(TaskStatus.ERROR);
       errorMessage = "No features selected for CDA plot";
       return;
     }
     if (selectedRawDataFiles.length == 0) {
-      this.status = TaskStatus.ERROR;
+      setStatus(TaskStatus.ERROR);
       errorMessage = "No raw data files selected for CDA plot";
       return;
     }
@@ -268,13 +268,13 @@ public class CDADataset extends AbstractTaskXYDataset implements ProjectionPlotD
     CDA cdaProj = new CDA(rawData);
     cdaProj.iterate(100);
 
-    if (status == TaskStatus.CANCELED) {
+    if (isCanceled()) {
       return;
     }
 
     double[][] result = cdaProj.getState();
 
-    if (status == TaskStatus.CANCELED) {
+    if (isCanceled()) {
       return;
     }
 
@@ -284,7 +284,7 @@ public class CDADataset extends AbstractTaskXYDataset implements ProjectionPlotD
     ProjectionPlotWindow newFrame = new ProjectionPlotWindow(featureList, this, parameters);
     newFrame.show();
 
-    status = TaskStatus.FINISHED;
+    setStatus(TaskStatus.FINISHED);
     logger.info("Finished computing projection plot.");
 
   }

@@ -221,7 +221,7 @@ public class PCADataset extends AbstractTaskXYDataset implements ProjectionPlotD
   @Override
   public void run() {
 
-    status = TaskStatus.PROCESSING;
+    setStatus(TaskStatus.PROCESSING);
 
     logger.info("Computing PCA projection plot");
 
@@ -231,12 +231,12 @@ public class PCADataset extends AbstractTaskXYDataset implements ProjectionPlotD
             == FeatureMeasurementType.AREA);
 
     if (selectedRows.length == 0) {
-      this.status = TaskStatus.ERROR;
+      setStatus(TaskStatus.ERROR);
       errorMessage = "No features selected for PCA plot";
       return;
     }
     if (selectedRawDataFiles.length == 0) {
-      this.status = TaskStatus.ERROR;
+      setStatus(TaskStatus.ERROR);
       errorMessage = "No raw data files selected for PCA plot";
       return;
     }
@@ -280,7 +280,7 @@ public class PCADataset extends AbstractTaskXYDataset implements ProjectionPlotD
 
     double[][] result = pcaProj.getState();
 
-    if (status == TaskStatus.CANCELED) {
+    if (isCanceled()) {
       return;
     }
 
@@ -290,7 +290,7 @@ public class PCADataset extends AbstractTaskXYDataset implements ProjectionPlotD
     ProjectionPlotWindow newFrame = new ProjectionPlotWindow(featureList, this, parameters);
     newFrame.show();
 
-    status = TaskStatus.FINISHED;
+    setStatus(TaskStatus.FINISHED);
     logger.info("Finished computing projection plot.");
 
   }

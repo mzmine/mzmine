@@ -32,8 +32,11 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.AbstractXYDataset;
 
 public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements Task {
@@ -41,7 +44,8 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
   @Serial
   private static final long serialVersionUID = 1L;
   private final StringProperty name = new SimpleStringProperty("Task name");
-  protected TaskStatus status = TaskStatus.WAITING;
+  protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
+      TaskStatus.WAITING);
   protected String errorMessage = null;
   // listener to control status changes
   private List<TaskStatusListener> listener;
@@ -65,7 +69,7 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
    * @return true if this task has been canceled or stopped due to an error
    */
   public final boolean isCanceled() {
-    return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
+    return (status.getValue() == TaskStatus.CANCELED) || (status.getValue() == TaskStatus.ERROR);
   }
 
   /**
@@ -74,20 +78,14 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
    * @return true if this task is finished
    */
   public final boolean isFinished() {
-    return status == TaskStatus.FINISHED;
+    return status.getValue() == TaskStatus.FINISHED;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#cancel()
-   */
   @Override
   public void cancel() {
     setStatus(TaskStatus.CANCELED);
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getErrorMessage()
-   */
   @Override
   public final String getErrorMessage() {
     return errorMessage;
@@ -112,20 +110,29 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
    */
   @Override
   public final TaskStatus getStatus() {
-    return this.status;
+    return status.getValue();
   }
 
   /**
    *
    */
   public final void setStatus(TaskStatus newStatus) {
-    TaskStatus old = status;
-    this.status = newStatus;
-    if (listener != null && !status.equals(old)) {
-      for (int i = 0; i < listener.size(); i++) {
-        listener.get(i).taskStatusChanged(this, status, old);
+    TaskStatus old = getStatus();
+    status.setValue(newStatus);
+    if (listener != null && !newStatus.equals(old)) {
+      for (TaskStatusListener listener : listener) {
+        listener.taskStatusChanged(this, newStatus, old);
       }
     }
+  }
+
+  /**
+   * Returns the TaskStatus of this Task
+   *
+   * @return The current status of this task
+   */
+  public @NotNull Property<TaskStatus> statusProperty() {
+    return status;
   }
 
   @Override

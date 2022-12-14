@@ -189,7 +189,7 @@ public class ClusteringTask extends AbstractTaskXYDataset implements ProjectionP
   @Override
   public void run() {
 
-    status = TaskStatus.PROCESSING;
+    setStatus(TaskStatus.PROCESSING);
 
     logger.info("Clustering");
 
@@ -334,7 +334,7 @@ public class ClusteringTask extends AbstractTaskXYDataset implements ProjectionP
 
         double[][] pcaResult = pcaProj.getState();
 
-        if (status == TaskStatus.CANCELED) {
+        if (isCanceled()) {
           return;
         }
 
@@ -350,7 +350,7 @@ public class ClusteringTask extends AbstractTaskXYDataset implements ProjectionP
 
         double[][] sammonsResult = sammonsProj.getState();
 
-        if (status == TaskStatus.CANCELED) {
+        if (isCanceled()) {
           return;
         }
 
@@ -366,7 +366,7 @@ public class ClusteringTask extends AbstractTaskXYDataset implements ProjectionP
         });
       }
     }
-    status = TaskStatus.FINISHED;
+    setStatus(TaskStatus.FINISHED);
     logger.info("Finished computing Clustering visualization.");
   }
 

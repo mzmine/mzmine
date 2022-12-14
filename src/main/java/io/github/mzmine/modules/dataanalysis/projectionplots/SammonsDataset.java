@@ -218,12 +218,12 @@ public class SammonsDataset extends AbstractTaskXYDataset implements ProjectionP
     setStatus(TaskStatus.PROCESSING);
 
     if (selectedRows.length == 0) {
-      this.status = TaskStatus.ERROR;
+      setStatus(TaskStatus.ERROR);
       errorMessage = "No features selected for Sammons plot";
       return;
     }
     if (selectedRawDataFiles.length == 0) {
-      this.status = TaskStatus.ERROR;
+      setStatus(TaskStatus.ERROR);
       errorMessage = "No raw data files selected for Sammons plot";
       return;
     }
@@ -264,13 +264,13 @@ public class SammonsDataset extends AbstractTaskXYDataset implements ProjectionP
 
     sammonsProj.iterate(100);
 
-    if (status == TaskStatus.CANCELED) {
+    if (isCanceled()) {
       return;
     }
 
     double[][] result = sammonsProj.getState();
 
-    if (status == TaskStatus.CANCELED) {
+    if (isCanceled()) {
       return;
     }
 

@@ -78,12 +78,12 @@ class TwoDDataSet extends AbstractTaskXYDataset {
   @Override
   public void run() {
 
-    status = TaskStatus.PROCESSING;
+    setStatus(TaskStatus.PROCESSING);
 
     for (int index = 0; index < totalScans; index++) {
 
       // Cancel?
-      if (status == TaskStatus.CANCELED) {
+      if (isCanceled()) {
         return;
       }
 
@@ -100,8 +100,7 @@ class TwoDDataSet extends AbstractTaskXYDataset {
 
     Platform.runLater(() -> fireDatasetChanged());
 
-    status = TaskStatus.FINISHED;
-
+    setStatus(TaskStatus.FINISHED);
   }
 
   /**
