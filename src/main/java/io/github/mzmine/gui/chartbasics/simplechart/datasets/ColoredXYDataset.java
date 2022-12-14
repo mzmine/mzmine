@@ -42,6 +42,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -393,6 +394,21 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   @Override
   public void cancel() {
     status.set(TaskStatus.CANCELED);
+  }
+
+  @Override
+  public void addTaskStatusListener(final TaskStatusListener list) {
+
+  }
+
+  @Override
+  public boolean removeTaskStatusListener(final TaskStatusListener list) {
+    return false;
+  }
+
+  @Override
+  public void clearTaskStatusListener() {
+
   }
 
 

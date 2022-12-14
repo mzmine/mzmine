@@ -138,7 +138,7 @@ public class MainMenuController {
 
 
   @SuppressWarnings("unchecked")
-  public void setupAndRunModule(Event event) {
+  public void runModule(Event event) {
     assert event.getSource() instanceof MenuItem;
     final MenuItem menuItem = (MenuItem) event.getSource();
     assert menuItem.getUserData() instanceof String;

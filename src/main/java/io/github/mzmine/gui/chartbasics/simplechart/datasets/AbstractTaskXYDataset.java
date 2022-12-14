@@ -23,35 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.taskcontrol;
+package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
+import java.io.Serial;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jfree.data.xy.AbstractXYDataset;
 
-/**
- * An abstract implementation of task which defines common methods to make Task implementation
- * easier. Added task status listener
- */
-public abstract class AbstractTask implements Task {
+public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements Task {
 
-  protected final MemoryMapStorage storage;
-  protected final Instant moduleCallDate;
-
-  private TaskStatus status = TaskStatus.WAITING;
-
-  private String errorMessage = null;
+  @Serial
+  private static final long serialVersionUID = 1L;
+  private final StringProperty name = new SimpleStringProperty("Task name");
+  protected TaskStatus status = TaskStatus.WAITING;
+  protected String errorMessage = null;
   // listener to control status changes
   private List<TaskStatusListener> listener;
-  private final StringProperty name = new SimpleStringProperty("Task name");
 
   public final String getName() {
     return name.get();
@@ -63,42 +56,6 @@ public abstract class AbstractTask implements Task {
 
   public StringProperty nameProperty() {
     return name;
-  }
-
-  /**
-   * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
-   *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
-   *                       stored in ram. For now, one storage should be created per module call in
-   *                       {@link
-   *                       io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject,
-   *                       ParameterSet, Collection, Instant)}.
-   * @param moduleCallDate
-   */
-  protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
-    this.storage = storage;
-    this.moduleCallDate = moduleCallDate;
-  }
-
-  /**
-   * @return The {@link MemoryMapStorage} used to store results of this task (e.g. RawDataFiles,
-   * MassLists, FeatureLists). May be null if results shall be stored in ram.
-   */
-  @Nullable
-  public MemoryMapStorage getMemoryMapStorage() {
-    return storage;
-  }
-
-  /**
-   *
-   */
-  public final void setStatus(TaskStatus newStatus) {
-    TaskStatus old = status;
-    this.status = newStatus;
-    if (listener != null && !status.equals(old)) {
-      for (int i = 0; i < listener.size(); i++) {
-        listener.get(i).taskStatusChanged(this, status, old);
-      }
-    }
   }
 
   /**
@@ -158,6 +115,19 @@ public abstract class AbstractTask implements Task {
     return this.status;
   }
 
+  /**
+   *
+   */
+  public final void setStatus(TaskStatus newStatus) {
+    TaskStatus old = status;
+    this.status = newStatus;
+    if (listener != null && !status.equals(old)) {
+      for (int i = 0; i < listener.size(); i++) {
+        listener.get(i).taskStatusChanged(this, status, old);
+      }
+    }
+  }
+
   @Override
   public void addTaskStatusListener(TaskStatusListener list) {
     if (listener == null) {
@@ -182,7 +152,5 @@ public abstract class AbstractTask implements Task {
     }
   }
 
-  public Instant getModuleCallDate() {
-    return moduleCallDate;
-  }
 }
+

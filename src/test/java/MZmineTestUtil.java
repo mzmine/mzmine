@@ -58,8 +58,8 @@ public class MZmineTestUtil {
    * @throws InterruptedException if module does not finish in time
    */
   public static TaskResult callModuleWithTimeout(long timeoutSeconds,
-      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
-      @NotNull ParameterSet parameters) throws InterruptedException {
+      @NotNull Class<? extends MZmineRunnableModule> moduleClass, @NotNull ParameterSet parameters)
+      throws InterruptedException {
     return callModuleWithTimeout(timeoutSeconds, TimeUnit.SECONDS, moduleClass, parameters);
   }
 
@@ -75,10 +75,9 @@ public class MZmineTestUtil {
    * @throws InterruptedException if module does not finish in time
    */
   public static TaskResult callModuleWithTimeout(long timeout, TimeUnit unit,
-      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
-      @NotNull ParameterSet parameters) throws InterruptedException {
-    List<Task> tasks = MZmineCore
-        .runMZmineModule(moduleClass, parameters);
+      @NotNull Class<? extends MZmineRunnableModule> moduleClass, @NotNull ParameterSet parameters)
+      throws InterruptedException {
+    List<Task> tasks = MZmineCore.runMZmineModule(moduleClass, parameters);
     List<AbstractTask> abstractTasks = new ArrayList<>(tasks.size());
     for (Task t : tasks) {
       if (t instanceof AbstractTask at) {
@@ -97,24 +96,24 @@ public class MZmineTestUtil {
       lock.countDown();
     }, errorTasks -> {
       // concat error and free lock
-      errorTasks.stream().map(AbstractTask::getErrorMessage).filter(Objects::nonNull)
+      errorTasks.stream().map(Task::getErrorMessage).filter(Objects::nonNull)
           .forEach(errorMessage::add);
       lock.countDown();
     });
 
     // wait
-    if(!lock.await(timeout, unit)) {
-      return  TaskResult.TIMEOUT;
-    } ;
+    if (!lock.await(timeout, unit)) {
+      return TaskResult.TIMEOUT;
+    }
 
     if (errorMessage.size() > 0) {
       throw new RuntimeException(
           "Error in task for module " + moduleClass.getName() + ".  " + errorMessage.stream()
               .collect(Collectors.joining("; ")));
     }
-    if(abstractTasks.stream().allMatch(task -> task.isFinished()))
-    return TaskResult.FINISHED;
-    else {
+    if (abstractTasks.stream().allMatch(task -> task.isFinished())) {
+      return TaskResult.FINISHED;
+    } else {
       return TaskResult.ERROR;
     }
   }
