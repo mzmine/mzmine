@@ -139,6 +139,19 @@ public class WideTableIOUtils implements TableIOUtils {
     return true;
   }
 
+  private static boolean anyConversionError(final String[] titles, final AvailableTypes[] dataTypes,
+      final Object[][] convertedData) {
+    boolean anyError = false;
+    for (int i = 0; i < convertedData.length; i++) {
+      if (convertedData[i] == null) {
+        String type = Objects.toString(dataTypes[i], "null");
+        logger.warning("Data for column " + titles[i] + " could not be converted to type " + type);
+        anyError = true;
+      }
+    }
+    return anyError;
+  }
+
   @Override
   public boolean importFrom(File file, boolean appendMode) {
     // different file formats are supported.
@@ -206,6 +219,13 @@ public class WideTableIOUtils implements TableIOUtils {
         convertedData = findAndMapDataTypes(dataTypes, columnData);
       }
 
+      // check if col data is null
+      if (anyConversionError(titles, dataTypes, convertedData)) {
+        logger.severe("Stopped metadata import because of data type incompatibility");
+        return false;
+      }
+
+      //
       descriptions = Objects.requireNonNullElse(descriptions, new String[titles.length]);
       // the matched parameters columns
       MetadataColumn[] columns = getMetadataColumns(titles, descriptions, dataTypes);
@@ -293,6 +313,7 @@ public class WideTableIOUtils implements TableIOUtils {
     for (int col = 0; col < dataTypes.length; col++) {
       String[] column = columnData[col];
       AvailableTypes dataType = dataTypes[col];
+      // might be null on error in this column - this needs to be checked in the caller
       data[col] = dataType.tryCastType(column);
     }
     return data;

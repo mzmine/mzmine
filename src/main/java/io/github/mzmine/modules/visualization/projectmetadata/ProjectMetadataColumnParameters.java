@@ -36,10 +36,15 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
 import io.github.mzmine.util.DateTimeUtils;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
 public class ProjectMetadataColumnParameters extends SimpleParameterSet {
 
+  private static final Logger logger = Logger.getLogger(
+      ProjectMetadataColumnParameters.class.getName());
   public static final StringParameter title = new StringParameter("Title",
       "Title of the new parameter", "", true, true);
 
@@ -75,16 +80,20 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
      *
      * @param original  original data
      * @param converted empty array that is filled with converted values
-     * @return the final type that reflects the objects of the converted array
+     * @return the final type that reflects the objects of the converted array. Empty column will be
+     * TEXT type
      */
     public static AvailableTypes castToMostAppropriateType(final String[] original,
         final Object[] converted) {
       for (var type : values()) {
         Object[] tmp = type.tryCastType(original);
-        if (tmp != null) {
-          System.arraycopy(tmp, 0, converted, 0, tmp.length);
-          return type;
+        // error: null; all empty values: all null elements
+        // empty column only accepted for text (defaults to text)
+        if (tmp == null || (type != TEXT && Arrays.stream(tmp).allMatch(Objects::isNull))) {
+          continue;
         }
+        System.arraycopy(tmp, 0, converted, 0, tmp.length);
+        return type;
       }
       throw new IllegalStateException(
           "No conversion worked. TEXT should always work though, coming from String.");
@@ -123,14 +132,17 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
         return values;
       }
 
+      String v = null;
       try {
         Object[] result = new Object[values.length];
         for (int i = 0; i < values.length; i++) {
-          String v = values[i];
+          v = values[i];
           result[i] = v == null || v.isBlank() ? null : getInstance().convertOrThrow(v);
         }
         return result;
       } catch (Exception ex) {
+        logger.warning(
+            "Cannot convert value " + Objects.requireNonNullElse(v, "null") + " to " + this);
         return null;
       }
     }
