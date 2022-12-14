@@ -154,7 +154,6 @@ public class BatchModeModulesList {
       ProjectSaveModule.class, //
       ProjectSaveAsModule.class, //
       ClearProjectModule.class, //
-      ProjectMetadataImportModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}

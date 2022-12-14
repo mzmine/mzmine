@@ -31,11 +31,8 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import java.io.File;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,16 +69,7 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    // get the all selected files
-    File[] fileNames = parameters.getValue(ProjectMetadataImportParameters.fileNames);
-
-    // null check
-    if (Arrays.stream(fileNames).anyMatch(Objects::isNull)) {
-      logger.warning("List of filenames contains null");
-      return ExitCode.ERROR;
-    }
-
-    tasks.add(new ProjectMetadataImportTask(fileNames, moduleCallDate));
+    tasks.add(new ProjectMetadataImportTask(parameters, moduleCallDate));
 
     return ExitCode.OK;
   }

@@ -27,13 +27,10 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.util.ExitCode;
-import java.io.File;
-import java.util.Arrays;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import java.util.List;
-import java.util.Objects;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectMetadataImportParameters extends SimpleParameterSet {
@@ -44,32 +41,19 @@ public class ProjectMetadataImportParameters extends SimpleParameterSet {
       new ExtensionFilter("All files", "*.*") //
   );
 
-  public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      extensions);
+  public static final FileNameParameter fileName = new FileNameParameter("File names", "",
+      extensions, FileSelectionType.OPEN);
+
+  public static final BooleanParameter append = new BooleanParameter("Append columns",
+      "Either append data or clear and then load", true);
+
+  public static final BooleanParameter skipErrorColumns = new BooleanParameter(
+      "Skip column on error",
+      "Error during data conversion or parsing will be logged but does not end the import", false);
+
 
   public ProjectMetadataImportParameters() {
-    super(new Parameter[]{fileNames});
+    super(new Parameter[]{fileName, append, skipErrorColumns});
   }
 
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
-    FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Import project metadata");
-    fileChooser.getExtensionFilters().addAll(extensions);
-
-    // setting an initial directory
-    File[] lastFiles = getParameter(fileNames).getValue();
-    Arrays.stream(Objects.requireNonNullElse(lastFiles, new File[0])).filter(Objects::nonNull)
-        .map(File::getParentFile).filter(Objects::nonNull).filter(File::exists).findFirst()
-        .ifPresent(fileChooser::setInitialDirectory);
-
-    List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
-    if (selectedFiles == null) {
-      return ExitCode.CANCEL;
-    }
-    getParameter(fileNames).setValue(selectedFiles.toArray(new File[0]));
-
-    return ExitCode.OK;
-  }
 }

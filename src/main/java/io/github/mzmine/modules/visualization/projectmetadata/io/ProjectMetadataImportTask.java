@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -39,12 +40,18 @@ public class ProjectMetadataImportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ProjectMetadataImportTask.class.getName());
   private final File[] files;
   private final int totalFiles;
+  private final Boolean skipColOnError;
+  private final Boolean append;
   private int doneFiles = 0;
 
-  protected ProjectMetadataImportTask(@NotNull File[] files, @NotNull Instant moduleCallDate) {
+  protected ProjectMetadataImportTask(@NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
-    this.files = files;
+    File file = parameters.getValue(ProjectMetadataImportParameters.fileName);
+    this.files = new File[]{file};
     this.totalFiles = files.length;
+    skipColOnError = parameters.getValue(ProjectMetadataImportParameters.skipErrorColumns);
+    append = parameters.getValue(ProjectMetadataImportParameters.append);
   }
 
   @Override
@@ -72,7 +79,7 @@ public class ProjectMetadataImportTask extends AbstractTask {
         return;
       }
 
-      if (metadataTable.importMetadata(fileName, true)) {
+      if (metadataTable.importMetadata(fileName, append, skipColOnError)) {
         logger.info("Successfully imported parameters from " + fileName);
       } else {
         setStatus(TaskStatus.ERROR);

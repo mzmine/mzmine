@@ -32,7 +32,7 @@ import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExporter;
-import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImporter;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
@@ -241,11 +241,11 @@ public class ProjectMetadataPaneController {
 
   @FXML
   public void importParameters(ActionEvent ev) {
-    ProjectMetadataImporter importer = new ProjectMetadataImporter(currentStage);
-    if (importer.importParameters()) {
+    ExitCode exitCode = MZmineCore.setupAndRunModule(ProjectMetadataImportModule.class);
+    if (exitCode == ExitCode.OK) {
       logger.info("Successfully imported parameters from file");
       updateParametersToTable();
-    } else {
+    } else if (exitCode == ExitCode.ERROR) {
       logger.info("Importing parameters from file failed");
     }
   }

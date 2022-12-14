@@ -326,6 +326,40 @@ public final class MZmineCore {
   }
 
   /**
+   * Show setup dialog and run module if okay
+   *
+   * @param moduleClass the module class
+   */
+  public static ExitCode setupAndRunModule(
+      final Class<? extends MZmineRunnableModule> moduleClass) {
+    MZmineModule module = MZmineCore.getModuleInstance(moduleClass);
+
+    if (module == null) {
+      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
+      return ExitCode.ERROR;
+    }
+
+    ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+
+    logger.info("Setting parameters for module " + module.getName());
+    moduleParameters.setModuleNameAttribute(module.getName());
+
+    try {
+      ExitCode exitCode = moduleParameters.showSetupDialog(true);
+      if (exitCode != ExitCode.OK) {
+        return exitCode;
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    MZmineCore.runMZmineModule(moduleClass, parametersCopy);
+    return ExitCode.OK;
+  }
+
+  /**
    * Creates a new empty raw data file with the same type and name+suffix like raw
    *
    * @param raw     defines base name and type of raw data file, standard, IMS, or imaging
