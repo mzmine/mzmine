@@ -23,11 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata.table;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -49,7 +50,7 @@ import java.util.stream.Stream;
  * [IMPORTANT] "" would be treated as a valid value for the Text parameters, whilst for the other
  * types of parameters this value would be invalid
  */
-public class LongTableExportUtility implements TableExportUtility {
+public class LongTableIOUtils implements TableIOUtils {
 
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
 
@@ -60,7 +61,7 @@ public class LongTableExportUtility implements TableExportUtility {
     NAME, DESC, TYPE, FILE, VALUE
   }
 
-  public LongTableExportUtility(MetadataTable metadataTable) {
+  public LongTableIOUtils(MetadataTable metadataTable) {
     this.metadataTable = metadataTable;
   }
 
@@ -196,7 +197,8 @@ public class LongTableExportUtility implements TableExportUtility {
 
           // if the parameter value is in the right format then save it to the metadata table,
           // otherwise abort importing
-          Object convertedParameterInput = parameterMatched.convert(splitLine[valuePos], null);
+          Object convertedParameterInput = parameterMatched.convertOrElse(splitLine[valuePos],
+              null);
           if (parameterMatched.checkInput(convertedParameterInput)) {
             metadataTable.setValue(parameterMatched, files[rawDataFileInd],
                 convertedParameterInput);

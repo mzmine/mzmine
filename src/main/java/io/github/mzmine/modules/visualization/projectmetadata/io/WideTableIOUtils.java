@@ -23,13 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata.table;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
+
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
+import io.github.mzmine.util.CSVParsingUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -38,11 +42,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
-public class WideTableExportUtility implements TableExportUtility {
+public class WideTableIOUtils implements TableIOUtils {
 
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
 
@@ -53,7 +61,7 @@ public class WideTableExportUtility implements TableExportUtility {
     TITLE, DESC, TYPE
   }
 
-  public WideTableExportUtility(MetadataTable metadataTable) {
+  public WideTableIOUtils(MetadataTable metadataTable) {
     this.metadataTable = metadataTable;
   }
 
@@ -80,7 +88,7 @@ public class WideTableExportUtility implements TableExportUtility {
       }
 
       // create the .tsv file header
-      StringMetadataColumn dataFileCol = new StringMetadataColumn("Datafile", "File name");
+      StringMetadataColumn dataFileCol = new StringMetadataColumn(FILENAME_HEADER, "");
       List<String> parametersTitles = new ArrayList<>(
           List.of(HeaderFields.TITLE.toString(), dataFileCol.getTitle()));
       List<String> parametersDescriptions = new ArrayList<>(
@@ -133,73 +141,90 @@ public class WideTableExportUtility implements TableExportUtility {
 
   @Override
   public boolean importFrom(File file, boolean appendMode) {
-    try (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
-        fr)) {
+    // different file formats are supported.
+    // see test/resources/metadata
+    // first two lines are optional (description / type) otherwise try to cast to type
+    final String sep = file.getName().endsWith(".csv") ? "," : "\t";
+
+    // titles is always considered the last row before data
+    String[] titles = null;
+    String[] descriptions = null;
+    AvailableTypes[] dataTypes = null;
+
+    try (FileReader fr = new FileReader(file); BufferedReader reader = new BufferedReader(fr)) {
       // read the header
-      List<String> parametersDescriptions = new ArrayList<>(
-          List.of(bufferedReader.readLine().split("\t", -1)));
-      List<String> parametersTypes = new ArrayList<>(
-          List.of(bufferedReader.readLine().split("\t", -1)));
-      List<String> parametersTitles = new ArrayList<>(
-          List.of(bufferedReader.readLine().split("\t", -1)));
+      String line;
+      while (titles == null && (line = reader.readLine()) != null) {
+        // split with trailing empty strings removed
+        var cells = line.split(sep, 0);
+        if (cells.length == 0) {
+          continue;
+        }
+        if (FILENAME_HEADER.equalsIgnoreCase(cells[0])) {
+          titles = cells;
+        } else if (dataTypes == null) {
+          // try to map to types otherwise use as description
+          dataTypes = AvailableTypes.tryMap(cells);
+          if (dataTypes == null && descriptions == null) {
+            descriptions = cells;
+          }
+        }
+      }
 
-      // represents the names of the RawDataFiles
-      StringMetadataColumn dataFileCol = new StringMetadataColumn("Datafile", "File name");
-
-      // compare the headers
-      if (!parametersTitles.get(0).equals(HeaderFields.TITLE.toString())
-          || !parametersDescriptions.get(0).equals(HeaderFields.DESC.toString())
-          || !parametersTypes.get(0).equals(HeaderFields.TYPE.toString()) || !parametersTitles.get(
-          1).equals(dataFileCol.getTitle()) || !parametersDescriptions.get(1)
-          .equals(dataFileCol.getDescription()) || !parametersTypes.get(1)
-          .equals(dataFileCol.getType().toString())
-          || parametersTitles.size() != parametersDescriptions.size()
-          || parametersTitles.size() != parametersTypes.size()) {
-        logger.severe("Import failed: wrong format of the header");
+      // found header?
+      if (titles == null) {
         return false;
       }
-      logger.info("The header size & format correspond, OK");
 
-      // the matched parameters columns
-      MetadataColumn[] metadataColumns = new MetadataColumn[parametersTitles.size() - 2];
-      // create a column instance according to the parameter type
-      for (int i = 2; i < parametersTitles.size(); i++) {
-        metadataColumns[i - 2] = MetadataColumn.forType(
-            AvailableTypes.valueOf(parametersTypes.get(i)), parametersTitles.get(i),
-            parametersDescriptions.get(i));
+      // empty header entry?
+      if (Arrays.stream(titles).anyMatch(String::isEmpty)) {
+        logger.severe("Could not load wide format table. A header title was empty.");
+        return false;
       }
 
-      // we will need the info about the rawDataFiles to decide whether to import the parameters or not
-      // if the parameter structure is normal but there's no such file for it to be mapped to, then
-      // we will just skip this parameter
-      RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-      String line;
-      while ((line = bufferedReader.readLine()) != null) {
-        String[] splitLine = line.split("\t", -1);
+      //
+      if (dataTypes != null && dataTypes.length != titles.length) {
+        logger.severe(
+            "Could not load wide format table. The type definition and titles need to have the same number of entries.");
+        return false;
+      }
 
-        if (splitLine.length != parametersTitles.size()) {
-          logger.severe("Import failed: wrong number of the fields in line");
-          return false;
-        }
+      logger.info("The header size & format correspond, OK");
+      // represents the names of the RawDataFiles
+      var columnData = CSVParsingUtils.readDataMapToColumns(reader, sep);
+      final Object[][] convertedData;
 
-        // find if there's a rawDataFile corresponding to this parameter in the project
-        int rawDataFileInd;
-        if ((rawDataFileInd = IntStream.range(0, files.length)
-            .filter(i -> files[i].getName().equals(splitLine[1])).findFirst().orElse(-1)) != -1) {
+      if (dataTypes != null) {
+        // map data to data types
+        convertedData = mapDataToTypes(dataTypes, columnData);
+      } else {
+        // find the best data type and map values
+        // if all values are numbers -> parse as double
+        // if all are dates -> parse as dates
+        // otherwise use string
+        dataTypes = new AvailableTypes[columnData.length];
+        convertedData = findAndMapDataTypes(dataTypes, columnData);
+      }
 
-          for (int i = 2; i < parametersTitles.size(); i++) {
-            // if the parameter value is in the right format then save it to the metadata table,
-            // otherwise abort importing
-            Object convertedParameterInput = metadataColumns[i - 2].convert(splitLine[i],
-                metadataColumns[i - 2].defaultValue());
-            if (metadataColumns[i - 2].checkInput(convertedParameterInput)) {
-              metadataTable.setValue(metadataColumns[i - 2], files[rawDataFileInd],
-                  convertedParameterInput);
-            } else if (!splitLine[i].isEmpty()) {
-              // if neither parameter value is unset nor it has valid structure
-              logger.severe("Parameter import failed: wrong parameter value format");
-              return false;
-            }
+      descriptions = Objects.requireNonNullElse(descriptions, new String[titles.length]);
+      // the matched parameters columns
+      MetadataColumn[] columns = getMetadataColumns(titles, descriptions, dataTypes);
+
+      // first column is raw data file names
+      String[] fileNames = columnData[0];
+      Map<String, RawDataFile> raws = new HashMap<>(fileNames.length);
+      for (String name : fileNames) {
+        raws.put(name, MZmineCore.getProject().getDataFileByName(name));
+      }
+
+      // finally add data to the columns: start at 1 after data files column
+      for (int col = 1; col < columns.length; col++) {
+        MetadataColumn column = columns[col];
+        Object[] colData = convertedData[col];
+        for (int row = 0; row < colData.length; row++) {
+          var rawFile = raws.get(fileNames[row]);
+          if (rawFile != null) {
+            metadataTable.setValue(column, rawFile, colData[row]);
           }
         }
       }
@@ -213,11 +238,63 @@ public class WideTableExportUtility implements TableExportUtility {
     } catch (IOException ioException) {
       logger.severe("Error while reading the metadata: " + ioException.getMessage());
       return false;
-    } catch (NullPointerException nullPointerException) {
-      logger.severe("The file for metadata import has bad format (not enough lines for a header).");
-      return false;
     }
-
     return true;
+  }
+
+  @NotNull
+  private MetadataColumn[] getMetadataColumns(final String[] titles, final String[] descriptions,
+      final AvailableTypes[] dataTypes) {
+    var metadataColumns = new MetadataColumn[titles.length];
+    // try to find existing column first otherwise
+    // create a column instance according to the parameter type
+    for (int i = 0; i < titles.length; i++) {
+      AvailableTypes type = dataTypes[i];
+      String title = titles[i];
+      String description = descriptions[i];
+      metadataColumns[i] = metadataTable.getColumnByName(title);
+      if (metadataColumns[i] == null) {
+        metadataColumns[i] = MetadataColumn.forType(type, title, description);
+      }
+    }
+    return metadataColumns;
+  }
+
+  /**
+   * Try to map String data to dates and numbers, if successful change the column type and data.
+   * Otherwise, keep the string type.
+   *
+   * @param dataTypes  an empty array of column data types - will be filled by this method
+   * @param columnData the data in columns
+   * @return the data mapped to their new types
+   */
+  private Object[][] findAndMapDataTypes(final AvailableTypes[] dataTypes,
+      final String[][] columnData) {
+    Object[][] data = new Object[dataTypes.length][];
+    for (int col = 0; col < dataTypes.length; col++) {
+      String[] column = columnData[col];
+      Object[] converted = new Object[column.length];
+      // set datatype to input array
+      dataTypes[col] = AvailableTypes.castToMostAppropriateType(column, converted);
+      data[col] = converted;
+    }
+    return data;
+  }
+
+  /**
+   * Map columns data to their types
+   *
+   * @param dataTypes  column types
+   * @param columnData data
+   * @return same size arrays with the types
+   */
+  private Object[][] mapDataToTypes(final AvailableTypes[] dataTypes, final String[][] columnData) {
+    Object[][] data = new Object[dataTypes.length][];
+    for (int col = 0; col < dataTypes.length; col++) {
+      String[] column = columnData[col];
+      AvailableTypes dataType = dataTypes[col];
+      data[col] = dataType.tryCastType(column);
+    }
+    return data;
   }
 }

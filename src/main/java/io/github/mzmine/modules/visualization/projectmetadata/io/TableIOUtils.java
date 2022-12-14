@@ -23,11 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata.table;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import java.io.File;
 
-public interface TableExportUtility {
+public interface TableIOUtils {
 
   /**
    * Export the metadata table using .tsv format.

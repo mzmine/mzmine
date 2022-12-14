@@ -174,7 +174,7 @@ public class ProjectMetadataPaneController {
 
         // if the parameter value is in the right format then save it to the metadata table,
         // otherwise show alert dialog
-        Object convertedParameterInput = parameter.convert(parameterValueNew,
+        Object convertedParameterInput = parameter.convertOrElse(parameterValueNew,
             parameter.defaultValue());
         // the first check allows us to unset an already set parameter's value
         if ((convertedParameterInput == null && parameterValueNew.isBlank())
@@ -229,7 +229,7 @@ public class ProjectMetadataPaneController {
       switch (parameterType.getValue()) {
         case TEXT -> metadataTable.addColumn(
             new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
-        case DOUBLE -> metadataTable.addColumn(
+        case NUMBER -> metadataTable.addColumn(
             new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
         case DATETIME -> metadataTable.addColumn(
             new DateMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));

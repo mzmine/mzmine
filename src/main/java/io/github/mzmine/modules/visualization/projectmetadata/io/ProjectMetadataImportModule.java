@@ -35,6 +35,7 @@ import java.io.File;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,21 +73,15 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     // get the all selected files
-    File[] fileNames = parameters.getParameter(ProjectMetadataImportParameters.fileNames)
-        .getValue();
+    File[] fileNames = parameters.getValue(ProjectMetadataImportParameters.fileNames);
 
     // null check
-    if (Arrays.asList(fileNames).contains(null)) {
+    if (Arrays.stream(fileNames).anyMatch(Objects::isNull)) {
       logger.warning("List of filenames contains null");
       return ExitCode.ERROR;
     }
 
-    try {
-      tasks.add(new ProjectMetadataImportTask(fileNames, moduleCallDate));
-    } catch (Exception e) {
-      logger.severe(e.getMessage());
-      return ExitCode.ERROR;
-    }
+    tasks.add(new ProjectMetadataImportTask(fileNames, moduleCallDate));
 
     return ExitCode.OK;
   }

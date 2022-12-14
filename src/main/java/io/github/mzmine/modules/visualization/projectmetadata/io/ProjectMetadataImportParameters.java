@@ -30,7 +30,9 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -38,6 +40,7 @@ public class ProjectMetadataImportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("tsv files", "*.tsv"), //
+      new ExtensionFilter("csv files", "*.csv"), //
       new ExtensionFilter("All files", "*.*") //
   );
 
@@ -57,12 +60,9 @@ public class ProjectMetadataImportParameters extends SimpleParameterSet {
 
     // setting an initial directory
     File[] lastFiles = getParameter(fileNames).getValue();
-    if ((lastFiles != null) && (lastFiles.length > 0)) {
-      File currentDir = lastFiles[0].getParentFile();
-      if ((currentDir != null) && (currentDir.exists())) {
-        fileChooser.setInitialDirectory(currentDir);
-      }
-    }
+    Arrays.stream(Objects.requireNonNullElse(lastFiles, new File[0])).filter(Objects::nonNull)
+        .map(File::getParentFile).filter(Objects::nonNull).filter(File::exists).findFirst()
+        .ifPresent(fileChooser::setInitialDirectory);
 
     List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
     if (selectedFiles == null) {

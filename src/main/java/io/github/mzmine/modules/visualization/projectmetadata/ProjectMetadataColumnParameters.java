@@ -25,11 +25,18 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata;
 
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
+import io.github.mzmine.util.DateTimeUtils;
+import java.time.LocalDateTime;
+import org.jetbrains.annotations.Nullable;
 
 public class ProjectMetadataColumnParameters extends SimpleParameterSet {
 
@@ -39,8 +46,94 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
   public static final TextParameter description = new TextParameter("Description",
       "Description of the new parameter", "", false);
 
+  /**
+   * Order represents the order of value conversion in
+   * {@link #castToMostAppropriateType(String[], Object[])}
+   */
   public enum AvailableTypes {
-    TEXT, DOUBLE, DATETIME
+    /**
+     * Any number - represented as double
+     */
+    NUMBER(new DoubleMetadataColumn("", "")),
+    /**
+     * Represented as {@link LocalDateTime} see {@link DateTimeUtils}
+     */
+    DATETIME(new DateMetadataColumn("", "")),
+    /**
+     * Any string
+     */
+    TEXT(new StringMetadataColumn("", ""));
+
+    private final MetadataColumn COL_INSTANCE;
+
+    AvailableTypes(final MetadataColumn instance) {
+      COL_INSTANCE = instance;
+    }
+
+    /**
+     * Uses the order of values in this enum to try and convert to other data types.
+     *
+     * @param original  original data
+     * @param converted empty array that is filled with converted values
+     * @return the final type that reflects the objects of the converted array
+     */
+    public static AvailableTypes castToMostAppropriateType(final String[] original,
+        final Object[] converted) {
+      for (var type : values()) {
+        Object[] tmp = type.tryCastType(original);
+        if (tmp != null) {
+          System.arraycopy(tmp, 0, converted, 0, tmp.length);
+          return type;
+        }
+      }
+      throw new IllegalStateException(
+          "No conversion worked. TEXT should always work though, coming from String.");
+    }
+
+    /**
+     * Tries to map the values to types and returns null otherwise on error
+     *
+     * @param values values to map
+     * @return array of same length - only if all values are mapped
+     */
+    public static @Nullable AvailableTypes[] tryMap(final String[] values) {
+      try {
+        AvailableTypes[] types = new AvailableTypes[values.length];
+        for (int i = 0; i < values.length; i++) {
+          types[i] = AvailableTypes.valueOf(values[i]);
+        }
+        return types;
+      } catch (Exception e) {
+        return null;
+      }
+    }
+
+    public MetadataColumn getInstance() {
+      return COL_INSTANCE;
+    }
+
+    /**
+     * Try to cast all values to the type of the column. Empty strings and null become null.
+     *
+     * @param values input that should be cast
+     * @return array of same length as values
+     */
+    public @Nullable Object[] tryCastType(final String... values) {
+      if (this == TEXT) {
+        return values;
+      }
+
+      try {
+        Object[] result = new Object[values.length];
+        for (int i = 0; i < values.length; i++) {
+          String v = values[i];
+          result[i] = v == null || v.isBlank() ? null : getInstance().convertOrThrow(v);
+        }
+        return result;
+      } catch (Exception ex) {
+        return null;
+      }
+    }
   }
 
   public static final ComboParameter<AvailableTypes> valueType = new ComboParameter<>("Type",
