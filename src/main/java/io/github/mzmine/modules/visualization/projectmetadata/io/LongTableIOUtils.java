@@ -66,8 +66,12 @@ public class LongTableIOUtils implements TableIOUtils {
   }
 
   /**
-   * ==================================================================== NAME  - parameter name
+   * Will be exported with the three columns:
+   * <p>
+   * NAME  - parameter name
+   * <p>
    * DESC  - description of the parameter FILE  - name of the file to which the parameter belong to
+   * <p>
    * VALUE - value of the parameter
    *
    * @param file the file in which exported metadata will be stored

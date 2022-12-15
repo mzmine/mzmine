@@ -358,6 +358,12 @@ public final class MZmineCore {
    */
   public static ExitCode setupAndRunModule(final Class<? extends MZmineRunnableModule> moduleClass,
       @Nullable Runnable onFinish, @Nullable Runnable onError, @Nullable Runnable onCancel) {
+    // throw exception on headless mode
+    if (isHeadLessMode()) {
+      throw new IllegalStateException(
+          "Cannot setup parameters in headless mode. This needs the parameter setup dialog");
+    }
+
     MZmineModule module = MZmineCore.getModuleInstance(moduleClass);
 
     if (module == null) {

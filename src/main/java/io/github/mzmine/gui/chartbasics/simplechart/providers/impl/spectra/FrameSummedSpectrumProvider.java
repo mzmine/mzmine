@@ -49,8 +49,6 @@ public class FrameSummedSpectrumProvider implements PlotXYDataProvider {
   protected final UnitFormat unitFormat;
   private final Frame frame;
 
-  private final double finishedPercentage;
-
   public FrameSummedSpectrumProvider(Frame frame) {
     this.frame = frame;
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -58,8 +56,6 @@ public class FrameSummedSpectrumProvider implements PlotXYDataProvider {
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
-
-    finishedPercentage = 0d;
   }
 
   @Override
