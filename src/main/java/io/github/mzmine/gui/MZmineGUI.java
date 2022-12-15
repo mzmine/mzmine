@@ -57,6 +57,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.web.WebUtils;
 import java.io.File;
 import java.net.URL;
 import java.time.Instant;
@@ -86,6 +87,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -93,8 +96,10 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.commons.io.FileUtils;
@@ -103,6 +108,7 @@ import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
 import org.controlsfx.control.action.Action;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
@@ -119,6 +125,7 @@ public class MZmineGUI extends Application implements Desktop {
   private static Scene rootScene;
   private static WindowLocation currentTaskManagerLocation = WindowLocation.MAIN;
   private static Stage currentTaskWindow;
+  private Label statusLabel;
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
@@ -577,13 +584,8 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public void setStatusBarText(String message) {
-    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY : Color.BLACK;
-    setStatusBarText(message, messageColor);
-  }
-
-  @Override
-  public void setStatusBarText(String message, Color textColor) {
+  public void setStatusBarText(@Nullable String message, @Nullable Color textColor,
+      @Nullable String url) {
     MZmineCore.runLater(() -> {
       if (mainWindowController == null) {
         return;
@@ -592,8 +594,21 @@ public class MZmineGUI extends Application implements Desktop {
       if (statusBar == null) {
         return;
       }
-      statusBar.setText(message);
-      statusBar.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
+      statusBar.setText(null);
+      if (statusLabel != null) {
+        statusBar.getLeftItems().remove(statusLabel);
+      }
+      statusLabel = new Label(message);
+      statusBar.getLeftItems().add(statusLabel);
+      if (textColor != null) {
+        statusLabel.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
+      }
+      if (url != null) {
+        statusLabel.setOnMouseClicked(event -> {
+          WebUtils.openURL(url);
+          event.consume();
+        });
+      }
     });
   }
 
@@ -604,6 +619,11 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void displayMessage(String title, String msg) {
+    displayMessage(title, msg, null);
+  }
+
+  @Override
+  public void displayMessage(String title, String msg, @Nullable String url) {
     MZmineCore.runLater(() -> {
 
       Dialog<ButtonType> dialog = new Dialog<>();
@@ -614,13 +634,14 @@ public class MZmineGUI extends Application implements Desktop {
       dialog.setTitle(title);
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
-      final Text text = new Text();
-//      text.getStyleClass().add("label");
-//      text.getStyleClass().add("text-id");
+      TextFlow flow = new TextFlow(new Text(msg));
+      if (url != null) {
+        Hyperlink href = new Hyperlink(url);
+        flow.getChildren().add(href);
+        href.setOnAction(event -> WebUtils.openURL(url));
+      }
 
-      text.setWrappingWidth(400);
-      text.setText(msg);
-      final FlowPane pane = new FlowPane(text);
+      final StackPane pane = new StackPane(flow);
       pane.setPadding(new Insets(5));
       dialog.getDialogPane().setContent(pane);
 
