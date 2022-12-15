@@ -80,7 +80,7 @@ public class MzTabmImportTask extends AbstractTask {
   // underlying tasks for importing raw data
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
-  MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
+  public MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
@@ -360,7 +360,11 @@ public class MzTabmImportTask extends AbstractTask {
       // Get corresponding SME objects from SMF
       List<SmallMoleculeEvidence> corrSMEList = mzTabAccess.getEvidences(smf);
       // Identification Method
-      method = corrSMEList.get(0).getIdentificationMethod().getName();
+      try {
+        method = corrSMEList.get(0).getIdentificationMethod().getName();
+      } catch (Exception e) {
+        method = null;
+      }
       // Identifier
       String identifier = sml.getDatabaseIdentifier().get(0);
       if ((url != null) && (url.equals("null"))) {
@@ -379,9 +383,13 @@ public class MzTabmImportTask extends AbstractTask {
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
-        SimpleFeatureIdentity newIdentity =
-            new SimpleFeatureIdentity(description, formula, method, identifier, url);
-        newRow.addFeatureIdentity(newIdentity, false);
+        if (method != null) {
+          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, method, identifier, url);
+          newRow.addFeatureIdentity(newIdentity, false);
+        } else {
+          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, "", identifier, url);
+          newRow.addFeatureIdentity(newIdentity, false);
+        }
       }
 
       // Add raw data file entries to row

@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+@Deprecated
 public class MzTabExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to mzTab file";
