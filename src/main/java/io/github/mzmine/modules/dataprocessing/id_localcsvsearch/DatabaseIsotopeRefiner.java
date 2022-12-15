@@ -83,12 +83,10 @@ public class DatabaseIsotopeRefiner {
                 isotopePattern,
                 Objects.requireNonNull(isotopePatternMatcher.measuredIsotopePattern(mzTolerance)), mzTolerance,
                 1000.0);
-            row.set(IsotopePatternType.class, isotopePatternMatcher.measuredIsotopePattern(mzTolerance));
             annotation.put(IsotopePatternScoreType.class, isotopePatternScore);
             Feature bestFeature = row.getBestFeature();
             ((ModularFeature) bestFeature).set(IsotopePatternType.class,
                 isotopePatternMatcher.measuredIsotopePattern(mzTolerance));
-            ((ModularFeature) bestFeature).set(IsotopePatternScoreType.class, isotopePatternScore);
             logger.info("Full isotope pattern found for m/z " + row.getAverageMZ());
           }
         }
