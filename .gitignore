@@ -9,6 +9,7 @@
 mzmine.log*
 /target
 /build
+/src/main/resources/mzmineversion.properties
 /bin
 bio
 not-bio

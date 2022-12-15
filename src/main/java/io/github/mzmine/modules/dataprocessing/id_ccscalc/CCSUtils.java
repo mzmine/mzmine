@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
@@ -42,7 +49,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javafx.beans.property.SimpleStringProperty;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,7 +67,8 @@ public class CCSUtils {
   private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
   private static final TDFUtils tdfUtils = new TDFUtils();
 
-  private CCSUtils() {}
+  private CCSUtils() {
+  }
 
   /**
    * @return The calculated CCS value or null if no calibration information is available.
@@ -66,13 +76,31 @@ public class CCSUtils {
   public static Float calcCCS(double mz, @NotNull Float mobility,
       @NotNull MobilityType mobilityType, int charge, @NotNull IMSRawDataFile file) {
     return switch (mobilityType) {
-      case DRIFT_TUBE, TRAVELING_WAVE -> file.getCCSCalibration() != null ? file.getCCSCalibration()
-          .getCCS(mz, charge, mobility) : null;
-      case TIMS -> file.getCCSCalibration() != null ? file.getCCSCalibration()
-          .getCCS(mz, charge, mobility)
-          : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
+      case DRIFT_TUBE, TRAVELING_WAVE ->
+          file.getCCSCalibration() != null ? file.getCCSCalibration().getCCS(mz, charge, mobility)
+              : null;
+      case TIMS ->
+          file.getCCSCalibration() != null ? file.getCCSCalibration().getCCS(mz, charge, mobility)
+              : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
       case NONE, FAIMS, MIXED -> logUnsupportedMobilityUnit();
     };
+  }
+
+  /**
+   * @param file Represents a raw data file @return The {@link IMSRawDataFile#getMobilityType()} and
+   *             {@link IMSRawDataFile#getCCSCalibration()} of this data file.
+   * @return true if it has the valid mobility type and the calibration.
+   * @author https://github.com/Tarush-Singh35
+   */
+  public static boolean hasValidMobilityType(@NotNull IMSRawDataFile file) {
+    //Valid Mobility Check for CCS calculation in the function
+    if (file.getMobilityType() == MobilityType.TIMS) {
+      return true;
+    } else {
+      return (file.getMobilityType() == MobilityType.DRIFT_TUBE
+          || file.getMobilityType() == MobilityType.TRAVELING_WAVE)
+          && file.getCCSCalibration() != null;
+    }
   }
 
   /**
@@ -105,7 +133,8 @@ public class CCSUtils {
             new ImportType(true, "mobility", DataTypes.get(
                 io.github.mzmine.datamodel.features.types.numbers.MobilityType.class)), //
             new ImportType(true, "ccs", DataTypes.get(CCSType.class)), //
-            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0]);
+            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0],
+        new SimpleStringProperty());
 
     if (importTypes == null) {
       return null;
@@ -153,13 +182,13 @@ public class CCSUtils {
       final Range<Float> mobRange = mobTol.getToleranceRange(potentialCalibrant.libraryMobility());
       final Range<Double> mzRange = mzTol.getToleranceRange(potentialCalibrant.libraryMz());
 
-      final List<FeatureListRow> rows = FeatureListUtils.getRows(rowsByMz, rtRange, mzRange,
-              mobRange, true).stream().filter(
-              r -> r.getAverageHeight() > minHeight && r.getBestFeature().getRepresentativeScan()
-                  .getPolarity().equals(PolarityType.fromInt(potentialCalibrant.libraryCharge())))
-          .toList();
-      final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(rows, mzRange, null,
-          mobRange);
+      final List<FeatureListRow> candidates = FeatureListUtils.getCandidatesWithinRanges(mzRange,
+          rtRange, mobRange, rowsByMz, true).stream().filter(
+          r -> r.getAverageHeight() > minHeight && Objects.equals(
+              r.getBestFeature().getRepresentativeScan().getPolarity(),
+              PolarityType.fromInt(potentialCalibrant.libraryCharge()))).toList();
+      final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(candidates, mzRange, null,
+          mobRange, null, 1, 1, 1, 1).orElse(null);
 
       if (calibrantRow != null) {
         var calibrant = potentialCalibrant;

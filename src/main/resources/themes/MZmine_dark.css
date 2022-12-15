@@ -1,4 +1,3 @@
-
 /* dark mode stuff */
 
 .root {
@@ -28,8 +27,11 @@
   -scroll-bar-bg: derive(-fx-base, 15%);
 
   -highlight: #56b4e9;
+  -highlight-dark-border: #19475d;
   -selection-highlight-outline: -highlight;
 
+
+  -titled-pane-arrow-color: -highlight-dark-border;
   /** **/
 
   -default-border-color: derive(-fx-base, 10%);
@@ -57,6 +59,10 @@
 
 .text-field {
   -fx-prompt-text-fill: gray;
+}
+
+.text-id {
+  -fx-fill: -fx-font-color;
 }
 
 /** Controls **/
@@ -91,6 +97,14 @@
 .tree-cell:odd {
   -fx-control-inner-background: -cell-odd-bg;
   -fx-text-fill: -text-color;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -highlight;
+}
+
+.table-row-cell:selected .text {
+       -fx-fill: black ;
 }
 
   /** also counts for TreeTableView **/
@@ -160,4 +174,13 @@
 .progress-bar > .bar {
   -fx-background-color: -highlight;
   -fx-box-border: -highlight;
+}
+
+
+.accordion > .titled-pane > .title {
+    -fx-background-color: -control-bg, -fx-inner-border, -fx-body-color;
+}
+
+.accordion .titled-pane>.title>.arrow-button>.arrow {
+    -fx-background-color: -titled-pane-arrow-color;
 }

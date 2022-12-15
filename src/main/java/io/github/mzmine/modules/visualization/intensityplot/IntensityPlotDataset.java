@@ -1,82 +1,88 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-
-import org.jfree.data.DomainOrder;
-import org.jfree.data.general.AbstractDataset;
-import org.jfree.data.statistics.StatisticalCategoryDataset;
-import org.jfree.data.xy.IntervalXYDataset;
-
 import com.google.common.primitives.Doubles;
-
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.MathUtils;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import org.jfree.data.DomainOrder;
+import org.jfree.data.general.AbstractDataset;
+import org.jfree.data.statistics.StatisticalCategoryDataset;
+import org.jfree.data.xy.IntervalXYDataset;
 
 /**
  * This class implements 2 kinds of data sets - CategoryDataset and XYDataset CategoryDataset is
  * used if X axis is a raw data file or string parameter XYDataset is used if X axis is a number
  * parameter
  */
-class IntensityPlotDataset extends AbstractDataset
-    implements StatisticalCategoryDataset, IntervalXYDataset {
+class IntensityPlotDataset extends AbstractDataset implements StatisticalCategoryDataset,
+    IntervalXYDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private Object xAxisValueSource;
   private YAxisValueSource yAxisValueSource;
   private Comparable<?> xValues[];
-  private RawDataFile selectedFiles[];
-  private FeatureListRow selectedRows[];
+  private RawDataFile[] selectedFiles;
+  private FeatureListRow[] selectedRows;
 
   @SuppressWarnings("rawtypes")
   IntensityPlotDataset(ParameterSet parameters) {
 
-    FeatureList featureList = parameters.getParameter(IntensityPlotParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
-    this.xAxisValueSource =
-        parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue();
-    this.yAxisValueSource =
-        parameters.getParameter(IntensityPlotParameters.yAxisValueSource).getValue();
-    this.selectedFiles = parameters.getParameter(IntensityPlotParameters.dataFiles).getValue();
+    FeatureList featureList = parameters.getParameter(IntensityPlotParameters.featureList)
+        .getValue().getMatchingFeatureLists()[0];
+    this.xAxisValueSource = parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
+        .getValue();
+    this.yAxisValueSource = parameters.getParameter(IntensityPlotParameters.yAxisValueSource)
+        .getValue();
 
-    this.selectedRows =
-        parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(featureList);
+    this.selectedFiles = parameters.getParameter(IntensityPlotParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
+
+    this.selectedRows = parameters.getParameter(IntensityPlotParameters.selectedRows)
+        .getMatchingRows(featureList);
 
     if (xAxisValueSource instanceof ParameterWrapper) {
       MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
       UserParameter xAxisParameter = ((ParameterWrapper) xAxisValueSource).getParameter();
-      LinkedHashSet<Comparable> parameterValues = new LinkedHashSet<Comparable>();
+      LinkedHashSet<Comparable> parameterValues = new LinkedHashSet<>();
       for (RawDataFile file : selectedFiles) {
         Object value = project.getParameterValue(xAxisParameter, file);
         parameterValues.add((Comparable<?>) value);
@@ -92,8 +98,9 @@ class IntensityPlotDataset extends AbstractDataset
 
     if (xAxisValueSource == IntensityPlotParameters.rawDataFilesOption) {
       xValues = new String[selectedFiles.length];
-      for (int i = 0; i < selectedFiles.length; i++)
+      for (int i = 0; i < selectedFiles.length; i++) {
         xValues[i] = selectedFiles[i].getName();
+      }
     }
   }
 
@@ -102,7 +109,7 @@ class IntensityPlotDataset extends AbstractDataset
   }
 
   Feature[] getFeatures(Comparable<?> xValue, FeatureListRow row) {
-    RawDataFile files[] = getFiles(xValue);
+    RawDataFile[] files = getFiles(xValue);
     Feature[] features = new Feature[files.length];
     for (int i = 0; i < files.length; i++) {
       features[i] = row.getFeature(files[i]);
@@ -117,18 +124,20 @@ class IntensityPlotDataset extends AbstractDataset
   RawDataFile[] getFiles(Comparable<?> xValue) {
     if (xAxisValueSource instanceof String) {
       RawDataFile columnFile = selectedFiles[getColumnIndex(xValue)];
-      return new RawDataFile[] {columnFile};
+      return new RawDataFile[]{columnFile};
     }
     if (xAxisValueSource instanceof ParameterWrapper) {
-      HashSet<RawDataFile> files = new HashSet<RawDataFile>();
+      HashSet<RawDataFile> files = new HashSet<>();
       UserParameter<?, ?> xAxisParameter = ((ParameterWrapper) xAxisValueSource).getParameter();
       MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
       for (RawDataFile file : selectedFiles) {
         Object fileValue = project.getParameterValue(xAxisParameter, file);
-        if (fileValue == null)
+        if (fileValue == null) {
           continue;
-        if (fileValue.equals(xValue))
+        }
+        if (fileValue.equals(xValue)) {
           files.add(file);
+        }
       }
       return files.toArray(new RawDataFile[0]);
     }
@@ -137,25 +146,28 @@ class IntensityPlotDataset extends AbstractDataset
 
   public Number getMeanValue(int row, int column) {
     Feature[] features = getFeatures(xValues[column], selectedRows[row]);
-    HashSet<Double> values = new HashSet<Double>();
-    for (int i = 0; i < features.length; i++) {
-      if (features[i] == null)
+    HashSet<Double> values = new HashSet<>();
+    for (Feature feature : features) {
+      if (feature == null) {
         continue;
-      if (yAxisValueSource == YAxisValueSource.HEIGHT)
-        values.add((double) features[i].getHeight());
-      if (yAxisValueSource == YAxisValueSource.AREA)
-        values.add((double) features[i].getArea());
-      if (yAxisValueSource == YAxisValueSource.RT)
-        values.add((double) features[i].getRT());
+      }
+      if (yAxisValueSource == YAxisValueSource.HEIGHT) {
+        values.add((double) feature.getHeight());
+      }
+      if (yAxisValueSource == YAxisValueSource.AREA) {
+        values.add((double) feature.getArea());
+      }
+      if (yAxisValueSource == YAxisValueSource.RT) {
+        values.add((double) feature.getRT());
+      }
     }
-    double doubleValues[] = Doubles.toArray(values);
-    if (doubleValues.length == 0)
+    double[] doubleValues = Doubles.toArray(values);
+    if (doubleValues.length == 0) {
       return 0;
-    double mean = MathUtils.calcAvg(doubleValues);
-    return mean;
+    }
+    return MathUtils.calcAvg(doubleValues);
   }
 
-  @SuppressWarnings("rawtypes")
   public Number getMeanValue(Comparable rowKey, Comparable columnKey) {
     throw (new UnsupportedOperationException("Unsupported"));
   }
@@ -164,23 +176,27 @@ class IntensityPlotDataset extends AbstractDataset
     Feature[] features = getFeatures(xValues[column], selectedRows[row]);
 
     // if we have only 1 peak, there is no standard deviation
-    if (features.length == 1)
+    if (features.length == 1) {
       return 0;
-
-    HashSet<Double> values = new HashSet<Double>();
-    for (int i = 0; i < features.length; i++) {
-      if (features[i] == null)
-        continue;
-      if (yAxisValueSource == YAxisValueSource.HEIGHT)
-        values.add((double) features[i].getHeight());
-      if (yAxisValueSource == YAxisValueSource.AREA)
-        values.add((double) features[i].getArea());
-      if (yAxisValueSource == YAxisValueSource.RT)
-        values.add((double) features[i].getRT());
     }
-    double doubleValues[] = Doubles.toArray(values);
-    double std = MathUtils.calcStd(doubleValues);
-    return std;
+
+    HashSet<Double> values = new HashSet<>();
+    for (int i = 0; i < features.length; i++) {
+      if (features[i] == null) {
+        continue;
+      }
+      if (yAxisValueSource == YAxisValueSource.HEIGHT) {
+        values.add((double) features[i].getHeight());
+      }
+      if (yAxisValueSource == YAxisValueSource.AREA) {
+        values.add((double) features[i].getArea());
+      }
+      if (yAxisValueSource == YAxisValueSource.RT) {
+        values.add((double) features[i].getRT());
+      }
+    }
+    double[] doubleValues = Doubles.toArray(values);
+    return MathUtils.calcStd(doubleValues);
   }
 
   @SuppressWarnings("rawtypes")
@@ -191,8 +207,9 @@ class IntensityPlotDataset extends AbstractDataset
   @SuppressWarnings("rawtypes")
   public int getColumnIndex(Comparable column) {
     for (int i = 0; i < selectedFiles.length; i++) {
-      if (selectedFiles[i].getName().equals(column))
+      if (selectedFiles[i].getName().equals(column)) {
         return i;
+      }
     }
     return -1;
   }
@@ -209,8 +226,9 @@ class IntensityPlotDataset extends AbstractDataset
   @SuppressWarnings("rawtypes")
   public int getRowIndex(Comparable row) {
     for (int i = 0; i < selectedRows.length; i++) {
-      if (selectedRows[i].toString().equals(row))
+      if (selectedRows[i].toString().equals(row)) {
         return i;
+      }
     }
     return -1;
   }

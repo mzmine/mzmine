@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -29,6 +36,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -37,6 +46,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Memory efficient storage of {@link MobilityScan}s. Methods return an instance of
+ * {@link StoredMobilityScan} or {@link StoredMobilityScanMassList} which is garbage collected if
+ * not used anymore.
+ *
+ * @author https://github.com/steffenheu
+ */
 public class MobilityScanStorage {
 
   // raw data
@@ -107,7 +123,8 @@ public class MobilityScanStorage {
    * @param massDetectorParameters The parameters for the mass detector.
    */
   public void generateAndAddMobilityScanMassLists(@Nullable MemoryMapStorage storage,
-      @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters) {
+      @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters,
+      boolean denormalizeMSnScans) {
 
     if (massDetector instanceof CentroidMassDetector &&
         Double.compare(massDetectorParameters.getValue(CentroidMassDetectorParameters.noiseLevel),
@@ -126,9 +143,24 @@ public class MobilityScanStorage {
 
     for (MobilityScan mobilityScan : getMobilityScans()) {
       double[][] mzIntensity = massDetector.getMassValues(mobilityScan, massDetectorParameters);
+      if (denormalizeMSnScans && frame.getMSLevel() > 1) {
+        ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensity[1],
+            frame.getInjectionTime());
+      }
       data.add(mzIntensity);
     }
 
+    setMassLists(storage, data);
+  }
+
+  /**
+   * Sets the new masslists
+   *
+   * @param storage memory storage for masslists
+   * @param data    the masslists as [0,1] as [mzs, intensities] arrays, one for each MobilityScan
+   *                in this frame
+   */
+  public void setMassLists(final @Nullable MemoryMapStorage storage, final List<double[][]> data) {
     AtomicInteger biggestOffset = new AtomicInteger(0);
     final int[] massListStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
     this.massListStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage,
@@ -268,6 +300,11 @@ public class MobilityScanStorage {
 
   // mass list
   public int getNumberOfMassListDatapoints(int index) {
+    if (massListStorageOffsets == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     assert index < getNumberOfMobilityScans();
     if (index < massListStorageOffsets.capacity() - 1) {
       return massListStorageOffsets.get(index + 1) - massListStorageOffsets.get(index);
@@ -281,6 +318,11 @@ public class MobilityScanStorage {
    * @return The storage offset (where data points of this mass list start)
    */
   public int getMassListStorageOffset(int index) {
+    if (massListStorageOffsets == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     return massListStorageOffsets.get(index);
   }
 
@@ -289,6 +331,11 @@ public class MobilityScanStorage {
    * @return The base peak index (may be -1 if no base peak was detected).
    */
   public int getMassListBasePeakIndex(int index) {
+    if (massListBasePeakIndices == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     return massListBasePeakIndices.get(index);
   }
 
@@ -296,6 +343,11 @@ public class MobilityScanStorage {
    * @return The maximum number of points in a mass list.
    */
   public int getMassListMaxNumPoints() {
+    if (massListMaxNumPoints == -1) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     return massListMaxNumPoints;
   }
 
@@ -303,36 +355,71 @@ public class MobilityScanStorage {
    * @return The total number of data points in all mobility scan-mass lists of this frame.
    */
   public int getMassListTotalNumPoints() {
+    if (massListIntensityValues == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     return massListIntensityValues.capacity();
   }
 
   public void getMassListMzValues(int mobilityScanIndex, double[] dst, int offset) {
+    if (massListMzValues == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
     massListMzValues.get(getMassListStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfMassListDatapoints(mobilityScanIndex));
   }
 
   public void getAllMassListMzValues(double[] dst) {
+    if (massListMzValues == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     assert dst.length >= getMassListTotalNumPoints();
     massListMzValues.get(0, dst, 0, getMassListTotalNumPoints());
   }
 
   public void getMassListIntensityValues(int mobilityScanIndex, double[] dst, int offset) {
+    if (massListIntensityValues == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
     massListIntensityValues.get(getMassListStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfMassListDatapoints(mobilityScanIndex));
   }
 
   public void getAllMassListIntensityValues(double[] dst) {
+    if (massListIntensityValues == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     assert dst.length >= getMassListTotalNumPoints();
     massListIntensityValues.get(0, dst, 0, getMassListTotalNumPoints());
   }
 
   public double getMassListMzValue(int mobilityScanIndex, int index) {
+    if (massListMzValues == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     return massListMzValues.get(getMassListStorageOffset(mobilityScanIndex) + index);
   }
 
   public double getMassListIntensityValue(int mobilityScanIndex, int index) {
+    if (massListIntensityValues == null) {
+      throw new MissingMassListException(
+          "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
+          null);
+    }
     return massListIntensityValues.get(getMassListStorageOffset(mobilityScanIndex) + index);
   }
 }

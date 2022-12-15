@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
@@ -86,6 +93,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -384,14 +392,15 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   /**
-   * Registers a data type column and all it's sub colums to the {@link
-   * FeatureTableFX#newColumnMap}.
+   * Registers a data type column and all it's sub colums to the
+   * {@link FeatureTableFX#newColumnMap}.
    */
   private void registerColumn(@NotNull TreeTableColumn<ModularFeatureListRow, ?> column,
       @NotNull ColumnType type, @NotNull DataType<?> dataType, @Nullable RawDataFile file) {
     newColumnMap.put(column, new ColumnID(dataType, type, file, -1));
 
     // add all sub columns to the list (not for range types - no need to only show one)
+    // the main data type is set to subcolumns as data type.
     if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()
         && !(dataType instanceof NumberRangeType)) {
       int i = 0;
@@ -570,8 +579,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
           return;
         }
         Object userData = tableColumn.getUserData();
+        final ObservableValue<?> observableValue = tableColumn.getCellObservableValue(
+            focusedCell.getTreeItem());
+        final Object cellValue = observableValue.getValue();
 
-        if (userData instanceof DataType<?>) {
+        if (userData instanceof DataType<?> dataType) {
           List<RawDataFile> files = new ArrayList<>();
           ColumnID id = newColumnMap.get(tableColumn);
           if (id == null) {
@@ -586,8 +598,14 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             }
           }
 
-          ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
-          Runnable runnable = ((DataType<?>) userData).getDoubleClickAction(row, files);
+          // if the data type is equal to the super type, it's not a subcolumn. If it's not equal,
+          // it's a subcolumn.
+          final DataType<?> superDataType =
+              id.getDataType().equals(dataType) ? null : id.getDataType();
+
+          final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
+          final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
+              cellValue));
           if (runnable != null) {
             MZmineCore.getTaskController().addTask(
                 new FeatureTableDoubleClickTask(runnable, getFeatureList(),
@@ -751,7 +769,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       boolean visible) {
     final DataType type = DataTypes.get(clazz);
     String key = (parentHeader != null && parentHeader.isBlank() ? parentHeader + ":" : "")
-                 + type.getHeaderString();
+        + type.getHeaderString();
     if (columnType == ColumnType.ROW_TYPE) {
       rowTypesParameter.setDataTypeVisible(key, visible);
     } else {

@@ -1,8 +1,34 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.visualization.compdb;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
@@ -32,10 +58,10 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class CompoundDatabaseMatchPane extends BorderPane {
 
-  public static final int structureWidth = (int) Math.min((
-      Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3), 500);
-  public static final int structureHeight = (int) Math.min((
-      Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 6), 250);
+  public static final int structureWidth = (int) Math.min(
+      (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3), 500);
+  public static final int structureHeight = (int) Math.min(
+      (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 6), 250);
 
   private static final Logger logger = Logger.getLogger(CompoundDatabaseMatchPane.class.getName());
 
@@ -162,7 +188,8 @@ public class CompoundDatabaseMatchPane extends BorderPane {
       final Label valueLabel = new Label(strValue);
       if (row != null && row.getBestFeature() != null) {
         valueLabel.setOnMouseClicked(
-            e -> type.getDoubleClickAction(row, List.of(row.getBestFeature().getRawDataFile())));
+            e -> type.getDoubleClickAction(row, List.of(row.getBestFeature().getRawDataFile()),
+                new CompoundDatabaseMatchesType(), value));
       }
 
       pane.add(label, 0, rowCounter);

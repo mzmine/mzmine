@@ -1,31 +1,43 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package datamodel;
+
+import static datamodel.DataTypeTestUtils.simpleDataTypeSaveLoadTest;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -39,7 +51,7 @@ public class GeneralTypeTests {
   void detectionTypeTest() {
     DetectionType type = new DetectionType();
     var value = FeatureStatus.DETECTED;
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+    simpleDataTypeSaveLoadTest(type, value);
   }
 
   @Test
@@ -49,7 +61,35 @@ public class GeneralTypeTests {
     IsotopePattern pattern = new SimpleIsotopePattern(new double[]{200d, 201d, 202d},
         new double[]{1.0, 0.5, 0.11}, 1, IsotopePatternStatus.DETECTED, "Save load test");
 
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, pattern);
+    simpleDataTypeSaveLoadTest(type, pattern);
+  }
+
+  @Test
+  @DisplayName("AlignmentScore save load")
+  void alignmentScoreTest() {
+    AlignmentMainType type = new AlignmentMainType();
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, null));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, null, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, null, 0.12f, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, null, 0.000123, 0.12f, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, null, 5.1f, 0.000123, 0.12f, 0.43213f));
+  }
+
+  @Test
+  @DisplayName("AlignmentScores sub types test")
+  void alignmentScoreSubTypesTest() {
+    AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f,
+        0.43213f);
+    for (final DataType su : AlignmentScores.subTypes) {
+      assert value.getValue(su) != null;
+    }
   }
 
   @Test
@@ -63,7 +103,7 @@ public class GeneralTypeTests {
         new SimpleIsotopePattern(new double[]{100d, 100.5, 101d}, new double[]{1.0, 0.5, 0.11}, 2,
             IsotopePatternStatus.DETECTED, "Save load test2")));
 
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, pattern);
+    simpleDataTypeSaveLoadTest(type, pattern);
   }
 
   // todo FeatureGroupType
@@ -74,7 +114,7 @@ public class GeneralTypeTests {
     SimpleFeatureInformation info = new SimpleFeatureInformation();
     info.addProperty("bla", "blub");
     info.addProperty("ß012eisd", "ß0widqscn/+9");
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, info);
+    simpleDataTypeSaveLoadTest(type, info);
   }
 
   /**
@@ -88,6 +128,6 @@ public class GeneralTypeTests {
   void mobilityUnitTypeTest() {
     MobilityUnitType type = new MobilityUnitType();
     var value = MobilityType.TIMS;
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+    simpleDataTypeSaveLoadTest(type, value);
   }
 }

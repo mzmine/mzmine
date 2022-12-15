@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
@@ -50,6 +57,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Double> collisionEnergyColumn;
   private final TDFDataColumn<Double> isolationWidthColumn;
   private final TDFDataColumn<Double> largestPeakMzColumn;
+  private final TDFDataColumn<Double> isolationMzColumn;
   private final TDFDataColumn<Long> chargeColumn;
   private final TDFDataColumn<Long> parentIdColumn;
 
@@ -63,6 +71,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
 
   public FramePrecursorTable() {
     super(FRAME_PRECURSOR_TABLE, TDFPasefFrameMsMsInfoTable.FRAME_ID);
+
     // added by constructor
     frameIdColumn = (TDFDataColumn<Long>) getColumn(TDFPasefFrameMsMsInfoTable.FRAME_ID);
 
@@ -72,20 +81,14 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
     scanNumEndColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_END);
     collisionEnergyColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY);
     isolationWidthColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.ISOLATION_WIDTH);
+    isolationMzColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.ISOLATION_MZ);
     largestPeakMzColumn = new TDFDataColumn<>(TDFPrecursorTable.LARGEST_PEAK_MZ);
     chargeColumn = new TDFDataColumn<>(TDFPrecursorTable.CHARGE);
     parentIdColumn = new TDFDataColumn<>(TDFPrecursorTable.PARENT_ID);
 
-    columns.addAll(Arrays.asList(
-        precursorIdColumn,
-        scanNumBeginColumn,
-        scanNumEndColumn,
-        collisionEnergyColumn,
-        isolationWidthColumn,
-        largestPeakMzColumn,
-        chargeColumn,
-        parentIdColumn
-    ));
+    columns.addAll(Arrays.asList(precursorIdColumn, scanNumBeginColumn, scanNumEndColumn,
+        collisionEnergyColumn, isolationWidthColumn, isolationMzColumn, largestPeakMzColumn,
+        chargeColumn, parentIdColumn));
 
     info = new HashMap<>();
   }
@@ -104,15 +107,15 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
     final String msmstable = TDFPasefFrameMsMsInfoTable.PASEF_FRAME_MSMS_TABLE_NAME;
     final String precursorstable = TDFPrecursorTable.PRECURSOR_TABLE_NAME;
 
-    return msmstable + "." + TDFPasefFrameMsMsInfoTable.FRAME_ID + ", "
-        + msmstable + "." + TDFPasefFrameMsMsInfoTable.PRECURSOR_ID + ", "
-        + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN + ", "
-        + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_END + ", "
-        + msmstable + "." + TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY + ", "
-        + msmstable + "." + TDFPasefFrameMsMsInfoTable.ISOLATION_WIDTH + ", "
-        + precursorstable + "." + TDFPrecursorTable.LARGEST_PEAK_MZ + ", "
-        + precursorstable + "." + TDFPrecursorTable.CHARGE + ", "
-        + precursorstable + "." + TDFPrecursorTable.PARENT_ID;
+    return msmstable + "." + TDFPasefFrameMsMsInfoTable.FRAME_ID + ", " + msmstable + "."
+        + TDFPasefFrameMsMsInfoTable.PRECURSOR_ID + ", " + msmstable + "."
+        + TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN + ", " + msmstable + "."
+        + TDFPasefFrameMsMsInfoTable.SCAN_NUM_END + ", " + msmstable + "."
+        + TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY + ", " + msmstable + "."
+        + TDFPasefFrameMsMsInfoTable.ISOLATION_WIDTH + ", " + msmstable + "."
+        + TDFPasefFrameMsMsInfoTable.ISOLATION_MZ + ", " + precursorstable + "."
+        + TDFPrecursorTable.LARGEST_PEAK_MZ + ", " + precursorstable + "."
+        + TDFPrecursorTable.CHARGE + ", " + precursorstable + "." + TDFPrecursorTable.PARENT_ID;
   }
 
   @Override
@@ -120,11 +123,9 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
     String msmstable = TDFPasefFrameMsMsInfoTable.PASEF_FRAME_MSMS_TABLE_NAME;
     String precursorstable = TDFPrecursorTable.PRECURSOR_TABLE_NAME;
 
-    return "SELECT " + columnHeadersForQuery + " "
-        + "FROM " + msmstable + " "
-        + "LEFT JOIN " + precursorstable
-        + " ON " + msmstable + "." + TDFPasefFrameMsMsInfoTable.PRECURSOR_ID
-        + "=" + precursorstable + "." + TDFPrecursorTable.PRECURSOR_ID + " "
+    return "SELECT " + columnHeadersForQuery + " " + "FROM " + msmstable + " " + "LEFT JOIN "
+        + precursorstable + " ON " + msmstable + "." + TDFPasefFrameMsMsInfoTable.PRECURSOR_ID + "="
+        + precursorstable + "." + TDFPrecursorTable.PRECURSOR_ID + " "
         //
         + "ORDER BY " + msmstable + "." + TDFPasefFrameMsMsInfoTable.FRAME_ID;
   }
@@ -137,11 +138,22 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
       final int frameId = frameIdColumn.get(i).intValue();
 
       Set<BuildingPASEFMsMsInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
-      entry.add(new BuildingPASEFMsMsInfo(largestPeakMzColumn.get(i),
+
+      /**
+       * for some special cases the largest peak m/z might be 0 (usually corresponds with
+       * monoisotopic although monoisotopic is just an estimate). In that case, use the isolation
+       * m/z because it is always set.
+       */
+      final double precursorMz =
+          Double.compare(largestPeakMzColumn.get(i), 0d) != 0 ? largestPeakMzColumn.get(i)
+              : isolationMzColumn.get(i);
+
+      entry.add(new BuildingPASEFMsMsInfo(precursorMz,
           Range.closedOpen(scanNumBeginColumn.get(i).intValue() - 1,
               // bruker scan numbers start at 1, ours start at 0
               scanNumEndColumn.get(i).intValue() - 1), collisionEnergyColumn.get(i).floatValue(),
-          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId, isolationWidthColumn.get(i)));
+          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId,
+          isolationWidthColumn.get(i)));
     }
   }
 

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.spectraldb.parser;
@@ -22,7 +29,16 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonNumber;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
+import jakarta.json.JsonValue.ValueType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -36,14 +52,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
 import org.jetbrains.annotations.Nullable;
 
 // top level json objects/arrays
@@ -57,21 +65,22 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
   private static final String COMPOUND = "compound", MONA_ID = "id", META_DATA = "metaData", SPECTRUM = "spectrum", SPLASH = "splash", SUBMITTER = "submitter";
 
-  private static Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
+  private static final Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
 
   public MonaJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
-    super.parse(mainTask, dataBaseFile);
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
+      throws IOException {
+    super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing MONA spectral json library " + dataBaseFile.getAbsolutePath());
 
     AtomicInteger correct = new AtomicInteger(0);
     AtomicInteger error = new AtomicInteger(0);
 
-    List<SpectralDBEntry> results = new ArrayList<>();
+    List<SpectralLibraryEntry> results = new ArrayList<>();
 
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
@@ -79,7 +88,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
       String l = br.readLine();
       while (l != null) {
         if (l.length() > 2) {
-          final SpectralDBEntry entry = parseLineToEntry(correct, error, l);
+          final SpectralLibraryEntry entry = parseLineToEntry(library, correct, error, l);
           if (entry != null) {
             results.add(entry);
           }
@@ -101,11 +110,11 @@ public class MonaJsonParser extends SpectralDBTextParser {
       }
 
       // read the rest in parallel
-      final List<SpectralDBEntry> entries = br.lines().filter(line -> {
+      final List<SpectralLibraryEntry> entries = br.lines().filter(line -> {
             processedLines.incrementAndGet();
             return line.length() > 2;
-          }).parallel().map(line -> parseLineToEntry(correct, error, line)).filter(Objects::nonNull)
-          .toList();
+          }).parallel().map(line -> parseLineToEntry(library, correct, error, line))
+          .filter(Objects::nonNull).toList();
 
       if (error.get() > 0) {
         logger.warning(
@@ -119,9 +128,10 @@ public class MonaJsonParser extends SpectralDBTextParser {
     }
   }
 
-  private SpectralDBEntry parseLineToEntry(AtomicInteger correct, AtomicInteger error, String l) {
+  private SpectralLibraryEntry parseLineToEntry(SpectralLibrary library, AtomicInteger correct,
+      AtomicInteger error, String l) {
     try {
-      final SpectralDBEntry entry = parseToEntry(l);
+      final SpectralLibraryEntry entry = parseToEntry(library, l);
       if (entry != null) {
         correct.getAndIncrement();
         return entry;
@@ -135,14 +145,14 @@ public class MonaJsonParser extends SpectralDBTextParser {
   }
 
   @Nullable
-  private SpectralDBEntry parseToEntry(String line) {
+  private SpectralLibraryEntry parseToEntry(SpectralLibrary library, String line) {
     try (JsonReader reader = Json.createReader(new StringReader(line))) {
       JsonObject json = reader.readObject();
-      return getDBEntry(json);
+      return getDBEntry(library, json);
     }
   }
 
-  public SpectralDBEntry getDBEntry(JsonObject main) {
+  public SpectralLibraryEntry getDBEntry(SpectralLibrary library, JsonObject main) {
     // extract dps
     DataPoint[] dps = getDataPoints(main);
     if (dps == null || dps.length == 0) {
@@ -151,7 +161,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
     // metadata
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
     extractAllFields(main, map);
-    return new SpectralDBEntry(map, dps);
+    return SpectralLibraryEntry.create(library.getStorage(), map, dps);
   }
 
   public void extractAllFields(JsonObject main, Map<DBEntryField, Object> map) {
@@ -209,7 +219,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
         case ION_TYPE:
           value = readMetaData(main, "precursor type");
           break;
-        case ION_MODE:
+        case POLARITY:
           value = readMetaData(main, "ionization mode");
           break;
         case ION_SOURCE:
@@ -221,7 +231,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
         case MOLWEIGHT:
           value = readMetaDataDouble(main, "exact mass");
           break;
-        case MZ:
+        case PRECURSOR_MZ:
           value = readMetaDataDouble(main, "precursor m/z");
           break;
         case NAME:
@@ -288,7 +298,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
           break;
         case SOFTWARE:
           break;
-        case SYNONYM:
+        case SYNONYMS:
           break;
         default:
           break;

@@ -1,23 +1,31 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -45,28 +53,29 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public interface CompoundDBAnnotation extends Cloneable {
+public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
-  String XML_ELEMENT = "compound_db_annotation";
-  String XML_TYPE_ATTRIBUTE = "annotationtype";
+  String XML_ELEMENT_OLD = "compound_db_annotation";
+  String XML_TYPE_ATTRIBUTE_OLD = "annotationtype";
   String XML_NUM_ENTRIES_ATTR = "entries";
 
   @NotNull
@@ -74,6 +83,10 @@ public interface CompoundDBAnnotation extends Cloneable {
       CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     for (IonType adduct : library.getAllAdducts()) {
+      if (adduct.isUndefinedAdduct() || adduct.isUndefinedAdductParent()
+          || adduct.getName().contains("?")) {
+        continue;
+      }
       try {
         if (adduct.getName().contains("?")) {
           continue;
@@ -88,6 +101,27 @@ public interface CompoundDBAnnotation extends Cloneable {
   }
 
   /**
+   * @param baseAnnotation The annotation to check.
+   * @param useIonLibrary  true if an ion library shall be used later on to
+   *                       ionise the formula/smiles/neutral mass.
+   * @return True if the baseAnnotation contains a precursor m/z and
+   * useIonLibrary is false. Also true if useIonLibrary is true and the
+   * annotation contains a smiles, a formula or a neutral mass.
+   */
+  static boolean isBaseAnnotationValid(CompoundDBAnnotation baseAnnotation,
+      boolean useIonLibrary) {
+    if (baseAnnotation.getPrecursorMZ() != null && !useIonLibrary) {
+      return true;
+    } else if (useIonLibrary && (
+        baseAnnotation.get(NeutralMassType.class) != null
+            || baseAnnotation.getFormula() != null
+            || baseAnnotation.getSmiles() != null)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Calculates the m/z for a given adduct.
    *
    * @param annotation
@@ -95,60 +129,59 @@ public interface CompoundDBAnnotation extends Cloneable {
    * @return
    * @throws CannotDetermineMassException
    */
-  static double calcMzForAdduct(@NotNull CompoundDBAnnotation annotation, @NotNull IonType adduct)
-      throws CannotDetermineMassException {
-    final Double neutralMass = annotation.get(NeutralMassType.class);
+  static double calcMzForAdduct(@NotNull CompoundDBAnnotation annotation,
+      @NotNull IonType adduct) throws CannotDetermineMassException {
+
+    Double neutralMass = annotation.get(NeutralMassType.class);
+    if (neutralMass == null) {
+      // try to calc the neutral mass and keep it for subsequent calls.
+      neutralMass = CompoundDBAnnotation.calcNeutralMass(annotation);
+      annotation.put(NeutralMassType.class, neutralMass);
+    }
+
     if (neutralMass != null) {
       return adduct.getMZ(neutralMass);
-    }
-
-    final IonType currentAdduct = annotation.get(IonTypeType.class);
-    if (currentAdduct != null && annotation.getPrecursorMZ() != null) {
-      final double mass = currentAdduct.getMass(annotation.getPrecursorMZ());
-      annotation.put(NeutralMassType.class, mass); // put neutral mass to speed up subsequent calls
-      return adduct.getMZ(mass);
-    }
-
-    final String formulaString = annotation.getFormula();
-    final String smiles = annotation.getSmiles();
-    final IMolecularFormula neutralFormula =
-        formulaString != null ? FormulaUtils.getNeutralFormula(formulaString)
-            : FormulaUtils.getNeutralFormula(FormulaUtils.getFomulaFromSmiles(smiles));
-
-    if (neutralFormula != null) {
-      final double mass = MolecularFormulaManipulator.getMass(neutralFormula,
-          MolecularFormulaManipulator.MonoIsotopic);
-      annotation.put(NeutralMassType.class, mass); // put neutral mass to speed up subsequent calls
-      return adduct.getMZ(mass);
     }
 
     throw new CannotDetermineMassException(annotation);
   }
 
-  static CompoundDBAnnotation loadFromXML(@NotNull final XMLStreamReader reader,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row)
-      throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
-      throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
+  /**
+   * Calculates the neutral mass of the given annotation from adduct
+   * information, smiles, or formula.
+   *
+   * @return The neutral mass or null.
+   */
+  public static Double calcNeutralMass(CompoundDBAnnotation annotation) {
+    final IonType currentAdduct = annotation.get(IonTypeType.class);
+    if (currentAdduct != null && annotation.getPrecursorMZ() != null) {
+      return currentAdduct.getMass(annotation.getPrecursorMZ());
     }
 
-    return switch (reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
-      case SimpleCompoundDBAnnotation.XML_TYPE_NAME -> SimpleCompoundDBAnnotation.loadFromXML(
-          reader, flist, row);
-//      case BioTransformerAnnotationImpl.XML_TYPE_NAME -> BioTransformerAnnotationImpl.loadFromXML(
-//          reader, flist, row);
-      default -> null;
-    };
+    final String formulaString = annotation.getFormula();
+    final String smiles = annotation.getSmiles();
+    final IMolecularFormula neutralFormula =
+        formulaString != null ? FormulaUtils.neutralizeFormulaWithHydrogen(
+            formulaString) : FormulaUtils.neutralizeFormulaWithHydrogen(
+            FormulaUtils.getFomulaFromSmiles(smiles));
+
+    if (neutralFormula != null) {
+      return MolecularFormulaManipulator.getMass(neutralFormula,
+          MolecularFormulaManipulator.MonoIsotopic);
+    }
+    return null;
   }
 
   /**
    * @param adduct The adduct.
-   * @return A new {@link CompoundDBAnnotation} with the given adduct. {@link
-   * CompoundDBAnnotation#getPrecursorMZ()} is adjusted.
-   * @throws CannotDetermineMassException In case the original compound does not contain enough
-   *                                      information to calculate the ionized compound.
+   * @return A new {@link CompoundDBAnnotation} with the given adduct.
+   * {@link CompoundDBAnnotation#getPrecursorMZ()} is adjusted.
+   * @throws CannotDetermineMassException In case the original compound does not
+   *                                      contain enough information to
+   *                                      calculate the ionized compound.
    */
-  default CompoundDBAnnotation ionize(IonType adduct) throws CannotDetermineMassException {
+  default CompoundDBAnnotation ionize(IonType adduct)
+      throws CannotDetermineMassException {
     final CompoundDBAnnotation clone = clone();
     final double mz = clone.calcMzForAdduct(adduct);
     clone.put(PrecursorMZType.class, mz);
@@ -156,7 +189,8 @@ public interface CompoundDBAnnotation extends Cloneable {
     return clone;
   }
 
-  default double calcMzForAdduct(final IonType adduct) throws CannotDetermineMassException {
+  default double calcMzForAdduct(final IonType adduct)
+      throws CannotDetermineMassException {
     return calcMzForAdduct(this, adduct);
   }
 
@@ -167,12 +201,13 @@ public interface CompoundDBAnnotation extends Cloneable {
   <T> T put(@NotNull DataType<T> key, T value);
 
   /**
-   * Stores the given value to this annotation if the value is not equal to null.
+   * Stores the given value to this annotation if the value is not equal to
+   * null.
    *
    * @param key   The key.
    * @param value The value.
-   * @return The previously mapped value. Also returns the currently mapped value if the parameter
-   * was null.
+   * @return The previously mapped value. Also returns the currently mapped
+   * value if the parameter was null.
    */
   default <T> T putIfNotNull(@NotNull DataType<T> key, @Nullable T value) {
     if (value != null) {
@@ -184,91 +219,142 @@ public interface CompoundDBAnnotation extends Cloneable {
   <T> T put(@NotNull Class<? extends DataType<T>> key, T value);
 
   /**
-   * Stores the given value to this annotation if the value is not equal to null.
+   * Stores the given value to this annotation if the value is not equal to
+   * null.
    *
    * @param key   The key.
    * @param value The value.
-   * @return The previously mapped value. Also returns the currently mapped value if the parameter
-   * was null.
+   * @return The previously mapped value. Also returns the currently mapped
+   * value if the parameter was null.
    */
-  default <T> T putIfNotNull(@NotNull Class<? extends DataType<T>> key, @Nullable T value) {
+  default <T> T putIfNotNull(@NotNull Class<? extends DataType<T>> key,
+      @Nullable T value) {
     if (value != null) {
       return put(key, value);
     }
     return get(key);
   }
 
+  Set<DataType<?>> getTypes();
+
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable
-  public default Double getPrecursorMZ() {
-    return get(PrecursorMZType.class);
-  }
-
-  @Nullable
-  public default String getSmiles() {
-    return get(SmilesStructureType.class);
-  }
-
-  @Nullable
-  public default DatabaseMatchInfo getDatabaseMatchInfo() {
+  default DatabaseMatchInfo getDatabaseMatchInfo() {
     return get(DatabaseMatchInfoType.class);
   }
 
   @Nullable
-  public default String getDatabaseUrl() {
+  default String getDatabaseUrl() {
     final DatabaseMatchInfo databaseMatchInfo = getDatabaseMatchInfo();
     return databaseMatchInfo == null ? null : databaseMatchInfo.url();
   }
 
+  @Override
   @Nullable
-  public default String getCompundName() {
+  default Double getPrecursorMZ() {
+    return get(PrecursorMZType.class);
+  }
+
+  @Override
+  @Nullable
+  default String getSmiles() {
+    return get(SmilesStructureType.class);
+  }
+
+  @Override
+  @Nullable
+  default String getCompoundName() {
     return get(CompoundNameType.class);
   }
 
+  @Override
   @Nullable
-  public default String getFormula() {
+  default String getFormula() {
     return get(FormulaType.class);
   }
 
+  @Override
   @Nullable
-  public default IonType getAdductType() {
+  default IonType getAdductType() {
     return get(IonTypeType.class);
   }
 
+  @Override
   @Nullable
-  public default Float getMobility() {
+  default Float getMobility() {
     return get(MobilityType.class);
   }
 
+  @Override
   @Nullable
-  public default Float getCCS() {
+  default Float getCCS() {
     return get(CCSType.class);
   }
 
+  @Override
   @Nullable
-  public default Float getRT() {
+  default Float getRT() {
     return get(RTType.class);
   }
 
+  @Override
   @Nullable
-  public default String getDatabase() {
-    return get(DatabaseNameType.class);
-  }
-
-  @Nullable
-  public default Float getScore() {
+  default Float getScore() {
     return get(CompoundAnnotationScoreType.class);
   }
 
-  public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
-      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
+  @Override
+  @Nullable
+  default String getDatabase() {
+    return get(DatabaseNameType.class);
+  }
+
+  default void setScore(Float score) {
+    put(CompoundAnnotationScoreType.class, score);
+  }
+
+  boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+      @Nullable RTTolerance rtTolerance,
+      @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
-  public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  /**
+   * @param row                 tested row
+   * @param mzTolerance         matching tolerance
+   * @param rtTolerance         matching tolerance
+   * @param mobilityTolerance   matching tolerance
+   * @param percentCCSTolerance matching tolerance
+   * @return
+   */
+  @Nullable
+  default Float calculateScore(@NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance);
+      @Nullable Double percentCCSTolerance) {
+    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
+      return null;
+    }
+    // setup ranges around the annotation and test for row average values
+    Double mz = getPrecursorMZ();
+    final Float rt = getRT();
+    final Float mobility = getMobility();
+    final Float ccs = getCCS();
+    var mzRange = mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
+    var rtRange = rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
+    var mobilityRange =
+        mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
+            mobility) : null;
+
+    Range<Float> ccsRange = null;
+    if (percentCCSTolerance != null && ccs != null && row.getAverageCCS() != null) {
+      float tol = (float) (ccs * percentCCSTolerance);
+      ccsRange = Range.closed(ccs - tol, ccs + tol);
+    }
+    return (float) FeatureListUtils.getAlignmentScore(row.getAverageMZ(), row.getAverageRT(),
+        row.getAverageMobility(), row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, 1,
+        1, 1, 1);
+  }
 
   /**
    * @return Returns the 2D structure URL.
@@ -312,7 +398,7 @@ public interface CompoundDBAnnotation extends Cloneable {
     return get(IsotopePatternType.class);
   }
 
-  public Map<DataType<?>, Object> getReadOnlyMap();
+  Map<DataType<?>, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
 }

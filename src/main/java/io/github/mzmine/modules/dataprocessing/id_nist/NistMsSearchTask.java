@@ -1,27 +1,34 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.DOT_PRODUCT;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.IMPORT_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_MATCH_FACTOR;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 
@@ -32,8 +39,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
@@ -42,6 +49,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -50,13 +62,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -93,22 +105,25 @@ public class NistMsSearchTask extends AbstractTask {
   private static final String SEARCH_METHOD = "NIST MS Search";
 
   // Regular expressions for matching header and hit lines in results.
-  private static final Pattern SEARCH_REGEX =
-      Pattern.compile("^Unknown:\\s*" + SPECTRUM_NAME_PREFIX + "(\\d+).*");
-  private static final Pattern HIT_REGEX = Pattern.compile(
-      "^Hit.*<<(.*)>>.*<<(.*)>>.*MF:\\s*(\\d+).*RMF:\\s*(\\d+).*CAS:\\s*([^;]*);.*Mw:\\s*(\\d+).*Id:\\s*(\\d+).*");
+  private static final Pattern SEARCH_REGEX = Pattern.compile(
+      "^Unknown:\\s*" + SPECTRUM_NAME_PREFIX + "(\\d+).*");
+  private static final Pattern RI_REGEX = Pattern.compile("RI:\\s*(\\d+)");
+  private static final Pattern MF_REGEX = Pattern.compile("MF:\\s*(\\d+)");
+  private static final Pattern RMF_REGEX = Pattern.compile("RMF:\\s*(\\d+)");
+  //private static final Pattern ION_REGEX = Pattern.compile("  \\[.*?)\\]");
+  private static final Pattern ION_REGEX = Pattern.compile("  (\\[.*?\\].*? )");
+  private static final Pattern CAS_REGEX = Pattern.compile("CAS:\\s*([^;]*);");
+  private static final Pattern MW_REGEX = Pattern.compile("Mw:\\s*(\\d+)");
+  private static final Pattern ID_REGEX = Pattern.compile("Id:\\s*(\\d+)");
+  private static final Pattern CMP_REGEX = Pattern.compile("^Hit.* : <<(.*?)>>");
+  private static final Pattern FML_REGEX = Pattern.compile(";<<(.*?)>>");
+  private static final Pattern LIB_REGEX = Pattern.compile("Lib: <<(.*?)>>");
 
   // Used to ensure that MS Search operations are synchronized.
   private static final Object SEMAPHORE = new Object();
 
   // Polling period for the search results file.
   private static final long POLL_RESULTS = 1000L;
-
-  // Additional peak identity properties.
-  private static final String MATCH_FACTOR_PROPERTY = "Match factor";
-  private static final String REVERSE_MATCH_FACTOR_PROPERTY = "Reverse match factor";
-  private static final String CAS_PROPERTY = "CAS number";
-  private static final String MOLECULAR_WEIGHT_PROPERTY = "Molecular weight";
 
   // The mass-list and peak-list.
   private final FeatureList peakList;
@@ -120,9 +135,8 @@ public class NistMsSearchTask extends AbstractTask {
   private int progress;
   private int progressMax;
 
-  // Match factor cut-offs.
-  private final int minMatchFactor;
-  private final int minReverseMatchFactor;
+  // Dot Product cut-offs.
+  private final Double minDotProduct;
 
   // MS Level.
   private final int msLevel;
@@ -130,6 +144,9 @@ public class NistMsSearchTask extends AbstractTask {
   // Optional params.
   private final MsMsSpectraMergeParameters mergeParameters;
   private final IntegerMode integerMZ;
+
+  // Import Options.
+  private static ImportOption importOption;
 
   // NIST MS Search directory and executable.
   private final File nistMsSearchDir;
@@ -143,7 +160,8 @@ public class NistMsSearchTask extends AbstractTask {
    * @param list   the feature list to search.
    * @param params search parameters.
    */
-  public NistMsSearchTask(final FeatureList list, final ParameterSet params, @NotNull Instant moduleCallDate) {
+  public NistMsSearchTask(final FeatureList list, final ParameterSet params,
+      @NotNull Instant moduleCallDate) {
 
     this(null, list, params, moduleCallDate);
   }
@@ -166,11 +184,11 @@ public class NistMsSearchTask extends AbstractTask {
     progressMax = 0;
 
     // Parameters.
-    minMatchFactor = params.getParameter(MIN_MATCH_FACTOR).getValue();
-    minReverseMatchFactor = params.getParameter(MIN_REVERSE_MATCH_FACTOR).getValue();
+    minDotProduct = params.getParameter(DOT_PRODUCT).getValue();
     msLevel = params.getParameter(MS_LEVEL).getValue();
     nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
     nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
+    importOption = params.getParameter(IMPORT_PARAMETER).getValue();
 
     // Optional parameters.
     if (params.getParameter(MERGE_PARAMETER).getValue()) {
@@ -210,8 +228,9 @@ public class NistMsSearchTask extends AbstractTask {
       if (!isCanceled()) {
 
         // Finished.
-        peakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            NistMsSearchModule.class, parameterSet, getModuleCallDate()));
+        peakList.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(NistMsSearchModule.class, parameterSet,
+                getModuleCallDate()));
         setStatus(TaskStatus.FINISHED);
         logger.info("NIST MS Search completed");
       }
@@ -265,7 +284,7 @@ public class NistMsSearchTask extends AbstractTask {
         // Search command string.
         final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
-        List<FeatureListRow> peakRow = new ArrayList();
+        List<FeatureListRow> peakRow = new ArrayList<>();
 
         // Searching FeatureList or FeatureListRow?
         if (peakListRow == null) {
@@ -283,22 +302,17 @@ public class NistMsSearchTask extends AbstractTask {
           String comment = null;
 
           // Get MS level data points.
-          if (msLevel == 1) {
-
-            // Clustered Spectra.
-            IsotopePattern ip = row.getBestIsotopePattern();
-            if (ip != null) {
-              dataPoints = ScanUtils.extractDataPoints(ip);
-              comment = "Clustered spectra at RT= " + row.getAverageRT();
+          if (msLevel > 1) {
+            if (!row.hasMs2Fragmentation()) {
+              progress++;
+              continue;
             }
-          } else {
-
             // Merge multiple MSn fragment spectra.
             if (mergeParameters != null) {
-              MsMsSpectraMergeModule merger =
-                  MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
-              MergedSpectrum spectrum =
-                  merger.getBestMergedSpectrum(mergeParameters, row);
+              MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
+                  MsMsSpectraMergeModule.class);
+              assert merger != null;
+              MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
               if (spectrum != null) {
                 dataPoints = spectrum.data;
                 comment = "MERGED_STATS= " + spectrum.getMergeStatsDescription();
@@ -310,6 +324,14 @@ public class NistMsSearchTask extends AbstractTask {
               dataPoints = ScanUtils.extractDataPoints(scan);
               comment =
                   "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
+            }
+          } else {
+
+            // Clustered Spectra.
+            IsotopePattern ip = row.getBestIsotopePattern();
+            if (ip != null) {
+              dataPoints = ScanUtils.extractDataPoints(ip);
+              comment = "Clustered spectra at RT= " + row.getAverageRT();
             }
           }
 
@@ -330,35 +352,11 @@ public class NistMsSearchTask extends AbstractTask {
             runNistMsSearch(command);
 
             // Read the search results file and store the results.
-            List<FeatureIdentity> identities = readSearchResults(row);
+            List<SpectralDBAnnotation> identities = readSearchResults(row);
 
             if (identities != null) {
-
-              // Add (copy of) identities to peak row.
-              int maxMatchFactor = -1;
-
-              for (final FeatureIdentity identity : identities) {
-                // Copy the identity.
-                final FeatureIdentity id = new SimpleFeatureIdentity(
-                    (Hashtable<String, String>) identity.getAllProperties());
-
-                // Best match factor?
-                final boolean isPreferred;
-                final int matchFactor =
-                    Integer.parseInt(id.getPropertyValue(MATCH_FACTOR_PROPERTY));
-                if (matchFactor > maxMatchFactor) {
-
-                  maxMatchFactor = matchFactor;
-                  isPreferred = true;
-
-                } else {
-
-                  isPreferred = false;
-                }
-
-                // Add peak identity.
-                row.addFeatureIdentity(id, isPreferred);
-              }
+              addIdentities(row, identities);
+              SortSpectralMatchesTask.sortIdentities(row);
             }
           }
 
@@ -368,7 +366,6 @@ public class NistMsSearchTask extends AbstractTask {
 
         // Clean up.
         if (locatorFile2 != null) {
-
           locatorFile2.delete();
         }
       }
@@ -382,14 +379,15 @@ public class NistMsSearchTask extends AbstractTask {
    * @return a list of identities corresponding to the search results, or null if none is found.
    * @throws IOException if and i/o problem occurs.
    */
-  private List<FeatureIdentity> readSearchResults(final FeatureListRow row) throws IOException {
+  private List<SpectralDBAnnotation> readSearchResults(final FeatureListRow row)
+      throws IOException {
 
     // Search results.
-    List<FeatureIdentity> hitList = null;
+    List<SpectralDBAnnotation> ids = null;
 
     // Read the results file.
-    final BufferedReader reader =
-        new BufferedReader(new FileReader(new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME)));
+    final BufferedReader reader = new BufferedReader(
+        new FileReader(new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME)));
     try {
 
       // Read results.
@@ -399,7 +397,7 @@ public class NistMsSearchTask extends AbstractTask {
 
         // Match the line.
         final Matcher scanMatcher = SEARCH_REGEX.matcher(line);
-        final Matcher hitMatcher = HIT_REGEX.matcher(line);
+        final Matcher cmpMatcher = CMP_REGEX.matcher(line);
 
         // Is this the start of a result block?
         if (scanMatcher.matches()) {
@@ -410,7 +408,7 @@ public class NistMsSearchTask extends AbstractTask {
           if (rowID == hitID) {
 
             // Create a new list for the hits.
-            hitList = new ArrayList<FeatureIdentity>(1);
+            ids = new ArrayList<>(1);
 
           } else {
 
@@ -419,24 +417,86 @@ public class NistMsSearchTask extends AbstractTask {
                 "Search results are for a different peak.  Expected peak: " + rowID + " but found: "
                     + hitID);
           }
-        } else if (hitMatcher.matches()) {
+        } else if (cmpMatcher.find()) {
 
-          if (hitList != null) {
+          if (ids != null) {
 
-            // Do hit match factors exceed thresholds?
-            final String matchFactor = hitMatcher.group(3);
-            final String reverseMatchFactor = hitMatcher.group(4);
-            if (Integer.parseInt(matchFactor) >= minMatchFactor
-                && Integer.parseInt(reverseMatchFactor) >= minReverseMatchFactor) {
+            Matcher mfMatcher = MF_REGEX.matcher(line);
+            Matcher rmfMatcher = RMF_REGEX.matcher(line);
 
-              // Extract identity from hit information.
-              final SimpleFeatureIdentity id = new SimpleFeatureIdentity(hitMatcher.group(1),
-                  hitMatcher.group(2), SEARCH_METHOD, hitMatcher.group(7), null);
-              id.setPropertyValue(MATCH_FACTOR_PROPERTY, matchFactor);
-              id.setPropertyValue(REVERSE_MATCH_FACTOR_PROPERTY, reverseMatchFactor);
-              id.setPropertyValue(CAS_PROPERTY, hitMatcher.group(5));
-              id.setPropertyValue(MOLECULAR_WEIGHT_PROPERTY, hitMatcher.group(6));
-              hitList.add(id);
+            /*
+              Known bug in NIST MS Search v. <= 2.5. For MS/MS-based searches, Dot Product is
+              reported in RMF field. Must conditionally assign dot product based one whether
+              EI or MS/MS spectrum search type. Only EI-based searches report RI.
+             */
+            double dotProduct;
+            if (RI_REGEX.matcher(line).find()) {
+              dotProduct = mfMatcher.find() ? Double.parseDouble(mfMatcher.group(1)) : Double.NaN;
+            } else {
+              dotProduct = rmfMatcher.find() ? Double.parseDouble(rmfMatcher.group(1)) : Double.NaN;
+            }
+
+            // NIST cosine similarity scores range between 0 and 1000. Make compatible with MZmine.
+            dotProduct = dotProduct / 1000;
+
+            // Parse compound meta data and make SprectralDBAnnotation.
+            if (dotProduct >= minDotProduct) {
+
+              String name = cmpMatcher.group(1);
+
+              Matcher fmlMatcher = FML_REGEX.matcher(line);
+              Matcher casMatcher = CAS_REGEX.matcher(line);
+              Matcher mwMatcher = MW_REGEX.matcher(line);
+              Matcher idMatcher = ID_REGEX.matcher(line);
+              Matcher libMatcher = LIB_REGEX.matcher(line);
+
+              String formula = "";
+              String ion = "";
+              String molWeight = "";
+              String casNumber = "";
+              String id = "";
+              String lib = "";
+
+              if (fmlMatcher.find()) {
+                formula = fmlMatcher.group(1);
+              }
+              if (mwMatcher.find()) {
+                molWeight = mwMatcher.group(1);
+              }
+              if (casMatcher.find()) {
+                casNumber = casMatcher.group(1);
+              }
+              if (idMatcher.find()) {
+                id = idMatcher.group(1);
+              }
+              if (libMatcher.find()) {
+                lib = "Library: " + libMatcher.group(1) + "\n"
+                    + "NIST results only viewable in NIST MS Search";
+              }
+
+              // Compound ion_type is combined with name field for LC-MS/MS field.
+              Matcher ionMatcher = ION_REGEX.matcher(name);
+              if (ionMatcher.find()) {
+                name = StringUtils.substringBefore(name, "  [");
+                ion = ionMatcher.group(1);
+              }
+
+              Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, id, DBEntryField.NAME,
+                  name, DBEntryField.FORMULA, formula, DBEntryField.ION_TYPE, ion, DBEntryField.CAS,
+                  casNumber, DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib,
+                  DBEntryField.SOFTWARE, SEARCH_METHOD);
+
+              // Use empty spectrum for now as NIST search does not provide the spectrum
+              SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
+                  map);
+
+              SpectralSimilarity similarity = new SpectralSimilarity("Cosine Dot Product",
+                  dotProduct, 100, Double.NaN);
+
+              final SpectralDBAnnotation libraryID = new SpectralDBAnnotation(entry, similarity,
+                  null, null);
+
+              ids.add(libraryID);
             }
           } else {
 
@@ -455,7 +515,7 @@ public class NistMsSearchTask extends AbstractTask {
       reader.close();
     }
 
-    return hitList;
+    return ids;
   }
 
   /**
@@ -509,8 +569,9 @@ public class NistMsSearchTask extends AbstractTask {
 
       // Write header.
       final FeatureIdentity identity = peakRow.getPreferredFeatureIdentity();
-      final String name = SPECTRUM_NAME_PREFIX + peakRow.getID()
-          + (identity == null ? "" : " (" + identity + ')') + " of " + peakList.getName();
+      final String name =
+          SPECTRUM_NAME_PREFIX + peakRow.getID() + (identity == null ? "" : " (" + identity + ')')
+              + " of " + peakList.getName();
       writer.write("Name: " + name.substring(0, Math.min(SPECTRUM_NAME_MAX_LENGTH, name.length())));
       writer.newLine();
       writer.write("PrecursorMZ: " + peakRow.getAverageMZ());
@@ -568,7 +629,7 @@ public class NistMsSearchTask extends AbstractTask {
     final BufferedWriter writer = new BufferedWriter(new FileWriter(locatorFile));
     try {
 
-      writer.write(spectraFile.getCanonicalPath() + " Append");
+      writer.write(spectraFile.getCanonicalPath() + " " + importOption.toString());
       writer.newLine();
     } finally {
 
@@ -613,4 +674,13 @@ public class NistMsSearchTask extends AbstractTask {
 
     return locatorFile2;
   }
+
+  protected void addIdentities(FeatureListRow row, List<SpectralDBAnnotation> matches) {
+    // add new identity to the row
+    if (row != null) {
+      row.addSpectralLibraryMatches(matches);
+    }
+  }
 }
+
+
