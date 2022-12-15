@@ -41,7 +41,6 @@ public class ProjectMetadataImportTask extends AbstractTask {
   private final File[] files;
   private final int totalFiles;
   private final Boolean skipColOnError;
-  private final Boolean append;
   private int doneFiles = 0;
 
   protected ProjectMetadataImportTask(@NotNull ParameterSet parameters,
@@ -51,7 +50,6 @@ public class ProjectMetadataImportTask extends AbstractTask {
     this.files = new File[]{file};
     this.totalFiles = files.length;
     skipColOnError = parameters.getValue(ProjectMetadataImportParameters.skipErrorColumns);
-    append = parameters.getValue(ProjectMetadataImportParameters.append);
   }
 
   @Override
@@ -79,7 +77,7 @@ public class ProjectMetadataImportTask extends AbstractTask {
         return;
       }
 
-      if (metadataTable.importMetadata(fileName, append, skipColOnError)) {
+      if (metadataTable.importMetadata(fileName, skipColOnError)) {
         logger.info("Successfully imported parameters from " + fileName);
       } else {
         setStatus(TaskStatus.ERROR);

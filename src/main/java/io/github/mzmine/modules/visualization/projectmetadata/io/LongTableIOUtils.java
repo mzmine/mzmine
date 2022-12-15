@@ -135,7 +135,7 @@ public class LongTableIOUtils implements TableIOUtils {
   }
 
   @Override
-  public boolean importFrom(File file, boolean appendMode, final boolean skipColOnError) {
+  public boolean importFrom(File file, final boolean skipColOnError) {
     try (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
         fr)) {
       // we will need HeaderFields enum converted into array

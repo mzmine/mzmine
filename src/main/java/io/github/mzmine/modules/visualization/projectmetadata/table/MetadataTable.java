@@ -209,13 +209,11 @@ public class MetadataTable {
    * Import the metadata depending on the table format (state).
    *
    * @param file           from which the metadata will be exported
-   * @param appendMode     whether the new metadata should be appended or they should replace the
-   *                       old metadata
    * @param skipColOnError
    * @return was the import successful?
    */
-  public boolean importMetadata(File file, boolean appendMode, final boolean skipColOnError) {
-    return tableIOUtils.importFrom(file, appendMode, skipColOnError);
+  public boolean importMetadata(File file, final boolean skipColOnError) {
+    return tableIOUtils.importFrom(file, skipColOnError);
   }
 
   /**

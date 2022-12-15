@@ -52,10 +52,8 @@ public interface TableIOUtils {
    * todo: add extra argument defining the format of the imported data (e.g. GNPS or .tsv)
    *
    * @param file           source of the metadata
-   * @param appendMode     whether the new metadata should be appended or they should replace the
-   *                       old metadata
    * @param skipColOnError
    * @return true if the metadata were successfully imported, false otherwise
    */
-  boolean importFrom(File file, boolean appendMode, final boolean skipColOnError);
+  boolean importFrom(File file, final boolean skipColOnError);
 }

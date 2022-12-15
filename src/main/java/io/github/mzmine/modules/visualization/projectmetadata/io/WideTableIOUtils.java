@@ -153,7 +153,7 @@ public class WideTableIOUtils implements TableIOUtils {
   }
 
   @Override
-  public boolean importFrom(File file, boolean appendMode, final boolean skipColOnError) {
+  public boolean importFrom(File file, final boolean skipColOnError) {
     // different file formats are supported.
     // see test/resources/metadata
     // first two lines are optional (description / type) otherwise try to cast to type

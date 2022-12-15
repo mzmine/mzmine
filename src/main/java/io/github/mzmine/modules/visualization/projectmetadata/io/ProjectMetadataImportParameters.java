@@ -44,16 +44,13 @@ public class ProjectMetadataImportParameters extends SimpleParameterSet {
   public static final FileNameParameter fileName = new FileNameParameter("File names", "",
       extensions, FileSelectionType.OPEN);
 
-  public static final BooleanParameter append = new BooleanParameter("Append columns",
-      "Either append data or clear and then load", true);
-
   public static final BooleanParameter skipErrorColumns = new BooleanParameter(
       "Skip column on error",
       "Error during data conversion or parsing will be logged but does not end the import", false);
 
 
   public ProjectMetadataImportParameters() {
-    super(new Parameter[]{fileName, append, skipErrorColumns});
+    super(new Parameter[]{fileName, skipErrorColumns});
   }
 
 }

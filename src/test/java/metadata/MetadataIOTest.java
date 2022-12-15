@@ -64,7 +64,7 @@ class MetadataIOTest {
         MetadataIOTest.class.getClassLoader().getResource("metadata/metadata_wide_defined.tsv")
             .getFile());
     WideTableIOUtils importer = new WideTableIOUtils(new MetadataTable());
-    Assertions.assertTrue(importer.importFrom(file, false, false));
-    Assertions.assertTrue(importer.importFrom(file2, false, false));
+    Assertions.assertTrue(importer.importFrom(file, false));
+    Assertions.assertTrue(importer.importFrom(file2, false));
   }
 }
