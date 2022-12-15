@@ -129,9 +129,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
     mzTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.rtTolerance).getValue();
-    Boolean isotopePatternMatcher = parameters.getValue(LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
-    isotopePatternMatcherParameterSet = isotopePatternMatcher != null && isotopePatternMatcher ? parameters.getParameter(
-        LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters() : null;
+    Boolean isotopePatternMatcher = parameters.getValue(
+        LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
+    isotopePatternMatcherParameterSet =
+        isotopePatternMatcher != null && isotopePatternMatcher ? parameters.getParameter(
+            LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters() : null;
     assert isotopePatternMatcherParameterSet != null;
     isotopeMzTolerance = isotopePatternMatcherParameterSet.getParameter(
         IsotopePatternMatcherParameterSet.isotopeMzTolerance).getValue();
@@ -228,7 +230,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       }
       dbFileReader.close();
 
-      refineAnnotations(peakList);
+      refineAnnotations(flist);
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
@@ -249,19 +251,19 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private void refineAnnotations(FeatureList flist) {
     if (scanBased) {
       try {
-        DatabaseIsotopeRefinerScanBased.refine(flist.getRows(), isotopeMzTolerance, isotopeRtTolerance,
+        DatabaseIsotopeRefinerScanBased.refine(flist.getRows(), isotopeMzTolerance,
+            isotopeRtTolerance, minIntensity, minIsotopeScore);
+      } catch (CloneNotSupportedException e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+    } else {
+      try {
+        DatabaseIsotopeRefiner.refine(flist.getRows(), isotopeMzTolerance, isotopeRtTolerance,
             minIntensity, minIsotopeScore);
       } catch (CloneNotSupportedException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
-      }}
-    else {
-        try {
-          DatabaseIsotopeRefiner.refine(flist.getRows(), isotopeMzTolerance, isotopeRtTolerance,
-              minIntensity, minIsotopeScore);
-        } catch (CloneNotSupportedException e) {
-          logger.log(Level.WARNING, e.getMessage(), e);
-        }
       }
+    }
   }
 
   /**

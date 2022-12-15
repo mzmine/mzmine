@@ -71,7 +71,7 @@ public class DatabaseIsotopeRefinerScanBased {
 
       final ScanDataAccess access = accessMap.computeIfAbsent(feature.getRawDataFile(),
           file -> EfficientDataAccess.of(file, ScanDataType.CENTROID));
-      if(!access.jumpToScan(feature.getRepresentativeScan())) {
+      if (!access.jumpToScan(feature.getRepresentativeScan())) {
         continue;
       }
 
@@ -82,7 +82,7 @@ public class DatabaseIsotopeRefinerScanBased {
         }
         String formula = annotation.getFormula();
         IonType adductType = annotation.getAdductType();
-        IMolecularFormula molecularFormula = FormulaUtils.getNeutralFormula(formula);
+        IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
         assert molecularFormula != null;
         IMolecularFormula ionFormula = adductType.addToFormula(molecularFormula);
         final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
@@ -98,13 +98,11 @@ public class DatabaseIsotopeRefinerScanBased {
         for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
           final double mz = access.getMzValue(i);
           final double intensity = access.getIntensityValue(i);
-          boolean foundIsotope = isotopePatternMatcher.offerDataPoint(mz,
-              intensity, row.getBestFeature().getRT(), row.getBestFeature().getRT(),
-              mzTolerance, rtTolerance);
+          boolean foundIsotope = isotopePatternMatcher.offerDataPoint(mz, intensity,
+              row.getBestFeature().getRT(), row.getBestFeature().getRT(), mzTolerance, rtTolerance);
           if (foundIsotope) {
             rowsFoundIsotope.add(new SimpleDataPoint(mz, intensity));
-            logger.info(
-                "Isotope peak found for " + row.getAverageMZ() + " at m/z " + intensity);
+            logger.info("Isotope peak found for " + row.getAverageMZ() + " at m/z " + intensity);
           }
         }
 
@@ -123,7 +121,7 @@ public class DatabaseIsotopeRefinerScanBased {
 
               Feature bestFeature = row.getBestFeature();
               ((ModularFeature) bestFeature).set(CompoundNameType.class,
-                  annotation.getCompundName());
+                  annotation.getCompoundName());
               ((ModularFeature) bestFeature).set(IsotopePatternType.class, measuredIsotopePattern);
               ((ModularFeature) bestFeature).set(IsotopePatternScoreType.class,
                   isotopePatternScore);

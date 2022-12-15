@@ -52,7 +52,7 @@ public class DatabaseIsotopeRefiner {
         }
         String formula = annotation.getFormula();
         IonType adductType = annotation.getAdductType();
-        IMolecularFormula molecularFormula = FormulaUtils.getNeutralFormula(formula);
+        IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
         assert molecularFormula != null;
         IMolecularFormula ionFormula = adductType.addToFormula(molecularFormula);
         IsotopePattern isotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula,
@@ -84,7 +84,7 @@ public class DatabaseIsotopeRefiner {
                 Objects.requireNonNull(isotopePatternMatcher.measuredIsotopePattern(mzTolerance)), mzTolerance,
                 1000.0);
             row.set(IsotopePatternType.class, isotopePatternMatcher.measuredIsotopePattern(mzTolerance));
-            row.set(IsotopePatternScoreType.class, isotopePatternScore);
+            annotation.put(IsotopePatternScoreType.class, isotopePatternScore);
             Feature bestFeature = row.getBestFeature();
             ((ModularFeature) bestFeature).set(IsotopePatternType.class,
                 isotopePatternMatcher.measuredIsotopePattern(mzTolerance));
