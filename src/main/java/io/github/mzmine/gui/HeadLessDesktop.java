@@ -59,17 +59,7 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void setStatusBarText(String text) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void setStatusBarText(String text, Color textColor) {
-    // do nothing in headless
-  }
-
-  @Override
-  public void setOnStatusBarClickUrl(final String url) {
+  public void setStatusBarText(String text, Color textColor, String url) {
     // do nothing in headless
   }
 

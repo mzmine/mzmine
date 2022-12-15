@@ -584,13 +584,8 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public void setStatusBarText(String message) {
-    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY : Color.BLACK;
-    setStatusBarText(message, messageColor);
-  }
-
-  @Override
-  public void setStatusBarText(String message, Color textColor) {
+  public void setStatusBarText(@Nullable String message, @Nullable Color textColor,
+      @Nullable String url) {
     MZmineCore.runLater(() -> {
       if (mainWindowController == null) {
         return;
@@ -600,24 +595,21 @@ public class MZmineGUI extends Application implements Desktop {
         return;
       }
       statusBar.setText(null);
-      if (statusLabel == null) {
-        statusLabel = new Label(message);
-        statusBar.getLeftItems().add(statusLabel);
-      } else {
-        statusLabel.setText(message);
+      if (statusLabel != null) {
+        statusBar.getLeftItems().remove(statusLabel);
       }
-      statusLabel.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
+      statusLabel = new Label(message);
+      statusBar.getLeftItems().add(statusLabel);
+      if (textColor != null) {
+        statusLabel.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
+      }
+      if (url != null) {
+        statusLabel.setOnMouseClicked(event -> {
+          WebUtils.openURL(url);
+          event.consume();
+        });
+      }
     });
-  }
-
-  @Override
-  public void setOnStatusBarClickUrl(final String url) {
-    if (statusLabel != null) {
-      statusLabel.setOnMouseClicked(event -> {
-        WebUtils.openURL(url);
-        event.consume();
-      });
-    }
   }
 
   @Override

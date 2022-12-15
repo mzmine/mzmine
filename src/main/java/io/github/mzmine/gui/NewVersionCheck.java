@@ -103,8 +103,9 @@ public class NewVersionCheck implements Runnable {
       if (checkType.equals(CheckType.MENU)) {
         desktop.displayMessage("New version", msg, url);
       } else if (checkType.equals(CheckType.DESKTOP)) {
-        desktop.setStatusBarText(msg.replace("\n", ". ") + url, Color.RED);
-        desktop.setOnStatusBarClickUrl("https://github.com/mzmine/mzmine3/releases/latest");
+        String downloadUrl = "https://github.com/mzmine/mzmine3/releases/latest";
+        Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
+        desktop.setStatusBarText(msg.replace("\n", ". ") + url, color, downloadUrl);
       }
     }
 

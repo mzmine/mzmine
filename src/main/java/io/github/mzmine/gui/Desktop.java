@@ -40,6 +40,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface represents the application GUI
@@ -59,7 +60,10 @@ public interface Desktop extends MZmineModule {
    *
    * @param text Text to show
    */
-  void setStatusBarText(String text);
+  default void setStatusBarText(@Nullable String text) {
+    setStatusBarText(text, null);
+  }
+
 
   /**
    * Displays a given text on the application status bar in a given color
@@ -67,14 +71,19 @@ public interface Desktop extends MZmineModule {
    * @param text      Text to show
    * @param textColor Text color
    */
-  void setStatusBarText(String text, Color textColor);
+  default void setStatusBarText(@Nullable String text, @Nullable Color textColor) {
+    setStatusBarText(text, textColor, null);
+  }
 
   /**
-   * Opens the URL in the default browser - only for the graphical user interface
+   * Displays a given text on the application status bar in a given color
    *
-   * @param url to open
+   * @param text      Text to show
+   * @param textColor Text color
+   * @param url       to open on click
    */
-  void setOnStatusBarClickUrl(String url);
+  void setStatusBarText(@Nullable String text, @Nullable Color textColor, @Nullable String url);
+
 
   /**
    * Displays a message box with a given text
