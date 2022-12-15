@@ -67,4 +67,14 @@ class MetadataIOTest {
     Assertions.assertTrue(importer.importFrom(file, false));
     Assertions.assertTrue(importer.importFrom(file2, false));
   }
+
+  @Test
+  void testImportWideNumberFormatError() {
+    File file = new File(MetadataIOTest.class.getClassLoader()
+        .getResource("metadata/metadata_wide_defined_numberparse_exception.tsv").getFile());
+    WideTableIOUtils importer = new WideTableIOUtils(new MetadataTable());
+    Assertions.assertTrue(importer.importFrom(file, true));
+    importer = new WideTableIOUtils(new MetadataTable());
+    Assertions.assertFalse(importer.importFrom(file, false));
+  }
 }

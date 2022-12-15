@@ -220,7 +220,16 @@ public class WideTableIOUtils implements TableIOUtils {
       }
 
       // check if col data is null
-      if (anyConversionError(titles, dataTypes, convertedData)) {
+      if (skipColOnError) {
+        // with skipColOnError the converted column is null and we use the original string column and data type
+        for (int col = 1; col < convertedData.length; col++) {
+          if (convertedData[col] == null) {
+            convertedData[col] = columnData[col];
+            dataTypes[col] = AvailableTypes.TEXT;
+          }
+        }
+      } else if (anyConversionError(titles, dataTypes, convertedData)) {
+        // end because of conversion error
         logger.severe("Stopped metadata import because of data type incompatibility");
         return false;
       }
@@ -241,8 +250,10 @@ public class WideTableIOUtils implements TableIOUtils {
       for (int col = 1; col < columns.length; col++) {
         MetadataColumn column = columns[col];
         Object[] colData = convertedData[col];
+
         for (int row = 0; row < colData.length; row++) {
           var rawFile = raws.get(fileNames[row]);
+          // not all raw data files might be imported - but more covered in the metadata sheet
           if (rawFile != null) {
             metadataTable.setValue(column, rawFile, colData[row]);
           }
