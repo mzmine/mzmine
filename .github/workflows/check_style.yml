@@ -1,4 +1,4 @@
-name: Test Build
+name: Check code format
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         uses: sidhant92/intellij-format-action@v1
         with:
           tool_name: 'IntelliJ Diff'
-          github_token: ${{ secrets.github_token }}
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
           fail_on_changes: true
           path: '.src/'
           file_mask: '*.java'
