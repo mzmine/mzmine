@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features;
 
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureInformation;
@@ -32,6 +33,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.util.scans.FragmentScanSorter;
@@ -63,7 +65,7 @@ public interface Feature {
   /**
    * This method returns raw retention time of the feature in minutes
    */
-  Float getRT();
+  Float    getRT();
 
   /**
    * Sets retention time of the feature
@@ -107,7 +109,8 @@ public interface Feature {
    * @return
    */
   @Nullable
-  default Scan getScanAtIndex(int i) {
+  default Scan getScanAtIndex(int i) 
+  {
     List<Scan> scans = getScanNumbers();
     return scans.get(i);
   }
@@ -125,6 +128,10 @@ public interface Feature {
     return scans.get(i).getRetentionTime();
   }
 
+  
+  
+  
+  
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
    *
