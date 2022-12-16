@@ -583,6 +583,8 @@ public class FeatureUtils {
 
       // get the list of subTypes
       final List<DataType> subDataTypeList = listType.getSubDataTypes();
+
+      // check if the searched data type exists in the listWithSubsType
       final int subColIndex = subDataTypeList.indexOf(theType);
       if (subColIndex == -1) {
         continue;
