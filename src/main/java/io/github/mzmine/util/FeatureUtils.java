@@ -541,7 +541,7 @@ public class FeatureUtils {
    * @param <V>            The value of the data type in the annotation class K.
    * @return A mapping of annotation list type to the sub data type value.
    */
-  public static <K extends ListWithSubsType<?> & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
+  public static <K extends ListWithSubsType & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
       FeatureListRow featureListRow, Class<? extends DataType<V>> theType) {
 
     return extractSubValueFromAllAnnotations(featureListRow, DataTypes.get(theType));
@@ -559,7 +559,7 @@ public class FeatureUtils {
    * @param <V>            The value of the data type in the annotation class K.
    * @return A mapping of annotation list type to the sub data type value.
    */
-  public static <K extends ListWithSubsType<?> & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
+  public static <K extends ListWithSubsType & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
       FeatureListRow featureListRow, DataType<V> theType) {
     final Map<K, V> result = new HashMap<>();
 
