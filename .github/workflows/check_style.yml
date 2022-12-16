@@ -21,6 +21,6 @@ jobs:
           tool_name: 'IntelliJ Diff'
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           fail_on_changes: true
-          path: '.src/'
+          path: '.'
           file_mask: '*.java'
 
