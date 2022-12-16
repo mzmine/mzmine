@@ -1,16 +1,15 @@
-name: Google Format
-
-on: [ push, pull_request ]
+on: pull_request
 
 jobs:
-
-  formatting:
+  checkstyle_job:
     runs-on: ubuntu-latest
+    name: Checkstyle job
     steps:
-      - uses: actions/checkout@v3 # v2 minimum required
-      - uses: axel-op/googlejavaformat-action@v3
-        with:
-          args: "--replace"
-          skip-commit: true
-      - name: Print diffs
-        run: git --no-pager diff --exit-code
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Run check style
+      uses: nikitasavinov/checkstyle-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        reporter: 'github-pr-check'
+        tool_name: 'testtool'
