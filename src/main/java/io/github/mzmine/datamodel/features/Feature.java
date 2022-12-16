@@ -113,8 +113,8 @@ public interface Feature {
   }
 
   /**
-   * Used to loop over retention time, scans, and data points in combination with ({@link
-   * #getDataPointAtIndex(int)}
+   * Used to loop over retention time, scans, and data points in combination with
+   * ({@link #getDataPointAtIndex(int)}
    *
    * @param i index
    * @return
@@ -187,8 +187,7 @@ public interface Feature {
    * Sorted list of all fragmentation scans of this feature. First is the representative ("best")
    * fragmentation spectrum.
    */
-  @NotNull
-  List<Scan> getAllMS2FragmentScans();
+  @NotNull List<Scan> getAllMS2FragmentScans();
 
   /**
    * Set all fragmentation scans. First element is "best" representative scan. No sorting is
@@ -226,8 +225,8 @@ public interface Feature {
   @Nullable Float getMobility();
 
   /**
-   * Sets the mobility of this feature. Note that mobility has a unit, which should be set by {@link
-   * Feature#setMobilityUnit(MobilityType)}.
+   * Sets the mobility of this feature. Note that mobility has a unit, which should be set by
+   * {@link Feature#setMobilityUnit(MobilityType)}.
    *
    * @param mobility The mobility.
    */
