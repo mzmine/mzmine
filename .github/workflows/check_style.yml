@@ -1,0 +1,26 @@
+name: Test Build
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'src/main/resources/mzmineversion.properties'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  intelliJ:
+    runs-on: ubuntu-latest
+    name: IntelliJ
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check IntelliJ Formatting
+        uses: sidhant92/intellij-format-action@v1
+        with:
+          tool_name: 'IntelliJ Diff'
+          github_token: ${{ secrets.github_token }}
+          fail_on_changes: true
+          path: '.src/'
+          file_mask: '*.java'
+
