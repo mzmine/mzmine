@@ -1,26 +1,13 @@
-name: Check code format
-
-on:
-  push:
-    branches: [ master ]
-    paths-ignore:
-      - 'src/main/resources/mzmineversion.properties'
-  pull_request:
-    branches: [ master ]
-
+name: reviewdog
+on: [pull_request]
 jobs:
-  intelliJ:
+  checkstyle:
+    name: runner / checkstyle
     runs-on: ubuntu-latest
-    name: IntelliJ
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Check IntelliJ Formatting
-        uses: sidhant92/intellij-format-action@v1
+      - uses: actions/checkout@v2
+      - uses: dbelyaev/action-checkstyle@v0.6.1
         with:
-          tool_name: 'IntelliJ Diff'
-          github_token: "${{ secrets.GITHUB_TOKEN}}"
-          fail_on_changes: true
-          path: '.'
-          file_mask: '*.java'
-
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          level: warning
