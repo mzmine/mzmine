@@ -19,7 +19,7 @@ jobs:
         uses: sidhant92/intellij-format-action@v1
         with:
           tool_name: 'IntelliJ Diff'
-          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          github_token: "${{ secrets.GITHUB_TOKEN}}"
           fail_on_changes: true
           path: '.'
           file_mask: '*.java'
