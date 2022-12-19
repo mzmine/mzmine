@@ -69,6 +69,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
@@ -349,16 +350,17 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
   /**
    * @param row              The row
-   * @param mzTolerance      MZ tolerance for mathcing or null
-   * @param rtTolerance      RT tolerance for mathcing or null
+   * @param mzTolerance      MZ tolerance for matching or null
+   * @param rtTolerance      RT tolerance for matching or null
    * @param mobTolerance     mobility tolerance for matching or null
    * @param percCcsTolerance ccs tolerance for matching or null
    * @return A <b>clone</b> of the original annotation with {@link MzPpmDifferenceType},
    * .{@link CCSRelativeErrorType} and {@link RtRelativeErrorType} set.
    */
-  default @Nullable CompoundDBAnnotation checkMatchAndGetErrors(FeatureListRow row,
-      MZTolerance mzTolerance, RTTolerance rtTolerance, MobilityTolerance mobTolerance,
-      Double percCcsTolerance) {
+  default @Nullable CompoundDBAnnotation checkMatchAndCalculateDeviation(
+      @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
+      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
+      @Nullable Double percCcsTolerance) {
     final Float score = calculateScore(row, mzTolerance, rtTolerance, mobTolerance,
         percCcsTolerance);
     if (score == null || score <= 0) {
@@ -427,4 +429,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   Map<DataType<?>, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
+
+  default String toStringComplete() {
+    return getReadOnlyMap().entrySet().stream()
+        .map(e -> e.getKey().getUniqueID() + ": " + e.getValue()).collect(Collectors.joining(", "));
+  }
 }

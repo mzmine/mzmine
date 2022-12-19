@@ -34,7 +34,6 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -80,12 +79,11 @@ public class BioTransformerModule implements MZmineProcessingModule {
   public static void runSingleRowPredection(ModularFeatureListRow row, String smiles,
       String prefix) {
     final ParameterSet param = new BioTransformerParameters(true);
-    final File path = param.getValue(BioTransformerParameters.bioPath);
 
     final ExitCode exitCode = param.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.getTaskController()
-          .addTask(new SingleRowPredictionTask(row, smiles, prefix, param, Instant.now()));
+          .addTask(new BioTransformerSingleRowTask(row, smiles, prefix, param, Instant.now()));
     }
   }
 

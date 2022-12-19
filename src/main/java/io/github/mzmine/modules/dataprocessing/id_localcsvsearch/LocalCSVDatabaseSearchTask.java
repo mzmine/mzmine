@@ -165,7 +165,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       }
 
       // option to read more fields and append to comment as json
-      final DataType<String> type = DataTypes.get(CommentType.class);
       List<ImportType> commentFields = extractCommentFields();
       if (commentFields == null) {
         setStatus(TaskStatus.ERROR);
@@ -271,7 +270,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       MZTolerance mzTolerance, RTTolerance rtTolerance, MobilityTolerance mobTolerance,
       Double percCcsTolerance) {
 
-    final CompoundDBAnnotation clone = annotation.checkMatchAndGetErrors(row, mzTolerance,
+    final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(row, mzTolerance,
         rtTolerance, mobTolerance, percCcsTolerance);
     if (clone != null) {
       row.addCompoundAnnotation(clone);

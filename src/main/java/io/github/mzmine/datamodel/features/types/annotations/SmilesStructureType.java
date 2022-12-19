@@ -25,20 +25,13 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
-import java.util.List;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SmilesStructureType extends StringType implements EditableColumnType,
     StringParser<String>, AnnotationType {
@@ -67,21 +60,4 @@ public class SmilesStructureType extends StringType implements EditableColumnTyp
     return converter;
   }
 
-  @Override
-  public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
-    String compoundName = "";
-    if(superType instanceof CompoundDatabaseMatchesType) {
-      compoundName = row.getCompoundAnnotations().get(0).getCompoundName();
-    } else if(superType instanceof SpectralLibraryMatchesType) {
-      compoundName = row.getSpectralLibraryMatches().get(0).getCompoundName();
-    }
-
-    if (value instanceof String smiles) {
-      final String finalCompoundName = compoundName;
-      return () -> MZmineCore.runLater(() -> BioTransformerModule.runSingleRowPredection(row, smiles,
-          finalCompoundName));
-    }
-    return null;
-  }
 }

@@ -45,35 +45,34 @@ public class BioTransformerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final FileNameParameter bioPath = new FileNameParameter("Bio Transformer Path",
+  public static final FileNameParameter bioPath = new FileNameParameter("BioTransformer path",
       "The path to bio transformer.", FileSelectionType.OPEN);
 
-//  public static final StringParameter cmdOptions = new StringParameter("Command line options",
-//      "Additional options to pass to the BioTransformer command line.", "");
-
-  public static final ComboParameter<String> transformationType = new ComboParameter<String>(
-      "Transformation type", "The Biotransformer transformation type to use.",
+  public static final ComboParameter<String> transformationType = new ComboParameter<>(
+      "Transformation type", "The BioTransformer transformation type to use.",
       FXCollections.observableArrayList("ecbased", "cyp450", "phaseii", "hgut", "allHuman",
           "superbio", "env"), "env");
 
-  public static final IntegerParameter steps = new IntegerParameter("Steps",
-      "The number of steps to use for bio transformer.", 1, 1, 10);
+  public static final IntegerParameter steps = new IntegerParameter("Iterations", """
+      The number of iterations to use for bio transformer.
+      (Transformation of previous transformation products)
+      """, 1, 1, 10);
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter(0.003, 5);
 
-  public static final OptionalModuleParameter<BioTransformerFilterParameters> filterParam = new OptionalModuleParameter(
+  public static final OptionalModuleParameter<BioTransformerFilterParameters> filterParam = new OptionalModuleParameter<>(
       "Filter parameters", "Additional filtering parameters.", new BioTransformerFilterParameters(),
       false);
 
-  public static final ParameterSetParameter ionLibrary = new ParameterSetParameter("Ion Library",
+  public static final ParameterSetParameter ionLibrary = new ParameterSetParameter("Ion library",
       "Potential ionizations of product molecules.", new IonLibraryParameterSet());
 
   public static final ComboParameter<SmilesSource> smilesSource = new ComboParameter<>(
-      "Smiles source", """
+      "SMILES source", """
       Select smiles from which annotation types shall be used for the prediction.
       Spectral library = Smiles from spectral library matches
       Compound DB = Smiles from compound database annotations
-      All = All of the above. 
+      All = All of the above.
       """, SmilesSource.values(), SmilesSource.ALL);
 
   public BioTransformerParameters() {
@@ -88,12 +87,6 @@ public class BioTransformerParameters extends SimpleParameterSet {
         filterParam}
         : new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary,
             filterParam});
-
-    /*final ParameterSet moduleParameters = MZmineCore.getConfiguration()
-        .getModuleParameters(BioTransformerModule.class);
-    for (Parameter<?> parameter : moduleParameters.getParameters()) {
-      this.setParameter(parameter, parameter.getValue());
-    }*/
   }
 
   @Override

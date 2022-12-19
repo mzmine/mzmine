@@ -33,28 +33,28 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class SingleRowPredictionTask extends AbstractTask {
+public class BioTransformerSingleRowTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(SingleRowPredictionTask.class.getName());
+  private static final Logger logger = Logger.getLogger(BioTransformerSingleRowTask.class.getName());
 
   private final ModularFeatureListRow row;
   private final String smiles;
   private final String prefix;
   private final ParameterSet parameters;
   private final File bioPath;
-  private final String transformationType;
-  private final Integer steps;
   private final MZTolerance mzTolerance;
   private String description;
 
-  public SingleRowPredictionTask(ModularFeatureListRow row, String smiles, String prefix,
+  public BioTransformerSingleRowTask(ModularFeatureListRow row, String smiles, String prefix,
       @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.row = row;
@@ -62,9 +62,6 @@ public class SingleRowPredictionTask extends AbstractTask {
     this.prefix = prefix;
     this.parameters = parameters;
     bioPath = parameters.getValue(BioTransformerParameters.bioPath);
-//    final String cmdOptions = parameters.getValue(BioTransformerParameters.cmdOptions);
-    transformationType = parameters.getValue(BioTransformerParameters.transformationType);
-    steps = parameters.getValue(BioTransformerParameters.steps);
     mzTolerance = parameters.getValue(BioTransformerParameters.mzTol);
 
     description = "Biotransformer task - SMILES: " + smiles;
@@ -96,8 +93,17 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     description = "Biotransformer task - SMILES: " + smiles;
 
-    final List<CompoundDBAnnotation> bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(
-        row, smiles, prefix, bioPath, parameters);
+    final List<CompoundDBAnnotation> bioTransformerAnnotations;
+    try {
+      bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(
+          row.getID(), smiles, prefix, bioPath, parameters);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+      setErrorMessage("Error reading/writing temporary files during BioTransformer prediciton.\n"
+          + e.getMessage());
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
     if (bioTransformerAnnotations.isEmpty()) {
       setStatus(TaskStatus.FINISHED);
@@ -107,8 +113,8 @@ public class SingleRowPredictionTask extends AbstractTask {
     final ModularFeatureList flist = row.getFeatureList();
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
       flist.stream().forEach(r -> {
-        final CompoundDBAnnotation clone = annotation.checkMatchAndGetErrors(r, mzTolerance, null,
-            null, null);
+        final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
+            mzTolerance, null, null, null);
         if (clone != null) {
           r.addCompoundAnnotation(clone);
           row.getCompoundAnnotations()
