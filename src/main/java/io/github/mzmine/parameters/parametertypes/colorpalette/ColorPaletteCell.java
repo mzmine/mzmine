@@ -25,13 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.geometry.Insets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -43,10 +40,10 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import org.graphstream.stream.file.FileSourceGEXF.GEXFConstants.COLORAttribute;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation of ListCell to display color palettes and select between them.
@@ -57,8 +54,8 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
   private final static int MAX_PREVIEW_COLORS = 15;
   private static final Color BORDER_CLR = Color.DARKGRAY;
-  private static final Color TEXT_CLR = Color.BLACK;
-  private static final Color STROKE_CLR = Color.BLACK;
+  //  private static final Color TEXT_CLR = Color.BLACK;
+//  private static final Color STROKE_CLR = Color.BLACK;
   private static final double STROKE_WIDTH = 0.5;
 
   private static final Logger logger = Logger.getLogger(ColorPaletteCell.class.getName());
@@ -91,7 +88,6 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     negativeRect = makeRect(Color.TRANSPARENT);
     neutralRect = makeRect(Color.TRANSPARENT);
     lblName = new Label();
-    lblName.setTextFill(TEXT_CLR);
 
     // nasty way to align the palettes in the dropdown menu
     lblName.setMinWidth(80);
@@ -110,17 +106,14 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     pane.add(clrPane, 0, 1, 7, 1);
 
     Label label = new Label("Pos.:");
-    label.setTextFill(TEXT_CLR);
     pane.add(label, 1, 0);
     pane.add(positiveRect, 2, 0);
 
     label = new Label("Neu.:");
-    label.setTextFill(TEXT_CLR);
     pane.add(label, 3, 0);
     pane.add(neutralRect, 4, 0);
 
     label = new Label("Neg.:");
-    label.setTextFill(TEXT_CLR);
     pane.add(label, 5, 0);
     pane.add(negativeRect, 6, 0);
   }
@@ -161,7 +154,6 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
   protected Rectangle makeRect(@NotNull Color clr) {
     Rectangle rect = new Rectangle(height - STROKE_WIDTH * 2, height - STROKE_WIDTH * 2);
     rect.setFill(clr);
-    rect.setStroke(STROKE_CLR);
     rect.setStrokeWidth(STROKE_WIDTH);
     return rect;
   }

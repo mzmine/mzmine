@@ -42,7 +42,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -195,6 +195,7 @@ public class MsnPeakPickingTask extends AbstractTask {
     }
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
+    newFeatureList.setSelectedScans(dataFile, List.of(scans));
     newFeatureList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(MsnFeatureDetectionModule.class, parameterSet,
             getModuleCallDate()));

@@ -452,7 +452,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @Override
   public boolean isDarkMode() {
-    Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
+        Boolean darkMode = preferences.isDarkMode();
     return darkMode != null && darkMode;
   }
 

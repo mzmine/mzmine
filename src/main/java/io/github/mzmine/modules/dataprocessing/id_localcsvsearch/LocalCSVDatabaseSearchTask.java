@@ -64,6 +64,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.MathUtils;
 import java.io.File;
 import java.io.FileReader;
@@ -78,7 +79,10 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
@@ -157,11 +161,21 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       databaseValues = CSVParser.parse(dbFileReader,
           "\\t".equals(fieldSeparator) ? '\t' : fieldSeparator.charAt(0));
 
-      List<ImportType> lineIds = findLineIds(importTypes, databaseValues[0]);
+      final StringProperty error = new SimpleStringProperty();
+      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(importTypes, databaseValues[0],
+          error);
+      if (lineIds == null) {
+        setErrorMessage(error.get());
+        return;
+      }
 
       // option to read more fields and append to comment as json
       final DataType<String> type = DataTypes.get(CommentType.class);
       List<ImportType> commentFields = extractCommentFields();
+      if (commentFields == null) {
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
 
       // sample header index
       if (filterSamples) {
@@ -209,6 +223,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   }
 
+  /**
+   * @return The list of comment fields if the fields were found successfully. Empty list if no
+   * extra comments were selected. Null on error.
+   */
+  @Nullable
   private List<ImportType> extractCommentFields() {
     List<ImportType> commentFields = new ArrayList<>();
     final String appendComments = parameters.getValue(
@@ -218,7 +237,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       commentFields = Arrays.stream(appendComments.split(",")).map(s -> s.trim().toLowerCase())
           .map(s -> new ImportType(true, s, type)).toList();
       if (!commentFields.isEmpty()) {
-        commentFields = findLineIds(commentFields, databaseValues[0]);
+        final SimpleStringProperty error = new SimpleStringProperty();
+        commentFields = CSVParsingUtils.findLineIds(commentFields, databaseValues[0], error);
+        if (commentFields == null) {
+          setErrorMessage(error.get());
+        }
       }
     }
     return commentFields;
@@ -243,10 +266,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     for (CompoundDBAnnotation annotation : annotations) {
       for (FeatureListRow peakRow : flist.getRows()) {
-        if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
+        final Float score = annotation.calculateScore(peakRow, mzTolerance, rtTolerance,
+            mobTolerance, ccsTolerance);
+        if (score != null && score > 0) {
           final CompoundDBAnnotation clone = annotation.clone();
-          final Float score = clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance,
-              ccsTolerance);
           clone.put(CompoundAnnotationScoreType.class, score);
           clone.put(MzPpmDifferenceType.class,
               (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
@@ -341,45 +364,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
         new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     return a;
-  }
-
-  private @NotNull List<ImportType> findLineIds(@NotNull List<ImportType> importTypes,
-      String[] firstLine) {
-    List<ImportType> lines = new ArrayList<>();
-    for (ImportType importType : importTypes) {
-      if (importType.isSelected()) {
-        ImportType type = new ImportType(importType.isSelected(), importType.getCsvColumnName(),
-            importType.getDataType());
-        lines.add(type);
-      }
-    }
-
-    for (ImportType importType : lines) {
-      int columnIndex = getHeaderColumnIndex(firstLine, importType.getCsvColumnName());
-      if (columnIndex == -1) {
-        // log all missing columns
-        String missingHeaders = lines.stream().map(ImportType::getCsvColumnName)
-            .filter(header -> getHeaderColumnIndex(firstLine, header) == -1)
-            .collect(Collectors.joining("; "));
-
-        String message =
-            "Library file " + dataBaseFile.getAbsolutePath() + " does not contain headers: "
-                + missingHeaders;
-        throw new IllegalArgumentException(message);
-      }
-      importType.setColumnIndex(columnIndex);
-    }
-
-    final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
-        .toList();
-    if (!nullMappings.isEmpty()) {
-      setErrorMessage("Did not find specified column " + Arrays.toString(
-          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file "
-          + dataBaseFile.getAbsolutePath());
-      setStatus(TaskStatus.ERROR);
-    }
-
-    return lines;
   }
 
   private int getHeaderColumnIndex(final String[] firstLine, final String colHeader) {

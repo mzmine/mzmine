@@ -609,6 +609,10 @@ public class FeatureFindingTest {
     assertTrue(processed1.stream()
             .anyMatch(row -> row.getFeatures().stream().filter(Objects::nonNull).count() == 2),
         "No row found with 2 features");
+
+    assertEquals(57, processed1.stream()
+            .filter(row -> row.getFeatures().stream().filter(Objects::nonNull).count() == 2).count(),
+        "Number of aligned features changed");
   }
 
   private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {

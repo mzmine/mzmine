@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.CCSCalibrant;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -50,7 +49,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javafx.beans.property.SimpleStringProperty;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,11 +76,12 @@ public class CCSUtils {
   public static Float calcCCS(double mz, @NotNull Float mobility,
       @NotNull MobilityType mobilityType, int charge, @NotNull IMSRawDataFile file) {
     return switch (mobilityType) {
-      case DRIFT_TUBE, TRAVELING_WAVE -> file.getCCSCalibration() != null ? file.getCCSCalibration()
-          .getCCS(mz, charge, mobility) : null;
-      case TIMS -> file.getCCSCalibration() != null ? file.getCCSCalibration()
-          .getCCS(mz, charge, mobility)
-          : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
+      case DRIFT_TUBE, TRAVELING_WAVE ->
+          file.getCCSCalibration() != null ? file.getCCSCalibration().getCCS(mz, charge, mobility)
+              : null;
+      case TIMS ->
+          file.getCCSCalibration() != null ? file.getCCSCalibration().getCCS(mz, charge, mobility)
+              : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
       case NONE, FAIMS, MIXED -> logUnsupportedMobilityUnit();
     };
   }
@@ -94,12 +96,11 @@ public class CCSUtils {
     //Valid Mobility Check for CCS calculation in the function
     if (file.getMobilityType() == MobilityType.TIMS) {
       return true;
-    } else if ((file.getMobilityType() == MobilityType.DRIFT_TUBE
-        || file.getMobilityType() == MobilityType.TRAVELING_WAVE)
-        && file.getCCSCalibration() != null) {
-      return true;
+    } else {
+      return (file.getMobilityType() == MobilityType.DRIFT_TUBE
+          || file.getMobilityType() == MobilityType.TRAVELING_WAVE)
+          && file.getCCSCalibration() != null;
     }
-    return false;
   }
 
   /**
@@ -132,7 +133,8 @@ public class CCSUtils {
             new ImportType(true, "mobility", DataTypes.get(
                 io.github.mzmine.datamodel.features.types.numbers.MobilityType.class)), //
             new ImportType(true, "ccs", DataTypes.get(CCSType.class)), //
-            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0]);
+            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0],
+        new SimpleStringProperty());
 
     if (importTypes == null) {
       return null;
@@ -180,13 +182,13 @@ public class CCSUtils {
       final Range<Float> mobRange = mobTol.getToleranceRange(potentialCalibrant.libraryMobility());
       final Range<Double> mzRange = mzTol.getToleranceRange(potentialCalibrant.libraryMz());
 
-      final List<FeatureListRow> rows = FeatureListUtils.getRows(rowsByMz, rtRange, mzRange,
-              mobRange, true).stream().filter(
-              r -> r.getAverageHeight() > minHeight && r.getBestFeature().getRepresentativeScan()
-                  .getPolarity().equals(PolarityType.fromInt(potentialCalibrant.libraryCharge())))
-          .toList();
-      final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(rows, mzRange, null,
-          mobRange);
+      final List<FeatureListRow> candidates = FeatureListUtils.getCandidatesWithinRanges(mzRange,
+          rtRange, mobRange, rowsByMz, true).stream().filter(
+          r -> r.getAverageHeight() > minHeight && Objects.equals(
+              r.getBestFeature().getRepresentativeScan().getPolarity(),
+              PolarityType.fromInt(potentialCalibrant.libraryCharge()))).toList();
+      final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(candidates, mzRange, null,
+          mobRange, null, 1, 1, 1, 1).orElse(null);
 
       if (calibrantRow != null) {
         var calibrant = potentialCalibrant;
