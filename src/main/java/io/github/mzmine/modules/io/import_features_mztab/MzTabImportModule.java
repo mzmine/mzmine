@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.io.import_features_mztab;
 
+import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
+import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
@@ -39,12 +41,15 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+/**
+ * @deprecated mzTab import is outdated and has been replaced by mzTab-M import
+ * {@link MZTabmImportModule}
+ */
 @Deprecated
 public class MzTabImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Import mzTab file";
-  private static final String MODULE_DESCRIPTION =
-      "This method imports a feature list from a mzTab file.";
+  private static final String MODULE_DESCRIPTION = "This method imports a feature list from a mzTab file.";
 
   @Override
   public @NotNull String getName() {
@@ -73,7 +78,8 @@ public class MzTabImportModule implements MZmineProcessingModule {
     File inputFiles[] = parameters.getParameter(MzTabImportParameters.file).getValue();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {
-      MzTabImportTask task = new MzTabImportTask(project, parameters, inputFile, storage, moduleCallDate);
+      MzTabImportTask task = new MzTabImportTask(project, parameters, inputFile, storage,
+          moduleCallDate);
       tasks.add(task);
     }
     return ExitCode.OK;

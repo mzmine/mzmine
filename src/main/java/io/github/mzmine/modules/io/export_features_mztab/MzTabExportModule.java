@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_features_mztab;
 
+import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import java.time.Instant;
 import java.util.Collection;
 
@@ -37,12 +38,15 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+/**
+ * @deprecated mzTab export is outdated and has been replaced by mzTab-M export
+ * {@link MZTabmExportModule}
+ */
 @Deprecated
 public class MzTabExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to mzTab file";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list contents into a mzTab file.";
+  private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into a mzTab file.";
 
   @Override
   public @NotNull String getName() {

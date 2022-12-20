@@ -40,6 +40,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.import_features_mztabm.MzTabmImportParameters;
+import io.github.mzmine.modules.io.import_features_mztabm.MzTabmImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -68,6 +70,11 @@ import uk.ac.ebi.pride.jmztab.model.SplitList;
 import uk.ac.ebi.pride.jmztab.model.StudyVariable;
 import uk.ac.ebi.pride.jmztab.utils.MZTabFileParser;
 
+/**
+ * @deprecated mzTab import is outdated and has been replaced by mzTab-M import
+ * {@link MzTabmImportTask}
+ */
+@Deprecated
 class MzTabImportTask extends AbstractTask {
 
   // parameter values
@@ -80,7 +87,8 @@ class MzTabImportTask extends AbstractTask {
   // underlying tasks for importing raw data
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
-  MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;
@@ -114,8 +122,9 @@ class MzTabImportTask extends AbstractTask {
     super.cancel();
     // Cancel all the data import tasks
     for (Task t : underlyingTasks) {
-      if ((t.getStatus() == TaskStatus.WAITING) || (t.getStatus() == TaskStatus.PROCESSING))
+      if ((t.getStatus() == TaskStatus.WAITING) || (t.getStatus() == TaskStatus.PROCESSING)) {
         t.cancel();
+      }
     }
   }
 
@@ -147,31 +156,36 @@ class MzTabImportTask extends AbstractTask {
       SortedMap<Integer, RawDataFile> rawDataFiles = importRawDataFiles(mzTabFile);
 
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // Create a new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
       RawDataFile rawDataArray[] = rawDataFiles.values().toArray(new RawDataFile[0]);
-      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(), rawDataArray);
+      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName,
+          getMemoryMapStorage(), rawDataArray);
 
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // Import variables
       importVariables(mzTabFile, rawDataFiles);
 
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // import small molecules (=feature list rows)
       importSmallMolecules(newFeatureList, mzTabFile, rawDataFiles);
 
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // Add the new feature list to the project
       project.addFeatureList(newFeatureList);
@@ -204,27 +218,28 @@ class MzTabImportTask extends AbstractTask {
       for (Entry<Integer, MsRun> entry : msrun.entrySet()) {
         File fileToImport = new File(entry.getValue().getLocation().getPath());
 
-        if (fileToImport.exists() && fileToImport.canRead())
+        if (fileToImport.exists() && fileToImport.canRead()) {
           filesToImport.add(fileToImport);
-        else {
+        } else {
           // Check if the raw file exists in the same folder as the
           // mzTab file
           File checkFile = new File(inputFile.getParentFile(), fileToImport.getName());
-          if (checkFile.exists() && checkFile.canRead())
+          if (checkFile.exists() && checkFile.canRead()) {
             filesToImport.add(checkFile);
-          else {
+          } else {
             // Append .gz & check again if file exists as a
             // workaround to .gz not getting preserved
             // when .mzML.gz importing
             checkFile = new File(inputFile.getParentFile(), fileToImport.getName() + ".gz");
-            if (checkFile.exists() && checkFile.canRead())
+            if (checkFile.exists() && checkFile.canRead()) {
               filesToImport.add(checkFile);
-            else {
+            } else {
               // One more level of checking, appending .zip &
               // checking as a workaround
               checkFile = new File(inputFile.getParentFile(), fileToImport.getName() + ".zip");
-              if (checkFile.exists() && checkFile.canRead())
+              if (checkFile.exists() && checkFile.canRead()) {
                 filesToImport.add(checkFile);
+              }
             }
           }
 
@@ -241,16 +256,19 @@ class MzTabImportTask extends AbstractTask {
 
       // Wait until all raw data file imports have completed
       while (true) {
-        if (isCanceled())
+        if (isCanceled()) {
           return null;
+        }
         boolean tasksFinished = true;
         for (Task task : underlyingTasks) {
-          if ((task.getStatus() == TaskStatus.WAITING)
-              || (task.getStatus() == TaskStatus.PROCESSING))
+          if ((task.getStatus() == TaskStatus.WAITING) || (task.getStatus()
+              == TaskStatus.PROCESSING)) {
             tasksFinished = false;
+          }
         }
-        if (tasksFinished)
+        if (tasksFinished) {
           break;
+        }
         Thread.sleep(1000);
       }
 
@@ -312,18 +330,20 @@ class MzTabImportTask extends AbstractTask {
     // Add sample parameters if available in mzTab file
     SortedMap<Integer, StudyVariable> variableMap = mzTabFile.getMetadata().getStudyVariableMap();
 
-    if (variableMap.isEmpty())
+    if (variableMap.isEmpty()) {
       return;
+    }
 
-    UserParameter<?, ?> newParameter =
-        new StringParameter(inputFile.getName() + " study variable", "");
+    UserParameter<?, ?> newParameter = new StringParameter(inputFile.getName() + " study variable",
+        "");
     project.addParameter(newParameter);
 
     for (Entry<Integer, StudyVariable> entry : variableMap.entrySet()) {
 
       // Stop the process if cancel() was called
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       String variableValue = entry.getValue().getDescription();
 
@@ -333,8 +353,9 @@ class MzTabImportTask extends AbstractTask {
 
         RawDataFile rawData = rawDataEntry.getValue();
         Assay dataFileAssay = assayMap.get(rawDataEntry.getKey());
-        if (dataFileAssay != null)
+        if (dataFileAssay != null) {
           project.setParameterValue(newParameter, rawData, variableValue);
+        }
       }
 
     }
@@ -356,8 +377,9 @@ class MzTabImportTask extends AbstractTask {
     for (SmallMolecule smallMolecule : smallMolecules) {
 
       // Stop the process if cancel() was called
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       rowCounter++;
       formula = smallMolecule.getChemicalFormula();
@@ -404,8 +426,8 @@ class MzTabImportTask extends AbstractTask {
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
-        SimpleFeatureIdentity newIdentity =
-            new SimpleFeatureIdentity(description, formula, database, identifier, url);
+        SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula,
+            database, identifier, url);
         newRow.addFeatureIdentity(newIdentity, false);
       }
 
@@ -425,15 +447,15 @@ class MzTabImportTask extends AbstractTask {
         }
 
         if (smallMolecule.getOptionColumnValue(dataFileAssay, "feature_mz") != null) {
-          feature_mz =
-              Double.parseDouble(smallMolecule.getOptionColumnValue(dataFileAssay, "feature_mz"));
+          feature_mz = Double.parseDouble(
+              smallMolecule.getOptionColumnValue(dataFileAssay, "feature_mz"));
         } else {
           feature_mz = mzExp;
         }
 
         if (smallMolecule.getOptionColumnValue(dataFileAssay, "feature_rt") != null) {
-          feature_rt = (float) Double
-              .parseDouble(smallMolecule.getOptionColumnValue(dataFileAssay, "feature_rt"));
+          feature_rt = (float) Double.parseDouble(
+              smallMolecule.getOptionColumnValue(dataFileAssay, "feature_rt"));
         } else {
           feature_rt = rtValue;
         }

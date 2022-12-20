@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_features_mztab;
 
+import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -34,6 +35,11 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
+/**
+ * @deprecated mzTab export is outdated and has been replaced by mzTab-M export
+ * {@link MZTabmExportParameters}
+ */
+@Deprecated
 public class MzTabExportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> extensions = List.of( //
@@ -45,14 +51,14 @@ public class MzTabExportParameters extends SimpleParameterSet {
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
-      + "If the file already exists, it will be overwritten.",
-      extensions, 32, FileSelectionType.SAVE);
+          + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
+          + "If the file already exists, it will be overwritten.", extensions, 32,
+      FileSelectionType.SAVE);
 
-  public static final BooleanParameter exportall =
-      new BooleanParameter("Include all features", "Includes features with unknown identity");
+  public static final BooleanParameter exportall = new BooleanParameter("Include all features",
+      "Includes features with unknown identity");
 
   public MzTabExportParameters() {
-    super(new Parameter[] {featureLists, filename, exportall});
+    super(new Parameter[]{featureLists, filename, exportall});
   }
 }

@@ -33,21 +33,27 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import javafx.stage.FileChooser.ExtensionFilter;
 
+import io.github.mzmine.modules.io.import_features_mztabm.MzTabmImportParameters;
+
+/**
+ * @deprecated mzTab import is outdated and has been replaced by mzTab-M import
+ * {@link MzTabmImportParameters}
+ */
+@Deprecated
 public class MzTabImportParameters extends SimpleParameterSet {
 
-  private static final List<ExtensionFilter> filters =
-      List.of(new ExtensionFilter("mztab files", "*.mztab"));
+  private static final List<ExtensionFilter> filters = List.of(
+      new ExtensionFilter("mztab files", "*.mztab"));
 
-  public static final FileNamesParameter file =
-      new FileNamesParameter("mzTab files", "mzTab files to import.", filters);
+  public static final FileNamesParameter file = new FileNamesParameter("mzTab files",
+      "mzTab files to import.", filters);
 
   public static final BooleanParameter importrawfiles = new BooleanParameter(
       "Import raw data files?",
       "If selected, raw data files will also be imported if they are available.\nIf some raw data files cannot be found, empty files will be generated instead.\nPlease note that missing files may lead to issues with other modules that need access to scan data.",
-      Boolean.TRUE
-  );
+      Boolean.TRUE);
 
   public MzTabImportParameters() {
-    super(new Parameter[] {file, importrawfiles});
+    super(new Parameter[]{file, importrawfiles});
   }
 }

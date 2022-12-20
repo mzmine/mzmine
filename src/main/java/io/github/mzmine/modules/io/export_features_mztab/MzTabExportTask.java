@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_features_mztab;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportTask;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -57,6 +58,11 @@ import uk.ac.ebi.pride.jmztab.model.SmallMolecule;
 import uk.ac.ebi.pride.jmztab.model.SmallMoleculeColumn;
 import uk.ac.ebi.pride.jmztab.model.StudyVariable;
 
+/**
+ * @deprecated mzTab export is outdated and has been replaced by mzTab-M export
+ * {@link MZTabmExportTask}
+ */
+@Deprecated
 class MzTabExportTask extends AbstractTask {
 
   private int processedRows = 0, totalRows = 0;
@@ -72,8 +78,8 @@ class MzTabExportTask extends AbstractTask {
   MzTabExportTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
-    this.featureLists =
-        parameters.getParameter(MzTabExportParameters.featureLists).getValue().getMatchingFeatureLists();
+    this.featureLists = parameters.getParameter(MzTabExportParameters.featureLists).getValue()
+        .getMatchingFeatureLists();
     this.fileName = parameters.getParameter(MzTabExportParameters.filename).getValue();
     this.exportall = parameters.getParameter(MzTabExportParameters.exportall).getValue();
   }
@@ -115,8 +121,8 @@ class MzTabExportTask extends AbstractTask {
           // Cleanup from illegal filename characters
           String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
           // Substitute
-          String newFilename =
-              fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+          String newFilename = fileName.getPath()
+              .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
           curFile = new File(newFilename);
         }
 
@@ -135,8 +141,8 @@ class MzTabExportTask extends AbstractTask {
         mtd.setMZTabMode(MZTabDescription.Mode.Summary);
         mtd.setMZTabType(MZTabDescription.Type.Quantification);
         mtd.setDescription(peakList.getName());
-        mtd.addSoftwareParam(1,
-            new CVParam("MS", "MS:1002342", "MZmine", String.valueOf(MZmineCore.getMZmineVersion())));
+        mtd.addSoftwareParam(1, new CVParam("MS", "MS:1002342", "MZmine",
+            String.valueOf(MZmineCore.getMZmineVersion())));
         mtd.setSmallMoleculeQuantificationUnit(
             new CVParam("PRIDE", "PRIDE:0000330", "Arbitrary quantification unit", null));
         mtd.addSmallMoleculeSearchEngineScoreParam(1,
@@ -291,15 +297,17 @@ class MzTabExportTask extends AbstractTask {
       }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
+    }
 
   }
 
   private String escapeString(final String inputString) {
 
-    if (inputString == null)
+    if (inputString == null) {
       return "";
+    }
 
     // Remove all special characters e.g. \n \t
     return inputString.replaceAll("[\\p{Cntrl}]", " ");

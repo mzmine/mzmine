@@ -44,16 +44,15 @@ public class MZTabmExportModule implements MZmineProcessingModule {
       "This method exports the feature list contents into a mzTab-m file.";
 
   @Override
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
 
   @Override
-  public @NotNull
-  ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
     MZTabmExportTask task = new MZTabmExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
@@ -61,20 +60,17 @@ public class MZTabmExportModule implements MZmineProcessingModule {
 
   //TODO update on addition of SMF and SME support
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTEXPORT;
   }
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MZTabmExportParameters.class;
   }
 }
