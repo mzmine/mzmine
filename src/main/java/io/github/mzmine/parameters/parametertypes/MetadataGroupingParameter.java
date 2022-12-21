@@ -36,7 +36,8 @@ public class MetadataGroupingParameter extends ComboParameter<String> {
 
   public MetadataGroupingParameter() {
     this("Metadata grouping",
-        "Group based on metadata column. Open sample metadata from the FIle menu");
+        "Group based on metadata column. Open sample metadata from the 'Project' menu, "
+            + "\nadd metadata, and open this dialog again.");
   }
 
   public static void updateMetadataGroups(ComboParameter<String> p) {

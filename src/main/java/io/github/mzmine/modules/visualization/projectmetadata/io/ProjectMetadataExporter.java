@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
@@ -36,14 +36,14 @@ import javafx.stage.Stage;
 /**
  * This class exports project parameters and their values into a tsv-format file.
  */
-public class ProjectParametersExporter {
+public class ProjectMetadataExporter {
 
-  private static final Logger logger = Logger.getLogger(ProjectParametersExporter.class.getName());
+  private static final Logger logger = Logger.getLogger(ProjectMetadataExporter.class.getName());
   private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private final Stage currentStage;
 
-  public ProjectParametersExporter(Stage stage) {
+  public ProjectMetadataExporter(Stage stage) {
     this.currentStage = stage;
   }
 

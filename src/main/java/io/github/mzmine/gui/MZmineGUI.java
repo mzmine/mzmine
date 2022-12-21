@@ -260,19 +260,6 @@ public class MZmineGUI extends Application implements Desktop {
         spectralLibraryView.getSelectionModel().getSelectedItems());
   }
 
-  @NotNull
-  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
-      Class<ModuleType> moduleClass) {
-
-    final ParameterSet moduleParameters = MZmineCore.getConfiguration()
-        .getModuleParameters(moduleClass);
-    ExitCode result = moduleParameters.showSetupDialog(true);
-    if (result == ExitCode.OK) {
-      MZmineCore.runMZmineModule(moduleClass, moduleParameters);
-    }
-
-  }
-
   public static void showAboutWindow() {
     // Show the about window
     MZmineCore.runLater(() -> {

@@ -30,34 +30,39 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExporter;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.ExitCode;
+import java.net.URL;
+import java.util.Optional;
+import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
 
-import java.net.URL;
-import java.util.Optional;
-import java.util.logging.Logger;
+public class ProjectMetadataPaneController {
 
-public class ProjectParametersSetupPaneController {
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private Stage currentStage;
@@ -70,22 +75,22 @@ public class ProjectParametersSetupPaneController {
   private void initialize() {
     parameterTable.setEditable(true);
     parameterTable.getSelectionModel().setCellSelectionEnabled(true);
-    fileList = currentProject.getDataFiles();
 
     updateParametersToTable();
   }
 
   public void setStage(Stage stage) {
     currentStage = stage;
-    stage.setOnCloseRequest(we -> {
-      logger.info("Parameters are not updated");
-    });
+    stage.setOnCloseRequest(we -> logger.info("Parameters are not updated"));
   }
 
   /**
    * Render the table using the data from the project parameters structure.
    */
   private void updateParametersToTable() {
+    // get copy of new list of files
+    fileList = currentProject.getDataFiles();
+
     parameterTable.getItems().clear();
     parameterTable.getColumns().clear();
 
@@ -169,7 +174,7 @@ public class ProjectParametersSetupPaneController {
 
         // if the parameter value is in the right format then save it to the metadata table,
         // otherwise show alert dialog
-        Object convertedParameterInput = parameter.convert(parameterValueNew,
+        Object convertedParameterInput = parameter.convertOrElse(parameterValueNew,
             parameter.defaultValue());
         // the first check allows us to unset an already set parameter's value
         if ((convertedParameterInput == null && parameterValueNew.isBlank())
@@ -196,15 +201,15 @@ public class ProjectParametersSetupPaneController {
 
   @FXML
   public void addParameter(ActionEvent actionEvent) {
-    ProjectMetadataParameters projectMetadataParameters = new ProjectMetadataParameters();
-    ExitCode exitCode = projectMetadataParameters.showSetupDialog(true);
+    ProjectMetadataColumnParameters projectMetadataColumnParameters = new ProjectMetadataColumnParameters();
+    ExitCode exitCode = projectMetadataColumnParameters.showSetupDialog(true);
 
-    StringParameter parameterTitle = projectMetadataParameters.getParameter(
-        ProjectMetadataParameters.title);
-    TextParameter parameterDescription = projectMetadataParameters.getParameter(
-        ProjectMetadataParameters.description);
-    ComboParameter<AvailableTypes> parameterType = projectMetadataParameters.getParameter(
-        ProjectMetadataParameters.valueType);
+    StringParameter parameterTitle = projectMetadataColumnParameters.getParameter(
+        ProjectMetadataColumnParameters.title);
+    TextParameter parameterDescription = projectMetadataColumnParameters.getParameter(
+        ProjectMetadataColumnParameters.description);
+    ComboParameter<AvailableTypes> parameterType = projectMetadataColumnParameters.getParameter(
+        ProjectMetadataColumnParameters.valueType);
 
     if (exitCode == ExitCode.OK) {
       // in case if the new parameter is not unique
@@ -222,18 +227,12 @@ public class ProjectParametersSetupPaneController {
 
       // add the new column to the parameters table
       switch (parameterType.getValue()) {
-        case TEXT -> {
-          metadataTable.addColumn(
-              new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
-        }
-        case DOUBLE -> {
-          metadataTable.addColumn(
-              new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
-        }
-        case DATETIME -> {
-          metadataTable.addColumn(
-              new DateMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
-        }
+        case TEXT -> metadataTable.addColumn(
+            new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
+        case NUMBER -> metadataTable.addColumn(
+            new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
+        case DATETIME -> metadataTable.addColumn(
+            new DateMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
       }
       // need to render
       updateParametersToTable();
@@ -241,19 +240,20 @@ public class ProjectParametersSetupPaneController {
   }
 
   @FXML
-  public void importParameters(ActionEvent actionEvent) {
-    ProjectParametersImporter importer = new ProjectParametersImporter(currentStage);
-    if (importer.importParameters()) {
-      logger.info("Successfully imported parameters from file");
-      updateParametersToTable();
-    } else {
-      logger.info("Importing parameters from file failed");
+  public void importParameters(ActionEvent ev) {
+    final ExitCode exitCode = MZmineCore.setupAndRunModule(ProjectMetadataImportModule.class,
+        () -> {
+          logger.info("Successfully imported parameters from file");
+          MZmineCore.runLater(() -> updateParametersToTable());
+        }, () -> logger.warning("Importing parameters from file failed"));
+    if (exitCode == ExitCode.ERROR) {
+      logger.warning("Setup of metadata import failes");
     }
   }
 
   @FXML
-  public void exportParameters(ActionEvent actionEvent) {
-    ProjectParametersExporter exporter = new ProjectParametersExporter(currentStage);
+  public void exportParameters(ActionEvent ev) {
+    ProjectMetadataExporter exporter = new ProjectMetadataExporter(currentStage);
     if (exporter.exportParameters()) {
       logger.info("Successfully exported parameters");
       updateParametersToTable();
@@ -263,7 +263,7 @@ public class ProjectParametersSetupPaneController {
   }
 
   @FXML
-  public void removeParameters(ActionEvent actionEvent) {
+  public void removeParameters(ActionEvent ev) {
     TableColumn column = parameterTable.getFocusModel().getFocusedCell().getTableColumn();
     if (column == null) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -297,9 +297,15 @@ public class ProjectParametersSetupPaneController {
   }
 
   @FXML
-  public void onClickHelp(ActionEvent actionEvent) {
+  public void onClickHelp(ActionEvent ev) {
     final URL helpPage = this.getClass().getResource("ParametersSetupHelp.html");
-    HelpWindow helpWindow = new HelpWindow(helpPage.toString());
-    helpWindow.show();
+    if (helpPage != null) {
+      HelpWindow helpWindow = new HelpWindow(helpPage.toString());
+      helpWindow.show();
+    }
+  }
+
+  public void reload(final ActionEvent ev) {
+    updateParametersToTable();
   }
 }

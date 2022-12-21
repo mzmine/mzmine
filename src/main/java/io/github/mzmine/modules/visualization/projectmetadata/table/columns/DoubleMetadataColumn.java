@@ -25,7 +25,8 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specific Double-type implementation of the project parameter.
@@ -47,16 +48,21 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
 
   @Override
   public AvailableTypes getType() {
-    return AvailableTypes.DOUBLE;
+    return AvailableTypes.NUMBER;
   }
 
   @Override
-  public Double convert(String input, Double defaultValue) {
+  public Double convertOrElse(String input, Double defaultValue) {
     try {
-      return input == null ? defaultValue : Double.parseDouble(input.trim());
+      return input == null ? defaultValue : convertOrThrow(input);
     } catch (NumberFormatException ignored) {
       return defaultValue;
     }
+  }
+
+  @Override
+  public Double convertOrThrow(@NotNull final String input) {
+    return Double.parseDouble(input.trim());
   }
 
   @Override
