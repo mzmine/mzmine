@@ -332,12 +332,28 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
     ModularFeatureList featureList = (ModularFeatureList) flist;
+
+    // add main column for row types to show name of feature list
+    TreeTableColumn<ModularFeatureListRow, String> rowCol = new TreeTableColumn<>();
+
+    // Add raw data file label
+    Label headerLabel = new Label(flist.getName());
+    if (flist.getRawDataFiles().size() == 1) {
+      RawDataFile raw = flist.getRawDataFiles().get(0);
+      headerLabel.setTextFill(raw.getColor());
+      headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(raw.getColor())));
+    }
+    rowCol.setGraphic(headerLabel);
+
     // add row types
     featureList.getRowTypes().values().stream().filter(t -> !(t instanceof FeaturesType))
-        .forEach(this::addColumn);
+        .forEach(dataType -> addColumn(rowCol, dataType));
+    // finally add row column to table
+    this.getColumns().add(rowCol);
+
     // add features
     if (featureList.getRowTypes().containsKey(FeaturesType.class)) {
-      addColumn(featureList.getRowTypes().get(FeaturesType.class));
+      addColumn(rowCol, featureList.getRowTypes().get(FeaturesType.class));
     }
 
   }
@@ -345,9 +361,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   /**
    * Add a new column to the table
    *
-   * @param dataType
+   * @param rowCol   the row column where all rowTypes are added
+   * @param dataType the new data type
    */
-  public void addColumn(DataType dataType) {
+  public void addColumn(final TreeTableColumn<ModularFeatureListRow, String> rowCol,
+      DataType dataType) {
     if (getFeatureList() == null) {
       return;
     }
@@ -365,8 +383,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
       }
 
-      // Add column
-      this.getColumns().add(col);
+      // Add row column
+      rowCol.getColumns().add(col);
 
       registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
       if (!(dataType instanceof ExpandableType)) {
