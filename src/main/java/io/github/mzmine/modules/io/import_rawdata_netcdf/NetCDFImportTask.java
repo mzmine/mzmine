@@ -302,7 +302,7 @@ public class NetCDFImportTask extends AbstractTask {
         if (scanStartPositions[i] < 0) {
           // Yes, find nearest present scan
           int nearestI = Integer.MAX_VALUE;
-          for (int j = 1; 1 < 2; j++) {
+          for (int j = 1; (i + j) < totalScans || (i - j) >= 0; j++) {
             if ((i + j) < totalScans) {
               if (scanStartPositions[i + j] >= 0) {
                 nearestI = i + j;
@@ -314,11 +314,6 @@ public class NetCDFImportTask extends AbstractTask {
                 nearestI = i - j;
                 break;
               }
-            }
-
-            // Out of bounds?
-            if (((i + j) >= totalScans) && ((i - j) < 0)) {
-              break;
             }
           }
 
