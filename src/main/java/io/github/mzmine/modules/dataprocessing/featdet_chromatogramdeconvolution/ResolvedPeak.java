@@ -49,7 +49,7 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,25 +62,28 @@ public class ResolvedPeak implements PlotXYDataProvider {
   private SimpleFeatureInformation peakInfo;
 
   // Data file of this chromatogram
-  private RawDataFile dataFile;
+  private final RawDataFile dataFile;
 
   // Chromatogram m/z, RT, height, area
-  private double mz, rt, height, area;
-  private Double fwhm = null, tf = null, af = null;
-
+  private final double mz;
+  private final Double tf = null;
+  private final Double af = null;
   // Scan numbers
-  private Scan scanNumbers[];
-
+  private final Scan[] scanNumbers;
   // We store the values of data points as double[] arrays in order to save
   // memory, which would be wasted by keeping a lot of instances of
   // SimpleDataPoint (each instance takes 16 or 32 bytes of extra memory)
-  private double dataPointMZValues[], dataPointIntensityValues[];
+  private final double[] dataPointMZValues;
+  private final double[] dataPointIntensityValues;
+  // All MS2 fragment scan numbers
+  private final List<Scan> allMS2FragmentScanNumbers;
+  private final javafx.scene.paint.Color color;
+  private double rt;
+  private double height;
 
   // Top intensity scan, fragment scan
   private Scan representativeScan;
-
-  // All MS2 fragment scan numbers
-  private List<Scan> allMS2FragmentScanNumbers;
+  private double area;
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
@@ -97,8 +100,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
   // chromatogram deconvolution method.
   private Integer parentChromatogramRowID = null;
   private FeatureList peakList;
-
-  private javafx.scene.paint.Color color;
+  private Double fwhm = null;
 
   /**
    * Initializes this peak using data points from a given chromatogram - regionStart marks the index
@@ -119,7 +121,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     // Make an array of scan numbers of this peak
     scanNumbers = new Scan[regionEnd - regionStart + 1];
 
-    Scan chromatogramScanNumbers[] = chromatogram.getScanNumbers().stream().toArray(Scan[]::new);
+    Scan[] chromatogramScanNumbers = chromatogram.getScanNumbers().stream().toArray(Scan[]::new);
 
     System.arraycopy(chromatogramScanNumbers, regionStart, scanNumbers, 0,
         regionEnd - regionStart + 1);
@@ -226,8 +228,8 @@ public class ResolvedPeak implements PlotXYDataProvider {
     if (!allMS2FragmentScanNumbers.isEmpty()) {
       Scan fragmentScan = allMS2FragmentScanNumbers.get(0);
       int precursorCharge = fragmentScan.getMsMsInfo() != null
-                            && fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda
-                            && dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : 0;
+          && fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda
+          && dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : 0;
       if (precursorCharge > 0) {
         this.charge = precursorCharge;
       }
@@ -415,7 +417,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     // nothing to compute
   }
 

@@ -38,15 +38,16 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import smile.math.DoubleArrayList;
 
 /**
- * Used to plot a Frame in a {@link io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot}.
- * Domain axis = m/z, range axis = mobility and z = intensity. Usage of a thresholded  {@link
- * CachedFrame} is encouraged to increase responsiveness of the GUI.
+ * Used to plot a Frame in a
+ * {@link io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot}. Domain axis = m/z,
+ * range axis = mobility and z = intensity. Usage of a thresholded  {@link CachedFrame} is
+ * encouraged to increase responsiveness of the GUI.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -115,7 +116,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     double numScans = frame.getNumberOfMobilityScans();
     int finishedScans = 0;
     for (MobilityScan mobilityScan : frame.getSortedMobilityScans()) {

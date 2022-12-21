@@ -39,8 +39,10 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -119,7 +121,7 @@ public class CSVParsingUtils {
           case FloatType ft -> annotation.put(ft, Float.parseFloat(line[columnIndex]));
           case IntegerType it -> annotation.put(it, Integer.parseInt(line[columnIndex]));
           case DoubleType dt -> annotation.put(dt, Double.parseDouble(line[columnIndex]));
-          case IonAdductType iat -> {
+          case IonAdductType ignored -> {
             final IonType ionType = IonType.parseFromString(line[columnIndex]);
             annotation.put(IonTypeType.class, ionType);
           }
@@ -203,6 +205,51 @@ public class CSVParsingUtils {
       logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
       return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, e.getMessage());
     }
+  }
+
+  /**
+   * Read data until end
+   *
+   * @param sep separator
+   * @return list of rows
+   * @throws IOException if read is unsuccessful
+   */
+  public static List<String[]> readData(final BufferedReader reader, final String sep)
+      throws IOException {
+    List<String[]> data = new ArrayList<>();
+    String line;
+    while ((line = reader.readLine()) != null) {
+      String[] split = line.split(sep);
+      if (split.length > 0 && split[0].length() > 0) {
+        data.add(split);
+      }
+    }
+    return data;
+  }
+
+  /**
+   * Read data until end - then map to columns
+   *
+   * @param sep separator
+   * @return array of [columns][rows]
+   * @throws IOException if read is unsuccessful
+   */
+  public static String[][] readDataMapToColumns(final BufferedReader reader, final String sep)
+      throws IOException {
+    List<String[]> rows = readData(reader, sep);
+    // max columns
+    int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
+
+    String[][] data = new String[cols][rows.size()];
+    for (int r = 0; r < rows.size(); r++) {
+      String[] row = rows.get(r);
+      for (int c = 0; c < row.length; c++) {
+        String v = row[c];
+        data[c][r] = v == null || v.isEmpty() ? null : v;
+      }
+    }
+
+    return data;
   }
 
   public record CompoundDbLoadResult(@NotNull List<CompoundDBAnnotation> annotations,

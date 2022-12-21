@@ -23,20 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportParameters;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import java.io.File;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -74,21 +69,7 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    // get the all selected files
-    File[] fileNames = parameters.getParameter(ProjectMetadataImportParameters.fileNames).getValue();
-
-    // null check
-    if (Arrays.asList(fileNames).contains(null)) {
-      logger.warning("List of filenames contains null");
-      return ExitCode.ERROR;
-    }
-
-    try {
-      tasks.add(new ProjectMetadataImportTask(fileNames, moduleCallDate));
-    } catch (Exception e) {
-      logger.severe(e.getMessage());
-      return ExitCode.ERROR;
-    }
+    tasks.add(new ProjectMetadataImportTask(parameters, moduleCallDate));
 
     return ExitCode.OK;
   }
