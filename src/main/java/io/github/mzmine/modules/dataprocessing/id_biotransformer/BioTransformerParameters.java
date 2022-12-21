@@ -104,7 +104,7 @@ public class BioTransformerParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-  enum TransformationTypes {
+  public enum TransformationTypes {
     ecbased, cyp450, phaseii, hgut, allHuman, superbio, env;
 
     @Override

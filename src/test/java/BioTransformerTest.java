@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters;
+import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters.TransformationTypes;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerUtil;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
@@ -70,7 +71,7 @@ class BioTransformerTest {
 
     params.setParameter(BioTransformerParameters.bioPath, path);
     params.setParameter(BioTransformerParameters.steps, 1);
-    params.setParameter(BioTransformerParameters.transformationType, "env");
+    params.setParameter(BioTransformerParameters.transformationType, TransformationTypes.env);
 //    params.setParameter(BioTransformerParameters.cmdOptions, "");
 
     final List<String> cmdLine = BioTransformerUtil.buildCommandLineArguments(
@@ -125,7 +126,7 @@ class BioTransformerTest {
     ParameterSet params = new BioTransformerParameters().cloneParameterSet();
     params.setParameter(BioTransformerParameters.bioPath, biotransformer);
     params.setParameter(BioTransformerParameters.steps, 1);
-    params.setParameter(BioTransformerParameters.transformationType, "env");
+    params.setParameter(BioTransformerParameters.transformationType, TransformationTypes.env);
 //    params.setParameter(BioTransformerParameters.cmdOptions, "");
     final List<String> cmdLine = BioTransformerUtil.buildCommandLineArguments(
         "CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)C(C(C)C)C(=O)O", params, outputFile);
