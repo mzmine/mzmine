@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPTyp
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.EnzymeType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ReactionType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters.TransformationTypes;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -81,9 +82,10 @@ public class BioTransformerUtil {
     cmdList.add("-k");
     cmdList.add("pred");
 
-    final String transformation = param.getValue(BioTransformerParameters.transformationType);
+    final TransformationTypes transformation = param.getValue(
+        BioTransformerParameters.transformationType);
     cmdList.add("-b");
-    cmdList.add(transformation);
+    cmdList.add(transformation.transformationName());
 
     final Integer steps = param.getValue(BioTransformerParameters.steps);
     cmdList.add("-s");

@@ -39,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 
 public class BioTransformerParameters extends SimpleParameterSet {
 
@@ -48,10 +47,9 @@ public class BioTransformerParameters extends SimpleParameterSet {
   public static final FileNameParameter bioPath = new FileNameParameter("BioTransformer path",
       "The path to bio transformer.", FileSelectionType.OPEN);
 
-  public static final ComboParameter<String> transformationType = new ComboParameter<>(
+  public static final ComboParameter<TransformationTypes> transformationType = new ComboParameter<>(
       "Transformation type", "The BioTransformer transformation type to use.",
-      FXCollections.observableArrayList("ecbased", "cyp450", "phaseii", "hgut", "allHuman",
-          "superbio", "env"), "env");
+      TransformationTypes.values(), TransformationTypes.env);
 
   public static final IntegerParameter steps = new IntegerParameter("Iterations", """
       The number of iterations to use for bio transformer.
@@ -104,5 +102,34 @@ public class BioTransformerParameters extends SimpleParameterSet {
         """);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  enum TransformationTypes {
+    ecbased, cyp450, phaseii, hgut, allHuman, superbio, env;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case ecbased -> "EC-based (Enzyme Commission)";
+        case cyp450 -> "CYP450";
+        case phaseii -> "Phase II";
+        case hgut -> "Gut microbial";
+        case allHuman -> "All human";
+        case superbio -> "Super bio";
+        case env -> "Environmental microbial";
+      };
+    }
+
+    public String transformationName() {
+      return switch (this) {
+        case ecbased -> "ecbased";
+        case cyp450 -> "cyp450";
+        case phaseii -> "phaseii";
+        case hgut -> "hgut";
+        case allHuman -> "allHuman";
+        case superbio -> "superbio";
+        case env -> "env";
+      };
+    }
   }
 }
