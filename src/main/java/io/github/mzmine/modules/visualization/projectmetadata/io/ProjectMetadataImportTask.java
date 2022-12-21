@@ -23,33 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ProjectMetadataImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ProjectMetadataImportTask.class.getName());
-  private File[] files;
-  private final int totalFilesNumber;
-  private int importedFilesNumber = 0;
+  private final File[] files;
+  private final int totalFiles;
+  private final Boolean skipColOnError;
+  private int doneFiles = 0;
 
-  protected ProjectMetadataImportTask(File[] files,
+  protected ProjectMetadataImportTask(@NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
-    this.files = files;
-    this.totalFilesNumber = files.length;
+    File file = parameters.getValue(ProjectMetadataImportParameters.fileName);
+    this.files = new File[]{file};
+    this.totalFiles = files.length;
+    skipColOnError = parameters.getValue(ProjectMetadataImportParameters.skipErrorColumns);
   }
 
   @Override
@@ -59,24 +59,25 @@ public class ProjectMetadataImportTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return totalFilesNumber == 0 ? 0 : (double) importedFilesNumber / totalFilesNumber;
+    return totalFiles == 0 ? 0 : (double) doneFiles / totalFiles;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    MetadataTable metadataTable = MZmineCore.getProjectManager().getCurrentProject().getProjectMetadata();
+    MetadataTable metadataTable = MZmineCore.getProjectMetadata();
+    metadataTable.clearData();
     // try to import parameters from each selected .tsv file
     for (File fileName : files) {
-      if ((!fileName.exists()) || (!fileName.canRead())) {
+      if (!(fileName.exists() && fileName.canRead())) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Cannot read file " + fileName);
         logger.warning("Cannot read file " + fileName);
         return;
       }
 
-      if (metadataTable.importMetadata(fileName, false)) {
+      if (metadataTable.importMetadata(fileName, skipColOnError)) {
         logger.info("Successfully imported parameters from " + fileName);
       } else {
         setStatus(TaskStatus.ERROR);
@@ -85,7 +86,7 @@ public class ProjectMetadataImportTask extends AbstractTask {
         return;
       }
 
-      importedFilesNumber++;
+      doneFiles++;
     }
 
     setStatus(TaskStatus.FINISHED);

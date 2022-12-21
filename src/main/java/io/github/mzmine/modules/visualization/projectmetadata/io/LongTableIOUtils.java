@@ -23,11 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata.table;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -43,13 +44,13 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * According to the current implementation parameter would be imported only in case if
- * value for it is set at least for one of the RawDataFiles
- *
- * [IMPORTANT] "" would be treated as a valid value for the Text parameters, whilst for
- * the other types of parameters this value would be invalid
+ * According to the current implementation parameter would be imported only in case if value for it
+ * is set at least for one of the RawDataFiles
+ * <p>
+ * [IMPORTANT] "" would be treated as a valid value for the Text parameters, whilst for the other
+ * types of parameters this value would be invalid
  */
-public class LongTableExportUtility implements TableExportUtility {
+public class LongTableIOUtils implements TableIOUtils {
 
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
 
@@ -60,15 +61,17 @@ public class LongTableExportUtility implements TableExportUtility {
     NAME, DESC, TYPE, FILE, VALUE
   }
 
-  public LongTableExportUtility(MetadataTable metadataTable) {
+  public LongTableIOUtils(MetadataTable metadataTable) {
     this.metadataTable = metadataTable;
   }
 
   /**
-   * ====================================================================
+   * Will be exported with the three columns:
+   * <p>
    * NAME  - parameter name
-   * DESC  - description of the parameter
-   * FILE  - name of the file to which the parameter belong to
+   * <p>
+   * DESC  - description of the parameter FILE  - name of the file to which the parameter belong to
+   * <p>
    * VALUE - value of the parameter
    *
    * @param file the file in which exported metadata will be stored
@@ -120,7 +123,8 @@ public class LongTableExportUtility implements TableExportUtility {
 
       logger.info("The metadata table was successfully exported");
     } catch (FileNotFoundException fileNotFoundException) {
-      logger.severe("Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
+      logger.severe(
+          "Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
       return false;
     } catch (IOException ioException) {
       logger.severe("Error while writing the exported metadata down: " + ioException.getMessage());
@@ -131,8 +135,8 @@ public class LongTableExportUtility implements TableExportUtility {
   }
 
   @Override
-  public boolean importFrom(File file, boolean appendMode) {
-    try  (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
+  public boolean importFrom(File file, final boolean skipColOnError) {
+    try (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
         fr)) {
       // we will need HeaderFields enum converted into array
       String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
@@ -197,9 +201,11 @@ public class LongTableExportUtility implements TableExportUtility {
 
           // if the parameter value is in the right format then save it to the metadata table,
           // otherwise abort importing
-          Object convertedParameterInput = parameterMatched.convert(splitLine[valuePos], null);
+          Object convertedParameterInput = parameterMatched.convertOrElse(splitLine[valuePos],
+              null);
           if (parameterMatched.checkInput(convertedParameterInput)) {
-            metadataTable.setValue(parameterMatched, files[rawDataFileInd], convertedParameterInput);
+            metadataTable.setValue(parameterMatched, files[rawDataFileInd],
+                convertedParameterInput);
           } else {
             logger.severe("Import failed: wrong parameter value format");
             return false;
@@ -213,7 +219,8 @@ public class LongTableExportUtility implements TableExportUtility {
       logger.info("Metadata table: ");
       metadataTable.getData().forEach((par, value) -> logger.info(par.getTitle() + ":" + value));
     } catch (FileNotFoundException fileNotFoundException) {
-      logger.severe("Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
+      logger.severe(
+          "Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
       return false;
     } catch (IOException ioException) {
       logger.severe("Error while reading the metadata: " + ioException.getMessage());

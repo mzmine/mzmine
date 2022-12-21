@@ -49,7 +49,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
 /**
@@ -60,7 +59,7 @@ import org.jfree.data.xy.IntervalXYDataset;
  *
  * @author https://github.com/SteffenHeu
  */
-public class ColoredXYDataset extends AbstractXYDataset implements Task, IntervalXYDataset,
+public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalXYDataset,
     SeriesKeyProvider, LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
 
   private static final Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
@@ -77,8 +76,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected ObjectProperty<javafx.scene.paint.Color> fxColor;
 
   // task stuff
-  protected SimpleObjectProperty<TaskStatus> status;
-  protected String errorMessage;
   protected boolean computed;
   protected int computedItemCount;
   protected boolean[] isLocalMaximum;
@@ -95,8 +92,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     // Task stuff
     this.computed = false;
     this.valuesComputed = false;
-    status = new SimpleObjectProperty<>(TaskStatus.WAITING);
-    errorMessage = "";
 
     // dataset stuff
     this.xyValueProvider = xyValueProvider;
@@ -305,9 +300,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    */
   @Override
   public void run() {
-    status.set(TaskStatus.PROCESSING);
-    xyValueProvider.computeValues(status);
-    if (status.get() != TaskStatus.PROCESSING) {
+    setStatus(TaskStatus.PROCESSING);
+    xyValueProvider.computeValues(statusProperty());
+    if (getStatus() != TaskStatus.PROCESSING) {
       return;
     }
 
@@ -346,7 +341,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    */
   protected void onCalculationsFinished() {
     computed = true;
-    status.set(TaskStatus.FINISHED);
+    setStatus(TaskStatus.FINISHED);
     if (getRunOption()
         != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
       MZmineCore.runLater(this::fireDatasetChanged);
@@ -363,20 +358,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     return xyValueProvider.getComputationFinishedPercentage();
   }
 
-  @Override
-  public TaskStatus getStatus() {
-    return status.get();
-  }
-
-  public SimpleObjectProperty<TaskStatus> statusProperty() {
-    return status;
-  }
-
-  @Override
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-
   /**
    * The standard TaskPriority assign to this task
    *
@@ -386,15 +367,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   public TaskPriority getTaskPriority() {
     return TaskPriority.NORMAL;
   }
-
-  /**
-   * Cancel a running task by user request.
-   */
-  @Override
-  public void cancel() {
-    status.set(TaskStatus.CANCELED);
-  }
-
 
   @Override
   public Number getStartX(int series, int item) {

@@ -23,11 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.projectmetadata.table;
+package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import java.io.File;
 
-public interface TableExportUtility {
+public interface TableIOUtils {
 
   /**
    * Export the metadata table using .tsv format.
@@ -51,10 +51,9 @@ public interface TableExportUtility {
    * Import the metadata to the metadata table.
    * todo: add extra argument defining the format of the imported data (e.g. GNPS or .tsv)
    *
-   * @param file       source of the metadata
-   * @param appendMode whether the new metadata should be appended or they should replace the old
-   *                   metadata
+   * @param file           source of the metadata
+   * @param skipColOnError
    * @return true if the metadata were successfully imported, false otherwise
    */
-  boolean importFrom(File file, boolean appendMode);
+  boolean importFrom(File file, final boolean skipColOnError);
 }

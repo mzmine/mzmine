@@ -38,7 +38,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -56,7 +56,7 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
   private final UnitFormat unitFormat;
   private final double mz;
   private final ModularFeature feature;
-  private Double mzwidth;
+  private final Double mzwidth;
 
   public SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(@NotNull final ModularFeature f) {
     data = ((IonMobilogramTimeSeries) f.getFeatureData()).getSummedMobilogram();
@@ -138,7 +138,7 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
   }
 

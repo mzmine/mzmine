@@ -31,7 +31,7 @@
   -->
 
 <BorderPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="io.github.mzmine.modules.visualization.projectmetadata.ProjectParametersSetupPaneController">
+  fx:controller="io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataPaneController">
   <center>
     <TableView fx:id="parameterTable" prefHeight="350" prefWidth="600">
       <placeholder>
@@ -41,16 +41,19 @@
   </center>
   <bottom>
     <VBox>
-      <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">
+<!--      <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">-->
+      <ButtonBar>
         <buttons>
-          <Button onAction="#addParameter" mnemonicParsing="false" text="Add new parameter"
-            ButtonBar.buttonData="LEFT"/>
-          <Button onAction="#importParameters" mnemonicParsing="false" text="Import parameters"
-            ButtonBar.buttonData="LEFT"/>
-          <Button onAction="#exportParameters" mnemonicParsing="false" text="Export parameters"
+          <Button onAction="#addParameter" mnemonicParsing="false" text="Add new column"
             ButtonBar.buttonData="LEFT"/>
           <Button onAction="#removeParameters" mnemonicParsing="false"
-            text="Remove selected parameter" ButtonBar.buttonData="LEFT"/>
+            text="Remove selected column" ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#importParameters" mnemonicParsing="false" text="Import"
+            ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#exportParameters" mnemonicParsing="false" text="Export"
+            ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#reload" mnemonicParsing="false" text="Reload"
+            ButtonBar.buttonData="LEFT"/>
           <Button onAction="#onClickHelp" mnemonicParsing="false" text="Help"
             ButtonBar.buttonData="LEFT"/>
         </buttons>

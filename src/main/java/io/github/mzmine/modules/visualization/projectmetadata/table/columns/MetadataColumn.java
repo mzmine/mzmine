@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import java.util.Objects;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Abstract parameter column sealed class, afterwards it will be inherited by the specific
@@ -38,6 +38,9 @@ import javax.validation.constraints.NotNull;
  */
 public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, DoubleMetadataColumn,
     DateMetadataColumn {
+
+  public static final String FILENAME_HEADER = "Filename";
+  public static final String DATE_HEADER = "run_date";
 
   /**
    * Title (name) of the parameter.
@@ -60,21 +63,28 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
   }
 
   /**
+   * Factory method for creating the MetadataColumn instances according to their type and name.
+   *
+   * @param type        type of the parameter
+   * @param name        name of the parameter
+   * @param description description of the parameter
+   * @return instance of the MetadataColumn
+   */
+  public static MetadataColumn forType(AvailableTypes type, String name, String description) {
+    return switch (type) {
+      case TEXT -> new StringMetadataColumn(name, description);
+      case NUMBER -> new DoubleMetadataColumn(name, description);
+      case DATETIME -> new DateMetadataColumn(name, description);
+    };
+  }
+
+  /**
    * Get the project parameter title.
    *
    * @return project parameter title
    */
-  public String getTitle() {
+  public @NotNull String getTitle() {
     return title;
-  }
-
-  /**
-   * Get the project parameter description.
-   *
-   * @return project parameter description.
-   */
-  public String getDescription() {
-    return description;
   }
 
   /**
@@ -104,29 +114,31 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
   }
 
   /**
-   * Factory method for creating the MetadataColumn instances according to their type and name.
+   * Get the project parameter description.
    *
-   * @param type        type of the parameter
-   * @param name        name of the parameter
-   * @param description description of the parameter
-   * @return instance of the MetadataColumn
+   * @return project parameter description.
    */
-  public static MetadataColumn forType(AvailableTypes type, String name, String description) {
-    return switch (type) {
-      case TEXT -> new StringMetadataColumn(name, description);
-      case DOUBLE -> new DoubleMetadataColumn(name, description);
-      case DATETIME -> new DateMetadataColumn(name, description);
-    };
+  public @NotNull String getDescription() {
+    return description;
   }
 
   /**
    * Convert input string to the specific type of the parameter.
    *
-   * @param input input string
+   * @param input        input string
+   * @param defaultValue default value if input is null or fails to cast
    * @return converted value of the specific type
    */
   @Nullable
-  public abstract T convert(@Nullable String input, @Nullable T defaultValue);
+  public abstract T convertOrElse(@Nullable String input, @Nullable T defaultValue);
+
+  /**
+   * Convert input string to the specific type of the parameter.
+   *
+   * @param input input string
+   * @return converted value of the specific type or error
+   */
+  public abstract T convertOrThrow(@NotNull String input);
 
   /**
    * Returns the default value for the columns of such type.
@@ -147,10 +159,9 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
     if (this == o) {
       return true;
     }
-    if (!(o instanceof MetadataColumn)) {
+    if (!(o instanceof MetadataColumn<?> that)) {
       return false;
     }
-    MetadataColumn<?> that = (MetadataColumn<?>) o;
     return title.equals(that.title) && description.equals(that.description);
   }
 

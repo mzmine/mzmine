@@ -44,7 +44,7 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,22 +103,23 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     final List<Frame> frames = featureData.getSpectra();
     final List<IonMobilitySeries> mobilograms = new ArrayList<>();
     for (int i = 0; i < frames.size(); i++) {
       percentage = i / ((double) frames.size() - 1);
 
       final Frame frame = frames.get(i);
-      mobilograms.add(IonMobilityUtils
-          .buildMobilogramForMzRange(frame, mzRange, MobilogramType.BASE_PEAK, null));
-      if (status.get() == TaskStatus.CANCELED) {
+      mobilograms.add(
+          IonMobilityUtils.buildMobilogramForMzRange(frame, mzRange, MobilogramType.BASE_PEAK,
+              null));
+      if (status.getValue() == TaskStatus.CANCELED) {
         return;
       }
     }
 
-    final int binningWith = BinningMobilogramDataAccess
-        .getPreviousBinningWith((ModularFeatureList) f.getFeatureList(), f.getMobilityUnit());
+    final int binningWith = BinningMobilogramDataAccess.getPreviousBinningWith(
+        (ModularFeatureList) f.getFeatureList(), f.getMobilityUnit());
     var binner = new BinningMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(), binningWith);
     binner.setMobilogram(mobilograms);
     rawMobilogram = binner.toSummedMobilogram(null);
