@@ -167,7 +167,7 @@ public class MZminePreferences extends SimpleParameterSet {
       ImageNormalization.NO_NORMALIZATION);
 
   private boolean isDarkMode = false;
-  private final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
       new DecimalFormat("0.##"), UnitFormat.DIVIDE);
