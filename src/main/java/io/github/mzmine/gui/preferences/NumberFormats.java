@@ -26,17 +26,23 @@
 package io.github.mzmine.gui.preferences;
 
 import java.text.NumberFormat;
+import org.jetbrains.annotations.Nullable;
 
 public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
                             NumberFormat mobilityFormat, NumberFormat ccsFormat,
                             NumberFormat intensityFormat, NumberFormat ppmFormat,
                             NumberFormat percentFormat, NumberFormat scoreFormat,
                             UnitFormat unitFormat) {
+
+  private static final String empty = "";
   public String mz(double mz) {
     return mzFormat.format(mz);
   }
 
-  public String mz(Number mz) {
+  public String mz(@Nullable Number mz) {
+    if(mz == null) {
+      return empty;
+    }
     return mzFormat.format(mz);
   }
 
@@ -44,7 +50,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return rtFormat.format(rt);
   }
 
-  public String rt(Number rt) {
+  public String rt(@Nullable Number rt) {
+    if(rt == null) {
+      return empty;
+    }
     return rtFormat.format(rt);
   }
 
@@ -56,7 +65,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return mobilityFormat.format(mobility);
   }
 
-  public String mobility(Number mobility) {
+  public String mobility(@Nullable Number mobility) {
+    if(mobility == null) {
+      return empty;
+    }
     return mobilityFormat.format(mobility);
   }
 
@@ -64,7 +76,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return ccsFormat.format(ccs);
   }
 
-  public String ccs(Number ccs) {
+  public String ccs(@Nullable Number ccs) {
+    if(ccs == null) {
+      return empty;
+    }
     return ccsFormat.format(ccs);
   }
 
@@ -72,7 +87,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return intensityFormat.format(intensity);
   }
 
-  public String intensity(Number intensity) {
+  public String intensity(@Nullable Number intensity) {
+    if(intensity == null) {
+      return empty;
+    }
     return intensityFormat.format(intensity);
   }
 
@@ -80,7 +98,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return ppmFormat.format(ppm);
   }
 
-  public String ppm(Number ppm) {
+  public String ppm(@Nullable Number ppm) {
+    if(ppm == null) {
+      return empty;
+    }
     return ppmFormat.format(ppm);
   }
 
@@ -88,7 +109,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return ppmFormat.format(percent);
   }
 
-  public String percent(Number percent) {
+  public String percent(@Nullable Number percent) {
+    if(percent == null) {
+      return empty;
+    }
     return percentFormat.format(percent);
   }
 
@@ -96,7 +120,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return scoreFormat.format(score);
   }
 
-  public String score(Number score) {
+  public String score(@Nullable Number score) {
+    if(score == null) {
+      return empty;
+    }
     return scoreFormat.format(score);
   }
 
