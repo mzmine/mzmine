@@ -58,4 +58,14 @@ public class TailingFactorType extends FloatType {
       return DEFAULT_FORMAT;
     }
   }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().rtFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
 }

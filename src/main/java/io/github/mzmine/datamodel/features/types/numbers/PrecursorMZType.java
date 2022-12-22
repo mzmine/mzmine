@@ -58,6 +58,16 @@ public class PrecursorMZType extends DoubleType {
     }
   }
 
+  @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().mzFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
   @NotNull
   @Override
   public String getHeaderString() {

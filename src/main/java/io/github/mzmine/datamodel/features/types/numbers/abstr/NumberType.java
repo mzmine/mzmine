@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class NumberType<T> extends DataType<T> {
 
@@ -38,4 +39,10 @@ public abstract class NumberType<T> extends DataType<T> {
 
   public abstract NumberFormat getFormatter();
 
+  public abstract NumberFormat getExportFormat();
+
+  @Override
+  public @NotNull String getFormattedExportString(T value) {
+    return value != null ? getExportFormat().format(value) : "";
+  }
 }

@@ -41,8 +41,8 @@ import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class NumberRangeType<T extends Number & Comparable<?>>
-    extends NumberType<Range<T>> implements SubColumnsFactory {
+public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
+    NumberType<Range<T>> implements SubColumnsFactory {
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -60,8 +60,14 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
   @NotNull
   public String getFormattedString(Range<T> value) {
     return value == null ? ""
-        : getFormatter().format(value.lowerEndpoint()) + "-"
-          + getFormatter().format(value.upperEndpoint());
+        : getFormatter().format(value.lowerEndpoint()) + "-" + getFormatter().format(
+            value.upperEndpoint());
+  }
+
+  @Override
+  public @NotNull String getFormattedExportString(Range<T> value) {
+    return value != null ? getExportFormat().format(value.lowerEndpoint()) + "-"
+        + getExportFormat().format(value.upperEndpoint()) : "";
   }
 
   @NotNull
@@ -137,6 +143,21 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
         return getFormatter().format(((Range) value).lowerEndpoint());
       case 1:
         return getFormatter().format(((Range) value).upperEndpoint());
+    }
+    return "";
+  }
+
+  @Override
+  @Nullable
+  public String getFormattedSubColExportValue(int subcolumn, Object value) {
+    if (value == null) {
+      return "";
+    }
+    switch (subcolumn) {
+      case 0:
+        return getExportFormat().format(((Range) value).lowerEndpoint());
+      case 1:
+        return getExportFormat().format(((Range) value).upperEndpoint());
     }
     return "";
   }

@@ -61,6 +61,16 @@ public class MobilityType extends FloatType implements ExpandableType {
   }
 
   @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().mobilityFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
   public @NotNull String getHeaderString() {
     return "Mobility";
   }

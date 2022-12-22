@@ -60,6 +60,16 @@ public class RtMs2ApexDistanceType extends FloatType {
   }
 
   @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().rtFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
   public @NotNull String getHeaderString() {
     return "RT-MS2 apex distance";
   }

@@ -52,4 +52,9 @@ public class PotentialType extends FloatType {
   public NumberFormat getFormatter() {
     return format;
   }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    return format;
+  }
 }

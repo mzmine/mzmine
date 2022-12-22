@@ -56,4 +56,9 @@ public class RdbeType extends FloatType {
   public NumberFormat getFormatter() {
       return DEFAULT_FORMAT;
   }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    return DEFAULT_FORMAT;
+  }
 }

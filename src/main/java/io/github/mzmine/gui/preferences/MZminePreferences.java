@@ -167,12 +167,12 @@ public class MZminePreferences extends SimpleParameterSet {
       ImageNormalization.NO_NORMALIZATION);
 
   private boolean isDarkMode = false;
-  private final FormatCollection exportFormat = new FormatCollection(new DecimalFormat("0.00000"),
-      new DecimalFormat("0.000"), new DecimalFormat("0.0000"), new DecimalFormat("0.00"),
-      new DecimalFormat("0.000E0"), new DecimalFormat("0.00"), new DecimalFormat("0.00"),
-      new DecimalFormat("0.00"), UnitFormat.DIVIDE);
+  private final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+      new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.##"), UnitFormat.DIVIDE);
 
-  private FormatCollection guiFormat = exportFormat; // default value
+  private NumberFormats guiFormat = exportFormat; // default value
 
   public MZminePreferences() {
     super(new Parameter[]{
@@ -249,7 +249,7 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   private void updateGuiFormat() {
-    guiFormat = new FormatCollection(getValue(MZminePreferences.mzFormat),
+    guiFormat = new NumberFormats(getValue(MZminePreferences.mzFormat),
         getValue(MZminePreferences.rtFormat), getValue(MZminePreferences.mobilityFormat),
         getValue(MZminePreferences.ccsFormat), getValue(MZminePreferences.intensityFormat),
         getValue(MZminePreferences.ppmFormat), getValue(MZminePreferences.percentFormat),
@@ -288,11 +288,11 @@ public class MZminePreferences extends SimpleParameterSet {
     }
   }
 
-  public FormatCollection getExportFormats() {
+  public NumberFormats getExportFormats() {
     return exportFormat;
   }
 
-  public FormatCollection getGuiFormats() {
+  public NumberFormats getGuiFormats() {
     return guiFormat;
   }
 

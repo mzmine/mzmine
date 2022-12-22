@@ -160,6 +160,10 @@ public abstract class DataType<T> {
     return value != null ? value.toString() : "";
   }
 
+  public @NotNull String getFormattedExportString(T value) {
+    return getFormattedString(value);
+  }
+
   /**
    * A formatted string representation of the value, if value is instance of
    * {@link #getValueClass()}.
@@ -247,6 +251,7 @@ public abstract class DataType<T> {
 
   /**
    * Defines if this data type is visible in the feature table by default.
+   *
    * @return true or false.
    */
   public boolean getDefaultVisibility() {

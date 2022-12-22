@@ -56,6 +56,11 @@ public abstract class IntegerType extends NumberType<Integer> {
   }
 
   @Override
+  public NumberFormat getExportFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
   public Class<Integer> getValueClass() {
     return Integer.class;
   }

@@ -61,6 +61,16 @@ public class MZType extends DoubleType implements ExpandableType {
   }
 
   @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().mzFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
   public @NotNull String getHeaderString() {
     return "m/z";
   }

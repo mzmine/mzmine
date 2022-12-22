@@ -38,7 +38,17 @@ public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
   @Override
   public NumberFormat getFormatter() {
     try {
-      return MZmineCore.getConfiguration().getScoreFormat();
+      return MZmineCore.getConfiguration().getGuiFormats().scoreFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().scoreFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;

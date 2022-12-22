@@ -27,11 +27,11 @@ package io.github.mzmine.gui.preferences;
 
 import java.text.NumberFormat;
 
-public record FormatCollection(NumberFormat mzFormat, NumberFormat rtFormat,
-                               NumberFormat mobilityFormat, NumberFormat ccsFormat,
-                               NumberFormat intensityFormat, NumberFormat ppmFormat,
-                               NumberFormat percentFormat, NumberFormat scoreFormat,
-                               UnitFormat unitFormat) {
+public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
+                            NumberFormat mobilityFormat, NumberFormat ccsFormat,
+                            NumberFormat intensityFormat, NumberFormat ppmFormat,
+                            NumberFormat percentFormat, NumberFormat scoreFormat,
+                            UnitFormat unitFormat) {
   public String mz(double mz) {
     return mzFormat.format(mz);
   }

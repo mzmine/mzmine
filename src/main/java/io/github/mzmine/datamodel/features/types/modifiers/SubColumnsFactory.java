@@ -73,6 +73,9 @@ public interface SubColumnsFactory {
   String getFormattedSubColValue(int subcolumn, Object cellData);
 
   @Nullable
+  String getFormattedSubColExportValue(int subcolumn, Object cellData);
+
+  @Nullable
   Object getSubColValue(int subcolumn, Object cellData);
 
   /**

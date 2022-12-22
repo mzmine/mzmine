@@ -60,6 +60,16 @@ public class MzAbsoluteDifferenceType extends DoubleType {
   }
 
   @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().mzFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
   public @NotNull String getHeaderString() {
     // Delta
     return "\u0394 m/z";
