@@ -48,7 +48,7 @@ public class MobilityAbsoluteDifferenceType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getMobilityFormat();
     } catch (NullPointerException e) {

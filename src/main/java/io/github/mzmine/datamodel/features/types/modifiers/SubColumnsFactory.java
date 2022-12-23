@@ -78,31 +78,22 @@ public interface SubColumnsFactory {
    * {@link #getFormattedSubColExportValue(int, Object)} for export value formatting
    *
    * @param subcolumn sub column
-   * @param cellData  main value that contains the sub values
+   * @param value     main value that contains the sub values
    * @return
    */
-  @Nullable String getFormattedSubColValue(int subcolumn, Object cellData);
-
-  /**
-   * Formatted string for export - usually with more precision
-   *
-   * @param subcolumn the subcolumn index
-   * @param value     the main value of this type that contains sub values
-   * @return the formatted string or null or empty strings
-   */
-  default @Nullable String getFormattedSubColExportValue(int subcolumn, Object value) {
+  default @Nullable String getFormattedSubColValue(int subcolumn, Object value, boolean export) {
     DataType sub = getType(subcolumn);
     if (sub == null) {
       return "";
     }
     if (value == null) {
-      return sub.getFormattedExportString(sub.getDefaultValue());
+      return sub.getFormattedString(sub.getDefaultValue(), export);
     }
 
     Object subvalue = null;
     try {
       subvalue = getSubColValue(sub, value);
-      return sub.getFormattedExportString(subvalue == null ? sub.getDefaultValue() : subvalue);
+      return sub.getFormattedString(subvalue == null ? sub.getDefaultValue() : subvalue, export);
     } catch (Exception ex) {
       logger.log(Level.WARNING, String.format(
           "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",
@@ -110,6 +101,31 @@ public interface SubColumnsFactory {
           (subvalue == null ? "null" : subvalue.getClass())), ex);
       return "";
     }
+  }
+
+  /**
+   * Formatted string for export - usually with more precision. Best override
+   * {@link #getFormattedSubColValue(int, Object, boolean)} instead of this method.
+   *
+   * @param subcolumn the subcolumn index
+   * @param value     the main value of this type that contains sub values
+   * @return the formatted string or null or empty strings
+   */
+  default @Nullable String getFormattedSubColExportValue(int subcolumn, Object value) {
+    return getFormattedSubColValue(subcolumn, value, true);
+  }
+
+  /**
+   * Formatted string for GUI and other uses in MZMine. Use
+   * {@link #getFormattedSubColExportValue(int, Object)} for export value formatting. Best override
+   * * {@link #getFormattedSubColValue(int, Object, boolean)} instead of this method.
+   *
+   * @param subcolumn sub column
+   * @param value     main value that contains the sub values
+   * @return
+   */
+  default @Nullable String getFormattedSubColValue(int subcolumn, Object value) {
+    return getFormattedSubColValue(subcolumn, value, false);
   }
 
   /**

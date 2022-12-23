@@ -51,7 +51,7 @@ public class MZRangeType extends DoubleRangeType implements ExpandableType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getGuiFormats().mzFormat();
     } catch (NullPointerException e) {

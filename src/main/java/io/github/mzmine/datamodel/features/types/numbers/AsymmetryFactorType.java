@@ -50,7 +50,7 @@ public class AsymmetryFactorType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getRTFormat();
     } catch (NullPointerException e) {

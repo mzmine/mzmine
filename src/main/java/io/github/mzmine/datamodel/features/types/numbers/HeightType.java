@@ -49,7 +49,7 @@ public class HeightType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getIntensityFormat();
     } catch (NullPointerException e) {

@@ -65,25 +65,17 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
   }
 
   @Override
-  public abstract NumberFormat getFormatter();
+  public abstract NumberFormat getFormat();
 
   @Override
   @NotNull
-  public String getFormattedString(Range<T> value) {
-    return value == null ? ""
-        : getFormatter().format(value.lowerEndpoint()) + "-" + getFormatter().format(
-            value.upperEndpoint());
-  }
-
-  @Override
-  public @NotNull String getFormattedExportString(Range<T> value) {
-    return value != null ? getExportFormat().format(value.lowerEndpoint()) + "-"
-        + getExportFormat().format(value.upperEndpoint()) : "";
-  }
-
-  @NotNull
-  public String getFormattedString(T value) {
-    return value == null ? "" : getFormatter().format(value);
+  public String getFormattedString(Range<T> value, boolean export) {
+    if (value == null) {
+      return "";
+    } else {
+      NumberFormat format = getFormat(export);
+      return format.format(value.lowerEndpoint()) + "-" + format.format(value.upperEndpoint());
+    }
   }
 
   @Override
@@ -139,30 +131,16 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn, Object value) {
+  public String getFormattedSubColValue(int subcolumn, Object value, boolean export) {
     if (value == null) {
       return "";
     }
     return switch (subcolumn) {
-      case 0 -> getFormatter().format(((Range) value).lowerEndpoint());
-      case 1 -> getFormatter().format(((Range) value).upperEndpoint());
+      case 0 -> getFormat(export).format(((Range) value).lowerEndpoint());
+      case 1 -> getFormat(export).format(((Range) value).upperEndpoint());
       default -> "";
     };
   }
-
-  @Override
-  @Nullable
-  public String getFormattedSubColExportValue(int subcolumn, Object value) {
-    if (value == null) {
-      return "";
-    }
-    return switch (subcolumn) {
-      case 0 -> getExportFormat().format(((Range) value).lowerEndpoint());
-      case 1 -> getExportFormat().format(((Range) value).upperEndpoint());
-      default -> "";
-    };
-  }
-
 
   @Override
   public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {
@@ -175,7 +153,6 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
       return getExportFormat().format(((Range) value).upperEndpoint());
     }
   }
-
 
   @Override
   public @Nullable Object getSubColValue(int subcolumn, Object value) {

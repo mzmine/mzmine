@@ -49,7 +49,7 @@ public class PotentialType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     return format;
   }
 

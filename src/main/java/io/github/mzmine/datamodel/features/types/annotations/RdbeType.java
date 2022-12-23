@@ -53,8 +53,8 @@ public class RdbeType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
-      return DEFAULT_FORMAT;
+  public NumberFormat getFormat() {
+    return DEFAULT_FORMAT;
   }
 
   @Override

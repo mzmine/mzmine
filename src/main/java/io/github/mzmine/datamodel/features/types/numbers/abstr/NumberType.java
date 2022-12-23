@@ -37,12 +37,17 @@ public abstract class NumberType<T> extends DataType<T> {
     DEFAULT_FORMAT = defaultFormat;
   }
 
-  public abstract NumberFormat getFormatter();
+  public abstract NumberFormat getFormat();
 
   public abstract NumberFormat getExportFormat();
 
-  @Override
-  public @NotNull String getFormattedExportString(T value) {
-    return value != null ? getExportFormat().format(value) : "";
+  public NumberFormat getFormat(boolean export) {
+    return export ? getExportFormat() : getFormat();
   }
+
+  @Override
+  public @NotNull String getFormattedString(final T value, final boolean export) {
+    return value != null ? getFormat(export).format(value) : "";
+  }
+
 }

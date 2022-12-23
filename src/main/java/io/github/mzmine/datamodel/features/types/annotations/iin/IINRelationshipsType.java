@@ -43,7 +43,8 @@ public class IINRelationshipsType extends
 
   @NotNull
   @Override
-  public String getFormattedString(List<Entry<IonNetwork, IonNetworkRelation>> list) {
+  public String getFormattedString(List<Entry<IonNetwork, IonNetworkRelation>> list,
+      boolean export) {
     return list == null ? ""
         : list.stream().findFirst().map(entry -> entry.getValue().getName(entry.getKey()))
             .orElse("");

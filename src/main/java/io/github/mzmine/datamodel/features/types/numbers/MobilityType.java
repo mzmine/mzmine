@@ -51,7 +51,7 @@ public class MobilityType extends FloatType implements ExpandableType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getMobilityFormat();
     } catch (NullPointerException e) {

@@ -50,7 +50,7 @@ public class FormulaMassType extends DoubleType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getMZFormat();
     } catch (NullPointerException e) {

@@ -129,44 +129,20 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn, Object value) {
+  public String getFormattedSubColValue(int subcolumn, Object value, boolean export) {
     DataType sub = getType(subcolumn);
     if (sub == null) {
       return "";
     }
     if (value == null) {
-      return sub.getFormattedString(sub.getDefaultValue());
+      return sub.getFormattedString(sub.getDefaultValue(), export);
     }
 
     Object subvalue = null;
     try {
       List<T> list = ((List<T>) value);
       subvalue = list.isEmpty() ? sub.getDefaultValue() : getSubColValue(sub, list);
-      return sub.getFormattedString(subvalue);
-    } catch (Exception ex) {
-      logger.log(Level.WARNING, String.format(
-          "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",
-          this.getClass().getName(), sub.getClass().getName(),
-          (subvalue == null ? "null" : subvalue.getClass())), ex);
-      return "";
-    }
-  }
-
-  @Override
-  public @Nullable String getFormattedSubColExportValue(int subcolumn, Object value) {
-    DataType sub = getType(subcolumn);
-    if (sub == null) {
-      return "";
-    }
-    if (value == null) {
-      return sub.getFormattedExportString(sub.getDefaultValue());
-    }
-
-    Object subvalue = null;
-    try {
-      List<T> list = ((List<T>) value);
-      subvalue = list.isEmpty() ? sub.getDefaultValue() : getSubColValue(sub, list);
-      return sub.getFormattedExportString(subvalue == null ? sub.getDefaultValue() : subvalue);
+      return sub.getFormattedString(subvalue, export);
     } catch (Exception ex) {
       logger.log(Level.WARNING, String.format(
           "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",

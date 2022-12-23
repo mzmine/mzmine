@@ -53,7 +53,7 @@ public class CCSRelativeErrorType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     return defaultFormat;
   }
 

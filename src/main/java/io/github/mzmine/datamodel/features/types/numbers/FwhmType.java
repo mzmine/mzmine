@@ -53,7 +53,7 @@ public class FwhmType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getExportFormats().rtFormat();
     } catch (NullPointerException e) {

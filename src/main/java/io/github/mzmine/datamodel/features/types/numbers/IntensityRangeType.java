@@ -49,7 +49,7 @@ public class IntensityRangeType extends FloatRangeType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getIntensityFormat();
     } catch (NullPointerException e) {

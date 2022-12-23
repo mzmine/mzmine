@@ -51,7 +51,7 @@ public class MZType extends DoubleType implements ExpandableType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getMZFormat();
     } catch (NullPointerException e) {

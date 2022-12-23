@@ -56,7 +56,7 @@ public class MzPpmDifferenceType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getGuiFormats().ppmFormat();
     } catch (NullPointerException e) {
