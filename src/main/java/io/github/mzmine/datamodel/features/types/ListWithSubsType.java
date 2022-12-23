@@ -44,8 +44,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class ListWithSubsType<T> extends ListDataType<T> implements
-    SubColumnsFactory, EditableColumnType {
+public abstract class ListWithSubsType<T> extends ListDataType<T> implements SubColumnsFactory,
+    EditableColumnType {
 
   private static final Logger logger = Logger.getLogger(ListWithSubsType.class.getName());
 
@@ -206,8 +206,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
    * @param list    the list
    * @return the sub column value or null if value==null or if sub column empty.
    */
-  protected <K> @Nullable K getSubColValue(@NotNull DataType<K> subType,
-      @Nullable List<T> list) {
+  protected <K> @Nullable K getSubColValue(@NotNull DataType<K> subType, @Nullable List<T> list) {
     if (list == null || list.isEmpty()) {
       return subType.getDefaultValue();
     } else {
@@ -219,6 +218,14 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
         return (K) getMapper().get(subType.getClass()).apply(list.get(0));
       }
     }
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {
+    if (value instanceof List list) {
+      return getSubColValue(sub, list);
+    }
+    return null;
   }
 
   /**
