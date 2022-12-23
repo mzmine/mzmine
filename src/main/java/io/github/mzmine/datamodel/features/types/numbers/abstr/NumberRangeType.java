@@ -29,7 +29,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -48,7 +47,7 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
 
   // this is a trick, we need a datatype to get the sub column value
   // we use this as the first column and any other for the second
-  private static final DataType<Double> MAX_REF_TYPE = DataTypes.get(MZType.class);
+  private static final DataType<Double> MAX_REF_TYPE = new MZType();
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
