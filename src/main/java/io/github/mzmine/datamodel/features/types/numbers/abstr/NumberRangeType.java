@@ -77,6 +77,21 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
     }
   }
 
+  @NotNull
+  public String getFormattedString(T value, boolean export) {
+    return value == null ? "" : getFormat(export).format(value);
+  }
+
+  @NotNull
+  public String getFormattedString(T value) {
+    return getFormattedString(value, false);
+  }
+
+  @NotNull
+  public String getFormattedExportString(T value) {
+    return getFormattedString(value, true);
+  }
+
   @Override
   public ObjectProperty<Range<T>> createProperty() {
     return new SimpleObjectProperty<Range<T>>();
