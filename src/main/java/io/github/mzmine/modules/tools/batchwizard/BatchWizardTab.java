@@ -35,10 +35,13 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPreset.WizardPart;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -48,14 +51,22 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
 
 public class BatchWizardTab extends SimpleTab {
 
   private final List<WizardPreset> presetParts = new ArrayList<>();
-  private final Map<WizardPreset, ParameterSetupPane> paramPaneMap = new HashMap<>();
+  private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
   private TabPane tabPane;
+  private HBox schemaPane;
 
   public BatchWizardTab() {
     super("Processing Wizard");
@@ -64,9 +75,11 @@ public class BatchWizardTab extends SimpleTab {
 
   private void createContentPane() {
     // top menu with selections
-    HBox topPane = createTopMenu();
+    var topPane = createTopMenu();
     // center parameter panes
     tabPane = new TabPane();
+    tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+    tabPane.setTabDragPolicy(TabDragPolicy.FIXED);
     BorderPane centerPane = new BorderPane(tabPane);
     var centerScroll = new ScrollPane(centerPane);
     centerScroll.setFitToWidth(true);
@@ -78,17 +91,25 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   private void createParameterPanes() {
+    schemaPane.getChildren().clear();
     paramPaneMap.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
     // create parameters for all parts
     // LC/GC - IMS? - MS instrument, Apply defaults
     Tab[] panes = presetParts.stream()
         // if IMS is deactivated, remove from list
-        .filter(preset -> !preset.name().equals(ImsDefaults.NO_IMS.toString())).map(preset -> {
+        .map(preset -> {
           ParameterSetupPane paramPane = new ParameterSetupPane(true, false, preset.parameters());
           paramPaneMap.put(preset, paramPane);
-          return new Tab(preset.name(), paramPane);
-        }).toArray(Tab[]::new);
+          // add to schema
+          addToSchema(preset);
+          // do not add tabs for in active tabs
+          if (!preset.name().equals(ImsDefaults.NO_IMS.toString())) {
+            return new Tab(preset.name(), paramPane);
+          } else {
+            return null;
+          }
+        }).filter(Objects::nonNull).toArray(Tab[]::new);
 
     // add to center pane
     tabPane.getTabs().clear();
@@ -96,10 +117,28 @@ public class BatchWizardTab extends SimpleTab {
     tabPane.getSelectionModel().select(selectedIndex);
   }
 
-  private HBox createTopMenu() {
+  private void addToSchema(final WizardPreset preset) {
+    String parent = preset.parentPreset().toLowerCase();
+    try {
+      final Image icon = FxIconUtil.loadImageFromResources(
+          "icons/wizard/wizard_icons_" + parent + ".png");
+      ImageView view = new ImageView(icon);
+      view.setPreserveRatio(true);
+      view.setFitHeight(100);
+      schemaPane.getChildren().add(view);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, ex.getMessage());
+    }
+  }
+
+  private VBox createTopMenu() {
+    VBox vbox = new VBox(4);
+    vbox.setAlignment(Pos.CENTER);
+    VBox.setMargin(vbox, new Insets(5));
+
     var topPane = new HBox(4);
     topPane.setAlignment(Pos.CENTER);
-    HBox.setMargin(topPane, new Insets(15));
+    HBox.setMargin(topPane, new Insets(5));
 
     presetParts.clear();
     // create combo boxes for each part of the wizard that has multiple options
@@ -134,15 +173,25 @@ public class BatchWizardTab extends SimpleTab {
 
     Button createBatch = new Button("Create batch");
     createBatch.setOnAction(event -> createBatch());
-    topPane.getChildren().addAll(createBatch);
-    return topPane;
+    topPane.getChildren().addAll(createSpacer(), new Label("="), createSpacer(), createBatch);
+
+    schemaPane = new HBox(0);
+    schemaPane.setAlignment(Pos.CENTER);
+    vbox.getChildren().addAll(topPane, schemaPane);
+    return vbox;
   }
 
+  public Region createSpacer() {
+    var spacer = new Region();
+    spacer.setPrefWidth(10);
+    return spacer;
+  }
 
   public void createBatch() {
     List<String> errorMessages = new ArrayList<>();
 
-    paramPaneMap.forEach((key, value) -> value.updateParameterSetFromComponents());
+    // Update parameters from pane and check
+    paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
     paramPaneMap.forEach((key, value) -> key.parameters().checkParameterValues(errorMessages));
 
     if (!errorMessages.isEmpty()) {

@@ -31,7 +31,15 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectr
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 
-public record WizardPreset(String name, WizardPart part, ParameterSet parameters) {
+/**
+ * @param name         the name of the preset
+ * @param parentPreset name of the parent preset - needs to be one of the defined ones in the enums
+ *                     for LC, IMS, MS, ...
+ * @param part         to which part of the workflow it belongs
+ * @param parameters   the parameters
+ */
+public record WizardPreset(String name, String parentPreset, WizardPart part,
+                           ParameterSet parameters) {
 
   /**
    * Clones the parameter set to separate it from the static version
@@ -40,11 +48,24 @@ public record WizardPreset(String name, WizardPart part, ParameterSet parameters
    * @param part       of the workflow
    * @param parameters will be cloned
    */
-  public WizardPreset(final String name, final WizardPart part, final ParameterSet parameters) {
+  public WizardPreset(final String name, final String parentPreset, final WizardPart part,
+      final ParameterSet parameters) {
     // needs the clone to separate the parameters from the static ones
     this.parameters = parameters.cloneParameterSet();
     this.name = name;
+    this.parentPreset = parentPreset;
     this.part = part;
+  }
+
+  /**
+   * Clones the parameter set to separate it from the static version
+   *
+   * @param name       name of the preset and its also the parent preset
+   * @param part       of the workflow
+   * @param parameters will be cloned
+   */
+  public WizardPreset(final String name, final WizardPart part, final ParameterSet parameters) {
+    this(name, name, part, parameters);
   }
 
   public WizardPreset(ChromatographyDefaults defaults) {
@@ -117,7 +138,15 @@ public record WizardPreset(String name, WizardPart part, ParameterSet parameters
   }
 
   public enum ImsDefaults {
-    NO_IMS, tims, IMS
+    NO_IMS, tims, IMS;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case NO_IMS -> " ";
+        case tims, IMS -> super.toString();
+      };
+    }
   }
 
   public enum MsInstrumentDefaults {
