@@ -87,11 +87,11 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardExportParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardFilterParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardHPLCParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardIonMobilityParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardMassSpectrometerParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardExportParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
@@ -169,47 +169,47 @@ public class WizardBatchBuilder {
 
     //
     ParameterSet chromParam = wizardParams.getValue(BatchWizardParameters.hplcParams);
-    cropRtRange = chromParam.getValue(BatchWizardHPLCParameters.cropRtRange);
-    intraSampleRtTol = chromParam.getValue(BatchWizardHPLCParameters.intraSampleRTTolerance);
-    interSampleRtTol = chromParam.getValue(BatchWizardHPLCParameters.interSampleRTTolerance);
-    minRtDataPoints = chromParam.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
-    maxIsomersInRt = chromParam.getValue(BatchWizardHPLCParameters.maximumIsomersInChromatogram);
-    rtFwhm = chromParam.getValue(BatchWizardHPLCParameters.approximateChromatographicFWHM);
+    cropRtRange = chromParam.getValue(WizardChromatographyParameters.cropRtRange);
+    intraSampleRtTol = chromParam.getValue(WizardChromatographyParameters.intraSampleRTTolerance);
+    interSampleRtTol = chromParam.getValue(WizardChromatographyParameters.interSampleRTTolerance);
+    minRtDataPoints = chromParam.getValue(WizardChromatographyParameters.minNumberOfDataPoints);
+    maxIsomersInRt = chromParam.getValue(
+        WizardChromatographyParameters.maximumIsomersInChromatogram);
+    rtFwhm = chromParam.getValue(WizardChromatographyParameters.approximateChromatographicFWHM);
     stableIonizationAcrossSamples = chromParam.getValue(
-        BatchWizardHPLCParameters.stableIonizationAcrossSamples);
+        WizardChromatographyParameters.stableIonizationAcrossSamples);
 
     // ion mobility IMS
     ParameterSet imsParam = wizardParams.getValue(BatchWizardParameters.imsParameters);
-    isImsActive = imsParam.getValue(BatchWizardIonMobilityParameters.imsActive);
-    imsInstrumentType = imsParam.getValue(BatchWizardIonMobilityParameters.instrumentType);
-    imsFwhm = imsParam.getValue(BatchWizardIonMobilityParameters.approximateImsFWHM);
-    minImsDataPoints = imsParam.getValue(BatchWizardIonMobilityParameters.minNumberOfDataPoints);
+    isImsActive = imsParam.getValue(WizardIonMobilityParameters.imsActive);
+    imsInstrumentType = imsParam.getValue(WizardIonMobilityParameters.instrumentType);
+    imsFwhm = imsParam.getValue(WizardIonMobilityParameters.approximateImsFWHM);
+    minImsDataPoints = imsParam.getValue(WizardIonMobilityParameters.minNumberOfDataPoints);
 
     // mass spectrometer
     ParameterSet msParam = wizardParams.getValue(BatchWizardParameters.msParams);
-    polarity = msParam.getValue(BatchWizardMassSpectrometerParameters.polarity);
-    noiseLevelMsn = msParam.getValue(BatchWizardMassSpectrometerParameters.ms2NoiseLevel);
-    noiseLevelMs1 = msParam.getValue(BatchWizardMassSpectrometerParameters.ms1NoiseLevel);
-    minFeatureHeight = msParam.getValue(BatchWizardMassSpectrometerParameters.minimumFeatureHeight);
-    mzTolScans = msParam.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance);
+    polarity = msParam.getValue(WizardMassSpectrometerParameters.polarity);
+    noiseLevelMsn = msParam.getValue(WizardMassSpectrometerParameters.ms2NoiseLevel);
+    noiseLevelMs1 = msParam.getValue(WizardMassSpectrometerParameters.ms1NoiseLevel);
+    minFeatureHeight = msParam.getValue(WizardMassSpectrometerParameters.minimumFeatureHeight);
+    mzTolScans = msParam.getValue(WizardMassSpectrometerParameters.scanToScanMzTolerance);
     mzTolFeaturesIntraSample = msParam.getValue(
-        BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance);
-    mzTolInterSample = msParam.getValue(
-        BatchWizardMassSpectrometerParameters.sampleToSampleMzTolerance);
+        WizardMassSpectrometerParameters.featureToFeatureMzTolerance);
+    mzTolInterSample = msParam.getValue(WizardMassSpectrometerParameters.sampleToSampleMzTolerance);
 
     //
     ParameterSet filterParam = wizardParams.getValue(BatchWizardParameters.filterParameters);
-    filter13C = filterParam.getValue(BatchWizardFilterParameters.filter13C);
-    minAlignedSamples = filterParam.getValue(BatchWizardFilterParameters.minNumberOfSamples);
+    filter13C = filterParam.getValue(WizardFilterParameters.filter13C);
+    minAlignedSamples = filterParam.getValue(WizardFilterParameters.minNumberOfSamples);
     handleOriginalFeatureLists = filterParam.getValue(
-        BatchWizardFilterParameters.handleOriginalFeatureLists);
+        WizardFilterParameters.handleOriginalFeatureLists);
     //
     ParameterSet exportP = wizardParams.getValue(BatchWizardParameters.exportParameters);
-    isExportActive = exportP.getValue(BatchWizardExportParameters.exportPath);
+    isExportActive = exportP.getValue(WizardExportParameters.exportPath);
     exportPath = exportP.getEmbeddedParameterValueIfSelectedOrElse(
-        BatchWizardExportParameters.exportPath, null);
-    exportGnps = exportP.getValue(BatchWizardExportParameters.exportGnps);
-    exportSirius = exportP.getValue(BatchWizardExportParameters.exportSirius);
+        WizardExportParameters.exportPath, null);
+    exportGnps = exportP.getValue(WizardExportParameters.exportGnps);
+    exportSirius = exportP.getValue(WizardExportParameters.exportSirius);
   }
 
 

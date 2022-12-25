@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardHPLCParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardIonMobilityParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardMassSpectrometerParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 
@@ -49,15 +49,15 @@ public record WizardPreset(String name, WizardPart part, ParameterSet parameters
 
   public WizardPreset(ChromatographyDefaults defaults) {
     this(defaults.toString(), WizardPart.SAMPLE_INTRODUCTION_CHROMATOGRAPHY,
-        new BatchWizardHPLCParameters(defaults));
+        new WizardChromatographyParameters(defaults));
   }
 
   public WizardPreset(MsInstrumentDefaults defaults) {
-    this(defaults.toString(), WizardPart.MS, new BatchWizardMassSpectrometerParameters(defaults));
+    this(defaults.toString(), WizardPart.MS, new WizardMassSpectrometerParameters(defaults));
   }
 
   public WizardPreset(final ImsDefaults defaults) {
-    this(defaults.toString(), WizardPart.IMS, new BatchWizardIonMobilityParameters(defaults));
+    this(defaults.toString(), WizardPart.IMS, new WizardIonMobilityParameters(defaults));
   }
 
   @Override

@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class BatchWizardMassSpectrometerParameters extends SimpleParameterSet {
+public class WizardMassSpectrometerParameters extends SimpleParameterSet {
 
   public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
       "Polarity of the ion mode", Polarity.values(), Polarity.Positive);
@@ -68,12 +68,12 @@ public class BatchWizardMassSpectrometerParameters extends SimpleParameterSet {
       "Sample to sample m/z tolerace",
       "Describes the m/z fluctuations between different samples. Used for alignment.");
 
-  public BatchWizardMassSpectrometerParameters() {
+  public WizardMassSpectrometerParameters() {
     super(new Parameter[]{polarity, ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight,
         scanToScanMzTolerance, featureToFeatureMzTolerance, sampleToSampleMzTolerance});
   }
 
-  public BatchWizardMassSpectrometerParameters(final MsInstrumentDefaults defaults) {
+  public WizardMassSpectrometerParameters(final MsInstrumentDefaults defaults) {
     this();
     switch (defaults) {
       case Orbitrap -> {

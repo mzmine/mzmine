@@ -36,7 +36,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.text.DecimalFormat;
 
-public class BatchWizardIonMobilityParameters extends SimpleParameterSet {
+public class WizardIonMobilityParameters extends SimpleParameterSet {
 
   public static final DoubleParameter approximateImsFWHM = new DoubleParameter(
       "Approximate feature FWHM",
@@ -55,7 +55,7 @@ public class BatchWizardIonMobilityParameters extends SimpleParameterSet {
       "", MobilityType.values(), MobilityType.TIMS);
 
 
-  public BatchWizardIonMobilityParameters() {
+  public WizardIonMobilityParameters() {
     super(new Parameter[]{imsActive, instrumentType, minNumberOfDataPoints, approximateImsFWHM});
   }
 
@@ -64,7 +64,7 @@ public class BatchWizardIonMobilityParameters extends SimpleParameterSet {
    *
    * @param defaults defines default values
    */
-  public BatchWizardIonMobilityParameters(final ImsDefaults defaults) {
+  public WizardIonMobilityParameters(final ImsDefaults defaults) {
     this();
     setParameter(minNumberOfDataPoints, 5);
     setParameter(approximateImsFWHM, 0.04);

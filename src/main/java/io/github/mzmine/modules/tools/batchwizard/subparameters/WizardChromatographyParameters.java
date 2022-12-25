@@ -36,7 +36,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class BatchWizardHPLCParameters extends SimpleParameterSet {
+public class WizardChromatographyParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
@@ -75,7 +75,7 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       Used in feature grouping.""", true);
 
 
-  public BatchWizardHPLCParameters() {
+  public WizardChromatographyParameters() {
     super(new Parameter[]{stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
         minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
         interSampleRTTolerance});
@@ -86,7 +86,7 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
    *
    * @param defaults defines default values
    */
-  public BatchWizardHPLCParameters(final ChromatographyDefaults defaults) {
+  public WizardChromatographyParameters(final ChromatographyDefaults defaults) {
     this();
     setParameter(stableIonizationAcrossSamples, true);
     setParameter(maximumIsomersInChromatogram, 15);

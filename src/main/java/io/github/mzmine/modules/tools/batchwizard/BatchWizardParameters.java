@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardDataInputParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardExportParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardFilterParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardHPLCParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardIonMobilityParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardMassSpectrometerParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardDataImportParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardExportParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
@@ -38,21 +38,21 @@ import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 public class BatchWizardParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter msParams = new ParameterSetParameter("MS parameters",
-      "", new BatchWizardMassSpectrometerParameters());
+      "", new WizardMassSpectrometerParameters());
 
   public static final ParameterSetParameter hplcParams = new ParameterSetParameter(
-      "(U)HPLC parameters", "", new BatchWizardHPLCParameters());
+      "(U)HPLC parameters", "", new WizardChromatographyParameters());
 
   public static final ParameterSetParameter dataInputParams = new ParameterSetParameter(
-      "Data input", "Data files and spectral library files", new BatchWizardDataInputParameters());
+      "Data input", "Data files and spectral library files", new WizardDataImportParameters());
 
   public static final ParameterSetParameter filterParameters = new ParameterSetParameter("Filter",
-      "", new BatchWizardFilterParameters());
+      "", new WizardFilterParameters());
 
   public static final ParameterSetParameter exportParameters = new ParameterSetParameter("Export",
-      "", new BatchWizardExportParameters());
+      "", new WizardExportParameters());
   public static final ParameterSetParameter imsParameters = new ParameterSetParameter(
-      "Ion mobility", "", new BatchWizardIonMobilityParameters());
+      "Ion mobility", "", new WizardIonMobilityParameters());
 
   public BatchWizardParameters() {
     super(new Parameter[]{msParams, hplcParams, imsParameters, dataInputParams, filterParameters,

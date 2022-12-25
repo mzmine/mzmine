@@ -28,24 +28,29 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 
-public class BatchWizardExportParameters extends SimpleParameterSet {
+/**
+ * Filtering steps throughout the batch mode
+ */
+public class WizardFilterParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
-      true);
-  public static final BooleanParameter exportGnps = new BooleanParameter("Export for SIRIUS", "",
-      true);
-
-  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
-      new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
-          FileSelectionType.SAVE, false), false);
+  public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
+      "Min samples per aligned feature",
+      "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
+          + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
 
 
-  public BatchWizardExportParameters() {
-    super(new Parameter[]{exportPath, exportGnps, exportSirius});
+  public static final BooleanParameter filter13C = new BooleanParameter(
+      "Only keep features with 13C",
+      "Filters out all rows that have no feature with a 13C isotope pattern", true);
+
+  public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
+      false, OriginalFeatureListOption.REMOVE);
+
+  public WizardFilterParameters() {
+    super(new Parameter[]{handleOriginalFeatureLists, minNumberOfSamples, filter13C});
   }
 }
