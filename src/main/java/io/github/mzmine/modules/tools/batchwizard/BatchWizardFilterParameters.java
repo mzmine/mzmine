@@ -27,30 +27,30 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 
-public class BatchWizardParameters extends SimpleParameterSet {
+/**
+ * Filtering steps throughout the batch mode
+ */
+public class BatchWizardFilterParameters extends SimpleParameterSet {
 
-  public static final ParameterSetParameter msParams = new ParameterSetParameter("MS parameters",
-      "", new BatchWizardMassSpectrometerParameters());
+  public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
+      "Min samples per aligned feature",
+      "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
+          + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
 
-  public static final ParameterSetParameter hplcParams = new ParameterSetParameter(
-      "(U)HPLC parameters", "", new BatchWizardHPLCParameters());
 
-  public static final ParameterSetParameter dataInputParams = new ParameterSetParameter(
-      "Data input", "Data files and spectral library files", new BatchWizardDataInputParameters());
+  public static final BooleanParameter filter13C = new BooleanParameter(
+      "Only keep features with 13C",
+      "Filters out all rows that have no feature with a 13C isotope pattern", true);
 
-  public static final ParameterSetParameter filterParameters = new ParameterSetParameter("Filter",
-      "", new BatchWizardFilterParameters());
+  public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
+      false, OriginalFeatureListOption.REMOVE);
 
-  public static final ParameterSetParameter exportParameters = new ParameterSetParameter("Export",
-      "", new BatchWizardExportParameters());
-  public static final ParameterSetParameter imsParameters = new ParameterSetParameter(
-      "Ion mobility", "", new BatchWizardIonMobilityParameters());
-
-  public BatchWizardParameters() {
-    super(new Parameter[]{msParams, hplcParams, imsParameters, dataInputParams, filterParameters,
-        exportParameters});
+  public BatchWizardFilterParameters() {
+    super(new Parameter[]{handleOriginalFeatureLists, minNumberOfSamples, filter13C});
   }
-
 }

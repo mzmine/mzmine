@@ -27,30 +27,25 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
-public class BatchWizardParameters extends SimpleParameterSet {
+public class BatchWizardExportParameters extends SimpleParameterSet {
 
-  public static final ParameterSetParameter msParams = new ParameterSetParameter("MS parameters",
-      "", new BatchWizardMassSpectrometerParameters());
+  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
+      true);
+  public static final BooleanParameter exportGnps = new BooleanParameter("Export for SIRIUS", "",
+      true);
 
-  public static final ParameterSetParameter hplcParams = new ParameterSetParameter(
-      "(U)HPLC parameters", "", new BatchWizardHPLCParameters());
+  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
+      new FileNameParameter("Export path",
+          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
+          FileSelectionType.SAVE, false), false);
 
-  public static final ParameterSetParameter dataInputParams = new ParameterSetParameter(
-      "Data input", "Data files and spectral library files", new BatchWizardDataInputParameters());
 
-  public static final ParameterSetParameter filterParameters = new ParameterSetParameter("Filter",
-      "", new BatchWizardFilterParameters());
-
-  public static final ParameterSetParameter exportParameters = new ParameterSetParameter("Export",
-      "", new BatchWizardExportParameters());
-  public static final ParameterSetParameter imsParameters = new ParameterSetParameter(
-      "Ion mobility", "", new BatchWizardIonMobilityParameters());
-
-  public BatchWizardParameters() {
-    super(new Parameter[]{msParams, hplcParams, imsParameters, dataInputParams, filterParameters,
-        exportParameters});
+  public BatchWizardExportParameters() {
+    super(new Parameter[]{exportPath, exportGnps, exportSirius});
   }
-
 }

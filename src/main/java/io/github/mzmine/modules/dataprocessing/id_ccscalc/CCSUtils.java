@@ -82,7 +82,7 @@ public class CCSUtils {
       case TIMS ->
           file.getCCSCalibration() != null ? file.getCCSCalibration().getCCS(mz, charge, mobility)
               : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
-      case NONE, FAIMS, MIXED -> logUnsupportedMobilityUnit();
+      case NONE, FAIMS, MIXED, OTHER -> logUnsupportedMobilityUnit();
     };
   }
 
@@ -109,7 +109,7 @@ public class CCSUtils {
    * @author https://github.com/SteffenHeu
    */
   public static Float calcCCSFromTimsMobility(double mobility, int charge, double mz) {
-    return tdfUtils.calculateCCS(mobility, charge, mz).floatValue();
+    return tdfUtils.calculateCCS(mobility, charge, mz);
   }
 
   public static Float logUnsupportedMobilityUnit() {
@@ -121,7 +121,7 @@ public class CCSUtils {
    * @param file A file containing colums titled "mz", "mobility", "ccs", "charge" for given library
    *             compounds. Delimiter must be ";"
    * @return A list of {@link CCSCalibrant}s or null.
-   * @throws IOException
+   * @throws IOException while trying to read file
    */
   public static List<CCSCalibrant> getCalibrantsFromCSV(final File file) throws IOException {
     final FileReader fileReader = new FileReader(file);
@@ -141,13 +141,14 @@ public class CCSUtils {
     }
 
     final int mzIndex = importTypes.stream().filter(t -> t.getCsvColumnName().equals("mz"))
-        .findFirst().get().getColumnIndex();
+        .findFirst().orElseThrow().getColumnIndex();
     final int mobilityIndex = importTypes.stream()
-        .filter(t -> t.getCsvColumnName().equals("mobility")).findFirst().get().getColumnIndex();
+        .filter(t -> t.getCsvColumnName().equals("mobility")).findFirst().orElseThrow()
+        .getColumnIndex();
     final int ccsIndex = importTypes.stream().filter(t -> t.getCsvColumnName().equals("ccs"))
-        .findFirst().get().getColumnIndex();
+        .findFirst().orElseThrow().getColumnIndex();
     final int chargeIndex = importTypes.stream().filter(t -> t.getCsvColumnName().equals("charge"))
-        .findFirst().get().getColumnIndex();
+        .findFirst().orElseThrow().getColumnIndex();
 
     final int numCalibrants = content.length - 1; // first line is headers
     List<CCSCalibrant> calibrants = new ArrayList<>();
@@ -191,12 +192,11 @@ public class CCSUtils {
           mobRange, null, 1, 1, 1, 1).orElse(null);
 
       if (calibrantRow != null) {
-        var calibrant = potentialCalibrant;
-        calibrant.setFoundMobility(calibrantRow.getAverageMobility());
-        calibrant.setFoundMz(calibrantRow.getAverageMZ());
-        detectedCalibrants.add(calibrant);
+        potentialCalibrant.setFoundMobility(calibrantRow.getAverageMobility());
+        potentialCalibrant.setFoundMz(calibrantRow.getAverageMZ());
+        detectedCalibrants.add(potentialCalibrant);
         int finalI = i;
-        logger.finest(() -> String.format("Found calibrant %d: %s", finalI, calibrant));
+        logger.finest(() -> String.format("Found calibrant %d: %s", finalI, potentialCalibrant));
       }
     }
 

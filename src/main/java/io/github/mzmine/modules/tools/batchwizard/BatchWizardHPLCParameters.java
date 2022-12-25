@@ -26,13 +26,14 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ChromatographyDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class BatchWizardHPLCParameters extends SimpleParameterSet {
@@ -56,11 +57,6 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       "Minimum number of data points as used in chromatogram building and feature resolving.", 4, 1,
       Integer.MAX_VALUE);
 
-  public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
-      "Min samples per aligned feature",
-      "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
-          + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
-
   public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
       "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"
           + "and after the separation, where in many runs cleaning and re-equilibration starts.",
@@ -73,22 +69,55 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       Integer.MAX_VALUE);
 
   public static final BooleanParameter stableIonizationAcrossSamples = new BooleanParameter(
-      "Stable ionization across samples",
-      "Only check if the ionization conditions are stable across all samples.\n"
-          + "Uncheck for varying salt content or variations in ionization conditions.\n"
-          + "Used in feature grouping.", true);
+      "Stable ionization across samples", """
+      Only check if the ionization conditions are stable across all samples.
+      Uncheck for varying salt content or variations in ionization conditions.
+      Used in feature grouping.""", true);
 
-
-  public static final BooleanParameter filter13C = new BooleanParameter(
-      "Only keep features with 13C",
-      "Filters out all rows that have no feature with a 13C isotope pattern", true);
-
-  public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
-      false, OriginalFeatureListOption.REMOVE);
 
   public BatchWizardHPLCParameters() {
     super(new Parameter[]{stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
-        minNumberOfSamples, minNumberOfDataPoints, approximateChromatographicFWHM,
-        intraSampleRTTolerance, interSampleRTTolerance, filter13C, handleOriginalFeatureLists});
+        minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
+        interSampleRTTolerance});
+  }
+
+  /**
+   * Create parameters from defaults
+   *
+   * @param defaults defines default values
+   */
+  public BatchWizardHPLCParameters(final ChromatographyDefaults defaults) {
+    this();
+    setParameter(stableIonizationAcrossSamples, true);
+    setParameter(maximumIsomersInChromatogram, 15);
+    setParameter(minNumberOfDataPoints, 4);
+    // defaults - others override those values
+    setParameter(cropRtRange, Range.closed(0.5, 60d));
+    setParameter(approximateChromatographicFWHM, new RTTolerance(0.1f, Unit.MINUTES));
+    // override defaults
+    switch (defaults) {
+      case HPLC -> {
+        setParameter(intraSampleRTTolerance, new RTTolerance(0.08f, Unit.MINUTES));
+        setParameter(interSampleRTTolerance, new RTTolerance(0.4f, Unit.MINUTES));
+      }
+      case UHPLC -> {
+        setParameter(cropRtRange, Range.closed(0.3, 30d));
+        setParameter(approximateChromatographicFWHM, new RTTolerance(0.05f, Unit.MINUTES));
+        setParameter(intraSampleRTTolerance, new RTTolerance(0.04f, Unit.MINUTES));
+        setParameter(interSampleRTTolerance, new RTTolerance(0.1f, Unit.MINUTES));
+      }
+      case HILIC -> {
+        setParameter(minNumberOfDataPoints, 5);
+        setParameter(cropRtRange, Range.closed(0.3, 30d));
+        setParameter(intraSampleRTTolerance, new RTTolerance(3, Unit.SECONDS));
+        setParameter(interSampleRTTolerance, new RTTolerance(3, Unit.SECONDS));
+      }
+      case GC -> {
+        setParameter(minNumberOfDataPoints, 6);
+        setParameter(approximateChromatographicFWHM, new RTTolerance(0.05f, Unit.MINUTES));
+        setParameter(intraSampleRTTolerance, new RTTolerance(0.04f, Unit.MINUTES));
+        setParameter(interSampleRTTolerance, new RTTolerance(0.1f, Unit.MINUTES));
+      }
+    }
   }
 }
