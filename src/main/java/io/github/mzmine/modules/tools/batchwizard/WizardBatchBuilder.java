@@ -128,8 +128,10 @@ import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
-//WizardBatchBuilder
-public class BatchWizardController {
+/**
+ * Creates a batch queue from {@link BatchWizardParameters}
+ */
+public class WizardBatchBuilder {
 
   private final File[] dataFiles;
   private final File[] libraries;
@@ -159,7 +161,7 @@ public class BatchWizardController {
   private final MobilityType imsInstrumentType;
   private final Polarity polarity;
 
-  public BatchWizardController(ParameterSet wizardParams) {
+  public WizardBatchBuilder(ParameterSet wizardParams) {
     // input
     ParameterSet inParam = wizardParams.getValue(BatchWizardParameters.dataInputParams);
     dataFiles = inParam.getValue(AllSpectralDataImportParameters.fileNames);

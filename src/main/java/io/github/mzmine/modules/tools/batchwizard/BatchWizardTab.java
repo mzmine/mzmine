@@ -155,7 +155,7 @@ public class BatchWizardTab extends SimpleTab {
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
-    final BatchQueue q = new BatchWizardController(wizardParam).createQueue();
+    final BatchQueue q = new WizardBatchBuilder(wizardParam).createQueue();
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
     if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
