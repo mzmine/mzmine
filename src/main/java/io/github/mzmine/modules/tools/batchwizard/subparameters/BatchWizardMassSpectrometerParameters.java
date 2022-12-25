@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;

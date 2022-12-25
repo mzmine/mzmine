@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardHPLCParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardIonMobilityParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.BatchWizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 

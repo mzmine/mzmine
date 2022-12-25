@@ -23,29 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
-public class BatchWizardExportParameters extends SimpleParameterSet {
+/**
+ * Reuses the filenames and spectral library files parameters of
+ * {@link AllSpectralDataImportParameters} and {@link SpectralLibraryImportParameters}
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
+public class BatchWizardDataInputParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
-      true);
-  public static final BooleanParameter exportGnps = new BooleanParameter("Export for SIRIUS", "",
-      true);
-
-  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
-      new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
-          FileSelectionType.SAVE, false), false);
-
-
-  public BatchWizardExportParameters() {
-    super(new Parameter[]{exportPath, exportGnps, exportSirius});
+  public BatchWizardDataInputParameters() {
+    super(new Parameter[]{AllSpectralDataImportParameters.fileNames,
+        SpectralLibraryImportParameters.dataBaseFiles});
   }
 }

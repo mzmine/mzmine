@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
