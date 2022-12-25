@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -53,6 +54,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -125,6 +127,15 @@ public class BatchWizardTab extends SimpleTab {
       ImageView view = new ImageView(icon);
       view.setPreserveRatio(true);
       view.setFitHeight(100);
+
+      if (MZmineCore.getConfiguration().isDarkMode()) {
+        ColorAdjust whiteEffect = new ColorAdjust();
+        whiteEffect.setBrightness(1.0);
+        view.setEffect(whiteEffect);
+        view.setCache(true);
+        view.setCacheHint(CacheHint.SPEED);
+      }
+
       schemaPane.getChildren().add(view);
     } catch (Exception ex) {
       logger.log(Level.WARNING, ex.getMessage());
