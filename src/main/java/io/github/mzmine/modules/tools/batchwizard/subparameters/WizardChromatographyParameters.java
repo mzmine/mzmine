@@ -27,9 +27,11 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ChromatographyDefaults;
+import io.github.mzmine.parameters.HiddenParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -74,11 +76,19 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
       Uncheck for varying salt content or variations in ionization conditions.
       Used in feature grouping.""", true);
 
+  public static final BooleanParameter smoothing = new BooleanParameter("Smoothing",
+      "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
+      true);
+
+  public static final HiddenParameter<ChromatographyWorkflow> workflow = new HiddenParameter<>(
+      new ComboParameter<>("Workflow", "defines the workflow used by the batch wizard",
+          ChromatographyWorkflow.values(), ChromatographyWorkflow.LC));
+
 
   public WizardChromatographyParameters() {
-    super(new Parameter[]{stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
-        minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
-        interSampleRTTolerance});
+    super(new Parameter[]{workflow, smoothing, stableIonizationAcrossSamples, cropRtRange,
+        maximumIsomersInChromatogram, minNumberOfDataPoints, approximateChromatographicFWHM,
+        intraSampleRTTolerance, interSampleRTTolerance});
   }
 
   /**
@@ -88,6 +98,7 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
    */
   public WizardChromatographyParameters(final ChromatographyDefaults defaults) {
     this();
+    setParameter(workflow, ChromatographyWorkflow.LC);
     setParameter(stableIonizationAcrossSamples, true);
     setParameter(maximumIsomersInChromatogram, 15);
     setParameter(minNumberOfDataPoints, 4);
@@ -117,7 +128,13 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
         setParameter(approximateChromatographicFWHM, new RTTolerance(0.05f, Unit.MINUTES));
         setParameter(intraSampleRTTolerance, new RTTolerance(0.04f, Unit.MINUTES));
         setParameter(interSampleRTTolerance, new RTTolerance(0.1f, Unit.MINUTES));
+        // run different workflow
+        setParameter(workflow, ChromatographyWorkflow.GC);
       }
     }
+  }
+
+  public enum ChromatographyWorkflow {
+    LC, GC
   }
 }

@@ -88,6 +88,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters.ChromatographyWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
@@ -160,6 +161,9 @@ public class WizardBatchBuilder {
   private final Boolean isImsActive;
   private final MobilityType imsInstrumentType;
   private final Polarity polarity;
+  private final ChromatographyWorkflow chromatographyWorkflow;
+  private final Boolean imsSmoothing;
+  private final Boolean rtSmoothing;
 
   public WizardBatchBuilder(ParameterSet wizardParams) {
     // input
@@ -167,8 +171,10 @@ public class WizardBatchBuilder {
     dataFiles = inParam.getValue(AllSpectralDataImportParameters.fileNames);
     libraries = inParam.getValue(SpectralLibraryImportParameters.dataBaseFiles);
 
-    //
+    // chromatography
     ParameterSet chromParam = wizardParams.getValue(BatchWizardParameters.hplcParams);
+    chromatographyWorkflow = chromParam.getValue(WizardChromatographyParameters.workflow);
+    rtSmoothing = chromParam.getValue(WizardChromatographyParameters.smoothing);
     cropRtRange = chromParam.getValue(WizardChromatographyParameters.cropRtRange);
     intraSampleRtTol = chromParam.getValue(WizardChromatographyParameters.intraSampleRTTolerance);
     interSampleRtTol = chromParam.getValue(WizardChromatographyParameters.interSampleRTTolerance);
@@ -185,6 +191,7 @@ public class WizardBatchBuilder {
     imsInstrumentType = imsParam.getValue(WizardIonMobilityParameters.instrumentType);
     imsFwhm = imsParam.getValue(WizardIonMobilityParameters.approximateImsFWHM);
     minImsDataPoints = imsParam.getValue(WizardIonMobilityParameters.minNumberOfDataPoints);
+    imsSmoothing = imsParam.getValue(WizardIonMobilityParameters.smoothing);
 
     // mass spectrometer
     ParameterSet msParam = wizardParams.getValue(BatchWizardParameters.msParams);
@@ -212,36 +219,29 @@ public class WizardBatchBuilder {
     exportSirius = exportP.getValue(WizardExportParameters.exportSirius);
   }
 
-
+  /**
+   * Create different workflows in {@link BatchQueue}. Workflows are defined in
+   * {@link ChromatographyWorkflow}
+   *
+   * @return a batch queue
+   */
   public BatchQueue createQueue() {
+    return switch (chromatographyWorkflow) {
+      case GC -> makeGcWorkflow();
+      case LC -> makeLcDataDependentWorkflow();
+    };
+  }
+
+  private BatchQueue makeLcDataDependentWorkflow() {
     final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask());
-
-    if (isImsActive) {
-      final boolean isImsFromMzml = Arrays.stream(dataFiles)
-          .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"));
-      if (!isImsFromMzml) { // == Bruker file
-        q.add(makeMassDetectionStep(1, SelectedScanTypes.FRAMES));
-      }
-      q.add(makeMassDetectionStep(1, SelectedScanTypes.MOBLITY_SCANS));
-      q.add(makeMassDetectionStep(2, SelectedScanTypes.MOBLITY_SCANS));
-      if (isImsFromMzml) {
-        q.add(makeMobilityScanMergerStep());
-      }
-    } else {
-      q.add(makeMassDetectionStep(1, SelectedScanTypes.SCANS));
-      q.add(makeMassDetectionStep(2, SelectedScanTypes.SCANS));
-    }
-
-    q.add(makeAdapStep());
-    q.add(makeSmoothingStep(true, false));
-    q.add(makeRtResolvingStep());
+    // mass detect, Chromatogram builder, smoother, local minimum resolver
+    makeMassDetectChromatogramSmoothResolver(q);
 
     if (isImsActive) {
       q.add(makeImsExpanderStep());
-      q.add(makeSmoothingStep(false, true));
+      makeSmoothingStep(q, false, imsSmoothing);
       q.add(makeMobilityResolvingStep());
-      q.add(makeSmoothingStep(true, true));
+      makeSmoothingStep(q, rtSmoothing, imsSmoothing);
     }
 
     q.add(makeDeisotopingStep());
@@ -258,10 +258,53 @@ public class WizardBatchBuilder {
     q.add(makeMetaCorrStep());
     q.add(makeIinStep());
 
-    if (checkLibraryFiles()) {
-      q.add(makeLibrarySearchStep());
-    }
+    makeLibrarySearchStep(q);
+    makeExportSteps(q);
+    return q;
+  }
 
+  private BatchQueue makeGcWorkflow() {
+    final BatchQueue q = new BatchQueue();
+    // mass detect, Chromatogram builder, smoother, local minimum resolver
+    makeMassDetectChromatogramSmoothResolver(q);
+
+    // TODO add GC specific steps
+
+    makeLibrarySearchStep(q);
+    makeExportSteps(q);
+    return q;
+  }
+
+  /**
+   * Mass detect - until resolver. Common elements in LC and GC workflows
+   */
+  private void makeMassDetectChromatogramSmoothResolver(final BatchQueue q) {
+    q.add(makeImportTask());
+    makeMassDetectorSteps(q);
+    q.add(makeAdapStep());
+    makeSmoothingStep(q, rtSmoothing, false);
+    q.add(makeRtResolvingStep());
+  }
+
+  private void makeMassDetectorSteps(final BatchQueue q) {
+    if (isImsActive) {
+      final boolean isImsFromMzml = Arrays.stream(dataFiles)
+          .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"));
+      if (!isImsFromMzml) { // == Bruker file
+        q.add(makeMassDetectionStep(1, SelectedScanTypes.FRAMES));
+      }
+      q.add(makeMassDetectionStep(1, SelectedScanTypes.MOBLITY_SCANS));
+      q.add(makeMassDetectionStep(2, SelectedScanTypes.MOBLITY_SCANS));
+      if (isImsFromMzml) {
+        q.add(makeMobilityScanMergerStep());
+      }
+    } else {
+      q.add(makeMassDetectionStep(1, SelectedScanTypes.SCANS));
+      q.add(makeMassDetectionStep(2, SelectedScanTypes.SCANS));
+    }
+  }
+
+  private void makeExportSteps(final BatchQueue q) {
     if (isExportActive && exportPath != null) {
       if (exportGnps) {
         q.add(makeIimnGnpsExportStep());
@@ -270,7 +313,6 @@ public class WizardBatchBuilder {
         q.add(makeSiriusExportStep());
       }
     }
-    return q;
   }
 
   /**
@@ -485,8 +527,11 @@ public class WizardBatchBuilder {
         param);
   }
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeSmoothingStep(final boolean rt,
-      final boolean mobility) {
+  private void makeSmoothingStep(final BatchQueue q, final boolean rt, final boolean mobility) {
+    if (!rt && !mobility) {
+      return;
+    }
+
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(SmoothingModule.class).cloneParameterSet();
     param.setParameter(SmoothingParameters.featureLists,
@@ -508,8 +553,9 @@ public class WizardBatchBuilder {
     param.setParameter(SmoothingParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(SmoothingParameters.suffix, "sm");
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SmoothingModule.class),
-        param);
+    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(SmoothingModule.class), param);
+    q.add(step);
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeRtResolvingStep() {
@@ -784,7 +830,11 @@ public class WizardBatchBuilder {
   }
 
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeLibrarySearchStep() {
+  private void makeLibrarySearchStep(final BatchQueue q) {
+    if (!checkLibraryFiles()) {
+      return;
+    }
+
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(SpectralLibrarySearchModule.class);
 
@@ -827,8 +877,9 @@ public class WizardBatchBuilder {
     param.getParameter(SpectralLibrarySearchParameters.ccsTolerance).getEmbeddedParameter()
         .setValue(0.05);
 
-    return new MZmineProcessingStepImpl<>(
+    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralLibrarySearchModule.class), param);
+    q.add(step);
   }
 
   // export

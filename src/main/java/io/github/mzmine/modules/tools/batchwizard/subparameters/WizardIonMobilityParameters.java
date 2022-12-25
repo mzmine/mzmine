@@ -54,9 +54,13 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
   public static final ComboParameter<MobilityType> instrumentType = new ComboParameter<>("IMS type",
       "", MobilityType.values(), MobilityType.TIMS);
 
+  public static final BooleanParameter smoothing = new BooleanParameter("Smoothing",
+      "Apply smoothing in the mobility dimension, usually only needed if the peak shapes are spiky.",
+      true);
 
   public WizardIonMobilityParameters() {
-    super(new Parameter[]{imsActive, instrumentType, minNumberOfDataPoints, approximateImsFWHM});
+    super(new Parameter[]{imsActive, smoothing, instrumentType, minNumberOfDataPoints,
+        approximateImsFWHM});
   }
 
   /**
@@ -68,6 +72,7 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
     this();
     setParameter(minNumberOfDataPoints, 5);
     setParameter(approximateImsFWHM, 0.04);
+    setParameter(smoothing, true);
     // override defaults
     switch (defaults) {
       case NO_IMS -> {
