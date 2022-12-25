@@ -24,6 +24,8 @@
  */
 
 import org.gradle.internal.os.OperatingSystem
+import java.nio.file.*
+import java.util.function.Consumer
 
 plugins {
     id "java"
@@ -53,13 +55,35 @@ java {
     sourceCompatibility = "19"
     targetCompatibility = "19"
 }
-defaultTasks "test", "jpackage"
+defaultTasks "test", "jpackage", "notarizeApp"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
-if (OperatingSystem.current().isMacOsX()) project.ext.osSuffix = "macOS"
 if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
 if (OperatingSystem.current().isWindows()) project.ext.osSuffix = "Windows"
+if (OperatingSystem.current().isMacOsX()) {
+    project.ext.osSuffix = "macOS"
+    project.ext.appName = "MZmine"
+    project.ext.appleID = "mzmine.devel@gmail.com"
+
+    getLogger().lifecycle('Checking macOS system variables...')
+
+    project.ext.developerID = System.getenv("MACOS_APP_IDENTITY_ID")
+    if (developerID == null || developerID.isBlank()) {
+        throw new GradleException("System variable MACOS_APP_IDENTITY_ID is not set.")
+    }
+    project.ext.appleIDPassword = System.getenv("MACOS_APPLE_ID_PWD")
+    if (appleIDPassword == null || appleIDPassword.isBlank()) {
+        throw new GradleException("System variable MACOS_APPLE_ID_PWD is not set.")
+    }
+    project.ext.appleTeamID = System.getenv("MACOS_APP_IDENTITY_TEAM_ID")
+    if (appleTeamID == null || appleTeamID.isBlank()) {
+        throw new GradleException("System variable MACOS_APP_IDENTITY_TEAM_ID is not set.")
+    }
+
+    project.ext.imageDir = buildDir.toPath().resolve('jpackage').resolve('MZmine.app').toFile()
+    project.ext.jarsDir = imageDir.toPath().resolve('Contents').resolve('app').toFile()
+}
 println "OS detected as " + project.ext.osSuffix
 
 
@@ -123,7 +147,7 @@ dependencies {
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation "org.ostermiller:utils:1.07.00"
     implementation 'org.jetbrains:annotations:22.0.0'
-    implementation 'nz.ac.waikato.cms.weka:weka-stable:3.8.5'
+    implementation 'nz.ac.waikato.cms.weka:weka-dev:3.9.6'
     implementation 'net.sourceforge.jmol:jmol:14.31.10'
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.slf4j:slf4j-jdk14:$slf4jVersion"
@@ -164,7 +188,7 @@ dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
 //    implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
 
-    implementation "org.xerial:sqlite-jdbc:3.8.11.2"
+//    implementation "org.xerial:sqlite-jdbc:3.40.0.0"  // Is dependency to du-lab but is not needed for compilation
     implementation "org.du-lab.adap:adap:4.1.10"
     implementation "gnf:clustering:20210422"
     implementation 'it.unimi.dsi:fastutil:8.5.6'
@@ -254,7 +278,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "16"
+    version = "19"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
@@ -330,15 +354,15 @@ runtime {
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns",
                             "--mac-sign",
-                            "--mac-package-name", "MZmine",
+                            "--mac-package-name", appName,
                             "--mac-package-identifier", "io.github.mzmine.main",
-                            "--mac-signing-key-user-name", "Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)",
+                            "--mac-signing-key-user-name", developerID,
                             "--verbose"
             ]
             installerOptions = [
                     "--license-file", "LICENSE.txt",
 //                    "--mac-sign",
-//                    "--mac-signing-key-user-name", "Developer ID Application: Ceske vysoke uceni technicke v Praze (LK4H72N842)",
+//                    "--mac-signing-key-user-name", developerID,
             ]
             installerName = "MZmine_macOS_installer"
         }
@@ -367,6 +391,136 @@ runtime {
     }
 }
 
+task signApp(dependsOn: jpackage) {
+
+    if (OperatingSystem.current().isMacOsX()) {
+
+        doLast {
+
+            Path entitlementsPth = getRootProject().getProjectDir().toPath().resolve("gradle")
+                    .resolve("macos.entitlements").toAbsolutePath()
+
+            // Define codesign command
+            Consumer<Path> codesign = (Path p) -> exec {
+                commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
+                             "runtime", "--entitlements", "${entitlementsPth}", "-f", "-v", "${p}"])
+            }
+
+            getLogger().lifecycle('Deleting unused "non-notarizable" libraries...')
+
+            // Delete unused dependencies of dependencies causing notarization issues
+            jarsDir.listFiles((FilenameFilter)((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
+                    || n.startsWith('jocl') || n.startsWith('sqlite'))).stream().forEach(File::delete)
+
+            getLogger().lifecycle("Signing native ThermoRawFileParser...")
+
+            // Unzip ThermoRawFileParser.zip
+            String mzmineJarName = "mzmine3-${semver.version}"
+            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
+            exec { commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
+                    "ThermoRawFileParser.zip -d ThermoRawFileParser"]) }
+
+            // Sign ThermoRawFileParser content
+            for (File f : jarsDir.toPath().resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
+                    .resolve('ThermoRawFileParser').toFile().listFiles()) {
+
+                // ThermoRawFileParserMac is signed by jpackage
+                if (f.toPath().toString().endsWith('ThermoRawFileParserMac')) {
+                    continue
+                }
+                codesign(f.toPath())
+            }
+
+            // Zip ThermoRawFileParser back
+            exec { commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo " +
+                                "&& zip -rq ThermoRawFileParser.zip ThermoRawFileParser && rm -rf ThermoRawFileParser"]) }
+            exec { commandLine(['sh', '-c', "cd ${jarsDir} && jar cvf ${mzmineJarName}.jar -C ${mzmineJarName}/ ."]) }
+            exec { commandLine(['sh', '-c', "rm -rf ${jarsDir}/${mzmineJarName}"]) }
+
+            getLogger().lifecycle("Signing native libraries...")
+
+            // Traverse over whole .app and sign each native library
+            for (Path nativeLib : Files.find(imageDir.toPath(), 999, (p, bfa)  // 999 is a recursive depth
+                    -> bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.dylib|.*\\.so|.*\\.dll|.*\\.a|.*\\.lib"))) {
+                getLogger().lifecycle("Signing native lib '${nativeLib}'")
+                codesign(nativeLib.toAbsolutePath())
+            }
+
+            getLogger().lifecycle("Signing libraires nested in jars...")
+
+            // Define native libraries nested in jars that are to be signed
+            ArrayList<Path> jarNestedLibs = [
+                    FileSystems.newFileSystem(imageDir.toPath().resolve("Contents").resolve("app")
+                            .resolve("jna-inchi-darwin-x86-64-1.0.1.jar")).getPath("darwin-x86-64/libjnainchi.dylib"),
+                    FileSystems.newFileSystem(imageDir.toPath().resolve("Contents").resolve("app")
+                            .resolve("jna-inchi-darwin-aarch64-1.0.1.jar")).getPath("darwin-aarch64/libjnainchi.dylib"),
+                    FileSystems.newFileSystem(imageDir.toPath().resolve("Contents").resolve("app")
+                            .resolve("adap-4.1.10.jar")).getPath("lib/macosx-x86_64/libadapwavelet.so"),
+            ]
+
+            // Move each library out of .jar, sign it, and put it back
+            Path tmpJarsDir = getBuildDir().toPath().resolve("tmp").resolve("jarLibs")
+            Files.createDirectories(tmpJarsDir)
+            for (Path inJar : jarNestedLibs) {
+                Path tmpPath = tmpJarsDir.resolve(inJar.getFileName().toString())
+                Files.copy(inJar, tmpPath, StandardCopyOption.REPLACE_EXISTING)
+                codesign(tmpPath.toAbsolutePath())
+                Files.copy(tmpPath, inJar, StandardCopyOption.REPLACE_EXISTING)
+                inJar.fileSystem.close()
+            }
+
+            getLogger().lifecycle("Signing jars...")
+
+            // Traverse over entire .app and sign each .jar
+            for (Path jar : Files.find(imageDir.toPath(), 999, (p, bfa)  // 999 is a recursive depth
+                    -> bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.jar"))) {
+                getLogger().lifecycle("Signing jar '${jar}'")
+                codesign(jar.toAbsolutePath())
+            }
+
+            // Sign .app directory
+            getLogger().lifecycle("Signing .app directory...")
+            codesign(imageDir.toPath())
+
+            getLogger().lifecycle("Zipping .app directory...")
+            exec { commandLine(['sh', '-c', "cd ${buildDir.toPath().resolve('jpackage')} " +
+                    "&& zip -rq MZmine_macOS_portable.zip MZmine.app"]) }
+        }
+    }
+}
+
+task notarizeApp(dependsOn: signApp) {
+
+    if (OperatingSystem.current().isMacOsX()) {
+
+        doLast {
+
+            getLogger().lifecycle("Notarizing .app...")
+
+            ExecResult execResult = exec {
+                commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
+                             "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
+                             "${buildDir.toPath().resolve('jpackage').resolve('MZmine_macOS_portable.zip')}"])
+            }
+            int returnCode = execResult.getExitValue()
+            if (returnCode != 0) {
+                throw new GradleException("Error ${returnCode} during notarization.")
+            }
+
+            getLogger().lifecycle("Stapling .app...")
+
+            execResult = exec {
+                commandLine(["xcrun", "stapler", "staple", "${imageDir.toPath()}"])
+            }
+            returnCode = execResult.getExitValue()
+            if (returnCode != 0) {
+                throw new GradleException("Error ${returnCode} during stapling.")
+            }
+        }
+    }
+}
+notarizeApp.mustRunAfter(signApp)
+
 /*
  * This is important in order to copy all .java, .fxml, and help files into the final MZmine jar.
  * The .java files are only for people who want to check the source codes.
@@ -388,4 +542,3 @@ task copyTestResources(type: Copy) {
     into "${buildDir}/classes/test"
 }
 processTestResources.dependsOn copyTestResources
-
