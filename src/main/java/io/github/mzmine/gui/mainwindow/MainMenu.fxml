@@ -589,7 +589,7 @@
   </Menu>
 
   <Menu text="Processing wizard">
-    <MenuItem text="LC-MS / LC-IMS-MS workflow" onAction="#showWizardTab"
+    <MenuItem text="Open processing wizard" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
