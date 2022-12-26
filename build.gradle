@@ -188,8 +188,8 @@ dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
 //    implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
 
-//    implementation "org.xerial:sqlite-jdbc:3.40.0.0"  // Is dependency to du-lab but is not needed for compilation
     implementation "org.du-lab.adap:adap:4.1.10"
+    implementation "org.xerial:sqlite-jdbc:3.40.0.0"
     implementation "gnf:clustering:20210422"
     implementation 'it.unimi.dsi:fastutil:8.5.6'
     implementation 'com.itextpdf:itextpdf:5.5.13.2'
@@ -410,7 +410,7 @@ task signApp(dependsOn: jpackage) {
 
             // Delete unused dependencies of dependencies causing notarization issues
             jarsDir.listFiles((FilenameFilter)((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
-                    || n.startsWith('jocl') || n.startsWith('sqlite'))).stream().forEach(File::delete)
+                    || n.startsWith('jocl'))).stream().forEach(File::delete)
 
             getLogger().lifecycle("Signing native ThermoRawFileParser...")
 
