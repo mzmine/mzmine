@@ -25,12 +25,9 @@
 
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
-import io.github.mzmine.gui.SnowFallPane;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.HtmlLinkOpenExternalBrowserListener;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
@@ -42,7 +39,7 @@ public class MZmineIntroductionTab extends SimpleTab {
     final WebView browser = new WebView();
     final WebEngine engine = browser.getEngine();
 
-    if (MZmineCore.getConfiguration().isDarkMode()) {
+    if(MZmineCore.getConfiguration().isDarkMode()) {
       engine.load(getClass().getResource("MZmineIntroduction_darkmode.html").toString());
     } else {
       engine.load(getClass().getResource("MZmineIntroduction.html").toString());
@@ -50,20 +47,6 @@ public class MZmineIntroductionTab extends SimpleTab {
     engine.getLoadWorker().stateProperty()
         .addListener(new HtmlLinkOpenExternalBrowserListener(browser));
 
-    StackPane stack = new StackPane(browser);
-    HBox main = new HBox(stack);
-
-    SnowFallPane snow = new SnowFallPane(main, 1500);
-    snow.setMouseTransparent(true);
-    stack.getChildren().add(snow);
-
-    snow.setMaxSize(400, 400);
-    snow.setPrefSize(400, 400);
-//    snow.prefWidthProperty().bind(main.widthProperty());
-//    snow.prefHeightProperty().bind(main.heightProperty());
-//    snow.maxWidthProperty().bind(main.widthProperty());
-//    snow.maxHeightProperty().bind(main.heightProperty());
-
-    super.setContent(main);
+    super.setContent(browser);
   }
 }

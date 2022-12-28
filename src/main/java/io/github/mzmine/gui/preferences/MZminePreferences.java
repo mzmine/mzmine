@@ -125,9 +125,6 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
       "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.MZMINE_LIGHT);
 
-  public static final BooleanParameter activateSeasons = new BooleanParameter("Activate seasons",
-      "This will activate season specific themes", false);
-
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
@@ -169,7 +166,7 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
-  private final boolean isDarkMode = false;
+  private boolean isDarkMode = false;
 
   public MZminePreferences() {
     super(new Parameter[]{
@@ -183,8 +180,7 @@ public class MZminePreferences extends SimpleParameterSet {
         unitFormat,
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-        activateSeasons, imageNormalization, showPrecursorWindow, imsModuleWarnings,
-        windowSetttings, sendErrorEMail,
+        imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
         // silent parameters without controls
         showTempFolderAlert});
   }
@@ -206,8 +202,8 @@ public class MZminePreferences extends SimpleParameterSet {
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
-        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-            activateSeasons, showPrecursorWindow, imageNormalization});
+        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme,
+            presentationMode, showPrecursorWindow, imageNormalization});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
     });

@@ -55,7 +55,6 @@
   <stylesheets>
     <URL value="@/themes/MZmine_default.css"/>
   </stylesheets>
-  <StackPane fx:id="stackPane">
   <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400" minWidth="600"
     prefWidth="${screen.visualBounds.width*0.9}"
     prefHeight="${screen.visualBounds.height*0.9}"
@@ -256,5 +255,4 @@
       <Screen fx:factory="getPrimary" fx:id="screen"/>
     </fx:define>
   </BorderPane>
-  </StackPane>
 </Scene>
