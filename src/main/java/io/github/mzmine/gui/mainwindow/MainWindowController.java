@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.SnowFallPane;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
@@ -174,6 +175,8 @@ public class MainWindowController {
   @FXML
   public VBox bottomBox;
   @FXML
+  public StackPane stackPane;
+  @FXML
   private Scene mainScene;
   @FXML
   private GroupableListView<RawDataFile> rawDataList;
@@ -261,6 +264,10 @@ public class MainWindowController {
 
   @FXML
   public void initialize() {
+
+    SnowFallPane snow = new SnowFallPane(1500);
+    snow.setMouseTransparent(true);
+    stackPane.getChildren().add(snow);
 
     rawDataList.setEditable(false);
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

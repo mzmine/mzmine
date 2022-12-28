@@ -29,6 +29,7 @@ import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.SnowFallPane;
 import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
@@ -50,6 +51,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.layout.BorderPane;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -231,6 +233,13 @@ public class MainMenuController {
   public void showSpectralMirrorDialog(ActionEvent event) {
     MirrorScanWindowFXML window = new MirrorScanWindowFXML();
     window.show();
+  }
+
+  public void handleOpenSeason(final ActionEvent actionEvent) {
+    SnowFallPane tab = new SnowFallPane(1400);
+    BorderPane pane = new BorderPane(tab);
+    pane.setPrefSize(1000, 1000);
+    MZmineCore.getDesktop().addTab(new SimpleTab("Snowfall", pane));
   }
 }
 
