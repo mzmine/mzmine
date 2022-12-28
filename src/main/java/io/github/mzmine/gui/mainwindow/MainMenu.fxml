@@ -619,6 +619,12 @@
     <MenuItem text="Support" onAction="#openLink"
       userData="http://mzmine.github.io/support.html"/>
     <MenuItem text="Open introduction tab" onAction="#handleAddIntroductionTab"/>
+    <MenuItem text="Open season" onAction="#handleOpenSeason">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="L"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
     <SeparatorMenuItem/>
     <MenuItem text="Check for updates" onAction="#versionCheck"/>
     <SeparatorMenuItem/>
