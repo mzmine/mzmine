@@ -36,6 +36,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -122,8 +124,12 @@ public class BatchWizardTab extends SimpleTab {
   private void addToSchema(final WizardPreset preset) {
     String parent = preset.parentPreset().toLowerCase();
     try {
+      LocalDate now = LocalDate.now();
+      String formatPath = "icons/wizard/{0}wizard_icons_{1}.png";
+      // load aprils fools day resources
+      String specialSet = (now.getMonthValue() == 4 && now.getDayOfMonth() == 1) ? "april/" : "";
       final Image icon = FxIconUtil.loadImageFromResources(
-          "icons/wizard/wizard_icons_" + parent + ".png");
+          MessageFormat.format(formatPath, specialSet, parent));
       ImageView view = new ImageView(icon);
       view.setPreserveRatio(true);
       view.setFitHeight(100);
