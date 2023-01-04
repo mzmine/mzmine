@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
@@ -218,6 +219,16 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public UnitFormat getUnitFormat() {
     return preferences.getParameter(MZminePreferences.unitFormat).getValue();
+  }
+
+  @Override
+  public NumberFormats getGuiFormats() {
+    return preferences.getGuiFormats();
+  }
+
+  @Override
+  public NumberFormats getExportFormats() {
+    return preferences.getExportFormats();
   }
 
   @Override

@@ -326,7 +326,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     if (value == null) {
       value = ((DataType) subColFactory).getDefaultValue();
     }
-    return csvEscape(subColFactory.getFormattedSubColValue(col, value));
+    return csvEscape(subColFactory.getFormattedSubColExportValue(col, value));
   }
 
   private String getFormattedValue(@Nullable ModularDataModel data, DataType type) {
@@ -335,7 +335,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       value = type.getDefaultValue();
     }
     try {
-      return csvEscape(type.getFormattedString(value));
+      return csvEscape(type.getFormattedExportString(value));
     } catch (Exception e) {
       logger.log(Level.FINEST,
           "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);

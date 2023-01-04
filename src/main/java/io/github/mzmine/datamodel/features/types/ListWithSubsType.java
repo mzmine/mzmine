@@ -44,8 +44,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class ListWithSubsType<T> extends ListDataType<T> implements
-    SubColumnsFactory, EditableColumnType {
+public abstract class ListWithSubsType<T> extends ListDataType<T> implements SubColumnsFactory,
+    EditableColumnType {
 
   private static final Logger logger = Logger.getLogger(ListWithSubsType.class.getName());
 
@@ -129,20 +129,20 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn, Object value) {
+  public String getFormattedSubColValue(int subcolumn, Object value, boolean export) {
     DataType sub = getType(subcolumn);
     if (sub == null) {
       return "";
     }
     if (value == null) {
-      return sub.getFormattedString(sub.getDefaultValue());
+      return sub.getFormattedString(sub.getDefaultValue(), export);
     }
 
     Object subvalue = null;
     try {
       List<T> list = ((List<T>) value);
       subvalue = list.isEmpty() ? sub.getDefaultValue() : getSubColValue(sub, list);
-      return sub.getFormattedString(subvalue);
+      return sub.getFormattedString(subvalue, export);
     } catch (Exception ex) {
       logger.log(Level.WARNING, String.format(
           "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",
@@ -182,8 +182,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
    * @param list    the list
    * @return the sub column value or null if value==null or if sub column empty.
    */
-  protected <K> @Nullable K getSubColValue(@NotNull DataType<K> subType,
-      @Nullable List<T> list) {
+  protected <K> @Nullable K getSubColValue(@NotNull DataType<K> subType, @Nullable List<T> list) {
     if (list == null || list.isEmpty()) {
       return subType.getDefaultValue();
     } else {
@@ -195,6 +194,14 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
         return (K) getMapper().get(subType.getClass()).apply(list.get(0));
       }
     }
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {
+    if (value instanceof List list) {
+      return getSubColValue(sub, list);
+    }
+    return null;
   }
 
   /**
