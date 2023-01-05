@@ -51,7 +51,12 @@ public abstract class IntegerType extends NumberType<Integer> {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
     return DEFAULT_FORMAT;
   }
 
@@ -60,13 +65,8 @@ public abstract class IntegerType extends NumberType<Integer> {
     return Integer.class;
   }
 
-  @Override
-  public @NotNull String getFormattedString(Integer value) {
-    return value == null ? "" : getFormatter().format(value);
-  }
-
   public @NotNull String getFormattedString(int value) {
-    return getFormatter().format(value);
+    return getFormat().format(value);
   }
 
   @Override
@@ -84,7 +84,7 @@ public abstract class IntegerType extends NumberType<Integer> {
     if (!(value instanceof Integer)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
     writer.writeCharacters(String.valueOf(value));
   }

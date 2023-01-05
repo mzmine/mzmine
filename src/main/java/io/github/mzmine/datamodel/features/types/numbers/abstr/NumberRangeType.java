@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +42,12 @@ import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class NumberRangeType<T extends Number & Comparable<?>>
-    extends NumberType<Range<T>> implements SubColumnsFactory {
+public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
+    NumberType<Range<T>> implements SubColumnsFactory {
+
+  // this is a trick, we need a datatype to get the sub column value
+  // we use this as the first column and any other for the second
+  private static final DataType<Double> MAX_REF_TYPE = new MZType();
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -50,23 +55,41 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
 
   @Override
   public @NotNull DataType<?> getType(int subcolumn) {
-    return this;
+    return switch (subcolumn) {
+      case 0 -> this;
+      case 1 -> MAX_REF_TYPE;
+      default ->
+          throw new IndexOutOfBoundsException("Index out of range 2 with value " + subcolumn);
+    };
   }
 
   @Override
-  public abstract NumberFormat getFormatter();
+  public abstract NumberFormat getFormat();
 
   @Override
   @NotNull
-  public String getFormattedString(Range<T> value) {
-    return value == null ? ""
-        : getFormatter().format(value.lowerEndpoint()) + "-"
-          + getFormatter().format(value.upperEndpoint());
+  public String getFormattedString(Range<T> value, boolean export) {
+    if (value == null) {
+      return "";
+    } else {
+      NumberFormat format = getFormat(export);
+      return format.format(value.lowerEndpoint()) + "-" + format.format(value.upperEndpoint());
+    }
+  }
+
+  @NotNull
+  public String getFormattedString(T value, boolean export) {
+    return value == null ? "" : getFormat(export).format(value);
   }
 
   @NotNull
   public String getFormattedString(T value) {
-    return value == null ? "" : getFormatter().format(value);
+    return getFormattedString(value, false);
+  }
+
+  @NotNull
+  public String getFormattedExportString(T value) {
+    return getFormattedString(value, true);
   }
 
   @Override
@@ -84,18 +107,12 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
   @Override
   public String getHeader(int subcolumn) {
     // is also used as unique ID - do not change or make sure that unique ID is min / max
-    switch (subcolumn) {
-      case 0:
-        return "min";
-      case 1:
-        return "max";
-    }
-    if (subcolumn < getNumberOfSubColumns()) {
-      throw new IllegalArgumentException("Sub column index is not handled: " + subcolumn);
-    } else {
-      throw new IndexOutOfBoundsException(
-          "Sub column index " + subcolumn + " is out of range " + getNumberOfSubColumns());
-    }
+    return switch (subcolumn) {
+      case 0 -> "min";
+      case 1 -> "max";
+      default -> throw new IndexOutOfBoundsException(
+          "Range index out of bounds 2 with value " + subcolumn);
+    };
   }
 
   @Override
@@ -128,17 +145,27 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn, Object value) {
+  public String getFormattedSubColValue(int subcolumn, Object value, boolean export) {
     if (value == null) {
       return "";
     }
-    switch (subcolumn) {
-      case 0:
-        return getFormatter().format(((Range) value).lowerEndpoint());
-      case 1:
-        return getFormatter().format(((Range) value).upperEndpoint());
+    return switch (subcolumn) {
+      case 0 -> getFormat(export).format(((Range) value).lowerEndpoint());
+      case 1 -> getFormat(export).format(((Range) value).upperEndpoint());
+      default -> "";
+    };
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {
+    // uses a trick to identify the two different columsn
+    // first type is this
+    // second is randomly MAX_REF_TYPE
+    if (this.equals(sub)) {
+      return getExportFormat().format(((Range) value).lowerEndpoint());
+    } else {
+      return getExportFormat().format(((Range) value).upperEndpoint());
     }
-    return "";
   }
 
   @Override
@@ -146,13 +173,11 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
     if (value == null) {
       return null;
     }
-    switch (subcolumn) {
-      case 0:
-        return ((Range) value).lowerEndpoint();
-      case 1:
-        return ((Range) value).upperEndpoint();
-    }
-    return null;
+    return switch (subcolumn) {
+      case 0 -> ((Range) value).lowerEndpoint();
+      case 1 -> ((Range) value).upperEndpoint();
+      default -> null;
+    };
   }
 
 }

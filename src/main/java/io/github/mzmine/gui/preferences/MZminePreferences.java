@@ -70,7 +70,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Mobility value format", "Format of mobility values", false, new DecimalFormat("0.000"));
 
   public static final NumberFormatParameter ccsFormat = new NumberFormatParameter(
-      "CCS value format", "Format for colission cross section (CCS) values.", false,
+      "CCS value format", "Format for collision cross section (CCS) values.", false,
       new DecimalFormat("0.0"));
 
   public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
@@ -166,7 +166,13 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
-  private final boolean isDarkMode = false;
+  private boolean isDarkMode = false;
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+      new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.##"), UnitFormat.DIVIDE);
+
+  private NumberFormats guiFormat = exportFormat; // default value
 
   public MZminePreferences() {
     super(new Parameter[]{
@@ -211,45 +217,50 @@ public class MZminePreferences extends SimpleParameterSet {
 
     // check
     dialog.showAndWait();
-    ExitCode retVal = dialog.getExitCode();
-
-    if (retVal == ExitCode.OK) {
-
-      // Update proxy settings
-      updateSystemProxySettings();
-
-      // enforce memory option (only applies to new data)
-      final KeepInMemory keepInMemory = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.memoryOption).getValue();
-      keepInMemory.enforceToMemoryMapping();
-
-      // Repaint windows to update number formats
-      // MZmineCore.getDesktop().getMainWindow().repaint();
-
-      final Themes theme = getValue(MZminePreferences.theme);
-      theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-
-      System.out.println(
-          MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets().toString());
-
-      Boolean presentation = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.presentationMode).getValue();
-      if (presentation) {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add("themes/MZmine_default_presentation.css");
-      } else {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .removeIf(e -> e.contains("MZmine_default_presentation"));
-      }
+    final ExitCode retVal = dialog.getExitCode();
+    if (retVal != ExitCode.OK) {
+      return retVal;
     }
 
+    // Update proxy settings
+    updateSystemProxySettings();
+
+    // enforce memory option (only applies to new data)
+    final KeepInMemory keepInMemory = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.memoryOption).getValue();
+    keepInMemory.enforceToMemoryMapping();
+
+    final Themes theme = getValue(MZminePreferences.theme);
+    theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+
+    Boolean presentation = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.presentationMode).getValue();
+    if (presentation) {
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .add("themes/MZmine_default_presentation.css");
+    } else {
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .removeIf(e -> e.contains("MZmine_default_presentation"));
+    }
+
+    updateGuiFormat();
+
     return retVal;
+  }
+
+  private void updateGuiFormat() {
+    guiFormat = new NumberFormats(getValue(MZminePreferences.mzFormat),
+        getValue(MZminePreferences.rtFormat), getValue(MZminePreferences.mobilityFormat),
+        getValue(MZminePreferences.ccsFormat), getValue(MZminePreferences.intensityFormat),
+        getValue(MZminePreferences.ppmFormat), getValue(MZminePreferences.percentFormat),
+        getValue(MZminePreferences.scoreFormat), getValue(MZminePreferences.unitFormat));
   }
 
   @Override
   public void loadValuesFromXML(Element xmlElement) {
     super.loadValuesFromXML(xmlElement);
     updateSystemProxySettings();
+    updateGuiFormat();
   }
 
   private void updateSystemProxySettings() {
@@ -275,6 +286,14 @@ public class MZminePreferences extends SimpleParameterSet {
       System.clearProperty("https.proxyHost");
       System.clearProperty("https.proxyPort");
     }
+  }
+
+  public NumberFormats getExportFormats() {
+    return exportFormat;
+  }
+
+  public NumberFormats getGuiFormats() {
+    return guiFormat;
   }
 
   public boolean isDarkMode() {
