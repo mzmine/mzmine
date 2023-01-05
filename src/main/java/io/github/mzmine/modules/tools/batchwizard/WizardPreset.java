@@ -70,15 +70,15 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
 
   public WizardPreset(ChromatographyDefaults defaults) {
     this(defaults.toString(), WizardPart.SAMPLE_INTRODUCTION_CHROMATOGRAPHY,
-        new WizardChromatographyParameters(defaults));
+        WizardChromatographyParameters.create(defaults));
   }
 
   public WizardPreset(MsInstrumentDefaults defaults) {
-    this(defaults.toString(), WizardPart.MS, new WizardMassSpectrometerParameters(defaults));
+    this(defaults.toString(), WizardPart.MS, WizardMassSpectrometerParameters.create(defaults));
   }
 
   public WizardPreset(final ImsDefaults defaults) {
-    this(defaults.toString(), WizardPart.IMS, new WizardIonMobilityParameters(defaults));
+    this(defaults.toString(), WizardPart.IMS, WizardIonMobilityParameters.create(defaults));
   }
 
   @Override

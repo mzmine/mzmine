@@ -36,7 +36,9 @@ public class WizardExportParameters extends SimpleParameterSet {
 
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
-  public static final BooleanParameter exportGnps = new BooleanParameter("Export for SIRIUS", "",
+  public static final BooleanParameter exportGnps = new BooleanParameter(
+      "Export for GNPS FBMN/IIMN",
+      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
       true);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(

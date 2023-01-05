@@ -91,47 +91,43 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
         intraSampleRTTolerance, interSampleRTTolerance});
   }
 
+  public WizardChromatographyParameters(final ChromatographyWorkflow workflowPreset,
+      final boolean stableIonization, final int maxIsomersInSample, final int minDataPoints,
+      final Range<Double> cropRt, final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
+      final RTTolerance interSampleTolerance) {
+    setParameter(workflow, workflowPreset);
+    setParameter(stableIonizationAcrossSamples, stableIonization);
+    setParameter(maximumIsomersInChromatogram, maxIsomersInSample);
+    setParameter(minNumberOfDataPoints, minDataPoints);
+    // defaults - others override those values
+    setParameter(cropRtRange, cropRt);
+    setParameter(approximateChromatographicFWHM, fwhm);
+    setParameter(intraSampleRTTolerance, intraSampleTolerance);
+    setParameter(interSampleRTTolerance, interSampleTolerance);
+  }
+
   /**
    * Create parameters from defaults
    *
    * @param defaults defines default values
    */
-  public WizardChromatographyParameters(final ChromatographyDefaults defaults) {
-    this();
-    setParameter(workflow, ChromatographyWorkflow.LC);
-    setParameter(stableIonizationAcrossSamples, true);
-    setParameter(maximumIsomersInChromatogram, 15);
-    setParameter(minNumberOfDataPoints, 4);
-    // defaults - others override those values
-    setParameter(cropRtRange, Range.closed(0.5, 60d));
-    setParameter(approximateChromatographicFWHM, new RTTolerance(0.1f, Unit.MINUTES));
-    // override defaults
-    switch (defaults) {
-      case HPLC -> {
-        setParameter(intraSampleRTTolerance, new RTTolerance(0.08f, Unit.MINUTES));
-        setParameter(interSampleRTTolerance, new RTTolerance(0.4f, Unit.MINUTES));
-      }
-      case UHPLC -> {
-        setParameter(cropRtRange, Range.closed(0.3, 30d));
-        setParameter(approximateChromatographicFWHM, new RTTolerance(0.05f, Unit.MINUTES));
-        setParameter(intraSampleRTTolerance, new RTTolerance(0.04f, Unit.MINUTES));
-        setParameter(interSampleRTTolerance, new RTTolerance(0.1f, Unit.MINUTES));
-      }
-      case HILIC -> {
-        setParameter(minNumberOfDataPoints, 5);
-        setParameter(cropRtRange, Range.closed(0.3, 30d));
-        setParameter(intraSampleRTTolerance, new RTTolerance(3, Unit.SECONDS));
-        setParameter(interSampleRTTolerance, new RTTolerance(3, Unit.SECONDS));
-      }
-      case GC -> {
-        setParameter(minNumberOfDataPoints, 6);
-        setParameter(approximateChromatographicFWHM, new RTTolerance(0.05f, Unit.MINUTES));
-        setParameter(intraSampleRTTolerance, new RTTolerance(0.04f, Unit.MINUTES));
-        setParameter(interSampleRTTolerance, new RTTolerance(0.1f, Unit.MINUTES));
-        // run different workflow
-        setParameter(workflow, ChromatographyWorkflow.GC);
-      }
-    }
+  public static WizardChromatographyParameters create(final ChromatographyDefaults defaults) {
+    return
+        // override defaults
+        switch (defaults) {
+          case HPLC -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 15, 4,
+              Range.closed(0.5, 60d), new RTTolerance(0.1f, Unit.MINUTES),
+              new RTTolerance(0.08f, Unit.MINUTES), new RTTolerance(0.4f, Unit.MINUTES));
+          case UHPLC -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 15, 4,
+              Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
+              new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
+          case HILIC -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 15, 5,
+              Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
+              new RTTolerance(3, Unit.SECONDS), new RTTolerance(3, Unit.SECONDS));
+          case GC -> new WizardChromatographyParameters(ChromatographyWorkflow.GC, true, 30, 6,
+              Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
+              new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
+        };
   }
 
   public enum ChromatographyWorkflow {

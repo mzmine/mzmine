@@ -63,30 +63,27 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
         approximateImsFWHM});
   }
 
+  public WizardIonMobilityParameters(final int minDataPoints, final double fwhm,
+      final boolean smooth, final boolean active, final MobilityType instrument) {
+    this();
+    setParameter(minNumberOfDataPoints, minDataPoints);
+    setParameter(approximateImsFWHM, fwhm);
+    setParameter(smoothing, smooth);
+    setParameter(imsActive, active);
+    setParameter(instrumentType, instrument);
+  }
+
+
   /**
    * Create parameters from defaults
    *
    * @param defaults defines default values
    */
-  public WizardIonMobilityParameters(final ImsDefaults defaults) {
-    this();
-    setParameter(minNumberOfDataPoints, 5);
-    setParameter(approximateImsFWHM, 0.04);
-    setParameter(smoothing, true);
-    // override defaults
-    switch (defaults) {
-      case NO_IMS -> {
-        setParameter(imsActive, false);
-        setParameter(instrumentType, MobilityType.NONE);
-      }
-      case tims -> {
-        setParameter(imsActive, true);
-        setParameter(instrumentType, MobilityType.TIMS);
-      }
-      case IMS -> {
-        setParameter(imsActive, true);
-        setParameter(instrumentType, MobilityType.OTHER);
-      }
-    }
+  public static WizardIonMobilityParameters create(final ImsDefaults defaults) {
+    return switch (defaults) {
+      case NO_IMS -> new WizardIonMobilityParameters(5, 0.01, true, false, MobilityType.NONE);
+      case tims -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.TIMS);
+      case IMS -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.OTHER);
+    };
   }
 }

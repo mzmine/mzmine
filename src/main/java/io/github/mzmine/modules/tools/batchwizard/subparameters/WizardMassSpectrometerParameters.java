@@ -73,25 +73,25 @@ public class WizardMassSpectrometerParameters extends SimpleParameterSet {
         scanToScanMzTolerance, featureToFeatureMzTolerance, sampleToSampleMzTolerance});
   }
 
-  public WizardMassSpectrometerParameters(final MsInstrumentDefaults defaults) {
+  public WizardMassSpectrometerParameters(final double ms1noise, final double ms2noise,
+      final double minHeight, final MZTolerance scan2scanMzTolerance,
+      final MZTolerance f2fMzTolerance, final MZTolerance sample2sampleMzTolerance) {
     this();
-    switch (defaults) {
-      case Orbitrap -> {
-        setParameter(ms1NoiseLevel, 1E4);
-        setParameter(ms2NoiseLevel, 3E3);
-        setParameter(minimumFeatureHeight, 5E4);
-        setParameter(scanToScanMzTolerance, new MZTolerance(0.002, 10));
-        setParameter(featureToFeatureMzTolerance, new MZTolerance(0.0015, 3));
-        setParameter(sampleToSampleMzTolerance, new MZTolerance(0.0015, 5));
-      }
-      case qTOF -> {
-        setParameter(ms1NoiseLevel, 5E2);
-        setParameter(ms2NoiseLevel, 1E2);
-        setParameter(minimumFeatureHeight, 1E3);
-        setParameter(scanToScanMzTolerance, new MZTolerance(0.005, 20));
-        setParameter(featureToFeatureMzTolerance, new MZTolerance(0.0015, 3));
-        setParameter(sampleToSampleMzTolerance, new MZTolerance(0.004, 8));
-      }
-    }
+    setParameter(ms1NoiseLevel, ms1noise);
+    setParameter(ms2NoiseLevel, ms2noise);
+    setParameter(minimumFeatureHeight, minHeight);
+    setParameter(scanToScanMzTolerance, scan2scanMzTolerance);
+    setParameter(featureToFeatureMzTolerance, f2fMzTolerance);
+    setParameter(sampleToSampleMzTolerance, scan2scanMzTolerance);
+  }
+
+  public static WizardMassSpectrometerParameters create(final MsInstrumentDefaults defaults) {
+    return switch (defaults) {
+      case Orbitrap ->
+          new WizardMassSpectrometerParameters(1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
+              new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
+      case qTOF -> new WizardMassSpectrometerParameters(5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
+          new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
+    };
   }
 }
