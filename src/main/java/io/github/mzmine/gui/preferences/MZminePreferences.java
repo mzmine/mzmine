@@ -129,7 +129,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
 
-  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
       new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
               + "used to process ion mobility data."));
@@ -166,7 +166,7 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
-  private boolean isDarkMode = false;
+  private final boolean isDarkMode = false;
 
   public MZminePreferences() {
     super(new Parameter[]{
@@ -202,8 +202,8 @@ public class MZminePreferences extends SimpleParameterSet {
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
-        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme,
-            presentationMode, showPrecursorWindow, imageNormalization});
+        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
+            showPrecursorWindow, imageNormalization});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
     });

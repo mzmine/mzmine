@@ -383,8 +383,7 @@ public class WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
     param.setParameter(MultiThreadPeakFinderParameters.MZTolerance, mzTolScans);
-    // TODO maybe change to inter sample
-    param.setParameter(MultiThreadPeakFinderParameters.RTTolerance, intraSampleRtTol);
+    param.setParameter(MultiThreadPeakFinderParameters.RTTolerance, interSampleRtTol);
     param.setParameter(MultiThreadPeakFinderParameters.intTolerance, 0.2);
     param.setParameter(MultiThreadPeakFinderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
@@ -576,8 +575,8 @@ public class WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
     final GroupMS2SubParameters groupParam = param.getParameter(
         MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
-    // TODO maybe increase
-    groupParam.setParameter(GroupMS2SubParameters.mzTol, mzTolScans);
+    // Using a fixed wide range here because precursor isolation is usually unit resolution
+    groupParam.setParameter(GroupMS2SubParameters.mzTol, new MZTolerance(0.01, 10));
     // TODO check
     groupParam.setParameter(GroupMS2SubParameters.combineTimsMsMs, false);
     boolean limitByRTEdges = minRtDataPoints >= 4;

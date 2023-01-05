@@ -27,11 +27,11 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ChromatographyDefaults;
-import io.github.mzmine.parameters.HiddenParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
