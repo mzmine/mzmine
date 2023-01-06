@@ -280,14 +280,14 @@
 
   <!-- FEATURE LIST METHODS -->
   <Menu text="Feature list methods">
-    <Menu text="Import feature list">
-      <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>
-      <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>
-      <MenuItem text="csv" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>
-    </Menu>
+<!--    <Menu text="Import feature list">-->
+<!--      <MenuItem text="mzTab" onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>-->
+<!--      <MenuItem text="mzTab-m" onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>-->
+<!--      <MenuItem text="csv" onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>-->
+<!--    </Menu>-->
 
     <Menu text="Export feature list">
       <MenuItem text="CSV" onAction="#runModule"
