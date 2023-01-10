@@ -50,6 +50,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/**
+ * Import and export the batch wizard parameters
+ */
 public class BatchWizardParametersUtils {
 
   private static final Logger logger = Logger.getLogger(BatchWizardParametersUtils.class.getName());

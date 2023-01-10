@@ -33,6 +33,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
@@ -84,8 +85,10 @@ public class BatchWizardTab extends SimpleTab {
    */
   private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
   private final Map<WizardPart, ComboBox<WizardPreset>> combos = new HashMap<>();
-  private final ComboBox<LocalWizardFile> localPresets = new ComboBox<>();
+  private final List<LocalWizardFile> localPresets = new ArrayList<>();
   private final ExtensionFilter FILE_FILTER;
+  private final LastFilesButton localPresetsButton = new LastFilesButton("Local presets", true,
+      this::applyPreset);
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
@@ -243,12 +246,9 @@ public class BatchWizardTab extends SimpleTab {
     Button load = new Button("Load presets");
     load.setOnAction(event -> loadPresets());
 
-    Button apply = new Button("Apply");
-    apply.setOnAction(event -> applyPreset());
-
     topPane.getChildren()
         .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load,
-            localPresets, apply);
+            localPresetsButton);
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
@@ -272,15 +272,14 @@ public class BatchWizardTab extends SimpleTab {
             return null;
           }
         }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardFile::getName)).toList();
-    localPresets.getItems().clear();
-    localPresets.getItems().addAll(newLocalPresets);
+    localPresets.clear();
+    localPresets.addAll(newLocalPresets);
+    localPresetsButton.setLastFiles(newLocalPresets.stream().map(LocalWizardFile::file).toList());
   }
 
-  private void applyPreset() {
-    LocalWizardFile local = localPresets.getSelectionModel().getSelectedItem();
-    if (local != null) {
-      setPresetsToUi(local.parts());
-    }
+  private void applyPreset(File presetFile) {
+    localPresets.stream().filter(local -> local.file().equals(presetFile)).findFirst()
+        .map(LocalWizardFile::parts).ifPresent(this::setPresetsToUi);
   }
 
   private void setPresetsToUi(final List<WizardPreset> targetPresets) {
