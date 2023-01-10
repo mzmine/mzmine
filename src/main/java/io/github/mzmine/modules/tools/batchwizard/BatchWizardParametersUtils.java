@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.parameters.ParameterSet;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -51,16 +50,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class BatchWizardParametersWriter {
+public class BatchWizardParametersUtils {
 
-  private static final Logger logger = Logger.getLogger(
-      BatchWizardParametersWriter.class.getName());
+  private static final Logger logger = Logger.getLogger(BatchWizardParametersUtils.class.getName());
   private static final String PART_TAG = "wiz_part";
   private static final String ELEMENT_TAG = "wizard";
   private static final String PART_ATTRIBUTE = "part";
   private static final String PRESET_ATTRIBUTE = "preset";
 
-  private BatchWizardParametersWriter() {
+  private BatchWizardParametersUtils() {
   }
 
   public static void saveToFile(final List<WizardPreset> parts, final File file,
@@ -82,60 +80,6 @@ public class BatchWizardParametersWriter {
         part.parameters().saveValuesToXML(moduleElement);
         configRoot.appendChild(moduleElement);
       }
-
-      TransformerFactory transfac = TransformerFactory.newInstance();
-      Transformer transformer = transfac.newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-      // Create parent folder if it does not exist
-      File confParent = file.getParentFile();
-      if ((confParent != null) && (!confParent.exists())) {
-        confParent.mkdirs();
-      }
-
-      // Java fails to write into hidden files on Windows, see
-      // https://bugs.openjdk.java.net/browse/JDK-8047342
-      boolean isWindowsHiddenFile = false;
-      if (file.exists() && System.getProperty("os.name").toLowerCase().contains("windows")) {
-        isWindowsHiddenFile = (Boolean) Files.getAttribute(file.toPath(), "dos:hidden",
-            LinkOption.NOFOLLOW_LINKS);
-        if (isWindowsHiddenFile) {
-          Files.setAttribute(file.toPath(), "dos:hidden", Boolean.FALSE, LinkOption.NOFOLLOW_LINKS);
-        }
-      }
-
-      StreamResult result = new StreamResult(new FileOutputStream(file));
-      DOMSource source = new DOMSource(configuration);
-      transformer.transform(source, result);
-
-      // make user home config file invisible on windows
-      if ((!skipSensitive) && (System.getProperty("os.name").toLowerCase().contains("windows"))
-          && isWindowsHiddenFile) {
-        Files.setAttribute(file.toPath(), "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
-      }
-
-      logger.info("Saved parameters to file " + file);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  public static void saveToFile(final ParameterSet params, final File file,
-      final boolean skipSensitive) throws IOException {
-    try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
-      Document configuration = dBuilder.newDocument();
-      Element configRoot = configuration.createElement("parameters");
-      configuration.appendChild(configRoot);
-
-      // save all parameters but skip sensitive params
-      params.setSkipSensitiveParameters(skipSensitive);
-      params.saveValuesToXML(configRoot);
 
       TransformerFactory transfac = TransformerFactory.newInstance();
       Transformer transformer = transfac.newTransformer();
@@ -234,28 +178,4 @@ public class BatchWizardParametersWriter {
     }
   }
 
-  public static ParameterSet loadFromFile(ParameterSet parameters, final File file)
-      throws IOException {
-    try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document configuration = dBuilder.parse(file);
-      XPathFactory factory = XPathFactory.newInstance();
-      XPath xpath = factory.newXPath();
-
-      logger.finest("Loading parameters from file " + file.getAbsolutePath());
-
-      XPathExpression expr = xpath.compile("//parameters");
-      NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
-      if (nodes.getLength() == 1) {
-        Element preferencesElement = (Element) nodes.item(0);
-        parameters.loadValuesFromXML(preferencesElement);
-      }
-
-      logger.info("Loaded parameters from file " + file);
-      return parameters;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
 }

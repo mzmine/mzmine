@@ -95,7 +95,6 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
         .setValue(parameters.cloneParameterSet());
   }
 
-
   /**
    * Everything that has only one option should use this enum
    */
@@ -103,10 +102,18 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
     DEFAULT
   }
 
+  /**
+   * the defaults should not change the name of enum values. if strings are needed, override the
+   * toString method
+   */
   public enum ChromatographyDefaults {
     HPLC, UHPLC, HILIC, GC
   }
 
+  /**
+   * the defaults should not change the name of enum values. if strings are needed, override the
+   * toString method
+   */
   public enum ImsDefaults {
     NO_IMS, tims, IMS;
 
@@ -119,6 +126,10 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
     }
   }
 
+  /**
+   * the defaults should not change the name of enum values. if strings are needed, override the
+   * toString method
+   */
   public enum MsInstrumentDefaults {
     Orbitrap, qTOF
   }

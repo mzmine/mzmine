@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,7 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -81,6 +84,8 @@ public class BatchWizardTab extends SimpleTab {
    */
   private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
   private final Map<WizardPart, ComboBox<WizardPreset>> combos = new HashMap<>();
+  private final ComboBox<LocalWizardFile> localPresets = new ComboBox<>();
+  private final ExtensionFilter FILE_FILTER;
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
@@ -88,6 +93,8 @@ public class BatchWizardTab extends SimpleTab {
   public BatchWizardTab() {
     super("Processing Wizard");
     createContentPane();
+    FILE_FILTER = new ExtensionFilter("MZmine wizard preset", "*.mzmwizard");
+    findAllLocalPresetFiles();
   }
 
   private void createContentPane() {
@@ -162,12 +169,33 @@ public class BatchWizardTab extends SimpleTab {
     }
   }
 
+  /**
+   * User/.mzmine/wizard/
+   */
+  @Nullable
+  private static File getWizardSettingsPath() {
+    File prefPath = FileAndPathUtil.getUserSettingsDir();
+    if (prefPath == null) {
+      logger.warning("Cannot find parameters default location in user folder");
+    } else {
+      prefPath = new File(prefPath, "wizard");
+      FileAndPathUtil.createDirectory(prefPath);
+    }
+    return prefPath;
+  }
+
+  public Region createSpacer() {
+    var spacer = new Region();
+    spacer.setPrefWidth(10);
+    return spacer;
+  }
+
   private VBox createTopMenu() {
     VBox vbox = new VBox(4);
     vbox.setAlignment(Pos.CENTER);
     VBox.setMargin(vbox, new Insets(5));
 
-    var topPane = new HBox(4);
+    var topPane = new FlowPane(4, 4);
     topPane.setAlignment(Pos.CENTER);
     HBox.setMargin(topPane, new Insets(5));
 
@@ -214,8 +242,13 @@ public class BatchWizardTab extends SimpleTab {
 
     Button load = new Button("Load presets");
     load.setOnAction(event -> loadPresets());
+
+    Button apply = new Button("Apply");
+    apply.setOnAction(event -> applyPreset());
+
     topPane.getChildren()
-        .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load);
+        .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load,
+            localPresets, apply);
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
@@ -223,45 +256,30 @@ public class BatchWizardTab extends SimpleTab {
     return vbox;
   }
 
-  public Region createSpacer() {
-    var spacer = new Region();
-    spacer.setPrefWidth(10);
-    return spacer;
+  private void findAllLocalPresetFiles() {
+    File path = getWizardSettingsPath();
+    if (path == null) {
+      return;
+    }
+
+    var newLocalPresets = FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
+        .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
+          try {
+            List<WizardPreset> presets = BatchWizardParametersUtils.loadFromFile(file);
+            return new LocalWizardFile(file, presets);
+          } catch (IOException e) {
+            logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
+            return null;
+          }
+        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardFile::getName)).toList();
+    localPresets.getItems().clear();
+    localPresets.getItems().addAll(newLocalPresets);
   }
 
-  private void loadPresets() {
-    ParameterSet parameters = getWizardParametersFromPanes();
-    if (parameters == null) {
-      return;
-    }
-
-    File prefPath = FileAndPathUtil.getUserSettingsDir();
-    if (prefPath == null) {
-      logger.warning("Cannot find parameters default location in user folder");
-    } else {
-      FileAndPathUtil.createDirectory(prefPath);
-    }
-
-    FileChooser chooser = new FileChooser();
-    chooser.setInitialDirectory(prefPath);
-    ExtensionFilter format = new ExtensionFilter("MZmine wizard preset", "*.mzmwizard");
-    chooser.getExtensionFilters().add(format);
-    chooser.setSelectedExtensionFilter(format);
-    File file = chooser.showOpenDialog(null);
-    if (file == null) {
-      return;
-    }
-
-    // use initial parameters to
-    try {
-      List<WizardPreset> wizardPresets = BatchWizardParametersWriter.loadFromFile(file);
-      if (wizardPresets != null && !wizardPresets.isEmpty()) {
-        setPresetsToUi(wizardPresets);
-      }
-
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Cannot read batch wizard presets from " + file.getAbsolutePath(),
-          e);
+  private void applyPreset() {
+    LocalWizardFile local = localPresets.getSelectionModel().getSelectedItem();
+    if (local != null) {
+      setPresetsToUi(local.parts());
     }
   }
 
@@ -280,30 +298,53 @@ public class BatchWizardTab extends SimpleTab {
     listenersActive = true;
   }
 
+  private void loadPresets() {
+    ParameterSet parameters = getWizardParametersFromPanes();
+    if (parameters == null) {
+      return;
+    }
+
+    File prefPath = getWizardSettingsPath();
+    FileChooser chooser = new FileChooser();
+    chooser.setInitialDirectory(prefPath);
+    chooser.getExtensionFilters().add(FILE_FILTER);
+    chooser.setSelectedExtensionFilter(FILE_FILTER);
+    File file = chooser.showOpenDialog(null);
+    if (file == null) {
+      return;
+    }
+
+    // use initial parameters to
+    try {
+      List<WizardPreset> wizardPresets = BatchWizardParametersUtils.loadFromFile(file);
+      if (wizardPresets != null && !wizardPresets.isEmpty()) {
+        setPresetsToUi(wizardPresets);
+      }
+
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot read batch wizard presets from " + file.getAbsolutePath(),
+          e);
+    }
+  }
+
   private void savePresets() {
     ParameterSet parameters = getWizardParametersFromPanes();
     if (parameters == null) {
       return;
     }
 
-    File prefPath = FileAndPathUtil.getUserSettingsDir();
-    if (prefPath == null) {
-      logger.warning("Cannot find parameters default location in user folder");
-    } else {
-      FileAndPathUtil.createDirectory(prefPath);
-    }
+    File prefPath = getWizardSettingsPath();
 
     FileChooser chooser = new FileChooser();
     chooser.setInitialDirectory(prefPath);
-    ExtensionFilter format = new ExtensionFilter("MZmine wizard preset", "*.mzmwizard");
-    chooser.getExtensionFilters().add(format);
-    chooser.setSelectedExtensionFilter(format);
+    chooser.getExtensionFilters().add(FILE_FILTER);
+    chooser.setSelectedExtensionFilter(FILE_FILTER);
     File file = chooser.showSaveDialog(null);
     if (file == null) {
       return;
     }
     try {
-      BatchWizardParametersWriter.saveToFile(presetParts, file, true);
+      BatchWizardParametersUtils.saveToFile(presetParts, file, true);
     } catch (IOException e) {
       logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
           e);

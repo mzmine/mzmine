@@ -167,6 +167,21 @@ public class FileAndPathUtil {
   }
 
   /**
+   * erases the format. "image.png" will be returned as "image" this method is used by
+   * getRealFilePath and getRealFileName
+   *
+   * @return remove format from file
+   */
+  public static String eraseFormat(String f) {
+    int lastDot = f.lastIndexOf(".");
+    if (lastDot != -1) {
+      return f.substring(0, lastDot);
+    } else {
+      return f;
+    }
+  }
+
+  /**
    * Adds the format. "image" will be returned as "image.format" Maybe use erase format first. this
    * method is used by getRealFilePath and getRealFileName
    *
