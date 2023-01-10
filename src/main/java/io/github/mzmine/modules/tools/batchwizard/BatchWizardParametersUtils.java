@@ -124,7 +124,17 @@ public class BatchWizardParametersUtils {
     }
   }
 
-  public static List<WizardPreset> loadFromFile(final File file) throws IOException {
+  /**
+   * Load presets from file - but only replace those that were defined in the file. The other steps
+   * are kept from the defaultSequence, e.g., the sequence previously set by the user
+   *
+   * @param file            wizard preset xml file
+   * @param defaultSequence the default sequence defines all steps that are NOT defined in the file
+   * @return a new list of presets for each part
+   * @throws IOException
+   */
+  public static List<WizardPreset> loadFromFile(final File file,
+      final List<WizardPreset> defaultSequence) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -162,14 +172,12 @@ public class BatchWizardParametersUtils {
         }
       }
 
-      // make sure that all parts are loaded... otherwise resort to the first (default) preset for each missing
       parts.sort(Comparator.comparingInt(value -> value.part().ordinal()));
-      WizardPart[] sequence = WizardPart.values();
-      for (int i = 0; i < sequence.length; i++) {
-        WizardPart sequencePart = sequence[i];
+      // use parts... or if not defined in file use default
+      for (int i = 0; i < defaultSequence.size(); i++) {
+        var defaultPreset = defaultSequence.get(i);
         // out of range or parts do not match?
-        if (i >= parts.size() || sequencePart != parts.get(i).part()) {
-          WizardPreset defaultPreset = allPresets.get(sequencePart).get(0);
+        if (i >= parts.size() || defaultPreset.part() != parts.get(i).part()) {
           parts.add(i, defaultPreset);
         }
       }
