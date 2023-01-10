@@ -25,28 +25,18 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 
 /**
- * Reuses the filenames and spectral library files parameters of
- * {@link AllSpectralDataImportParameters} and {@link SpectralLibraryImportParameters}
- *
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ * Parameter to harmonize the wizard part parameter which needs to be present in all sub parameter
+ * sets
  */
-public class WizardDataImportParameters extends SimpleParameterSet {
+public class WizardPartParameter extends HiddenParameter<WizardPart> {
 
-  /**
-   * the part category of presets - is used in all parameter classes
-   */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.DATA_IMPORT);
-
-  public WizardDataImportParameters() {
-    super(new Parameter[]{wizardPartCategory, AllSpectralDataImportParameters.fileNames,
-        SpectralLibraryImportParameters.dataBaseFiles});
+  public WizardPartParameter(final WizardPart defaultPart) {
+    super(new ComboParameter<>("Wizard part category", "Defines the wizard part category",
+        WizardPart.values(), defaultPart));
   }
 }

@@ -29,7 +29,6 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatogr
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 
 /**
  * @param name         the name of the preset
@@ -69,7 +68,7 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
   }
 
   public WizardPreset(ChromatographyDefaults defaults) {
-    this(defaults.toString(), WizardPart.SAMPLE_INTRODUCTION_CHROMATOGRAPHY,
+    this(defaults.toString(), WizardPart.CHROMATOGRAPHY,
         WizardChromatographyParameters.create(defaults));
   }
 
@@ -96,35 +95,6 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
         .setValue(parameters.cloneParameterSet());
   }
 
-  public enum WizardPart {
-    // order is important and reflects the order of the elements in the wizard
-    DATA_IMPORT, SAMPLE_INTRODUCTION_CHROMATOGRAPHY, IMS, MS, FILTER, EXPORT;
-
-    public Enum<?>[] getDefaultsEnum() {
-      return switch (this) {
-        // only one option
-        case DATA_IMPORT, FILTER, EXPORT -> DefaultOptions.values();
-        // multiple options
-        case SAMPLE_INTRODUCTION_CHROMATOGRAPHY -> ChromatographyDefaults.values();
-        case IMS -> ImsDefaults.values();
-        case MS -> MsInstrumentDefaults.values();
-      };
-    }
-
-    /**
-     * @return the corresponding ParameterSetParameter to this preset
-     */
-    public ParameterSetParameter getParameterSetParameter() {
-      return switch (this) {
-        case DATA_IMPORT -> BatchWizardParameters.dataInputParams;
-        case SAMPLE_INTRODUCTION_CHROMATOGRAPHY -> BatchWizardParameters.hplcParams;
-        case IMS -> BatchWizardParameters.imsParameters;
-        case MS -> BatchWizardParameters.msParams;
-        case FILTER -> BatchWizardParameters.filterParameters;
-        case EXPORT -> BatchWizardParameters.exportParameters;
-      };
-    }
-  }
 
   /**
    * Everything that has only one option should use this enum

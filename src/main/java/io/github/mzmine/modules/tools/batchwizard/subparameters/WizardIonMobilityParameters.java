@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -57,10 +58,26 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
   public static final BooleanParameter smoothing = new BooleanParameter("Smoothing",
       "Apply smoothing in the mobility dimension, usually only needed if the peak shapes are spiky.",
       true);
+  /**
+   * the UI element shown on top to signal the workflow used. Presets May be changed and then saved
+   * to user presets as parameter files.
+   */
+  public static final HiddenParameter<ImsDefaults> wizardPart = new HiddenParameter<>(
+      new ComboParameter<>("Wizard part", "Defines the wizard part used", ImsDefaults.values(),
+          ImsDefaults.NO_IMS));
+
+  /**
+   * the part category of presets - is used in all parameter classes
+   */
+  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
+      WizardPart.IMS);
 
   public WizardIonMobilityParameters() {
-    super(new Parameter[]{imsActive, smoothing, instrumentType, minNumberOfDataPoints,
-        approximateImsFWHM});
+    super(new Parameter[]{
+        // hidden
+        wizardPart, wizardPartCategory,
+        // shown
+        imsActive, smoothing, instrumentType, minNumberOfDataPoints, approximateImsFWHM});
   }
 
   public WizardIonMobilityParameters(final int minDataPoints, final double fwhm,
@@ -80,10 +97,13 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
    * @param defaults defines default values
    */
   public static WizardIonMobilityParameters create(final ImsDefaults defaults) {
-    return switch (defaults) {
+    WizardIonMobilityParameters params = switch (defaults) {
       case NO_IMS -> new WizardIonMobilityParameters(5, 0.01, true, false, MobilityType.NONE);
       case tims -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.TIMS);
       case IMS -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.OTHER);
     };
+    params.setParameter(wizardPart, defaults);
+    params.setParameter(wizardPartCategory, WizardPart.IMS);
+    return params;
   }
 }

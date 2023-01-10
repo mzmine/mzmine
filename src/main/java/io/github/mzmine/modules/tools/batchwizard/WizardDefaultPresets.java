@@ -29,7 +29,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ChromatographyDefaults;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.MsInstrumentDefaults;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.WizardPart;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import java.util.Arrays;
@@ -62,7 +61,7 @@ public class WizardDefaultPresets {
 
     return switch (part) {
       case DATA_IMPORT -> List.of(new WizardPreset("Data", part, partParameters));
-      case SAMPLE_INTRODUCTION_CHROMATOGRAPHY ->
+      case CHROMATOGRAPHY ->
           Arrays.stream(ChromatographyDefaults.values()).map(WizardPreset::new).toList();
       case IMS -> Arrays.stream(ImsDefaults.values()).map(WizardPreset::new).toList();
       case MS -> Arrays.stream(MsInstrumentDefaults.values()).map(WizardPreset::new).toList();

@@ -31,11 +31,13 @@ import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.WizardPart;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import java.io.File;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -63,12 +65,23 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BatchWizardTab extends SimpleTab {
 
+  /**
+   * The selected workflow. first - last step. Changes in the combobox selection are reflected here
+   */
   private final List<WizardPreset> presetParts = new ArrayList<>();
+  /**
+   * Parameter panes of the selected presets
+   */
   private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
+  private final Map<WizardPart, ComboBox<WizardPreset>> combos = new HashMap<>();
+  private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
 
@@ -95,6 +108,7 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   private void createParameterPanes() {
+    updateAllParametersFromUi();
     schemaPane.getChildren().clear();
     paramPaneMap.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
@@ -158,6 +172,7 @@ public class BatchWizardTab extends SimpleTab {
     HBox.setMargin(topPane, new Insets(5));
 
     presetParts.clear();
+    combos.clear();
     // create combo boxes for each part of the wizard that has multiple options
     // LC/GC - IMS? - MS instrument, Apply defaults
     Map<WizardPart, List<WizardPreset>> map = WizardDefaultPresets.createPresets();
@@ -171,6 +186,7 @@ public class BatchWizardTab extends SimpleTab {
       }
 
       ComboBox<WizardPreset> combo = new ComboBox<>(presets);
+      combos.put(part, combo);
       // add a spacer if not the first
       if (!topPane.getChildren().isEmpty()) {
         topPane.getChildren().add(new Label("-"));
@@ -182,15 +198,24 @@ public class BatchWizardTab extends SimpleTab {
       final int finalPartIndex = partIndex;
       combo.getSelectionModel().selectedItemProperty()
           .addListener((observable, oldValue, newValue) -> {
-            presetParts.remove(finalPartIndex);
-            presetParts.add(finalPartIndex, newValue);
-            createParameterPanes();
+            if (listenersActive) {
+              presetParts.remove(finalPartIndex);
+              presetParts.add(finalPartIndex, newValue);
+              createParameterPanes();
+            }
           });
     }
 
     Button createBatch = new Button("Create batch");
     createBatch.setOnAction(event -> createBatch());
-    topPane.getChildren().addAll(createSpacer(), new Label("="), createSpacer(), createBatch);
+
+    Button save = new Button("Save presets");
+    save.setOnAction(event -> savePresets());
+
+    Button load = new Button("Load presets");
+    load.setOnAction(event -> loadPresets());
+    topPane.getChildren()
+        .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load);
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
@@ -204,20 +229,92 @@ public class BatchWizardTab extends SimpleTab {
     return spacer;
   }
 
-  public void createBatch() {
-    List<String> errorMessages = new ArrayList<>();
-
-    // Update parameters from pane and check
-    paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
-    paramPaneMap.forEach((key, value) -> key.parameters().checkParameterValues(errorMessages));
-
-    if (!errorMessages.isEmpty()) {
-      MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
+  private void loadPresets() {
+    ParameterSet parameters = getWizardParametersFromPanes();
+    if (parameters == null) {
       return;
     }
-    ParameterSet wizardParam = MZmineCore.getConfiguration()
-        .getModuleParameters(BatchWizardModule.class).cloneParameterSet();
-    paramPaneMap.keySet().forEach(preset -> preset.setParametersToWizardParameters(wizardParam));
+
+    File prefPath = FileAndPathUtil.getUserSettingsDir();
+    if (prefPath == null) {
+      logger.warning("Cannot find parameters default location in user folder");
+    } else {
+      FileAndPathUtil.createDirectory(prefPath);
+    }
+
+    FileChooser chooser = new FileChooser();
+    chooser.setInitialDirectory(prefPath);
+    ExtensionFilter format = new ExtensionFilter("MZmine wizard preset", "*.mzmwizard");
+    chooser.getExtensionFilters().add(format);
+    chooser.setSelectedExtensionFilter(format);
+    File file = chooser.showOpenDialog(null);
+    if (file == null) {
+      return;
+    }
+
+    // use initial parameters to
+    try {
+      List<WizardPreset> wizardPresets = BatchWizardParametersWriter.loadFromFile(file);
+      if (wizardPresets != null && !wizardPresets.isEmpty()) {
+        setPresetsToUi(wizardPresets);
+      }
+
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot read batch wizard presets from " + file.getAbsolutePath(),
+          e);
+    }
+  }
+
+  private void setPresetsToUi(final List<WizardPreset> targetPresets) {
+    listenersActive = false;
+    presetParts.clear();
+    presetParts.addAll(targetPresets);
+
+    for (var preset : targetPresets) {
+      ComboBox<WizardPreset> combo = combos.get(preset.part());
+      if (combo != null) {
+        combo.getSelectionModel().select(preset);
+      }
+    }
+    createParameterPanes();
+    listenersActive = true;
+  }
+
+  private void savePresets() {
+    ParameterSet parameters = getWizardParametersFromPanes();
+    if (parameters == null) {
+      return;
+    }
+
+    File prefPath = FileAndPathUtil.getUserSettingsDir();
+    if (prefPath == null) {
+      logger.warning("Cannot find parameters default location in user folder");
+    } else {
+      FileAndPathUtil.createDirectory(prefPath);
+    }
+
+    FileChooser chooser = new FileChooser();
+    chooser.setInitialDirectory(prefPath);
+    ExtensionFilter format = new ExtensionFilter("MZmine wizard preset", "*.mzmwizard");
+    chooser.getExtensionFilters().add(format);
+    chooser.setSelectedExtensionFilter(format);
+    File file = chooser.showSaveDialog(null);
+    if (file == null) {
+      return;
+    }
+    try {
+      BatchWizardParametersWriter.saveToFile(presetParts, file, true);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
+          e);
+    }
+  }
+
+  public void createBatch() {
+    ParameterSet wizardParam = getWizardParametersFromPanes();
+    if (wizardParam == null) {
+      return;
+    }
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
@@ -230,5 +327,27 @@ public class BatchWizardTab extends SimpleTab {
 
     // keep old settings
     MZmineCore.getConfiguration().setModuleParameters(BatchWizardModule.class, wizardParam);
+  }
+
+  @Nullable
+  private ParameterSet getWizardParametersFromPanes() {
+    List<String> errorMessages = new ArrayList<>();
+
+    // Update parameters from pane and check
+    updateAllParametersFromUi();
+    paramPaneMap.forEach((key, value) -> key.parameters().checkParameterValues(errorMessages));
+
+    if (!errorMessages.isEmpty()) {
+      MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
+      return null;
+    }
+    ParameterSet wizardParam = MZmineCore.getConfiguration()
+        .getModuleParameters(BatchWizardModule.class).cloneParameterSet();
+    paramPaneMap.keySet().forEach(preset -> preset.setParametersToWizardParameters(wizardParam));
+    return wizardParam;
+  }
+
+  private void updateAllParametersFromUi() {
+    paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
   }
 }
