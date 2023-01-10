@@ -31,7 +31,10 @@ import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
+import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetIOUtils;
+import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetSaveModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
@@ -43,12 +46,14 @@ import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -87,15 +92,16 @@ public class BatchWizardTab extends SimpleTab {
    */
   private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
   private final Map<WizardPart, ComboBox<WizardPreset>> combos = new HashMap<>();
-  private final List<LocalWizardFile> localPresets = new ArrayList<>();
-  private final LastFilesButton localPresetsButton = new LastFilesButton("Local presets", true,
-      this::applyPreset);
+  private final Map<File, LocalWizardFile> localPresets = new HashMap<>();
+  private final LastFilesButton localPresetsButton;
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
 
   public BatchWizardTab() {
     super("Processing Wizard");
+    localPresetsButton = new LastFilesButton("Local presets", true,
+        file -> applyPreset(localPresets.get(file)));
     createContentPane();
     findAllLocalPresetFiles();
   }
@@ -265,7 +271,7 @@ public class BatchWizardTab extends SimpleTab {
     var newLocalPresets = FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
         .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
           try {
-            List<WizardPreset> presets = BatchWizardParametersUtils.loadFromFile(file, presetParts);
+            List<WizardPreset> presets = BatchWizardPresetIOUtils.loadFromFile(file);
             return new LocalWizardFile(file, presets);
           } catch (IOException e) {
             logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
@@ -273,24 +279,43 @@ public class BatchWizardTab extends SimpleTab {
           }
         }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardFile::getName)).toList();
     localPresets.clear();
-    localPresets.addAll(newLocalPresets);
+    for (final LocalWizardFile preset : newLocalPresets) {
+      localPresets.put(preset.file(), preset);
+    }
     localPresetsButton.setLastFiles(newLocalPresets.stream().map(LocalWizardFile::file).toList());
   }
 
-  private void applyPreset(File presetFile) {
-    localPresets.stream().filter(local -> local.file().equals(presetFile)).findFirst()
-        .map(LocalWizardFile::parts).ifPresent(this::setPresetsToUi);
+  private void applyPreset(LocalWizardFile preset) {
+    if (preset == null) {
+      return;
+    }
+    appendPresetsToUi(preset.parts());
   }
 
-  private void setPresetsToUi(final List<WizardPreset> targetPresets) {
+  private void appendPresetsToUi(final List<WizardPreset> targetPresets) {
     listenersActive = false;
-    presetParts.clear();
-    presetParts.addAll(targetPresets);
+    // keep current as default parameters
+    Map<WizardPart, WizardPreset> combined = presetParts.stream()
+        .collect(Collectors.toMap(WizardPreset::part, p -> p));
+    // change the target presets for the defined parts - might be all or only a few
+    for (final WizardPreset preset : targetPresets) {
+      combined.put(preset.part(), preset);
+    }
 
-    for (var preset : targetPresets) {
+    presetParts.clear();
+    presetParts.addAll(combined.values());
+    Collections.sort(presetParts);
+
+    for (var preset : presetParts) {
       ComboBox<WizardPreset> combo = combos.get(preset.part());
       if (combo != null) {
-        combo.getSelectionModel().select(preset);
+        for (final WizardPreset item : combo.getItems()) {
+          if (item.name().equals(preset.name())) {
+            ParameterUtils.copyParameters(preset.parameters(), item.parameters());
+            combo.getSelectionModel().select(item);
+            break;
+          }
+        }
       }
     }
     createParameterPanes();
@@ -313,9 +338,9 @@ public class BatchWizardTab extends SimpleTab {
 
     // use initial parameters to
     try {
-      List<WizardPreset> wizardPresets = BatchWizardParametersUtils.loadFromFile(file, presetParts);
+      List<WizardPreset> wizardPresets = BatchWizardPresetIOUtils.loadFromFile(file);
       if (wizardPresets != null && !wizardPresets.isEmpty()) {
-        setPresetsToUi(wizardPresets);
+        appendPresetsToUi(wizardPresets);
       }
 
     } catch (IOException e) {
@@ -328,23 +353,6 @@ public class BatchWizardTab extends SimpleTab {
     // update the preset parameters
     updateAllParametersFromUi();
     BatchWizardPresetSaveModule.setupAndSave(presetParts);
-
-//    File prefPath = getWizardSettingsPath();
-//
-//    FileChooser chooser = new FileChooser();
-//    chooser.setInitialDirectory(prefPath);
-//    chooser.getExtensionFilters().add(FILE_FILTER);
-//    chooser.setSelectedExtensionFilter(FILE_FILTER);
-//    File file = chooser.showSaveDialog(null);
-//    if (file == null) {
-//      return;
-//    }
-//    try {
-//      BatchWizardParametersUtils.saveToFile(presetParts, file, true);
-//    } catch (IOException e) {
-//      logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
-//          e);
-//    }
   }
 
   public void createBatch() {

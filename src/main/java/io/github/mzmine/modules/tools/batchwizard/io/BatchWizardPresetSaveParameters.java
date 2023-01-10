@@ -23,8 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.io;
 
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;

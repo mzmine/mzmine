@@ -23,8 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.io;
 
+import io.github.mzmine.modules.tools.batchwizard.WizardDefaultPresets;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,15 +56,15 @@ import org.w3c.dom.NodeList;
 /**
  * Import and export the batch wizard parameters
  */
-public class BatchWizardParametersUtils {
+public class BatchWizardPresetIOUtils {
 
-  private static final Logger logger = Logger.getLogger(BatchWizardParametersUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(BatchWizardPresetIOUtils.class.getName());
   private static final String PART_TAG = "wiz_part";
   private static final String ELEMENT_TAG = "wizard";
   private static final String PART_ATTRIBUTE = "part";
   private static final String PRESET_ATTRIBUTE = "preset";
 
-  private BatchWizardParametersUtils() {
+  private BatchWizardPresetIOUtils() {
   }
 
   public static void saveToFile(final List<WizardPreset> parts, final File file,
@@ -125,16 +128,13 @@ public class BatchWizardParametersUtils {
   }
 
   /**
-   * Load presets from file - but only replace those that were defined in the file. The other steps
-   * are kept from the defaultSequence, e.g., the sequence previously set by the user
+   * Load presets from file - might be only parts of the whole workflow
    *
-   * @param file            wizard preset xml file
-   * @param defaultSequence the default sequence defines all steps that are NOT defined in the file
-   * @return a new list of presets for each part
+   * @param file wizard preset xml file
+   * @return a new list of presets for each defined part
    * @throws IOException
    */
-  public static List<WizardPreset> loadFromFile(final File file,
-      final List<WizardPreset> defaultSequence) throws IOException {
+  public static List<WizardPreset> loadFromFile(final File file) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -173,14 +173,6 @@ public class BatchWizardParametersUtils {
       }
 
       parts.sort(Comparator.comparingInt(value -> value.part().ordinal()));
-      // use parts... or if not defined in file use default
-      for (int i = 0; i < defaultSequence.size(); i++) {
-        var defaultPreset = defaultSequence.get(i);
-        // out of range or parts do not match?
-        if (i >= parts.size() || defaultPreset.part() != parts.get(i).part()) {
-          parts.add(i, defaultPreset);
-        }
-      }
 
       logger.info("Loaded wizard parameters from file " + file);
       return parts;

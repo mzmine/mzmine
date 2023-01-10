@@ -29,6 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatogr
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @param name         the name of the preset
@@ -38,7 +39,7 @@ import io.github.mzmine.parameters.ParameterSet;
  * @param parameters   the parameters
  */
 public record WizardPreset(String name, String parentPreset, WizardPart part,
-                           ParameterSet parameters) {
+                           ParameterSet parameters) implements Comparable<WizardPreset> {
 
   /**
    * Clones the parameter set to separate it from the static version
@@ -93,6 +94,11 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
   public void setParametersToWizardParameters(final ParameterSet wizardParam) {
     wizardParam.getParameter(part.getParameterSetParameter())
         .setValue(parameters.cloneParameterSet());
+  }
+
+  @Override
+  public int compareTo(@NotNull final WizardPreset o) {
+    return part.compareTo(o.part);
   }
 
   /**

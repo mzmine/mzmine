@@ -23,12 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.io;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -66,7 +68,7 @@ public class BatchWizardPresetSaveModule implements MZmineRunnableModule {
         // only keep parts to export
         var filteredParts = presetParts.stream()
             .filter(preset -> exportParts.contains(preset.part())).toList();
-        BatchWizardParametersUtils.saveToFile(filteredParts, file, true);
+        BatchWizardPresetIOUtils.saveToFile(filteredParts, file, true);
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
             e);
