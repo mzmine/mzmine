@@ -141,7 +141,7 @@ public class CsvImportTask extends AbstractTask {
         Scan representativeScan = null;
 
         final Scan s_no = rawDataFile.getScanNumberAtRT(feature_rt, 1);
-        if (s_no != null) {
+        if (s_no != null && finalRTRange.contains(s_no.getRetentionTime())) {
           representativeScan = s_no;
           final int peakIndex = s_no.binarySearch(feature_mz, true);
           if (finalMZRange.contains(s_no.getMzValue(peakIndex))) {
