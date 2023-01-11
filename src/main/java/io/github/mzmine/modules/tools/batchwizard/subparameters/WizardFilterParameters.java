@@ -23,26 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.ProcessingParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 
-public class DataPointProcessingParameters extends SimpleParameterSet {
+/**
+ * Filtering steps throughout the batch mode
+ */
+public class WizardFilterParameters extends SimpleParameterSet {
 
-  /**
-   * Processing
-   */
-  public static final HiddenParameter<Boolean> enableProcessing = new HiddenParameter<>(
-      new BooleanParameter("Enable Processing", "", false));
+  public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
+      "Min samples per aligned feature",
+      "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
+          + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
 
-  public static final ProcessingParameter processingParameters = new ProcessingParameter(
-      "Processing queues", "Set the modules to be executed in the processing queue.");
 
-  public DataPointProcessingParameters() {
-    super(new Parameter[]{processingParameters, enableProcessing});
+  public static final BooleanParameter filter13C = new BooleanParameter(
+      "Only keep features with 13C",
+      "Filters out all rows that have no feature with a 13C isotope pattern", true);
+
+  public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
+      false, OriginalFeatureListOption.REMOVE);
+
+  public WizardFilterParameters() {
+    super(new Parameter[]{handleOriginalFeatureLists, minNumberOfSamples, filter13C});
   }
 }

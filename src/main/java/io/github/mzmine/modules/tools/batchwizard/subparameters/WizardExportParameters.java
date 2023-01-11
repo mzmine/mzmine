@@ -23,26 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.ProcessingParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
-public class DataPointProcessingParameters extends SimpleParameterSet {
+public class WizardExportParameters extends SimpleParameterSet {
 
-  /**
-   * Processing
-   */
-  public static final HiddenParameter<Boolean> enableProcessing = new HiddenParameter<>(
-      new BooleanParameter("Enable Processing", "", false));
+  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
+      true);
+  public static final BooleanParameter exportGnps = new BooleanParameter(
+      "Export for GNPS FBMN/IIMN",
+      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
+      true);
 
-  public static final ProcessingParameter processingParameters = new ProcessingParameter(
-      "Processing queues", "Set the modules to be executed in the processing queue.");
+  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
+      new FileNameParameter("Export path",
+          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
+          FileSelectionType.SAVE, false), false);
 
-  public DataPointProcessingParameters() {
-    super(new Parameter[]{processingParameters, enableProcessing});
+
+  public WizardExportParameters() {
+    super(new Parameter[]{exportPath, exportGnps, exportSirius});
   }
 }

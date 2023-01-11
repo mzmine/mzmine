@@ -25,58 +25,210 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.BatchModeModule;
+import io.github.mzmine.modules.batchmode.BatchModeParameters;
+import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset.WizardPart;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import java.text.MessageFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.CacheHint;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 
-public class BatchWizardTab extends MZmineTab {
+public class BatchWizardTab extends SimpleTab {
+
+  private final List<WizardPreset> presetParts = new ArrayList<>();
+  private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
+  private TabPane tabPane;
+  private HBox schemaPane;
 
   public BatchWizardTab() {
-    super("Processing wizard");
+    super("Processing Wizard");
+    createContentPane();
+  }
 
-    final FXMLLoader loader = new FXMLLoader(getClass().getResource("BatchWizard.fxml"));
+  private void createContentPane() {
+    // top menu with selections
+    var topPane = createTopMenu();
+    // center parameter panes
+    tabPane = new TabPane();
+    tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+    tabPane.setTabDragPolicy(TabDragPolicy.FIXED);
+    BorderPane centerPane = new BorderPane(tabPane);
+    var centerScroll = new ScrollPane(centerPane);
+    centerScroll.setFitToWidth(true);
+    centerScroll.setFitToHeight(true);
+    createParameterPanes();
+    var mainPane = new BorderPane(centerScroll);
+    mainPane.setTop(topPane);
+    setContent(mainPane);
+  }
 
+  private void createParameterPanes() {
+    schemaPane.getChildren().clear();
+    paramPaneMap.clear();
+    int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
+    // create parameters for all parts
+    // LC/GC - IMS? - MS instrument, Apply defaults
+    Tab[] panes = presetParts.stream()
+        // if IMS is deactivated, remove from list
+        .map(preset -> {
+          ParameterSetupPane paramPane = new ParameterSetupPane(true, false, preset.parameters());
+          paramPaneMap.put(preset, paramPane);
+          // add to schema
+          addToSchema(preset);
+          // do not add tabs for in active tabs
+          if (!preset.name().equals(ImsDefaults.NO_IMS.toString())) {
+            return new Tab(preset.name(), paramPane);
+          } else {
+            return null;
+          }
+        }).filter(Objects::nonNull).toArray(Tab[]::new);
+
+    // add to center pane
+    tabPane.getTabs().clear();
+    tabPane.getTabs().addAll(panes);
+    tabPane.getSelectionModel().select(selectedIndex);
+  }
+
+  private void addToSchema(final WizardPreset preset) {
+    String parent = preset.parentPreset().toLowerCase();
     try {
-      Node mainPane = loader.load();
-      setContent(mainPane);
-    } catch (IOException e) {
-      e.printStackTrace();
+      LocalDate now = LocalDate.now();
+      String formatPath = "icons/wizard/{0}wizard_icons_{1}.png";
+      // load aprils fools day resources
+      String specialSet = (now.getMonthValue() == 4 && now.getDayOfMonth() == 1) ? "april/" : "";
+      final Image icon = FxIconUtil.loadImageFromResources(
+          MessageFormat.format(formatPath, specialSet, parent));
+      ImageView view = new ImageView(icon);
+      view.setPreserveRatio(true);
+      view.setFitHeight(100);
+
+      if (MZmineCore.getConfiguration().isDarkMode()) {
+        ColorAdjust whiteEffect = new ColorAdjust();
+        whiteEffect.setBrightness(1.0);
+        view.setEffect(whiteEffect);
+        view.setCache(true);
+        view.setCacheHint(CacheHint.SPEED);
+      }
+
+      schemaPane.getChildren().add(view);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, ex.getMessage());
     }
   }
 
-  @Override
-  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
-    return Collections.emptyList();
+  private VBox createTopMenu() {
+    VBox vbox = new VBox(4);
+    vbox.setAlignment(Pos.CENTER);
+    VBox.setMargin(vbox, new Insets(5));
+
+    var topPane = new HBox(4);
+    topPane.setAlignment(Pos.CENTER);
+    HBox.setMargin(topPane, new Insets(5));
+
+    presetParts.clear();
+    // create combo boxes for each part of the wizard that has multiple options
+    // LC/GC - IMS? - MS instrument, Apply defaults
+    Map<WizardPart, List<WizardPreset>> map = WizardDefaultPresets.createPresets();
+    int partIndex = -1;
+    for (final WizardPart part : WizardPart.values()) {
+      partIndex++;
+      var presets = FXCollections.observableArrayList(map.get(part));
+      presetParts.add(presets.get(0));
+      if (presets.size() == 1) {
+        continue;
+      }
+
+      ComboBox<WizardPreset> combo = new ComboBox<>(presets);
+      // add a spacer if not the first
+      if (!topPane.getChildren().isEmpty()) {
+        topPane.getChildren().add(new Label("-"));
+      }
+      combo.getSelectionModel().select(0);
+      topPane.getChildren().add(combo);
+
+      // add listener
+      final int finalPartIndex = partIndex;
+      combo.getSelectionModel().selectedItemProperty()
+          .addListener((observable, oldValue, newValue) -> {
+            presetParts.remove(finalPartIndex);
+            presetParts.add(finalPartIndex, newValue);
+            createParameterPanes();
+          });
+    }
+
+    Button createBatch = new Button("Create batch");
+    createBatch.setOnAction(event -> createBatch());
+    topPane.getChildren().addAll(createSpacer(), new Label("="), createSpacer(), createBatch);
+
+    schemaPane = new HBox(0);
+    schemaPane.setAlignment(Pos.CENTER);
+    vbox.getChildren().addAll(topPane, schemaPane);
+    return vbox;
   }
 
-  @Override
-  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return Collections.emptyList();
+  public Region createSpacer() {
+    var spacer = new Region();
+    spacer.setPrefWidth(10);
+    return spacer;
   }
 
-  @Override
-  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
-  }
+  public void createBatch() {
+    List<String> errorMessages = new ArrayList<>();
 
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    // do nothing
-  }
+    // Update parameters from pane and check
+    paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
+    paramPaneMap.forEach((key, value) -> key.parameters().checkParameterValues(errorMessages));
 
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    // do nothing
-  }
+    if (!errorMessages.isEmpty()) {
+      MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
+      return;
+    }
+    ParameterSet wizardParam = MZmineCore.getConfiguration()
+        .getModuleParameters(BatchWizardModule.class).cloneParameterSet();
+    paramPaneMap.keySet().forEach(preset -> preset.setParametersToWizardParameters(wizardParam));
 
-  @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    // do nothing
+    BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(BatchModeModule.class);
+    final BatchQueue q = new WizardBatchBuilder(wizardParam).createQueue();
+    batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
+
+    if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
+      MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
+    }
+
+    // keep old settings
+    MZmineCore.getConfiguration().setModuleParameters(BatchWizardModule.class, wizardParam);
   }
 }
