@@ -25,23 +25,13 @@
 
 package io.github.mzmine.util.collections;
 
-import io.github.mzmine.util.ArrayUtils;
 import java.util.Arrays;
+import java.util.function.IntToDoubleFunction;
 
-public interface BinarySearchHelper {
-
-  /**
-   * @return the number of values
-   */
-  int getNumOfValues();
-
-  /**
-   * the value at index. used for binary search
-   *
-   * @param index the index of the value
-   * @return the value for binary search
-   */
-  double getValue(int index);
+/**
+ * Easy way to apply binary search on sorted data
+ */
+public class BinarySearch {
 
   /**
    * Searches for the value - or the closest available. Copied from
@@ -56,8 +46,9 @@ public interface BinarySearchHelper {
    * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
    * the key is found.
    */
-  default int binarySearch(double value, boolean defaultToClosestValue) {
-    return binarySearch(value, defaultToClosestValue, 0, getNumOfValues());
+  public static int binarySearch(double value, boolean defaultToClosestValue, int totalValues,
+      IntToDoubleFunction valueAtIndexProvider) {
+    return binarySearch(value, defaultToClosestValue, 0, totalValues, valueAtIndexProvider);
   }
 
 
@@ -76,20 +67,18 @@ public interface BinarySearchHelper {
    * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
    * the key is found.
    */
-  default int binarySearch(double value, boolean defaultToClosestValue, int fromIndex,
-      int toIndex) {
+  public static int binarySearch(double value, boolean defaultToClosestValue, int fromIndex,
+      int toIndex, IntToDoubleFunction valueAtIndexProvider) {
     if (toIndex == 0) {
       return -1;
     }
-    final int numberOfDataPoints = getNumOfValues();
-    ArrayUtils.rangeCheck(numberOfDataPoints, fromIndex, toIndex);
 
     int low = fromIndex;
     int high = toIndex - 1;
 
     while (low <= high) {
       int mid = (low + high) >>> 1; // bit shift by 1 for sum of positive integers = / 2
-      double midValue = getValue(mid);
+      double midValue = valueAtIndexProvider.applyAsDouble(mid);
 
       if (midValue < value) {
         low = mid + 1;  // Neither value is NaN, thisVal is smaller
@@ -108,17 +97,17 @@ public interface BinarySearchHelper {
       }
     }
     if (defaultToClosestValue) {
-      if (low >= numberOfDataPoints) {
-        return numberOfDataPoints - 1;
+      if (low >= toIndex) {
+        return toIndex - 1;
       }
       // might be higher or lower
-      final double adjacentValue = getValue(low);
+      final double adjacentValue = valueAtIndexProvider.applyAsDouble(low);
       // check for closest distance to value
-      if (adjacentValue <= value && low + 1 < numberOfDataPoints) {
-        final double higherValue = getValue(low + 1);
+      if (adjacentValue <= value && low + 1 < toIndex) {
+        final double higherValue = valueAtIndexProvider.applyAsDouble(low + 1);
         return (Math.abs(value - adjacentValue) <= Math.abs(higherValue - value)) ? low : low + 1;
       } else if (adjacentValue > value && low - 1 >= 0) {
-        final double lowerValue = getValue(low - 1);
+        final double lowerValue = valueAtIndexProvider.applyAsDouble(low - 1);
         return (Math.abs(value - adjacentValue) <= Math.abs(lowerValue - value)) ? low : low - 1;
       } else {
         // there was only one data point
@@ -128,19 +117,4 @@ public interface BinarySearchHelper {
     return -(low + 1);  // key not found.
   }
 
-  /**
-   * Searches for the given  value. Copied from {@link Arrays#binarySearch(double[], double)}
-   *
-   * @param value                 search for this  value
-   * @param defaultToClosestValue return the closest value value
-   * @return this index of the given value or the closest available value if checked. index of the
-   * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
-   * point is defined as the point at which the key would be inserted into the array: the index of
-   * the first element greater than the key, or a.length if all elements in the array are less than
-   * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
-   * the key is found.
-   */
-  default int indexOf(double value, boolean defaultToClosestValue) {
-    return binarySearch(value, defaultToClosestValue);
-  }
 }

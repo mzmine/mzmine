@@ -36,7 +36,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearchHelper;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
@@ -69,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
  * the two TreeMaps. When the project is saved, the contents of the dataPointsFile are consolidated
  * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
-public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
+public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
   private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
@@ -126,116 +126,103 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
     return (RawDataFile) super.clone();
   }
 
-  /**
-   * The maximum number of centroid data points in all scans (after mass detection and optional
-   * processing)
-   *
-   * @return data point with maximum intensity (centroided)
-   */
   @Override
   public int getMaxCentroidDataPoints() {
     return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
         .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
   }
 
-  /**
-   * The maximum number of raw data points in all scans
-   *
-   * @return data point with maximum intensity in unprocessed data points
-   */
   @Override
   public int getMaxRawDataPoints() {
     return maxRawDataPoints;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getNumOfScans()
-   */
   @Override
   public int getNumOfScans() {
     return scans.size();
   }
 
-
-  /**
-   * Uses binary search
-   *
-   * @param rt      The rt
-   * @param mslevel The ms level
-   * @return the closest scan or null if there are no scans
-   */
   @Override
-  @Nullable
-  public Scan binarySearchClosestScan(float rt, int mslevel) {
+  public int binarySearchClosestScanIndex(final float rt) {
     // scans are sorted by rt ascending
     // closest index will be negative direct hit is positive
-    int indexClosestScan = Math.abs(binarySearch(rt, true));
-    if (indexClosestScan >= getNumOfScans()) {
-      return null;
+    int closestIndex = Math.abs(BinarySearch.binarySearch(rt, true, getNumOfScans(),
+        index -> getScan(index).getRetentionTime()));
+    return closestIndex >= getNumOfScans() ? -1 : closestIndex;
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan == -1) {
+      return -1;
     }
     //matches ms level
     if (getScan(indexClosestScan).getMSLevel() == mslevel) {
-      return getScan(indexClosestScan);
+      return indexClosestScan;
     }
 
     // find the closest scan with msLevel around the found scan (might be other level)
-    Scan before = null;
-    Scan after = null;
+    int before = -1;
+    int after = -1;
     for (int i = indexClosestScan; i < getNumOfScans(); i++) {
       if (getScan(i).getMSLevel() == mslevel) {
-        after = getScan(i);
+        after = i;
         break;
       }
     }
     for (int i = indexClosestScan - 1; i > 0; i--) {
       if (getScan(i).getMSLevel() == mslevel) {
-        before = getScan(i);
+        before = i;
         break;
       }
     }
-    if (after != null && before != null) {
-      if (Math.abs(after.getRetentionTime() - rt) < Math.abs(before.getRetentionTime() - rt)) {
+    if (after != -1 && before != -1) {
+      if (Math.abs(getScan(after).getRetentionTime() - rt) < Math.abs(
+          getScan(before).getRetentionTime() - rt)) {
         return after;
       } else {
         return before;
       }
-    } else if (after != null) {
+    } else if (after != -1) {
       return after;
     } else {
       return before;
     }
   }
 
-  /**
-   * Uses binary search
-   *
-   * @param rt The rt
-   * @return the closest scan
-   */
   @Override
   @Nullable
   public Scan binarySearchClosestScan(float rt) {
     // scans are sorted by rt ascending
     // closest index will be negative direct hit is positive
-    int indexClosestScan = Math.abs(binarySearch(rt, true));
-    if (indexClosestScan < getNumOfScans()) {
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
       return getScan(indexClosestScan);
     }
     return null;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int)
-   */
+  @Override
+  @Nullable
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt, mslevel);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
+      return getScan(indexClosestScan);
+    }
+    return null;
+  }
+
   @Override
   @NotNull
   public List<Scan> getScanNumbers(int msLevel) {
     return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
-   */
   @Override
   public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     return scans.stream()
@@ -243,18 +230,12 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
         .toArray(Scan[]::new);
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getMSLevels()
-   */
   @Override
   @NotNull
   public int[] getMSLevels() {
     return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity(int)
-   */
   @Override
   public double getDataMaxBasePeakIntensity(int msLevel) {
     // check if we have this value already cached
@@ -276,9 +257,6 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
     });
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent(int)
-   */
   @Override
   public double getDataMaxTotalIonCurrent(int msLevel) {
     // check if we have this value already cached
@@ -298,7 +276,6 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
       return Double.compare(Double.NEGATIVE_INFINITY, max) == 0 ? -1d : max;
     });
   }
-
 
   @Override
   public synchronized void addScan(Scan newScan) throws IOException {
@@ -334,8 +311,8 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
           containsZeroIntensity = true;
           if (spectraType.isCentroided()) {
             logger.warning("""
-                Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert. 
-                Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
+                Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert.
+                Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses
                 a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
                 This leads to degraded mass accuracies.""");
           }
@@ -355,11 +332,10 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
     return containsZeroIntensity;
   }
 
-
+  @Override
   public boolean isContainsEmptyScans() {
     return containsEmptyScans;
   }
-
 
   @Override
   public MassSpectrumType getSpectraType() {
@@ -570,6 +546,7 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
    * @param old    old mass list
    * @param masses new mass list
    */
+  @Override
   public void applyMassListChanged(Scan scan, MassList old, MassList masses) {
   }
 
@@ -579,14 +556,4 @@ public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
     return absolutePath;
   }
 
-  // For binary search
-  @Override
-  public int getNumOfValues() {
-    return getNumOfScans();
-  }
-
-  @Override
-  public double getValue(final int index) {
-    return getScan(index).getRetentionTime();
-  }
 }

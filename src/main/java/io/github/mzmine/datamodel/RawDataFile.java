@@ -75,14 +75,15 @@ public interface RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return max number of data points in masslist
+   * @return data point with maximum intensity (centroided)
    */
   int getMaxCentroidDataPoints();
+
 
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return max raw data points in scans
+   * @return data point with maximum intensity in unprocessed data points
    */
   int getMaxRawDataPoints();
 
@@ -109,19 +110,36 @@ public interface RawDataFile {
   @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
 
   /**
-   * @param rt      The rt
-   * @param mslevel The ms level
-   * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   * the rt range of this file.
+   * Uses binary search
+   *
+   * @param rt The rt
+   * @return the closest scan or null if no scans avaialble
    */
   @Nullable Scan binarySearchClosestScan(float rt, int mslevel);
 
   /**
+   * Uses binary search
+   *
    * @param rt The rt
-   * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   * the rt range of this file.
+   * @return the closest scan or null if no scans avaialble
    */
   @Nullable Scan binarySearchClosestScan(float rt);
+
+  /**
+   * binary search the closest scan
+   *
+   * @param rt search retention time
+   * @return closest index or -1 if no scan was found
+   */
+  int binarySearchClosestScanIndex(float rt);
+
+  /**
+   * binary search the closest scan
+   *
+   * @param rt search retention time
+   * @return closest index or -1 if no scan was found
+   */
+  int binarySearchClosestScanIndex(float rt, int mslevel);
 
   @NotNull Range<Double> getDataMZRange();
 
