@@ -39,6 +39,8 @@ public class BinarySearch {
    *
    * @param value                 search for this value
    * @param defaultToClosestValue return the closest value value
+   * @param totalValues           total number of values (collection size or array length)
+   * @param valueAtIndexProvider  a function to compute or return the value at an index
    * @return this index of the given value or the closest available value if checked. index of the
    * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
    * point is defined as the point at which the key would be inserted into the array: the index of
@@ -60,6 +62,7 @@ public class BinarySearch {
    * @param defaultToClosestValue return the closest value value
    * @param fromIndex             inclusive lower end
    * @param toIndex               exclusive upper end
+   * @param valueAtIndexProvider  a function to compute or return the value at an index
    * @return this index of the given value or the closest available value if checked. index of the
    * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
    * point is defined as the point at which the key would be inserted into the array: the index of
