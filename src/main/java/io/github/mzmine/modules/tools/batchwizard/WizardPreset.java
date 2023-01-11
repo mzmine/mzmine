@@ -121,13 +121,15 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
    * toString method
    */
   public enum ImsDefaults {
-    NO_IMS, tims, IMS;
+    NO_IMS, TIMS, IMS, DT_IMS, TW_IMS;
 
     @Override
     public String toString() {
       return switch (this) {
         case NO_IMS -> " ";
-        case tims, IMS -> super.toString();
+        case TIMS, IMS -> super.toString();
+        case DT_IMS -> "DT-IMS";
+        case TW_IMS -> "TW-IMS";
       };
     }
   }
