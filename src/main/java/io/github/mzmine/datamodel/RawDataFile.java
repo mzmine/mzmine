@@ -114,14 +114,14 @@ public interface RawDataFile {
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    * the rt range of this file.
    */
-  Scan getScanNumberAtRT(float rt, int mslevel);
+  @Nullable Scan binarySearchClosestScan(float rt, int mslevel);
 
   /**
    * @param rt The rt
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    * the rt range of this file.
    */
-  Scan getScanNumberAtRT(float rt);
+  @Nullable Scan binarySearchClosestScan(float rt);
 
   @NotNull Range<Double> getDataMZRange();
 

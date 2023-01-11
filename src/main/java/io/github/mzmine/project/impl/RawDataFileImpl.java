@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearchHelper;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
@@ -68,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
  * the two TreeMaps. When the project is saved, the contents of the dataPointsFile are consolidated
  * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
-public class RawDataFileImpl implements RawDataFile {
+public class RawDataFileImpl implements RawDataFile, BinarySearchHelper {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
   private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
@@ -155,51 +156,70 @@ public class RawDataFileImpl implements RawDataFile {
     return scans.size();
   }
 
+
   /**
+   * Uses binary search
+   *
    * @param rt      The rt
    * @param mslevel The ms level
-   * @return The scan number at a given retention time within a range of 2 (min/sec?) or -1 if no
-   * scan can be found.
+   * @return the closest scan or null if there are no scans
    */
   @Override
-  public Scan getScanNumberAtRT(float rt, int mslevel) {
-    if (rt > getDataRTRange(mslevel).upperEndpoint()) {
+  @Nullable
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = Math.abs(binarySearch(rt, true));
+    if (indexClosestScan >= getNumOfScans()) {
       return null;
     }
-    Range<Float> range = Range.closed(rt - 2, rt + 2);
-    Scan[] scanNumbers = getScanNumbers(mslevel, range);
-    double minDiff = 10E6;
+    //matches ms level
+    if (getScan(indexClosestScan).getMSLevel() == mslevel) {
+      return getScan(indexClosestScan);
+    }
 
-    for (int i = 0; i < scanNumbers.length; i++) {
-      Scan scanNum = scanNumbers[i];
-      double diff = Math.abs(rt - scanNum.getRetentionTime());
-      if (diff < minDiff) {
-        minDiff = diff;
-      } else if (diff > minDiff) { // not triggered in first run
-        return scanNumbers[i - 1]; // the previous one was better
+    // find the closest scan with msLevel around the found scan (might be other level)
+    Scan before = null;
+    Scan after = null;
+    for (int i = indexClosestScan; i < getNumOfScans(); i++) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        after = getScan(i);
+        break;
       }
     }
-    return null;
+    for (int i = indexClosestScan - 1; i > 0; i--) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        before = getScan(i);
+        break;
+      }
+    }
+    if (after != null && before != null) {
+      if (Math.abs(after.getRetentionTime() - rt) < Math.abs(before.getRetentionTime() - rt)) {
+        return after;
+      } else {
+        return before;
+      }
+    } else if (after != null) {
+      return after;
+    } else {
+      return before;
+    }
   }
 
   /**
+   * Uses binary search
+   *
    * @param rt The rt
-   * @return The scan at a given retention time within a range of 2 (min/sec?) or null if no scan
-   * can be found.
+   * @return the closest scan
    */
   @Override
-  public Scan getScanNumberAtRT(float rt) {
-    if (rt > getDataRTRange().upperEndpoint()) {
-      return null;
-    }
-    double minDiff = 10E10;
-    for (Scan scan : scans) {
-      double diff = Math.abs(rt - scan.getRetentionTime());
-      if (diff < minDiff) {
-        minDiff = diff;
-      } else if (diff > minDiff) { // not triggered in first run
-        return scan;
-      }
+  @Nullable
+  public Scan binarySearchClosestScan(float rt) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = Math.abs(binarySearch(rt, true));
+    if (indexClosestScan < getNumOfScans()) {
+      return getScan(indexClosestScan);
     }
     return null;
   }
@@ -557,5 +577,16 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public String getAbsolutePath() {
     return absolutePath;
+  }
+
+  // For binary search
+  @Override
+  public int getNumOfValues() {
+    return getNumOfScans();
+  }
+
+  @Override
+  public double getValue(final int index) {
+    return getScan(index).getRetentionTime();
   }
 }

@@ -200,12 +200,12 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt, int mslevel) {
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
     throw new UnsupportedOperationException("Unsupported during project load.");
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt) {
+  public Scan binarySearchClosestScan(float rt) {
     throw new UnsupportedOperationException("Unsupported during project load.");
 
   }
