@@ -145,7 +145,11 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
       case HILIC -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 15, 5,
           Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
           new RTTolerance(3, Unit.SECONDS), new RTTolerance(3, Unit.SECONDS));
-      case GC -> new WizardChromatographyParameters(ChromatographyWorkflow.GC, true, 30, 6,
+      case GC_CI -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 30, 6,
+          Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
+          new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
+      // different workflow for GC-EI
+      case GC_EI -> new WizardChromatographyParameters(ChromatographyWorkflow.GC, true, 30, 6,
           Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
           new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
     };

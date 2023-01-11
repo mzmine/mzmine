@@ -152,7 +152,7 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   private void addToSchema(final WizardPreset preset) {
-    String parent = preset.parentPreset().toLowerCase();
+    String parent = preset.name().toLowerCase();
     try {
       LocalDate now = LocalDate.now();
       String formatPath = "icons/wizard/{0}wizard_icons_{1}.png";

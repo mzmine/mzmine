@@ -32,14 +32,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @param name         the name of the preset
- * @param parentPreset name of the parent preset - needs to be one of the defined ones in the enums
- *                     for LC, IMS, MS, ...
- * @param part         to which part of the workflow it belongs
- * @param parameters   the parameters
+ * @param name       the name of the preset for LC, IMS, MS, ...
+ * @param part       to which part of the workflow it belongs
+ * @param parameters the parameters
  */
-public record WizardPreset(String name, String parentPreset, WizardPart part,
-                           ParameterSet parameters) implements Comparable<WizardPreset> {
+public record WizardPreset(String name, WizardPart part, ParameterSet parameters) implements
+    Comparable<WizardPreset> {
 
   /**
    * Clones the parameter set to separate it from the static version
@@ -48,25 +46,13 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
    * @param part       of the workflow
    * @param parameters will be cloned
    */
-  public WizardPreset(final String name, final String parentPreset, final WizardPart part,
-      final ParameterSet parameters) {
+  public WizardPreset(final String name, final WizardPart part, final ParameterSet parameters) {
     // needs the clone to separate the parameters from the static ones
     this.parameters = parameters.cloneParameterSet();
     this.name = name;
-    this.parentPreset = parentPreset;
     this.part = part;
   }
 
-  /**
-   * Clones the parameter set to separate it from the static version
-   *
-   * @param name       name of the preset and its also the parent preset
-   * @param part       of the workflow
-   * @param parameters will be cloned
-   */
-  public WizardPreset(final String name, final WizardPart part, final ParameterSet parameters) {
-    this(name, name, part, parameters);
-  }
 
   public WizardPreset(ChromatographyDefaults defaults) {
     this(defaults.toString(), WizardPart.CHROMATOGRAPHY,
@@ -113,7 +99,27 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
    * toString method
    */
   public enum ChromatographyDefaults {
-    HPLC, UHPLC, HILIC, GC
+    /**
+     * TODO add direct infusion, flow injection, and NO_CHROMATOGRAPHY (when imaging is selected)
+     */
+    HPLC, UHPLC, HILIC,
+    /**
+     * GC-EI is a different workflow, GC uses the LC workflow
+     */
+    GC_EI,
+    /**
+     * Chemical ionization uses LC workflow
+     */
+    GC_CI;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case HPLC, UHPLC, HILIC -> super.toString();
+        case GC_EI -> "GC-EI";
+        case GC_CI -> "GC-CI";
+      };
+    }
   }
 
   /**
@@ -121,7 +127,12 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
    * toString method
    */
   public enum ImsDefaults {
-    NO_IMS, TIMS, IMS, DT_IMS, TW_IMS;
+    NO_IMS,
+    /**
+     * TIMS actually is a different workflow than the rest. slight changes because of MS2
+     * acquisition in PASEF
+     */
+    TIMS, IMS, DT_IMS, TW_IMS;
 
     @Override
     public String toString() {
@@ -139,6 +150,14 @@ public record WizardPreset(String name, String parentPreset, WizardPart part,
    * toString method
    */
   public enum MsInstrumentDefaults {
-    Orbitrap, qTOF
+    Orbitrap, qTOF, FT_ICR;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case Orbitrap, qTOF -> super.toString();
+        case FT_ICR -> "FT-ICR";
+      };
+    }
   }
 }
