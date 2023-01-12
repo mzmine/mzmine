@@ -36,6 +36,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,8 +53,7 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   private final ObjectProperty<javafx.scene.paint.Color> color;
 
   public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
-      @NotNull String seriesKey,
-      @NotNull ObjectProperty<javafx.scene.paint.Color> color) {
+      @NotNull String seriesKey, @NotNull ObjectProperty<javafx.scene.paint.Color> color) {
     this.series = series;
     this.seriesKey = seriesKey;
     this.color = color;
@@ -96,7 +96,7 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     // no computation needed, all data is taken from the double buffers in the feature data.
   }
 

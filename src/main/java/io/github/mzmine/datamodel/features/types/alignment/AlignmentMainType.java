@@ -223,28 +223,6 @@ public class AlignmentMainType extends DataType<AlignmentScores> implements SubC
     return getSubDataTypes().get(index);
   }
 
-  @Override
-  public @Nullable String getFormattedSubColValue(int subcolumn, Object value) {
-    DataType sub = getType(subcolumn);
-    if (sub == null) {
-      return "";
-    }
-    if (value == null) {
-      return sub.getFormattedString(sub.getDefaultValue());
-    }
-
-    Object subvalue = null;
-    try {
-      subvalue = getSubColValue(sub, value);
-      return sub.getFormattedString(subvalue == null ? sub.getDefaultValue() : subvalue);
-    } catch (Exception ex) {
-      logger.log(Level.WARNING, String.format(
-          "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",
-          this.getClass().getName(), sub.getClass().getName(),
-          (subvalue == null ? "null" : subvalue.getClass())), ex);
-      return "";
-    }
-  }
 
   @Override
   public @Nullable Object getSubColValue(int subcolumn, Object cellData) {
@@ -252,6 +230,7 @@ public class AlignmentMainType extends DataType<AlignmentScores> implements SubC
     return sub == null ? null : getSubColValue(sub, cellData);
   }
 
+  @Override
   public @Nullable Object getSubColValue(DataType sub, Object value) {
     if (value == null) {
       return null;

@@ -68,11 +68,9 @@ public class NewVersionCheck implements Runnable {
       newestVersionData = InetUtils.retrieveData(newestVersionURL).trim();
       newestVersion = new Semver(newestVersionData, SemverType.LOOSE);
     } catch (Exception e) {
-//      if (checkType.equals(CheckType.MENU)) {
       logger.log(Level.WARNING,
           "Error retrieving or parsing latest version number from MZmine website: "
               + newestVersionData, e);
-//      }
     }
 
     if (newestVersion == null) {
@@ -98,13 +96,16 @@ public class NewVersionCheck implements Runnable {
     }
 
     if (currentVersion.isLowerThan(newestVersion)) {
-      final String msg = "An updated version is available: MZmine " + newestVersion;
-      final String msg2 = "Please download the newest version from: https://mzmine.github.io";
+      String url = "https://mzmine.org";
+      final String msg = "An updated version is available: MZmine " + newestVersion
+          + "\nPlease download the newest version from: ";
       logger.info(msg);
       if (checkType.equals(CheckType.MENU)) {
-        desktop.displayMessage(msg + "\n" + msg2);
+        desktop.displayMessage("New version", msg, url);
       } else if (checkType.equals(CheckType.DESKTOP)) {
-        desktop.setStatusBarText(msg + ". " + msg2, Color.RED);
+        String downloadUrl = "https://github.com/mzmine/mzmine3/releases/latest";
+        Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
+        desktop.setStatusBarText(msg.replace("\n", ". ") + url, color, downloadUrl);
       }
     }
 

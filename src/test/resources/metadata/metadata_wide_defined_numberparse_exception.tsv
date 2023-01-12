@@ -1,0 +1,5 @@
+File name	Some descriptive text	Some number text		Run start time stamp of the sample
+TEXT	TEXT	NUMBER	TEXT	DATETIME
+Filename	Group	fssfesf	Group2	run_date
+a.mzML	A	NONUMBER	A	2021-08-31T15:33:15
+b.mzML	A	0.5	B	2021-08-31T19:23:46

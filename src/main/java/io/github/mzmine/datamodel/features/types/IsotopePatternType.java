@@ -62,7 +62,7 @@ public class IsotopePatternType extends DataType<IsotopePattern> {
 
   @Override
   @NotNull
-  public String getFormattedString(IsotopePattern value) {
+  public String getFormattedString(IsotopePattern value, boolean export) {
     return value != null ? String.valueOf(value.getNumberOfDataPoints()) : "";
   }
 
@@ -86,7 +86,7 @@ public class IsotopePatternType extends DataType<IsotopePattern> {
     if (!(value instanceof IsotopePattern pattern)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
 
     pattern.saveToXML(writer);

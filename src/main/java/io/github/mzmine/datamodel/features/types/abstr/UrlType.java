@@ -97,8 +97,8 @@ public abstract class UrlType extends DataType<UrlShortName> {
   }
 
   @Override
-  public @NotNull String getFormattedString(UrlShortName value) {
+  public @NotNull String getFormattedString(UrlShortName value, boolean export) {
     return value != null && value.shortName() != null ? value.shortName()
-        : super.getFormattedString(value);
+        : super.getFormattedString(value, export);
   }
 }

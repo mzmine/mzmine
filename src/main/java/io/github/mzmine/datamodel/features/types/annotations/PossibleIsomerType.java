@@ -60,8 +60,8 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
   }
 
   @Override
-  public @NotNull String getFormattedString(List<Integer> list) {
-    return list == null || list.isEmpty() ? "" : list.size() + ": " + list.toString();
+  public @NotNull String getFormattedString(List<Integer> list, boolean export) {
+    return list == null || list.isEmpty() ? "" : list.size() + ": " + list;
   }
 
   @Override
@@ -77,8 +77,7 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
 
       final ModularFeatureList flist = row.getFeatureList();
       final List<ModularFeatureListRow> isomerRows = new ArrayList<>();
-      isomerRows.addAll(isomerIds.stream()
-          .<ModularFeatureListRow>map(id -> (ModularFeatureListRow) flist.findRowByID(id))
+      isomerRows.addAll(isomerIds.stream().map(id -> (ModularFeatureListRow) flist.findRowByID(id))
           .filter(r -> r != null).distinct().toList());
       isomerRows.add(row);
 //      isomerRows.addAll(flist.modularStream().filter(r -> isomerIds.contains(r.getID())).toList());
