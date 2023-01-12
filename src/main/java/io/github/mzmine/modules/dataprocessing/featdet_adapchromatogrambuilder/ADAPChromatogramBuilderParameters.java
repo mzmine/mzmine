@@ -46,11 +46,9 @@ import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Important Note: when changing any of the parameter names, reflect the changes
- * in the
- * {@link
- * io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters}
- * to keep the compatibility.
+ * Important Note: when changing any of the parameter names, reflect the changes in the
+ * {@link io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters} to
+ * keep the compatibility.
  */
 public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
@@ -82,21 +80,19 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       "This parameter is the intensity value for which intensities greater than this value can contribute to the minimumScanSpan count.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleParameter minHighestPoint = new DoubleParameter(
-      "Min highest intensity",
+  public static final DoubleParameter minHighestPoint = new DoubleParameter("Min highest intensity",
       "Points below this intensity will not be considered in starting a new chromatogram",
       MZmineCore.getConfiguration().getIntensityFormat());
   // End Owen Edit
 
-  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> allowSingleScans = new HiddenParameter<>(
+  public static final HiddenParameter<Map<String, Boolean>> allowSingleScans = new HiddenParameter<>(
       new OptOutParameter("Allow single scan chromatograms",
           "Allows selection of single scans as chromatograms. This is useful for "
               + "feature table generation if MALDI point measurements."));
 
   public ADAPChromatogramBuilderParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan,
-            minGroupIntensity, minHighestPoint, mzTolerance, suffix,
-            allowSingleScans},
+    super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, minGroupIntensity,
+            minHighestPoint, mzTolerance, suffix, allowSingleScans},
         "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_adap_chromatogram_builder/adap-chromatogram-builder.html");
   }
 
@@ -109,19 +105,17 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         + "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted "
         + "<br>Ion Chromatograms and Detecting Chromatographic Features. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
         + "</html>";
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired,
-        this, message);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
 
   @Override
   public String getRestrictedIonMobilitySupportMessage() {
-    return
-        "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
-            + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
-            + "The mobility dimension can be added by the IMS expander module after feature resolving. "
-            + "Do you wish to continue?";
+    return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
+        + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
+        + "The mobility dimension can be added by the IMS expander module after feature resolving. "
+        + "Do you wish to continue?";
   }
 
   @NotNull
@@ -136,23 +130,17 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       return false;
     }
 
-    final Boolean singleScansOkOptOut = getParameter(
-        allowSingleScans).getValue().get("optoutsinglescancheck");
+    final Boolean singleScansOkOptOut = getParameter(allowSingleScans).getValue()
+        .get("optoutsinglescancheck");
 
-    if (getParameter(minimumScanSpan).getValue() <= 1 && (
-        singleScansOkOptOut == null || singleScansOkOptOut == false)) {
+    if (getParameter(minimumScanSpan).getValue() <= 1 && (singleScansOkOptOut == null
+        || !singleScansOkOptOut)) {
       ButtonType buttonType = MZmineCore.getDesktop()
-          .createAlertWithOptOut("Confirmation",
-              "Single consecutive scan selected.",
+          .createAlertWithOptOut("Confirmation", "Single consecutive scan selected.",
               "The number of consecutive scans was set to <= 1.\nThis can lead to more noise"
-                  + " detected as EICs.\nDo you want to proceed?",
-              "Do not show again.",
-              b -> this.getParameter(allowSingleScans).getValue()
-                  .put("optoutsinglescancheck", b));
-      if (buttonType.equals(ButtonType.YES)) {
-        return true;
-      }
-      return false;
+                  + " detected as EICs.\nDo you want to proceed?", "Do not show again.",
+              b -> this.getParameter(allowSingleScans).getValue().put("optoutsinglescancheck", b));
+      return buttonType.equals(ButtonType.YES);
     }
     return true;
   }

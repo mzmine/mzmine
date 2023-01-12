@@ -45,6 +45,7 @@ public enum MobilityType {
    * Mixed types in row bindings - aligned samples from different instruments
    */
   MIXED("none", "none", "mixed"), //
+  OTHER("none", "none", "other IMS"), //
   TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
   DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
   TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
@@ -62,10 +63,8 @@ public enum MobilityType {
 
   public String getAxisLabel() {
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
-    StringBuilder sb = new StringBuilder("Mobility (");
-    sb.append(axisLabel);
-    sb.append(")");
-    return uf.format(sb.toString(), getUnit());
+    final String sb = "Mobility (" + axisLabel + ")";
+    return uf.format(sb, getUnit());
   }
 
   public String getUnit() {

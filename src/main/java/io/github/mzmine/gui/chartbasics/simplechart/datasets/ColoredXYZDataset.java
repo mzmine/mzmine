@@ -54,7 +54,7 @@ import org.jfree.data.xy.XYZDataset;
  */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
-  private static Logger logger = Logger.getLogger(ColoredXYZDataset.class.getName());
+  private static final Logger logger = Logger.getLogger(ColoredXYZDataset.class.getName());
 
   private final XYZValueProvider xyzValueProvider;
   private final RunOption runOption;
@@ -79,8 +79,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this(dataProvider, useAlphaInPaintscale, RunOption.NEW_THREAD);
   }
 
-  ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, @NotNull final RunOption runOption) {
+  ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider, final boolean useAlphaInPaintscale,
+      @NotNull final RunOption runOption) {
     // do not run from super constructor! we need to do some other stuff first
     super(dataProvider, RunOption.DO_NOT_RUN);
 
@@ -165,8 +165,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return -1;
   }
 
-  private double calculateDefaultBoxDimensionForPlots(IntToDoubleFunction getter,
-      int maxIndex) {
+  private double calculateDefaultBoxDimensionForPlots(IntToDoubleFunction getter, int maxIndex) {
     double[] valuesSorted = new double[maxIndex];
     for (int i = 0; i < maxIndex; i++) {
       valuesSorted[i] = getter.applyAsDouble(i);
@@ -206,17 +205,17 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     }
     Range<Double> zValueRange = Range.closed(min, max);
 
-    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(
-        PaintScaleTransform.LINEAR, zValueRange);
+    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+        .toPaintScale(PaintScaleTransform.LINEAR, zValueRange);
     return paintScale;
   }
 
   @Override
   public void run() {
-    status.set(TaskStatus.PROCESSING);
+    setStatus(TaskStatus.PROCESSING);
     xyValueProvider.computeValues(status);
 
-    if (status.get() == TaskStatus.CANCELED || status.get() == TaskStatus.ERROR) {
+    if (status.getValue() == TaskStatus.CANCELED || status.getValue() == TaskStatus.ERROR) {
       return;
     }
 

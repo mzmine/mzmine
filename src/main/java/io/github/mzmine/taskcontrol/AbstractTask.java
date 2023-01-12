@@ -51,7 +51,7 @@ public abstract class AbstractTask implements Task {
   private String errorMessage = null;
   // listener to control status changes
   private List<TaskStatusListener> listener;
-  private StringProperty name = new SimpleStringProperty("Task name");
+  private final StringProperty name = new SimpleStringProperty("Task name");
 
   public final String getName() {
     return name.get();
@@ -66,10 +66,12 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
-   *  @param storage The {@link MemoryMapStorage} used to store results of this task (e.g.
-   *                RawDataFiles, MassLists, FeatureLists). May be null if results shall be stored
-   *                in ram. For now, one storage should be created per module call in {@link
-   *                io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject, ParameterSet, Collection, Instant)}.
+   * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
+   *                       stored in ram. For now, one storage should be created per module call in
+   *                       {@link
+   *                       io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject,
+   *                       ParameterSet, Collection, Instant)}.
    * @param moduleCallDate
    */
   protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -78,7 +80,6 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
-   *
    * @return The {@link MemoryMapStorage} used to store results of this task (e.g. RawDataFiles,
    * MassLists, FeatureLists). May be null if results shall be stored in ram.
    */
@@ -88,13 +89,16 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
+   *
    */
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
     this.status = newStatus;
-    if (listener != null && !status.equals(old))
-      for (int i = 0; i < listener.size(); i++)
+    if (listener != null && !status.equals(old)) {
+      for (int i = 0; i < listener.size(); i++) {
         listener.get(i).taskStatusChanged(this, status, old);
+      }
+    }
   }
 
   /**
@@ -133,6 +137,7 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
+   *
    */
   public final void setErrorMessage(String errorMessage) {
     this.errorMessage = errorMessage;
@@ -153,22 +158,28 @@ public abstract class AbstractTask implements Task {
     return this.status;
   }
 
+  @Override
   public void addTaskStatusListener(TaskStatusListener list) {
-    if (listener == null)
+    if (listener == null) {
       listener = new ArrayList<>();
+    }
     listener.add(list);
   }
 
+  @Override
   public boolean removeTaskStatusListener(TaskStatusListener list) {
-    if (listener != null)
+    if (listener != null) {
       return listener.remove(list);
-    else
+    } else {
       return false;
+    }
   }
 
+  @Override
   public void clearTaskStatusListener() {
-    if (listener != null)
+    if (listener != null) {
       listener.clear();
+    }
   }
 
   public Instant getModuleCallDate() {

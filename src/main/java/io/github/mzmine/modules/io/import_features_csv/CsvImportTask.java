@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -51,17 +52,20 @@ import org.jetbrains.annotations.Nullable;
 public class CsvImportTask extends AbstractTask {
 
   private final MZmineProject project;
-  private RawDataFile rawDataFile;
+  private final RawDataFile rawDataFile;
   private final File fileName;
-  private double percent = 0.0;
+  private final ParameterSet parameters;
+  private final double percent = 0.0;
 
   CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
-    super(storage, moduleCallDate); this.project = project;
+    super(storage, moduleCallDate);
+    this.project = project;
     // first file only
     this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
     this.fileName = parameters.getParameter(CsvImportParameters.filename).getValue()[0];
+    this.parameters = parameters;
   }
 
 
@@ -135,16 +139,15 @@ public class CsvImportTask extends AbstractTask {
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         FeatureStatus status = FeatureStatus.UNKNOWN; // abundance unknown
         Scan representativeScan = null;
-        for (Scan s_no : rawDataFile.getScans()) {
-          if (s_no.getRetentionTime() == feature_rt) {
-            representativeScan = s_no;
-            for (DataPoint dp : s_no) {
-              if (dp.getMZ() == feature_mz) {
-                finalDataPoint[0] = new SimpleDataPoint(feature_mz, dp.getIntensity());
-                break;
-              }
-            }
+
+        final Scan s_no = rawDataFile.binarySearchClosestScan(feature_rt, 1);
+        if (s_no != null && finalRTRange.contains(s_no.getRetentionTime())) {
+          representativeScan = s_no;
+          final int peakIndex = s_no.binarySearch(feature_mz, true);
+          if (finalMZRange.contains(s_no.getMzValue(peakIndex))) {
+            finalDataPoint[0] = new SimpleDataPoint(feature_mz, s_no.getIntensityValue(peakIndex));
           }
+          scanNumbers = new Scan[]{representativeScan};
         }
 
         Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt,
@@ -157,6 +160,11 @@ public class CsvImportTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
+
+      newFeatureList.setSelectedScans(rawDataFile, rawDataFile.getScanNumbers(1));
+      newFeatureList.addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod(CsvImportModule.class, parameters,
+              getModuleCallDate()));
 
       fileReader.close();
       project.addFeatureList(newFeatureList);

@@ -30,15 +30,27 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 public abstract class ScoreType extends FloatType {
-public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
+
+  public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
+
   public ScoreType() {
     super(DEFAULT);
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
-      return MZmineCore.getConfiguration().getScoreFormat();
+      return MZmineCore.getConfiguration().getGuiFormats().scoreFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().scoreFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;

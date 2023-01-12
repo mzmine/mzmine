@@ -25,7 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 
 public enum RunOption {
   /**
@@ -40,7 +40,7 @@ public enum RunOption {
    * Directly executes this dataset calculations on a new thread.
    *
    * @see ColoredXYDataset#run()
-   * @see io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider#computeValues(SimpleObjectProperty)
+   * @see XYValueProvider#computeValues(javafx.beans.property.Property)
    */
   NEW_THREAD,
   /**
@@ -49,5 +49,5 @@ public enum RunOption {
    * @see ColoredXYDataset#run()
    * @see io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider#computeValues
    */
-  DO_NOT_RUN;
+  DO_NOT_RUN
 }

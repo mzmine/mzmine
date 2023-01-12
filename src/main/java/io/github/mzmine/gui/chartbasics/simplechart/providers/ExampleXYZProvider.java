@@ -39,7 +39,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -49,7 +49,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   private final List<Double> xValuesSet;
   private final List<Double> yValuesSet;
   private final List<Double> zValuesSet;
-  private AtomicDouble progress;
+  private final AtomicDouble progress;
 
   private double dataPointWidth;
   private double dataPointHeight;
@@ -97,7 +97,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
     try {
       Float[] xValues = null;
@@ -116,7 +116,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
         // add data points retention time -> intensity
 
         for (RetentionTimeMobilityDataPoint dp : dataPoints) {
-          xValuesSet.add((double)dp.getRetentionTime());
+          xValuesSet.add((double) dp.getRetentionTime());
           yValuesSet.add(dp.getMobility());
           zValuesSet.add(dp.getIntensity());
           if (dp.getMobility() > maxMobility) {
@@ -181,11 +181,10 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   }
 
   private void calculateDataPointSizeForPlots(List<RetentionTimeMobilityDataPoint> dataPoints) {
-    SortedSet<RetentionTimeMobilityDataPoint> dataPointsSortedByRt =
-        new TreeSet<>(new Comparator<RetentionTimeMobilityDataPoint>() {
+    SortedSet<RetentionTimeMobilityDataPoint> dataPointsSortedByRt = new TreeSet<>(
+        new Comparator<RetentionTimeMobilityDataPoint>() {
           @Override
-          public int compare(RetentionTimeMobilityDataPoint o1,
-              RetentionTimeMobilityDataPoint o2) {
+          public int compare(RetentionTimeMobilityDataPoint o1, RetentionTimeMobilityDataPoint o2) {
             if (o1.getRetentionTime() > o2.getRetentionTime()) {
               return 1;
             } else {

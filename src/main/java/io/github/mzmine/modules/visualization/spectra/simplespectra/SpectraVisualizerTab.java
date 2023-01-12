@@ -571,7 +571,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     }
 
     // add new scan
-    Scan newScan = newFile.getScanNumberAtRT(currentScan.getRetentionTime());
+    Scan newScan = newFile.binarySearchClosestScan(currentScan.getRetentionTime());
     if (newScan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Raw data file " + dataFile + " does not contain scan at retention time "

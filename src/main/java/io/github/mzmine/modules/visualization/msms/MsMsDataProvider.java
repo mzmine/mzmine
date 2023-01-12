@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.paint.Color;
@@ -94,8 +94,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     // Basic parameters
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
-    rtRange = RangeUtils.toFloatRange(
-        parameters.getParameter(MsMsParameters.rtRange).getValue());
+    rtRange = RangeUtils.toFloatRange(parameters.getParameter(MsMsParameters.rtRange).getValue());
     mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
     xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
     yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
@@ -112,13 +111,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     allScans = dataFile.getScans();
 
     // Most intense fragments filtering
-    OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFilterParameter
-        = parameters.getParameter(MsMsParameters.intensityFiltering);
+    OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFilterParameter = parameters.getParameter(
+        MsMsParameters.intensityFiltering);
     intensityFiltering = intensityFilterParameter.getValue();
     if (intensityFiltering) {
       try {
-        ComboFieldParameter<IntensityFilteringType> intensityFilterTypeParameter
-            = intensityFilterParameter.getEmbeddedParameter();
+        ComboFieldParameter<IntensityFilteringType> intensityFilterTypeParameter = intensityFilterParameter.getEmbeddedParameter();
 
         String intensityFilter = intensityFilterTypeParameter.getValue().getFieldText();
         intensityFilterType = intensityFilterTypeParameter.getValue().getValueType();
@@ -136,9 +134,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle("Invalid intensity filtering value level");
         alert.setHeaderText("Intensity filtering value must be a double number for \""
-            + IntensityFilteringType.BASE_PEAK_PERCENT.toString()
-            + "\" option and an integer number for \""
-            + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS.toString() + "\" option");
+            + IntensityFilteringType.BASE_PEAK_PERCENT + "\" option and an integer number for \""
+            + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS + "\" option");
         alert.showAndWait();
       }
     }
@@ -184,7 +181,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
     // Do not recompute values if they are already present
     if (!dataPoints.isEmpty()) {
@@ -258,15 +255,14 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
           // Number of most intense fragments
         } else if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
-          filteredPointsIndices = IntStream.range(0, massList.getNumberOfDataPoints() - 1)
-              .boxed().sorted((i, j)
-                  -> Doubles.compare(massList.getIntensityValue(j), massList.getIntensityValue(i)))
-              .limit((int) intensityFilterValue).mapToInt(i -> i).boxed()
-              .collect(Collectors.toList());
+          filteredPointsIndices = IntStream.range(0, massList.getNumberOfDataPoints() - 1).boxed()
+              .sorted((i, j) -> Doubles.compare(massList.getIntensityValue(j),
+                  massList.getIntensityValue(i))).limit((int) intensityFilterValue).mapToInt(i -> i)
+              .boxed().collect(Collectors.toList());
         }
       } else {
-        filteredPointsIndices = IntStream.rangeClosed(0, massList.getNumberOfDataPoints() - 1).boxed()
-            .collect(Collectors.toList());
+        filteredPointsIndices = IntStream.rangeClosed(0, massList.getNumberOfDataPoints() - 1)
+            .boxed().collect(Collectors.toList());
       }
 
       // Precursor intensity
@@ -406,10 +402,10 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   private double getRawZValue(MsMsDataPoint dataPoint) {
     return switch (zAxisType) {
-      case PRECURSOR_INTENSITY
-          -> scalePrecursorIntensity(dataPoint.getPrecursorIntensity()) / maxPrecursorIntensity;
-      case PRODUCT_INTENSITY
-          -> scaleProductIntensity(dataPoint.getProductIntensity()) / maxProductIntensity;
+      case PRECURSOR_INTENSITY ->
+          scalePrecursorIntensity(dataPoint.getPrecursorIntensity()) / maxPrecursorIntensity;
+      case PRODUCT_INTENSITY ->
+          scaleProductIntensity(dataPoint.getProductIntensity()) / maxProductIntensity;
       case RETENTION_TIME -> dataPoint.getRetentionTime() / maxRt;
     };
   }

@@ -60,11 +60,6 @@ public class DetectionType extends DataType<FeatureStatus> implements
   }
 
   @Override
-  public @NotNull String getFormattedString(FeatureStatus value) {
-    return value == null ? getDefaultValue().toString() : value.toString();
-  }
-
-  @Override
   @NotNull
   public String getHeaderString() {
     return "State";
@@ -104,12 +99,13 @@ public class DetectionType extends DataType<FeatureStatus> implements
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
     if (!(value instanceof FeatureStatus status)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
     writer.writeCharacters(status.toString());
   }

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class LastFilesButton extends Button implements LastFilesComponent {
 
   private ContextMenu menu;
   private List<File> lastFiles;
+  private boolean showNameOnly = false;
   // listens for click on one of the last files
   // consumer decides what to do
   private Consumer<File> changeListener;
@@ -69,6 +71,12 @@ public class LastFilesButton extends Button implements LastFilesComponent {
   public LastFilesButton(String text, Consumer<File> changeListener) {
     super(text);
     this.changeListener = changeListener;
+    init();
+  }
+
+  public LastFilesButton(String text, boolean showNameOnly, Consumer<File> changeListener) {
+    this(text, changeListener);
+    this.showNameOnly = showNameOnly;
     init();
   }
 
@@ -123,6 +131,9 @@ public class LastFilesButton extends Button implements LastFilesComponent {
   }
 
   private String fileToString(File f) {
+    if (showNameOnly) {
+      return FileAndPathUtil.eraseFormat(f.getName());
+    }
     return MessageFormat.format("{0} ({1})", f.getName(), f.getParent());
   }
 

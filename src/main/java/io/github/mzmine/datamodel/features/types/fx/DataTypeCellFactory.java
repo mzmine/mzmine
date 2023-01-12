@@ -120,7 +120,8 @@ public class DataTypeCellFactory implements
                 // dirty fix for NumberRangeType as those types do not return sub types for each
                 // column, but rather use NumberRangeType.this as type
                 if (type instanceof NumberRangeType rangeType) {
-                  setText(rangeType.getFormattedString((Number) item));
+                  // use special method in NumberRangeType - this needs a number instead of Range
+                  setText(rangeType.getFormattedString((Number) item, false));
                 } else {
                   setText(type.getFormattedString(item));
                 }
