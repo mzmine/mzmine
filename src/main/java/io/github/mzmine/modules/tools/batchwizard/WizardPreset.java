@@ -139,8 +139,8 @@ public record WizardPreset(String name, WizardPart part, ParameterSet parameters
       return switch (this) {
         case NO_IMS -> " ";
         case TIMS, IMS -> super.toString();
-        case DTIMS -> "DT-IMS";
-        case TWIMS -> "TW-IMS";
+        case DTIMS -> "DTIMS";
+        case TWIMS -> "TWIMS";
       };
     }
   }
