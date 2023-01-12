@@ -43,8 +43,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureInformationType extends
-    DataType<FeatureInformation> implements NullColumnType {
+public class FeatureInformationType extends DataType<FeatureInformation> implements NullColumnType {
 
   @NotNull
   @Override
@@ -61,9 +60,9 @@ public class FeatureInformationType extends
 
   @Override
   @NotNull
-  public String getFormattedString(@Nullable FeatureInformation value) {
-    return value != null ? value.getAllProperties().entrySet().stream()
-        .map(Object::toString).collect(Collectors.joining(";")) : "";
+  public String getFormattedString(@Nullable FeatureInformation value, boolean export) {
+    return value != null ? value.getAllProperties().entrySet().stream().map(Object::toString)
+        .collect(Collectors.joining(";")) : "";
   }
 
   @Override
@@ -80,8 +79,8 @@ public class FeatureInformationType extends
     }
     if (!(value instanceof FeatureInformation info)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
-              .getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
 
     info.saveToXML(writer);
@@ -100,8 +99,7 @@ public class FeatureInformationType extends
       reader.next();
     }
 
-    if (reader.isStartElement() && reader.getLocalName()
-        .equals(FeatureInformation.XML_ELEMENT)) {
+    if (reader.isStartElement() && reader.getLocalName().equals(FeatureInformation.XML_ELEMENT)) {
       return SimpleFeatureInformation.loadFromXML(reader);
     }
     return null;

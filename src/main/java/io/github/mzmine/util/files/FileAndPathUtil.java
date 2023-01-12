@@ -36,7 +36,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple file operations
@@ -44,6 +46,8 @@ import org.apache.commons.io.FilenameUtils;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class FileAndPathUtil {
+
+  private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -157,6 +161,21 @@ public class FileAndPathUtil {
     int lastDot = f.getName().lastIndexOf(".");
     if (lastDot != -1) {
       return new File(f.getParent(), f.getName().substring(0, lastDot));
+    } else {
+      return f;
+    }
+  }
+
+  /**
+   * erases the format. "image.png" will be returned as "image" this method is used by
+   * getRealFilePath and getRealFileName
+   *
+   * @return remove format from file
+   */
+  public static String eraseFormat(String f) {
+    int lastDot = f.lastIndexOf(".");
+    if (lastDot != -1) {
+      return f.substring(0, lastDot);
     } else {
       return f;
     }
@@ -482,6 +501,7 @@ public class FileAndPathUtil {
    *
    * @return jar path
    */
+  @Nullable
   public static File getPathOfJar() {
     /*
      * File f = new File(System.getProperty("java.class.path")); File dir =
@@ -493,9 +513,27 @@ public class FileAndPathUtil {
               .getPath());
       return jar.getParentFile();
     } catch (Exception ex) {
-      return new File("");
+      return null;
     }
   }
+
+  /**
+   * The main directory. Only tested on windows
+   *
+   * @return
+   */
+  @Nullable
+  public static File getSoftwareMainDirectory() {
+    File pathOfJar = FileAndPathUtil.getPathOfJar();
+    return pathOfJar == null ? null : pathOfJar.getParentFile();
+  }
+
+
+  @Nullable
+  public static File getUserSettingsDir() {
+    return USER_MZMINE_DIR;
+  }
+
 
   public static File getUniqueFilename(final File parent, final String fileName) {
     final File dir = parent.isDirectory() ? parent : parent.getParentFile();

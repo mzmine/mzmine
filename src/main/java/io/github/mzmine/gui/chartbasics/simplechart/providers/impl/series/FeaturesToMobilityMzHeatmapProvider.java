@@ -39,13 +39,12 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
-public class FeaturesToMobilityMzHeatmapProvider implements
-    PlotXYZDataProvider {
+public class FeaturesToMobilityMzHeatmapProvider implements PlotXYZDataProvider {
 
   private final String seriesKey;
   private final NumberFormat rtFormat;
@@ -132,7 +131,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     int numSamples = Math.min(features.size(), 100);
     double width = 0d;
     for (int i = 0; i < features.size(); i += (features.size() / numSamples)) {

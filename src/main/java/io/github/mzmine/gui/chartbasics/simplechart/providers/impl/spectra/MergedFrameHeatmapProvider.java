@@ -37,7 +37,7 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.awt.Color;
 import java.util.Collection;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -101,19 +101,19 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     merged = SpectraMerging.getMergedFrame(null, tolerance, frames, mobilityScanBin,
         IntensityMergingType.MAXIMUM, 100d, null, Math.min(frames.size() - 1, 5), progress);
 
     final int maxDp = merged.getMaxMobilityScanRawDataPoints();
-    final double mzs[] = new double[maxDp];
-    final double intensities[] = new double[maxDp];
+    final double[] mzs = new double[maxDp];
+    final double[] intensities = new double[maxDp];
 
     boxHeight = IonMobilityUtils.getSmallestMobilityDelta(merged);
     boxWidth = Double.MAX_VALUE;
 
     for (MobilityScan scan : merged.getMobilityScans()) {
-      if (status.get() == TaskStatus.CANCELED) {
+      if (status.getValue() == TaskStatus.CANCELED) {
         return;
       }
 

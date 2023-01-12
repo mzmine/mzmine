@@ -25,10 +25,12 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.util.DateTimeUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Specific Date-type implementation of the project parameter.
@@ -53,16 +55,20 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
     return AvailableTypes.DATETIME;
   }
 
-  // todo: make it clear with the logic of covert; should it ever return null?
   @Override
-  public LocalDateTime convert(String input, LocalDateTime defaultValue) {
+  public @Nullable LocalDateTime convertOrElse(@Nullable String input,
+      @Nullable LocalDateTime defaultValue) {
     try {
-      //ISO-8601 format
-      return input == null ? defaultValue : DateTimeUtils.parse(input.trim());
-//      return LocalDateTime.parse(input.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+      return input == null ? defaultValue : convertOrThrow(input);
     } catch (DateTimeParseException ignored) {
       return defaultValue;
     }
+  }
+
+  @Override
+  public LocalDateTime convertOrThrow(@NotNull final String input) {
+    //ISO-8601 format
+    return DateTimeUtils.parse(input.trim());
   }
 
   @Override

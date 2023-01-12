@@ -38,7 +38,7 @@ public class WebUtils {
   private static final Logger logger = Logger.getLogger(WebUtils.class.getName());
 
   public static void openURL(String url) {
-    if (Desktop.isDesktopSupported() && !url.isBlank()) {
+    if (url != null && Desktop.isDesktopSupported() && !url.isBlank()) {
       try {
         Desktop.getDesktop().browse(new URI(url));
       } catch (ParseException | IOException | URISyntaxException e) {

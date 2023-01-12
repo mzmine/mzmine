@@ -107,15 +107,6 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
   }
 
   @Override
-  public @NotNull String getFormattedString(DatabaseMatchInfo value) {
-    if (value == null) {
-      return "";
-    }
-
-    return value.toString();
-  }
-
-  @Override
   public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();

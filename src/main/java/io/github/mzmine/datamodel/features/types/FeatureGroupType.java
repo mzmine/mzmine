@@ -59,11 +59,6 @@ public class FeatureGroupType extends DataType<RowGroup> {
     return RowGroup.class;
   }
 
-  @Override
-  public @NotNull String getFormattedString(RowGroup value) {
-    return value == null ? "" : String.valueOf(value.getGroupID());
-  }
-
   public enum GroupType {
     CORRELATED, ISOTOPES, ION_ADDUCTS
   }

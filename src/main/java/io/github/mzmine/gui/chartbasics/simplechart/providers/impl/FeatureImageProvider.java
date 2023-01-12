@@ -27,7 +27,6 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
@@ -44,7 +43,7 @@ import io.github.mzmine.util.MathUtils;
 import java.awt.Color;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -114,7 +113,7 @@ public class FeatureImageProvider<T extends ImagingScan> implements PlotXYZDataP
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     ImagingParameters imagingParam = ((ImagingRawDataFile) feature.getRawDataFile()).getImagingParam();
     height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
     width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
@@ -122,8 +121,7 @@ public class FeatureImageProvider<T extends ImagingScan> implements PlotXYZDataP
     try {
       final IonTimeSeries<T> featureData = (IonTimeSeries<T>) feature.getFeatureData();
       if (normalize != null && selectedScans != null && !selectedScans.isEmpty()) {
-        series = (IonTimeSeries<T>) normalize.normalize(featureData,
-            (List<T>) (List<? extends Scan>) selectedScans, null);
+        series = normalize.normalize(featureData, (List<T>) selectedScans, null);
       } else {
         series = featureData;
       }
@@ -183,6 +181,6 @@ public class FeatureImageProvider<T extends ImagingScan> implements PlotXYZDataP
 
   @Override
   public T getSpectrum(int index) {
-    return (T) series.getSpectrum(index);
+    return series.getSpectrum(index);
   }
 }

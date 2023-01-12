@@ -38,12 +38,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RowToCCSMzHeatmapProvider implements
-    PieXYZDataProvider<IMSRawDataFile> {
+public class RowToCCSMzHeatmapProvider implements PieXYZDataProvider<IMSRawDataFile> {
 
   private final String seriesKey;
   private final NumberFormat rtFormat;
@@ -57,8 +56,8 @@ public class RowToCCSMzHeatmapProvider implements
 
   private double maxValue = Double.NEGATIVE_INFINITY;
   private double minValue = Double.POSITIVE_INFINITY;
-  private double maxDiameter = 30d;
-  private double minDiameter = 10d;
+  private final double maxDiameter = 30d;
+  private final double minDiameter = 10d;
   private double deltaDiameter = 1d;
   private double deltaValue = 1d;
 
@@ -93,13 +92,10 @@ public class RowToCCSMzHeatmapProvider implements
   @Override
   public String getLabel(int index) {
     ModularFeatureListRow f = rows.get(index);
-    StringBuilder sb = new StringBuilder();
-    sb.append("m/z:");
-    sb.append(mzFormat.format(f.getAverageMZ()));
-    sb.append("\n");
-    sb.append("CCS: ");
-    sb.append(ccsFormat.format(f.getAverageCCS()));
-    return sb.toString();
+    final String sb =
+        "m/z:" + mzFormat.format(f.getAverageMZ()) + "\n" + "CCS: " + ccsFormat.format(
+            f.getAverageCCS());
+    return sb;
   }
 
   @NotNull
@@ -113,40 +109,30 @@ public class RowToCCSMzHeatmapProvider implements
   public String getToolTipText(int itemIndex) {
     ModularFeatureListRow f = rows.get(itemIndex);
 
-    StringBuilder sb = new StringBuilder();
-    sb.append("m/z:");
-    sb.append(mzFormat.format(f.getMZRange().lowerEndpoint()));
-    sb.append(" - ");
-    sb.append(mzFormat.format(f.getMZRange().upperEndpoint()));
-    sb.append("\n");
-    sb.append("Height: ");
-    sb.append(intensityFormat.format(f.getAverageHeight()));
-    sb.append("\n");
-    sb.append("Retention time");
-    sb.append(": ");
-    sb.append(rtFormat.format(f.getAverageRT()));
-    sb.append(" min\n");
-    sb.append("CCS: ");
-    sb.append(ccsFormat.format(f.getAverageCCS()));
-    return sb.toString();
+    final String sb =
+        "m/z:" + mzFormat.format(f.getMZRange().lowerEndpoint()) + " - " + mzFormat.format(
+            f.getMZRange().upperEndpoint()) + "\n" + "Height: " + intensityFormat.format(
+            f.getAverageHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
+            f.getAverageRT()) + " min\n" + "CCS: " + ccsFormat.format(f.getAverageCCS());
+    return sb;
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     for (int i = 0; i < rows.size(); i++) {
       final ModularFeatureListRow row = rows.get(i);
-      for(final IMSRawDataFile file : files) {
+      for (final IMSRawDataFile file : files) {
         final ModularFeature feature = row.getFeature(file);
-        if(feature == null) {
+        if (feature == null) {
           continue;
         }
-        if(feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+        if (feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
           summedValues[i] += feature.getHeight();
         }
         minValue = Math.min(summedValues[i], minValue);
         maxValue = Math.max(summedValues[i], maxValue);
 
-        if(status.get() == TaskStatus.CANCELED) {
+        if (status.getValue() == TaskStatus.CANCELED) {
           return;
         }
       }
@@ -203,7 +189,7 @@ public class RowToCCSMzHeatmapProvider implements
 
   @Override
   public double getPieDiameter(int index) {
-    return (getZValue(index) - minValue)/deltaValue * deltaDiameter + minDiameter;
+    return (getZValue(index) - minValue) / deltaValue * deltaDiameter + minDiameter;
   }
 
   @Override

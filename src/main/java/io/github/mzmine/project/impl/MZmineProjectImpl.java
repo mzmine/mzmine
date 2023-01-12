@@ -303,6 +303,24 @@ public class MZmineProjectImpl implements MZmineProject {
     }
   }
 
+  @Override
+  public @Nullable RawDataFile getDataFileByName(@Nullable String name) {
+    if (name == null) {
+      return null;
+    }
+    try {
+      rawLock.readLock().lock();
+      for (final RawDataFile raw : rawDataFiles) {
+        if (name.equalsIgnoreCase(raw.getName())) {
+          return raw;
+        }
+      }
+      return null;
+    } finally {
+      rawLock.readLock().unlock();
+    }
+  }
+
 
   @Override
   public void removeFeatureLists(@NotNull List<FeatureList> featureLists) {

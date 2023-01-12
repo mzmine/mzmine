@@ -46,6 +46,7 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.ProjectManagerImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -323,6 +324,75 @@ public final class MZmineCore {
 
   public static Collection<MZmineModule> getAllModules() {
     return getInstance().initializedModules.values();
+  }
+
+  /**
+   * Show setup dialog and run module if okay
+   *
+   * @param moduleClass the module class
+   */
+  public static ExitCode setupAndRunModule(
+      final Class<? extends MZmineRunnableModule> moduleClass) {
+    return setupAndRunModule(moduleClass, null, null);
+  }
+
+  /**
+   * Show setup dialog and run module if okay
+   *
+   * @param moduleClass the module class
+   * @param onFinish    callback for all tasks finished
+   * @param onError     callback for error
+   */
+  public static ExitCode setupAndRunModule(final Class<? extends MZmineRunnableModule> moduleClass,
+      @Nullable Runnable onFinish, @Nullable Runnable onError) {
+    return setupAndRunModule(moduleClass, onFinish, onError, null);
+  }
+
+  /**
+   * Show setup dialog and run module if okay
+   *
+   * @param moduleClass the module class
+   * @param onFinish    callback for all tasks finished
+   * @param onError     callback for error
+   * @param onCancel    callback for cancelled tasks
+   */
+  public static ExitCode setupAndRunModule(final Class<? extends MZmineRunnableModule> moduleClass,
+      @Nullable Runnable onFinish, @Nullable Runnable onError, @Nullable Runnable onCancel) {
+    // throw exception on headless mode
+    if (isHeadLessMode()) {
+      throw new IllegalStateException(
+          "Cannot setup parameters in headless mode. This needs the parameter setup dialog");
+    }
+
+    MZmineModule module = MZmineCore.getModuleInstance(moduleClass);
+
+    if (module == null) {
+      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
+      return ExitCode.ERROR;
+    }
+
+    ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+
+    logger.info("Setting parameters for module " + module.getName());
+    moduleParameters.setModuleNameAttribute(module.getName());
+
+    try {
+      ExitCode exitCode = moduleParameters.showSetupDialog(true);
+      if (exitCode != ExitCode.OK) {
+        return exitCode;
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    List<Task> tasks = MZmineCore.runMZmineModule(moduleClass, parametersCopy);
+
+    if (onError != null || onFinish != null || onCancel != null) {
+      AllTasksFinishedListener.registerCallbacks(tasks, true, onFinish, onError, onCancel);
+    }
+    return ExitCode.OK;
   }
 
   /**

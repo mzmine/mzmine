@@ -58,7 +58,7 @@ public class MsMsInfoType extends ListDataType<MsMsInfo> {
   }
 
   @Override
-  public @NotNull String getFormattedString(List<MsMsInfo> list) {
+  public @NotNull String getFormattedString(List<MsMsInfo> list, boolean export) {
     return list != null ? String.valueOf(list.size()) : "0";
   }
 
@@ -71,8 +71,8 @@ public class MsMsInfoType extends ListDataType<MsMsInfo> {
     }
     if (!(value instanceof List list)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
-              .getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
 
     for (Object o : list) {
