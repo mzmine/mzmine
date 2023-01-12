@@ -52,10 +52,10 @@ import org.jetbrains.annotations.Nullable;
 public class CsvImportTask extends AbstractTask {
 
   private final MZmineProject project;
-  private RawDataFile rawDataFile;
+  private final RawDataFile rawDataFile;
   private final File fileName;
   private final ParameterSet parameters;
-  private double percent = 0.0;
+  private final double percent = 0.0;
 
   CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
@@ -140,7 +140,7 @@ public class CsvImportTask extends AbstractTask {
         FeatureStatus status = FeatureStatus.UNKNOWN; // abundance unknown
         Scan representativeScan = null;
 
-        final Scan s_no = rawDataFile.getScanNumberAtRT(feature_rt, 1);
+        final Scan s_no = rawDataFile.binarySearchClosestScan(feature_rt, 1);
         if (s_no != null && finalRTRange.contains(s_no.getRetentionTime())) {
           representativeScan = s_no;
           final int peakIndex = s_no.binarySearch(feature_mz, true);
