@@ -75,7 +75,7 @@ public interface RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return data point with maximum intensity (centroided)
+   * @return max number of data points in all masslists (centroid) of all scans
    */
   int getMaxCentroidDataPoints();
 
@@ -83,7 +83,7 @@ public interface RawDataFile {
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return data point with maximum intensity in unprocessed data points
+   * @return max number of data points in all raw scans
    */
   int getMaxRawDataPoints();
 
