@@ -132,15 +132,15 @@ public record WizardPreset(String name, WizardPart part, ParameterSet parameters
      * TIMS actually is a different workflow than the rest. slight changes because of MS2
      * acquisition in PASEF
      */
-    TIMS, IMS, DT_IMS, TW_IMS;
+    TIMS, IMS, DTIMS, TWIMS;
 
     @Override
     public String toString() {
       return switch (this) {
         case NO_IMS -> " ";
         case TIMS, IMS -> super.toString();
-        case DT_IMS -> "DT-IMS";
-        case TW_IMS -> "TW-IMS";
+        case DTIMS -> "DT-IMS";
+        case TWIMS -> "TW-IMS";
       };
     }
   }
@@ -150,14 +150,6 @@ public record WizardPreset(String name, WizardPart part, ParameterSet parameters
    * toString method
    */
   public enum MsInstrumentDefaults {
-    Orbitrap, qTOF, FT_ICR;
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case Orbitrap, qTOF -> super.toString();
-        case FT_ICR -> "FT-ICR";
-      };
-    }
+    Orbitrap, qTOF, FTICR
   }
 }

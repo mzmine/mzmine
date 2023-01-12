@@ -112,7 +112,7 @@ public class WizardMassSpectrometerParameters extends SimpleParameterSet {
       case qTOF -> new WizardMassSpectrometerParameters(5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
           new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
       // TODO optimize some defaults
-      case FT_ICR -> new WizardMassSpectrometerParameters(5E2, 1E2, 1E3, new MZTolerance(0.0005, 5),
+      case FTICR -> new WizardMassSpectrometerParameters(5E2, 1E2, 1E3, new MZTolerance(0.0005, 5),
           new MZTolerance(0.0005, 2), new MZTolerance(0.0005, 3.5));
     };
     params.setParameter(wizardPart, defaults);

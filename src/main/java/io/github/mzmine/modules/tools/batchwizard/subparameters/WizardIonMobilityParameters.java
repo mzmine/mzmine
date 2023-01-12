@@ -101,8 +101,8 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
       case NO_IMS -> new WizardIonMobilityParameters(5, 0.01, true, false, MobilityType.NONE);
       case TIMS -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.TIMS);
       case IMS -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.OTHER);
-      case DT_IMS -> new WizardIonMobilityParameters(4, 0.7, true, true, MobilityType.DRIFT_TUBE);
-      case TW_IMS ->
+      case DTIMS -> new WizardIonMobilityParameters(4, 0.7, true, true, MobilityType.DRIFT_TUBE);
+      case TWIMS ->
           new WizardIonMobilityParameters(4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
     };
     params.setParameter(wizardPart, defaults);
