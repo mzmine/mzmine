@@ -52,7 +52,7 @@ public class WizardFilterParameters extends SimpleParameterSet {
       false, OriginalFeatureListOption.REMOVE);
 
   /**
-   * the part category of presets - is used in all parameter classes
+   * the part category of presets - is used in all wizard parameter classes
    */
   public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
       WizardPart.FILTER);

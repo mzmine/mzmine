@@ -67,7 +67,7 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
           ImsDefaults.NO_IMS));
 
   /**
-   * the part category of presets - is used in all parameter classes
+   * the part category of presets - is used in all wizard parameter classes
    */
   public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
       WizardPart.IMS);

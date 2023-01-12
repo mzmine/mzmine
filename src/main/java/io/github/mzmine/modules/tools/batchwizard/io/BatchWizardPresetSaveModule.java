@@ -25,21 +25,16 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +42,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BatchWizardPresetSaveModule implements MZmineRunnableModule {
+public class BatchWizardPresetSaveModule implements MZmineModule {
 
   private static final Logger logger = Logger.getLogger(
       BatchWizardPresetSaveModule.class.getName());
@@ -86,21 +81,4 @@ public class BatchWizardPresetSaveModule implements MZmineRunnableModule {
     return BatchWizardPresetSaveParameters.class;
   }
 
-  @Override
-  public @NotNull String getDescription() {
-    return "Saves presets for the wizard.";
-  }
-
-  @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-
-    return ExitCode.OK;
-  }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.TOOLS;
-  }
 }

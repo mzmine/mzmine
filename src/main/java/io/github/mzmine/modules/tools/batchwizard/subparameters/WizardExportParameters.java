@@ -48,7 +48,7 @@ public class WizardExportParameters extends SimpleParameterSet {
           FileSelectionType.SAVE, false), false);
 
   /**
-   * the part category of presets - is used in all parameter classes
+   * the part category of presets - is used in all wizard parameter classes
    */
   public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
       WizardPart.EXPORT);
