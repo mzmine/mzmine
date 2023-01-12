@@ -50,8 +50,8 @@ group = "io.github.mzmine"
 description = "MZmine"
 
 java {
-    sourceCompatibility = "19"
-    targetCompatibility = "19"
+    sourceCompatibility = "17.PREVIEW"
+    targetCompatibility = "17.PREVIEW"
 }
 defaultTasks "test", "jpackage"
 
