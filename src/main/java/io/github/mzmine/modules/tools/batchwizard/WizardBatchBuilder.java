@@ -558,7 +558,8 @@ public class WizardBatchBuilder {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeRtResolvingStep() {
-    // TODO check if still needed
+    // only TIMS currently supports DDA MS2 acquisition with PASEF
+    // other instruments have the fragmentation before the IMS cell
     boolean hasIMS = isImsActive && imsInstrumentType.equals(MobilityType.TIMS);
 
     final double totalRtWidth = RangeUtils.rangeLength(cropRtRange);

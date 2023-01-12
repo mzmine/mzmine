@@ -23,30 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.util.List;
 
 /**
- * Reuses the filenames and spectral library files parameters of
- * {@link AllSpectralDataImportParameters} and {@link SpectralLibraryImportParameters}
+ * Loaded from file, the presets for each part in the sequence
  *
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ * @param file  the file loaded
+ * @param parts the presets in sequential order
  */
-public class WizardDataImportParameters extends SimpleParameterSet {
+public record LocalWizardFile(File file, List<WizardPreset> parts) {
 
   /**
-   * the part category of presets - is used in all wizard parameter classes
+   * File name without extension is used as name for presets
    */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.DATA_IMPORT);
+  public String getName() {
+    return FileAndPathUtil.eraseFormat(file.getName());
+  }
 
-  public WizardDataImportParameters() {
-    super(new Parameter[]{wizardPartCategory, AllSpectralDataImportParameters.fileNames,
-        SpectralLibraryImportParameters.dataBaseFiles});
+  @Override
+  public String toString() {
+    return getName();
   }
 }
