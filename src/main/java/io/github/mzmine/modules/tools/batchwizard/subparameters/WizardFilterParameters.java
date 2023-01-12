@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -50,7 +51,14 @@ public class WizardFilterParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.REMOVE);
 
+  /**
+   * the part category of presets - is used in all wizard parameter classes
+   */
+  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
+      WizardPart.FILTER);
+
   public WizardFilterParameters() {
-    super(new Parameter[]{handleOriginalFeatureLists, minNumberOfSamples, filter13C});
+    super(new Parameter[]{wizardPartCategory, handleOriginalFeatureLists, minNumberOfSamples,
+        filter13C});
   }
 }

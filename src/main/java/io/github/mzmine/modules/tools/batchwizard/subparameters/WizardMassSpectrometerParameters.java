@@ -27,11 +27,13 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset.MsInstrumentDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -67,10 +69,27 @@ public class WizardMassSpectrometerParameters extends SimpleParameterSet {
   public static final MZToleranceParameter sampleToSampleMzTolerance = new MZToleranceParameter(
       "Sample to sample m/z tolerace",
       "Describes the m/z fluctuations between different samples. Used for alignment.");
+  /**
+   * the UI element shown on top to signal the workflow used. Presets May be changed and then saved
+   * to user presets as parameter files.
+   */
+  public static final HiddenParameter<MsInstrumentDefaults> wizardPart = new HiddenParameter<>(
+      new ComboParameter<>("Wizard part", "Defines the wizard part used",
+          MsInstrumentDefaults.values(), MsInstrumentDefaults.Orbitrap));
+
+  /**
+   * the part category of presets - is used in all wizard parameter classes
+   */
+  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
+      WizardPart.MS);
 
   public WizardMassSpectrometerParameters() {
-    super(new Parameter[]{polarity, ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight,
-        scanToScanMzTolerance, featureToFeatureMzTolerance, sampleToSampleMzTolerance});
+    super(new Parameter[]{
+        // hidden
+        wizardPart, wizardPartCategory,
+        // shown
+        polarity, ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight, scanToScanMzTolerance,
+        featureToFeatureMzTolerance, sampleToSampleMzTolerance});
   }
 
   public WizardMassSpectrometerParameters(final double ms1noise, final double ms2noise,
@@ -82,16 +101,22 @@ public class WizardMassSpectrometerParameters extends SimpleParameterSet {
     setParameter(minimumFeatureHeight, minHeight);
     setParameter(scanToScanMzTolerance, scan2scanMzTolerance);
     setParameter(featureToFeatureMzTolerance, f2fMzTolerance);
-    setParameter(sampleToSampleMzTolerance, scan2scanMzTolerance);
+    setParameter(sampleToSampleMzTolerance, sample2sampleMzTolerance);
   }
 
   public static WizardMassSpectrometerParameters create(final MsInstrumentDefaults defaults) {
-    return switch (defaults) {
+    WizardMassSpectrometerParameters params = switch (defaults) {
       case Orbitrap ->
           new WizardMassSpectrometerParameters(1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
               new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
       case qTOF -> new WizardMassSpectrometerParameters(5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
           new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
+      // TODO optimize some defaults
+      case FTICR -> new WizardMassSpectrometerParameters(5E2, 1E2, 1E3, new MZTolerance(0.0005, 5),
+          new MZTolerance(0.0005, 2), new MZTolerance(0.0005, 3.5));
     };
+    params.setParameter(wizardPart, defaults);
+    params.setParameter(wizardPartCategory, WizardPart.MS);
+    return params;
   }
 }

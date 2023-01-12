@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -46,8 +47,13 @@ public class WizardExportParameters extends SimpleParameterSet {
           "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
           FileSelectionType.SAVE, false), false);
 
+  /**
+   * the part category of presets - is used in all wizard parameter classes
+   */
+  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
+      WizardPart.EXPORT);
 
   public WizardExportParameters() {
-    super(new Parameter[]{exportPath, exportGnps, exportSirius});
+    super(new Parameter[]{wizardPartCategory, exportPath, exportGnps, exportSirius});
   }
 }

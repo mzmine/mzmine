@@ -23,30 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.parameters;
 
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-/**
- * Reuses the filenames and spectral library files parameters of
- * {@link AllSpectralDataImportParameters} and {@link SpectralLibraryImportParameters}
- *
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
- */
-public class WizardDataImportParameters extends SimpleParameterSet {
+public class ParameterUtils {
+
+  private static final Logger logger = Logger.getLogger(ParameterUtils.class.getName());
 
   /**
-   * the part category of presets - is used in all wizard parameter classes
+   * Attemp to copy parameters by name (this is how its usually done in MZmine). Exceptions because
+   * of changed data types etc are caught and logged.
+   *
+   * @param source source parameters
+   * @param target target parameters will receive values from the source
    */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.DATA_IMPORT);
-
-  public WizardDataImportParameters() {
-    super(new Parameter[]{wizardPartCategory, AllSpectralDataImportParameters.fileNames,
-        SpectralLibraryImportParameters.dataBaseFiles});
+  public static void copyParameters(final ParameterSet source, final ParameterSet target) {
+    Map<String, ? extends Parameter<?>> sourceParams = Arrays.stream(source.getParameters())
+        .collect(Collectors.toMap(Parameter::getName, key -> key));
+    for (Parameter p : target.getParameters()) {
+      Parameter<?> value = sourceParams.getOrDefault(p.getName(), null);
+      if (value != null) {
+        try {
+          p.setValue(value.getValue());
+        } catch (Exception e) {
+          logger.warning("Failed copy parameter value from " + p.getName() + ". " + e.getMessage());
+        }
+      }
+    }
   }
 }
