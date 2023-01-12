@@ -216,7 +216,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
           .toList();
 
       final ImsExpanderSubTask task = new ImsExpanderSubTask(getMemoryMapStorage(),
-          expanderParameters, selectedScans, flist, traces, mobilogramDataAccess, flist);
+          expanderParameters, selectedScans, flist, traces, mobilogramDataAccess, file);
       task.run();
 
       final List<ExpandedTrace> expandedTraces = task.getExpandedTraces();
