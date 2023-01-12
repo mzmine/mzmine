@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -152,6 +153,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
     final Map<Feature, List<MaldiSpotInfo>> featureSpotMap = new HashMap<>();
     List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
+    // sort low to high area. First find spots for low intensity features so we definitely fragment
+    // those. should be easier to find spots for high area features
     rows.sort(Comparator.comparingDouble(FeatureListRow::getAverageArea));
     for (int i = 0; i < rows.size(); i++) {
       progress = 0.1 * i / (double) rows.size();
@@ -267,7 +270,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
 
       // check if we meet the minimum distance requirement
-      if (!checkDistanceForSpots(minDistance, spots, frame.getMaldiSpotInfo())) {
+      if (!TimsTOFAcquisitionUtils.checkDistanceForSpots(minDistance, spots,
+          frame.getMaldiSpotInfo())) {
         continue;
       }
 
@@ -308,7 +312,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       final ImagingSpot imagingSpot = spotMap.get(usedFrame);
 
       // check if we meet the minimum distance requirement
-      if (!checkDistanceForSpots(minDistance, spots, imagingSpot.spotInfo())) {
+      if (!TimsTOFAcquisitionUtils.checkDistanceForSpots(minDistance, spots,
+          imagingSpot.spotInfo())) {
         continue;
       }
 
@@ -347,24 +352,5 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
     }
     return frames;
-  }
-
-  public boolean checkDistanceForSpots(double minDistance, List<MaldiSpotInfo> spots,
-      MaldiSpotInfo maldiSpotInfo) {
-    for (MaldiSpotInfo spot : spots) {
-      if (!checkDistanceForSpot(spot, maldiSpotInfo, minDistance)) {
-//        logger.finest("distance too low");
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public boolean checkDistanceForSpot(MaldiSpotInfo spot1, MaldiSpotInfo spot2,
-      double minDistance) {
-    var dx = spot2.xIndexPos() - spot1.xIndexPos();
-    var dy = spot2.yIndexPos() - spot1.yIndexPos();
-
-    return minDistance < Math.sqrt(dx * dx + dy * dy);
   }
 }

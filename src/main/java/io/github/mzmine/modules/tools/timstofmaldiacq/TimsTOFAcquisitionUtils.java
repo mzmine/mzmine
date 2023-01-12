@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,6 +26,7 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.util.RangeUtils;
 import java.io.BufferedWriter;
@@ -219,5 +221,28 @@ public class TimsTOFAcquisitionUtils {
     final int finalOffsetX = spotIncrement % maxXIncrement * xOffset;
     final int finalOffsetY = (int) ((Math.floor(spotIncrement / (double) maxXIncrement)) * yOffset);
     return new int[]{finalOffsetX, finalOffsetY};
+  }
+
+  public static boolean checkDistanceForSpot(MaldiSpotInfo spot1, MaldiSpotInfo spot2,
+      double minDistance) {
+    return minDistance < getDistanceForSpots(spot1, spot2);
+  }
+
+  public static boolean checkDistanceForSpots(double minDistance, List<MaldiSpotInfo> spots,
+      MaldiSpotInfo maldiSpotInfo) {
+    for (MaldiSpotInfo spot : spots) {
+      if (!checkDistanceForSpot(spot, maldiSpotInfo, minDistance)) {
+//        logger.finest("distance too low");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static double getDistanceForSpots(MaldiSpotInfo spot1, MaldiSpotInfo spot2) {
+    var dx = spot2.xIndexPos() - spot1.xIndexPos();
+    var dy = spot2.yIndexPos() - spot1.yIndexPos();
+
+    return Math.sqrt(dx * dx + dy * dy);
   }
 }
