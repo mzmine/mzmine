@@ -23,15 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset.MsInstrumentDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class BatchWizardMassSpectrometerParameters extends SimpleParameterSet {
+public class WizardMassSpectrometerParameters extends SimpleParameterSet {
+
+  public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
+      "Polarity of the ion mode", Polarity.values(), Polarity.Positive);
 
   public static final DoubleParameter ms1NoiseLevel = new DoubleParameter("MS1 noise level",
       "Noise level for peaks in MS1 spectra. Should remove noise but keep analyte signals.",
@@ -49,20 +56,42 @@ public class BatchWizardMassSpectrometerParameters extends SimpleParameterSet {
   public static final MZToleranceParameter scanToScanMzTolerance = new MZToleranceParameter(
       "Scan to scan m/z tolerance",
       "Describes the m/z fluctuations of peaks from one scan to another within the same"
-      + " sample.\nUsed for chromatogram building.");
+          + " sample.\nUsed for chromatogram building.");
 
   public static final MZToleranceParameter featureToFeatureMzTolerance = new MZToleranceParameter(
       "Feature to feature m/z tolerance",
       "Describes the m/z variations of features that belong together, such as isotopic"
-      + " signals. The values are averaged along the whole feature.\nUsed for recognition of"
-      + "isotopic signals and ion identity networks.");
+          + " signals. The values are averaged along the whole feature.\nUsed for recognition of"
+          + "isotopic signals and ion identity networks.");
 
   public static final MZToleranceParameter sampleToSampleMzTolerance = new MZToleranceParameter(
       "Sample to sample m/z tolerace",
       "Describes the m/z fluctuations between different samples. Used for alignment.");
 
-  public BatchWizardMassSpectrometerParameters() {
-    super(new Parameter[]{ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight, scanToScanMzTolerance,
-        featureToFeatureMzTolerance, sampleToSampleMzTolerance});
+  public WizardMassSpectrometerParameters() {
+    super(new Parameter[]{polarity, ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight,
+        scanToScanMzTolerance, featureToFeatureMzTolerance, sampleToSampleMzTolerance});
+  }
+
+  public WizardMassSpectrometerParameters(final double ms1noise, final double ms2noise,
+      final double minHeight, final MZTolerance scan2scanMzTolerance,
+      final MZTolerance f2fMzTolerance, final MZTolerance sample2sampleMzTolerance) {
+    this();
+    setParameter(ms1NoiseLevel, ms1noise);
+    setParameter(ms2NoiseLevel, ms2noise);
+    setParameter(minimumFeatureHeight, minHeight);
+    setParameter(scanToScanMzTolerance, scan2scanMzTolerance);
+    setParameter(featureToFeatureMzTolerance, f2fMzTolerance);
+    setParameter(sampleToSampleMzTolerance, scan2scanMzTolerance);
+  }
+
+  public static WizardMassSpectrometerParameters create(final MsInstrumentDefaults defaults) {
+    return switch (defaults) {
+      case Orbitrap ->
+          new WizardMassSpectrometerParameters(1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
+              new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
+      case qTOF -> new WizardMassSpectrometerParameters(5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
+          new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
+    };
   }
 }

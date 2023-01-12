@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
@@ -36,9 +36,9 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class BatchWizardDataInputParameters extends SimpleParameterSet {
+public class WizardDataImportParameters extends SimpleParameterSet {
 
-  public BatchWizardDataInputParameters() {
+  public WizardDataImportParameters() {
     super(new Parameter[]{AllSpectralDataImportParameters.fileNames,
         SpectralLibraryImportParameters.dataBaseFiles});
   }
