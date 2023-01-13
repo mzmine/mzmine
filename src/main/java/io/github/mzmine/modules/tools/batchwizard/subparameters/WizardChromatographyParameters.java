@@ -169,9 +169,19 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
         // hidden
         workflow, wizardPart, wizardPartCategory,
         // actual parameters
-        smoothing, stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
+            smoothing, stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
         minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
         interSampleRTTolerance});
+  }
+
+  public WizardChromatographyParameters(ChromatographyWorkflow type) {
+    super(new Parameter[]{
+          // hidden
+          workflow, wizardPart, wizardPartCategory,
+          // actual parameters
+          minHighestPoint, mzTolerance, minimumScanSpan, SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION, PREF_WINDOW_WIDTH,
+          RET_TIME_TOLERANCE, MIN_CLUSTER_SIZE, SAMPLE_COUNT_RATIO, RET_TIME_RANGE, MZ_RANGE, SCORE_TOLERANCE
+         });
   }
 
   public WizardChromatographyParameters(final ChromatographyWorkflow workflowPreset,
@@ -198,6 +208,8 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
                                          final Double sampleCountRatio, final RTTolerance rtRange,
                                          final MZTolerance mzRange, final Double scoreTolerance
                                          ) {
+    this(ChromatographyWorkflow.GC);
+
     setParameter(workflow, workflowPreset);
 
     //adap chromatogram builder
@@ -222,6 +234,7 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
 
 
   }
+
   /**
    * Create parameters from defaults
    *
@@ -243,9 +256,10 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
           Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
           new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
       // different workflow for GC-EI
-      case GC_EI -> new WizardChromatographyParameters(ChromatographyWorkflow.GC, true, 30, 6,
-          Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
-          new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
+
+      //TODO: set default values for params
+      case GC_EI -> new WizardChromatographyParameters(ChromatographyWorkflow.GC, 1.0, new MZTolerance(0.05, 0.05), 1, 0.5, Range.closed(0.3, 3.0), 1.5, 0.5,1, 0.5, new RTTolerance(0.04f, Unit.MINUTES), new MZTolerance(0.05, 0.05),0.5);
+//      case GC_EI -> new WizardChromatographyParameters(ChromatographyWorkflow.GC);
     };
     params.setParameter(wizardPart, ChromatographyDefaults.UHPLC);
     params.setParameter(wizardPartCategory, WizardPart.CHROMATOGRAPHY);

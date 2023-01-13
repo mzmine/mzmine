@@ -32,10 +32,16 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAP3DecompositionV2Parameters;
+import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
+import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
+import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
@@ -94,6 +100,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterPara
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -128,6 +135,8 @@ import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * Creates a batch queue from {@link BatchWizardParameters}
@@ -165,6 +174,19 @@ public class WizardBatchBuilder {
   private final Boolean imsSmoothing;
   private final Boolean rtSmoothing;
 
+  //parameters for GC workflow
+  private final Double snThreshold;
+  private final Range<Double> rtforCWT;
+
+  private final Double windowWidth;
+  private final Double rtTolderance;
+  private final Integer minClusterSize;
+
+  private final Double sampleCountRatio;
+  private final RTTolerance rtRange;
+  private final MZTolerance mzRange;
+  private final Double scoreTolerance;
+
   public WizardBatchBuilder(ParameterSet wizardParams) {
     // input
     ParameterSet inParam = wizardParams.getValue(BatchWizardParameters.dataInputParams);
@@ -184,6 +206,18 @@ public class WizardBatchBuilder {
     rtFwhm = chromParam.getValue(WizardChromatographyParameters.approximateChromatographicFWHM);
     stableIonizationAcrossSamples = chromParam.getValue(
         WizardChromatographyParameters.stableIonizationAcrossSamples);
+
+
+    ParameterSet gcParam = wizardParams.getValue(BatchWizardParameters.gcParams);
+    snThreshold = gcParam.getValue(WizardChromatographyParameters.SN_THRESHOLD);
+    rtforCWT = gcParam.getValue(WizardChromatographyParameters.RT_FOR_CWT_SCALES_DURATION);
+    windowWidth = gcParam.getValue(WizardChromatographyParameters.PREF_WINDOW_WIDTH);
+    rtTolderance = gcParam.getValue(WizardChromatographyParameters.RET_TIME_TOLERANCE);
+    minClusterSize = gcParam.getValue(WizardChromatographyParameters.MIN_CLUSTER_SIZE);
+    sampleCountRatio = gcParam.getValue(WizardChromatographyParameters.SAMPLE_COUNT_RATIO);
+    rtRange = gcParam.getValue(WizardChromatographyParameters.RET_TIME_RANGE);
+    mzRange = gcParam.getValue(WizardChromatographyParameters.MZ_RANGE);
+    scoreTolerance = gcParam.getValue(WizardChromatographyParameters.SCORE_TOLERANCE);
 
     // ion mobility IMS
     ParameterSet imsParam = wizardParams.getValue(BatchWizardParameters.imsParameters);
@@ -266,9 +300,11 @@ public class WizardBatchBuilder {
   private BatchQueue makeGcWorkflow() {
     final BatchQueue q = new BatchQueue();
     // mass detect, Chromatogram builder, smoother, local minimum resolver
-    makeMassDetectChromatogramSmoothResolver(q);
+    makeMassDetectChromatogramBuilder(q);
 
-    // TODO add GC specific steps
+    q.add(makeADAPResolverStep());
+    q.add(makeMultiCurveResolutionStep());
+    q.add(makeAlignerStep());
 
     makeLibrarySearchStep(q);
     makeExportSteps(q);
@@ -284,6 +320,13 @@ public class WizardBatchBuilder {
     q.add(makeAdapStep());
     makeSmoothingStep(q, rtSmoothing, false);
     q.add(makeRtResolvingStep());
+  }
+
+  private void makeMassDetectChromatogramBuilder(final BatchQueue q) {
+    q.add(makeImportTask());
+    makeMassDetectorSteps(q);
+    q.add(makeAdapStep());
+
   }
 
   private void makeMassDetectorSteps(final BatchQueue q) {
@@ -507,7 +550,57 @@ public class WizardBatchBuilder {
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param);
   }
+  private MZmineProcessingStep<MZmineProcessingModule> makeADAPResolverStep(){
+    final ParameterSet param = MZmineCore.getConfiguration()
+            .getModuleParameters(AdapResolverModule.class).cloneParameterSet();
 
+
+    param.setParameter(ADAPResolverParameters.SN_THRESHOLD,
+            snThreshold);
+    param.setParameter(ADAPResolverParameters.MIN_FEAT_HEIGHT,
+            minFeatureHeight);
+    param.setParameter(ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION,
+            rtforCWT);
+    param.setParameter(ADAPResolverParameters.PEAK_LISTS,new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+
+    return new MZmineProcessingStepImpl<>(
+            MZmineCore.getModuleInstance(AdapResolverModule.class), param);
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeMultiCurveResolutionStep(){
+    final ParameterSet param = MZmineCore.getConfiguration()
+            .getModuleParameters(ADAPMultivariateCurveResolutionModule.class).cloneParameterSet();
+
+    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH,
+            windowWidth);
+    param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
+            rtTolderance);
+    param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE,
+            minClusterSize);
+    param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    return new MZmineProcessingStepImpl<>(
+            MZmineCore.getModuleInstance(ADAPMultivariateCurveResolutionModule.class), param);
+
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeAlignerStep(){
+    final ParameterSet param = MZmineCore.getConfiguration()
+            .getModuleParameters(ADAP3AlignerModule.class).cloneParameterSet();
+
+    param.setParameter(ADAP3AlignerParameters.SAMPLE_COUNT_RATIO,
+            sampleCountRatio);
+    param.setParameter(ADAP3AlignerParameters.RET_TIME_RANGE,
+            rtRange);
+    param.setParameter(ADAP3AlignerParameters.MZ_RANGE,
+            mzRange);
+    param.setParameter(ADAP3AlignerParameters.PEAK_LISTS, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(ADAP3AlignerParameters.SCORE_TOLERANCE,
+            scoreTolerance);
+
+    return new MZmineProcessingStepImpl<>(
+            MZmineCore.getModuleInstance(ADAP3AlignerModule.class), param);
+
+  }
   private MZmineProcessingStep<MZmineProcessingModule> makeImsExpanderStep() {
     ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
         .cloneParameterSet();
