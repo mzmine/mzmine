@@ -39,7 +39,8 @@ public class BatchWizardParameters extends SimpleParameterSet {
       "(U)HPLC parameters", "", new WizardChromatographyParameters());
 
   public static final ParameterSetParameter gcParams = new ParameterSetParameter(
-          "GC parameters", "", new WizardChromatographyParameters(WizardChromatographyParameters.ChromatographyWorkflow.GC));
+//          "GC parameters", "", new WizardChromatographyParameters(WizardChromatographyParameters.ChromatographyWorkflow.GC));
+          "GC parameters", "", new WizardChromatographyParameters());
 
   public static final ParameterSetParameter dataInputParams = new ParameterSetParameter(
       "Data input", "Data files and spectral library files", new WizardDataImportParameters());

@@ -171,7 +171,8 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
         // actual parameters
             smoothing, stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
         minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
-        interSampleRTTolerance});
+        interSampleRTTolerance,minHighestPoint, mzTolerance, minimumScanSpan, SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION, PREF_WINDOW_WIDTH,
+            RET_TIME_TOLERANCE, MIN_CLUSTER_SIZE, SAMPLE_COUNT_RATIO, RET_TIME_RANGE, MZ_RANGE, SCORE_TOLERANCE});
   }
 
   public WizardChromatographyParameters(ChromatographyWorkflow type) {
@@ -208,7 +209,8 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
                                          final Double sampleCountRatio, final RTTolerance rtRange,
                                          final MZTolerance mzRange, final Double scoreTolerance
                                          ) {
-    this(ChromatographyWorkflow.GC);
+//    this(ChromatographyWorkflow.GC);
+    this();
 
     setParameter(workflow, workflowPreset);
 

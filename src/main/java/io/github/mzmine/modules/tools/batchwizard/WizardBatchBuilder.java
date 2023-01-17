@@ -175,6 +175,11 @@ public class WizardBatchBuilder {
   private final Boolean rtSmoothing;
 
   //parameters for GC workflow
+  private final Double minHighestPoint;
+
+  private final MZTolerance mzToleranceValue;
+
+  private final Integer minScanSpan;
   private final Double snThreshold;
   private final Range<Double> rtforCWT;
 
@@ -209,6 +214,9 @@ public class WizardBatchBuilder {
 
 
     ParameterSet gcParam = wizardParams.getValue(BatchWizardParameters.gcParams);
+    minHighestPoint = gcParam.getValue(WizardChromatographyParameters.minHighestPoint);
+    mzToleranceValue = gcParam.getValue(WizardChromatographyParameters.mzTolerance);
+    minScanSpan = gcParam.getValue(WizardChromatographyParameters.minimumScanSpan);
     snThreshold = gcParam.getValue(WizardChromatographyParameters.SN_THRESHOLD);
     rtforCWT = gcParam.getValue(WizardChromatographyParameters.RT_FOR_CWT_SCALES_DURATION);
     windowWidth = gcParam.getValue(WizardChromatographyParameters.PREF_WINDOW_WIDTH);
@@ -325,7 +333,7 @@ public class WizardBatchBuilder {
   private void makeMassDetectChromatogramBuilder(final BatchQueue q) {
     q.add(makeImportTask());
     makeMassDetectorSteps(q);
-    q.add(makeAdapStep());
+    q.add(makeAdapStepGC());
 
   }
 
@@ -550,7 +558,22 @@ public class WizardBatchBuilder {
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param);
   }
-  private MZmineProcessingStep<MZmineProcessingModule> makeADAPResolverStep(){
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeAdapStepGC() {
+    final ParameterSet param = MZmineCore.getConfiguration()
+            .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
+    param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
+            new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
+    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minHighestPoint);
+    param.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minScanSpan);
+    param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzToleranceValue);
+
+    return new MZmineProcessingStepImpl<>(
+            MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param);
+
+  }
+
+    private MZmineProcessingStep<MZmineProcessingModule> makeADAPResolverStep(){
     final ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AdapResolverModule.class).cloneParameterSet();
 
