@@ -72,7 +72,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   public static final String XML_ATTR = "simple_compound_db_annotation";
 
-
   private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
   protected final Map<DataType<?>, Object> data = new HashMap<>();
 

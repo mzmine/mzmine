@@ -43,15 +43,11 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
-import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -59,13 +55,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
-import io.github.mzmine.util.MathUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
@@ -150,6 +144,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   @Override
   public void run() {
+
     setStatus(TaskStatus.PROCESSING);
 
     try {
@@ -170,7 +165,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       }
 
       // option to read more fields and append to comment as json
-      final DataType<String> type = DataTypes.get(CommentType.class);
       List<ImportType> commentFields = extractCommentFields();
       if (commentFields == null) {
         setStatus(TaskStatus.ERROR);
@@ -266,30 +260,22 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     for (CompoundDBAnnotation annotation : annotations) {
       for (FeatureListRow peakRow : flist.getRows()) {
-        final Float score = annotation.calculateScore(peakRow, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance);
-        if (score != null && score > 0) {
-          final CompoundDBAnnotation clone = annotation.clone();
-          clone.put(CompoundAnnotationScoreType.class, score);
-          clone.put(MzPpmDifferenceType.class,
-              (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
-                  peakRow.getAverageMZ()));
-          if (annotation.get(CCSType.class) != null && peakRow.getAverageCCS() != null) {
-            clone.put(CCSRelativeErrorType.class,
-                PercentTolerance.getPercentError(annotation.get(CCSType.class),
-                    peakRow.getAverageCCS()));
-          }
-          if (annotation.get(RTType.class) != null && peakRow.getAverageRT() != null) {
-            clone.put(RtRelativeErrorType.class,
-                PercentTolerance.getPercentError(annotation.get(RTType.class),
-                    peakRow.getAverageRT()));
-          }
-
-          peakRow.addCompoundAnnotation(clone);
-          peakRow.getCompoundAnnotations()
-              .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
-        }
+        checkMatchAndAnnotate(annotation, peakRow, mzTolerance, rtTolerance, mobTolerance,
+            ccsTolerance);
       }
+    }
+  }
+
+  private void checkMatchAndAnnotate(CompoundDBAnnotation annotation, FeatureListRow row,
+      MZTolerance mzTolerance, RTTolerance rtTolerance, MobilityTolerance mobTolerance,
+      Double percCcsTolerance) {
+
+    final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(row, mzTolerance,
+        rtTolerance, mobTolerance, percCcsTolerance);
+    if (clone != null) {
+      row.addCompoundAnnotation(clone);
+      row.getCompoundAnnotations()
+          .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
     }
   }
 

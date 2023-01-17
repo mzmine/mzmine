@@ -449,6 +449,9 @@
           text="Precursor search in spectral libraries"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>
+        <MenuItem text="BioTransformer 3.0"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule"/>
       </Menu>
 
       <Menu text="Search spectra">
