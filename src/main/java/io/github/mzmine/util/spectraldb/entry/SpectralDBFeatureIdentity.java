@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.spectraldb.entry;
@@ -52,20 +60,20 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
 
-  private final SpectralDBEntry entry;
+  private final SpectralLibraryEntry entry;
   private final SpectralSimilarity similarity;
 
   @Nullable
   private final Float ccsError;
 
-  private Scan queryScan;
+  private final Scan queryScan;
 
-  public SpectralDBFeatureIdentity(Scan queryScan, SpectralDBEntry entry,
+  public SpectralDBFeatureIdentity(Scan queryScan, SpectralLibraryEntry entry,
       SpectralSimilarity similarity, String method, @Nullable Float ccsError) {
     super(MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"),
             // Name
-            entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
+            entry.getField(DBEntryField.PRECURSOR_MZ).orElse(""), // precursor m/z
             entry.getField(DBEntryField.FORMULA).orElse(""), // molecular
             // formula
             entry.getField(DBEntryField.ION_TYPE).orElse(""), // Ion type
@@ -77,8 +85,49 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     this.ccsError = ccsError;
   }
 
-  public SpectralDBEntry getEntry() {
-    return entry;
+  public static SpectralDBFeatureIdentity loadFromXML(XMLStreamReader reader,
+      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName()
+        .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT) && reader.getAttributeValue(null,
+            FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
+        .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE))) {
+      throw new IllegalStateException(
+          "Current element is not a SpectralDBFeatureIdentity element.");
+    }
+
+    SpectralLibraryEntry entry = null;
+    SpectralSimilarity similarity = null;
+    Scan scan = null;
+    Map<String, String> map = null;
+    Float ccsError = null;
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
+            entry = SpectralLibraryEntry.loadFromXML(reader);
+        case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
+        case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT ->
+            map = SimpleFeatureIdentity.readPropertyValues(reader);
+        case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
+        case XML_CCS_ERROR_ELEMENT -> {
+          final String content = ParsingUtils.readNullableString(reader.getElementText());
+          ccsError = content != null ? Float.valueOf(content) : null;
+        }
+      }
+    }
+
+    assert entry != null && similarity != null && map != null;
+
+    SpectralDBFeatureIdentity id = new SpectralDBFeatureIdentity(scan, entry, similarity,
+        map.get(FeatureIdentity.PROPERTY_METHOD), ccsError);
+    map.forEach(id::setPropertyValue);
+    return id;
   }
 
   public SpectralSimilarity getSimilarity() {
@@ -150,48 +199,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     writer.writeEndElement();
   }
 
-  public static SpectralDBFeatureIdentity loadFromXML(XMLStreamReader reader,
-      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName()
-        .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT) && reader.getAttributeValue(null,
-            FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
-        .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE))) {
-      throw new IllegalStateException(
-          "Current element is not a SpectralDBFeatureIdentity element.");
-    }
-
-    SpectralDBEntry entry = null;
-    SpectralSimilarity similarity = null;
-    Scan scan = null;
-    Map<String, String> map = null;
-    Float ccsError = null;
-
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT))) {
-      reader.next();
-      if (!reader.isStartElement()) {
-        continue;
-      }
-
-      switch (reader.getLocalName()) {
-        case SpectralDBEntry.XML_ELEMENT -> entry = SpectralDBEntry.loadFromXML(reader);
-        case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
-        case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT -> map = SimpleFeatureIdentity.readPropertyValues(
-            reader);
-        case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
-        case XML_CCS_ERROR_ELEMENT -> {
-          final String content = ParsingUtils.readNullableString(reader.getElementText());
-          ccsError = content != null ? Float.valueOf(content) : null;
-        }
-      }
-    }
-
-    assert entry != null && similarity != null && map != null;
-
-    SpectralDBFeatureIdentity id = new SpectralDBFeatureIdentity(scan, entry, similarity,
-        map.get(FeatureIdentity.PROPERTY_METHOD), ccsError);
-    map.forEach(id::setPropertyValue);
-    return id;
+  public SpectralLibraryEntry getEntry() {
+    return entry;
   }
 
   public double getScore() {
@@ -213,8 +222,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     }
     SpectralDBFeatureIdentity that = (SpectralDBFeatureIdentity) o;
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
-        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects
-        .equals(getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
+        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
+        getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
         && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 

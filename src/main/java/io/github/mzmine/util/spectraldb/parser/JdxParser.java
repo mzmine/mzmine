@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.util.spectraldb.parser;
 
@@ -20,7 +28,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -43,11 +52,12 @@ public class JdxParser extends SpectralDBTextParser {
     super(bufferEntries, processor);
   }
 
-  private static Logger logger = Logger.getLogger(NistMspParser.class.getName());
+  private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
-    super.parse(mainTask, dataBaseFile);
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
+      throws IOException {
+    super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing jdx spectral library " + dataBaseFile.getAbsolutePath());
 
     boolean isData = false;
@@ -56,7 +66,7 @@ public class JdxParser extends SpectralDBTextParser {
     // create db
     int sep = -1;
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
+      for (String l; (l = br.readLine()) != null; ) {
         // main task was canceled?
         if (mainTask.isCanceled()) {
           return false;
@@ -68,14 +78,15 @@ public class JdxParser extends SpectralDBTextParser {
           if (sep != -1) {
             DBEntryField field = DBEntryField.forJdxID(l.substring(0, sep));
             if (field != null) {
-              String content = l.substring(sep + 1, l.length());
+              String content = l.substring(sep + 1);
               if (content.length() > 0) {
                 try {
                   Object value = field.convertValue(content);
                   fields.put(field, value);
                 } catch (Exception e) {
-                  logger.log(Level.WARNING, "Cannot convert value type of " + content + " to "
-                      + field.getObjectClass().toString(), e);
+                  logger.log(Level.WARNING,
+                      "Cannot convert value type of " + content + " to " + field.getObjectClass()
+                          .toString(), e);
                 }
               }
             }
@@ -97,8 +108,8 @@ public class JdxParser extends SpectralDBTextParser {
           if (l.contains("END")) {
             // row with END
             // add entry and reset
-            SpectralDBEntry entry =
-                new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
+            SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), fields,
+                dps.toArray(new DataPoint[dps.size()]));
             fields = new EnumMap<>(fields);
             dps.clear();
             addLibraryEntry(entry);

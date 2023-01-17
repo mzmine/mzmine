@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
@@ -51,19 +58,20 @@ import org.jetbrains.annotations.Nullable;
 
 class SameRangeTask extends AbstractTask {
 
+  private final static Logger logger = Logger.getLogger(SameRangeTask.class.getName());
+
   private final MZmineProject project;
   private final OriginalFeatureListOption handleOriginal;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private ModularFeatureList peakList, processedPeakList;
+  private final ModularFeatureList peakList;
+  private ModularFeatureList processedPeakList;
 
-  private String suffix;
-  private MZTolerance mzTolerance;
+  private final String suffix;
+  private final MZTolerance mzTolerance;
 
-  private int processedRows, totalRows;
-  private AtomicInteger processedRowsAtomic;
-  ;
+  private int totalRows;
+  private final AtomicInteger processedRowsAtomic = new AtomicInteger(0);
 
-  private ParameterSet parameters;
+  private final ParameterSet parameters;
 
   SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -91,17 +99,15 @@ class SameRangeTask extends AbstractTask {
     totalRows = peakList.getNumberOfRows();
 
     // Get feature list columns
-    RawDataFile columns[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
+    RawDataFile[] columns = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create new feature list
     processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
         columns);
 
-    processedRowsAtomic = new AtomicInteger(0);
-
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
-    peakList.parallelStream().map(r -> (ModularFeatureListRow) r).forEach(sourceRow -> {
+    peakList.stream().map(r -> (ModularFeatureListRow) r).forEach(sourceRow -> {
       // Canceled?
       if (isCanceled()) {
         return;
@@ -131,7 +137,7 @@ class SameRangeTask extends AbstractTask {
       processedRowsAtomic.getAndAdd(1);
     });
 
-    outputList.stream().forEach(newRow -> {
+    outputList.forEach(newRow -> {
       processedPeakList.addRow(newRow);
     });
 

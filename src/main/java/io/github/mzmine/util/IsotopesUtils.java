@@ -1,26 +1,32 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
-import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -40,7 +46,7 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class IsotopesUtils {
 
-  private static DataPointSorter mzSorter = new DataPointSorter(SortingProperty.MZ,
+  private static final DataPointSorter mzSorter = new DataPointSorter(SortingProperty.MZ,
       SortingDirection.Ascending);
   private static Isotopes isotopes;
 
@@ -240,7 +246,7 @@ public class IsotopesUtils {
           for (int j = i + 1; j < abundantIsotopes.size(); j++) {
             final double deltaMZ =
                 (abundantIsotopes.get(j).getExactMass() - abundantIsotopes.get(i).getExactMass())
-                / charge;
+                    / charge;
             currentChargeDiffs.add(deltaMZ);
           }
         }
@@ -289,7 +295,7 @@ public class IsotopesUtils {
    *                        value equal
    * @return True if new m/z corresponds to an isotope of known m/z's, false otherwise.
    */
-  public static boolean isPossibleIsotopeMz(double newMz, @NotNull TDoubleArrayList knownMzs,
+  public static boolean isPossibleIsotopeMz(double newMz, @NotNull DoubleArrayList knownMzs,
       @NotNull List<Double> isotopesMzDiffs, @NotNull MZTolerance mzTolerance) {
 
     // Iterate over possible isotope m/z differences
@@ -309,7 +315,7 @@ public class IsotopesUtils {
       for (int mzIndex = knownMzs.size() - 1; mzIndex >= 0; mzIndex--) {
 
         // Get real m/z from knownMzs that is going to be compared with the theoretical one
-        double realMz = knownMzs.get(mzIndex);
+        double realMz = knownMzs.getDouble(mzIndex);
 
         // Do not go left further if the theoretical m/z is higher than real
         if (Doubles.compare(theoreticalMzTolRange.lowerEndpoint(), realMz) > 0) {
@@ -367,7 +373,7 @@ public class IsotopesUtils {
   }
 
   /**
-   * Used in loops form high to lower m/z to add preceeding isotopes first
+   * Used in loops form high to lower m/z to add preceding isotopes first
    */
   public static boolean isPossibleIsotopeMzNegativeDirection(double newMz,
       @NotNull List<DataPoint> knownMzs, @NotNull List<Double> isotopesMzDiffs,
@@ -420,15 +426,23 @@ public class IsotopesUtils {
 
   public static List<DataPoint> findIsotopesInScan(List<Double> isoMzDiffs, double maxIsoMzDiff,
       MZTolerance isoMzTolerance, MassSpectrum spectrum, DataPoint target) {
+    if (spectrum.getNumberOfDataPoints() <= 0) {
+      return List.of();
+    }
+
     int dp = spectrum.getNumberOfDataPoints() - 1;
 
     List<DataPoint> candidates = new ArrayList<>();
-    candidates.add(target);
-    double mz = target.getMZ();
+    // add the actual data point in the scan, so we don't end up with duplicates.
+    final int targetIndex = spectrum.binarySearch(target.getMZ(), true);
+    candidates.add(new SimpleDataPoint(spectrum.getMzValue(targetIndex),
+        spectrum.getIntensityValue(targetIndex)));
+
+    double mz = spectrum.getMzValue(targetIndex);
     double lastMZ = mz;
 
-    // first try to find preceeding isotope signals
-    // e.g. if the monoisotopic m/z (smalles mz) is not the most abundant, which is common for
+    // first try to find preceding isotope signals
+    // e.g. if the mono isotopic m/z (smallest mz) is not the most abundant, which is common for
     // compounds with many 13C or Br/Cl or compounds with metals (e.g., Gd)
     for (; dp >= 0 && mz >= lastMZ - maxIsoMzDiff; dp--) {
       mz = spectrum.getMzValue(dp);
@@ -443,7 +457,7 @@ public class IsotopesUtils {
     // sort list of candidates
     candidates.sort(mzSorter);
 
-    mz = target.getMZ();
+    mz = spectrum.getMzValue(targetIndex);
     double maxMZ = mz;
     // find all isotopes in + range
     // start at last dp spot
@@ -454,7 +468,7 @@ public class IsotopesUtils {
         final var dataPoint = new SimpleDataPoint(mz, spectrum.getIntensityValue(dp));
         if (mz > maxMZ) {
           candidates.add(dataPoint);
-          maxMZ = mz;
+          maxMZ = Math.max(mz, maxMZ);
         } else {
           // insert sort
           insertIfNew(candidates, dataPoint);

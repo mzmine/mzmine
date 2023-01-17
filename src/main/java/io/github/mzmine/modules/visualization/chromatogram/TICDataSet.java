@@ -1,31 +1,30 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
@@ -33,14 +32,21 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYZDataset;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jfree.chart.axis.NumberAxis;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
@@ -48,7 +54,7 @@ import javafx.collections.ObservableList;
  * <p>
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
-public class TICDataSet extends AbstractXYZDataset implements Task {
+public class TICDataSet extends AbstractTaskXYZDataset {
 
   private static final long serialVersionUID = 1L;
 
@@ -78,13 +84,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   private double intensityMax;
   private TICVisualizerTab window;
 
-  private TaskStatus status;
-  private String errorMessage;
-
   private String customSeriesKey = null;
 
   // Plot type
-  private TICPlotType plotType;
+  private final TICPlotType plotType;
 
   /**
    * Create the data set.
@@ -169,18 +172,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   }
 
   @Override
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-
-  @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0.0 : (double) processedScans / (double) totalScans;
-  }
-
-  @Override
-  public TaskStatus getStatus() {
-    return status;
   }
 
   @Override
@@ -363,10 +356,9 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     final TICPlotType plotType = this.plotType;
 
     // fix for imZML files without a retention time in their scans -> crashes TIC Plot
-    boolean useScanNumberAsRt = Double
-        .compare(scans.get(0).getRetentionTime(), scans.get(scans.size() - 1).getRetentionTime())
-        == 0;
-    if(useScanNumberAsRt && window != null) {
+    boolean useScanNumberAsRt = Double.compare(scans.get(0).getRetentionTime(),
+        scans.get(scans.size() - 1).getRetentionTime()) == 0;
+    if (useScanNumberAsRt && window != null) {
       final NumberAxis axis = (NumberAxis) window.getTICPlot().getXYPlot().getDomainAxis();
       MZmineCore.runLater(() -> axis.setLabel("Scan number"));
     }
@@ -433,16 +425,6 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    */
   private void refresh() {
     Platform.runLater(() -> fireDatasetChanged());
-  }
-
-  @Override
-  public void cancel() {
-    status = TaskStatus.CANCELED;
-  }
-
-  @Override
-  public TaskPriority getTaskPriority() {
-    return TaskPriority.NORMAL;
   }
 
   public void setCustomSeriesKey(String customSeriesKey) {

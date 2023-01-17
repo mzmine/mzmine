@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
@@ -23,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -40,6 +48,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -63,9 +72,14 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<Isotope13CFilterParameters> ISOTOPE_FILTER_13C = new OptionalModuleParameter<>(
       "Validate 13C isotope pattern",
       "Searches for an +1 13C signal (considering possible charge states) \n"
-      + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
-      + "that are 13C isotopes by searching for preceding -1 signal.",
+          + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
+          + "that are 13C isotopes by searching for preceding -1 signal.",
       new Isotope13CFilterParameters(), false);
+
+  public static final BooleanParameter removeRedundantRows = new BooleanParameter(
+      "Remove redundant isotope rows",
+      "Removes rows that are not the most intense or the monoisotopic peak in an isotope pattern.",
+      false);
 
   public static final OptionalParameter<MZRangeParameter> MZ_RANGE = new OptionalParameter<>(
       new MZRangeParameter(), false);
@@ -132,9 +146,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
-        ISOTOPE_FILTER_13C, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
-        KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-        REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, Reset_ID, massDefect, handleOriginal});
+            ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
+            KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
+            REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, Reset_ID, massDefect, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
   @Override
@@ -161,4 +176,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

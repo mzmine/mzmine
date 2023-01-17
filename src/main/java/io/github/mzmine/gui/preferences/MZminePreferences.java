@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.preferences;
@@ -63,7 +70,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Mobility value format", "Format of mobility values", false, new DecimalFormat("0.000"));
 
   public static final NumberFormatParameter ccsFormat = new NumberFormatParameter(
-      "CCS value format", "Format for colission cross section (CCS) values.", false,
+      "CCS value format", "Format for collision cross section (CCS) values.", false,
       new DecimalFormat("0.0"));
 
   public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
@@ -76,9 +83,9 @@ public class MZminePreferences extends SimpleParameterSet {
       "Format used for scores, e.g., Pearson correlation, cosine similarity etc.", false,
       new DecimalFormat("0.000"));
 
-  public static final NumberFormatParameter percentFormat = new NumberFormatParameter("Percent format",
-      "Format used for percentages, e.g., relative errors (except ppm) etc.", false,
-      new DecimalFormat("0.0 %"));
+  public static final NumberFormatParameter percentFormat = new NumberFormatParameter(
+      "Percent format", "Format used for percentages, e.g., relative errors (except ppm) etc.",
+      false, new DecimalFormat("0.0 %"));
 
   public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>("Unit format",
       "The default unit format to format e.g. axis labels in MZmine.",
@@ -115,34 +122,34 @@ public class MZminePreferences extends SimpleParameterSet {
       "Chart parameters", "The default chart parameters to be used throughout MZmine",
       new ChartThemeParameters());
 
-  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
-      "Enables dark mode", false);
+  public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
+      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.MZMINE_LIGHT);
 
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
 
-  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
       new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
-          + "used to process ion mobility data."));
+              + "used to process ion mobility data."));
 
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
-                                  + " will be stored. Directory should be located on a drive with fast read and write "
-                                  + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
-                                  + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
+      + " will be stored. Directory should be located on a drive with fast read and write "
+      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+      + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
       "Keep in memory", String.format(
       "Specifies the objects that are kept in memory rather than memory mapping "
-      + "them into temp files in the temp directory. Parameter is overriden by the program "
-      + "argument --memory. Depending on the read/write speed of the temp directory,"
-      + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
-      + "default is to memory map all spectral data and feature data with the option %s. On "
-      + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
-      + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
+          + "them into temp files in the temp directory. Parameter is overriden by the program "
+          + "argument --memory. Depending on the read/write speed of the temp directory,"
+          + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
+          + "default is to memory map all spectral data and feature data with the option %s. On "
+          + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
+          + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
@@ -150,6 +157,22 @@ public class MZminePreferences extends SimpleParameterSet {
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       false);
 
+  public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
+      "Show temp folder alert", true);
+
+  public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
+      "Normalize images",
+      "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
+          + "only applies to newly generated plots.", ImageNormalization.values(),
+      ImageNormalization.NO_NORMALIZATION);
+
+  private boolean isDarkMode = false;
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+      new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.##"), UnitFormat.DIVIDE);
+
+  private NumberFormats guiFormat = exportFormat; // default value
 
   public MZminePreferences() {
     super(new Parameter[]{
@@ -157,16 +180,23 @@ public class MZminePreferences extends SimpleParameterSet {
         numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
         // visuals
         // number formats
-        mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat, percentFormat,
+        mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
+        percentFormat,
         // how to format unit strings
         unitFormat,
         // other preferences
-        defaultColorPalette, defaultPaintScale, chartParam, darkMode, presentationMode,
-        showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail});
+        defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
+        imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
+        // silent parameters without controls
+        showTempFolderAlert});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, "");
+  }
+
+  public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
     assert Platform.isFxApplicationThread();
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
@@ -178,63 +208,59 @@ public class MZminePreferences extends SimpleParameterSet {
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
-        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, darkMode,
-            presentationMode, showPrecursorWindow});
+        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
+            showPrecursorWindow, imageNormalization});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
-        // imsModuleWarnings, windowSetttings  are hidden parameters
+        // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
     });
+    dialog.setFilterText(filterParameters);
 
     // check
     dialog.showAndWait();
-    ExitCode retVal = dialog.getExitCode();
-
-    if (retVal == ExitCode.OK) {
-
-      // Update proxy settings
-      updateSystemProxySettings();
-
-      // enforce memory option (only applies to new data)
-      final KeepInMemory keepInMemory = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.memoryOption).getValue();
-      keepInMemory.enforceToMemoryMapping();
-
-      // Repaint windows to update number formats
-      // MZmineCore.getDesktop().getMainWindow().repaint();
-
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("_dark.css"));
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("_light.css"));
-      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.darkMode).getValue();
-      if (darkMode) {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
-      } else {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-      }
-
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("MZmine_default"));
-      Boolean presentation = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.presentationMode).getValue();
-      if (presentation) {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets().add(
-            getClass().getResource("/themes/MZmine_default_presentation.css").toExternalForm());
-      } else {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_default.css").toExternalForm());
-      }
+    final ExitCode retVal = dialog.getExitCode();
+    if (retVal != ExitCode.OK) {
+      return retVal;
     }
 
+    // Update proxy settings
+    updateSystemProxySettings();
+
+    // enforce memory option (only applies to new data)
+    final KeepInMemory keepInMemory = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.memoryOption).getValue();
+    keepInMemory.enforceToMemoryMapping();
+
+    final Themes theme = getValue(MZminePreferences.theme);
+    theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+
+    Boolean presentation = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.presentationMode).getValue();
+    if (presentation) {
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .add("themes/MZmine_default_presentation.css");
+    } else {
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .removeIf(e -> e.contains("MZmine_default_presentation"));
+    }
+
+    updateGuiFormat();
+
     return retVal;
+  }
+
+  private void updateGuiFormat() {
+    guiFormat = new NumberFormats(getValue(MZminePreferences.mzFormat),
+        getValue(MZminePreferences.rtFormat), getValue(MZminePreferences.mobilityFormat),
+        getValue(MZminePreferences.ccsFormat), getValue(MZminePreferences.intensityFormat),
+        getValue(MZminePreferences.ppmFormat), getValue(MZminePreferences.percentFormat),
+        getValue(MZminePreferences.scoreFormat), getValue(MZminePreferences.unitFormat));
   }
 
   @Override
   public void loadValuesFromXML(Element xmlElement) {
     super.loadValuesFromXML(xmlElement);
     updateSystemProxySettings();
+    updateGuiFormat();
   }
 
   private void updateSystemProxySettings() {
@@ -262,4 +288,15 @@ public class MZminePreferences extends SimpleParameterSet {
     }
   }
 
+  public NumberFormats getExportFormats() {
+    return exportFormat;
+  }
+
+  public NumberFormats getGuiFormats() {
+    return guiFormat;
+  }
+
+  public boolean isDarkMode() {
+    return getValue(MZminePreferences.theme).isDark();
+  }
 }

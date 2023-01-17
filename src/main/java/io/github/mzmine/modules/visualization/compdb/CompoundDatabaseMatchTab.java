@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.visualization.compdb;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -10,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,26 +77,20 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
 
   private void selectionChanged() {
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
+    if(selectedRow == null) {
+      return;
+    }
     GridPane pane = new GridPane();
 
-    final List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
-    final Collection<DataType> dataTypes = selectedRow.getTypes().values();
-    for (DataType dataType : dataTypes) {
-      if (dataType instanceof ListWithSubsType<?> listType && dataType instanceof AnnotationType) {
-        final List<?> list = selectedRow.get(listType);
-        if (list != null && !list.isEmpty()) {
-          list.stream().filter(c -> c instanceof CompoundDBAnnotation)
-              .forEach(c -> compoundAnnotations.add((CompoundDBAnnotation) c));
-        }
-      }
-    }
+    final List<CompoundDBAnnotation> compoundAnnotations = FeatureUtils.extractAllCompoundAnnotations(
+        selectedRow);
 
-    for (int i = 0; i < compoundAnnotations.size(); i++) {
-      CompoundDBAnnotation annotation = compoundAnnotations.get(i);
+    for (int j = 0; j < compoundAnnotations.size(); j++) {
+      CompoundDBAnnotation annotation = compoundAnnotations.get(j);
       final CompoundDatabaseMatchPane matchPane = new CompoundDatabaseMatchPane(annotation,
           selectedRow);
-      pane.add(matchPane, 0, i++);
-      pane.add(new Separator(Orientation.HORIZONTAL), 0, i++);
+      pane.add(matchPane, 0, j++);
+      pane.add(new Separator(Orientation.HORIZONTAL), 0, j++);
     }
     scrollPane.setContent(pane);
   }

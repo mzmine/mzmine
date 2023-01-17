@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
@@ -325,12 +332,28 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
     ModularFeatureList featureList = (ModularFeatureList) flist;
+
+    // add main column for row types to show name of feature list
+    TreeTableColumn<ModularFeatureListRow, String> rowCol = new TreeTableColumn<>();
+
+    // Add raw data file label
+    Label headerLabel = new Label(flist.getName());
+    if (flist.getRawDataFiles().size() == 1) {
+      RawDataFile raw = flist.getRawDataFiles().get(0);
+      headerLabel.setTextFill(raw.getColor());
+      headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(raw.getColor())));
+    }
+    rowCol.setGraphic(headerLabel);
+
     // add row types
     featureList.getRowTypes().values().stream().filter(t -> !(t instanceof FeaturesType))
-        .forEach(this::addColumn);
+        .forEach(dataType -> addColumn(rowCol, dataType));
+    // finally add row column to table
+    this.getColumns().add(rowCol);
+
     // add features
     if (featureList.getRowTypes().containsKey(FeaturesType.class)) {
-      addColumn(featureList.getRowTypes().get(FeaturesType.class));
+      addColumn(rowCol, featureList.getRowTypes().get(FeaturesType.class));
     }
 
   }
@@ -338,9 +361,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   /**
    * Add a new column to the table
    *
-   * @param dataType
+   * @param rowCol   the row column where all rowTypes are added
+   * @param dataType the new data type
    */
-  public void addColumn(DataType dataType) {
+  public void addColumn(final TreeTableColumn<ModularFeatureListRow, String> rowCol,
+      DataType dataType) {
     if (getFeatureList() == null) {
       return;
     }
@@ -358,8 +383,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
       }
 
-      // Add column
-      this.getColumns().add(col);
+      // Add row column
+      rowCol.getColumns().add(col);
 
       registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
       if (!(dataType instanceof ExpandableType)) {
@@ -385,8 +410,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   /**
-   * Registers a data type column and all it's sub colums to the {@link
-   * FeatureTableFX#newColumnMap}.
+   * Registers a data type column and all it's sub colums to the
+   * {@link FeatureTableFX#newColumnMap}.
    */
   private void registerColumn(@NotNull TreeTableColumn<ModularFeatureListRow, ?> column,
       @NotNull ColumnType type, @NotNull DataType<?> dataType, @Nullable RawDataFile file) {

@@ -1,17 +1,26 @@
 /*
- * Copyright (C) 2017 Du-Lab Team <dulab.binf@gmail.com>
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
@@ -27,6 +36,11 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.Random;
 import java.util.Set;
+
+import io.github.mzmine.modules.dataprocessing.adap_mcr.ChromatogramPeakPair;
+import javafx.event.ActionEvent;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
@@ -39,10 +53,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -82,9 +92,11 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
   private BorderPane pnlVisible;
   private GridPane pnlLabelsFields;
-  private HBox pnlTabs;
+  private VBox pnlTabs;
   private CheckBox preview;
   private ComboBox<FeatureList> comboPeakList;
+
+  private Button btnRefresh;
 
   private final ObservableList<ComboClustersItem> comboClustersModel =
       FXCollections.observableArrayList();
@@ -169,9 +181,10 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlTabs, 3, 0);
+        paramsPane.add(pnlTabs, 3, 0, 1, 100);
         pnlVisible.setCenter(pnlLabelsFields);
-        comboPeakList.getSelectionModel().select(0);
+        //comboPeakList.getSelectionModel().select(0);
+
       } else {
         paramsPane.getChildren().remove(pnlTabs);
         pnlVisible.getChildren().remove(pnlLabelsFields);
@@ -216,12 +229,13 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
     // comboClusters.setFont(COMBO_FONT);
     // comboClusters.addActionListener(this);
-
+    comboPeakList.setPrefWidth(200);
+    comboClusters.setPrefWidth(200);
     pnlLabelsFields = new GridPane();
     pnlLabelsFields.add(new Label("Feature list"), 0, 0);
     pnlLabelsFields.add(comboPeakList, 0, 1);
-    pnlLabelsFields.add(new Label("Cluster list"), 1, 0);
-    pnlLabelsFields.add(comboClusters, 1, 1);
+    pnlLabelsFields.add(new Label("Cluster list"), 2, 0);
+    pnlLabelsFields.add(comboClusters, 2, 1);
 
     pnlVisible = new BorderPane();
     pnlVisible.setTop(previewPanel);
@@ -231,31 +245,50 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     // --------------------------------------------------------------------
 
     // pnlTabs = new JTabbedPane();
-    pnlTabs = new HBox();
+    //pnlTabs = new HBox();
     // pnlTabs.setLayout(new BoxLayout(pnlTabs, BoxLayout.Y_AXIS));
 
-    // retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
+    retTimeMZPlot.setMinSize(400,300);
 
     BorderPane pnlPlotRetTimeClusters = new BorderPane();
-    // pnlPlotRetTimeClusters.setBackground(Color.white);
+    pnlPlotRetTimeClusters.setStyle("-fx-background-color: #FFFFFF;");
     pnlPlotRetTimeClusters.setCenter(retTimeMZPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
 
-    pnlTabs.getChildren().add(pnlPlotRetTimeClusters);
+    //pnlTabs.getChildren().add();
 
-    // retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
+    retTimeIntensityPlot.setMinSize(400,300);
 
     BorderPane pnlPlotShapeClusters = new BorderPane();
-    // pnlPlotShapeClusters.setBackground(Color.white);
+    pnlPlotShapeClusters.setStyle("-fx-background-color: #FFFFFF;");;
     pnlPlotShapeClusters.setCenter(retTimeIntensityPlot);
     // GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
 
-    pnlTabs.getChildren().add(pnlPlotShapeClusters);
-
+    //pnlTabs.getChildren().add();
+    pnlTabs = new VBox(pnlPlotRetTimeClusters,pnlPlotShapeClusters);
+    pnlTabs.setSpacing(10);
     super.paramsPane.add(pnlVisible, 0, super.getNumberOfParameters() + 3);
   }
 
+  @Override
+  public void parametersChanged() {
+    super.updateParameterSetFromComponents();
 
+    if (!preview.isSelected())
+      return;
+
+    switch (compareParameters(parameterSet.getParameters())) {
+      case FIRST_PHASE_CHANGE:
+        comboPeakList.getOnAction().handle(new ActionEvent());
+//        comboPeakList.getSelectionModel().select(comboPeakList.getSelectionModel().getSelectedIndex());
+        break;
+
+      case SECOND_PHASE_CHANGE:
+        comboClusters.getOnAction().handle(new ActionEvent());
+//        comboClusters.getSelectionModel().select(comboClusters.getSelectionModel().getSelectedIndex());
+        break;
+    }
+  }
 
   /**
    * Cluster all peaks in PeakList based on retention time
@@ -351,11 +384,11 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
         parameterSet.getParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES).getValue();
 
     if (edgeToHeightRatio == null || deltaToHeightRatio == null || useIsShared == null
-        || shapeSimThreshold == null || minModelPeakSharpness == null || deprecatedMZValues == null)
+        || shapeSimThreshold == null || minModelPeakSharpness == null)
       return;
 
     List<Peak> modelPeakCandidates = TwoStepDecomposition.filterPeaks(peaks, useIsShared,
-        edgeToHeightRatio, deltaToHeightRatio, minModelPeakSharpness, deprecatedMZValues);
+        edgeToHeightRatio, deltaToHeightRatio, minModelPeakSharpness, new ArrayList<>());
 
     if (modelPeakCandidates.isEmpty())
       return;
@@ -437,4 +470,5 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
     return result;
   }
+
 }

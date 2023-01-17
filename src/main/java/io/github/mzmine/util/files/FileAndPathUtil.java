@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.files;
@@ -29,7 +36,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple file operations
@@ -37,6 +46,8 @@ import org.apache.commons.io.FilenameUtils;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class FileAndPathUtil {
+
+  private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -150,6 +161,21 @@ public class FileAndPathUtil {
     int lastDot = f.getName().lastIndexOf(".");
     if (lastDot != -1) {
       return new File(f.getParent(), f.getName().substring(0, lastDot));
+    } else {
+      return f;
+    }
+  }
+
+  /**
+   * erases the format. "image.png" will be returned as "image" this method is used by
+   * getRealFilePath and getRealFileName
+   *
+   * @return remove format from file
+   */
+  public static String eraseFormat(String f) {
+    int lastDot = f.lastIndexOf(".");
+    if (lastDot != -1) {
+      return f.substring(0, lastDot);
     } else {
       return f;
     }
@@ -337,7 +363,7 @@ public class FileAndPathUtil {
    * @return all sub directories
    */
   public static File[] getSubDirectories(File f) {
-    return f.listFiles((current, name) -> new File(current, name).isDirectory());
+    return f.listFiles(File::isDirectory);
   }
 
   // ###############################################################################################
@@ -350,6 +376,19 @@ public class FileAndPathUtil {
   public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter,
       boolean searchSubdir) {
     return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false);
+  }
+
+  /**
+   * Flat array of all files in directory and sub directories that match the filter
+   *
+   * @param dir          parent directory
+   * @param fileFilter   filter for file extensions
+   * @param searchSubdir include all sub directories
+   */
+  public static File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
+      boolean searchSubdir) {
+    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false).stream()
+        .flatMap(Arrays::stream).toArray(File[]::new);
   }
 
   /**
@@ -422,8 +461,8 @@ public class FileAndPathUtil {
       } else {
         // search in subfolders for data
         // find all subfolders, sort them and do the same iterative
-        File[] subDir = FileAndPathUtil
-            .sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir), false);
+        File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
+            false);
         // call this method
         findFilesInSubDirSeparatedFolders(dir, subDir, list, fileFilter);
       }
@@ -450,8 +489,8 @@ public class FileAndPathUtil {
         list.add(subFiles);
       }
       // find all subfolders, sort them and do the same iterative
-      File[] subDir = FileAndPathUtil
-          .sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir), false);
+      File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
+          false);
       // call this method
       findFilesInSubDir(subDir, list, fileFilter);
     }
@@ -462,6 +501,7 @@ public class FileAndPathUtil {
    *
    * @return jar path
    */
+  @Nullable
   public static File getPathOfJar() {
     /*
      * File f = new File(System.getProperty("java.class.path")); File dir =
@@ -473,9 +513,27 @@ public class FileAndPathUtil {
               .getPath());
       return jar.getParentFile();
     } catch (Exception ex) {
-      return new File("");
+      return null;
     }
   }
+
+  /**
+   * The main directory. Only tested on windows
+   *
+   * @return
+   */
+  @Nullable
+  public static File getSoftwareMainDirectory() {
+    File pathOfJar = FileAndPathUtil.getPathOfJar();
+    return pathOfJar == null ? null : pathOfJar.getParentFile();
+  }
+
+
+  @Nullable
+  public static File getUserSettingsDir() {
+    return USER_MZMINE_DIR;
+  }
+
 
   public static File getUniqueFilename(final File parent, final String fileName) {
     final File dir = parent.isDirectory() ? parent : parent.getParentFile();
