@@ -581,7 +581,7 @@ public class WizardBatchBuilder {
     param.setParameter(ADAPResolverParameters.SN_THRESHOLD,
             snThreshold);
     param.setParameter(ADAPResolverParameters.MIN_FEAT_HEIGHT,
-            minFeatureHeight);
+            minHighestPoint);
     param.setParameter(ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION,
             rtforCWT);
     param.setParameter(ADAPResolverParameters.PEAK_LISTS,new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
@@ -600,6 +600,8 @@ public class WizardBatchBuilder {
             rtTolderance);
     param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE,
             minClusterSize);
+
+    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     return new MZmineProcessingStepImpl<>(
             MZmineCore.getModuleInstance(ADAPMultivariateCurveResolutionModule.class), param);
