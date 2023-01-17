@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -65,6 +66,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
   private final Boolean enableCeStepping;
   private final CeSteppingTables ceSteppingTables;
   private final Double isolationWidth;
+  private final List<Double> collisionEnergies;
 
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
@@ -93,11 +95,12 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     maxXIncrement = parameters.getValue(TimsTOFMaldiAcquisitionParameters.maxIncrementSteps);
     enableCeStepping = parameters.getValue(TimsTOFMaldiAcquisitionParameters.ceStepping);
     if (enableCeStepping) {
-      ceSteppingTables = new CeSteppingTables(
-          parameters.getParameter(TimsTOFMaldiAcquisitionParameters.ceStepping)
-              .getEmbeddedParameter().getValue(), isolationWidth);
+      collisionEnergies = parameters.getParameter(TimsTOFMaldiAcquisitionParameters.ceStepping)
+          .getEmbeddedParameter().getValue();
+      ceSteppingTables = new CeSteppingTables(collisionEnergies, isolationWidth);
     } else {
       ceSteppingTables = null;
+      collisionEnergies = null;
     }
   }
 
@@ -152,7 +155,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
         Range<Float> mobilityRange = TimsTOFAcquisitionUtils.adjustMobilityRange(f.getMobility(),
             f.getMobilityRange(), minMobilityWidth, maxMobilityWidth);
 
-        return new MaldiTimsPrecursor(f, f.getMZ(), mobilityRange, null);
+        return new MaldiTimsPrecursor(f, f.getMZ(), mobilityRange, collisionEnergies);
       }).toList();
 
       final List<String> spotNames = precursors.stream().map(precursor -> {

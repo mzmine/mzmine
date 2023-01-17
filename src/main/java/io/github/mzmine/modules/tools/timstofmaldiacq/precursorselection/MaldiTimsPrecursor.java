@@ -48,7 +48,9 @@ public final class MaldiTimsPrecursor {
     this.mz = mz;
     this.oneOverK0 = oneOverK0;
     this.collisionEnergies = new HashMap<>();
-    collisionEnergies.forEach(d -> this.collisionEnergies.put(d, 0));
+    if (collisionEnergies == null) {
+      collisionEnergies.forEach(d -> this.collisionEnergies.put(d, 0));
+    }
   }
 
   public Feature feature() {
