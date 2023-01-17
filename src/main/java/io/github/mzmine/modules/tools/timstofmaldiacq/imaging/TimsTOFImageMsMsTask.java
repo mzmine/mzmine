@@ -36,8 +36,10 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
+import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionTask;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcqusitionWriter;
@@ -66,6 +68,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(
       TimsTOFMaldiAcquisitionTask.class.getName());
 
+  public static final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
+
   public final FeatureList[] flists;
   public final ParameterSet parameters;
   private final Double maxMobilityWidth;
@@ -85,10 +89,13 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final Ms2ImagingMode ms2ImagingMode;
   private final @Nullable ParameterSet ms2ModuleParameters;
   private final @NotNull MaldiMs2AcqusitionWriter ms2Module;
+  private final List<Double> collisionEnergies;
+  private final CeSteppingTables ceSteppingTables;
 
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
   private File currentCeFile = null;
+  private final int totalMsMsPerFeature;
 
   protected TimsTOFImageMsMsTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project) {
@@ -103,6 +110,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
     isolationWidth = parameters.getValue(TimsTOFImageMsMsParameters.isolationWidth);
     numMsMs = parameters.getValue(TimsTOFImageMsMsParameters.numMsMs);
+    collisionEnergies = parameters.getValue(TimsTOFImageMsMsParameters.collisionEnergies);
     minMsMsIntensity = parameters.getValue(TimsTOFImageMsMsParameters.minimumIntensity);
     minDistance = parameters.getValue(TimsTOFImageMsMsParameters.minimumDistance);
     minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.maximumChimerity);
@@ -114,7 +122,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     ms2ImagingMode = ms2Module.equals(MZmineCore.getModuleInstance(SingleSpotMs2Writer.class))
         ? Ms2ImagingMode.SINGLE : Ms2ImagingMode.TRIPLE;
 
-    spotsFeatureCounter = new int[numMsMs + 1];
+    totalMsMsPerFeature = numMsMs * collisionEnergies.size();
+    spotsFeatureCounter = new int[totalMsMsPerFeature + 1];
+
+    ceSteppingTables = new CeSteppingTables(collisionEnergies, isolationWidth);
   }
 
   @Override
@@ -151,7 +162,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     }
 
     final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
-    final Map<Feature, List<MaldiSpotInfo>> featureSpotMap = new HashMap<>();
+    final Map<Feature, List<ImagingSpot>> featureSpotMap = new HashMap<>();
     List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
     // sort low to high area. First find spots for low intensity features so we definitely fragment
     // those. should be easier to find spots for high area features
@@ -171,28 +182,34 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
       final MaldiTimsPrecursor precursor = new MaldiTimsPrecursor(f, f.getMZ(),
           TimsTOFAcquisitionUtils.adjustMobilityRange(f.getMobility(), f.getMobilityRange(),
-              minMobilityWidth, maxMobilityWidth), 0f);
+              minMobilityWidth, maxMobilityWidth), collisionEnergies);
 
       final IonTimeSeries<? extends Scan> data = f.getFeatureData();
       final IonTimeSeries<? extends ImagingFrame> imagingData = (IonTimeSeries<? extends ImagingFrame>) data;
 
       // check existing msms spots first
-      int createdMsMsEntries = addEntriesToExistingSpots(access, minMsMsIntensity, frameSpotMap,
-          precursor, imagingData, numMsMs, featureSpotMap, minDistance, minChimerityScore);
+      addEntriesToExistingSpots(access, minMsMsIntensity, frameSpotMap, precursor, imagingData,
+          numMsMs, featureSpotMap, minDistance, minChimerityScore);
 
       // we have all needed entries
-      if (createdMsMsEntries >= numMsMs) {
+      if (precursor.getLowestMsMsCountForCollisionEnergies() >= numMsMs) {
+        continue;
+      }
+
+      if (featureSpotMap.size() == access.getNumberOfScans()) {
+        logger.warning(() -> "Too many MS/MS spots, cannot create any more.");
+        // can still add more features to existing spots
         continue;
       }
 
       // find new entries
-      createdMsMsEntries = createNewMsMsSpots(access, frameSpotMap, minMsMsIntensity, imagingData,
-          precursor, numMsMs, createdMsMsEntries, featureSpotMap, minDistance, minChimerityScore);
+      createNewMsMsSpots(access, frameSpotMap, minMsMsIntensity, imagingData, precursor, numMsMs,
+          featureSpotMap, minDistance, minChimerityScore);
 
-      spotsFeatureCounter[createdMsMsEntries]++;
+      spotsFeatureCounter[precursor.getTotalMsMs()]++;
     }
 
-    for (int i = 0; i < numMsMs + 1; i++) {
+    for (int i = 0; i < spotsFeatureCounter.length; i++) {
       final int j = i;
       logger.finest(
           () -> String.format("%d features have %d MS/MS spots. (%.1f)", (spotsFeatureCounter[j]),
@@ -213,7 +230,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
           e2.getKey().getMaldiSpotInfo().yIndexPos());
     }).map(Entry::getValue).toList();
 
-    ms2Module.writeAcqusitionFile(acqFile, sortedSpots, isolationWidth, ms2ModuleParameters,
+    ms2Module.writeAcqusitionFile(acqFile, sortedSpots, ceSteppingTables, ms2ModuleParameters,
         this::isCanceled, savePathDir);
 
     /*for (int i = 0; i < sortedSpots.size(); i++) {
@@ -250,36 +267,23 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private int createNewMsMsSpots(MobilityScanDataAccess access,
+  private void createNewMsMsSpots(MobilityScanDataAccess access,
       Map<ImagingFrame, ImagingSpot> spotMap, double minMsMsIntensity,
       IonTimeSeries<? extends ImagingFrame> imagingData, MaldiTimsPrecursor precursor, int numMsMs,
-      int currentNumSpots, Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance,
+      Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance,
       double minChimerityScore) {
     final IntensitySortedSeries<IonTimeSeries<? extends ImagingFrame>> imagingSorted = new IntensitySortedSeries<>(
         imagingData);
-    final List<MaldiSpotInfo> spots = featureSpotMap.computeIfAbsent(precursor.feature(),
+    final List<ImagingSpot> spots = featureSpotMap.computeIfAbsent(precursor.feature(),
         f -> new ArrayList<>());
 
-    while (imagingSorted.hasNext() && currentNumSpots < numMsMs) {
+    while (imagingSorted.hasNext() && precursor.getTotalMsMs() < totalMsMsPerFeature) {
+
       final Integer nextIndex = imagingSorted.next();
       final ImagingFrame frame = imagingData.getSpectrum(nextIndex);
 
-      // sorted by intensity, if we are below the threshold, don't add a new scan
-      if (imagingData.getIntensity(nextIndex) < minMsMsIntensity) {
-        break;
-      }
-
-      // check if we meet the minimum distance requirement
-      if (!TimsTOFAcquisitionUtils.checkDistanceForSpots(minDistance, spots,
-          frame.getMaldiSpotInfo())) {
-        continue;
-      }
-
-      access.jumpToFrame(frame);
-      final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
-          access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
-      if (chimerityScore < minChimerityScore) {
-//        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
+      if (spotMap.containsKey(frame)) {
+        // spot already used with a different collision energy and this feature did not fit
         continue;
       }
 
@@ -288,56 +292,94 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
         continue;
       }
 
+      // sorted by intensity, if we are below the threshold, don't add a new scan
+      if (imagingData.getIntensity(nextIndex) < minMsMsIntensity) {
+        break;
+      }
+
+      // check if we can make this spot a new one with a new collision energy
+      final Double collisionEnergy = TimsTOFAcquisitionUtils.getBestCollisionEnergyForSpot(
+          minDistance, precursor, spots, spotInfo, collisionEnergies, 3);
+
+      if (collisionEnergy == null) {
+        continue;
+      }
+
+      if (!checkChimerityScore(access, precursor, minChimerityScore, frame)) {
+        continue;
+      }
+
       final ImagingSpot spot = spotMap.computeIfAbsent(frame,
-          a -> new ImagingSpot(a.getMaldiSpotInfo(), ms2ImagingMode));
+          a -> new ImagingSpot(a.getMaldiSpotInfo(), ms2ImagingMode, collisionEnergy));
       if (spot.addPrecursor(precursor)) {
-        currentNumSpots++;
+        spots.add(spot);
+        logger.finest(
+            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to new spot "
+                + spot.spotInfo().spotName());
       }
     }
-    return currentNumSpots;
   }
 
-  private int addEntriesToExistingSpots(MobilityScanDataAccess access, double minMsMsIntensity,
+  private void addEntriesToExistingSpots(MobilityScanDataAccess access, double minMsMsIntensity,
       Map<ImagingFrame, ImagingSpot> spotMap, MaldiTimsPrecursor precursor,
       IonTimeSeries<? extends ImagingFrame> imagingData, final int numMsMs,
-      Map<Feature, List<MaldiSpotInfo>> featureSpotMap, double minDistance,
+      Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance,
       final double minChimerityScore) {
-    int createdMsMsEntries = 0;
-    final List<ImagingFrame> usedFrames = checkExistingSpots(spotMap, imagingData,
+    final List<ImagingFrame> usedFrames = getPossibleExistingSpots(spotMap, imagingData,
         minMsMsIntensity);
 
-    final List<MaldiSpotInfo> spots = featureSpotMap.computeIfAbsent(precursor.feature(),
+    final List<ImagingSpot> spots = featureSpotMap.computeIfAbsent(precursor.feature(),
         f -> new ArrayList<>());
     for (ImagingFrame usedFrame : usedFrames) {
       final ImagingSpot imagingSpot = spotMap.get(usedFrame);
 
       // check if we meet the minimum distance requirement
-      if (!TimsTOFAcquisitionUtils.checkDistanceForSpots(minDistance, spots,
-          imagingSpot.spotInfo())) {
+      final List<Double> collisionEnergy = TimsTOFAcquisitionUtils.getPossibleCollisionEnergiesForSpot(
+          minDistance, precursor, spots, usedFrame.getMaldiSpotInfo(), collisionEnergies, numMsMs);
+      if (collisionEnergy.isEmpty() || !collisionEnergy.contains(
+          imagingSpot.getColissionEnergy())) {
         continue;
       }
 
-      access.jumpToFrame(usedFrame);
-      final double chimerityScore = IonMobilityUtils.getIsolationChimerityScore(precursor.mz(),
-          access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
-      if (chimerityScore < minChimerityScore) {
-//        logger.finest(() -> "Chimerity too high: " + String.valueOf(chimerityScore));
+      if (!checkChimerityScore(access, precursor, minChimerityScore, usedFrame)) {
         continue;
       }
 
       // check if the entry fits into the precursor ramp at that spot
       if (imagingSpot.addPrecursor(precursor)) {
-        spots.add(imagingSpot.spotInfo());
-        createdMsMsEntries++;
+        logger.finest(
+            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to existing spot "
+                + imagingSpot.spotInfo().spotName());
+        spots.add(imagingSpot);
       }
-      if (createdMsMsEntries >= numMsMs) {
+
+      if (precursor.getLowestMsMsCountForCollisionEnergies() >= numMsMs) {
         break;
       }
     }
-    return createdMsMsEntries;
   }
 
-  private List<ImagingFrame> checkExistingSpots(Map<ImagingFrame, ImagingSpot> spotMap,
+  private boolean checkChimerityScore(MobilityScanDataAccess access, MaldiTimsPrecursor precursor,
+      double minChimerityScore, ImagingFrame usedFrame) {
+    access.jumpToFrame(usedFrame);
+
+    // check the chimerity of the current spot.
+    final double chimerityScore = IonMobilityUtils.getIsolationChimerity(precursor.mz(), access,
+        isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
+    if (chimerityScore < minChimerityScore) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * @param spotMap          The current spots selected for MS/MS experiments.
+   * @param imagingData      The {@link Feature#getFeatureData()} of the image feature.
+   * @param minMsMsIntensity The minimum intensity for an MS/MS.
+   * @return A list of all spots currently selected for MS/MS experiments, that the feature has the
+   * minimum intensity in.
+   */
+  private List<ImagingFrame> getPossibleExistingSpots(Map<ImagingFrame, ImagingSpot> spotMap,
       IonTimeSeries<? extends ImagingFrame> imagingData, double minMsMsIntensity) {
     final List<ImagingFrame> frames = new ArrayList<>();
     final List<? extends ImagingFrame> spectra = imagingData.getSpectra();

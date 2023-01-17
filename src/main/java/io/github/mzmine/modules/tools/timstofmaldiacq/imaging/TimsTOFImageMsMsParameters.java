@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -35,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.NumberListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -77,8 +79,12 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
   public static final DoubleParameter isolationWidth = new DoubleParameter("Isolation width",
       "The isolation width for precursors", new DecimalFormat("0.0"), 1.5d);
 
+  public static final NumberListParameter collisionEnergies = new NumberListParameter(
+      "Collision energies", "List of collision energies separated by ','.", List.of(20d, 30d, 40d),
+      new DecimalFormat("0.0"));
   public static final IntegerParameter numMsMs = new IntegerParameter("Number of MS/MS spectra",
-      "The number of MS/MS spectra to be acquired per feature.", 1, 1, Integer.MAX_VALUE);
+      "The number of MS/MS spectra to be acquired per feature and collision energy.", 3, 1,
+      Integer.MAX_VALUE);
 
   public static final IntegerParameter minimumDistance = new IntegerParameter(
       "Minimum distance of MS/MS spectra",
@@ -109,8 +115,8 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
   public TimsTOFImageMsMsParameters() {
     super(
         new Parameter[]{flists, minMobilityWidth, maxMobilityWidth, savePathDir, acquisitionControl,
-            isolationWidth, numMsMs, minimumDistance, minimumIntensity, maximumChimerity,
-            ms2ImagingMode, exportOnly});
+            isolationWidth, numMsMs, collisionEnergies, minimumDistance, minimumIntensity,
+            maximumChimerity, ms2ImagingMode, exportOnly});
   }
 
   @Override

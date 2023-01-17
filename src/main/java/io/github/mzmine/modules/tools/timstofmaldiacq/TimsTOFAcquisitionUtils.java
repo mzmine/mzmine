@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.timstofmaldiacq;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.util.RangeUtils;
 import java.io.BufferedWriter;
@@ -34,11 +35,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TimsTOFAcquisitionUtils {
 
@@ -223,20 +228,120 @@ public class TimsTOFAcquisitionUtils {
     return new int[]{finalOffsetX, finalOffsetY};
   }
 
-  public static boolean checkDistanceForSpot(MaldiSpotInfo spot1, MaldiSpotInfo spot2,
-      double minDistance) {
-    return minDistance < getDistanceForSpots(spot1, spot2);
+  /**
+   * @return True if the spots have the given distance or less.
+   */
+  public static boolean areSpotsWithinDistance(MaldiSpotInfo spot1, MaldiSpotInfo spot2,
+      double distance) {
+    return distance > getDistanceForSpots(spot1, spot2);
   }
 
-  public static boolean checkDistanceForSpots(double minDistance, List<MaldiSpotInfo> spots,
-      MaldiSpotInfo maldiSpotInfo) {
-    for (MaldiSpotInfo spot : spots) {
-      if (!checkDistanceForSpot(spot, maldiSpotInfo, minDistance)) {
+  /**
+   * @return True, if any of the spots are less than the distance away from the maldiSpotInfo.
+   */
+  public static boolean areSpotsWithinDistance(MaldiSpotInfo maldiSpotInfo, List<ImagingSpot> spots,
+      double distance) {
+    for (ImagingSpot spot : spots) {
+      if (areSpotsWithinDistance(spot.spotInfo(), maldiSpotInfo, distance)) {
 //        logger.finest("distance too low");
-        return false;
+        return true;
       }
     }
-    return true;
+    return false;
+  }
+
+  public static List<ImagingSpot> getSpotsWithinDistance(double distance, List<ImagingSpot> spots,
+      MaldiSpotInfo maldiSpotInfo) {
+    List<ImagingSpot> spotsWithinDistance = new ArrayList<>();
+    for (ImagingSpot spot : spots) {
+      if (areSpotsWithinDistance(spot.spotInfo(), maldiSpotInfo, distance)) {
+        spotsWithinDistance.add(spot);
+      }
+    }
+
+    return spotsWithinDistance;
+  }
+
+  public static List<Double> getSpotCollisionEnergies(List<ImagingSpot> spots) {
+    return spots.stream().map(ImagingSpot::getColissionEnergy).distinct().toList();
+  }
+
+  /**
+   * @param minDistance       The minimum distance for two spots of the same collision energy to be
+   *                          apart form another.
+   * @param precursor         The current precursor, used to track the number of MS/MS per CE. Not
+   *                          incremented.
+   * @param spots             The spots currently selected for the precursor for MS/MS events.
+   * @param spot              The spot in question.
+   * @param collisionEnergies The collision energies to chose from.
+   * @param numMsMs           The maximum number of MS/MS events per collision energy for this
+   *                          precursor.
+   * @return The collision energy with the lowest number of MS/MS events for the given precursor
+   * that meets the distance criteria or null if the criteria are not met.
+   */
+  @Nullable
+  public static Double getBestCollisionEnergyForSpot(double minDistance,
+      MaldiTimsPrecursor precursor, List<ImagingSpot> spots, MaldiSpotInfo spot,
+      Collection<Double> collisionEnergies, int numMsMs) {
+    final List<ImagingSpot> spotsWithinDistance = TimsTOFAcquisitionUtils.getSpotsWithinDistance(
+        minDistance, spots, spot);
+
+    if (spotsWithinDistance.isEmpty()) { // we can use any energy, let's use the one with lowest MS/MS
+      precursor.getCollisionEnergyWithFewestSpots();
+    }
+
+    final List<Double> spotCEs = TimsTOFAcquisitionUtils.getSpotCollisionEnergies(
+        spotsWithinDistance);
+
+    if (spotCEs.size() == collisionEnergies.size()) {
+      return null; // no CE left for this spot
+    }
+
+    // get the CE with the lowest MsMs numbers and not in range
+    final Optional<Entry<Double, Integer>> first = precursor.collisionEnergies().entrySet().stream()
+        .sorted(Comparator.comparingInt(Entry::getValue))
+        .filter(e -> e.getValue() < numMsMs && !spotCEs.contains(e.getKey())).findFirst();
+    return first.map(Entry::getKey).orElse(null);
+  }
+
+  /**
+   * @param minDistance       The minimum distance for two spots of the same collision energy to be
+   *                          apart form another.
+   * @param precursor         The current precursor, used to track the number of MS/MS per CE. Not
+   *                          incremented.
+   * @param spots             The spots currently selected for the precursor for MS/MS events.
+   * @param spot              The spot in question.
+   * @param collisionEnergies The collision energies to chose from.
+   * @param numMsMs           The maximum number of MS/MS events per collision energy for this
+   *                          precursor.
+   * @return A list of collision energies that can be used for this spot. Empty list if no energies
+   * meet the criteria.
+   */
+  @NotNull
+  public static List<Double> getPossibleCollisionEnergiesForSpot(double minDistance,
+      MaldiTimsPrecursor precursor, List<ImagingSpot> spots, MaldiSpotInfo spot,
+      Collection<Double> collisionEnergies, int numMsMs) {
+    final List<ImagingSpot> spotsWithinDistance = TimsTOFAcquisitionUtils.getSpotsWithinDistance(
+        minDistance, spots, spot);
+
+    if (spotsWithinDistance.isEmpty()) { // we can use any energy, let's use the one with lowest MS/MS
+      return precursor.collisionEnergies().entrySet().stream()
+          .filter(e -> e.getValue() < numMsMs && collisionEnergies.contains(e.getKey()))
+          .sorted(Comparator.comparingInt(Entry::getValue)).map(Entry::getKey).toList();
+    }
+
+    final List<Double> spotCEs = TimsTOFAcquisitionUtils.getSpotCollisionEnergies(
+        spotsWithinDistance);
+
+    if (spotCEs.size() == collisionEnergies.size()) {
+      return List.of(); // no CE left for this spot
+    }
+
+    // get the CE with the lowest MsMs numbers and not in range
+    return precursor.collisionEnergies().entrySet().stream()
+        .sorted(Comparator.comparingInt(Entry::getValue))
+        .filter(e -> e.getValue() < numMsMs && !spotCEs.contains(e.getKey())).map(Entry::getKey)
+        .toList();
   }
 
   public static double getDistanceForSpots(MaldiSpotInfo spot1, MaldiSpotInfo spot2) {

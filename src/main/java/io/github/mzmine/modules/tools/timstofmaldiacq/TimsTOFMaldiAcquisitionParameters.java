@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -36,8 +37,8 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.NumberListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -97,9 +98,11 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
       "Path to msmsmaldi.exe", "", List.of(new ExtensionFilter("executable", "*.exe")),
       FileSelectionType.OPEN);
 
-  public static final OptionalParameter<StringParameter> ceStepping = new OptionalParameter<>(
-      new StringParameter("CE stepping", "Acquire MS2 spectra with multiple collision energies.\n"
-          + "Collision energies may be decimals '.' separated by ','.", "20.0,35.0,45.0"), false);
+  public static final OptionalParameter<NumberListParameter> ceStepping = new OptionalParameter<>(
+      new NumberListParameter("CE stepping",
+          "Acquire MS2 spectra with multiple collision energies.\n"
+              + "Collision energies may be decimals '.' separated by ','.",
+          List.of(20.0, 35.0, 45.0), new DecimalFormat("0.0")));
 
   public static final DoubleParameter isolationWidth = new DoubleParameter("Isolation width",
       "The isolation width for precursors", new DecimalFormat("0.0"), 1.5d);

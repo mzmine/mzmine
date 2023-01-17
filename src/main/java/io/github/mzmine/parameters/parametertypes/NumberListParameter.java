@@ -26,48 +26,42 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.UserParameter;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.scene.control.TextField;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-public class StringParameter implements UserParameter<String, TextField> {
+public class NumberListParameter implements UserParameter<List<Double>, TextField> {
 
-  protected String name, description, value;
-  protected int inputsize = 20;
-  protected boolean valueRequired = true;
-  protected final boolean sensitive;
+  private static final Logger logger = Logger.getLogger(NumberListParameter.class.getName());
 
-  public StringParameter(String name, String description) {
-    this(name, description, null);
-  }
+  protected String name, description;
+  protected List<Double> value;
+  protected final char separator;
+  protected final int inputsize;
+  protected final NumberFormat format;
 
-  public StringParameter(String name, String description, boolean isSensitive) {
-    this(name, description, null, true, isSensitive);
-  }
-
-  public StringParameter(String name, String description, int inputsize) {
+  public NumberListParameter(String name, String description, int inputsize,
+      List<Double> defaultValue, char separator, NumberFormat format) {
     this.name = name;
     this.description = description;
     this.inputsize = inputsize;
-    this.sensitive = false;
+    value = defaultValue;
+    this.separator = separator;
+    this.format = format;
   }
 
-  public StringParameter(String name, String description, String defaultValue) {
-    this(name, description, defaultValue, true, false);
-  }
-
-  public StringParameter(String name, String description, String defaultValue,
-      boolean valueRequired) {
-    this(name, description, defaultValue, valueRequired, false);
-  }
-
-  public StringParameter(String name, String description, String defaultValue,
-      boolean valueRequired, boolean isSensitive) {
-    this.name = name;
-    this.description = description;
-    this.value = defaultValue;
-    this.valueRequired = valueRequired;
-    this.sensitive = isSensitive;
+  public NumberListParameter(String name, String description, List<Double> defaultValue,
+      NumberFormat format) {
+    this(name, description, 20, defaultValue, ',', format);
   }
 
   @Override
@@ -88,19 +82,19 @@ public class StringParameter implements UserParameter<String, TextField> {
   }
 
   @Override
-  public String getValue() {
+  public List<Double> getValue() {
     return value;
   }
 
   @Override
-  public void setValue(String value) {
+  public void setValue(List<Double> value) {
     this.value = value;
   }
 
   @Override
-  public StringParameter cloneParameter() {
-    StringParameter copy = new StringParameter(name, description, getValue(), valueRequired,
-        isSensitive());
+  public NumberListParameter cloneParameter() {
+    NumberListParameter copy = new NumberListParameter(name, description, inputsize, getValue(),
+        separator, format);
     copy.setValue(this.getValue());
 
     return copy;
@@ -113,17 +107,43 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   @Override
   public void setValueFromComponent(TextField component) {
-    value = component.getText();
+    final String text = component.getText().trim();
+    if (text.isBlank()) {
+      value = List.of();
+      return;
+    }
+
+    value = getValueFromString(text);
+    setValueToComponent(component, value); // update value after parsing
+  }
+
+  private List<Double> getValueFromString(String text) {
+    final String[] split = StringUtils.split(text, separator);
+    List<Double> list = new ArrayList<>();
+    for (String s : split) {
+      try {
+        list.add(format.parse(s.trim()).doubleValue());
+      } catch (ParseException | ClassCastException e) {
+        logger.log(Level.WARNING, e, e::getMessage);
+      }
+    }
+    return list;
   }
 
   @Override
-  public void setValueToComponent(TextField component, String newValue) {
-    component.setText(newValue);
+  public void setValueToComponent(TextField component, List<Double> newValue) {
+    String text = valueAsString(newValue);
+    component.setText(text);
+  }
+
+  @NotNull
+  private String valueAsString(List<Double> value) {
+    return value.stream().map(format::format).collect(Collectors.joining(separator + " "));
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    value = xmlElement.getTextContent();
+    value = getValueFromString(xmlElement.getTextContent());
   }
 
   @Override
@@ -131,15 +151,12 @@ public class StringParameter implements UserParameter<String, TextField> {
     if (value == null) {
       return;
     }
-    xmlElement.setTextContent(value);
+    xmlElement.setTextContent(valueAsString(value));
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (!valueRequired) {
-      return true;
-    }
-    if ((value == null) || (value.trim().length() == 0)) {
+    if ((value == null) || (value.isEmpty())) {
       errorMessages.add(name + " is not set properly");
       return false;
     }
@@ -148,6 +165,6 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   @Override
   public boolean isSensitive() {
-    return sensitive;
+    return false;
   }
 }

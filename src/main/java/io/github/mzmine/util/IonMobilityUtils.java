@@ -347,7 +347,7 @@ public class IonMobilityUtils {
    * @return Accumulated precursor intensity divided by intensity of all ions in the isolation
    * window. 0 if no intensities are found.
    */
-  public static double getIsolationChimerityScore(final double precursorMz,
+  public static double getIsolationChimerity(final double precursorMz,
       @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
       @NotNull final Range<Float> mobilityRange) {
 

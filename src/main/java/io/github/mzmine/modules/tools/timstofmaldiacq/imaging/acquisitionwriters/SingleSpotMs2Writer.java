@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,12 +26,16 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters;
 
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
+import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
+import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables.CeSteppingTable;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,7 +58,7 @@ public class SingleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
 
   @Override
   public boolean writeAcqusitionFile(File acquisitionFile, List<ImagingSpot> spots,
-      double isolationWidth, ParameterSet parameters, BooleanSupplier isCanceled,
+      CeSteppingTables tables, ParameterSet parameters, BooleanSupplier isCanceled,
       File savePathDir) {
 
     final Integer laserOffsetX =
@@ -62,6 +67,15 @@ public class SingleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
     final Integer laserOffsetY =
         parameters.getValue(SingleSpotMs2Parameters.laserOffsetY) ? parameters.getParameter(
             SingleSpotMs2Parameters.laserOffsetY).getEmbeddedParameter().getValue() : null;
+
+    final Map<Double, File> ceTableMap = new HashMap<>();
+    for (CeSteppingTable table : tables.asList()) {
+      var file = new File(acquisitionFile.getParentFile(),
+          "ce_table_" + table.collisionEnergy() + "eV.csv");
+      table.writeCETable(file);
+      ceTableMap.put(table.collisionEnergy(), file);
+    }
+
     for (int i = 0; i < spots.size(); i++) {
       final ImagingSpot spot = spots.get(i);
 
@@ -76,7 +90,8 @@ public class SingleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
       try {
         TimsTOFAcquisitionUtils.appendToCommandFile(acquisitionFile, spotInfo.spotName(),
             spot.getPrecursorList(0, 0), null, null, laserOffsetX, laserOffsetY, counter++,
-            savePathDir, spotInfo.spotName() + "_" + counter, null, false, isolationWidth);
+            savePathDir, spotInfo.spotName() + "_" + counter,
+            ceTableMap.get(spot.getColissionEnergy()), true, null);
       } catch (IOException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
         return false;

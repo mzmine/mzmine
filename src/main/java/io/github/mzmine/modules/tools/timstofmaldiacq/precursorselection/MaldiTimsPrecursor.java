@@ -1,26 +1,128 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.Feature;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
 
-public record MaldiTimsPrecursor(Feature feature, double mz, Range<Float> oneOverK0, Float collisionEnergy) {
+public final class MaldiTimsPrecursor {
+
+  private final Feature feature;
+  private final double mz;
+  private final Range<Float> oneOverK0;
+  private final Map<Double, Integer> collisionEnergies;
+
+  public MaldiTimsPrecursor(Feature feature, double mz, Range<Float> oneOverK0,
+      Collection<Double> collisionEnergies) {
+    this.feature = feature;
+    this.mz = mz;
+    this.oneOverK0 = oneOverK0;
+    this.collisionEnergies = new HashMap<>();
+    collisionEnergies.forEach(d -> this.collisionEnergies.put(d, 0));
+  }
+
+  public Feature feature() {
+    return feature;
+  }
+
+  public double mz() {
+    return mz;
+  }
+
+  public Range<Float> oneOverK0() {
+    return oneOverK0;
+  }
+
+  public Map<Double, Integer> collisionEnergies() {
+    return collisionEnergies;
+  }
+
+  public int getTotalMsMs() {
+    return collisionEnergies.values().stream().mapToInt(Integer::intValue).sum();
+  }
+
+  public int getLowestMsMsCountForCollisionEnergies() {
+    return collisionEnergies.values().stream().mapToInt(Integer::intValue).min().orElse(0);
+  }
+
+  public int getMsMsSpotsForCollisionEnergy(double c) {
+    return collisionEnergies.getOrDefault(c, 0);
+  }
+
+  public Double getCollisionEnergyWithFewestSpots() {
+    final Optional<Entry<Double, Integer>> first = collisionEnergies.entrySet().stream()
+        .sorted(Comparator.comparingInt(Entry::getValue)).findFirst();
+
+    return first.map(Entry::getKey)
+        .orElseThrow(() -> new RuntimeException("No collision energy available."));
+  }
+
+  public int incrementSpotCounterForCollisionEnergy(double energy) {
+    Integer ceCounter = collisionEnergies.get(energy);
+    if (ceCounter == null) {
+      throw new IllegalArgumentException(
+          String.format("Cannot increment counter for collision energy %.2f, invalid CE.", energy));
+    }
+    ceCounter++;
+    collisionEnergies.put(energy, ceCounter);
+    return ceCounter;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (MaldiTimsPrecursor) obj;
+    return Objects.equals(this.feature, that.feature)
+        && Double.doubleToLongBits(this.mz) == Double.doubleToLongBits(that.mz) && Objects.equals(
+        this.oneOverK0, that.oneOverK0) && Objects.equals(this.collisionEnergies,
+        that.collisionEnergies);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(feature, mz, oneOverK0, collisionEnergies);
+  }
+
+  @Override
+  public String toString() {
+    return "MaldiTimsPrecursor[" + "feature=" + feature + ", " + "mz=" + mz + ", " + "oneOverK0="
+        + oneOverK0 + ", " + ", " + "collisionEnergies=" + collisionEnergies + ']';
+  }
+
 
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,6 +26,7 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters;
 
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.File;
@@ -33,6 +35,7 @@ import java.util.function.BooleanSupplier;
 
 public interface MaldiMs2AcqusitionWriter extends MZmineModule {
 
-  boolean writeAcqusitionFile(File acquisitionFile, List<ImagingSpot> spots, double isolationWidth,
-      ParameterSet parameters, BooleanSupplier isCanceled, File savePathDir);
+  boolean writeAcqusitionFile(File acquisitionFile, List<ImagingSpot> spots,
+      CeSteppingTables ceTables, ParameterSet parameters, BooleanSupplier isCanceled,
+      File savePathDir);
 }

@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
@@ -12,12 +37,16 @@ public final class ImagingSpot {
   private final MaldiSpotInfo spotInfo;
   private final List<MaldiTimsPrecursor>[][] precursorLists;
 
+  private final double colissionEnergy;
+
   private final Ms2ImagingMode imagingMode;
 
-  public ImagingSpot(MaldiSpotInfo spotInfo, Ms2ImagingMode mode) {
+  public ImagingSpot(MaldiSpotInfo spotInfo, Ms2ImagingMode mode, double colissionEnergy) {
     this.spotInfo = spotInfo;
 
     this.imagingMode = mode;
+    this.colissionEnergy = colissionEnergy;
+
     switch (imagingMode) {
       case SINGLE -> {
         precursorLists = new List[2][2];
@@ -52,7 +81,8 @@ public final class ImagingSpot {
   }
 
   /**
-   * @return True if the precursor was added successfully somewhere adjacent to this spot.
+   * @return True if the precursor was added successfully somewhere adjacent to this spot. Increases
+   * the CE counter in the feature for this spot's collision energy if the precursor was added.
    */
   public boolean addPrecursor(MaldiTimsPrecursor precursor) {
     switch (imagingMode) {
@@ -77,6 +107,9 @@ public final class ImagingSpot {
   }
 
   /**
+   * Checks if the precursor can be added to this spot. Also increments the spot msms counter for
+   * the CE of this spot.
+   *
    * @param xOffset integer offset in x direction from this spot
    * @param yOffset integer offset in y direction from this spot
    * @return True if the precursor was added successfully, false if it would overlap
@@ -91,11 +124,16 @@ public final class ImagingSpot {
     }
 
     list.add(precursor);
+    precursor.incrementSpotCounterForCollisionEnergy(colissionEnergy);
     return true;
   }
 
   public MaldiSpotInfo spotInfo() {
     return spotInfo;
+  }
+
+  public Double getColissionEnergy() {
+    return colissionEnergy;
   }
 
   @Override
