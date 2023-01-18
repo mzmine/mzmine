@@ -118,7 +118,7 @@
       GridPane.rowIndex="4">
       <children>
         <Button fx:id="btnSetHandleIntermediateFlists" mnemonicParsing="false"
-          onAction="#onHandleIntermediateFlistsPressed" text="Set"/>
+          onAction="#onHandleIntermediateFlistsPressed" text="Apply to batch"/>
       </children>
     </FlowPane>
     <FlowPane alignment="CENTER_RIGHT" GridPane.halignment="RIGHT" GridPane.rowIndex="4"
@@ -127,7 +127,7 @@
         <Label alignment="CENTER" text="Intermediate feature lists"/>
       </children>
     </FlowPane>
-    <ComboBox fx:id="cmbHandleFlists" prefWidth="150.0" GridPane.columnIndex="1"
+    <ComboBox fx:id="cmbHandleFlists" GridPane.columnIndex="1"
       GridPane.rowIndex="4">
       <padding>
         <Insets top="5.0"/>
