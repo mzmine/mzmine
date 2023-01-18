@@ -98,6 +98,10 @@ public class OriginalFeatureListHandlingParameter extends
 
   }
 
+  public boolean isIncludeProcessInPlace() {
+    return includeProcessInPlace;
+  }
+
   @Override
   public void loadValueFromXML(Element xmlElement) {
     super.loadValueFromXML(xmlElement);
