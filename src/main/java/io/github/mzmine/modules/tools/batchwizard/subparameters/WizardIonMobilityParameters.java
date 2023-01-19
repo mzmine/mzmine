@@ -27,9 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters.ImsDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -37,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.text.DecimalFormat;
 
-public class WizardIonMobilityParameters extends SimpleParameterSet {
+public final class WizardIonMobilityParameters extends AbstractWizardParameters<ImsDefaults> {
 
   public static final DoubleParameter approximateImsFWHM = new DoubleParameter(
       "Approximate feature FWHM",
@@ -58,31 +56,21 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
   public static final BooleanParameter smoothing = new BooleanParameter("Smoothing",
       "Apply smoothing in the mobility dimension, usually only needed if the peak shapes are spiky.",
       true);
-  /**
-   * the UI element shown on top to signal the workflow used. Presets May be changed and then saved
-   * to user presets as parameter files.
-   */
-  public static final HiddenParameter<ImsDefaults> wizardPart = new HiddenParameter<>(
-      new ComboParameter<>("Wizard part", "Defines the wizard part used", ImsDefaults.values(),
-          ImsDefaults.NO_IMS));
-
-  /**
-   * the part category of presets - is used in all wizard parameter classes
-   */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.IMS);
 
   public WizardIonMobilityParameters() {
-    super(new Parameter[]{
-        // hidden
-        wizardPart, wizardPartCategory,
-        // shown
-        imsActive, smoothing, instrumentType, minNumberOfDataPoints, approximateImsFWHM});
+    this(ImsDefaults.NO_IMS);
   }
 
-  public WizardIonMobilityParameters(final int minDataPoints, final double fwhm,
-      final boolean smooth, final boolean active, final MobilityType instrument) {
-    this();
+  public WizardIonMobilityParameters(ImsDefaults preset) {
+    super(WizardPart.IMS, preset,
+        // parameters
+        imsActive, smoothing, instrumentType, minNumberOfDataPoints, approximateImsFWHM);
+  }
+
+  public WizardIonMobilityParameters(final ImsDefaults preset, final int minDataPoints,
+      final double fwhm, final boolean smooth, final boolean active,
+      final MobilityType instrument) {
+    this(preset);
     setParameter(minNumberOfDataPoints, minDataPoints);
     setParameter(approximateImsFWHM, fwhm);
     setParameter(smoothing, smooth);
@@ -91,22 +79,53 @@ public class WizardIonMobilityParameters extends SimpleParameterSet {
   }
 
 
+  @Override
+  public ImsDefaults[] getPresetChoices() {
+    return ImsDefaults.values();
+  }
+
   /**
-   * Create parameters from defaults
-   *
-   * @param defaults defines default values
+   * the defaults should not change the name of enum values. if strings are needed, override the
+   * toString method
    */
-  public static WizardIonMobilityParameters create(final ImsDefaults defaults) {
-    WizardIonMobilityParameters params = switch (defaults) {
-      case NO_IMS -> new WizardIonMobilityParameters(5, 0.01, true, false, MobilityType.NONE);
-      case TIMS -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.TIMS);
-      case IMS -> new WizardIonMobilityParameters(5, 0.01, true, true, MobilityType.OTHER);
-      case DTIMS -> new WizardIonMobilityParameters(4, 0.7, true, true, MobilityType.DRIFT_TUBE);
-      case TWIMS ->
-          new WizardIonMobilityParameters(4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
-    };
-    params.setParameter(wizardPart, defaults);
-    params.setParameter(wizardPartCategory, WizardPart.IMS);
-    return params;
+  public enum ImsDefaults implements WizardParameterFactory {
+    NO_IMS,
+    /**
+     * TIMS actually is a different workflow than the rest. slight changes because of MS2
+     * acquisition in PASEF
+     */
+    TIMS, IMS, DTIMS, TWIMS;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case NO_IMS -> " ";
+        case TIMS, IMS -> super.toString();
+        case DTIMS -> "DTIMS";
+        case TWIMS -> "TWIMS";
+      };
+    }
+
+    /**
+     * Create parameters from defaults
+     */
+    @Override
+    public WizardIonMobilityParameters create() {
+      return switch (this) {
+        case NO_IMS ->
+            new WizardIonMobilityParameters(this, 5, 0.01, true, false, MobilityType.NONE);
+        case TIMS -> new WizardIonMobilityParameters(this, 5, 0.01, true, true, MobilityType.TIMS);
+        case IMS -> new WizardIonMobilityParameters(this, 5, 0.01, true, true, MobilityType.OTHER);
+        case DTIMS ->
+            new WizardIonMobilityParameters(this, 4, 0.7, true, true, MobilityType.DRIFT_TUBE);
+        case TWIMS ->
+            new WizardIonMobilityParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
+      };
+    }
+
+    @Override
+    public String getUniqueId() {
+      return name();
+    }
   }
 }

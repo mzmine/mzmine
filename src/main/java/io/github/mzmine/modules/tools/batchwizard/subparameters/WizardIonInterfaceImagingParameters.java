@@ -25,31 +25,31 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-/**
- * Reuses the filenames {@link AllSpectralDataImportParameters}
- *
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
- */
-public final class WizardDataImportParameters extends AbstractWizardParameters<String> {
+public final class WizardIonInterfaceImagingParameters extends
+    AbstractWizardIonInterfaceParameters {
 
-  /**
-   * There is only one preset no other options. If there are multiple options use an enum, see
-   * {@link WizardMassSpectrometerParameters} and {@link MsInstrumentDefaults}
-   */
-  public static final String ONLY_PRESET = "Data";
+  public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
+      "Min # of data points", "Minimum number of data points as used in image building", 25, 1,
+      Integer.MAX_VALUE);
 
-  public WizardDataImportParameters() {
-    super(WizardPart.DATA_IMPORT, ONLY_PRESET,
-        // parameters
-        AllSpectralDataImportParameters.fileNames);
+  public WizardIonInterfaceImagingParameters() {
+    // set and change later
+    this(IonInterfaceDefaults.values()[0]);
   }
 
-  @Override
-  public String[] getPresetChoices() {
-    return new String[]{ONLY_PRESET};
+  public WizardIonInterfaceImagingParameters(final IonInterfaceDefaults preset) {
+    super(WizardPart.CHROMATOGRAPHY, preset,
+        // actual parameters
+        minNumberOfDataPoints);
   }
+
+  public WizardIonInterfaceImagingParameters(final IonInterfaceDefaults preset,
+      final int minDataPoints) {
+    this(preset);
+    setParameter(minNumberOfDataPoints, minDataPoints);
+  }
+
 }

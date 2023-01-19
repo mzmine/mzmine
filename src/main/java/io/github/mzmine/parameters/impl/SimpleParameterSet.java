@@ -76,7 +76,7 @@ public class SimpleParameterSet implements ParameterSet {
     this(new Parameter<?>[0], null);
   }
 
-  public SimpleParameterSet(Parameter<?>[] parameters) {
+  public SimpleParameterSet(Parameter<?>... parameters) {
     this(parameters, null);
   }
 

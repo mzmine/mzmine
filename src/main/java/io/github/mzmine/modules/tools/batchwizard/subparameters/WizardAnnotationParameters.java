@@ -25,36 +25,31 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
-public final class WizardExportParameters extends AbstractWizardParameters<String> {
-
-  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
-      true);
-  public static final BooleanParameter exportGnps = new BooleanParameter(
-      "Export for GNPS FBMN/IIMN",
-      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
-      true);
-
-  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
-      new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
-          FileSelectionType.SAVE, false), false);
-
+/**
+ * Reuses spectral library files parameters of {@link SpectralLibraryImportParameters}
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
+public final class WizardAnnotationParameters extends AbstractWizardParameters<String> {
 
   /**
    * There is only one preset no other options. If there are multiple options use an enum, see
    * {@link WizardMassSpectrometerParameters} and {@link MsInstrumentDefaults}
    */
-  public static final String ONLY_PRESET = "Export";
+  public static final String ONLY_PRESET = "Annotations";
 
-  public WizardExportParameters() {
-    super(WizardPart.DATA_IMPORT, ONLY_PRESET, exportPath, exportGnps, exportSirius);
+  // TODO add LocalCSVDatabase search
+  // needs less parameters only the most important ones to reproduce the library generation workflow
+//  public static final OptionalModuleParameter<LocalCSVDatabaseSearchParameters>
+
+  public WizardAnnotationParameters() {
+    super(WizardPart.DATA_IMPORT, ONLY_PRESET,
+        // parameters
+        SpectralLibraryImportParameters.dataBaseFiles);
   }
 
   @Override

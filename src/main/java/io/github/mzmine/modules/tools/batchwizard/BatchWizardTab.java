@@ -30,9 +30,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
 import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
@@ -90,9 +90,9 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * Parameter panes of the selected presets
    */
+  private final Map<File, LocalWizardPresetFile> localPresets = new HashMap<>();
   private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
   private final Map<WizardPart, ComboBox<WizardPreset>> combos = new HashMap<>();
-  private final Map<File, LocalWizardFile> localPresets = new HashMap<>();
   private final LastFilesButton localPresetsButton;
   private boolean listenersActive = true;
   private TabPane tabPane;
@@ -138,7 +138,7 @@ public class BatchWizardTab extends SimpleTab {
           // add to schema
           addToSchema(preset);
           // do not add tabs for in active tabs
-          if (!preset.name().equals(ImsDefaults.NO_IMS.toString())) {
+          if (!preset.name().equals(WizardIonMobilityParameters.ImsDefaults.NO_IMS.toString())) {
             return new Tab(preset.name(), paramPane);
           } else {
             return null;
@@ -212,11 +212,11 @@ public class BatchWizardTab extends SimpleTab {
     combos.clear();
     // create combo boxes for each part of the wizard that has multiple options
     // LC/GC - IMS? - MS instrument, Apply defaults
-    Map<WizardPart, List<WizardPreset>> map = WizardDefaultPresets.createPresets();
+    var presetMap = WizardDefaultPresets.createPresets();
     int partIndex = -1;
     for (final WizardPart part : WizardPart.values()) {
       partIndex++;
-      var presets = FXCollections.observableArrayList(map.get(part));
+      var presets = FXCollections.observableArrayList(presetMap.get(part));
       presetParts.add(presets.get(0));
       if (presets.size() == 1) {
         continue;
@@ -272,20 +272,22 @@ public class BatchWizardTab extends SimpleTab {
         .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
           try {
             List<WizardPreset> presets = BatchWizardPresetIOUtils.loadFromFile(file);
-            return new LocalWizardFile(file, presets);
+            return new LocalWizardPresetFile(file, presets);
           } catch (IOException e) {
             logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
             return null;
           }
-        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardFile::getName)).toList();
+        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardPresetFile::getName))
+        .toList();
     localPresets.clear();
-    for (final LocalWizardFile preset : newLocalPresets) {
+    for (final LocalWizardPresetFile preset : newLocalPresets) {
       localPresets.put(preset.file(), preset);
     }
-    localPresetsButton.setLastFiles(newLocalPresets.stream().map(LocalWizardFile::file).toList());
+    localPresetsButton.setLastFiles(
+        newLocalPresets.stream().map(LocalWizardPresetFile::file).toList());
   }
 
-  private void applyPreset(LocalWizardFile preset) {
+  private void applyPreset(LocalWizardPresetFile preset) {
     if (preset == null) {
       return;
     }

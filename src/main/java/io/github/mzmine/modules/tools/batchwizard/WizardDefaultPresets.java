@@ -25,12 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ChromatographyDefaults;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.MsInstrumentDefaults;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -43,31 +38,9 @@ public class WizardDefaultPresets {
    *
    * @return map of part and list of presets
    */
-  public static Map<WizardPart, List<WizardPreset>> createPresets() {
+  public static Map<WizardPart, List<? extends AbstractWizardParameters<?>>> createPresets() {
     return Arrays.stream(WizardPart.values())
-        .collect(Collectors.toMap(part -> part, WizardDefaultPresets::createPresets));
-  }
-
-  /**
-   * @param part part of BatchWizard
-   * @return list of presets for part
-   */
-  public static List<WizardPreset> createPresets(WizardPart part) {
-    var parameters = MZmineCore.getConfiguration().getModuleParameters(BatchWizardModule.class)
-        .cloneParameterSet();
-
-    ParameterSetParameter parameterPart = part.getParameterSetParameter();
-    ParameterSet partParameters = parameters.getParameter(parameterPart).getEmbeddedParameters();
-
-    return switch (part) {
-      case DATA_IMPORT -> List.of(new WizardPreset("Data", part, partParameters));
-      case CHROMATOGRAPHY ->
-          Arrays.stream(ChromatographyDefaults.values()).map(WizardPreset::new).toList();
-      case IMS -> Arrays.stream(ImsDefaults.values()).map(WizardPreset::new).toList();
-      case MS -> Arrays.stream(MsInstrumentDefaults.values()).map(WizardPreset::new).toList();
-      case FILTER -> List.of(new WizardPreset("Filter", part, partParameters));
-      case EXPORT -> List.of(new WizardPreset("Export", part, partParameters));
-    };
+        .collect(Collectors.toMap(part -> part, WizardPart::createPresetParameters));
   }
 
 }

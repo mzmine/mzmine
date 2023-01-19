@@ -25,27 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.util.files.FileAndPathUtil;
-import java.io.File;
-import java.util.List;
+public class WizardSequence {
 
-/**
- * Loaded from file, the presets for each part in the sequence
- *
- * @param file  the file loaded
- * @param parts the presets in sequential order
- */
-public record LocalWizardFile(File file, List<WizardPreset> parts) {
 
-  /**
-   * File name without extension is used as name for presets
-   */
-  public String getName() {
-    return FileAndPathUtil.eraseFormat(file.getName());
-  }
-
-  @Override
-  public String toString() {
-    return getName();
-  }
 }

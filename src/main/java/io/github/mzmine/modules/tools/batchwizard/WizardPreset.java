@@ -25,131 +25,47 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @param name       the name of the preset for LC, IMS, MS, ...
- * @param part       to which part of the workflow it belongs
- * @param parameters the parameters
+ * @param name       the title of the preset for LC, IMS, MS, ... toString
+ * @param uniqueId   for enums its the .name() for presets with only one options its the only string
+ *                   and equal to the name
+ * @param parameters the parameters - will be cloned internally
  */
-public record WizardPreset(String name, WizardPart part, ParameterSet parameters) implements
+public record WizardPreset(String name, String uniqueId,
+                           AbstractWizardParameters<?> parameters) implements
     Comparable<WizardPreset> {
 
   /**
-   * Clones the parameter set to separate it from the static version
-   *
-   * @param name       name of the preset
-   * @param part       of the workflow
-   * @param parameters will be cloned
+   * @param name       the title of the preset for LC, IMS, MS, ... toString
+   * @param uniqueId   for enums its the .name() for presets with only one options its the only
+   *                   string and equal to the name
+   * @param parameters the parameters
    */
-  public WizardPreset(final String name, final WizardPart part, final ParameterSet parameters) {
+  public WizardPreset(final String name, final String uniqueId, final ParameterSet parameters) {
     // needs the clone to separate the parameters from the static ones
     this.parameters = parameters.cloneParameterSet();
     this.name = name;
-    this.part = part;
+    this.uniqueId = uniqueId;
   }
 
-
-  public WizardPreset(ChromatographyDefaults defaults) {
-    this(defaults.toString(), WizardPart.CHROMATOGRAPHY,
-        WizardChromatographyParameters.create(defaults));
-  }
-
-  public WizardPreset(MsInstrumentDefaults defaults) {
-    this(defaults.toString(), WizardPart.MS, WizardMassSpectrometerParameters.create(defaults));
-  }
-
-  public WizardPreset(final ImsDefaults defaults) {
-    this(defaults.toString(), WizardPart.IMS, WizardIonMobilityParameters.create(defaults));
-  }
 
   @Override
   public String toString() {
     return name;
   }
 
-  /**
-   * Set the corresponding ParameterSetParameter in the wizard parameters to this parameters
-   *
-   * @param wizardParam the main parameters
-   */
-  public void setParametersToWizardParameters(final ParameterSet wizardParam) {
-    wizardParam.getParameter(part.getParameterSetParameter())
-        .setValue(parameters.cloneParameterSet());
-  }
-
   @Override
   public int compareTo(@NotNull final WizardPreset o) {
-    return part.compareTo(o.part);
+    return getPart().compareTo(o.part);
   }
 
-  /**
-   * Everything that has only one option should use this enum
-   */
-  public enum DefaultOptions {
-    DEFAULT
+  public WizardPart getPart() {
+    return parameters.getPart();
   }
 
-  /**
-   * the defaults should not change the name of enum values. if strings are needed, override the
-   * toString method
-   */
-  public enum ChromatographyDefaults {
-    /**
-     * TODO add direct infusion, flow injection, and NO_CHROMATOGRAPHY (when imaging is selected)
-     */
-    HPLC, UHPLC, HILIC,
-    /**
-     * GC-EI is a different workflow, GC uses the LC workflow
-     */
-    GC_EI,
-    /**
-     * Chemical ionization uses LC workflow
-     */
-    GC_CI;
 
-    @Override
-    public String toString() {
-      return switch (this) {
-        case HPLC, UHPLC, HILIC -> super.toString();
-        case GC_EI -> "GC-EI";
-        case GC_CI -> "GC-CI";
-      };
-    }
-  }
-
-  /**
-   * the defaults should not change the name of enum values. if strings are needed, override the
-   * toString method
-   */
-  public enum ImsDefaults {
-    NO_IMS,
-    /**
-     * TIMS actually is a different workflow than the rest. slight changes because of MS2
-     * acquisition in PASEF
-     */
-    TIMS, IMS, DTIMS, TWIMS;
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case NO_IMS -> " ";
-        case TIMS, IMS -> super.toString();
-        case DTIMS -> "DTIMS";
-        case TWIMS -> "TWIMS";
-      };
-    }
-  }
-
-  /**
-   * the defaults should not change the name of enum values. if strings are needed, override the
-   * toString method
-   */
-  public enum MsInstrumentDefaults {
-    Orbitrap, qTOF, FTICR
-  }
 }

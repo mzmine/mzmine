@@ -36,7 +36,6 @@ import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -144,7 +143,7 @@ public class BatchWizardPresetIOUtils {
 
       logger.finest("Loading wizard parameters from file " + file.getAbsolutePath());
       // all presets
-      Map<WizardPart, List<WizardPreset>> allPresets = WizardDefaultPresets.createPresets();
+      var allPresets = WizardDefaultPresets.createPresets();
       // result
       List<WizardPreset> parts = new ArrayList<>();
 

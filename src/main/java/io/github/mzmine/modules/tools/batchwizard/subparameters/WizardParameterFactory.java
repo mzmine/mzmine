@@ -25,31 +25,15 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
-
 /**
- * Reuses the filenames {@link AllSpectralDataImportParameters}
- *
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ * implemented by preset enums of parts with multiple preset options
  */
-public final class WizardDataImportParameters extends AbstractWizardParameters<String> {
+public interface WizardParameterFactory {
 
   /**
-   * There is only one preset no other options. If there are multiple options use an enum, see
-   * {@link WizardMassSpectrometerParameters} and {@link MsInstrumentDefaults}
+   * @return the default parameters for this preset
    */
-  public static final String ONLY_PRESET = "Data";
+  AbstractWizardParameters<?> create();
 
-  public WizardDataImportParameters() {
-    super(WizardPart.DATA_IMPORT, ONLY_PRESET,
-        // parameters
-        AllSpectralDataImportParameters.fileNames);
-  }
-
-  @Override
-  public String[] getPresetChoices() {
-    return new String[]{ONLY_PRESET};
-  }
+  String getUniqueId();
 }

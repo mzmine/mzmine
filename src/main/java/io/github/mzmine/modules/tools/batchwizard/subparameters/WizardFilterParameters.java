@@ -26,8 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -36,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 /**
  * Filtering steps throughout the batch mode
  */
-public class WizardFilterParameters extends SimpleParameterSet {
+public final class WizardFilterParameters extends AbstractWizardParameters<String> {
 
   public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
       "Min samples per aligned feature",
@@ -51,14 +50,20 @@ public class WizardFilterParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.REMOVE);
 
+
   /**
-   * the part category of presets - is used in all wizard parameter classes
+   * There is only one preset no other options. If there are multiple options use an enum, see
+   * {@link WizardMassSpectrometerParameters} and {@link MsInstrumentDefaults}
    */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.FILTER);
+  public static final String ONLY_PRESET = "Filter";
 
   public WizardFilterParameters() {
-    super(new Parameter[]{wizardPartCategory, handleOriginalFeatureLists, minNumberOfSamples,
-        filter13C});
+    super(WizardPart.DATA_IMPORT, ONLY_PRESET, handleOriginalFeatureLists, minNumberOfSamples,
+        filter13C);
+  }
+
+  @Override
+  public String[] getPresetChoices() {
+    return new String[]{ONLY_PRESET};
   }
 }

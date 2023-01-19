@@ -27,19 +27,13 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ChromatographyDefaults;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class WizardChromatographyParameters extends SimpleParameterSet {
+public final class WizardIonInterfaceHplcParameters extends AbstractWizardIonInterfaceParameters {
 
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
@@ -81,81 +75,33 @@ public class WizardChromatographyParameters extends SimpleParameterSet {
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  /**
-   * Keep track of the workflow used: GC or LC
-   */
-  public static final HiddenParameter<ChromatographyWorkflow> workflow = new HiddenParameter<>(
-      new ComboParameter<>("Workflow", "defines the workflow used by the batch wizard",
-          ChromatographyWorkflow.values(), ChromatographyWorkflow.LC));
 
-  /**
-   * the UI element shown on top to signal the workflow used. Presets May be changed and then saved
-   * to user presets as parameter files.
-   */
-  public static final HiddenParameter<ChromatographyDefaults> wizardPart = new HiddenParameter<>(
-      new ComboParameter<>("Wizard part", "Defines the wizard part used",
-          ChromatographyDefaults.values(), ChromatographyDefaults.UHPLC));
+  public WizardIonInterfaceHplcParameters() {
+    // set and change later
+    this(IonInterfaceDefaults.values()[0]);
+  }
 
-  /**
-   * the part category of presets - is used in all wizard parameter classes
-   */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.CHROMATOGRAPHY);
-
-  public WizardChromatographyParameters() {
-    super(new Parameter[]{
-        // hidden
-        workflow, wizardPart, wizardPartCategory,
+  public WizardIonInterfaceHplcParameters(final IonInterfaceDefaults preset) {
+    super(WizardPart.CHROMATOGRAPHY, preset,
         // actual parameters
         smoothing, stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
         minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
-        interSampleRTTolerance});
+        interSampleRTTolerance);
   }
 
-  public WizardChromatographyParameters(final ChromatographyWorkflow workflowPreset,
+  public WizardIonInterfaceHplcParameters(final IonInterfaceDefaults preset,
       final boolean stableIonization, final int maxIsomersInSample, final int minDataPoints,
       final Range<Double> cropRt, final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
       final RTTolerance interSampleTolerance) {
-    this();
-    setParameter(workflow, workflowPreset);
+    this(preset);
+    // defaults
     setParameter(stableIonizationAcrossSamples, stableIonization);
     setParameter(maximumIsomersInChromatogram, maxIsomersInSample);
     setParameter(minNumberOfDataPoints, minDataPoints);
-    // defaults - others override those values
     setParameter(cropRtRange, cropRt);
     setParameter(approximateChromatographicFWHM, fwhm);
     setParameter(intraSampleRTTolerance, intraSampleTolerance);
     setParameter(interSampleRTTolerance, interSampleTolerance);
-  }
-
-  /**
-   * Create parameters from defaults
-   *
-   * @param defaults defines default values
-   */
-  public static WizardChromatographyParameters create(final ChromatographyDefaults defaults) {
-    // override defaults
-    WizardChromatographyParameters params = switch (defaults) {
-      case HPLC -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 15, 4,
-          Range.closed(0.5, 60d), new RTTolerance(0.1f, Unit.MINUTES),
-          new RTTolerance(0.08f, Unit.MINUTES), new RTTolerance(0.4f, Unit.MINUTES));
-      case UHPLC -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 15, 4,
-          Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
-          new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
-      case HILIC -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 15, 5,
-          Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
-          new RTTolerance(3, Unit.SECONDS), new RTTolerance(3, Unit.SECONDS));
-      case GC_CI -> new WizardChromatographyParameters(ChromatographyWorkflow.LC, true, 30, 6,
-          Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
-          new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
-      // different workflow for GC-EI
-      case GC_EI -> new WizardChromatographyParameters(ChromatographyWorkflow.GC, true, 30, 6,
-          Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
-          new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES));
-    };
-    params.setParameter(wizardPart, ChromatographyDefaults.UHPLC);
-    params.setParameter(wizardPartCategory, WizardPart.CHROMATOGRAPHY);
-    return params;
   }
 
   public enum ChromatographyWorkflow {

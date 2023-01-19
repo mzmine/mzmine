@@ -26,17 +26,51 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardWorkflowParameters.WorkflowDefaults;
 
-/**
- * Parameter to harmonize the wizard part parameter which needs to be present in all sub parameter
- * sets
- */
-public class WizardPartParameter extends HiddenParameter<WizardPart> {
+public final class WizardWorkflowParameters extends AbstractWizardParameters<WorkflowDefaults> {
 
-  public WizardPartParameter(final WizardPart defaultPart) {
-    super(new ComboParameter<>("Wizard part category", "Defines the wizard part category",
-        WizardPart.values(), defaultPart));
+
+  public WizardWorkflowParameters() {
+    this(WorkflowDefaults.DDA);
+  }
+
+  public WizardWorkflowParameters(WorkflowDefaults preset) {
+    super(WizardPart.MS, preset);
+  }
+
+  @Override
+  public WorkflowDefaults[] getPresetChoices() {
+    return WorkflowDefaults.values();
+  }
+
+  /**
+   * the defaults should not change the name of enum values. if strings are needed, override the
+   * toString method
+   */
+  public enum WorkflowDefaults implements WizardParameterFactory {
+    DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case DDA -> super.toString();
+        case GC_EI_DECONVOLUTION -> "GC-EI deconvolution";
+        case LIBRARY_GENERATION -> "Library generation";
+      };
+    }
+
+    @Override
+    public String getUniqueId() {
+      return name();
+    }
+
+    @Override
+    public WizardWorkflowParameters create() {
+      return switch (this) {
+        case DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION -> new WizardWorkflowParameters(this);
+      };
+    }
+
   }
 }

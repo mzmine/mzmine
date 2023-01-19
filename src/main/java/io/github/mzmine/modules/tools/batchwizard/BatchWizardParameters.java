@@ -25,13 +25,12 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonInterfaceHplcParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 
@@ -41,7 +40,7 @@ public class BatchWizardParameters extends SimpleParameterSet {
       "", new WizardMassSpectrometerParameters());
 
   public static final ParameterSetParameter hplcParams = new ParameterSetParameter(
-      "(U)HPLC parameters", "", new WizardChromatographyParameters());
+      "(U)HPLC parameters", "", new WizardIonInterfaceHplcParameters());
 
   public static final ParameterSetParameter dataInputParams = new ParameterSetParameter(
       "Data input", "Data files and spectral library files", new WizardDataImportParameters());
@@ -55,8 +54,6 @@ public class BatchWizardParameters extends SimpleParameterSet {
       "Ion mobility", "", new WizardIonMobilityParameters());
 
   public BatchWizardParameters() {
-    super(new Parameter[]{msParams, hplcParams, imsParameters, dataInputParams, filterParameters,
-        exportParameters});
+    super(msParams, hplcParams, imsParameters, dataInputParams, filterParameters, exportParameters);
   }
-
 }

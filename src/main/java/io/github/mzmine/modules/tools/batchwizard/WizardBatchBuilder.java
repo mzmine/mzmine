@@ -87,10 +87,10 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardChromatographyParameters.ChromatographyWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonInterfaceHplcParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonInterfaceHplcParameters.ChromatographyWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -173,17 +173,17 @@ public class WizardBatchBuilder {
 
     // chromatography
     ParameterSet chromParam = wizardParams.getValue(BatchWizardParameters.hplcParams);
-    chromatographyWorkflow = chromParam.getValue(WizardChromatographyParameters.workflow);
-    rtSmoothing = chromParam.getValue(WizardChromatographyParameters.smoothing);
-    cropRtRange = chromParam.getValue(WizardChromatographyParameters.cropRtRange);
-    intraSampleRtTol = chromParam.getValue(WizardChromatographyParameters.intraSampleRTTolerance);
-    interSampleRtTol = chromParam.getValue(WizardChromatographyParameters.interSampleRTTolerance);
-    minRtDataPoints = chromParam.getValue(WizardChromatographyParameters.minNumberOfDataPoints);
+    chromatographyWorkflow = chromParam.getValue(WizardIonInterfaceHplcParameters.workflow);
+    rtSmoothing = chromParam.getValue(WizardIonInterfaceHplcParameters.smoothing);
+    cropRtRange = chromParam.getValue(WizardIonInterfaceHplcParameters.cropRtRange);
+    intraSampleRtTol = chromParam.getValue(WizardIonInterfaceHplcParameters.intraSampleRTTolerance);
+    interSampleRtTol = chromParam.getValue(WizardIonInterfaceHplcParameters.interSampleRTTolerance);
+    minRtDataPoints = chromParam.getValue(WizardIonInterfaceHplcParameters.minNumberOfDataPoints);
     maxIsomersInRt = chromParam.getValue(
-        WizardChromatographyParameters.maximumIsomersInChromatogram);
-    rtFwhm = chromParam.getValue(WizardChromatographyParameters.approximateChromatographicFWHM);
+        WizardIonInterfaceHplcParameters.maximumIsomersInChromatogram);
+    rtFwhm = chromParam.getValue(WizardIonInterfaceHplcParameters.approximateChromatographicFWHM);
     stableIonizationAcrossSamples = chromParam.getValue(
-        WizardChromatographyParameters.stableIonizationAcrossSamples);
+        WizardIonInterfaceHplcParameters.stableIonizationAcrossSamples);
 
     // ion mobility IMS
     ParameterSet imsParam = wizardParams.getValue(BatchWizardParameters.imsParameters);
