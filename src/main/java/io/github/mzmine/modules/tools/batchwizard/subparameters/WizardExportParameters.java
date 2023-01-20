@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -55,6 +56,10 @@ public final class WizardExportParameters extends AbstractWizardParameters<Strin
 
   public WizardExportParameters() {
     super(WizardPart.DATA_IMPORT, ONLY_PRESET, exportPath, exportGnps, exportSirius);
+  }
+
+  public static WizardPreset createPreset() {
+    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new WizardExportParameters());
   }
 
   @Override

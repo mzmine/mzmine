@@ -25,12 +25,14 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Helper factory for presets
+ */
 public class WizardDefaultPresets {
 
   /**
@@ -38,7 +40,7 @@ public class WizardDefaultPresets {
    *
    * @return map of part and list of presets
    */
-  public static Map<WizardPart, List<? extends AbstractWizardParameters<?>>> createPresets() {
+  public static Map<WizardPart, List<WizardPreset>> createPresets() {
     return Arrays.stream(WizardPart.values())
         .collect(Collectors.toMap(part -> part, WizardPart::createPresetParameters));
   }

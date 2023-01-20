@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -60,6 +61,10 @@ public final class WizardFilterParameters extends AbstractWizardParameters<Strin
   public WizardFilterParameters() {
     super(WizardPart.DATA_IMPORT, ONLY_PRESET, handleOriginalFeatureLists, minNumberOfSamples,
         filter13C);
+  }
+
+  public static WizardPreset createPreset() {
+    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new WizardFilterParameters());
   }
 
   @Override

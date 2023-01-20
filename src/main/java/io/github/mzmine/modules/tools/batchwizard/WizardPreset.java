@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,9 +44,10 @@ public record WizardPreset(String name, String uniqueId,
    *                   string and equal to the name
    * @param parameters the parameters
    */
-  public WizardPreset(final String name, final String uniqueId, final ParameterSet parameters) {
+  public WizardPreset(final String name, final String uniqueId,
+      final AbstractWizardParameters<?> parameters) {
     // needs the clone to separate the parameters from the static ones
-    this.parameters = parameters.cloneParameterSet();
+    this.parameters = parameters;
     this.name = name;
     this.uniqueId = uniqueId;
   }
@@ -60,10 +60,10 @@ public record WizardPreset(String name, String uniqueId,
 
   @Override
   public int compareTo(@NotNull final WizardPreset o) {
-    return getPart().compareTo(o.part);
+    return part().compareTo(o.part());
   }
 
-  public WizardPart getPart() {
+  public WizardPart part() {
     return parameters.getPart();
   }
 

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardWorkflowParameters.WorkflowDefaults;
 
 public final class WizardWorkflowParameters extends AbstractWizardParameters<WorkflowDefaults> {
@@ -66,10 +67,11 @@ public final class WizardWorkflowParameters extends AbstractWizardParameters<Wor
     }
 
     @Override
-    public WizardWorkflowParameters create() {
-      return switch (this) {
+    public WizardPreset create() {
+      var params = switch (this) {
         case DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION -> new WizardWorkflowParameters(this);
       };
+      return new WizardPreset(toString(), getUniqueId(), params);
     }
 
   }

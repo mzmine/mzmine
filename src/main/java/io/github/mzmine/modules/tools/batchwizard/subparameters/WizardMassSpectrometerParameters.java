@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -117,8 +118,8 @@ public final class WizardMassSpectrometerParameters extends
     }
 
     @Override
-    public WizardMassSpectrometerParameters create() {
-      return switch (this) {
+    public WizardPreset create() {
+      var params = switch (this) {
         case Orbitrap ->
             new WizardMassSpectrometerParameters(this, 1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
                 new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
@@ -132,6 +133,7 @@ public final class WizardMassSpectrometerParameters extends
         case LOW_RES -> new WizardMassSpectrometerParameters(this, 0, 0, 0, new MZTolerance(0.5, 0),
             new MZTolerance(0.5, 0), new MZTolerance(0.5, 0));
       };
+      return new WizardPreset(toString(), getUniqueId(), params);
     }
   }
 }

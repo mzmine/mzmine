@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardIonInterfaceParameters.IonInterfaceDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardAnnotationParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardExportParameters;
@@ -70,17 +69,17 @@ public enum WizardPart {
    *
    * @return list of presets
    */
-  public List<AbstractWizardParameters<?>> createPresetParameters() {
+  public List<WizardPreset> createPresetParameters() {
     return switch (this) {
       // single values
-      case DATA_IMPORT -> List.of(new WizardDataImportParameters());
-      case FILTER -> List.of(new WizardFilterParameters());
-      case ANNOTATION -> List.of(new WizardAnnotationParameters());
-      case EXPORT -> List.of(new WizardExportParameters());
+      case DATA_IMPORT -> List.of(WizardDataImportParameters.createPreset());
+      case FILTER -> List.of(WizardFilterParameters.createPreset());
+      case ANNOTATION -> List.of(WizardAnnotationParameters.createPreset());
+      case EXPORT -> List.of(WizardExportParameters.createPreset());
       // enums
       case CHROMATOGRAPHY, IMS, MS, WORKFLOW ->
-          (List<AbstractWizardParameters<?>>) (List<? extends AbstractWizardParameters<?>>) Arrays.stream(
-              getDefaultPresets()).map(p -> ((WizardParameterFactory) p).create()).toList();
+          Arrays.stream(getDefaultPresets()).map(p -> ((WizardParameterFactory) p).create())
+              .toList();
     };
   }
 

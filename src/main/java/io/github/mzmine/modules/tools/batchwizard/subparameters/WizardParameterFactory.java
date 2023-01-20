@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+
 /**
  * implemented by preset enums of parts with multiple preset options
  */
@@ -33,7 +35,7 @@ public interface WizardParameterFactory {
   /**
    * @return the default parameters for this preset
    */
-  AbstractWizardParameters<?> create();
+  WizardPreset create();
 
   String getUniqueId();
 }

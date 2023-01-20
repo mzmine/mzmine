@@ -27,15 +27,18 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.ComposedParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class AbstractWizardParameters<T> extends SimpleParameterSet implements
+public abstract sealed class AbstractWizardParameters<T> extends ComposedParameterSet implements
     Comparable<AbstractWizardParameters<?>> permits AbstractWizardIonInterfaceParameters,
     WizardAnnotationParameters, WizardDataImportParameters, WizardExportParameters,
     WizardFilterParameters, WizardIonMobilityParameters, WizardMassSpectrometerParameters,
     WizardWorkflowParameters {
 
+  private ParameterSet parameters;
   private final WizardPart part;
   private T preset;
 
@@ -45,10 +48,11 @@ public abstract sealed class AbstractWizardParameters<T> extends SimpleParameter
    * @param parameters array of parameters
    */
   public AbstractWizardParameters(WizardPart part, T preset, Parameter<?>... parameters) {
-    super(parameters);
+    this.parameters = new SimpleParameterSet(parameters);
     this.part = part;
     this.preset = preset;
   }
+
 
   /**
    * The part describes the part in the workflow, like LC-tims-qTOF-MS
@@ -90,8 +94,14 @@ public abstract sealed class AbstractWizardParameters<T> extends SimpleParameter
   }
 
 
-  public AbstractWizardParameters<T> cloneParameterSet() {
-    new AbstractWizardParameters
+  @Override
+  protected ParameterSet getParamSet() {
+    return parameters;
+  }
+
+  @Override
+  protected void setParamSet(ParameterSet newParameters) {
+    parameters = newParameters;
   }
 
   // for sorting

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardIonInterfaceParameters.IonInterfaceDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -97,9 +98,9 @@ public abstract sealed class AbstractWizardIonInterfaceParameters extends
     /**
      * Create parameters from defaults
      */
-    public AbstractWizardIonInterfaceParameters create() {
+    public WizardPreset create() {
       // override defaults
-      return switch (this) {
+      var params = switch (this) {
         case HPLC -> new WizardIonInterfaceHplcParameters(this, true, 15, 4, Range.closed(0.5, 60d),
             new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.08f, Unit.MINUTES),
             new RTTolerance(0.4f, Unit.MINUTES));
@@ -126,6 +127,7 @@ public abstract sealed class AbstractWizardIonInterfaceParameters extends
         case DIRECT_INFUSION, FLOW_INJECT ->
             new WizardIonInterfaceDirectAndFlowInjectParameters(this, 5);
       };
+      return new WizardPreset(toString(), getUniqueId(), params);
     }
   }
 }

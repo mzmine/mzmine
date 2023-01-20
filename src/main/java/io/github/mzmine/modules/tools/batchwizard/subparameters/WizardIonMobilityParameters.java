@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters.ImsDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -110,8 +111,8 @@ public final class WizardIonMobilityParameters extends AbstractWizardParameters<
      * Create parameters from defaults
      */
     @Override
-    public WizardIonMobilityParameters create() {
-      return switch (this) {
+    public WizardPreset create() {
+      var params = switch (this) {
         case NO_IMS ->
             new WizardIonMobilityParameters(this, 5, 0.01, true, false, MobilityType.NONE);
         case TIMS -> new WizardIonMobilityParameters(this, 5, 0.01, true, true, MobilityType.TIMS);
@@ -121,6 +122,7 @@ public final class WizardIonMobilityParameters extends AbstractWizardParameters<
         case TWIMS ->
             new WizardIonMobilityParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
       };
+      return new WizardPreset(toString(), getUniqueId(), params);
     }
 
     @Override

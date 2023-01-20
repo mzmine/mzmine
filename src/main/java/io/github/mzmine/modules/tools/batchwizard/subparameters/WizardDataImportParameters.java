@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
 
 /**
@@ -46,6 +47,10 @@ public final class WizardDataImportParameters extends AbstractWizardParameters<S
     super(WizardPart.DATA_IMPORT, ONLY_PRESET,
         // parameters
         AllSpectralDataImportParameters.fileNames);
+  }
+
+  public static WizardPreset createPreset() {
+    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new WizardDataImportParameters());
   }
 
   @Override
