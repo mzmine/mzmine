@@ -48,7 +48,7 @@ public sealed class WizardWorkflowParameters extends
    * toString method
    */
   public enum WorkflowDefaults implements WizardParameterFactory {
-    MS1_ONLY, DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION;
+    DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION, MS1_ONLY;
 
     @Override
     public String toString() {
@@ -68,7 +68,9 @@ public sealed class WizardWorkflowParameters extends
     @Override
     public WizardPreset create() {
       var params = switch (this) {
+        // EMPTY parameter set
         case MS1_ONLY, LIBRARY_GENERATION -> new WizardWorkflowParameters(this);
+        // specialized parameters
         case DDA -> new WizardWorkflowDdaParameters(true, null, true, true);
         case GC_EI_DECONVOLUTION -> new WizardWorkflowGcElectronImpactParameters(true, null, true);
       };

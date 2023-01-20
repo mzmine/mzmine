@@ -80,12 +80,14 @@ public abstract class ComposedParameterSet implements ParameterSet {
 
   @Override
   public ParameterSet cloneParameterSet() {
-    return setParamSet(getParamSet().cloneParameterSet());
+    setParamSet(getParamSet().cloneParameterSet());
+    return getParamSet();
   }
 
   @Override
   public ParameterSet cloneParameterSet(final boolean keepSelection) {
-    return setParamSet(getParamSet().cloneParameterSet(keepSelection));
+    setParamSet(getParamSet().cloneParameterSet(keepSelection));
+    return getParamSet();
   }
 
   @Override

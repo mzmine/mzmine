@@ -33,6 +33,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardPresetFile;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;

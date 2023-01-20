@@ -134,12 +134,20 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
   }
 
   @Override
+  public void add(final int index, final WizardPreset element) {
+    steps.add(index, element);
+  }
+
+  @Override
   public boolean remove(final Object o) {
     return steps.remove(o);
   }
 
   @Override
   public WizardPreset remove(final int index) {
+    if (index >= size()) {
+      return null;
+    }
     return steps.remove(index);
   }
 }

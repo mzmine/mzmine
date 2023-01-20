@@ -47,7 +47,7 @@ public abstract sealed class AbstractWizardParameters<T> extends ComposedParamet
    * @param parameters array of parameters
    */
   public AbstractWizardParameters(WizardPart part, T preset, Parameter<?>... parameters) {
-    this.parameters = new SimpleParameterSet(parameters);
+    this.parameters = new SimpleParameterSet(parameters).cloneParameterSet();
     this.part = part;
     this.preset = preset;
   }
