@@ -28,14 +28,13 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -46,7 +45,7 @@ public class WizardWorkflowSaveModule implements MZmineModule {
 
   private static final Logger logger = Logger.getLogger(WizardWorkflowSaveModule.class.getName());
 
-  public static void setupAndSave(final List<WizardPreset> presetParts) {
+  public static void setupAndSave(final WizardWorkflow workflow) {
     ParameterSet params = MZmineCore.getConfiguration()
         .getModuleParameters(WizardWorkflowSaveModule.class);
     if (params.showSetupDialog(true) == ExitCode.OK) {
@@ -60,9 +59,9 @@ public class WizardWorkflowSaveModule implements MZmineModule {
           BatchWizardTab.FILE_FILTER.getExtensions().get(0).split("\\.")[1]);
       try {
         // only keep parts to export
-        var filteredParts = presetParts.stream()
+        var filteredWorkflow = workflow.stream()
             .filter(preset -> exportParts.contains(preset.part())).toList();
-        WizardWorkflowIOUtils.saveToFile(filteredParts, file, true);
+        WizardWorkflowIOUtils.saveToFile(filteredWorkflow, file, true);
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
             e);

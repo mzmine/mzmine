@@ -25,10 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
-import java.util.List;
 
 /**
  * Loaded from file, the presets for each part in the sequence
@@ -36,7 +35,7 @@ import java.util.List;
  * @param file  the file loaded
  * @param parts the presets in sequential order
  */
-public record LocalWizardWorkflowFile(File file, List<WizardPreset> parts) {
+public record LocalWizardWorkflowFile(File file, WizardWorkflow parts) {
 
   /**
    * File name without extension is used as name for presets

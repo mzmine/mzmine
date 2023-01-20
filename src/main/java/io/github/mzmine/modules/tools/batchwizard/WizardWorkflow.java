@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -149,5 +150,25 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
       return null;
     }
     return steps.remove(index);
+  }
+
+  public void sort() {
+    Collections.sort(steps);
+  }
+
+  public WizardPreset set(int index, WizardPreset element) {
+    return steps.set(index, element);
+  }
+
+  /**
+   * adds or replaces all steps
+   *
+   * @param partialWorkflow Might be the whole or a partial workflow
+   */
+  public void apply(final WizardWorkflow partialWorkflow) {
+    for (var newStep : partialWorkflow) {
+      // add or replace
+      add(newStep);
+    }
   }
 }

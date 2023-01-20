@@ -25,17 +25,17 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.WizardPresetDefaults;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -66,7 +66,7 @@ public class WizardWorkflowIOUtils {
   private WizardWorkflowIOUtils() {
   }
 
-  public static void saveToFile(final List<WizardPreset> parts, final File file,
+  public static void saveToFile(final List<WizardPreset> workflow, final File file,
       final boolean skipSensitive) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -76,13 +76,13 @@ public class WizardWorkflowIOUtils {
       Element configRoot = configuration.createElement(ELEMENT_TAG);
       configuration.appendChild(configRoot);
 
-      for (var part : parts) {
+      for (var step : workflow) {
         Element moduleElement = configuration.createElement(PART_TAG);
-        moduleElement.setAttribute(PART_ATTRIBUTE, part.part().name());
-        moduleElement.setAttribute(PRESET_ATTRIBUTE, part.name());
+        moduleElement.setAttribute(PART_ATTRIBUTE, step.part().name());
+        moduleElement.setAttribute(PRESET_ATTRIBUTE, step.uniquePresetId());
         // save parameters
-        part.parameters().setSkipSensitiveParameters(skipSensitive);
-        part.parameters().saveValuesToXML(moduleElement);
+        step.parameters().setSkipSensitiveParameters(skipSensitive);
+        step.parameters().saveValuesToXML(moduleElement);
         configRoot.appendChild(moduleElement);
       }
 
@@ -129,11 +129,13 @@ public class WizardWorkflowIOUtils {
   /**
    * Load presets from file - might be only parts of the whole workflow
    *
-   * @param file wizard preset xml file
+   * @param file       wizard preset xml file
+   * @param allPresets all presets as defined in the {@link BatchWizardTab}
    * @return a new list of presets for each defined part
    * @throws IOException
    */
-  public static WizardWorkflow loadFromFile(final File file) throws IOException {
+  public static WizardWorkflow loadFromFile(final File file,
+      Map<WizardPart, List<WizardPreset>> allPresets) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -142,39 +144,39 @@ public class WizardWorkflowIOUtils {
       XPath xpath = factory.newXPath();
 
       logger.finest("Loading wizard parameters from file " + file.getAbsolutePath());
-      // all presets
-      var allPresets = WizardPresetDefaults.createPresets();
+      // use all presets from the WizardTab
+      // find the one with the unique ID and part
+      // copy all parameters - this way, even new parameters are handled with their default value
       // result
-      WizardWorkflow parts = new WizardWorkflow();
+      WizardWorkflow workflow = new WizardWorkflow();
 
       XPathExpression expr = xpath.compile("//" + ELEMENT_TAG + "/" + PART_TAG);
       NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
       WizardPart part = null;
-      String presetName = null;
+      String uniquePresetId = null;
       int length = nodes.getLength();
       for (int i = 0; i < length; i++) {
         try {
           Element xmlNode = (Element) nodes.item(i);
           part = WizardPart.valueOf(xmlNode.getAttribute(PART_ATTRIBUTE));
-          presetName = xmlNode.getAttribute(PRESET_ATTRIBUTE);
-          final String finalPresetName = presetName;
+          uniquePresetId = xmlNode.getAttribute(PRESET_ATTRIBUTE);
+          final String uniqeId = uniquePresetId;
           // load preset parameters and add to wizard
-          allPresets.get(part).stream().filter(preset -> preset.name().equals(finalPresetName))
+          allPresets.get(part).stream().filter(preset -> preset.uniquePresetId().equals(uniqeId))
               .findFirst().ifPresent(preset -> {
-                parts.add(preset);
+                workflow.add(preset);
                 preset.parameters().loadValuesFromXML(xmlNode);
               });
         } catch (Exception e) {
-          logger.warning(
-              "Cannot set preset " + presetName + " to part " + part + ". Maybe it was renamed. "
-                  + e.getMessage());
+          logger.warning("Cannot set preset " + uniquePresetId + " to part " + part
+              + ". Maybe it was renamed. " + e.getMessage());
         }
       }
 
-      parts.sort(Comparator.comparingInt(value -> value.part().ordinal()));
+      workflow.sort();
 
       logger.info("Loaded wizard parameters from file " + file);
-      return parts;
+      return workflow;
     } catch (Exception e) {
       throw new IOException(e);
     }

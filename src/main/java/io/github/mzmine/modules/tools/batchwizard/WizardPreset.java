@@ -29,27 +29,27 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardPa
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @param name       the title of the preset for LC, IMS, MS, ... toString
- * @param uniqueId   for enums its the .name() for presets with only one options its the only string
- *                   and equal to the name
- * @param parameters the parameters - will be cloned internally
+ * @param name           the title of the preset for LC, IMS, MS, ... toString
+ * @param uniquePresetId for enums its the .name() for presets with only one options its the only
+ *                       string and equal to the name
+ * @param parameters     the parameters - will be cloned internally
  */
-public record WizardPreset(@NotNull String name, @NotNull String uniqueId,
+public record WizardPreset(@NotNull String name, @NotNull String uniquePresetId,
                            @NotNull AbstractWizardParameters<?> parameters) implements
     Comparable<WizardPreset> {
 
   /**
-   * @param name       the title of the preset for LC, IMS, MS, ... toString
-   * @param uniqueId   for enums its the .name() for presets with only one options its the only
-   *                   string and equal to the name
-   * @param parameters the parameters
+   * @param name           the title of the preset for LC, IMS, MS, ... toString
+   * @param uniquePresetId for enums its the .name() for presets with only one options its the only
+   *                       string and equal to the name
+   * @param parameters     the parameters
    */
-  public WizardPreset(final String name, final String uniqueId,
+  public WizardPreset(final String name, final String uniquePresetId,
       final AbstractWizardParameters<?> parameters) {
     // needs the clone to separate the parameters from the static ones
     this.parameters = parameters;
     this.name = name;
-    this.uniqueId = uniqueId;
+    this.uniquePresetId = uniquePresetId;
   }
 
 

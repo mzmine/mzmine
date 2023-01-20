@@ -211,7 +211,7 @@ public abstract class WizardBatchBuilder {
   public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardWorkflow steps) {
     // workflow is always set
     Optional<WizardPreset> preset = steps.get(WizardPart.WORKFLOW);
-    return switch (WorkflowDefaults.valueOf(preset.get().uniqueId())) {
+    return switch (WorkflowDefaults.valueOf(preset.get().uniquePresetId())) {
       case MS1_ONLY -> null;
       case DDA -> new WizardBatchBuilderLcDDA(steps);
       case GC_EI_DECONVOLUTION -> null;
