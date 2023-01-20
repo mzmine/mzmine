@@ -42,6 +42,18 @@ import java.util.List;
 public enum WizardPart {
   DATA_IMPORT, ION_INTERFACE, IMS, MS, FILTER, ANNOTATION, WORKFLOW;
 
+  @Override
+  public String toString() {
+    return switch (this) {
+      case IMS, MS -> super.toString();
+      case DATA_IMPORT -> "Data";
+      case FILTER -> "Filter";
+      case ANNOTATION -> "Annotation";
+      case WORKFLOW -> "Workflow";
+      case ION_INTERFACE -> "Sample introduction/ionization";
+    };
+  }
+
   /**
    * 1 String for parts with only one preset. Parts with more presets are managed by an
    * {@link Enum}
