@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -170,5 +171,11 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
       // add or replace
       add(newStep);
     }
+  }
+
+  public boolean isImaging() {
+    return get(WizardPart.ION_INTERFACE).map(
+            wizardPreset -> IonInterfaceDefaults.valueOf(wizardPreset.uniquePresetId()))
+        .map(IonInterfaceDefaults::isImaging).orElse(false);
   }
 }

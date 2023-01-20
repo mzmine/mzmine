@@ -152,20 +152,25 @@ public abstract class WizardBatchBuilder {
   protected final Integer minImsDataPoints;
   private final WizardWorkflow steps;
 
-//
-//  private final Range<Double> cropRtRange;
-//  private final RTTolerance intraSampleRtTol;
-//  private final RTTolerance interSampleRtTol;
-//  private final Integer minRtDataPoints;
-//  private final Integer maxIsomersInRt;
-//  private final RTTolerance rtFwhm;
-//  private final Boolean stableIonizationAcrossSamples;
-//  private final Boolean isExportActive;
-//  private final Boolean exportGnps;
-//  private final Boolean exportSirius;
-//  private final File exportPath;
-//  private final Boolean rtSmoothing;
 
+  /**
+   * Create workflow builder for workflow steps
+   *
+   * @param steps workflow
+   * @return the builder
+   */
+  public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardWorkflow steps) {
+    // workflow is always set
+    Optional<WizardPreset> preset = steps.get(WizardPart.WORKFLOW);
+    WorkflowDefaults workflowPreset = WorkflowDefaults.valueOf(preset.get().uniquePresetId());
+    return switch (workflowPreset) {
+      case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
+          : new WizardBatchBuilderLcDDA(steps);
+      case GC_EI_DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
+      case LIBRARY_GENERATION, MS1_ONLY -> throw new UnsupportedOperationException(
+          "Currently not implemented workflow " + workflowPreset);
+    };
+  }
 
   protected WizardBatchBuilder(WizardWorkflow steps) {
     this.steps = steps;
@@ -206,17 +211,6 @@ public abstract class WizardBatchBuilder {
         () -> new MZTolerance(0.002, 15));
     mzTolInterSample = orElseGet(params, MassSpectrometerWizardParameters.sampleToSampleMzTolerance,
         () -> new MZTolerance(0.002, 15));
-  }
-
-  public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardWorkflow steps) {
-    // workflow is always set
-    Optional<WizardPreset> preset = steps.get(WizardPart.WORKFLOW);
-    return switch (WorkflowDefaults.valueOf(preset.get().uniquePresetId())) {
-      case MS1_ONLY -> null;
-      case DDA -> new WizardBatchBuilderLcDDA(steps);
-      case GC_EI_DECONVOLUTION -> null;
-      case LIBRARY_GENERATION -> null;
-    };
   }
 
   protected static MZmineProcessingStep<MZmineProcessingModule> makeDuplicateRowFilterStep(

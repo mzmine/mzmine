@@ -129,5 +129,12 @@ public abstract sealed class AbstractIonInterfaceWizardParameters extends
       };
       return new WizardPreset(toString(), getUniqueId(), params);
     }
+
+    public boolean isImaging() {
+      return switch (this) {
+        case MALDI, LDI, DESI, SIMS -> true;
+        case HPLC, UHPLC, HILIC, GC_CI, GC_EI, DIRECT_INFUSION, FLOW_INJECT -> false;
+      };
+    }
   }
 }
