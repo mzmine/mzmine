@@ -33,9 +33,9 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import org.jetbrains.annotations.NotNull;
 
 public abstract sealed class AbstractWizardParameters<T> extends ComposedParameterSet implements
-    Comparable<AbstractWizardParameters<?>> permits AbstractWizardIonInterfaceParameters,
-    WizardAnnotationParameters, WizardDataImportParameters, WizardFilterParameters,
-    WizardIonMobilityParameters, WizardMassSpectrometerParameters, WizardWorkflowParameters {
+    Comparable<AbstractWizardParameters<?>> permits AbstractIonInterfaceWizardParameters,
+    AnnotationWizardParameters, DataImportWizardParameters, FilterWizardParameters,
+    IonMobilityWizardParameters, MassSpectrometerWizardParameters, WorkflowWizardParameters {
 
   private ParameterSet parameters;
   private final WizardPart part;

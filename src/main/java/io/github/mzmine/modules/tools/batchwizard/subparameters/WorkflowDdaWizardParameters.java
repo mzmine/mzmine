@@ -31,31 +31,35 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import java.io.File;
 
-public final class WizardWorkflowGcElectronImpactParameters extends WizardWorkflowParameters {
+public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters {
 
+  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
+      true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
-      "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
+      "Export for GNPS FBMN/IIMN",
+      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
       true);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...",
+          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
           FileSelectionType.SAVE, false), false);
 
 
-  public WizardWorkflowGcElectronImpactParameters() {
+  public WorkflowDdaWizardParameters() {
     super(WorkflowDefaults.DDA,
         // actual parameters
-        exportPath, exportGnps);
+        exportPath, exportGnps, exportSirius);
   }
 
 
-  public WizardWorkflowGcElectronImpactParameters(final boolean exportActive,
-      final File exportBasePath, final boolean exportGnpsActive) {
+  public WorkflowDdaWizardParameters(final boolean exportActive, final File exportBasePath,
+      final boolean exportGnpsActive, boolean exportSiriusActive) {
     this();
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
+    setParameter(exportSirius, exportSiriusActive);
   }
 
 }

@@ -28,17 +28,17 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardIonInterfaceParameters.IonInterfaceDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 
-public abstract sealed class AbstractWizardIonInterfaceParameters extends
-    AbstractWizardParameters<IonInterfaceDefaults> permits WizardIonInterfaceHplcParameters,
-    WizardIonInterfaceGcElectronImpactParameters, WizardIonInterfaceImagingParameters,
-    WizardIonInterfaceDirectAndFlowInjectParameters {
+public abstract sealed class AbstractIonInterfaceWizardParameters extends
+    AbstractWizardParameters<IonInterfaceDefaults> permits IonInterfaceHplcWizardParameters,
+    IonInterfaceGcElectronImpactWizardParameters, IonInterfaceImagingWizardParameters,
+    IonInterfaceDirectAndFlowInjectWizardParameters {
 
-  public AbstractWizardIonInterfaceParameters(final WizardPart part,
+  public AbstractIonInterfaceWizardParameters(final WizardPart part,
       final IonInterfaceDefaults preset, final Parameter<?>... parameters) {
     super(part, preset, parameters);
   }
@@ -101,31 +101,31 @@ public abstract sealed class AbstractWizardIonInterfaceParameters extends
     public WizardPreset create() {
       // override defaults
       var params = switch (this) {
-        case HPLC -> new WizardIonInterfaceHplcParameters(this, true, 15, 4, Range.closed(0.5, 60d),
+        case HPLC -> new IonInterfaceHplcWizardParameters(this, true, 15, 4, Range.closed(0.5, 60d),
             new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.08f, Unit.MINUTES),
             new RTTolerance(0.4f, Unit.MINUTES));
         case UHPLC ->
-            new WizardIonInterfaceHplcParameters(this, true, 15, 4, Range.closed(0.3, 30d),
+            new IonInterfaceHplcWizardParameters(this, true, 15, 4, Range.closed(0.3, 30d),
                 new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
                 new RTTolerance(0.1f, Unit.MINUTES));
         case HILIC ->
-            new WizardIonInterfaceHplcParameters(this, true, 15, 5, Range.closed(0.3, 30d),
+            new IonInterfaceHplcWizardParameters(this, true, 15, 5, Range.closed(0.3, 30d),
                 new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(3, Unit.SECONDS),
                 new RTTolerance(3, Unit.SECONDS));
         case GC_CI ->
-            new WizardIonInterfaceHplcParameters(this, true, 30, 6, Range.closed(0.3, 30d),
+            new IonInterfaceHplcWizardParameters(this, true, 30, 6, Range.closed(0.3, 30d),
                 new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
                 new RTTolerance(0.1f, Unit.MINUTES));
         // different workflow for GC-EI
         case GC_EI ->
-            new WizardIonInterfaceGcElectronImpactParameters(this, 6, Range.closed(0.3, 30d),
+            new IonInterfaceGcElectronImpactWizardParameters(this, 6, Range.closed(0.3, 30d),
                 new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
                 new RTTolerance(0.1f, Unit.MINUTES));
         // parameters for imaging
-        case MALDI, LDI, DESI, SIMS -> new WizardIonInterfaceImagingParameters(this, 25);
+        case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25);
         //
         case DIRECT_INFUSION, FLOW_INJECT ->
-            new WizardIonInterfaceDirectAndFlowInjectParameters(this, 5);
+            new IonInterfaceDirectAndFlowInjectWizardParameters(this, 5);
       };
       return new WizardPreset(toString(), getUniqueId(), params);
     }

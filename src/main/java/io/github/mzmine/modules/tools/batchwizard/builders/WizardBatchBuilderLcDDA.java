@@ -55,8 +55,8 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonInterfaceHplcParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardWorkflowDdaParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
@@ -98,23 +98,23 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
         .map(WizardPreset::parameters);
     // special workflow parameter are extracted here
     // chromatography
-    rtSmoothing = get(params, WizardIonInterfaceHplcParameters.smoothing, false);
-    cropRtRange = get(params, WizardIonInterfaceHplcParameters.cropRtRange);
-    intraSampleRtTol = get(params, WizardIonInterfaceHplcParameters.intraSampleRTTolerance);
-    interSampleRtTol = get(params, WizardIonInterfaceHplcParameters.interSampleRTTolerance);
-    minRtDataPoints = get(params, WizardIonInterfaceHplcParameters.minNumberOfDataPoints);
-    maxIsomersInRt = get(params, WizardIonInterfaceHplcParameters.maximumIsomersInChromatogram);
-    rtFwhm = get(params, WizardIonInterfaceHplcParameters.approximateChromatographicFWHM);
+    rtSmoothing = get(params, IonInterfaceHplcWizardParameters.smoothing, false);
+    cropRtRange = get(params, IonInterfaceHplcWizardParameters.cropRtRange);
+    intraSampleRtTol = get(params, IonInterfaceHplcWizardParameters.intraSampleRTTolerance);
+    interSampleRtTol = get(params, IonInterfaceHplcWizardParameters.interSampleRTTolerance);
+    minRtDataPoints = get(params, IonInterfaceHplcWizardParameters.minNumberOfDataPoints);
+    maxIsomersInRt = get(params, IonInterfaceHplcWizardParameters.maximumIsomersInChromatogram);
+    rtFwhm = get(params, IonInterfaceHplcWizardParameters.approximateChromatographicFWHM);
     stableIonizationAcrossSamples = get(params,
-        WizardIonInterfaceHplcParameters.stableIonizationAcrossSamples);
+        IonInterfaceHplcWizardParameters.stableIonizationAcrossSamples);
 
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW).map(WizardPreset::parameters);
-    OptionalValue<File> optional = getOptional(params, WizardWorkflowDdaParameters.exportPath);
+    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = get(params, WizardWorkflowDdaParameters.exportGnps);
-    exportSirius = get(params, WizardWorkflowDdaParameters.exportSirius);
+    exportGnps = get(params, WorkflowDdaWizardParameters.exportGnps);
+    exportSirius = get(params, WorkflowDdaWizardParameters.exportSirius);
   }
 
   @Override

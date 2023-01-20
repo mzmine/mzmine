@@ -42,28 +42,27 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BatchWizardPresetSaveModule implements MZmineModule {
+public class WizardWorkflowSaveModule implements MZmineModule {
 
-  private static final Logger logger = Logger.getLogger(
-      BatchWizardPresetSaveModule.class.getName());
+  private static final Logger logger = Logger.getLogger(WizardWorkflowSaveModule.class.getName());
 
   public static void setupAndSave(final List<WizardPreset> presetParts) {
     ParameterSet params = MZmineCore.getConfiguration()
-        .getModuleParameters(BatchWizardPresetSaveModule.class);
+        .getModuleParameters(WizardWorkflowSaveModule.class);
     if (params.showSetupDialog(true) == ExitCode.OK) {
-      MZmineCore.getConfiguration().setModuleParameters(BatchWizardPresetSaveModule.class, params);
+      MZmineCore.getConfiguration().setModuleParameters(WizardWorkflowSaveModule.class, params);
 
-      File directory = params.getValue(BatchWizardPresetSaveParameters.directory);
-      String fileName = params.getValue(BatchWizardPresetSaveParameters.fileName);
+      File directory = params.getValue(WizardWorkflowSaveParameters.directory);
+      String fileName = params.getValue(WizardWorkflowSaveParameters.fileName);
       final var exportParts = Arrays.stream(
-          params.getValue(BatchWizardPresetSaveParameters.exportParts)).collect(Collectors.toSet());
+          params.getValue(WizardWorkflowSaveParameters.exportParts)).collect(Collectors.toSet());
       File file = FileAndPathUtil.getRealFilePath(directory, fileName,
           BatchWizardTab.FILE_FILTER.getExtensions().get(0).split("\\.")[1]);
       try {
         // only keep parts to export
         var filteredParts = presetParts.stream()
             .filter(preset -> exportParts.contains(preset.part())).toList();
-        BatchWizardPresetIOUtils.saveToFile(filteredParts, file, true);
+        WizardWorkflowIOUtils.saveToFile(filteredParts, file, true);
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
             e);
@@ -78,7 +77,7 @@ public class BatchWizardPresetSaveModule implements MZmineModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return BatchWizardPresetSaveParameters.class;
+    return WizardWorkflowSaveParameters.class;
   }
 
 }

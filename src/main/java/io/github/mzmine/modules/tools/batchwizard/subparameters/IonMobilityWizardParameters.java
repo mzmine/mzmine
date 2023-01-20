@@ -28,7 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters.ImsDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -36,7 +36,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.text.DecimalFormat;
 
-public final class WizardIonMobilityParameters extends AbstractWizardParameters<ImsDefaults> {
+public final class IonMobilityWizardParameters extends AbstractWizardParameters<ImsDefaults> {
 
   public static final DoubleParameter approximateImsFWHM = new DoubleParameter(
       "Approximate feature FWHM",
@@ -58,17 +58,17 @@ public final class WizardIonMobilityParameters extends AbstractWizardParameters<
       "Apply smoothing in the mobility dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public WizardIonMobilityParameters() {
+  public IonMobilityWizardParameters() {
     this(ImsDefaults.NO_IMS);
   }
 
-  public WizardIonMobilityParameters(ImsDefaults preset) {
+  public IonMobilityWizardParameters(ImsDefaults preset) {
     super(WizardPart.IMS, preset,
         // parameters
         imsActive, smoothing, instrumentType, minNumberOfDataPoints, approximateImsFWHM);
   }
 
-  public WizardIonMobilityParameters(final ImsDefaults preset, final int minDataPoints,
+  public IonMobilityWizardParameters(final ImsDefaults preset, final int minDataPoints,
       final double fwhm, final boolean smooth, final boolean active,
       final MobilityType instrument) {
     this(preset);
@@ -114,13 +114,13 @@ public final class WizardIonMobilityParameters extends AbstractWizardParameters<
     public WizardPreset create() {
       var params = switch (this) {
         case NO_IMS ->
-            new WizardIonMobilityParameters(this, 5, 0.01, true, false, MobilityType.NONE);
-        case TIMS -> new WizardIonMobilityParameters(this, 5, 0.01, true, true, MobilityType.TIMS);
-        case IMS -> new WizardIonMobilityParameters(this, 5, 0.01, true, true, MobilityType.OTHER);
+            new IonMobilityWizardParameters(this, 5, 0.01, true, false, MobilityType.NONE);
+        case TIMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, true, MobilityType.TIMS);
+        case IMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, true, MobilityType.OTHER);
         case DTIMS ->
-            new WizardIonMobilityParameters(this, 4, 0.7, true, true, MobilityType.DRIFT_TUBE);
+            new IonMobilityWizardParameters(this, 4, 0.7, true, true, MobilityType.DRIFT_TUBE);
         case TWIMS ->
-            new WizardIonMobilityParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
+            new IonMobilityWizardParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
       };
       return new WizardPreset(toString(), getUniqueId(), params);
     }

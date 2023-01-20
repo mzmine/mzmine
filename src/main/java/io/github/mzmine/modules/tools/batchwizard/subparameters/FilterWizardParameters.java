@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -36,7 +36,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 /**
  * Filtering steps throughout the batch mode
  */
-public final class WizardFilterParameters extends AbstractWizardParameters<String> {
+public final class FilterWizardParameters extends AbstractWizardParameters<String> {
 
   public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
       "Min samples per aligned feature",
@@ -54,17 +54,17 @@ public final class WizardFilterParameters extends AbstractWizardParameters<Strin
 
   /**
    * There is only one preset no other options. If there are multiple options use an enum, see
-   * {@link WizardMassSpectrometerParameters} and {@link MsInstrumentDefaults}
+   * {@link MassSpectrometerWizardParameters} and {@link MsInstrumentDefaults}
    */
   public static final String ONLY_PRESET = "Filter";
 
-  public WizardFilterParameters() {
+  public FilterWizardParameters() {
     super(WizardPart.FILTER, ONLY_PRESET, handleOriginalFeatureLists, minNumberOfSamples,
         filter13C);
   }
 
   public static WizardPreset createPreset() {
-    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new WizardFilterParameters());
+    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new FilterWizardParameters());
   }
 
   @Override

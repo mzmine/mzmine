@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardDefaultPresets;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.WizardPresetDefaults;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -55,15 +55,15 @@ import org.w3c.dom.NodeList;
 /**
  * Import and export the batch wizard parameters
  */
-public class BatchWizardPresetIOUtils {
+public class WizardWorkflowIOUtils {
 
-  private static final Logger logger = Logger.getLogger(BatchWizardPresetIOUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(WizardWorkflowIOUtils.class.getName());
   private static final String PART_TAG = "wiz_part";
   private static final String ELEMENT_TAG = "wizard";
   private static final String PART_ATTRIBUTE = "part";
   private static final String PRESET_ATTRIBUTE = "preset";
 
-  private BatchWizardPresetIOUtils() {
+  private WizardWorkflowIOUtils() {
   }
 
   public static void saveToFile(final List<WizardPreset> parts, final File file,
@@ -143,7 +143,7 @@ public class BatchWizardPresetIOUtils {
 
       logger.finest("Loading wizard parameters from file " + file.getAbsolutePath());
       // all presets
-      var allPresets = WizardDefaultPresets.createPresets();
+      var allPresets = WizardPresetDefaults.createPresets();
       // result
       WizardWorkflow parts = new WizardWorkflow();
 

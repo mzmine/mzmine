@@ -31,10 +31,10 @@ import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
-import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetIOUtils;
-import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetSaveModule;
-import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardPresetFile;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
+import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardWorkflowFile;
+import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowIOUtils;
+import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
@@ -91,7 +91,7 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * Parameter panes of the selected presets
    */
-  private final Map<File, LocalWizardPresetFile> localPresets = new HashMap<>();
+  private final Map<File, LocalWizardWorkflowFile> localPresets = new HashMap<>();
   private final Map<WizardPreset, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
   private final Map<WizardPart, ComboBox<WizardPreset>> combos = new HashMap<>();
   private final LastFilesButton localPresetsButton;
@@ -147,7 +147,7 @@ public class BatchWizardTab extends SimpleTab {
     // add to schema
     addToSchema(preset);
     // do not add tabs for in active tabs
-    if (!preset.name().equals(WizardIonMobilityParameters.ImsDefaults.NO_IMS.toString())) {
+    if (!preset.name().equals(IonMobilityWizardParameters.ImsDefaults.NO_IMS.toString())) {
       return new Tab(preset.name(), paramPane);
     } else {
       return null;
@@ -215,7 +215,7 @@ public class BatchWizardTab extends SimpleTab {
     combos.clear();
     // create combo boxes for each part of the wizard that has multiple options
     // LC/GC - IMS? - MS instrument, Apply defaults
-    var presetMap = WizardDefaultPresets.createPresets();
+    var presetMap = WizardPresetDefaults.createPresets();
     for (final WizardPart part : WizardPart.values()) {
       var presets = FXCollections.observableArrayList(presetMap.get(part));
       workflowSteps.add(presets.get(0));
@@ -270,23 +270,23 @@ public class BatchWizardTab extends SimpleTab {
     var newLocalPresets = FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
         .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
           try {
-            WizardWorkflow presets = BatchWizardPresetIOUtils.loadFromFile(file);
-            return new LocalWizardPresetFile(file, presets);
+            WizardWorkflow presets = WizardWorkflowIOUtils.loadFromFile(file);
+            return new LocalWizardWorkflowFile(file, presets);
           } catch (IOException e) {
             logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
             return null;
           }
-        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardPresetFile::getName))
+        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardWorkflowFile::getName))
         .toList();
     localPresets.clear();
-    for (final LocalWizardPresetFile preset : newLocalPresets) {
+    for (final LocalWizardWorkflowFile preset : newLocalPresets) {
       localPresets.put(preset.file(), preset);
     }
     localPresetsButton.setLastFiles(
-        newLocalPresets.stream().map(LocalWizardPresetFile::file).toList());
+        newLocalPresets.stream().map(LocalWizardWorkflowFile::file).toList());
   }
 
-  private void applyPreset(LocalWizardPresetFile preset) {
+  private void applyPreset(LocalWizardWorkflowFile preset) {
     if (preset == null) {
       return;
     }
@@ -339,7 +339,7 @@ public class BatchWizardTab extends SimpleTab {
 
     // use initial parameters to
     try {
-      List<WizardPreset> wizardPresets = BatchWizardPresetIOUtils.loadFromFile(file);
+      List<WizardPreset> wizardPresets = WizardWorkflowIOUtils.loadFromFile(file);
       if (!wizardPresets.isEmpty()) {
         appendPresetsToUi(wizardPresets);
       }
@@ -353,7 +353,7 @@ public class BatchWizardTab extends SimpleTab {
   private void savePresets() {
     // update the preset parameters
     updateAllParametersFromUi();
-    BatchWizardPresetSaveModule.setupAndSave(workflowSteps);
+    WizardWorkflowSaveModule.setupAndSave(workflowSteps);
   }
 
   public void createBatch() {

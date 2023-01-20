@@ -77,11 +77,11 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonInterfaceHplcParameters.ChromatographyWorkflow;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardWorkflowParameters.WorkflowDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters.ChromatographyWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -180,31 +180,31 @@ public abstract class WizardBatchBuilder {
 
     // filter
     params = steps.get(WizardPart.FILTER).map(WizardPreset::parameters);
-    filter13C = get(params, WizardFilterParameters.filter13C, false);
-    minAlignedSamples = orElseGet(params, WizardFilterParameters.minNumberOfSamples, () -> 1);
+    filter13C = get(params, FilterWizardParameters.filter13C, false);
+    minAlignedSamples = orElseGet(params, FilterWizardParameters.minNumberOfSamples, () -> 1);
     handleOriginalFeatureLists = orElseGet(params,
-        WizardFilterParameters.handleOriginalFeatureLists, () -> OriginalFeatureListOption.REMOVE);
+        FilterWizardParameters.handleOriginalFeatureLists, () -> OriginalFeatureListOption.REMOVE);
 
     // ion mobility IMS
     params = steps.get(WizardPart.IMS).map(WizardPreset::parameters);
-    isImsActive = get(params, WizardIonMobilityParameters.imsActive, false);
-    imsInstrumentType = get(params, WizardIonMobilityParameters.instrumentType, MobilityType.NONE);
-    imsFwhm = get(params, WizardIonMobilityParameters.approximateImsFWHM, 0d);
-    minImsDataPoints = get(params, WizardIonMobilityParameters.minNumberOfDataPoints, 4);
-    imsSmoothing = get(params, WizardIonMobilityParameters.smoothing, false);
+    isImsActive = get(params, IonMobilityWizardParameters.imsActive, false);
+    imsInstrumentType = get(params, IonMobilityWizardParameters.instrumentType, MobilityType.NONE);
+    imsFwhm = get(params, IonMobilityWizardParameters.approximateImsFWHM, 0d);
+    minImsDataPoints = get(params, IonMobilityWizardParameters.minNumberOfDataPoints, 4);
+    imsSmoothing = get(params, IonMobilityWizardParameters.smoothing, false);
 
     // mass spectrometer
     params = steps.get(WizardPart.MS).map(WizardPreset::parameters);
-    polarity = get(params, WizardMassSpectrometerParameters.polarity, Polarity.Positive);
-    noiseLevelMsn = get(params, WizardMassSpectrometerParameters.ms2NoiseLevel, 0d);
-    noiseLevelMs1 = get(params, WizardMassSpectrometerParameters.ms1NoiseLevel, 0d);
-    minFeatureHeight = get(params, WizardMassSpectrometerParameters.minimumFeatureHeight, 0d);
-    mzTolScans = orElseGet(params, WizardMassSpectrometerParameters.scanToScanMzTolerance,
+    polarity = get(params, MassSpectrometerWizardParameters.polarity, Polarity.Positive);
+    noiseLevelMsn = get(params, MassSpectrometerWizardParameters.ms2NoiseLevel, 0d);
+    noiseLevelMs1 = get(params, MassSpectrometerWizardParameters.ms1NoiseLevel, 0d);
+    minFeatureHeight = get(params, MassSpectrometerWizardParameters.minimumFeatureHeight, 0d);
+    mzTolScans = orElseGet(params, MassSpectrometerWizardParameters.scanToScanMzTolerance,
         () -> new MZTolerance(0.002, 15));
     mzTolFeaturesIntraSample = orElseGet(params,
-        WizardMassSpectrometerParameters.featureToFeatureMzTolerance,
+        MassSpectrometerWizardParameters.featureToFeatureMzTolerance,
         () -> new MZTolerance(0.002, 15));
-    mzTolInterSample = orElseGet(params, WizardMassSpectrometerParameters.sampleToSampleMzTolerance,
+    mzTolInterSample = orElseGet(params, MassSpectrometerWizardParameters.sampleToSampleMzTolerance,
         () -> new MZTolerance(0.002, 15));
   }
 

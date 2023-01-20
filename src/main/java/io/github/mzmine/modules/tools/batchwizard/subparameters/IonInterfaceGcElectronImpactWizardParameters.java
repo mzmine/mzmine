@@ -33,8 +33,8 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public final class WizardIonInterfaceGcElectronImpactParameters extends
-    AbstractWizardIonInterfaceParameters {
+public final class IonInterfaceGcElectronImpactWizardParameters extends
+    AbstractIonInterfaceWizardParameters {
 
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
@@ -64,19 +64,19 @@ public final class WizardIonInterfaceGcElectronImpactParameters extends
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public WizardIonInterfaceGcElectronImpactParameters() {
+  public IonInterfaceGcElectronImpactWizardParameters() {
     // set and change later
     this(IonInterfaceDefaults.values()[0]);
   }
 
-  public WizardIonInterfaceGcElectronImpactParameters(final IonInterfaceDefaults preset) {
+  public IonInterfaceGcElectronImpactWizardParameters(final IonInterfaceDefaults preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         smoothing, cropRtRange, minNumberOfDataPoints, approximateChromatographicFWHM,
         intraSampleRTTolerance, interSampleRTTolerance);
   }
 
-  public WizardIonInterfaceGcElectronImpactParameters(final IonInterfaceDefaults preset,
+  public IonInterfaceGcElectronImpactWizardParameters(final IonInterfaceDefaults preset,
       final int minDataPoints, final Range<Double> cropRt, final RTTolerance fwhm,
       final RTTolerance intraSampleTolerance, final RTTolerance interSampleTolerance) {
     this(preset);

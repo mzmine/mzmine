@@ -28,25 +28,25 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public final class WizardIonInterfaceDirectAndFlowInjectParameters extends
-    AbstractWizardIonInterfaceParameters {
+public final class IonInterfaceImagingWizardParameters extends
+    AbstractIonInterfaceWizardParameters {
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Min # of data points", "Minimum number of data points as used in image building", 25, 1,
       Integer.MAX_VALUE);
 
-  public WizardIonInterfaceDirectAndFlowInjectParameters() {
+  public IonInterfaceImagingWizardParameters() {
     // set and change later
     this(IonInterfaceDefaults.values()[0]);
   }
 
-  public WizardIonInterfaceDirectAndFlowInjectParameters(final IonInterfaceDefaults preset) {
+  public IonInterfaceImagingWizardParameters(final IonInterfaceDefaults preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         minNumberOfDataPoints);
   }
 
-  public WizardIonInterfaceDirectAndFlowInjectParameters(final IonInterfaceDefaults preset,
+  public IonInterfaceImagingWizardParameters(final IonInterfaceDefaults preset,
       final int minDataPoints) {
     this(preset);
     setParameter(minNumberOfDataPoints, minDataPoints);

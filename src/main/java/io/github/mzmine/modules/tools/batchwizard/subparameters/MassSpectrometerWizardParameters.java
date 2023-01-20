@@ -29,13 +29,13 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public final class WizardMassSpectrometerParameters extends
+public final class MassSpectrometerWizardParameters extends
     AbstractWizardParameters<MsInstrumentDefaults> {
 
   public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
@@ -69,18 +69,18 @@ public final class WizardMassSpectrometerParameters extends
       "Sample to sample m/z tolerance",
       "Describes the m/z fluctuations between different samples. Used for alignment.");
 
-  public WizardMassSpectrometerParameters() {
+  public MassSpectrometerWizardParameters() {
     this(MsInstrumentDefaults.Orbitrap);
   }
 
-  public WizardMassSpectrometerParameters(MsInstrumentDefaults preset) {
+  public MassSpectrometerWizardParameters(MsInstrumentDefaults preset) {
     super(WizardPart.MS, preset,
         // parameters
         polarity, ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight, scanToScanMzTolerance,
         featureToFeatureMzTolerance, sampleToSampleMzTolerance);
   }
 
-  public WizardMassSpectrometerParameters(final MsInstrumentDefaults preset, final double ms1noise,
+  public MassSpectrometerWizardParameters(final MsInstrumentDefaults preset, final double ms1noise,
       final double ms2noise, final double minHeight, final MZTolerance scan2scanMzTolerance,
       final MZTolerance f2fMzTolerance, final MZTolerance sample2sampleMzTolerance) {
     this(preset);
@@ -121,16 +121,16 @@ public final class WizardMassSpectrometerParameters extends
     public WizardPreset create() {
       var params = switch (this) {
         case Orbitrap ->
-            new WizardMassSpectrometerParameters(this, 1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
+            new MassSpectrometerWizardParameters(this, 1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
                 new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
         case qTOF ->
-            new WizardMassSpectrometerParameters(this, 5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
+            new MassSpectrometerWizardParameters(this, 5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
                 new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
         // TODO optimize some defaults
         case FTICR ->
-            new WizardMassSpectrometerParameters(this, 5E2, 1E2, 1E3, new MZTolerance(0.0005, 5),
+            new MassSpectrometerWizardParameters(this, 5E2, 1E2, 1E3, new MZTolerance(0.0005, 5),
                 new MZTolerance(0.0005, 2), new MZTolerance(0.0005, 3.5));
-        case LOW_RES -> new WizardMassSpectrometerParameters(this, 0, 0, 0, new MZTolerance(0.5, 0),
+        case LOW_RES -> new MassSpectrometerWizardParameters(this, 0, 0, 0, new MZTolerance(0.5, 0),
             new MZTolerance(0.5, 0), new MZTolerance(0.5, 0));
       };
       return new WizardPreset(toString(), getUniqueId(), params);

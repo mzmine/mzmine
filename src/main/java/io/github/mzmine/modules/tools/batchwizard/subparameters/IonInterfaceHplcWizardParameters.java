@@ -33,7 +33,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public final class WizardIonInterfaceHplcParameters extends AbstractWizardIonInterfaceParameters {
+public final class IonInterfaceHplcWizardParameters extends AbstractIonInterfaceWizardParameters {
 
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
@@ -76,12 +76,12 @@ public final class WizardIonInterfaceHplcParameters extends AbstractWizardIonInt
       true);
 
 
-  public WizardIonInterfaceHplcParameters() {
+  public IonInterfaceHplcWizardParameters() {
     // set and change later
     this(IonInterfaceDefaults.values()[0]);
   }
 
-  public WizardIonInterfaceHplcParameters(final IonInterfaceDefaults preset) {
+  public IonInterfaceHplcWizardParameters(final IonInterfaceDefaults preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         smoothing, stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
@@ -89,7 +89,7 @@ public final class WizardIonInterfaceHplcParameters extends AbstractWizardIonInt
         interSampleRTTolerance);
   }
 
-  public WizardIonInterfaceHplcParameters(final IonInterfaceDefaults preset,
+  public IonInterfaceHplcWizardParameters(final IonInterfaceDefaults preset,
       final boolean stableIonization, final int maxIsomersInSample, final int minDataPoints,
       final Range<Double> cropRt, final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
       final RTTolerance interSampleTolerance) {

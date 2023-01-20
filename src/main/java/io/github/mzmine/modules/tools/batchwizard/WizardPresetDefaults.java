@@ -23,30 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.io;
+package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.util.files.FileAndPathUtil;
-import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Loaded from file, the presets for each part in the sequence
- *
- * @param file  the file loaded
- * @param parts the presets in sequential order
+ * Helper factory for presets
  */
-public record LocalWizardPresetFile(File file, List<WizardPreset> parts) {
+public class WizardPresetDefaults {
 
   /**
-   * File name without extension is used as name for presets
+   * Create list of presets for every {@link WizardPart}
+   *
+   * @return map of part and list of presets
    */
-  public String getName() {
-    return FileAndPathUtil.eraseFormat(file.getName());
+  public static Map<WizardPart, List<WizardPreset>> createPresets() {
+    return Arrays.stream(WizardPart.values())
+        .collect(Collectors.toMap(part -> part, WizardPart::createPresetParameters));
   }
 
-  @Override
-  public String toString() {
-    return getName();
-  }
 }

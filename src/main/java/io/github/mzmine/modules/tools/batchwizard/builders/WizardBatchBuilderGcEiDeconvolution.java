@@ -44,8 +44,8 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonInterfaceGcElectronImpactParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardWorkflowGcElectronImpactParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -78,24 +78,24 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         .map(WizardPreset::parameters);
     // special workflow parameter are extracted here
     // chromatography
-    rtSmoothing = get(params, WizardIonInterfaceGcElectronImpactParameters.smoothing, false);
-    cropRtRange = get(params, WizardIonInterfaceGcElectronImpactParameters.cropRtRange);
+    rtSmoothing = get(params, IonInterfaceGcElectronImpactWizardParameters.smoothing, false);
+    cropRtRange = get(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
     intraSampleRtTol = get(params,
-        WizardIonInterfaceGcElectronImpactParameters.intraSampleRTTolerance);
+        IonInterfaceGcElectronImpactWizardParameters.intraSampleRTTolerance);
     interSampleRtTol = get(params,
-        WizardIonInterfaceGcElectronImpactParameters.interSampleRTTolerance);
+        IonInterfaceGcElectronImpactWizardParameters.interSampleRTTolerance);
     minRtDataPoints = get(params,
-        WizardIonInterfaceGcElectronImpactParameters.minNumberOfDataPoints);
+        IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
     rtFwhm = get(params,
-        WizardIonInterfaceGcElectronImpactParameters.approximateChromatographicFWHM);
+        IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM);
 
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
     params = steps.get(WizardPart.WORKFLOW).map(WizardPreset::parameters);
     OptionalValue<File> optional = getOptional(params,
-        WizardWorkflowGcElectronImpactParameters.exportPath);
+        WorkflowGcElectronImpactWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = get(params, WizardWorkflowGcElectronImpactParameters.exportGnps);
+    exportGnps = get(params, WorkflowGcElectronImpactWizardParameters.exportGnps);
   }
 
   @Override

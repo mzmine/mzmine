@@ -27,14 +27,14 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardWorkflowParameters.WorkflowDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
 import io.github.mzmine.parameters.Parameter;
 
-public sealed class WizardWorkflowParameters extends
-    AbstractWizardParameters<WorkflowDefaults> permits WizardWorkflowDdaParameters,
-    WizardWorkflowGcElectronImpactParameters {
+public sealed class WorkflowWizardParameters extends
+    AbstractWizardParameters<WorkflowDefaults> permits WorkflowDdaWizardParameters,
+    WorkflowGcElectronImpactWizardParameters {
 
-  public WizardWorkflowParameters(final WorkflowDefaults preset, final Parameter<?>... parameters) {
+  public WorkflowWizardParameters(final WorkflowDefaults preset, final Parameter<?>... parameters) {
     super(WizardPart.WORKFLOW, preset, parameters);
   }
 
@@ -69,10 +69,10 @@ public sealed class WizardWorkflowParameters extends
     public WizardPreset create() {
       var params = switch (this) {
         // EMPTY parameter set
-        case MS1_ONLY, LIBRARY_GENERATION -> new WizardWorkflowParameters(this);
+        case MS1_ONLY, LIBRARY_GENERATION -> new WorkflowWizardParameters(this);
         // specialized parameters
-        case DDA -> new WizardWorkflowDdaParameters(true, null, true, true);
-        case GC_EI_DECONVOLUTION -> new WizardWorkflowGcElectronImpactParameters(true, null, true);
+        case DDA -> new WorkflowDdaWizardParameters(true, null, true, true);
+        case GC_EI_DECONVOLUTION -> new WorkflowGcElectronImpactWizardParameters(true, null, true);
       };
       return new WizardPreset(toString(), getUniqueId(), params);
     }
