@@ -170,7 +170,7 @@ public class ImageAllMsMsPane extends BorderPane {
               msMsMarker.setBaseRadius(50);
               msMsMarker.setTipRadius(10);
               msMsMarker.setArrowPaint(markerColor);
-              msMsMarker.setOutlinePaint(outlineColor);
+              msMsMarker.setArrowWidth(3d);
               imagePlot.getChart().getChart().getXYPlot().addAnnotation(msMsMarker, false);
             }
           }
