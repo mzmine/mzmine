@@ -28,16 +28,14 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardWorkflowParameters.WorkflowDefaults;
+import io.github.mzmine.parameters.Parameter;
 
-public final class WizardWorkflowParameters extends AbstractWizardParameters<WorkflowDefaults> {
+public sealed class WizardWorkflowParameters extends
+    AbstractWizardParameters<WorkflowDefaults> permits WizardWorkflowDdaParameters,
+    WizardWorkflowGcElectronImpactParameters {
 
-
-  public WizardWorkflowParameters() {
-    this(WorkflowDefaults.DDA);
-  }
-
-  public WizardWorkflowParameters(WorkflowDefaults preset) {
-    super(WizardPart.MS, preset);
+  public WizardWorkflowParameters(final WorkflowDefaults preset, final Parameter<?>... parameters) {
+    super(WizardPart.WORKFLOW, preset, parameters);
   }
 
   @Override
@@ -50,12 +48,13 @@ public final class WizardWorkflowParameters extends AbstractWizardParameters<Wor
    * toString method
    */
   public enum WorkflowDefaults implements WizardParameterFactory {
-    DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION;
+    MS1_ONLY, DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION;
 
     @Override
     public String toString() {
       return switch (this) {
         case DDA -> super.toString();
+        case MS1_ONLY -> "MS1 only";
         case GC_EI_DECONVOLUTION -> "GC-EI deconvolution";
         case LIBRARY_GENERATION -> "Library generation";
       };
@@ -69,7 +68,9 @@ public final class WizardWorkflowParameters extends AbstractWizardParameters<Wor
     @Override
     public WizardPreset create() {
       var params = switch (this) {
-        case DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION -> new WizardWorkflowParameters(this);
+        case MS1_ONLY, LIBRARY_GENERATION -> new WizardWorkflowParameters(this);
+        case DDA -> new WizardWorkflowDdaParameters(true, null, true, true);
+        case GC_EI_DECONVOLUTION -> new WizardWorkflowGcElectronImpactParameters(true, null, true);
       };
       return new WizardPreset(toString(), getUniqueId(), params);
     }

@@ -23,33 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+public enum WizardWorkflows {
+  DDA, GC_EI_DECONVOLUTION, GC_EI_LIBRARY_GENERATION
 
-public final class WizardIonInterfaceImagingParameters extends
-    AbstractWizardIonInterfaceParameters {
-
-  public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Min # of data points", "Minimum number of data points as used in image building", 25, 1,
-      Integer.MAX_VALUE);
-
-  public WizardIonInterfaceImagingParameters() {
-    // set and change later
-    this(IonInterfaceDefaults.values()[0]);
-  }
-
-  public WizardIonInterfaceImagingParameters(final IonInterfaceDefaults preset) {
-    super(WizardPart.ION_INTERFACE, preset,
-        // actual parameters
-        minNumberOfDataPoints);
-  }
-
-  public WizardIonInterfaceImagingParameters(final IonInterfaceDefaults preset,
-      final int minDataPoints) {
-    this(preset);
-    setParameter(minNumberOfDataPoints, minDataPoints);
-  }
 
 }

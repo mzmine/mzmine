@@ -70,7 +70,7 @@ public final class WizardIonInterfaceGcElectronImpactParameters extends
   }
 
   public WizardIonInterfaceGcElectronImpactParameters(final IonInterfaceDefaults preset) {
-    super(WizardPart.CHROMATOGRAPHY, preset,
+    super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         smoothing, cropRtRange, minNumberOfDataPoints, approximateChromatographicFWHM,
         intraSampleRTTolerance, interSampleRTTolerance);

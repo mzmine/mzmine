@@ -25,45 +25,37 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import java.io.File;
 
-public final class WizardExportParameters extends AbstractWizardParameters<String> {
+public final class WizardWorkflowGcElectronImpactParameters extends WizardWorkflowParameters {
 
-  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
-      true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
-      "Export for GNPS FBMN/IIMN",
-      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
+      "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
       true);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
+          "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...",
           FileSelectionType.SAVE, false), false);
 
 
-  /**
-   * There is only one preset no other options. If there are multiple options use an enum, see
-   * {@link WizardMassSpectrometerParameters} and {@link MsInstrumentDefaults}
-   */
-  public static final String ONLY_PRESET = "Export";
-
-  public WizardExportParameters() {
-    super(WizardPart.DATA_IMPORT, ONLY_PRESET, exportPath, exportGnps, exportSirius);
+  public WizardWorkflowGcElectronImpactParameters() {
+    super(WorkflowDefaults.DDA,
+        // actual parameters
+        exportPath, exportGnps);
   }
 
-  public static WizardPreset createPreset() {
-    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new WizardExportParameters());
+
+  public WizardWorkflowGcElectronImpactParameters(final boolean exportActive,
+      final File exportBasePath, final boolean exportGnpsActive) {
+    this();
+    setParameter(exportPath, exportActive);
+    getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
+    setParameter(exportGnps, exportGnpsActive);
   }
 
-  @Override
-  public String[] getPresetChoices() {
-    return new String[]{ONLY_PRESET};
-  }
 }

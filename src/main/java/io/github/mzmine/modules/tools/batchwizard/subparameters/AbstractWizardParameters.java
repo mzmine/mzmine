@@ -34,9 +34,8 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract sealed class AbstractWizardParameters<T> extends ComposedParameterSet implements
     Comparable<AbstractWizardParameters<?>> permits AbstractWizardIonInterfaceParameters,
-    WizardAnnotationParameters, WizardDataImportParameters, WizardExportParameters,
-    WizardFilterParameters, WizardIonMobilityParameters, WizardMassSpectrometerParameters,
-    WizardWorkflowParameters {
+    WizardAnnotationParameters, WizardDataImportParameters, WizardFilterParameters,
+    WizardIonMobilityParameters, WizardMassSpectrometerParameters, WizardWorkflowParameters {
 
   private ParameterSet parameters;
   private final WizardPart part;

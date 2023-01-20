@@ -59,7 +59,7 @@ public final class WizardFilterParameters extends AbstractWizardParameters<Strin
   public static final String ONLY_PRESET = "Filter";
 
   public WizardFilterParameters() {
-    super(WizardPart.DATA_IMPORT, ONLY_PRESET, handleOriginalFeatureLists, minNumberOfSamples,
+    super(WizardPart.FILTER, ONLY_PRESET, handleOriginalFeatureLists, minNumberOfSamples,
         filter13C);
   }
 

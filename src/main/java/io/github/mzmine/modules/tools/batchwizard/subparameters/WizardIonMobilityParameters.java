@@ -100,7 +100,7 @@ public final class WizardIonMobilityParameters extends AbstractWizardParameters<
     @Override
     public String toString() {
       return switch (this) {
-        case NO_IMS -> " ";
+        case NO_IMS -> "";
         case TIMS, IMS -> super.toString();
         case DTIMS -> "DTIMS";
         case TWIMS -> "TWIMS";

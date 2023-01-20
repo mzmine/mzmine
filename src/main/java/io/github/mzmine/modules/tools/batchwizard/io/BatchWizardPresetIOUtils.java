@@ -28,12 +28,12 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 import io.github.mzmine.modules.tools.batchwizard.WizardDefaultPresets;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -133,7 +133,7 @@ public class BatchWizardPresetIOUtils {
    * @return a new list of presets for each defined part
    * @throws IOException
    */
-  public static List<WizardPreset> loadFromFile(final File file) throws IOException {
+  public static WizardWorkflow loadFromFile(final File file) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -145,7 +145,7 @@ public class BatchWizardPresetIOUtils {
       // all presets
       var allPresets = WizardDefaultPresets.createPresets();
       // result
-      List<WizardPreset> parts = new ArrayList<>();
+      WizardWorkflow parts = new WizardWorkflow();
 
       XPathExpression expr = xpath.compile("//" + ELEMENT_TAG + "/" + PART_TAG);
       NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);

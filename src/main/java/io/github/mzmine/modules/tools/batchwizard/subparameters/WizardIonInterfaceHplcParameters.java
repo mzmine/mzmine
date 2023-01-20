@@ -82,7 +82,7 @@ public final class WizardIonInterfaceHplcParameters extends AbstractWizardIonInt
   }
 
   public WizardIonInterfaceHplcParameters(final IonInterfaceDefaults preset) {
-    super(WizardPart.CHROMATOGRAPHY, preset,
+    super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         smoothing, stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
         minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,

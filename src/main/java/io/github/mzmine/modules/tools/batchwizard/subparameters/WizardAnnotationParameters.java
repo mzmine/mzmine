@@ -48,7 +48,7 @@ public final class WizardAnnotationParameters extends AbstractWizardParameters<S
 //  public static final OptionalModuleParameter<LocalCSVDatabaseSearchParameters>
 
   public WizardAnnotationParameters() {
-    super(WizardPart.DATA_IMPORT, ONLY_PRESET,
+    super(WizardPart.ANNOTATION, ONLY_PRESET,
         // parameters
         SpectralLibraryImportParameters.dataBaseFiles);
   }

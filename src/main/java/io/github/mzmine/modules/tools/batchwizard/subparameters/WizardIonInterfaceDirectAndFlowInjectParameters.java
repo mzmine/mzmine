@@ -41,7 +41,7 @@ public final class WizardIonInterfaceDirectAndFlowInjectParameters extends
   }
 
   public WizardIonInterfaceDirectAndFlowInjectParameters(final IonInterfaceDefaults preset) {
-    super(WizardPart.CHROMATOGRAPHY, preset,
+    super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         minNumberOfDataPoints);
   }

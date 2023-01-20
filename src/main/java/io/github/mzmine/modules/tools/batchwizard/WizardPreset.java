@@ -34,8 +34,8 @@ import org.jetbrains.annotations.NotNull;
  *                   and equal to the name
  * @param parameters the parameters - will be cloned internally
  */
-public record WizardPreset(String name, String uniqueId,
-                           AbstractWizardParameters<?> parameters) implements
+public record WizardPreset(@NotNull String name, @NotNull String uniqueId,
+                           @NotNull AbstractWizardParameters<?> parameters) implements
     Comparable<WizardPreset> {
 
   /**

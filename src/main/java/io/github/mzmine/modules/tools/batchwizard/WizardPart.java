@@ -28,7 +28,6 @@ package io.github.mzmine.modules.tools.batchwizard;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardIonInterfaceParameters.IonInterfaceDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardAnnotationParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardDataImportParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardFilterParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters.ImsDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardMassSpectrometerParameters.MsInstrumentDefaults;
@@ -41,7 +40,7 @@ import java.util.List;
  * Describes the sequence of steps in the wizard. Elements should stay in correct order.
  */
 public enum WizardPart {
-  DATA_IMPORT, CHROMATOGRAPHY, IMS, MS, FILTER, ANNOTATION, EXPORT, WORKFLOW;
+  DATA_IMPORT, ION_INTERFACE, IMS, MS, FILTER, ANNOTATION, WORKFLOW;
 
   /**
    * 1 String for parts with only one preset. Parts with more presets are managed by an
@@ -54,10 +53,9 @@ public enum WizardPart {
       // only one option
       case DATA_IMPORT -> new String[]{WizardDataImportParameters.ONLY_PRESET};
       case FILTER -> new String[]{WizardFilterParameters.ONLY_PRESET};
-      case EXPORT -> new String[]{WizardExportParameters.ONLY_PRESET};
       case ANNOTATION -> new String[]{WizardAnnotationParameters.ONLY_PRESET};
       // multiple options
-      case CHROMATOGRAPHY -> IonInterfaceDefaults.values();
+      case ION_INTERFACE -> IonInterfaceDefaults.values();
       case IMS -> ImsDefaults.values();
       case MS -> MsInstrumentDefaults.values();
       case WORKFLOW -> WorkflowDefaults.values();
@@ -75,9 +73,8 @@ public enum WizardPart {
       case DATA_IMPORT -> List.of(WizardDataImportParameters.createPreset());
       case FILTER -> List.of(WizardFilterParameters.createPreset());
       case ANNOTATION -> List.of(WizardAnnotationParameters.createPreset());
-      case EXPORT -> List.of(WizardExportParameters.createPreset());
       // enums
-      case CHROMATOGRAPHY, IMS, MS, WORKFLOW ->
+      case ION_INTERFACE, IMS, MS, WORKFLOW ->
           Arrays.stream(getDefaultPresets()).map(p -> ((WizardParameterFactory) p).create())
               .toList();
     };

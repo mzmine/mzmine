@@ -30,10 +30,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.BatchWizardPresetSaveModule;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardIonMobilityParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
@@ -86,7 +86,7 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * The selected workflow. first - last step. Changes in the combobox selection are reflected here
    */
-  private final List<WizardPreset> presetParts = new ArrayList<>();
+  private final WizardWorkflow workflowSteps = new WizardWorkflow();
   /**
    * Parameter panes of the selected presets
    */
@@ -130,25 +130,27 @@ public class BatchWizardTab extends SimpleTab {
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
     // create parameters for all parts
     // LC/GC - IMS? - MS instrument, Apply defaults
-    Tab[] panes = presetParts.stream()
-        // if IMS is deactivated, remove from list
-        .map(preset -> {
-          ParameterSetupPane paramPane = new ParameterSetupPane(true, false, preset.parameters());
-          paramPaneMap.put(preset, paramPane);
-          // add to schema
-          addToSchema(preset);
-          // do not add tabs for in active tabs
-          if (!preset.name().equals(WizardIonMobilityParameters.ImsDefaults.NO_IMS.toString())) {
-            return new Tab(preset.name(), paramPane);
-          } else {
-            return null;
-          }
-        }).filter(Objects::nonNull).toArray(Tab[]::new);
+    Tab[] panes = workflowSteps.stream().map(this::createParameterTab).filter(Objects::nonNull)
+        .toArray(Tab[]::new);
 
     // add to center pane
     tabPane.getTabs().clear();
     tabPane.getTabs().addAll(panes);
     tabPane.getSelectionModel().select(selectedIndex);
+  }
+
+  @Nullable
+  private Tab createParameterTab(final WizardPreset preset) {
+    ParameterSetupPane paramPane = new ParameterSetupPane(true, false, preset.parameters());
+    paramPaneMap.put(preset, paramPane);
+    // add to schema
+    addToSchema(preset);
+    // do not add tabs for in active tabs
+    if (!preset.name().equals(WizardIonMobilityParameters.ImsDefaults.NO_IMS.toString())) {
+      return new Tab(preset.name(), paramPane);
+    } else {
+      return null;
+    }
   }
 
   private void addToSchema(final WizardPreset preset) {
@@ -208,16 +210,14 @@ public class BatchWizardTab extends SimpleTab {
     topPane.setAlignment(Pos.CENTER);
     HBox.setMargin(topPane, new Insets(5));
 
-    presetParts.clear();
+    workflowSteps.clear();
     combos.clear();
     // create combo boxes for each part of the wizard that has multiple options
     // LC/GC - IMS? - MS instrument, Apply defaults
     var presetMap = WizardDefaultPresets.createPresets();
-    int partIndex = -1;
     for (final WizardPart part : WizardPart.values()) {
-      partIndex++;
       var presets = FXCollections.observableArrayList(presetMap.get(part));
-      presetParts.add(presets.get(0));
+      workflowSteps.add(presets.get(0));
       if (presets.size() == 1) {
         continue;
       }
@@ -232,12 +232,10 @@ public class BatchWizardTab extends SimpleTab {
       topPane.getChildren().add(combo);
 
       // add listener
-      final int finalPartIndex = partIndex;
       combo.getSelectionModel().selectedItemProperty()
           .addListener((observable, oldValue, newValue) -> {
             if (listenersActive) {
-              presetParts.remove(finalPartIndex);
-              presetParts.add(finalPartIndex, newValue);
+              workflowSteps.set(part, newValue);
               createParameterPanes();
             }
           });
@@ -271,7 +269,7 @@ public class BatchWizardTab extends SimpleTab {
     var newLocalPresets = FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
         .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
           try {
-            List<WizardPreset> presets = BatchWizardPresetIOUtils.loadFromFile(file);
+            WizardWorkflow presets = BatchWizardPresetIOUtils.loadFromFile(file);
             return new LocalWizardPresetFile(file, presets);
           } catch (IOException e) {
             logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
@@ -297,18 +295,18 @@ public class BatchWizardTab extends SimpleTab {
   private void appendPresetsToUi(final List<WizardPreset> targetPresets) {
     listenersActive = false;
     // keep current as default parameters
-    Map<WizardPart, WizardPreset> combined = presetParts.stream()
+    Map<WizardPart, WizardPreset> combined = workflowSteps.stream()
         .collect(Collectors.toMap(WizardPreset::part, p -> p));
     // change the target presets for the defined parts - might be all or only a few
     for (final WizardPreset preset : targetPresets) {
       combined.put(preset.part(), preset);
     }
 
-    presetParts.clear();
-    presetParts.addAll(combined.values());
-    Collections.sort(presetParts);
+    workflowSteps.clear();
+    workflowSteps.addAll(combined.values());
+    Collections.sort(workflowSteps);
 
-    for (var preset : presetParts) {
+    for (var preset : workflowSteps) {
       ComboBox<WizardPreset> combo = combos.get(preset.part());
       if (combo != null) {
         for (final WizardPreset item : combo.getItems()) {
@@ -341,7 +339,7 @@ public class BatchWizardTab extends SimpleTab {
     // use initial parameters to
     try {
       List<WizardPreset> wizardPresets = BatchWizardPresetIOUtils.loadFromFile(file);
-      if (wizardPresets != null && !wizardPresets.isEmpty()) {
+      if (!wizardPresets.isEmpty()) {
         appendPresetsToUi(wizardPresets);
       }
 
@@ -354,46 +352,46 @@ public class BatchWizardTab extends SimpleTab {
   private void savePresets() {
     // update the preset parameters
     updateAllParametersFromUi();
-    BatchWizardPresetSaveModule.setupAndSave(presetParts);
+    BatchWizardPresetSaveModule.setupAndSave(workflowSteps);
   }
 
   public void createBatch() {
-    ParameterSet wizardParam = getWizardParametersFromPanes();
-    if (wizardParam == null) {
+    var workflowSteps = updateAllParametersFromUiAndCheckErrors();
+    if (workflowSteps == null) {
       return;
     }
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
-    final BatchQueue q = new WizardBatchBuilder(wizardParam).createQueue();
+    final BatchQueue q = WizardBatchBuilder.createBatchBuilderForWorkflow(workflowSteps)
+        .createQueue();
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
     if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
       MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
     }
-
-    // keep old settings
-    MZmineCore.getConfiguration().setModuleParameters(BatchWizardModule.class, wizardParam);
   }
 
-  @Nullable
-  private ParameterSet getWizardParametersFromPanes() {
+  /**
+   * @return the workflowSteps variable on success or null on error (misconfiguration)
+   */
+  private @Nullable WizardWorkflow updateAllParametersFromUiAndCheckErrors() {
     List<String> errorMessages = new ArrayList<>();
 
     // Update parameters from pane and check
     updateAllParametersFromUi();
-    paramPaneMap.forEach((key, value) -> key.parameters().checkParameterValues(errorMessages));
+    workflowSteps.forEach(step -> step.parameters().checkParameterValues(errorMessages));
 
     if (!errorMessages.isEmpty()) {
       MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
       return null;
     }
-    ParameterSet wizardParam = MZmineCore.getConfiguration()
-        .getModuleParameters(BatchWizardModule.class).cloneParameterSet();
-    paramPaneMap.keySet().forEach(preset -> preset.setParametersToWizardParameters(wizardParam));
-    return wizardParam;
+    return workflowSteps;
   }
 
+  /**
+   * Updates the parameters in all steps from the UI components. Does not check for completeness.
+   */
   private void updateAllParametersFromUi() {
     paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
   }
