@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
@@ -49,9 +50,11 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +63,6 @@ public class RawDataSavingUtils {
   private static final Logger logger = Logger.getLogger(RawDataSavingUtils.class.getName());
 
   /**
-   *
    * @param files The raw data files to create a batch queue for.
    * @return A single batch queue to process all files in the same order.
    */
@@ -73,8 +75,8 @@ public class RawDataSavingUtils {
     // group applied methods by date
     final Map<Instant, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
     for (FeatureListAppliedMethod method : appliedMethods) {
-      final List<FeatureListAppliedMethod> value = methodMap
-          .computeIfAbsent(method.getModuleCallDate(), d -> new ArrayList<>());
+      final List<FeatureListAppliedMethod> value = methodMap.computeIfAbsent(
+          method.getModuleCallDate(), d -> new ArrayList<>());
       value.add(method);
     }
     logger.finest(
@@ -91,8 +93,8 @@ public class RawDataSavingUtils {
       }
 
       // add a new queue step, replace raw file parameters to SPECIFIC
-      queue.add(new MZmineProcessingStepImpl<>(procModule, RawDataSavingUtils
-          .replaceAndMergeFileAndRawParameters(
+      queue.add(new MZmineProcessingStepImpl<>(procModule,
+          RawDataSavingUtils.replaceAndMergeFileAndRawParameters(
               methodList.stream().map(FeatureListAppliedMethod::getParameters).toList())));
       logger.finest(() -> "Added module " + module.getName() + " to raw file batch queue.");
     }
@@ -142,8 +144,10 @@ public class RawDataSavingUtils {
     if (!queuesEqual(q1, q2, mergeSubsets, mergeSubsets, mergeSubsets)) {
       return null;
     }
-
-    final BatchQueue mergedQueue = new BatchQueue();
+    // newest version
+    Semver version = Stream.of(q1, q1).map(BatchQueue::getMzmineVersionCreatedIn)
+        .filter(Objects::nonNull).sorted(Comparator.reverseOrder()).findFirst().orElse(null);
+    final BatchQueue mergedQueue = new BatchQueue(version);
     var longerQueue = (q1.size() > q2.size()) ? q1 : q2;
     var shorterQueue = (q1.size() < q2.size()) ? q1 : q2;
     for (int i = 0; i < shorterQueue.size(); i++) {
@@ -190,8 +194,8 @@ public class RawDataSavingUtils {
   /**
    * Combines the contents of {@link RawDataFilesParameter} and {@link FileNamesParameter} for the
    * given parameter sets. Files will not be duplicated if their {@link Object#hashCode()} method
-   * returns the same value. The {@link RawDataFilesSelectionType} of the {@link
-   * RawDataFilesParameter} will be set to {@link RawDataFilesSelectionType#SPECIFIC_FILES}.
+   * returns the same value. The {@link RawDataFilesSelectionType} of the
+   * {@link RawDataFilesParameter} will be set to {@link RawDataFilesSelectionType#SPECIFIC_FILES}.
    *
    * @param parameterSet1 The first parameter set.
    * @param parameterSet2 The second paramete set.
@@ -233,8 +237,8 @@ public class RawDataSavingUtils {
         } else {
           Arrays.stream(rfp2.getValue().getEvaluationResult()).forEach(files::add);
         }
-        logger
-            .finest(() -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
+        logger.finest(
+            () -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
         rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files.toArray(new RawDataFile[0]));
       }
     }
@@ -275,9 +279,8 @@ public class RawDataSavingUtils {
       boolean skipRawDataFileParameters) {
 
     if (!step1.getModule().equals(step2.getModule())) {
-      logger.finest(
-          "Modules " + step1.getModule().getClass().getName() + " is not equal to " + step2
-              .getModule().getClass().getName());
+      logger.finest("Modules " + step1.getModule().getClass().getName() + " is not equal to "
+          + step2.getModule().getClass().getName());
       return false;
     }
 
@@ -296,13 +299,13 @@ public class RawDataSavingUtils {
   /**
    * @param skipFileParameters        If true, contents of {@link FileNamesParameter} are not
    *                                  compared.
-   * @param skipRawDataFileParameters If true, values of {@link RawDataFilesParameter}s and {@link
-   *                                  FileNamesParameter}s will be skipped.
+   * @param skipRawDataFileParameters If true, values of {@link RawDataFilesParameter}s and
+   *                                  {@link FileNamesParameter}s will be skipped.
    */
   public static boolean parameterSetsEqual(ParameterSet parameterSet1, ParameterSet parameterSet2,
       boolean skipFileParameters, boolean skipRawDataFileParameters) {
-    if (parameterSet1 == null || parameterSet2 == null || parameterSet1.getClass() != parameterSet2
-        .getClass()) {
+    if (parameterSet1 == null || parameterSet2 == null
+        || parameterSet1.getClass() != parameterSet2.getClass()) {
       logger.info(() -> "Cannot compare parameters. Either null or not the same class.");
       return false;
     }
@@ -342,10 +345,9 @@ public class RawDataSavingUtils {
       }
 
       if (!param1.valueEquals(param2)) {
-        logger.finest(
-            () -> "Parameter \"" + param1.getName() + "\" of parameter set " + parameterSet1
-                .getClass().getName() + " has different values: " + param1.getValue() + " and "
-                + param2.getValue());
+        logger.finest(() -> "Parameter \"" + param1.getName() + "\" of parameter set "
+            + parameterSet1.getClass().getName() + " has different values: " + param1.getValue()
+            + " and " + param2.getValue());
         return false;
       }
     }

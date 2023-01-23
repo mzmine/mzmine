@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.util.Collection;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -52,6 +54,23 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
+  // attr of the main xmlElement
+  public static final String XML_MZMINE_VERSION_ATTR = "mzmine_version";
+
+  // added in MZmine 3.4.0 - null before that
+  @Nullable
+  private final Semver mzmineVersionCreatedIn;
+
+  /**
+   * @param mzmineVersionCreatedIn added in MZmine 3.4.0 null before that
+   */
+  public BatchQueue(@Nullable final Semver mzmineVersionCreatedIn) {
+    this.mzmineVersionCreatedIn = mzmineVersionCreatedIn;
+  }
+
+  public BatchQueue() {
+    this(MZmineCore.getMZmineVersion());
+  }
 
   /**
    * De-serialize from XML.
@@ -60,6 +79,22 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    * @return the de-serialized value.
    */
   public static BatchQueue loadFromXml(final Element xmlElement) {
+    final Semver version;
+    if (xmlElement.hasAttribute(XML_MZMINE_VERSION_ATTR)) {
+      version = new Semver(xmlElement.getAttribute(XML_MZMINE_VERSION_ATTR));
+
+      String vstring = switch (version.compareTo(MZmineCore.getMZmineVersion())) {
+        case -1 ->
+            "an older version of MZmine ({0}). Make sure all parameters are the same and set potential new parameters.";
+        case 0 -> "the same version of MZmine ({0}).";
+        case 1 -> "a newer version of MZmine ({0}). Make sure all parameters are the same.";
+        default -> "";
+      };
+      logger.info("The batch file was created with " + vstring + version);
+    } else {
+      logger.info("The batch file was created with an older version of MZmine: prior to 3.4.0");
+      version = null;
+    }
 
     // Set the parameter choice for the RowsFilterModule
     String[] choices;
@@ -69,7 +104,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         .getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
 
     // Create an empty queue.
-    final BatchQueue queue = new BatchQueue();
+    final BatchQueue queue = new BatchQueue(version);
 
     // Get the loaded modules.
     final Collection<MZmineModule> allModules = MZmineCore.getAllModules();
@@ -117,10 +152,17 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     return queue;
   }
 
+  /**
+   * Added in MZmine 3.4.0 null before that
+   */
+  public @Nullable Semver getMzmineVersionCreatedIn() {
+    return mzmineVersionCreatedIn;
+  }
+
   @Override
   public BatchQueue clone() {
     // Clone the parameters.
-    final BatchQueue clonedQueue = new BatchQueue();
+    final BatchQueue clonedQueue = new BatchQueue(mzmineVersionCreatedIn);
     for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
       final ParameterSet parameters = step.getParameterSet();
       final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy = new MZmineProcessingStepImpl<>(
@@ -136,6 +178,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    * @param xmlElement the XML element to append to.
    */
   public void saveToXml(final Element xmlElement) {
+    // set MZmine version always to the latest
+    xmlElement.setAttribute(XML_MZMINE_VERSION_ATTR, MZmineCore.getMZmineVersion().toString());
 
     final Document document = xmlElement.getOwnerDocument();
 
