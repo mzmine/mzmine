@@ -160,8 +160,8 @@ public class FeatureFilterTask extends AbstractTask {
         parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR).getValue();
     final boolean filterByAsymmetryFactor =
         parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
-    final boolean filterByMS2 =
-        parameters.getParameter(FeatureFilterParameters.MS2_Filter).getValue();
+    final boolean keepMs2Only =
+        parameters.getParameter(FeatureFilterParameters.KEEP_MS2_ONLY).getValue();
 
     final Range<Double> durationRange =
         parameters.getParameter(FeatureFilterParameters.PEAK_DURATION).getEmbeddedParameter()
@@ -210,7 +210,7 @@ public class FeatureFilterTask extends AbstractTask {
         final double peakArea = peak.getArea();
         final double peakHeight = peak.getHeight();
         final int peakDatapoints = peak.getScanNumbers().size();
-        final Scan msmsScanNumber = peak.getMostIntenseFragmentScan();
+        final Scan bestMsMs = peak.getMostIntenseFragmentScan();
 
         Float peakFWHM = peak.getFWHM();
         Float peakTailingFactor = peak.getTailingFactor();
@@ -239,7 +239,7 @@ public class FeatureFilterTask extends AbstractTask {
             (filterByFWHM && !fwhmRange.contains(peakFWHM)) ||
             (filterByTailingFactor && !tailingRange.contains(peakTailingFactor)) ||
             (filterByAsymmetryFactor && !asymmetryRange.contains(peakAsymmetryFactor)) ||
-            (filterByMS2 && msmsScanNumber != null)) {
+            (keepMs2Only && bestMsMs == null)) {
           // Mark peak to be removed
           keepPeak[i] = false;
         }

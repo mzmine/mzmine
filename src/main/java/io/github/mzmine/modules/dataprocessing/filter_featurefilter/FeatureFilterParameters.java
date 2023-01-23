@@ -85,14 +85,14 @@ public class FeatureFilterParameters extends SimpleParameterSet {
       "Remove source feature list after filtering",
       "If checked, the original feature list will be removed leaving only the filtered version");
 
-  public static final BooleanParameter MS2_Filter =
+  public static final BooleanParameter KEEP_MS2_ONLY =
       new BooleanParameter("Keep only features with MS/MS scan",
           "If checked, the feature that don't contain MS2 scan will be removed.");
 
   public FeatureFilterParameters() {
     super(
         new Parameter[] {PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
-            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, MS2_Filter, AUTO_REMOVE},
+            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, KEEP_MS2_ONLY, AUTO_REMOVE},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_filter/feature_filter.html");
   }
 
