@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
@@ -38,7 +37,7 @@ public class WizardWorkflowSaveParameters extends SimpleParameterSet {
 
   public static final DirectoryParameter directory = new DirectoryParameter("Directory",
       "The default preset directory is the user folder/.mzmine/wizard/",
-      Optional.ofNullable(BatchWizardTab.getWizardSettingsPath()).map(File::getAbsolutePath)
+      Optional.ofNullable(WizardWorkflowIOUtils.getWizardSettingsPath()).map(File::getAbsolutePath)
           .orElse(""));
 
   public static final StringParameter fileName = new StringParameter("Filename", "", "");

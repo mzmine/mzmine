@@ -27,7 +27,6 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
@@ -56,7 +55,7 @@ public class WizardWorkflowSaveModule implements MZmineModule {
       final var exportParts = Arrays.stream(
           params.getValue(WizardWorkflowSaveParameters.exportParts)).collect(Collectors.toSet());
       File file = FileAndPathUtil.getRealFilePath(directory, fileName,
-          BatchWizardTab.FILE_FILTER.getExtensions().get(0).split("\\.")[1]);
+          WizardWorkflowIOUtils.FILE_FILTER.getExtensions().get(0).split("\\.")[1]);
       try {
         // only keep parts to export
         var filteredWorkflow = workflow.stream()

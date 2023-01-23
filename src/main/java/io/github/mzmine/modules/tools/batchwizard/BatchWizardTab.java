@@ -39,15 +39,11 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizar
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.io.File;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,15 +69,10 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BatchWizardTab extends SimpleTab {
-
-  public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("MZmine wizard preset",
-      "*.mzmwizard");
 
   /**
    * needs to use the same preset object, as its also used in the combo boxes and in other places
@@ -106,7 +97,7 @@ public class BatchWizardTab extends SimpleTab {
     super("Processing Wizard");
     ALL_PRESETS = WizardPresetDefaults.createPresets();
     localPresetsButton = new LastFilesButton("Local presets", true,
-        file -> applyPreset(localPresets.get(file)));
+        file -> applyLocalPartialWorkflow(localPresets.get(file)));
     createContentPane();
     findAllLocalPresetFiles();
   }
@@ -128,7 +119,10 @@ public class BatchWizardTab extends SimpleTab {
     setContent(mainPane);
   }
 
-  private void createParameterPanes() {
+  /**
+   * Called once any part in the workflow changes the preset, e.g., HPLC - GC-EI
+   */
+  private synchronized void createParameterPanes() {
     updateAllParametersFromUi();
     schemaPane.getChildren().clear();
     paramPaneMap.clear();
@@ -158,6 +152,11 @@ public class BatchWizardTab extends SimpleTab {
     }
   }
 
+  /**
+   * Schema for workflow in the resources directory src/main/resources/icons/wizard/
+   *
+   * @param preset
+   */
   private void addToSchema(final WizardPreset preset) {
     String parent = preset.name().toLowerCase();
     try {
@@ -183,21 +182,6 @@ public class BatchWizardTab extends SimpleTab {
     } catch (Exception ex) {
       logger.log(Level.WARNING, ex.getMessage());
     }
-  }
-
-  /**
-   * User/.mzmine/wizard/
-   */
-  @Nullable
-  public static File getWizardSettingsPath() {
-    File prefPath = FileAndPathUtil.getUserSettingsDir();
-    if (prefPath == null) {
-      logger.warning("Cannot find parameters default location in user folder");
-    } else {
-      prefPath = new File(prefPath, "wizard");
-      FileAndPathUtil.createDirectory(prefPath);
-    }
-    return prefPath;
   }
 
   public Region createSpacer() {
@@ -251,10 +235,10 @@ public class BatchWizardTab extends SimpleTab {
     createBatch.setOnAction(event -> createBatch());
 
     Button save = new Button("Save presets");
-    save.setOnAction(event -> savePresets());
+    save.setOnAction(event -> saveLocalWorkflow());
 
     Button load = new Button("Load presets");
-    load.setOnAction(event -> loadPresets());
+    load.setOnAction(event -> chooseAndLoadLocalWorkflow());
 
     topPane.getChildren()
         .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load,
@@ -266,23 +250,12 @@ public class BatchWizardTab extends SimpleTab {
     return vbox;
   }
 
+  /**
+   * Find local preset files and add to the drop-down
+   */
   private void findAllLocalPresetFiles() {
-    File path = getWizardSettingsPath();
-    if (path == null) {
-      return;
-    }
+    var newLocalPresets = WizardWorkflowIOUtils.findAllLocalPresetFiles(ALL_PRESETS);
 
-    var newLocalPresets = FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
-        .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
-          try {
-            WizardWorkflow presets = WizardWorkflowIOUtils.loadFromFile(file, ALL_PRESETS);
-            return new LocalWizardWorkflowFile(file, presets);
-          } catch (IOException e) {
-            logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
-            return null;
-          }
-        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardWorkflowFile::getName))
-        .toList();
     localPresets.clear();
     for (final LocalWizardWorkflowFile preset : newLocalPresets) {
       localPresets.put(preset.file(), preset);
@@ -291,11 +264,16 @@ public class BatchWizardTab extends SimpleTab {
         newLocalPresets.stream().map(LocalWizardWorkflowFile::file).toList());
   }
 
-  private void applyPreset(LocalWizardWorkflowFile preset) {
-    if (preset == null) {
+  /**
+   * Apply preloaded workflow
+   *
+   * @param partialWorkflow partial workflow or whole
+   */
+  private void applyLocalPartialWorkflow(LocalWizardWorkflowFile partialWorkflow) {
+    if (partialWorkflow == null) {
       return;
     }
-    appendPresetsToUi(preset.parts());
+    appendPresetsToUi(partialWorkflow.parts());
   }
 
   /**
@@ -317,39 +295,31 @@ public class BatchWizardTab extends SimpleTab {
     createParameterPanes();
   }
 
-  private void loadPresets() {
+  /**
+   * Open a file chooser and load a local workflow file
+   */
+  private void chooseAndLoadLocalWorkflow() {
     // update all parameters to use them as a default for each step
     updateAllParametersFromUi();
     // only load those steps that were defined in the local preset file
-    File prefPath = getWizardSettingsPath();
-    FileChooser chooser = new FileChooser();
-    chooser.setInitialDirectory(prefPath);
-    chooser.getExtensionFilters().add(FILE_FILTER);
-    chooser.setSelectedExtensionFilter(FILE_FILTER);
-    File file = chooser.showOpenDialog(null);
-    if (file == null) {
-      return;
-    }
-
-    // use initial parameters to
-    try {
-      WizardWorkflow wizardPresets = WizardWorkflowIOUtils.loadFromFile(file, ALL_PRESETS);
-      if (!wizardPresets.isEmpty()) {
-        appendPresetsToUi(wizardPresets);
-      }
-
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Cannot read batch wizard presets from " + file.getAbsolutePath(),
-          e);
+    WizardWorkflow wizardPresets = WizardWorkflowIOUtils.chooseAndLoadFile(ALL_PRESETS);
+    if (!wizardPresets.isEmpty()) {
+      appendPresetsToUi(wizardPresets);
     }
   }
 
-  private void savePresets() {
+  /**
+   * Open save dialog and save to file
+   */
+  private void saveLocalWorkflow() {
     // update the preset parameters
     updateAllParametersFromUi();
     WizardWorkflowSaveModule.setupAndSave(workflowSteps);
   }
 
+  /**
+   * The final product of the wizard is the batch
+   */
   public void createBatch() {
     var workflowSteps = updateAllParametersFromUiAndCheckErrors();
     if (workflowSteps == null) {
