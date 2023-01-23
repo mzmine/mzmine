@@ -27,6 +27,8 @@ package io.github.mzmine.parameters;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -54,5 +56,32 @@ public class ParameterUtils {
         }
       }
     }
+  }
+
+  /**
+   * Checks if all parameters in a equal in value to b and vice versa. So the parameters need to
+   * exactly match in name an value
+   *
+   * @param a parameters
+   * @param b parameters
+   * @return true only if all parameters in a and b equal in name and value
+   */
+  public static boolean equalValues(final ParameterSet a, final ParameterSet b) {
+    if (a.getParameters().length != b.getParameters().length) {
+      return false;
+    }
+
+    for (final Parameter<?> parameter : a.getParameters()) {
+      try {
+        if (!Objects.equals(b.getValue(parameter), parameter.getValue())) {
+          return false;
+        }
+      } catch (Exception ex) {
+        logger.log(Level.WARNING,
+            "ParameterSet b does not have all parameters available in a. " + ex.getMessage(), ex);
+        return false;
+      }
+    }
+    return true;
   }
 }

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
+import io.github.mzmine.parameters.ParameterUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -68,4 +69,20 @@ public record WizardPreset(@NotNull String name, @NotNull String uniquePresetId,
   }
 
 
+  /**
+   * @return true if all parameters are set to the default values
+   */
+  public boolean hasDefaultParameters() {
+    var defaultPreset = createDefaultParameterPreset();
+    return defaultPreset != null && ParameterUtils.equalValues(defaultPreset.parameters,
+        parameters);
+  }
+
+  /**
+   * @return the default parameters preset
+   */
+  public WizardPreset createDefaultParameterPreset() {
+    return part().createPresetParameters().stream()
+        .filter(preset -> preset.uniquePresetId.equals(uniquePresetId)).findFirst().orElse(null);
+  }
 }

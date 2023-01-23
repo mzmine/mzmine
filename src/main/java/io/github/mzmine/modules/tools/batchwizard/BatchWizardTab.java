@@ -36,6 +36,11 @@ import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowSaveModule;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
@@ -50,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
@@ -57,6 +63,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -127,6 +134,9 @@ public class BatchWizardTab extends SimpleTab {
     schemaPane.getChildren().clear();
     paramPaneMap.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
+    // evaluate workflow and limit choices
+    evaluateWorkflowLimitChoices();
+
     // create parameters for all parts
     // LC/GC - IMS? - MS instrument, Apply defaults
     Tab[] panes = workflowSteps.stream().map(this::createParameterTab).filter(Objects::nonNull)
@@ -136,6 +146,70 @@ public class BatchWizardTab extends SimpleTab {
     tabPane.getTabs().clear();
     tabPane.getTabs().addAll(panes);
     tabPane.getSelectionModel().select(selectedIndex);
+  }
+
+  private void evaluateWorkflowLimitChoices() {
+    var ionization = workflowSteps.get(WizardPart.ION_INTERFACE)
+        .map(preset -> IonInterfaceDefaults.valueOf(preset.uniquePresetId()))
+        .orElse(IonInterfaceDefaults.HPLC);
+
+    List<WizardPreset> filteredWorkflows = ALL_PRESETS.get(WizardPart.WORKFLOW).stream()
+        .filter(workflow -> switch (ionization) {
+          case HPLC, UHPLC, HILIC, GC_CI, DIRECT_INFUSION, FLOW_INJECT, MALDI, LDI, DESI, SIMS ->
+              !workflow.uniquePresetId().equals(WorkflowDefaults.GC_EI_DECONVOLUTION.getUniqueId());
+          case GC_EI ->
+              workflow.uniquePresetId().equals(WorkflowDefaults.GC_EI_DECONVOLUTION.getUniqueId());
+        }).toList();
+
+    ComboBox<WizardPreset> workflowCombo = combos.get(WizardPart.WORKFLOW);
+    ObservableList<WizardPreset> currentWorkflows = workflowCombo.getItems();
+    if (!currentWorkflows.equals(filteredWorkflows)) {
+      // need to set new selection to workflow
+      workflowSteps.set(WizardPart.WORKFLOW,
+          setItemsToCombo(workflowCombo, filteredWorkflows, false));
+    }
+
+    // check timsTOF and TWIMS TOF only
+    var ims = workflowSteps.get(WizardPart.IMS)
+        .map(preset -> ImsDefaults.valueOf(preset.uniquePresetId())).orElse(ImsDefaults.NO_IMS);
+
+    ComboBox<WizardPreset> msCombo = combos.get(WizardPart.MS);
+    ObservableList<WizardPreset> currentMs = msCombo.getItems();
+    List<WizardPreset> filteredMs = ALL_PRESETS.get(WizardPart.MS).stream()
+        .filter(ms -> switch (ims) {
+          case TIMS, TWIMS -> ms.uniquePresetId().equals(MsInstrumentDefaults.qTOF.getUniqueId());
+          case NO_IMS, IMS, DTIMS -> true;
+        }).toList();
+
+    if (!currentMs.equals(filteredMs)) {
+      WizardPreset selectedMs = setItemsToCombo(msCombo, filteredMs, false);
+      // need to set new selection to workflow
+      workflowSteps.set(WizardPart.MS, selectedMs);
+
+      // reduce the parameters for timsTOF to something meaningful
+      // only if the MS parameter for tof are unchanged (if user already selected other inputs, keep
+      MassSpectrometerWizardParameters forIms = MsInstrumentDefaults.createForIms(ims);
+      if (forIms != null && selectedMs.hasDefaultParameters()) {
+        ParameterUtils.copyParameters(forIms, selectedMs.parameters());
+      }
+    }
+  }
+
+  private WizardPreset setItemsToCombo(final ComboBox<WizardPreset> combo,
+      final List<WizardPreset> newItems, boolean notifyListeners) {
+    boolean oldNotify = listenersActive;
+    setListenersActive(notifyListeners);
+    // keep selection or select first element if not available
+    SingleSelectionModel<WizardPreset> selection = combo.getSelectionModel();
+    WizardPreset oldSelected = selection.getSelectedItem();
+    // set new items
+    combo.setItems(FXCollections.observableList(newItems));
+    selection.select(oldSelected);
+    if (selection.getSelectedIndex() < 0) {
+      selection.selectFirst();
+    }
+    setListenersActive(oldNotify);
+    return selection.getSelectedItem();
   }
 
   @Nullable
@@ -280,7 +354,7 @@ public class BatchWizardTab extends SimpleTab {
    * @param partialWorkflow might contain some or all steps of the workflow
    */
   private void appendPresetsToUi(final WizardWorkflow partialWorkflow) {
-    listenersActive = false;
+    setListenersActive(false);
 
     // keep current as default parameters
     workflowSteps.apply(partialWorkflow);
@@ -291,7 +365,8 @@ public class BatchWizardTab extends SimpleTab {
         combo.getSelectionModel().select(preset);
       }
     }
-    listenersActive = true;
+    setListenersActive(true);
+
     createParameterPanes();
   }
 
@@ -359,5 +434,9 @@ public class BatchWizardTab extends SimpleTab {
    */
   private void updateAllParametersFromUi() {
     paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
+  }
+
+  public void setListenersActive(final boolean listenersActive) {
+    this.listenersActive = listenersActive;
   }
 }
