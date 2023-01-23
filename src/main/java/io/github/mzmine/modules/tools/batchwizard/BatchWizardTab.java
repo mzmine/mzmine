@@ -34,6 +34,7 @@ import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardWorkflowFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
@@ -225,7 +226,9 @@ public class BatchWizardTab extends SimpleTab {
         continue;
       }
 
+      // set the number of visible items to the max
       ComboBox<WizardPreset> combo = new ComboBox<>(presets);
+      combo.setVisibleRowCount(IonInterfaceDefaults.values().length);
       combos.put(part, combo);
       // add a spacer if not the first
       if (!topPane.getChildren().isEmpty()) {
