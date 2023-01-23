@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
@@ -42,6 +43,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.DraggableListCell;
 import java.io.File;
@@ -447,6 +449,14 @@ public class BatchComponentController implements LastFilesComponent {
 
     final BatchQueue queue = BatchQueue.loadFromXml(
         DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file).getDocumentElement());
+
+    // check version here and show dialog in case it was created with different version
+    Semver batchVersion = queue.getMzmineVersionCreatedIn();
+    if (batchVersion == null || batchVersion.compareTo(MZmineCore.getMZmineVersion()) != 0) {
+      DialogLoggerUtil.showMessageDialog("Check batch parameters carefully.",
+          "The loaded batch file was created with a different MZmine version (%s). Check all parameters and steps carefully for new parameters and differences.".formatted(
+              batchVersion));
+    }
 
     logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
 
