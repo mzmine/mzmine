@@ -48,11 +48,11 @@ import org.apache.commons.lang3.StringUtils;
 public enum DBEntryField {
   // Compound specific
   ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
-      Double.class), FORMULA, INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER,
+      Double.class), FORMULA, INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER, FEATURE_ID,
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
-      Integer.class), MERGED_SPEC_TYPE,
+      Integer.class), MERGED_SPEC_TYPE, SIRIUS_SPEC_TYPE, MERGED_SCANS, MERGED_STATS,
 
   // MS2
   COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
@@ -67,7 +67,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, USI, SCAN_NUMBER(Integer.class), DATAFILE_COLON_SCAN_NUMBER, SPLASH,
+  DATASET_ID, FILENAME, USI, SCAN_NUMBER(Integer.class), DATAFILE_COLON_SCAN_NUMBER, SPLASH,
 
   // Quality measures
   QUALITY_CHIMERIC,
@@ -82,7 +82,7 @@ public enum DBEntryField {
       CHEMSPIDER, CAS};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
       MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
-      SMILES, NUM_PEAKS};
+      SMILES, NUM_PEAKS, FEATURE_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, ACQUISITION, SOFTWARE};
 
@@ -175,10 +175,10 @@ public enum DBEntryField {
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC ->
+      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC, SIRIUS_SPEC_TYPE, FILENAME, MERGED_SCANS, MERGED_STATS ->
           StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
-      case MS_LEVEL, NUM_PEAKS -> IntegerType.class;
+      case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
       case CHARGE -> ChargeType.class;
       case COLLISION_ENERGY -> DoubleType.class;
@@ -253,6 +253,11 @@ public enum DBEntryField {
       case USI -> "usi";
       case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case QUALITY_CHIMERIC -> "quality_chimeric";
+      case FEATURE_ID -> "feature_id";
+      case SIRIUS_SPEC_TYPE -> "sirius_spec_type";
+      case FILENAME -> "raw_file_name";
+      case MERGED_SCANS -> "merged_scans";
+      case MERGED_STATS -> "merged_statistics";
     };
   }
 
@@ -296,6 +301,11 @@ public enum DBEntryField {
       case DESCRIPTION -> "description";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case DATASET_ID -> "dataset_id";
+      case FEATURE_ID -> "feature_id";
+      case SIRIUS_SPEC_TYPE -> "sirius_spec_type";
+      case FILENAME -> "file_name";
+      case MERGED_SCANS -> "";
+      case MERGED_STATS -> "";
     };
   }
 
@@ -340,6 +350,11 @@ public enum DBEntryField {
       case DATAFILE_COLON_SCAN_NUMBER -> "DATAFILE_SCANNUMBER";
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
       case DATASET_ID -> "DATASET_ID";
+      case FEATURE_ID -> "FEATURE_ID";
+      case SIRIUS_SPEC_TYPE -> "SPECTYPE";
+      case FILENAME -> "FILENAME";
+      case MERGED_SCANS -> "MERGED_SCANS";
+      case MERGED_STATS -> "MERGED_STATS";
     };
   }
 
@@ -355,6 +370,7 @@ public enum DBEntryField {
       case SOFTWARE -> "";
       case CAS -> "##CAS REGISTRY NO";
       case CHARGE -> "";
+      case SIRIUS_SPEC_TYPE -> "";
       case COLLISION_ENERGY -> "";
       case COMMENT -> "";
       case DESCRIPTION -> "";
@@ -387,10 +403,14 @@ public enum DBEntryField {
       case MSN_ISOLATION_WINDOWS -> "";
       case FRAGMENTATION_METHOD -> "";
       case ISOLATION_WINDOW -> "";
+      case FILENAME -> "";
       case USI -> "";
       case DATAFILE_COLON_SCAN_NUMBER -> "";
       case QUALITY_CHIMERIC -> "";
       case DATASET_ID -> "";
+      case FEATURE_ID -> "";
+      case MERGED_SCANS -> "";
+      case MERGED_STATS -> "";
     };
   }
 
