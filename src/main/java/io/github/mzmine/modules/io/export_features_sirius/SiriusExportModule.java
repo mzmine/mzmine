@@ -37,12 +37,8 @@
 
 package io.github.mzmine.modules.io.export_features_sirius;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -50,6 +46,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class SiriusExportModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Export for SIRIUS";
@@ -70,7 +69,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
+    SiriusExportTaskNew task = new SiriusExportTaskNew(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

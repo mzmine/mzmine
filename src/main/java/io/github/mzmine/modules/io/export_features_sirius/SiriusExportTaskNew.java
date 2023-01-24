@@ -48,7 +48,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -167,6 +166,7 @@ public class SiriusExportTaskNew extends AbstractTask {
       }
     }
 
+    setStatus(TaskStatus.FINISHED);
   }
 
   private int exportFeatureList(FeatureList featureList, BufferedWriter writer) {
@@ -184,12 +184,8 @@ public class SiriusExportTaskNew extends AbstractTask {
       List<SpectralLibraryEntry> entries = new ArrayList<>();
 
       // export best MS1
-      final MassList massList = Objects.requireNonNull(row.getBestFeature().getRepresentativeScan())
-          .getMassList();
-      if (massList == null) {
-        throw new MissingMassListException(row.getBestFeature().getRepresentativeScan());
-      }
-      spectrumToEntry(MsType.MS, massList, row.getBestFeature());
+      entries.add(spectrumToEntry(MsType.MS, row.getBestFeature().getRepresentativeScan(),
+          row.getBestFeature()));
 
       if (mergeEnabled) {
         final List<SpectralLibraryEntry> ms2Entries = getMergedMs2SpectraEntries(mergeMode, row);
@@ -203,15 +199,15 @@ public class SiriusExportTaskNew extends AbstractTask {
         entries.addAll(ms2Entries);
       }
 
-      final String fileContent = entries.stream().map(MGFEntryGenerator::createMGFEntry)
-          .collect(Collectors.joining("\n\n"));
-
       try {
-        writer.write(fileContent);
+        for (SpectralLibraryEntry entry : entries) {
+          final String mgfEntry = MGFEntryGenerator.createMGFEntry(entry);
+          writer.write(mgfEntry);
+          writer.newLine();
+        }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-
       exportedRows++;
     }
     return exportedRows;
