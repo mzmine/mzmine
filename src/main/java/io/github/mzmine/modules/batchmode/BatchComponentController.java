@@ -42,12 +42,14 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.DraggableListCell;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -444,9 +446,16 @@ public class BatchComponentController implements LastFilesComponent {
    */
   public void loadBatchSteps(final File file)
       throws ParserConfigurationException, IOException, SAXException {
+    List<String> errorMessages = new ArrayList<>();
+    Element xmlElement = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+        .getDocumentElement();
+    final BatchQueue queue = BatchQueue.loadFromXml(xmlElement, errorMessages);
 
-    final BatchQueue queue = BatchQueue.loadFromXml(
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file).getDocumentElement());
+    // check error messages and show dialog
+    if (!errorMessages.isEmpty()) {
+      DialogLoggerUtil.showMessageDialog("Check batch steps and parameters.",
+          String.join("\n", errorMessages));
+    }
 
     logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
 

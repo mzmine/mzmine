@@ -51,6 +51,7 @@ public class DialogLoggerUtil {
 
   public static void showMessageDialog(String title, String message) {
     Alert alert = new Alert(AlertType.INFORMATION, message);
+    alert.setHeaderText(title);
     alert.setTitle(title);
     alert.showAndWait();
   }

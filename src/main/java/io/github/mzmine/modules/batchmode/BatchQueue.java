@@ -33,8 +33,10 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModul
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.CollectionUtils;
 import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -52,6 +54,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
+  private static final String MODULE_VERSION_ATTR = "parameter_version";
+
 
   /**
    * De-serialize from XML.
@@ -59,7 +63,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    * @param xmlElement the element that holds the XML.
    * @return the de-serialized value.
    */
-  public static BatchQueue loadFromXml(final Element xmlElement) {
+  public static BatchQueue loadFromXml(final Element xmlElement, List<String> errorMessages) {
 
     // Set the parameter choice for the RowsFilterModule
     String[] choices;
@@ -108,12 +112,30 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         final ParameterSet parameterSet = MZmineCore.getConfiguration()
             .getModuleParameters(moduleFound.getClass());
         final ParameterSet methodParams = parameterSet.cloneParameterSet();
+
+        // check version introduced in MZmine 3.4.0
+        if (!stepElement.hasAttribute(MODULE_VERSION_ATTR)) {
+          errorMessages.add(
+              "Batch was created with an older version of MZmine prior to MZmine 3.4.0. Please check all steps and parameters carefully and save the batch file.");
+        } else {
+          int version = Integer.parseInt(stepElement.getAttribute(MODULE_VERSION_ATTR));
+          String diff = switch (Integer.compare(version, parameterSet.getVersion())) {
+            case -1 -> "an earlier";
+            case 1 -> "a newer";
+            default -> null;
+          };
+          if (diff != null) {
+            errorMessages.add(
+                "'%s' step was created with %s version.".formatted(moduleFound.getName(), diff));
+          }
+        }
+
         methodParams.loadValuesFromXML(stepElement);
         queue.add(
             new MZmineProcessingStepImpl<>((MZmineProcessingModule) moduleFound, methodParams));
       }
     }
-
+    CollectionUtils.dropDuplicatesRetainOrder(errorMessages);
     return queue;
   }
 
@@ -150,6 +172,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       // Save parameters.
       final ParameterSet parameters = step.getParameterSet();
       if (parameters != null) {
+        // save version, since MZmine 3.4.0
+        stepElement.setAttribute(MODULE_VERSION_ATTR, String.valueOf(parameters.getVersion()));
         parameters.saveValuesToXML(stepElement);
       }
     }

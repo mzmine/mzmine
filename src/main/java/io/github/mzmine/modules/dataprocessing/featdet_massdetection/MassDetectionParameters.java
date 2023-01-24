@@ -221,4 +221,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
