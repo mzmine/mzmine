@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
@@ -454,16 +453,8 @@ public class BatchComponentController implements LastFilesComponent {
 
     // check error messages and show dialog
     if (!errorMessages.isEmpty()) {
-      DialogLoggerUtil.showMessageDialog("Check batch steps and parameters.",
-          String.join("\n", errorMessages));
-    }
-
-    // check version here and show dialog in case it was created with different version
-    Semver batchVersion = queue.getMzmineVersionCreatedIn();
-    if (batchVersion == null || batchVersion.compareTo(MZmineCore.getMZmineVersion()) != 0) {
       DialogLoggerUtil.showMessageDialog("Check batch parameters carefully.",
-          "The loaded batch file was created with a different MZmine version (%s). Check all parameters and steps carefully for new parameters and differences.".formatted(
-              batchVersion));
+          String.join("\n", errorMessages));
     }
 
     logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());

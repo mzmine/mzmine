@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
-import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
@@ -50,11 +49,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,9 +142,7 @@ public class RawDataSavingUtils {
       return null;
     }
     // newest version
-    Semver version = Stream.of(q1, q1).map(BatchQueue::getMzmineVersionCreatedIn)
-        .filter(Objects::nonNull).sorted(Comparator.reverseOrder()).findFirst().orElse(null);
-    final BatchQueue mergedQueue = new BatchQueue(version);
+    final BatchQueue mergedQueue = new BatchQueue();
     var longerQueue = (q1.size() > q2.size()) ? q1 : q2;
     var shorterQueue = (q1.size() < q2.size()) ? q1 : q2;
     for (int i = 0; i < shorterQueue.size(); i++) {
