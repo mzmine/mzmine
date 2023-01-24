@@ -78,13 +78,12 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
             "an older version of MZmine (%s). Make sure all parameters are the same and set potential new parameters - then save again.";
         case 1 ->
             "a newer version of MZmine (%s). Make sure all parameters are the same - then save again.";
-        default -> null;
+        case 0 -> "the same version of MZmine (%s).";
+        default -> "%s";
       };
-      if (vstring != null) {
-        errorMessages.add("The batch file was created with " + vstring.formatted(mzmineVersion));
-      }
+      logger.info("The batch file was created with " + vstring.formatted(mzmineVersion));
     } else {
-      errorMessages.add(
+      logger.info(
           "Batch was created with an older version of MZmine prior to MZmine 3.4.0. Please check all steps and parameters carefully and save the batch file again.");
     }
 
