@@ -264,7 +264,8 @@ public class ModularFeatureListRow implements FeatureListRow {
     // TODO remove features object - not always do we have features
     // FeaturesType creates an empty ListProperty for that
     // return FXCollections.observableArrayList(get(FeaturesType.class).values());
-    return new ArrayList<>(features.values());
+    return features.values().stream().filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+        .toList();
   }
 
   @Override

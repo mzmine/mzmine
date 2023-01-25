@@ -60,7 +60,6 @@ public class SiriusExportParameters extends SimpleParameterSet {
       new ExtensionFilter("mgf format for SIRIUS", "*.mgf") //
   );
 
-
   public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
       "Merge MS/MS",
       "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
@@ -70,8 +69,6 @@ public class SiriusExportParameters extends SimpleParameterSet {
    */
   public static final MZToleranceParameter MZ_TOL = new MZToleranceParameter("m/z tolerance",
       "m/z tolerance to exclude duplicates in correlated spectrum", 0.001, 5);
-  public static final BooleanParameter RENUMBER_ID = new BooleanParameter("Renumber IDs",
-      "Resets the IDs (uses the row ID otherwise)", false);
 
   public static final BooleanParameter NEED_ANNOTATION = new BooleanParameter(
       "Only rows with annotation",
@@ -87,15 +84,16 @@ public class SiriusExportParameters extends SimpleParameterSet {
       false);
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MGF file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
+      "Name of the output MGF file. " + "Use pattern \"" + SiriusExportTaskNew.MULTI_NAME_PATTERN
+          + "\" in the file name to substitute with feature list name. " + "(i.e. \"blah"
+          + SiriusExportTaskNew.MULTI_NAME_PATTERN
+          + "blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.", extensions,
       FileSelectionType.SAVE);
 
   public SiriusExportParameters() {
-    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, MZ_TOL, RENUMBER_ID,
-        NEED_ANNOTATION, EXCLUDE_EMPTY_MSMS, EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS});
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
+        EXCLUDE_EMPTY_MSMS, EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS});
   }
 
   // public static final BooleanParameter FRACTIONAL_MZ = new
@@ -127,9 +125,11 @@ public class SiriusExportParameters extends SimpleParameterSet {
     boolean superCheck = super.checkParameterValues(errorMessages);
 
     if (getValue(FEATURE_LISTS).getMatchingFeatureLists().length > 1 && !getValue(
-        FILENAME).getName().contains(SiriusExportTaskNew.plNamePattern)) {
-      errorMessages.add("More than one feature list selected but \"{}\" pattern not found in name."
-          + "Please add the name pattern to create individual files.");
+        FILENAME).getName().contains(SiriusExportTaskNew.MULTI_NAME_PATTERN)) {
+      errorMessages.add(
+          "More than one feature list selected but \"" + SiriusExportTaskNew.MULTI_NAME_PATTERN
+              + "\" pattern not found in name."
+              + "Please add the name pattern to create individual files.");
       superCheck = false;
     }
 

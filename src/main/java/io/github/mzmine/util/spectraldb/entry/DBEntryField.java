@@ -52,7 +52,7 @@ public enum DBEntryField {
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
-      Integer.class), MERGED_SPEC_TYPE, SIRIUS_SPEC_TYPE, MERGED_SCANS, MERGED_STATS,
+      Integer.class), MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
 
   // MS2
   COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
@@ -175,7 +175,7 @@ public enum DBEntryField {
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC, SIRIUS_SPEC_TYPE, FILENAME, MERGED_SCANS, MERGED_STATS ->
+      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC, FILENAME, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS ->
           StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
@@ -254,10 +254,9 @@ public enum DBEntryField {
       case DATAFILE_COLON_SCAN_NUMBER -> "datafile_scannumber";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case FEATURE_ID -> "feature_id";
-      case SIRIUS_SPEC_TYPE -> "sirius_spec_type";
       case FILENAME -> "raw_file_name";
-      case MERGED_SCANS -> "merged_scans";
-      case MERGED_STATS -> "merged_statistics";
+      case SIRIUS_MERGED_SCANS -> "merged_scans";
+      case SIRIUS_MERGED_STATS -> "merged_statistics";
     };
   }
 
@@ -302,10 +301,9 @@ public enum DBEntryField {
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case DATASET_ID -> "dataset_id";
       case FEATURE_ID -> "feature_id";
-      case SIRIUS_SPEC_TYPE -> "sirius_spec_type";
       case FILENAME -> "file_name";
-      case MERGED_SCANS -> "";
-      case MERGED_STATS -> "";
+      case SIRIUS_MERGED_SCANS -> "";
+      case SIRIUS_MERGED_STATS -> "";
     };
   }
 
@@ -315,7 +313,7 @@ public enum DBEntryField {
   public String getMgfID() {
     return switch (this) {
       case SCAN_NUMBER -> "SCANS";
-      case MERGED_SPEC_TYPE -> "MERGE_TYPE";
+      case MERGED_SPEC_TYPE -> "SPECTYPE";
       case ENTRY_ID -> "SPECTRUMID";
       case CHARGE -> "CHARGE";
       case COMMENT -> "COMMENT";
@@ -351,10 +349,9 @@ public enum DBEntryField {
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
       case DATASET_ID -> "DATASET_ID";
       case FEATURE_ID -> "FEATURE_ID";
-      case SIRIUS_SPEC_TYPE -> "SPECTYPE";
       case FILENAME -> "FILENAME";
-      case MERGED_SCANS -> "MERGED_SCANS";
-      case MERGED_STATS -> "MERGED_STATS";
+      case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
+      case SIRIUS_MERGED_STATS -> "MERGED_STATS";
     };
   }
 
@@ -370,7 +367,6 @@ public enum DBEntryField {
       case SOFTWARE -> "";
       case CAS -> "##CAS REGISTRY NO";
       case CHARGE -> "";
-      case SIRIUS_SPEC_TYPE -> "";
       case COLLISION_ENERGY -> "";
       case COMMENT -> "";
       case DESCRIPTION -> "";
@@ -409,8 +405,8 @@ public enum DBEntryField {
       case QUALITY_CHIMERIC -> "";
       case DATASET_ID -> "";
       case FEATURE_ID -> "";
-      case MERGED_SCANS -> "";
-      case MERGED_STATS -> "";
+      case SIRIUS_MERGED_SCANS -> "";
+      case SIRIUS_MERGED_STATS -> "";
     };
   }
 
