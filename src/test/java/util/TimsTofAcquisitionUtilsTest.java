@@ -175,7 +175,7 @@ public class TimsTofAcquisitionUtilsTest {
         TimsTOFAcquisitionUtils.getPossibleCollisionEnergiesForSpot(30, precursor,
             List.of(spot23_34, spot25_25), testSpot, energies, 3));
 
-    Assertions.assertEquals(null,
+    Assertions.assertEquals(List.of(),
         TimsTOFAcquisitionUtils.getPossibleCollisionEnergiesForSpot(60, precursor, allSpots,
             testSpot, energies, 3));
   }

@@ -263,7 +263,7 @@ public class TimsTOFAcquisitionUtils {
   }
 
   public static List<Double> getSpotCollisionEnergies(List<ImagingSpot> spots) {
-    return spots.stream().map(ImagingSpot::getColissionEnergy).distinct().toList();
+    return spots.stream().map(ImagingSpot::getCollisionEnergy).distinct().toList();
   }
 
   /**

@@ -337,7 +337,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       final List<Double> collisionEnergy = TimsTOFAcquisitionUtils.getPossibleCollisionEnergiesForSpot(
           minDistance, precursor, spots, usedFrame.getMaldiSpotInfo(), collisionEnergies, numMsMs);
       if (collisionEnergy.isEmpty() || !collisionEnergy.contains(
-          imagingSpot.getColissionEnergy())) {
+          imagingSpot.getCollisionEnergy())) {
         continue;
       }
 

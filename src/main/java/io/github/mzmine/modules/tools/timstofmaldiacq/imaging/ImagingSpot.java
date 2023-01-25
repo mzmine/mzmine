@@ -37,15 +37,15 @@ public final class ImagingSpot {
   private final MaldiSpotInfo spotInfo;
   private final List<MaldiTimsPrecursor>[][] precursorLists;
 
-  private final double colissionEnergy;
+  private final double collisionEnergy;
 
   private final Ms2ImagingMode imagingMode;
 
-  public ImagingSpot(MaldiSpotInfo spotInfo, Ms2ImagingMode mode, double colissionEnergy) {
+  public ImagingSpot(MaldiSpotInfo spotInfo, Ms2ImagingMode mode, double collisionEnergy) {
     this.spotInfo = spotInfo;
 
     this.imagingMode = mode;
-    this.colissionEnergy = colissionEnergy;
+    this.collisionEnergy = collisionEnergy;
 
     switch (imagingMode) {
       case SINGLE -> {
@@ -124,7 +124,7 @@ public final class ImagingSpot {
     }
 
     list.add(precursor);
-    precursor.incrementSpotCounterForCollisionEnergy(colissionEnergy);
+    precursor.incrementSpotCounterForCollisionEnergy(collisionEnergy);
     return true;
   }
 
@@ -132,8 +132,8 @@ public final class ImagingSpot {
     return spotInfo;
   }
 
-  public Double getColissionEnergy() {
-    return colissionEnergy;
+  public Double getCollisionEnergy() {
+    return collisionEnergy;
   }
 
   @Override

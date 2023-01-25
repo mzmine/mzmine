@@ -94,7 +94,7 @@ public class TripleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
             TimsTOFAcquisitionUtils.appendToCommandFile(acquisitionFile, spotInfo.spotName(),
                 spot.getPrecursorList(x, y), x * stageOffsetX, y * stageOffsetY, null, null,
                 counter++, savePathDir, spotInfo.spotName() + "_" + counter,
-                ceTableMap.get(spot.getColissionEnergy()), true, null);
+                ceTableMap.get(spot.getCollisionEnergy()), true, null);
           } catch (IOException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
             return false;

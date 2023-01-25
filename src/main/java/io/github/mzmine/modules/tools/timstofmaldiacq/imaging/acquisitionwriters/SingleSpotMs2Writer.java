@@ -91,7 +91,7 @@ public class SingleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
         TimsTOFAcquisitionUtils.appendToCommandFile(acquisitionFile, spotInfo.spotName(),
             spot.getPrecursorList(0, 0), null, null, laserOffsetX, laserOffsetY, counter++,
             savePathDir, spotInfo.spotName() + "_" + counter,
-            ceTableMap.get(spot.getColissionEnergy()), true, null);
+            ceTableMap.get(spot.getCollisionEnergy()), true, null);
       } catch (IOException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
         return false;
