@@ -25,9 +25,11 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -60,28 +62,83 @@ public class ParameterUtils {
 
   /**
    * Checks if all parameters in a equal in value to b and vice versa. So the parameters need to
-   * exactly match in name an value
+   * exactly match in name and value
    *
    * @param a parameters
    * @param b parameters
    * @return true only if all parameters in a and b equal in name and value
    */
   public static boolean equalValues(final ParameterSet a, final ParameterSet b) {
+    return equalValues(a, b, true, true);
+  }
+
+
+  /**
+   * Checks if all parameters in a equal in value to b and vice versa. So the parameters need to
+   * exactly match in name and value
+   *
+   * @param skipFileParameters        If true, contents of {@link FileNamesParameter} are not
+   *                                  compared.
+   * @param skipRawDataFileParameters If true, values of {@link RawDataFilesParameter}s and
+   *                                  {@link FileNamesParameter}s will be skipped.
+   */
+  public static boolean equalValues(ParameterSet a, ParameterSet b, boolean skipFileParameters,
+      boolean skipRawDataFileParameters) {
+    if (a == null || b == null || a.getClass() != b.getClass()) {
+      logger.info(() -> "Cannot compare parameters. Either null or not the same class.");
+      return false;
+    }
+
     if (a.getParameters().length != b.getParameters().length) {
       return false;
     }
 
-    for (final Parameter<?> parameter : a.getParameters()) {
+    // order of parameters might be different due to loading from file and change in order in java file
+    for (final Parameter<?> param1 : a.getParameters()) {
       try {
-        if (!Objects.equals(b.getValue(parameter), parameter.getValue())) {
+        Parameter<?> param2 = b.getParameter(param1);
+
+        if (param1.getClass() != param2.getClass()) {
+          logger.finest(
+              () -> "Parameters " + param1.getName() + "(" + param1.getClass().getName() + ") and "
+                  + param2.getName() + " (" + param2.getClass().getName()
+                  + ") are not of the same class.");
           return false;
         }
+
+        if ((param1 instanceof FileNamesParameter && skipFileParameters)
+            || (param1 instanceof RawDataFilesParameter) && skipRawDataFileParameters) {
+          // it does not matter if the file or raw data selection was different, we need to know
+          // if the other values were the same if we want to merge the steps.
+          logger.finest(
+              () -> "Skipping parameter " + param1.getName() + " of class " + param1.getClass()
+                  .getName() + ".");
+          continue;
+        }
+
+        if (param1 instanceof EmbeddedParameterSet embedded1
+            && param2 instanceof EmbeddedParameterSet embedded2 && !equalValues(
+            embedded1.getEmbeddedParameters(), embedded2.getEmbeddedParameters(),
+            skipFileParameters, skipRawDataFileParameters)) {
+          return false;
+        }
+
+        if (!param1.valueEquals(param2)) {
+          logger.finest(
+              () -> "Parameter \"" + param1.getName() + "\" of parameter set " + a.getClass()
+                  .getName() + " has different values: " + param1.getValue() + " and "
+                  + param2.getValue());
+          return false;
+        }
+
       } catch (Exception ex) {
+        // parameter does not exist
         logger.log(Level.WARNING,
             "ParameterSet b does not have all parameters available in a. " + ex.getMessage(), ex);
         return false;
       }
     }
+
     return true;
   }
 }

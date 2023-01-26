@@ -150,15 +150,15 @@ public class BatchWizardTab extends SimpleTab {
 
   private void evaluateWorkflowLimitChoices() {
     var ionization = workflowSteps.get(WizardPart.ION_INTERFACE)
-        .map(step -> (IonInterfaceWizardParameterFactory) step.getPreset())
+        .map(step -> (IonInterfaceWizardParameterFactory) step.getFactory())
         .orElse(IonInterfaceWizardParameterFactory.HPLC);
 
     List<WizardStepPreset> filteredWorkflows = ALL_PRESETS.get(WizardPart.WORKFLOW).stream()
         .filter(workflow -> switch (ionization) {
           case HPLC, UHPLC, HILIC, GC_CI, DIRECT_INFUSION, FLOW_INJECT, MALDI, LDI, DESI, SIMS ->
-              !workflow.getPreset().equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION);
+              !workflow.getFactory().equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION);
           case GC_EI ->
-              workflow.getPreset().equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION);
+              workflow.getFactory().equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION);
         }).toList();
 
     ComboBox<WizardStepPreset> workflowCombo = combos.get(WizardPart.WORKFLOW);
@@ -171,14 +171,14 @@ public class BatchWizardTab extends SimpleTab {
 
     // check timsTOF and TWIMS TOF only
     var ims = workflowSteps.get(WizardPart.IMS)
-        .map(step -> (IonMobilityWizardParameterFactory) step.getPreset())
+        .map(step -> (IonMobilityWizardParameterFactory) step.getFactory())
         .orElse(IonMobilityWizardParameterFactory.NO_IMS);
 
     ComboBox<WizardStepPreset> msCombo = combos.get(WizardPart.MS);
     ObservableList<WizardStepPreset> currentMs = msCombo.getItems();
     List<WizardStepPreset> filteredMs = ALL_PRESETS.get(WizardPart.MS).stream()
         .filter(ms -> switch (ims) {
-          case TIMS, TWIMS -> ms.getPreset().equals(MassSpectrometerWizardParameterFactory.qTOF);
+          case TIMS, TWIMS -> ms.getFactory().equals(MassSpectrometerWizardParameterFactory.QTOF);
           case NO_IMS, IMS, DTIMS -> true;
         }).toList();
 

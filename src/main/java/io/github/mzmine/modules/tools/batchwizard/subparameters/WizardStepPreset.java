@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -38,6 +40,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This is a preset for a specific {@link WizardPart}. It was created by
+ * {@link WizardParameterFactory} {@link #getFactory()}. In a {@link WizardSequence} the presets
+ * define the actual processing workflow that is built in {@link WizardBatchBuilder}
+ */
 public abstract sealed class WizardStepPreset extends ComposedParameterSet implements
     Comparable<WizardStepPreset> permits IonInterfaceWizardParameters, AnnotationWizardParameters,
     DataImportWizardParameters, FilterWizardParameters, IonMobilityWizardParameters,
@@ -45,18 +52,18 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
 
   private final WizardPart part;
   private ParameterSet parameters;
-  private WizardParameterFactory preset;
+  private WizardParameterFactory factory;
 
   /**
    * @param part       the part in the workflow
-   * @param preset     preset chosen from 1 or more choices
+   * @param factory    preset chosen from 1 or more choices
    * @param parameters array of parameters
    */
-  public WizardStepPreset(WizardPart part, WizardParameterFactory preset,
+  public WizardStepPreset(WizardPart part, WizardParameterFactory factory,
       Parameter<?>... parameters) {
     this.parameters = new SimpleParameterSet(parameters).cloneParameterSet();
     this.part = part;
-    this.preset = preset;
+    this.factory = factory;
   }
 
   /**
@@ -71,7 +78,7 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
 
   @Override
   public String toString() {
-    return preset.toString();
+    return factory.toString();
   }
 
   /**
@@ -90,18 +97,17 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
    * @return factory
    */
   @NotNull
-  public WizardParameterFactory getPreset() {
-    return preset;
+  public WizardParameterFactory getFactory() {
+    return factory;
   }
 
   /**
-   * The unique id used for save load
+   * Set the selected preset
    *
-   * @return preset unique ID
+   * @param factory the new preset
    */
-  @NotNull
-  public String getUniquePresetId() {
-    return preset.getUniqueId();
+  public void setFactory(final WizardParameterFactory factory) {
+    this.factory = factory;
   }
 
   /**
@@ -114,12 +120,13 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
   }
 
   /**
-   * Set the selected preset
+   * The unique id used for save load
    *
-   * @param preset the new preset
+   * @return preset unique ID
    */
-  public void setPreset(final WizardParameterFactory preset) {
-    this.preset = preset;
+  @NotNull
+  public String getUniquePresetId() {
+    return factory.getUniqueId();
   }
 
   @Override
@@ -136,7 +143,7 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
    * @return the default parameters preset
    */
   public WizardStepPreset createDefaultParameterPreset() {
-    return preset.create();
+    return factory.create();
   }
 
   // for sorting
@@ -152,6 +159,6 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
    */
   @NotNull
   public String getPresetName() {
-    return preset.toString();
+    return factory.toString();
   }
 }

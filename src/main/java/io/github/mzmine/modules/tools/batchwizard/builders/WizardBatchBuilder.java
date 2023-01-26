@@ -195,7 +195,7 @@ public abstract class WizardBatchBuilder {
   public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardSequence steps) {
     // workflow is always set
     Optional<WizardStepPreset> preset = steps.get(WizardPart.WORKFLOW);
-    var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getPreset();
+    var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getFactory();
     return switch (workflowPreset) {
       case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
           : new WizardBatchBuilderLcDDA(steps);

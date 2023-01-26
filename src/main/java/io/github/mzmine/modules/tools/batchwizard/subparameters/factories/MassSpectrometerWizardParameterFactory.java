@@ -34,7 +34,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  * toString method
  */
 public enum MassSpectrometerWizardParameterFactory implements WizardParameterFactory {
-  Orbitrap, qTOF, FTICR, LOW_RES;
+  Orbitrap, QTOF, FTICR, LOW_RES;
 
   /**
    * Special presets derived from IMS go here
@@ -44,7 +44,7 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
     return switch (ims) {
       case NO_IMS, IMS, DTIMS, TWIMS -> null;
       case TIMS ->
-          new MassSpectrometerWizardParameters(qTOF, 1.5E2, 1E2, 1.0E3, new MZTolerance(0.005, 20),
+          new MassSpectrometerWizardParameters(QTOF, 1.5E2, 1E2, 1.0E3, new MZTolerance(0.005, 20),
               new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
     };
   }
@@ -52,7 +52,7 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
   @Override
   public String toString() {
     return switch (this) {
-      case Orbitrap, qTOF, FTICR -> super.toString();
+      case Orbitrap, QTOF, FTICR -> super.toString();
       case LOW_RES -> "Low res.";
     };
   }
@@ -71,7 +71,7 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
       case Orbitrap ->
           new MassSpectrometerWizardParameters(this, 1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
               new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
-      case qTOF ->
+      case QTOF ->
           new MassSpectrometerWizardParameters(this, 5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
               new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
       // TODO optimize some defaults
