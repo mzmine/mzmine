@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -198,7 +199,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
     List<DataType> rowTypes =
         flist.getRowTypes().values().stream().filter(this::filterType).collect(Collectors.toList());
 
-    // Write feature row headers
+    // write featureML header
     writer.write(String.format("<?xml version='1.0' encoding='ISO-8859-1'?>"));
     writer.newLine();
     writer.write(String.format(
@@ -222,31 +223,19 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
     double maxMZ = 0.;
     double meanMZ = 0.;
 
-    double x = 0.;
-
     for (FeatureListRow row : rows) {
-      // find earliest and latest RTs, no function available (or I did not find it)
-
-      minRT = 1000000.;
-      maxRT = 0.;
-
-      for (RawDataFile rawFile : rawDataFiles) {
-
-        if (row.getFeature(rawFile) != null) {
-          x = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint();
-          minRT = minRT < x ? minRT : x;
-          x = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint();
-          maxRT = maxRT > x ? maxRT : x;
-        }
-      }
-
+      // get convex hull (min/max RT and MZ Range) for the feature in the experiment
+      minRT = row.get(RTRangeType.class).lowerEndpoint();
+      maxRT = row.get(RTRangeType.class).upperEndpoint();
+      meanRT = row.getAverageRT();
       minMZ = row.getMZRange().lowerEndpoint();
       maxMZ = row.getMZRange().upperEndpoint();
       meanMZ = row.getAverageMZ();
 
+      // convert RTs to minutes
       minRT = minRT * 60;
       maxRT = maxRT * 60;
-      meanRT = row.getAverageRT() * 60;
+      meanRT = meanRT * 60;
 
       writer.write(String.format("      <feature id='%d'>", row.getID()));
       writer.newLine();
@@ -277,13 +266,14 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       writer.write(String.format("        </convexhull>"));
       writer.newLine();
 
+      // get convex hulls of individual features from the different samples
       int numberOfConvexHulls = 1;
       for (RawDataFile rawFile : rawDataFiles) {
 
         if (row.getFeature(rawFile) != null) {
           minMZ = row.getFeature(rawFile).getRawDataPointsMZRange().lowerEndpoint();
           maxMZ = row.getFeature(rawFile).getRawDataPointsMZRange().upperEndpoint();
-          minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;
+          minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;      // convert RTs to minutes
           maxRT = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint() * 60;
 
           writer.write(String.format("        <convexhull nr='%d'>", numberOfConvexHulls));
@@ -307,6 +297,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       writer.newLine();
     }
 
+    // write featureML footer
     writer.append("    </featureList>");
     writer.newLine();
     writer.append("  </featureMap>");
