@@ -182,7 +182,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         flist.getRowTypes().values().stream().filter(this::filterType).collect(Collectors.toList());
 
     // write featureML header
-    writer.write(String.format("<?xml version='1.0' encoding='ISO-8859-1'?>"));
+    writer.write(String.format("<?xml version='1.0' encoding='UTF-8'?>"));
     writer.newLine();
     writer.write(String.format(
         "  <featureMap version='1.4' id='fm_16311276685788915066' xsi:noNamespaceSchemaLocation='http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>"));
