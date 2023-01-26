@@ -41,10 +41,9 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
@@ -74,8 +73,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     // extract default parameters that are used for all workflows
     super(steps);
 
-    Optional<? extends AbstractWizardParameters> params = steps.get(WizardPart.ION_INTERFACE)
-        .map(WizardPreset::parameters);
+    Optional<? extends WizardStepPreset> params = steps.get(WizardPart.ION_INTERFACE);
     // special workflow parameter are extracted here
     // chromatography
     rtSmoothing = getValue(params, IonInterfaceGcElectronImpactWizardParameters.smoothing);
@@ -90,7 +88,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM);
 
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
-    params = steps.get(WizardPart.WORKFLOW).map(WizardPreset::parameters);
+    params = steps.get(WizardPart.WORKFLOW);
     OptionalValue<File> optional = getOptional(params,
         WorkflowGcElectronImpactWizardParameters.exportPath);
     isExportActive = optional.active();

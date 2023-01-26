@@ -27,14 +27,14 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.AnnotationWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
 
 /**
  * Reuses spectral library files parameters of {@link SpectralLibraryImportParameters}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public final class AnnotationWizardParameters extends AbstractWizardParameters {
+public final class AnnotationWizardParameters extends WizardStepPreset {
 
   // TODO add LocalCSVDatabase search
   // needs less parameters only the most important ones to reproduce the library generation workflow

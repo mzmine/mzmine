@@ -23,24 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.factories;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 
 /**
- * implemented by preset enums of parts with multiple preset options
+ * the defaults should not change the name of enum values. if strings are needed, override the
+ * toString method
  */
-public interface WizardParameterFactory {
+public enum DataImportWizardParameterFactory implements WizardParameterFactory {
+  Data;
 
-  /**
-   * @return the default parameters for this preset
-   */
-  WizardPreset create();
 
-  /**
-   * Used to save and load from file
-   *
-   * @return {@link Enum#name()}
-   */
-  String getUniqueId();
+  @Override
+  public WizardStepPreset create() {
+    return new DataImportWizardParameters();
+  }
+
+  @Override
+  public String getUniqueId() {
+    return name();
+  }
 }

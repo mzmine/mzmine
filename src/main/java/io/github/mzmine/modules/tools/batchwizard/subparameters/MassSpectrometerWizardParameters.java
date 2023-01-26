@@ -28,15 +28,14 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.factories.ImsWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.ImsWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public final class MassSpectrometerWizardParameters extends AbstractWizardParameters {
+public final class MassSpectrometerWizardParameters extends WizardStepPreset {
 
   public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
       "Polarity of the ion mode", Polarity.values(), Polarity.Positive);
@@ -124,8 +123,8 @@ public final class MassSpectrometerWizardParameters extends AbstractWizardParame
      * User options for instruments go here
      */
     @Override
-    public WizardPreset create() {
-      var params = switch (this) {
+    public WizardStepPreset create() {
+      return switch (this) {
         case Orbitrap ->
             new MassSpectrometerWizardParameters(this, 1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
                 new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
@@ -139,7 +138,6 @@ public final class MassSpectrometerWizardParameters extends AbstractWizardParame
         case LOW_RES -> new MassSpectrometerWizardParameters(this, 0, 0, 0, new MZTolerance(0.5, 0),
             new MZTolerance(0.5, 0), new MZTolerance(0.5, 0));
       };
-      return new WizardPreset(toString(), getUniqueId(), params);
     }
   }
 }

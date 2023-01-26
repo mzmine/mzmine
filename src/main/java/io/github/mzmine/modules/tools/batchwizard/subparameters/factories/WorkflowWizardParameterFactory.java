@@ -23,9 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.factories;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
@@ -53,15 +53,14 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   }
 
   @Override
-  public WizardPreset create() {
-    var params = switch (this) {
+  public WizardStepPreset create() {
+    return switch (this) {
       // EMPTY parameter set
       case MS1_ONLY, LIBRARY_GENERATION -> new WorkflowWizardParameters(this);
       // specialized parameters
       case DDA -> new WorkflowDdaWizardParameters(true, null, true, true);
       case GC_EI_DECONVOLUTION -> new WorkflowGcElectronImpactWizardParameters(true, null, true);
     };
-    return new WizardPreset(toString(), getUniqueId(), params);
   }
 
 }

@@ -23,14 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.factories;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceDirectAndFlowInjectWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 
@@ -84,9 +84,9 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
   /**
    * Create parameters from defaults
    */
-  public WizardPreset create() {
+  public WizardStepPreset create() {
     // override defaults
-    var params = switch (this) {
+    return switch (this) {
       case HPLC -> new IonInterfaceHplcWizardParameters(this, true, 15, 4, Range.closed(0.5, 60d),
           new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.08f, Unit.MINUTES),
           new RTTolerance(0.4f, Unit.MINUTES));
@@ -110,7 +110,6 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
       case DIRECT_INFUSION, FLOW_INJECT ->
           new IonInterfaceDirectAndFlowInjectWizardParameters(this, 5);
     };
-    return new WizardPreset(toString(), getUniqueId(), params);
   }
 
   public boolean isImaging() {

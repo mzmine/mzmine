@@ -23,11 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.factories;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -55,8 +55,8 @@ public enum ImsWizardParameterFactory implements WizardParameterFactory {
    * Create parameters from defaults
    */
   @Override
-  public WizardPreset create() {
-    var params = switch (this) {
+  public WizardStepPreset create() {
+    return switch (this) {
       case NO_IMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, false, MobilityType.NONE);
       case TIMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, true, MobilityType.TIMS);
       case IMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, true, MobilityType.OTHER);
@@ -65,7 +65,6 @@ public enum ImsWizardParameterFactory implements WizardParameterFactory {
       case TWIMS ->
           new IonMobilityWizardParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
     };
-    return new WizardPreset(toString(), getUniqueId(), params);
   }
 
   @Override

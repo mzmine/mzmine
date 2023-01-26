@@ -26,20 +26,25 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.impl.ComposedParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class AbstractWizardParameters extends ComposedParameterSet implements
-    Comparable<AbstractWizardParameters> permits IonInterfaceWizardParameters,
-    AnnotationWizardParameters, DataImportWizardParameters, FilterWizardParameters,
-    IonMobilityWizardParameters, MassSpectrometerWizardParameters, WorkflowWizardParameters {
+public abstract sealed class WizardStepPreset extends ComposedParameterSet implements
+    Comparable<WizardStepPreset> permits IonInterfaceWizardParameters, AnnotationWizardParameters,
+    DataImportWizardParameters, FilterWizardParameters, IonMobilityWizardParameters,
+    MassSpectrometerWizardParameters, WorkflowWizardParameters {
 
-  private ParameterSet parameters;
   private final WizardPart part;
+  private ParameterSet parameters;
   private WizardParameterFactory preset;
 
   /**
@@ -47,25 +52,65 @@ public abstract sealed class AbstractWizardParameters extends ComposedParameterS
    * @param preset     preset chosen from 1 or more choices
    * @param parameters array of parameters
    */
-  public AbstractWizardParameters(WizardPart part, WizardParameterFactory preset,
+  public WizardStepPreset(WizardPart part, WizardParameterFactory preset,
       Parameter<?>... parameters) {
     this.parameters = new SimpleParameterSet(parameters).cloneParameterSet();
     this.part = part;
     this.preset = preset;
   }
 
+  /**
+   * Create map of all presets for every {@link WizardPart}
+   *
+   * @return map of part and list of presets
+   */
+  public static Map<WizardPart, List<WizardStepPreset>> createAllPresets() {
+    return Arrays.stream(WizardPart.values())
+        .collect(Collectors.toMap(part -> part, WizardPart::createPresetParameters));
+  }
+
+  @Override
+  public String toString() {
+    return preset.toString();
+  }
 
   /**
    * The part describes the part in the workflow, like LC-tims-qTOF-MS
    *
    * @return final part
    */
+  @NotNull
   public WizardPart getPart() {
     return part;
   }
 
+  /**
+   * The factory used to create this preset
+   *
+   * @return factory
+   */
+  @NotNull
   public WizardParameterFactory getPreset() {
     return preset;
+  }
+
+  /**
+   * The unique id used for save load
+   *
+   * @return preset unique ID
+   */
+  @NotNull
+  public String getUniquePresetId() {
+    return preset.getUniqueId();
+  }
+
+  /**
+   * @return true if all parameters are set to the default values
+   */
+  public boolean hasDefaultParameters() {
+    var defaultPreset = createDefaultParameterPreset();
+    return defaultPreset != null && ParameterUtils.equalValues(defaultPreset.parameters,
+        parameters);
   }
 
   /**
@@ -87,9 +132,26 @@ public abstract sealed class AbstractWizardParameters extends ComposedParameterS
     parameters = newParameters;
   }
 
+  /**
+   * @return the default parameters preset
+   */
+  public WizardStepPreset createDefaultParameterPreset() {
+    return preset.create();
+  }
+
   // for sorting
   @Override
-  public int compareTo(@NotNull final AbstractWizardParameters o) {
+  public int compareTo(@NotNull final WizardStepPreset o) {
     return part.compareTo(o.part);
+  }
+
+  /**
+   * The title shown in the tabs and in the comboboxes
+   *
+   * @return preset.toString
+   */
+  @NotNull
+  public String getPresetName() {
+    return preset.toString();
   }
 }

@@ -23,10 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.factories;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -37,8 +37,8 @@ public enum FilterWizardParameterFactory implements WizardParameterFactory {
 
 
   @Override
-  public WizardPreset create() {
-    return new WizardPreset(toString(), getUniqueId(), new FilterWizardParameters());
+  public WizardStepPreset create() {
+    return new FilterWizardParameters();
   }
 
   @Override

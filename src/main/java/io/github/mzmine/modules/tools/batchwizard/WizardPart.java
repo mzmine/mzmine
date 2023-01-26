@@ -25,14 +25,15 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.factories.AnnotationWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.DataImportWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.FilterWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.ImsWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.ImsWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import java.util.Arrays;
 import java.util.List;
 
@@ -79,7 +80,7 @@ public enum WizardPart {
    *
    * @return list of presets
    */
-  public List<WizardPreset> createPresetParameters() {
+  public List<WizardStepPreset> createPresetParameters() {
     return Arrays.stream(getDefaultPresets()).map(WizardParameterFactory::create).toList();
   }
 

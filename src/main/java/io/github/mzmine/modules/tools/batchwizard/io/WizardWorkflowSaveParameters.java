@@ -45,7 +45,7 @@ public class WizardWorkflowSaveParameters extends SimpleParameterSet {
   public static final MultiChoiceParameter<WizardPart> exportParts = new MultiChoiceParameter<>(
       "Export", """
       Parts to export. This way the different instruments and methods for LC, GC, MS, ...
-      can be defined and combined later. When importing a preset that only defines some parts of the workflow, 
+      can be defined and combined later. When importing a preset that only defines some parts of the workflow,
       the rest of the workflow is kept at the current definitions in the UI.""",
       WizardPart.values(), WizardPart.values());
 

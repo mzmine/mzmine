@@ -34,10 +34,9 @@ import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
@@ -61,13 +60,12 @@ public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
     // extract default parameters that are used for all workflows
     super(steps);
 
-    Optional<? extends AbstractWizardParameters> params = steps.get(WizardPart.ION_INTERFACE)
-        .map(WizardPreset::parameters);
+    Optional<? extends WizardStepPreset> params = steps.get(WizardPart.ION_INTERFACE);
     // special workflow parameter are extracted here
     minDataPoints = getValue(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
 
     // DDA workflow parameters
-    params = steps.get(WizardPart.WORKFLOW).map(WizardPreset::parameters);
+    params = steps.get(WizardPart.WORKFLOW);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();

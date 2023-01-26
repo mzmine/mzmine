@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;

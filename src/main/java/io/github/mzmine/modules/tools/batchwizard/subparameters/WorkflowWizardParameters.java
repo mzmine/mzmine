@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 
-public sealed class WorkflowWizardParameters extends AbstractWizardParameters permits
+public sealed class WorkflowWizardParameters extends WizardStepPreset permits
     WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters {
 
   public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,

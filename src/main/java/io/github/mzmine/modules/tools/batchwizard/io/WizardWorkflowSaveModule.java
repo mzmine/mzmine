@@ -59,7 +59,7 @@ public class WizardWorkflowSaveModule implements MZmineModule {
       try {
         // only keep parts to export
         var filteredWorkflow = workflow.stream()
-            .filter(preset -> exportParts.contains(preset.part())).toList();
+            .filter(preset -> exportParts.contains(preset.getPart())).toList();
         WizardWorkflowIOUtils.saveToFile(filteredWorkflow, file, true);
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),

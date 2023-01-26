@@ -74,14 +74,13 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
-import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters.ChromatographyWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -120,9 +119,10 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 /**
- * Creates a batch queue from a list of {@link WizardPreset} making up a workflow defined in
+ * Creates a batch queue from a list of {@link WizardStepPreset} making up a workflow defined in
  * {@link WizardPart}
  */
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public abstract class WizardBatchBuilder {
 
   private static final Logger logger = Logger.getLogger(WizardBatchBuilder.class.getName());
@@ -150,45 +150,24 @@ public abstract class WizardBatchBuilder {
   protected final Double imsFwhm;
   protected final Integer minImsDataPoints;
 
-  /**
-   * Create workflow builder for workflow steps
-   *
-   * @param steps workflow
-   * @return the builder
-   */
-  public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardWorkflow steps) {
-    // workflow is always set
-    Optional<WizardPreset> preset = steps.get(WizardPart.WORKFLOW);
-    WorkflowWizardParameterFactory workflowPreset = WorkflowWizardParameterFactory.valueOf(
-        preset.get().uniquePresetId());
-    return switch (workflowPreset) {
-      case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
-          : new WizardBatchBuilderLcDDA(steps);
-      case GC_EI_DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
-      case LIBRARY_GENERATION, MS1_ONLY -> throw new UnsupportedOperationException(
-          "Currently not implemented workflow " + workflowPreset);
-    };
-  }
-
   protected WizardBatchBuilder(WizardWorkflow steps) {
     // input
-    Optional<? extends AbstractWizardParameters> params = steps.get(WizardPart.DATA_IMPORT)
-        .map(WizardPreset::parameters);
+    Optional<? extends WizardStepPreset> params = steps.get(WizardPart.DATA_IMPORT);
     dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
 
     // annotation
-    params = steps.get(WizardPart.ANNOTATION).map(WizardPreset::parameters);
+    params = steps.get(WizardPart.ANNOTATION);
     libraries = getValue(params, SpectralLibraryImportParameters.dataBaseFiles);
 
     // filter
-    params = steps.get(WizardPart.FILTER).map(WizardPreset::parameters);
+    params = steps.get(WizardPart.FILTER);
     filter13C = getValue(params, FilterWizardParameters.filter13C);
     minAlignedSamples = getValue(params, FilterWizardParameters.minNumberOfSamples);
     handleOriginalFeatureLists = getValue(params,
         FilterWizardParameters.handleOriginalFeatureLists);
 
     // ion mobility IMS
-    params = steps.get(WizardPart.IMS).map(WizardPreset::parameters);
+    params = steps.get(WizardPart.IMS);
     isImsActive = getValue(params, IonMobilityWizardParameters.imsActive);
     imsInstrumentType = getValue(params, IonMobilityWizardParameters.instrumentType);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
@@ -196,7 +175,7 @@ public abstract class WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
 
     // mass spectrometer
-    params = steps.get(WizardPart.MS).map(WizardPreset::parameters);
+    params = steps.get(WizardPart.MS);
     polarity = getValue(params, MassSpectrometerWizardParameters.polarity);
     noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.ms2NoiseLevel);
     noiseLevelMs1 = getValue(params, MassSpectrometerWizardParameters.ms1NoiseLevel);
@@ -205,6 +184,25 @@ public abstract class WizardBatchBuilder {
     mzTolFeaturesIntraSample = getValue(params,
         MassSpectrometerWizardParameters.featureToFeatureMzTolerance);
     mzTolInterSample = getValue(params, MassSpectrometerWizardParameters.sampleToSampleMzTolerance);
+  }
+
+  /**
+   * Create workflow builder for workflow steps
+   *
+   * @param steps workflow
+   * @return the builder
+   */
+  public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardWorkflow steps) {
+    // workflow is always set
+    Optional<WizardStepPreset> preset = steps.get(WizardPart.WORKFLOW);
+    var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getPreset();
+    return switch (workflowPreset) {
+      case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
+          : new WizardBatchBuilderLcDDA(steps);
+      case GC_EI_DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
+      case LIBRARY_GENERATION, MS1_ONLY -> throw new UnsupportedOperationException(
+          "Currently not implemented workflow " + workflowPreset);
+    };
   }
 
   protected static MZmineProcessingStep<MZmineProcessingModule> makeDuplicateRowFilterStep(
@@ -320,7 +318,6 @@ public abstract class WizardBatchBuilder {
    */
   public abstract BatchQueue createQueue();
 
-
   /**
    * Get parameter if available or else return null. params usually comes from
    * {@link WizardWorkflow#get(WizardPart)}
@@ -329,7 +326,7 @@ public abstract class WizardBatchBuilder {
    * @param parameter parameter as defined in params class. Usually a static parameter
    * @return the value of the parameter or null if !params.isPresent
    */
-  protected <T> T getValue(@NotNull final Optional<? extends AbstractWizardParameters> params,
+  protected <T> T getValue(@NotNull final Optional<? extends WizardStepPreset> params,
       @NotNull final Parameter<T> parameter) {
     if (params.isPresent()) {
       try {
@@ -351,7 +348,7 @@ public abstract class WizardBatchBuilder {
    * @return value and selection state of an OptionalParameter
    */
   protected <V, T extends UserParameter<V, ?>> OptionalValue<V> getOptional(
-      @NotNull final Optional<? extends AbstractWizardParameters> params,
+      @NotNull final Optional<? extends WizardStepPreset> params,
       @NotNull final OptionalParameter<T> parameter) {
     if (params.isPresent()) {
       try {

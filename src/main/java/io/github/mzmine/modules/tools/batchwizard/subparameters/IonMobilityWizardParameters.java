@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.ImsWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.ImsWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.text.DecimalFormat;
 
-public final class IonMobilityWizardParameters extends AbstractWizardParameters {
+public final class IonMobilityWizardParameters extends WizardStepPreset {
 
   public static final DoubleParameter approximateImsFWHM = new DoubleParameter(
       "Approximate feature FWHM",

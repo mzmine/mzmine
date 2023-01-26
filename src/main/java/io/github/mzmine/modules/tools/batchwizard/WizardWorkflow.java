@@ -26,7 +26,8 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
-import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,9 +44,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class WizardWorkflow extends AbstractList<WizardPreset> {
+public class WizardWorkflow extends AbstractList<WizardStepPreset> {
 
-  private final List<WizardPreset> steps = new ArrayList<>();
+  private final List<WizardStepPreset> steps = new ArrayList<>();
 
   /**
    * The preset for part if one is set
@@ -53,8 +54,8 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
    * @param part part of the workflow
    * @return preset if one was set
    */
-  public Optional<WizardPreset> get(final WizardPart part) {
-    return steps.stream().filter(step -> step.part() == part).findFirst();
+  public Optional<WizardStepPreset> get(final WizardPart part) {
+    return steps.stream().filter(step -> step.getPart() == part).findFirst();
   }
 
   /**
@@ -65,7 +66,8 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
    *               the old preset
    * @return true if successfully added (preset not null)
    */
-  public synchronized boolean set(@NotNull final WizardPart part, @Nullable WizardPreset preset) {
+  public synchronized boolean set(@NotNull final WizardPart part,
+      @Nullable WizardStepPreset preset) {
     int index = indexOf(part);
     if (index >= 0) {
       remove(index);
@@ -102,7 +104,7 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
     }
     int insertIndex = 0;
     for (int i = 0; i < steps.size(); i++) {
-      WizardPart current = get(i).part();
+      WizardPart current = get(i).getPart();
       int compared = part.compareTo(current);
       if (compared == 0) {
         return i;
@@ -124,7 +126,7 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
   }
 
   @Override
-  public WizardPreset get(final int index) {
+  public WizardStepPreset get(final int index) {
     return steps.get(index);
   }
 
@@ -134,12 +136,12 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
   }
 
   @Override
-  public boolean add(final WizardPreset preset) {
-    return set(preset.part(), preset);
+  public boolean add(final WizardStepPreset preset) {
+    return set(preset.getPart(), preset);
   }
 
   @Override
-  public void add(final int index, final WizardPreset element) {
+  public void add(final int index, final WizardStepPreset element) {
     steps.add(index, element);
   }
 
@@ -149,7 +151,7 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
   }
 
   @Override
-  public WizardPreset remove(final int index) {
+  public WizardStepPreset remove(final int index) {
     if (index >= size()) {
       return null;
     }
@@ -160,7 +162,7 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
     Collections.sort(steps);
   }
 
-  public WizardPreset set(int index, WizardPreset element) {
+  public WizardStepPreset set(int index, WizardStepPreset element) {
     return steps.set(index, element);
   }
 
@@ -170,15 +172,13 @@ public class WizardWorkflow extends AbstractList<WizardPreset> {
    * @param partialWorkflow Might be the whole or a partial workflow
    */
   public void apply(final WizardWorkflow partialWorkflow) {
-    for (var newStep : partialWorkflow) {
-      // add or replace
-      add(newStep);
-    }
+    addAll(partialWorkflow);
   }
 
   public boolean isImaging() {
     return get(WizardPart.ION_INTERFACE).map(
-            wizardPreset -> IonInterfaceWizardParameterFactory.valueOf(wizardPreset.uniquePresetId()))
-        .map(IonInterfaceWizardParameterFactory::isImaging).orElse(false);
+            wizardPreset -> IonInterfaceWizardParameterFactory.valueOf(
+                wizardPreset.getUniquePresetId())).map(IonInterfaceWizardParameterFactory::isImaging)
+        .orElse(false);
   }
 }

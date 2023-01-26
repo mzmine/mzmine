@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.FilterWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 /**
  * Filtering steps throughout the batch mode
  */
-public final class FilterWizardParameters extends AbstractWizardParameters {
+public final class FilterWizardParameters extends WizardStepPreset {
 
   public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
       "Min samples per aligned feature",

@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 public final class IonInterfaceImagingWizardParameters extends IonInterfaceWizardParameters {

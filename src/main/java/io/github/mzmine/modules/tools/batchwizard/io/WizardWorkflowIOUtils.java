@@ -27,8 +27,8 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -77,7 +77,7 @@ public class WizardWorkflowIOUtils {
   private WizardWorkflowIOUtils() {
   }
 
-  public static void saveToFile(final List<WizardPreset> workflow, final File file,
+  public static void saveToFile(final List<WizardStepPreset> workflow, final File file,
       final boolean skipSensitive) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -89,11 +89,11 @@ public class WizardWorkflowIOUtils {
 
       for (var step : workflow) {
         Element moduleElement = configuration.createElement(PART_TAG);
-        moduleElement.setAttribute(PART_ATTRIBUTE, step.part().name());
-        moduleElement.setAttribute(PRESET_ATTRIBUTE, step.uniquePresetId());
+        moduleElement.setAttribute(PART_ATTRIBUTE, step.getPart().name());
+        moduleElement.setAttribute(PRESET_ATTRIBUTE, step.getUniquePresetId());
         // save parameters
-        step.parameters().setSkipSensitiveParameters(skipSensitive);
-        step.parameters().saveValuesToXML(moduleElement);
+        step.setSkipSensitiveParameters(skipSensitive);
+        step.saveValuesToXML(moduleElement);
         configRoot.appendChild(moduleElement);
       }
 
@@ -143,10 +143,10 @@ public class WizardWorkflowIOUtils {
    * @param file       wizard preset xml file
    * @param allPresets all presets as defined in the {@link BatchWizardTab}
    * @return a new list of presets for each defined part - empty on error or if nothing was defined
-   * @throws IOException
+   * @throws IOException when loading file
    */
   public static @NotNull WizardWorkflow loadFromFile(final File file,
-      Map<WizardPart, List<WizardPreset>> allPresets) throws IOException {
+      Map<WizardPart, List<WizardStepPreset>> allPresets) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -173,10 +173,10 @@ public class WizardWorkflowIOUtils {
           uniquePresetId = xmlNode.getAttribute(PRESET_ATTRIBUTE);
           final String uniqeId = uniquePresetId;
           // load preset parameters and add to wizard
-          allPresets.get(part).stream().filter(preset -> preset.uniquePresetId().equals(uniqeId))
+          allPresets.get(part).stream().filter(preset -> preset.getUniquePresetId().equals(uniqeId))
               .findFirst().ifPresent(preset -> {
                 workflow.add(preset);
-                preset.parameters().loadValuesFromXML(xmlNode);
+                preset.loadValuesFromXML(xmlNode);
               });
         } catch (Exception e) {
           logger.warning("Cannot set preset " + uniquePresetId + " to part " + part
@@ -200,7 +200,7 @@ public class WizardWorkflowIOUtils {
    * @return a new list of presets for each defined part - empty on error or if nothing was defined
    */
   public static @NotNull WizardWorkflow chooseAndLoadFile(
-      final Map<WizardPart, List<WizardPreset>> allPresets) {
+      final Map<WizardPart, List<WizardStepPreset>> allPresets) {
     File prefPath = getWizardSettingsPath();
     FileChooser chooser = new FileChooser();
     chooser.setInitialDirectory(prefPath);
@@ -223,10 +223,10 @@ public class WizardWorkflowIOUtils {
    * Local files are save to {@link #getWizardSettingsPath()}
    *
    * @param ALL_PRESETS all presets so that the correct object can be used
-   * @return
+   * @return A list of local wizard workflows
    */
   public static @NotNull List<LocalWizardWorkflowFile> findAllLocalPresetFiles(
-      final Map<WizardPart, List<WizardPreset>> ALL_PRESETS) {
+      final Map<WizardPart, List<WizardStepPreset>> ALL_PRESETS) {
     File path = getWizardSettingsPath();
     if (path == null) {
       return List.of();
