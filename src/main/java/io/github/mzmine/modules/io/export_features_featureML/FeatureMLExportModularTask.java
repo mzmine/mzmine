@@ -176,7 +176,6 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         return;
       }
 
-      checkConcurrentModification(featureList, numRows, numFeatures, numMS2);
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
       if (!substitute) {
@@ -314,29 +313,5 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType
         || type instanceof LinkedGraphicalType);
-  }
-
-
-  private void checkConcurrentModification(FeatureList featureList, int numRows, long numFeatures,
-      long numMS2) {
-    final int numRowsEnd = featureList.getNumberOfRows();
-    final long numFeaturesEnd = featureList.streamFeatures().count();
-    final long numMS2End = featureList.stream().filter(row -> row.hasMs2Fragmentation()).count();
-
-    if (numRows != numRowsEnd) {
-      throw new ConcurrentModificationException(String.format(
-          "Detected modification to number of ROWS during featurelist (%s) CSV export old=%d new=%d",
-          featureList.getName(), numRows, numRowsEnd));
-    }
-    if (numFeatures != numFeaturesEnd) {
-      throw new ConcurrentModificationException(String.format(
-          "Detected modification to number of ROWS during featurelist (%s) CSV export old=%d new=%d",
-          featureList.getName(), numFeatures, numFeaturesEnd));
-    }
-    if (numMS2 != numMS2End) {
-      throw new ConcurrentModificationException(String.format(
-          "Detected modification to number of ROWS WITH MS2 during featurelist (%s) CSV export old=%d new=%d",
-          featureList.getName(), numMS2, numMS2End));
-    }
   }
 }
