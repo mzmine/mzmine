@@ -66,6 +66,10 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+//Export results to featureML format for visualization in TOPPView
+//schema available at https://github.com/OpenMS/OpenMS/blob/7a2e4a41d4c9f511306afcb8bb4f1b773ace9b9a/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd
+
+
 public class FeatureMLExportModularTask extends AbstractTask implements ProcessedItemsCounter {
 
   public static final String DATAFILE_PREFIX = "datafile";
