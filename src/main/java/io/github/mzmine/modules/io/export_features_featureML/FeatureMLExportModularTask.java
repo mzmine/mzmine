@@ -277,7 +277,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       writer.write(String.format("        </convexhull>"));
       writer.newLine();
 
-      int hulNum = 1;
+      int numberOfConvexHulls = 1;
       for (RawDataFile rawFile : rawDataFiles) {
 
         if (row.getFeature(rawFile) != null) {
@@ -286,7 +286,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
           minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;
           maxRT = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint() * 60;
 
-          writer.write(String.format("        <convexhull nr='%d'>", hulNum));
+          writer.write(String.format("        <convexhull nr='%d'>", numberOfConvexHulls));
           writer.newLine();
           writer.write(String.format("          <pt x='%f' y='%f' />", minRT, minMZ));
           writer.newLine();
@@ -299,7 +299,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
           writer.write(String.format("        </convexhull>"));
           writer.newLine();
 
-          hulNum += 1;
+          numberOfConvexHulls += 1;
         }
       }
 
