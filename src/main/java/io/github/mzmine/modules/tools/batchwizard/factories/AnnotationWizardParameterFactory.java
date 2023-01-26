@@ -26,15 +26,19 @@
 package io.github.mzmine.modules.tools.batchwizard.factories;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
 
-public enum DataImportParameterFactory implements WizardParameterFactory {
-  Data;
+/**
+ * the defaults should not change the name of enum values. if strings are needed, override the
+ * toString method
+ */
+public enum AnnotationWizardParameterFactory implements WizardParameterFactory {
+  Annotation;
 
 
   @Override
   public WizardPreset create() {
-    return new WizardPreset(toString(), getUniqueId(), new DataImportWizardParameters());
+    return new WizardPreset(toString(), getUniqueId(), new AnnotationWizardParameters());
   }
 
   @Override

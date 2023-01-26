@@ -27,8 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.ImsWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -58,14 +57,14 @@ public final class IonMobilityWizardParameters extends AbstractWizardParameters 
       "Apply smoothing in the mobility dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public IonMobilityWizardParameters(ImsDefaults preset) {
+  public IonMobilityWizardParameters(ImsWizardParameterFactory preset) {
     super(WizardPart.IMS, preset,
         // parameters
         imsActive, smoothing, instrumentType, minNumberOfDataPoints, approximateImsFWHM);
   }
 
-  public IonMobilityWizardParameters(final ImsDefaults preset, final int minDataPoints,
-      final double fwhm, final boolean smooth, final boolean active,
+  public IonMobilityWizardParameters(final ImsWizardParameterFactory preset,
+      final int minDataPoints, final double fwhm, final boolean smooth, final boolean active,
       final MobilityType instrument) {
     this(preset);
     setParameter(minNumberOfDataPoints, minDataPoints);
@@ -76,49 +75,4 @@ public final class IonMobilityWizardParameters extends AbstractWizardParameters 
   }
 
 
-  /**
-   * the defaults should not change the name of enum values. if strings are needed, override the
-   * toString method
-   */
-  public enum ImsDefaults implements WizardParameterFactory {
-    NO_IMS,
-    /**
-     * TIMS actually is a different workflow than the rest. slight changes because of MS2
-     * acquisition in PASEF
-     */
-    TIMS, IMS, DTIMS, TWIMS;
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case NO_IMS -> "";
-        case TIMS, IMS -> super.toString();
-        case DTIMS -> "DTIMS";
-        case TWIMS -> "TWIMS";
-      };
-    }
-
-    /**
-     * Create parameters from defaults
-     */
-    @Override
-    public WizardPreset create() {
-      var params = switch (this) {
-        case NO_IMS ->
-            new IonMobilityWizardParameters(this, 5, 0.01, true, false, MobilityType.NONE);
-        case TIMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, true, MobilityType.TIMS);
-        case IMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, true, MobilityType.OTHER);
-        case DTIMS ->
-            new IonMobilityWizardParameters(this, 4, 0.7, true, true, MobilityType.DRIFT_TUBE);
-        case TWIMS ->
-            new IonMobilityWizardParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
-      };
-      return new WizardPreset(toString(), getUniqueId(), params);
-    }
-
-    @Override
-    public String getUniqueId() {
-      return name();
-    }
-  }
 }

@@ -26,23 +26,25 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 public final class IonInterfaceDirectAndFlowInjectWizardParameters extends
-    AbstractIonInterfaceWizardParameters {
+    IonInterfaceWizardParameters {
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Min # of data points", "Minimum number of consecutive data points in time dimension", 25, 1,
       Integer.MAX_VALUE);
 
-  public IonInterfaceDirectAndFlowInjectWizardParameters(final IonInterfaceDefaults preset) {
+  public IonInterfaceDirectAndFlowInjectWizardParameters(
+      final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         minNumberOfDataPoints);
   }
 
-  public IonInterfaceDirectAndFlowInjectWizardParameters(final IonInterfaceDefaults preset,
-      final int minDataPoints) {
+  public IonInterfaceDirectAndFlowInjectWizardParameters(
+      final IonInterfaceWizardParameterFactory preset, final int minDataPoints) {
     this(preset);
     setParameter(minNumberOfDataPoints, minDataPoints);
   }

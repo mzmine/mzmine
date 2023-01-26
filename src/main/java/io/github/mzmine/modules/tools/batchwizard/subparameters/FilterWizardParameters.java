@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.FilterParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.FilterWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -52,7 +52,7 @@ public final class FilterWizardParameters extends AbstractWizardParameters {
 
 
   public FilterWizardParameters() {
-    super(WizardPart.FILTER, FilterParameterFactory.Filters, handleOriginalFeatureLists,
+    super(WizardPart.FILTER, FilterWizardParameterFactory.Filters, handleOriginalFeatureLists,
         minNumberOfSamples, filter13C);
   }
 

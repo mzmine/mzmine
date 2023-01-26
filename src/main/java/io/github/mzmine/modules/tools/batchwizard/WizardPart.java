@@ -25,14 +25,14 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.factories.AnnotationParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.DataImportParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.factories.FilterParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.AnnotationWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.DataImportWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.FilterWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.ImsWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
+import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,14 +63,14 @@ public enum WizardPart {
   public WizardParameterFactory[] getDefaultPresets() {
     return switch (this) {
       // only one option
-      case DATA_IMPORT -> DataImportParameterFactory.values();
-      case FILTER -> FilterParameterFactory.values();
-      case ANNOTATION -> AnnotationParameterFactory.values();
+      case DATA_IMPORT -> DataImportWizardParameterFactory.values();
+      case FILTER -> FilterWizardParameterFactory.values();
+      case ANNOTATION -> AnnotationWizardParameterFactory.values();
       // multiple options
-      case ION_INTERFACE -> IonInterfaceDefaults.values();
-      case IMS -> ImsDefaults.values();
+      case ION_INTERFACE -> IonInterfaceWizardParameterFactory.values();
+      case IMS -> ImsWizardParameterFactory.values();
       case MS -> MsInstrumentDefaults.values();
-      case WORKFLOW -> WorkflowDefaults.values();
+      case WORKFLOW -> WorkflowWizardParameterFactory.values();
     };
   }
 

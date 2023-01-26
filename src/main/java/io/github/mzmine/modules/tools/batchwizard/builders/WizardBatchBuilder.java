@@ -76,12 +76,12 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
 import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters.ChromatographyWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -159,7 +159,8 @@ public abstract class WizardBatchBuilder {
   public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardWorkflow steps) {
     // workflow is always set
     Optional<WizardPreset> preset = steps.get(WizardPart.WORKFLOW);
-    WorkflowDefaults workflowPreset = WorkflowDefaults.valueOf(preset.get().uniquePresetId());
+    WorkflowWizardParameterFactory workflowPreset = WorkflowWizardParameterFactory.valueOf(
+        preset.get().uniquePresetId());
     return switch (workflowPreset) {
       case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
           : new WizardBatchBuilderLcDDA(steps);

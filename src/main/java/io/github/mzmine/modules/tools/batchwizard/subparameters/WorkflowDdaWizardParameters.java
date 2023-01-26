@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -47,7 +48,7 @@ public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters 
 
 
   public WorkflowDdaWizardParameters() {
-    super(WorkflowDefaults.DDA,
+    super(WorkflowWizardParameterFactory.DDA,
         // actual parameters
         exportPath, exportGnps, exportSirius);
   }

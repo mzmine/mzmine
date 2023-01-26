@@ -23,27 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.modules.tools.batchwizard.factories;
 
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.AnnotationWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 
 /**
- * Reuses spectral library files parameters of {@link SpectralLibraryImportParameters}
- *
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ * the defaults should not change the name of enum values. if strings are needed, override the
+ * toString method
  */
-public final class AnnotationWizardParameters extends AbstractWizardParameters {
+public enum DataImportWizardParameterFactory implements WizardParameterFactory {
+  Data;
 
-  // TODO add LocalCSVDatabase search
-  // needs less parameters only the most important ones to reproduce the library generation workflow
-//  public static final OptionalModuleParameter<LocalCSVDatabaseSearchParameters>
 
-  public AnnotationWizardParameters() {
-    super(WizardPart.ANNOTATION, AnnotationWizardParameterFactory.Annotation,
-        // parameters
-        SpectralLibraryImportParameters.dataBaseFiles);
+  @Override
+  public WizardPreset create() {
+    return new WizardPreset(toString(), getUniqueId(), new DataImportWizardParameters());
   }
 
+  @Override
+  public String getUniqueId() {
+    return name();
+  }
 }

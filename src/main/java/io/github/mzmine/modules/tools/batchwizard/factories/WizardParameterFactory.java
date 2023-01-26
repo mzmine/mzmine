@@ -37,5 +37,10 @@ public interface WizardParameterFactory {
    */
   WizardPreset create();
 
+  /**
+   * Used to save and load from file
+   *
+   * @return {@link Enum#name()}
+   */
   String getUniqueId();
 }

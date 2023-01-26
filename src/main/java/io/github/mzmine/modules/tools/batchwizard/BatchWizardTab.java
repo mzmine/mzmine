@@ -31,15 +31,14 @@ import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
+import io.github.mzmine.modules.tools.batchwizard.factories.ImsWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardWorkflowFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowSaveModule;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
@@ -150,15 +149,16 @@ public class BatchWizardTab extends SimpleTab {
 
   private void evaluateWorkflowLimitChoices() {
     var ionization = workflowSteps.get(WizardPart.ION_INTERFACE)
-        .map(preset -> IonInterfaceDefaults.valueOf(preset.uniquePresetId()))
-        .orElse(IonInterfaceDefaults.HPLC);
+        .map(preset -> IonInterfaceWizardParameterFactory.valueOf(preset.uniquePresetId()))
+        .orElse(IonInterfaceWizardParameterFactory.HPLC);
 
     List<WizardPreset> filteredWorkflows = ALL_PRESETS.get(WizardPart.WORKFLOW).stream()
         .filter(workflow -> switch (ionization) {
           case HPLC, UHPLC, HILIC, GC_CI, DIRECT_INFUSION, FLOW_INJECT, MALDI, LDI, DESI, SIMS ->
-              !workflow.uniquePresetId().equals(WorkflowDefaults.GC_EI_DECONVOLUTION.getUniqueId());
-          case GC_EI ->
-              workflow.uniquePresetId().equals(WorkflowDefaults.GC_EI_DECONVOLUTION.getUniqueId());
+              !workflow.uniquePresetId()
+                  .equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION.getUniqueId());
+          case GC_EI -> workflow.uniquePresetId()
+              .equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION.getUniqueId());
         }).toList();
 
     ComboBox<WizardPreset> workflowCombo = combos.get(WizardPart.WORKFLOW);
@@ -171,7 +171,8 @@ public class BatchWizardTab extends SimpleTab {
 
     // check timsTOF and TWIMS TOF only
     var ims = workflowSteps.get(WizardPart.IMS)
-        .map(preset -> ImsDefaults.valueOf(preset.uniquePresetId())).orElse(ImsDefaults.NO_IMS);
+        .map(preset -> ImsWizardParameterFactory.valueOf(preset.uniquePresetId()))
+        .orElse(ImsWizardParameterFactory.NO_IMS);
 
     ComboBox<WizardPreset> msCombo = combos.get(WizardPart.MS);
     ObservableList<WizardPreset> currentMs = msCombo.getItems();
@@ -219,7 +220,7 @@ public class BatchWizardTab extends SimpleTab {
     // add to schema
     addToSchema(preset);
     // do not add tabs for in active tabs
-    if (!preset.name().equals(IonMobilityWizardParameters.ImsDefaults.NO_IMS.toString())) {
+    if (!preset.name().equals(ImsWizardParameterFactory.NO_IMS.toString())) {
       return new Tab(preset.name(), paramPane);
     } else {
       return null;
@@ -286,7 +287,7 @@ public class BatchWizardTab extends SimpleTab {
 
       // set the number of visible items to the max
       ComboBox<WizardPreset> combo = new ComboBox<>(presets);
-      combo.setVisibleRowCount(IonInterfaceDefaults.values().length);
+      combo.setVisibleRowCount(IonInterfaceWizardParameterFactory.values().length);
       combos.put(part, combo);
       // add a spacer if not the first
       if (!topPane.getChildren().isEmpty()) {

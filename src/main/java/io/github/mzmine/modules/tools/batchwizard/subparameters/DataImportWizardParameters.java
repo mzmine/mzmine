@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.factories.DataImportParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.DataImportWizardParameterFactory;
 
 /**
  * Reuses the filenames {@link AllSpectralDataImportParameters}
@@ -37,7 +37,7 @@ import io.github.mzmine.modules.tools.batchwizard.factories.DataImportParameterF
 public final class DataImportWizardParameters extends AbstractWizardParameters {
 
   public DataImportWizardParameters() {
-    super(WizardPart.DATA_IMPORT, DataImportParameterFactory.Data,
+    super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,
         // parameters
         AllSpectralDataImportParameters.fileNames);
   }

@@ -29,8 +29,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.factories.ImsWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -111,7 +111,7 @@ public final class MassSpectrometerWizardParameters extends AbstractWizardParame
     /**
      * Special presets derived from IMS go here
      */
-    public static MassSpectrometerWizardParameters createForIms(ImsDefaults ims) {
+    public static MassSpectrometerWizardParameters createForIms(ImsWizardParameterFactory ims) {
       return switch (ims) {
         case NO_IMS, IMS, DTIMS, TWIMS -> null;
         case TIMS -> new MassSpectrometerWizardParameters(qTOF, 1.5E2, 1E2, 1.0E3,

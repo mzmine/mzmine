@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
@@ -34,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public final class IonInterfaceGcElectronImpactWizardParameters extends
-    AbstractIonInterfaceWizardParameters {
+    IonInterfaceWizardParameters {
 
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
@@ -64,16 +65,18 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public IonInterfaceGcElectronImpactWizardParameters(final IonInterfaceDefaults preset) {
+  public IonInterfaceGcElectronImpactWizardParameters(
+      final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         smoothing, cropRtRange, minNumberOfDataPoints, approximateChromatographicFWHM,
         intraSampleRTTolerance, interSampleRTTolerance);
   }
 
-  public IonInterfaceGcElectronImpactWizardParameters(final IonInterfaceDefaults preset,
-      final int minDataPoints, final Range<Double> cropRt, final RTTolerance fwhm,
-      final RTTolerance intraSampleTolerance, final RTTolerance interSampleTolerance) {
+  public IonInterfaceGcElectronImpactWizardParameters(
+      final IonInterfaceWizardParameterFactory preset, final int minDataPoints,
+      final Range<Double> cropRt, final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
+      final RTTolerance interSampleTolerance) {
     this(preset);
     setParameter(minNumberOfDataPoints, minDataPoints);
     // defaults - others override those values

@@ -26,50 +26,15 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 
 public sealed class WorkflowWizardParameters extends AbstractWizardParameters permits
     WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters {
 
-  public WorkflowWizardParameters(final WorkflowDefaults preset, final Parameter<?>... parameters) {
+  public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
+      final Parameter<?>... parameters) {
     super(WizardPart.WORKFLOW, preset, parameters);
   }
 
-  /**
-   * the defaults should not change the name of enum values. if strings are needed, override the
-   * toString method
-   */
-  public enum WorkflowDefaults implements WizardParameterFactory {
-    DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION, MS1_ONLY;
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case DDA -> super.toString();
-        case MS1_ONLY -> "MS1 only";
-        case GC_EI_DECONVOLUTION -> "GC-EI deconvolution";
-        case LIBRARY_GENERATION -> "Library generation";
-      };
-    }
-
-    @Override
-    public String getUniqueId() {
-      return name();
-    }
-
-    @Override
-    public WizardPreset create() {
-      var params = switch (this) {
-        // EMPTY parameter set
-        case MS1_ONLY, LIBRARY_GENERATION -> new WorkflowWizardParameters(this);
-        // specialized parameters
-        case DDA -> new WorkflowDdaWizardParameters(true, null, true, true);
-        case GC_EI_DECONVOLUTION -> new WorkflowGcElectronImpactWizardParameters(true, null, true);
-      };
-      return new WizardPreset(toString(), getUniqueId(), params);
-    }
-
-  }
 }

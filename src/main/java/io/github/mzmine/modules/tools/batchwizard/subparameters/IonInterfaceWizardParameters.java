@@ -23,22 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.factories;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.parameters.Parameter;
 
-public enum FilterParameterFactory implements WizardParameterFactory {
-  Filters;
+public abstract sealed class IonInterfaceWizardParameters extends AbstractWizardParameters permits
+    IonInterfaceHplcWizardParameters, IonInterfaceGcElectronImpactWizardParameters,
+    IonInterfaceImagingWizardParameters, IonInterfaceDirectAndFlowInjectWizardParameters {
 
-
-  @Override
-  public WizardPreset create() {
-    return new WizardPreset(toString(), getUniqueId(), new FilterWizardParameters());
+  public IonInterfaceWizardParameters(final WizardPart part,
+      final IonInterfaceWizardParameterFactory preset, final Parameter<?>... parameters) {
+    super(part, preset, parameters);
   }
 
-  @Override
-  public String getUniqueId() {
-    return name();
-  }
 }
