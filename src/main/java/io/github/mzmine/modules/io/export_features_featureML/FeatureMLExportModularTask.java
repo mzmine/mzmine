@@ -66,8 +66,9 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-//Export results to featureML format for visualization in TOPPView
-//schema available at https://github.com/OpenMS/OpenMS/blob/7a2e4a41d4c9f511306afcb8bb4f1b773ace9b9a/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd
+// Export results to featureML format for visualization in TOPPView
+// schema available at
+// https://github.com/OpenMS/OpenMS/blob/7a2e4a41d4c9f511306afcb8bb4f1b773ace9b9a/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd
 
 
 public class FeatureMLExportModularTask extends AbstractTask implements ProcessedItemsCounter {
@@ -85,15 +86,15 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
 
   public FeatureMLExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
-    this.featureLists = parameters.getParameter(FeatureMLExportModularParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+    this.featureLists = parameters.getParameter(FeatureMLExportModularParameters.featureLists)
+        .getValue().getMatchingFeatureLists();
     fileName = parameters.getParameter(FeatureMLExportModularParameters.filename).getValue();
     this.rowFilter = parameters.getParameter(FeatureMLExportModularParameters.filter).getValue();
   }
 
   /**
-   * @param featureLists   feature lists to export
-   * @param fileName       export file name
+   * @param featureLists feature lists to export
+   * @param fileName export file name
    */
   public FeatureMLExportModularTask(ModularFeatureList[] featureLists, File fileName,
       FeatureListRowsFilter rowFilter, @NotNull Instant moduleCallDate) {
@@ -118,8 +119,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists)
-        + " to featureML file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to featureML file(s)";
   }
 
   @Override
@@ -152,24 +152,26 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         // Cleanup from illegal filename characters
         String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
-        String newFilename = fileName.getPath()
-            .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+        String newFilename =
+            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
       }
       curFile = FileAndPathUtil.getRealFilePath(curFile, "featureML");
 
       // Open file
 
-      try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
-          StandardCharsets.UTF_8)) {
+      try (BufferedWriter writer =
+          Files.newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8)) {
         exportFeatureList(featureList, writer);
 
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Could not open file " + curFile + " for writing.");
-        logger.log(Level.WARNING, String.format(
-            "Error writing featureML format to file: %s for feature list: %s. Message: %s",
-            curFile.getAbsolutePath(), featureList.getName(), e.getMessage()), e);
+        logger.log(Level.WARNING,
+            String.format(
+                "Error writing featureML format to file: %s for feature list: %s. Message: %s",
+                curFile.getAbsolutePath(), featureList.getName(), e.getMessage()),
+            e);
         return;
       }
 
@@ -193,116 +195,118 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
-    List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
-        .collect(Collectors.toList());
+    List<DataType> rowTypes =
+        flist.getRowTypes().values().stream().filter(this::filterType).collect(Collectors.toList());
 
     // Write feature row headers
     writer.write(String.format("<?xml version='1.0' encoding='ISO-8859-1'?>"));
     writer.newLine();
-    writer.write(String.format("  <featureMap version='1.4' id='fm_16311276685788915066' xsi:noNamespaceSchemaLocation='http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>"));
+    writer.write(String.format(
+        "  <featureMap version='1.4' id='fm_16311276685788915066' xsi:noNamespaceSchemaLocation='http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>"));
     writer.newLine();
-    writer.write(String.format("    <dataProcessing completion_time='%s'>", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())));
+    writer.write(String.format("    <dataProcessing completion_time='%s'>",
+        new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())));
     writer.newLine();
-    writer.write(String.format("      <software name='MzMine3' version='%s' />", "TODO add version here"));
+    writer.write(
+        String.format("      <software name='MzMine3' version='%s' />", "TODO add version here"));
     writer.newLine();
     writer.write(String.format("    </dataProcessing>"));
     writer.newLine();
     writer.write(String.format("    <featureList count='%d'>", rowTypes.size()));
     writer.newLine();
-    
+
     double minRT = 100000.;
     double maxRT = 0.;
     double meanRT = 0.;
     double minMZ = 0.;
     double maxMZ = 0.;
     double meanMZ = 0.;
-    
+
     double x = 0.;
-    
-    for(FeatureListRow row : rows) {
-    	
-    	// find earliest and latest RTs, no function available (or I did not find it)
-    	
-    	minRT = 1000000.; 
-    	maxRT = 0.;
-    	
-    	for (RawDataFile rawFile : rawDataFiles) {
-        	
-        	if(row.getFeature(rawFile) != null) {
-        		x = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint();
-        		minRT = minRT < x ? minRT : x;
-	        	x = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint();
-	        	maxRT = maxRT > x ? maxRT : x;
-        	}
+
+    for (FeatureListRow row : rows) {
+      // find earliest and latest RTs, no function available (or I did not find it)
+
+      minRT = 1000000.;
+      maxRT = 0.;
+
+      for (RawDataFile rawFile : rawDataFiles) {
+
+        if (row.getFeature(rawFile) != null) {
+          x = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint();
+          minRT = minRT < x ? minRT : x;
+          x = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint();
+          maxRT = maxRT > x ? maxRT : x;
         }
-    	
-    	minMZ = row.getMZRange().lowerEndpoint();
-    	maxMZ = row.getMZRange().upperEndpoint();
-    	meanMZ = row.getAverageMZ();
-    	
-    	minRT = minRT * 60;
-    	maxRT = maxRT * 60;
-    	meanRT = row.getAverageRT() * 60;
+      }
 
-        writer.write(String.format("      <feature id='%d'>", row.getID()));
-        writer.newLine();
-        writer.write(String.format("        <position dim='0'>%f</position>", meanRT));
-        writer.newLine();
-        writer.write(String.format("        <position dim='1'>%f</position>", meanMZ));
-        writer.newLine();
-        writer.write(String.format("        <intensity>1</intensity>"));
-        writer.newLine();
-        writer.write(String.format("        <quality dim='0'>0</quality>"));
-        writer.newLine();
-        writer.write(String.format("        <quality dim='1'>0</quality>"));
-        writer.newLine();
-        writer.write(String.format("        <overallquality>%d</overallquality>", row.getNumberOfFeatures()));
-        writer.newLine();
-        writer.write(String.format("        <charge>1</charge>"));
-        writer.newLine();
-        writer.write(String.format("        <convexhull nr='0'>"));
-        writer.newLine();
-        writer.write(String.format("          <pt x='%f' y='%f' />", minRT, minMZ));
-        writer.newLine();
-        writer.write(String.format("          <pt x='%f' y='%f' />", minRT, maxMZ));
-        writer.newLine();
-        writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, maxMZ));
-        writer.newLine();
-        writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, minMZ));
-        writer.newLine();
-        writer.write(String.format("        </convexhull>"));
-        writer.newLine();
+      minMZ = row.getMZRange().lowerEndpoint();
+      maxMZ = row.getMZRange().upperEndpoint();
+      meanMZ = row.getAverageMZ();
 
-        int hulNum = 1;
-        for (RawDataFile rawFile : rawDataFiles) {
-        	
-        	if(row.getFeature(rawFile) != null) {
-	        	minMZ = row.getFeature(rawFile).getRawDataPointsMZRange().lowerEndpoint();
-	        	maxMZ = row.getFeature(rawFile).getRawDataPointsMZRange().upperEndpoint();
-	        	minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;
-	        	maxRT = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint() * 60;
-	        	
-	            writer.write(String.format("        <convexhull nr='%d'>", hulNum));
-	            writer.newLine();
-	            writer.write(String.format("          <pt x='%f' y='%f' />", minRT, minMZ));
-	            writer.newLine();
-	            writer.write(String.format("          <pt x='%f' y='%f' />", minRT, maxMZ));
-	            writer.newLine();
-	            writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, maxMZ));
-	            writer.newLine();
-	            writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, minMZ));
-	            writer.newLine();
-	            writer.write(String.format("        </convexhull>"));
-	            writer.newLine();
-	            
-	            hulNum += 1;
-        	}
+      minRT = minRT * 60;
+      maxRT = maxRT * 60;
+      meanRT = row.getAverageRT() * 60;
+
+      writer.write(String.format("      <feature id='%d'>", row.getID()));
+      writer.newLine();
+      writer.write(String.format("        <position dim='0'>%f</position>", meanRT));
+      writer.newLine();
+      writer.write(String.format("        <position dim='1'>%f</position>", meanMZ));
+      writer.newLine();
+      writer.write(String.format("        <intensity>1</intensity>"));
+      writer.newLine();
+      writer.write(String.format("        <quality dim='0'>0</quality>"));
+      writer.newLine();
+      writer.write(String.format("        <quality dim='1'>0</quality>"));
+      writer.newLine();
+      writer.write(String.format("        <overallquality>%d</overallquality>", row.getNumberOfFeatures()));
+      writer.newLine();
+      writer.write(String.format("        <charge>1</charge>"));
+      writer.newLine();
+      writer.write(String.format("        <convexhull nr='0'>"));
+      writer.newLine();
+      writer.write(String.format("          <pt x='%f' y='%f' />", minRT, minMZ));
+      writer.newLine();
+      writer.write(String.format("          <pt x='%f' y='%f' />", minRT, maxMZ));
+      writer.newLine();
+      writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, maxMZ));
+      writer.newLine();
+      writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, minMZ));
+      writer.newLine();
+      writer.write(String.format("        </convexhull>"));
+      writer.newLine();
+
+      int hulNum = 1;
+      for (RawDataFile rawFile : rawDataFiles) {
+
+        if (row.getFeature(rawFile) != null) {
+          minMZ = row.getFeature(rawFile).getRawDataPointsMZRange().lowerEndpoint();
+          maxMZ = row.getFeature(rawFile).getRawDataPointsMZRange().upperEndpoint();
+          minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;
+          maxRT = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint() * 60;
+
+          writer.write(String.format("        <convexhull nr='%d'>", hulNum));
+          writer.newLine();
+          writer.write(String.format("          <pt x='%f' y='%f' />", minRT, minMZ));
+          writer.newLine();
+          writer.write(String.format("          <pt x='%f' y='%f' />", minRT, maxMZ));
+          writer.newLine();
+          writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, maxMZ));
+          writer.newLine();
+          writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, minMZ));
+          writer.newLine();
+          writer.write(String.format("        </convexhull>"));
+          writer.newLine();
+
+          hulNum += 1;
         }
+      }
 
-        writer.write(String.format("      </feature>"));
-        writer.newLine();
+      writer.write(String.format("      </feature>"));
+      writer.newLine();
     }
-    
+
     writer.append("    </featureList>");
     writer.newLine();
     writer.append("  </featureMap>");
@@ -320,7 +324,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
     return !(type instanceof NoTextColumn || type instanceof NullColumnType
         || type instanceof LinkedGraphicalType);
   }
-  
+
 
   private void checkConcurrentModification(FeatureList featureList, int numRows, long numFeatures,
       long numMS2) {
