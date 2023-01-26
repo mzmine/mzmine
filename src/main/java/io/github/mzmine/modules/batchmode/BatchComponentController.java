@@ -432,8 +432,7 @@ public class BatchComponentController implements LastFilesComponent {
   public void loadBatchSteps(final File file)
       throws ParserConfigurationException, IOException, SAXException {
 
-    final BatchQueue queue = BatchQueue.loadFromXml(
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file).getDocumentElement());
+    final BatchQueue queue = BatchQueue.loadFromXml(XMLUtils.load(file).getDocumentElement());
 
     logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
 

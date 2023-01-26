@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Objects;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -40,11 +42,26 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * XML processing utilities
  */
 public class XMLUtils {
+
+  /**
+   * Parse XML file. Use {@link Document#getDocumentElement()}
+   *
+   * @param file xml file
+   * @return the document
+   * @throws ParserConfigurationException
+   * @throws IOException
+   * @throws SAXException
+   */
+  public static Document load(final File file)
+      throws ParserConfigurationException, IOException, SAXException {
+    return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
+  }
 
   /**
    * Write XML file

@@ -154,8 +154,7 @@ public class DPPParameterValueWrapper {
 
   public void loadFromFile(@NotNull File file) {
     try {
-      Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-          .getDocumentElement();
+      Element element = XMLUtils.load(file).getDocumentElement();
       loadfromXML(element);
     } catch (SAXException | IOException | ParserConfigurationException e) {
       e.printStackTrace();
