@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -191,7 +192,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())));
     writer.newLine();
     writer.write(
-        String.format("      <software name='MzMine3' version='%s' />", "TODO add version here"));
+        String.format("      <software name='MzMine3' version='%s' />", MZmineCore.getMZmineVersion().toString()));
     writer.newLine();
     writer.write(String.format("    </dataProcessing>"));
     writer.newLine();
