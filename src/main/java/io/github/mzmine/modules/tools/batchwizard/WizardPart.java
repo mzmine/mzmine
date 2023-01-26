@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.ImsWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import java.util.Arrays;
@@ -69,8 +69,8 @@ public enum WizardPart {
       case ANNOTATION -> AnnotationWizardParameterFactory.values();
       // multiple options
       case ION_INTERFACE -> IonInterfaceWizardParameterFactory.values();
-      case IMS -> ImsWizardParameterFactory.values();
-      case MS -> MsInstrumentDefaults.values();
+      case IMS -> IonMobilityWizardParameterFactory.values();
+      case MS -> MassSpectrometerWizardParameterFactory.values();
       case WORKFLOW -> WorkflowWizardParameterFactory.values();
     };
   }

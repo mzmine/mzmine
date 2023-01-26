@@ -33,7 +33,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset
  * the defaults should not change the name of enum values. if strings are needed, override the
  * toString method
  */
-public enum ImsWizardParameterFactory implements WizardParameterFactory {
+public enum IonMobilityWizardParameterFactory implements WizardParameterFactory {
   NO_IMS,
   /**
    * TIMS actually is a different workflow than the rest. slight changes because of MS2 acquisition

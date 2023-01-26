@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.ImsWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -57,13 +57,13 @@ public final class IonMobilityWizardParameters extends WizardStepPreset {
       "Apply smoothing in the mobility dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public IonMobilityWizardParameters(ImsWizardParameterFactory preset) {
+  public IonMobilityWizardParameters(IonMobilityWizardParameterFactory preset) {
     super(WizardPart.IMS, preset,
         // parameters
         imsActive, smoothing, instrumentType, minNumberOfDataPoints, approximateImsFWHM);
   }
 
-  public IonMobilityWizardParameters(final ImsWizardParameterFactory preset,
+  public IonMobilityWizardParameters(final IonMobilityWizardParameterFactory preset,
       final int minDataPoints, final double fwhm, final boolean smooth, final boolean active,
       final MobilityType instrument) {
     this(preset);

@@ -35,10 +35,10 @@ import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardWorkflowFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardWorkflowSaveModule;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.ImsWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
@@ -171,14 +171,14 @@ public class BatchWizardTab extends SimpleTab {
 
     // check timsTOF and TWIMS TOF only
     var ims = workflowSteps.get(WizardPart.IMS)
-        .map(step -> (ImsWizardParameterFactory) step.getPreset())
-        .orElse(ImsWizardParameterFactory.NO_IMS);
+        .map(step -> (IonMobilityWizardParameterFactory) step.getPreset())
+        .orElse(IonMobilityWizardParameterFactory.NO_IMS);
 
     ComboBox<WizardStepPreset> msCombo = combos.get(WizardPart.MS);
     ObservableList<WizardStepPreset> currentMs = msCombo.getItems();
     List<WizardStepPreset> filteredMs = ALL_PRESETS.get(WizardPart.MS).stream()
         .filter(ms -> switch (ims) {
-          case TIMS, TWIMS -> ms.getPreset().equals(MsInstrumentDefaults.qTOF);
+          case TIMS, TWIMS -> ms.getPreset().equals(MassSpectrometerWizardParameterFactory.qTOF);
           case NO_IMS, IMS, DTIMS -> true;
         }).toList();
 
@@ -189,7 +189,8 @@ public class BatchWizardTab extends SimpleTab {
 
       // reduce the parameters for timsTOF to something meaningful
       // only if the MS parameter for tof are unchanged (if user already selected other inputs, keep
-      MassSpectrometerWizardParameters msParamsForIms = MsInstrumentDefaults.createForIms(ims);
+      MassSpectrometerWizardParameters msParamsForIms = MassSpectrometerWizardParameterFactory.createForIms(
+          ims);
       if (msParamsForIms != null && selectedMs.hasDefaultParameters()) {
         ParameterUtils.copyParameters(msParamsForIms, selectedMs);
       }
