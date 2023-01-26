@@ -26,16 +26,12 @@
 package io.github.mzmine.modules.io.export_features_featureML;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -44,28 +40,21 @@ import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.io.CSVUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 // Export results to featureML format for visualization in TOPPView
 // schema available at
@@ -74,12 +63,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class FeatureMLExportModularTask extends AbstractTask implements ProcessedItemsCounter {
 
-  public static final String DATAFILE_PREFIX = "datafile";
   private static final Logger logger = Logger.getLogger(FeatureMLExportModularTask.class.getName());
   private final ModularFeatureList[] featureLists;
   // parameter values
   private final File fileName;
-  private final String headerSeparator = ":";
   private final FeatureListRowsFilter rowFilter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
@@ -142,10 +129,6 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       if (isCanceled()) {
         return;
       }
-      // check concurrent modification during export
-      final int numRows = featureList.getNumberOfRows();
-      final long numFeatures = featureList.streamFeatures().count();
-      final long numMS2 = featureList.stream().filter(row -> row.hasMs2Fragmentation()).count();
 
       // Filename
       File curFile = fileName;
