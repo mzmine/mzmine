@@ -32,27 +32,22 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+
 import java.util.List;
+
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class FeatureMLExportModularParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-  public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>(
-      "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
-      FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("featureML", "*.featureML"));
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Name of the output CSV file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
+    public static final FeatureListsParameter featureLists = new FeatureListsParameter();
+    public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>("Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)", FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
+    private static final List<ExtensionFilter> extensions = List.of( //
+            new ExtensionFilter("featureML", "*.featureML"));
+    public static final FileNameParameter filename = new FileNameParameter("Filename", "Name of the output CSV file. " + "Use pattern \"{}\" in the file name to substitute with feature list name. " + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). " + "If the file already exists, it will be overwritten.", extensions, FileSelectionType.SAVE);
 
 
-  public FeatureMLExportModularParameters() {
-    super(new Parameter[] {featureLists, filename, filter});
-  }
+    public FeatureMLExportModularParameters() {
+        super(new Parameter[]{featureLists, filename, filter});
+    }
 
 }

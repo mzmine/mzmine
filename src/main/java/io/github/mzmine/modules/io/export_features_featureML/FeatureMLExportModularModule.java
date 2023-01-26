@@ -31,42 +31,42 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+
 import java.time.Instant;
 import java.util.Collection;
+
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureMLExportModularModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to featureML file";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list contents to a featureML file that can be used to illustrate the detected features (e.g., with TOPPView).";
+    private static final String MODULE_NAME = "Export to featureML file";
+    private static final String MODULE_DESCRIPTION = "This method exports the feature list contents to a featureML file that can be used to illustrate the detected features (e.g., with TOPPView).";
 
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @NotNull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @NotNull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    FeatureMLExportModularTask task = new FeatureMLExportModularTask(parameters, moduleCallDate);
-    tasks.add(task);
-    return ExitCode.OK;
-  }
+    @Override
+    @NotNull
+    public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+        FeatureMLExportModularTask task = new FeatureMLExportModularTask(parameters, moduleCallDate);
+        tasks.add(task);
+        return ExitCode.OK;
+    }
 
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTEXPORT;
-  }
+    @Override
+    public @NotNull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.FEATURELISTEXPORT;
+    }
 
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureMLExportModularParameters.class;
-  }
+    @Override
+    public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+        return FeatureMLExportModularParameters.class;
+    }
 }
