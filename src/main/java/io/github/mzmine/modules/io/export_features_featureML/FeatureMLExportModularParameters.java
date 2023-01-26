@@ -39,7 +39,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class FeatureMLExportModularParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
   public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
       FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
