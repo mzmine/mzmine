@@ -191,8 +191,8 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
     writer.write(String.format("    <dataProcessing completion_time='%s'>",
         new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())));
     writer.newLine();
-    writer.write(
-        String.format("      <software name='MzMine3' version='%s' />", MZmineCore.getMZmineVersion().toString()));
+    writer.write(String.format("      <software name='MzMine3' version='%s' />",
+        MZmineCore.getMZmineVersion().toString()));
     writer.newLine();
     writer.write(String.format("    </dataProcessing>"));
     writer.newLine();
@@ -232,7 +232,8 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       writer.newLine();
       writer.write(String.format("        <quality dim='1'>0</quality>"));
       writer.newLine();
-      writer.write(String.format("        <overallquality>%d</overallquality>", row.getNumberOfFeatures()));
+      writer.write(
+          String.format("        <overallquality>%d</overallquality>", row.getNumberOfFeatures()));
       writer.newLine();
       writer.write(String.format("        <charge>1</charge>"));
       writer.newLine();
@@ -256,7 +257,8 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         if (row.getFeature(rawFile) != null) {
           minMZ = row.getFeature(rawFile).getRawDataPointsMZRange().lowerEndpoint();
           maxMZ = row.getFeature(rawFile).getRawDataPointsMZRange().upperEndpoint();
-          minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;      // convert RTs to minutes
+          // convert RTs to minutes
+          minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;
           maxRT = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint() * 60;
 
           writer.write(String.format("        <convexhull nr='%d'>", numberOfConvexHulls));

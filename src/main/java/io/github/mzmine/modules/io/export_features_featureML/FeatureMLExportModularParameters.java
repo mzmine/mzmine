@@ -42,18 +42,17 @@ public class FeatureMLExportModularParameters extends SimpleParameterSet {
       "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
       FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
   private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("featureML", "*.featureML")
-  );
+      new ExtensionFilter("featureML", "*.featureML"));
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Name of the output CSV file. "
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+          + "If the file already exists, it will be overwritten.",
+      extensions, FileSelectionType.SAVE);
 
 
   public FeatureMLExportModularParameters() {
-    super(new Parameter[]{featureLists, filename, filter});
+    super(new Parameter[] {featureLists, filename, filter});
   }
 
 }
