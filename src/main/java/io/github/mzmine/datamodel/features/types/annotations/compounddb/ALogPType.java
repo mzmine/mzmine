@@ -23,41 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
-import javafx.util.StringConverter;
-import javafx.util.converter.DefaultStringConverter;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
-public class SmilesStructureType extends StringType implements EditableColumnType,
-    StringParser<String>, AnnotationType {
+public class ALogPType extends FloatType {
 
-  private StringConverter<String> converter = new DefaultStringConverter();
+  public static final NumberFormat format = new DecimalFormat("0.00");
 
-  @NotNull
+  public ALogPType() {
+    super(format);
+  }
+
   @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "smiles";
+  public @NotNull String getUniqueID() {
+    return "a_log_p";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "SMILES";
+    return "ALogP";
   }
 
   @Override
-  public String fromString(String s) {
-    return s;
+  public NumberFormat getFormat() {
+    return format;
   }
 
   @Override
-  public StringConverter<String> getStringConverter() {
-    return converter;
+  public NumberFormat getExportFormat() {
+    return format;
   }
-
 }
