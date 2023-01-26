@@ -29,8 +29,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
@@ -119,41 +117,41 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
   @Override
   public BatchQueue createQueue() {
     final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask());
-    makeMassDetectorSteps(q);
-    q.add(makeAdapChromatogramStep(minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
-        cropRtRange));
-    makeSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
-    q.add(makeRtLocalMinResolver());
+    makeAndAddImportTask(q);
+    makeAndAddMassDetectorSteps(q);
+    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
+        cropRtRange);
+    makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
+    makeAndAddRtLocalMinResolver(q);
 
     if (isImsActive) {
-      q.add(makeImsExpanderStep());
-      makeSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
-      q.add(makeMobilityResolvingStep());
-      makeSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
+      makeAndAddImsExpanderStep(q);
+      makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
+      makeAndAddMobilityResolvingStep(q);
+      makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
 
-    q.add(makeDeisotopingStep());
-    q.add(makeIsotopeFinderStep());
-    q.add(makeAlignmentStep());
-    makeRowFilterStep(q);
-    q.add(makeGapFillStep());
+    makeAndAddDeisotopingStep(q);
+    makeAndAddIsotopeFinderStep(q);
+    makeAndAddAlignmentStep(q);
+    makeAndAddRowFilterStep(q);
+    makeAndAddGapFillStep(q);
     if (!isImsActive) { // might filter IMS resolved isomers
-      q.add(
-          makeDuplicateRowFilterStep(handleOriginalFeatureLists, mzTolFeaturesIntraSample, rtFwhm));
+      makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
+          rtFwhm);
     }
     // ions annotation and feature grouping
-    q.add(makeMetaCorrStep());
-    q.add(makeIinStep());
+    makeAndAddMetaCorrStep(q);
+    makeAndAddIinStep(q);
 
     // annotation
-    makeLibrarySearchStep(q);
+    makeAndAddLibrarySearchStep(q);
     // export
-    makeDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
     return q;
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeRtLocalMinResolver() {
+  protected void makeAndAddRtLocalMinResolver(final BatchQueue q) {
     // only TIMS currently supports DDA MS2 acquisition with PASEF
     // other instruments have the fragmentation before the IMS cell
     boolean hasIMS = isImsActive && imsInstrumentType.equals(MobilityType.TIMS);
@@ -212,11 +210,11 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS,
         minRtDataPoints);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeDeisotopingStep() {
+  protected void makeAndAddDeisotopingStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IsotopeGrouperModule.class).cloneParameterSet();
 
@@ -236,12 +234,12 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
         IsotopeGrouperParameters.ChooseTopIntensity);
     param.setParameter(IsotopeGrouperParameters.handleOriginal, handleOriginalFeatureLists);
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeGrouperModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeGrouperModule.class),
+        param));
   }
 
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeAlignmentStep() {
+  protected void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(JoinAlignerModule.class).cloneParameterSet();
     param.setParameter(JoinAlignerParameters.peakLists,
@@ -261,11 +259,11 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
     param.setParameter(JoinAlignerParameters.handleOriginal, handleOriginalFeatureLists);
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
+        param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeGapFillStep() {
+  protected void makeAndAddGapFillStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MultiThreadPeakFinderModule.class).cloneParameterSet();
 
@@ -278,11 +276,11 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     param.setParameter(MultiThreadPeakFinderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MultiThreadPeakFinderModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MultiThreadPeakFinderModule.class), param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeMetaCorrStep() {
+  protected void makeAndAddMetaCorrStep(final BatchQueue q) {
     final boolean useCorrGrouping = minRtDataPoints > 3;
     RTTolerance rtTol = new RTTolerance(rtFwhm.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
         rtFwhm.getUnit());
@@ -329,11 +327,12 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MEASURE,
         SimilarityMeasure.PEARSON);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(CorrelateGroupingModule.class), param);
+    q.add(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CorrelateGroupingModule.class),
+            param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeIinStep() {
+  protected void makeAndAddIinStep(final BatchQueue q) {
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class);
     param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
@@ -373,7 +372,7 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
         new IonModification[][]{adducts, modifications});
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
+        param));
   }
 }

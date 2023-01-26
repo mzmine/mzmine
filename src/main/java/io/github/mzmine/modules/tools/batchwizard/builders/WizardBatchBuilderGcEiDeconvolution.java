@@ -27,8 +27,6 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerParameters;
@@ -99,45 +97,45 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
   @Override
   public BatchQueue createQueue() {
     final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask());
-    makeMassDetectorSteps(q);
-    q.add(makeAdapChromatogramStep(minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
-        cropRtRange));
-    makeSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
+    makeAndAddImportTask(q);
+    makeAndAddMassDetectorSteps(q);
+    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
+        cropRtRange);
+    makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     // TODO add ADAP resolver step
-    q.add(makeRtAdapResolver());
+    makeAndAddRtAdapResolver(q);
 
     // TODO GC-EI spectral deconvolution
 
     // currently do not support IMS with GC?
     // or just do all of it?
     if (isImsActive) {
-      q.add(makeImsExpanderStep());
-      makeSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
-      q.add(makeMobilityResolvingStep());
-      makeSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
+      makeAndAddImsExpanderStep(q);
+      makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
+      makeAndAddMobilityResolvingStep(q);
+      makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
 
     // detect potential isotope pattern
-    q.add(makeIsotopeFinderStep());
+    makeAndAddIsotopeFinderStep(q);
 
-    q.add(makeAlignmentStep());
-    makeRowFilterStep(q);
+    makeAndAddAlignmentStep(q);
+    makeAndAddRowFilterStep(q);
     // Gap filling possible?
-    q.add(makeGapFillStep());
+    makeAndAddGapFillStep(q);
 
     // annotation
-    makeLibrarySearchStep(q);
+    makeAndAddLibrarySearchStep(q);
     if (isExportActive) {
       if (exportGnps) {
-        q.add(makeGnpsExportStep());
+        makeAndAddGnpsExportStep(q);
       }
     }
     return q;
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeRtAdapResolver() {
+  protected void makeAndAddRtAdapResolver(final BatchQueue q) {
     final double totalRtWidth = RangeUtils.rangeLength(cropRtRange);
     final float fwhm = rtFwhm.getToleranceInMinutes();
 
@@ -149,11 +147,11 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
     // TODO set all parameters
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapResolverModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapResolverModule.class),
+        param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeAlignmentStep() {
+  protected void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAP3AlignerModule.class).cloneParameterSet();
     param.setParameter(ADAP3AlignerParameters.PEAK_LISTS,
@@ -162,11 +160,11 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
     // TODO set all parameters
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ADAP3AlignerModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ADAP3AlignerModule.class),
+        param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeGapFillStep() {
+  protected void makeAndAddGapFillStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MultiThreadPeakFinderModule.class).cloneParameterSet();
 
@@ -179,11 +177,11 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     param.setParameter(MultiThreadPeakFinderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MultiThreadPeakFinderModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MultiThreadPeakFinderModule.class), param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeGnpsExportStep() {
+  protected void makeAndAddGnpsExportStep(final BatchQueue q) {
     final ParameterSet param = new GnpsGcExportAndSubmitParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
@@ -200,8 +198,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         FeatureMeasurementType.AREA);
     param.setParameter(GnpsGcExportAndSubmitParameters.FILENAME, fileName);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(GnpsGcExportAndSubmitModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GnpsGcExportAndSubmitModule.class), param));
   }
 
 }

@@ -205,7 +205,7 @@ public abstract class WizardBatchBuilder {
     };
   }
 
-  protected static MZmineProcessingStep<MZmineProcessingModule> makeDuplicateRowFilterStep(
+  protected static void makeAndAddDuplicateRowFilterStep(final BatchQueue q,
       final OriginalFeatureListOption handleOriginalFeatureLists,
       final MZTolerance mzTolFeaturesIntraSample, final RTTolerance rtFwhm) {
     // reduced rt tolerance - after gap filling the rt difference should be very small
@@ -227,11 +227,11 @@ public abstract class WizardBatchBuilder {
     param.setParameter(DuplicateFilterParameters.requireSameIdentification, false);
     param.setParameter(DuplicateFilterParameters.filterMode, FilterMode.NEW_AVERAGE);
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(DuplicateFilterModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(DuplicateFilterModule.class),
+        param));
   }
 
-  protected static MZmineProcessingStep<MZmineProcessingModule> makeAdapChromatogramStep(
+  protected static void makeAndAddAdapChromatogramStep(final BatchQueue q,
       final Double minFeatureHeight, final MZTolerance mzTolScans, final Double noiseLevelMs1,
       final Integer minRtDataPoints, @Nullable final Range<Double> cropRtRange) {
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -247,25 +247,24 @@ public abstract class WizardBatchBuilder {
     param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, noiseLevelMs1);
     param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minFeatureHeight);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));
   }
 
   // export for DDA
-  protected static void makeDdaExportSteps(final BatchQueue q, final Boolean isExportActive,
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final Boolean isExportActive,
       final File exportPath, final Boolean exportGnps, final Boolean exportSirius) {
     if (isExportActive && exportPath != null) {
       if (exportGnps) {
-        q.add(makeIimnGnpsExportStep(exportPath));
+        makeAndAddIimnGnpsExportStep(q, exportPath);
       }
       if (exportSirius) {
-        q.add(makeSiriusExportStep(exportPath));
+        makeAndAddSiriusExportStep(q, exportPath);
       }
     }
   }
 
-  protected static MZmineProcessingStep<MZmineProcessingModule> makeIimnGnpsExportStep(
-      final File exportPath) {
+  protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath) {
     final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
@@ -283,12 +282,11 @@ public abstract class WizardBatchBuilder {
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FILTER,
         FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(GnpsFbmnExportAndSubmitModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GnpsFbmnExportAndSubmitModule.class), param));
   }
 
-  protected static MZmineProcessingStep<MZmineProcessingModule> makeSiriusExportStep(
-      final File exportPath) {
+  protected static void makeAndAddSiriusExportStep(final BatchQueue q, final File exportPath) {
     final ParameterSet param = new SiriusExportParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
@@ -306,8 +304,8 @@ public abstract class WizardBatchBuilder {
     param.setParameter(SiriusExportParameters.MZ_TOL, new MZTolerance(0.002, 5));
     param.setParameter(SiriusExportParameters.FILENAME, fileName);
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SiriusExportModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SiriusExportModule.class),
+        param));
   }
 
   /**
@@ -362,21 +360,21 @@ public abstract class WizardBatchBuilder {
     return null;
   }
 
-  protected void makeMassDetectorSteps(final BatchQueue q) {
+  protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
     if (isImsActive) {
       final boolean isImsFromMzml = Arrays.stream(dataFiles)
           .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"));
       if (!isImsFromMzml) { // == Bruker file
-        q.add(makeMassDetectionStep(1, SelectedScanTypes.FRAMES));
+        makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
       }
-      q.add(makeMassDetectionStep(1, SelectedScanTypes.MOBLITY_SCANS));
-      q.add(makeMassDetectionStep(2, SelectedScanTypes.MOBLITY_SCANS));
+      makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.MOBLITY_SCANS);
+      makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
       if (isImsFromMzml) {
-        q.add(makeMobilityScanMergerStep());
+        makeAndAddMobilityScanMergerStep(q);
       }
     } else {
-      q.add(makeMassDetectionStep(1, SelectedScanTypes.SCANS));
-      q.add(makeMassDetectionStep(2, SelectedScanTypes.SCANS));
+      makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.SCANS);
+      makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.SCANS);
     }
   }
 
@@ -387,7 +385,7 @@ public abstract class WizardBatchBuilder {
     return Arrays.stream(libraries).anyMatch(Objects::nonNull);
   }
 
-  protected void makeRowFilterStep(final BatchQueue q) {
+  protected void makeAndAddRowFilterStep(final BatchQueue q) {
     if (!filter13C && minAlignedSamples < 2) {
       return;
     }
@@ -439,7 +437,7 @@ public abstract class WizardBatchBuilder {
         param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeImportTask() {
+  protected void makeAndAddImportTask(final BatchQueue q) {
     // todo make auto mass detector work, so we can use it here.
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
@@ -447,11 +445,11 @@ public abstract class WizardBatchBuilder {
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
     param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeMassDetectionStep(int msLevel,
+  protected void makeAndAddMassDetectionStep(final BatchQueue q, int msLevel,
       SelectedScanTypes scanTypes) {
 
     final ParameterSet detectorParam = MZmineCore.getConfiguration()
@@ -489,11 +487,11 @@ public abstract class WizardBatchBuilder {
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
+        param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeMobilityScanMergerStep() {
+  protected void makeAndAddMobilityScanMergerStep(final BatchQueue q) {
 
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
@@ -509,11 +507,12 @@ public abstract class WizardBatchBuilder {
         RawDataFilesSelectionType.BATCH_LAST_FILES);
     param.setParameter(MobilityScanMergerParameters.rawDataFiles, rawDataFilesSelection);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MobilityScanMergerModule.class), param);
+    q.add(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MobilityScanMergerModule.class),
+            param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeImsExpanderStep() {
+  protected void makeAndAddImsExpanderStep(final BatchQueue q) {
     ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
         .cloneParameterSet();
 
@@ -527,11 +526,11 @@ public abstract class WizardBatchBuilder {
         .setValue(mzTolScans);
     param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
+        param));
   }
 
-  protected void makeSmoothingStep(final BatchQueue q, final boolean rt,
+  protected void makeAndAddSmoothingStep(final BatchQueue q, final boolean rt,
       final Integer minRtDataPoints, final boolean mobility) {
     if (!rt && !mobility) {
       return;
@@ -563,7 +562,7 @@ public abstract class WizardBatchBuilder {
     q.add(step);
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeMobilityResolvingStep() {
+  protected void makeAndAddMobilityResolvingStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
@@ -608,11 +607,11 @@ public abstract class WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION, Range.closed(0d, 10d));
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 5);
 
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param));
   }
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeIsotopeFinderStep() {
+  protected void makeAndAddIsotopeFinderStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IsotopeFinderModule.class).cloneParameterSet();
 
@@ -625,11 +624,11 @@ public abstract class WizardBatchBuilder {
         List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
             new Element("S")));
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),
+        param));
   }
 
-  protected void makeLibrarySearchStep(final BatchQueue q) {
+  protected void makeAndAddLibrarySearchStep(final BatchQueue q) {
     if (!checkLibraryFiles()) {
       return;
     }

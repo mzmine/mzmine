@@ -27,8 +27,6 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
@@ -76,31 +74,31 @@ public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
   @Override
   public BatchQueue createQueue() {
     final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask());
-    makeMassDetectorSteps(q);
+    makeAndAddImportTask(q);
+    makeAndAddMassDetectorSteps(q);
 
     // TODO make image builder
 
     if (isImsActive) {
-      q.add(makeImsExpanderStep());
-      makeSmoothingStep(q, false, minDataPoints, imsSmoothing);
-      q.add(makeMobilityResolvingStep());
-      makeSmoothingStep(q, false, minDataPoints, imsSmoothing);
+      makeAndAddImsExpanderStep(q);
+      makeAndAddSmoothingStep(q, false, minDataPoints, imsSmoothing);
+      makeAndAddMobilityResolvingStep(q);
+      makeAndAddSmoothingStep(q, false, minDataPoints, imsSmoothing);
     }
 
-    q.add(makeIsotopeFinderStep());
-    q.add(makeAlignmentStep());
-    makeRowFilterStep(q);
+    makeAndAddIsotopeFinderStep(q);
+    makeAndAddAlignmentStep(q);
+    makeAndAddRowFilterStep(q);
 
     // annotation
-    makeLibrarySearchStep(q);
+    makeAndAddLibrarySearchStep(q);
     // export
-    makeDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
     return q;
   }
 
 
-  protected MZmineProcessingStep<MZmineProcessingModule> makeAlignmentStep() {
+  protected void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(JoinAlignerModule.class).cloneParameterSet();
     param.setParameter(JoinAlignerParameters.peakLists,
@@ -120,8 +118,8 @@ public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
     param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
     param.setParameter(JoinAlignerParameters.handleOriginal, handleOriginalFeatureLists);
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
-        param);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
+        param));
   }
 
 }
