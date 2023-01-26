@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 
@@ -35,7 +35,7 @@ import java.io.File;
  * @param file  the file loaded
  * @param parts the presets in sequential order
  */
-public record LocalWizardWorkflowFile(File file, WizardWorkflow parts) {
+public record LocalWizardWorkflowFile(File file, WizardSequence parts) {
 
   /**
    * File name without extension is used as name for presets

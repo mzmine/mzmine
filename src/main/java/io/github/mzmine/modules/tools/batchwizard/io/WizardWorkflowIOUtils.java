@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -145,7 +145,7 @@ public class WizardWorkflowIOUtils {
    * @return a new list of presets for each defined part - empty on error or if nothing was defined
    * @throws IOException when loading file
    */
-  public static @NotNull WizardWorkflow loadFromFile(final File file,
+  public static @NotNull WizardSequence loadFromFile(final File file,
       Map<WizardPart, List<WizardStepPreset>> allPresets) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -159,7 +159,7 @@ public class WizardWorkflowIOUtils {
       // find the one with the unique ID and part
       // copy all parameters - this way, even new parameters are handled with their default value
       // result
-      WizardWorkflow workflow = new WizardWorkflow();
+      WizardSequence workflow = new WizardSequence();
 
       XPathExpression expr = xpath.compile("//" + ELEMENT_TAG + "/" + PART_TAG);
       NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
@@ -199,7 +199,7 @@ public class WizardWorkflowIOUtils {
    * @param allPresets all presets as defined in the {@link BatchWizardTab}
    * @return a new list of presets for each defined part - empty on error or if nothing was defined
    */
-  public static @NotNull WizardWorkflow chooseAndLoadFile(
+  public static @NotNull WizardSequence chooseAndLoadFile(
       final Map<WizardPart, List<WizardStepPreset>> allPresets) {
     File prefPath = getWizardSettingsPath();
     FileChooser chooser = new FileChooser();
@@ -216,7 +216,7 @@ public class WizardWorkflowIOUtils {
 
       }
     }
-    return new WizardWorkflow();
+    return new WizardSequence();
   }
 
   /**
@@ -235,7 +235,7 @@ public class WizardWorkflowIOUtils {
     return FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
         .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
           try {
-            WizardWorkflow presets = WizardWorkflowIOUtils.loadFromFile(file, ALL_PRESETS);
+            WizardSequence presets = WizardWorkflowIOUtils.loadFromFile(file, ALL_PRESETS);
             return new LocalWizardWorkflowFile(file, presets);
           } catch (IOException e) {
             logger.warning("Could not import wizard preset file " + file.getAbsolutePath());

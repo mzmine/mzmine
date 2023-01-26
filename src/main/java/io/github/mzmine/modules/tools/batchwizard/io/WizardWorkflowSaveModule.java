@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -44,7 +44,7 @@ public class WizardWorkflowSaveModule implements MZmineModule {
 
   private static final Logger logger = Logger.getLogger(WizardWorkflowSaveModule.class.getName());
 
-  public static void setupAndSave(final WizardWorkflow workflow) {
+  public static void setupAndSave(final WizardSequence workflow) {
     ParameterSet params = MZmineCore.getConfiguration()
         .getModuleParameters(WizardWorkflowSaveModule.class);
     if (params.showSetupDialog(true) == ExitCode.OK) {

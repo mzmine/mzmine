@@ -34,7 +34,7 @@ import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
@@ -56,7 +56,7 @@ public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
   private final Boolean exportSirius;
   private final File exportPath;
 
-  public WizardBatchBuilderImagingDda(final WizardWorkflow steps) {
+  public WizardBatchBuilderImagingDda(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
     super(steps);
 

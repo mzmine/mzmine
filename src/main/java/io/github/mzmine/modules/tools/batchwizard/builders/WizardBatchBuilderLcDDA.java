@@ -52,7 +52,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refine
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
@@ -89,7 +89,7 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
   private final File exportPath;
   private final Boolean rtSmoothing;
 
-  public WizardBatchBuilderLcDDA(final WizardWorkflow steps) {
+  public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
     super(steps);
 

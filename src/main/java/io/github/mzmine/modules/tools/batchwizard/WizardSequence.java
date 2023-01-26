@@ -39,12 +39,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * WizardWorkflow defines a sequence of steps defined as presets for specific {@link WizardPart}s.
  * It's always sorted by WizardPart and might be a full wizard workflow or a partial workflow that
- * is saved and loaded from files. Partial workflows can be {@link #apply(WizardWorkflow)} to other
+ * is saved and loaded from files. Partial workflows can be {@link #apply(WizardSequence)} to other
  * workflows, replacing the defined steps with new presets. Used in the {@link WizardBatchBuilder}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class WizardWorkflow extends AbstractList<WizardStepPreset> {
+public class WizardSequence extends AbstractList<WizardStepPreset> {
 
   private final List<WizardStepPreset> steps = new ArrayList<>();
 
@@ -171,7 +171,7 @@ public class WizardWorkflow extends AbstractList<WizardStepPreset> {
    *
    * @param partialWorkflow Might be the whole or a partial workflow
    */
-  public void apply(final WizardWorkflow partialWorkflow) {
+  public void apply(final WizardSequence partialWorkflow) {
     addAll(partialWorkflow);
   }
 

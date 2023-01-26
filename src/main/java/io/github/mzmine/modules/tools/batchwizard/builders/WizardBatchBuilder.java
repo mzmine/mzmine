@@ -74,7 +74,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters.ChromatographyWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
@@ -150,7 +150,7 @@ public abstract class WizardBatchBuilder {
   protected final Double imsFwhm;
   protected final Integer minImsDataPoints;
 
-  protected WizardBatchBuilder(WizardWorkflow steps) {
+  protected WizardBatchBuilder(WizardSequence steps) {
     // input
     Optional<? extends WizardStepPreset> params = steps.get(WizardPart.DATA_IMPORT);
     dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
@@ -192,7 +192,7 @@ public abstract class WizardBatchBuilder {
    * @param steps workflow
    * @return the builder
    */
-  public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardWorkflow steps) {
+  public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardSequence steps) {
     // workflow is always set
     Optional<WizardStepPreset> preset = steps.get(WizardPart.WORKFLOW);
     var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getPreset();
@@ -320,7 +320,7 @@ public abstract class WizardBatchBuilder {
 
   /**
    * Get parameter if available or else return null. params usually comes from
-   * {@link WizardWorkflow#get(WizardPart)}
+   * {@link WizardSequence#get(WizardPart)}
    *
    * @param params    an optional parameter class for a part
    * @param parameter parameter as defined in params class. Usually a static parameter
@@ -341,7 +341,7 @@ public abstract class WizardBatchBuilder {
 
   /**
    * Get parameter if available or else null. params usually comes from
-   * {@link WizardWorkflow#get(WizardPart)}
+   * {@link WizardSequence#get(WizardPart)}
    *
    * @param params    an optional parameter class for a part
    * @param parameter parameter as defined in params class. Usually a static parameter

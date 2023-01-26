@@ -88,7 +88,7 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * The selected workflow. first - last step. Changes in the combobox selection are reflected here
    */
-  private final WizardWorkflow workflowSteps = new WizardWorkflow();
+  private final WizardSequence workflowSteps = new WizardSequence();
   /**
    * Parameter panes of the selected presets
    */
@@ -354,7 +354,7 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * @param partialWorkflow might contain some or all steps of the workflow
    */
-  private void appendPresetsToUi(final WizardWorkflow partialWorkflow) {
+  private void appendPresetsToUi(final WizardSequence partialWorkflow) {
     setListenersActive(false);
 
     // keep current as default parameters
@@ -378,7 +378,7 @@ public class BatchWizardTab extends SimpleTab {
     // update all parameters to use them as a default for each step
     updateAllParametersFromUi();
     // only load those steps that were defined in the local preset file
-    WizardWorkflow wizardPresets = WizardWorkflowIOUtils.chooseAndLoadFile(ALL_PRESETS);
+    WizardSequence wizardPresets = WizardWorkflowIOUtils.chooseAndLoadFile(ALL_PRESETS);
     if (!wizardPresets.isEmpty()) {
       appendPresetsToUi(wizardPresets);
     }
@@ -416,7 +416,7 @@ public class BatchWizardTab extends SimpleTab {
   /**
    * @return the workflowSteps variable on success or null on error (misconfiguration)
    */
-  private @Nullable WizardWorkflow updateAllParametersFromUiAndCheckErrors() {
+  private @Nullable WizardSequence updateAllParametersFromUiAndCheckErrors() {
     List<String> errorMessages = new ArrayList<>();
 
     // Update parameters from pane and check

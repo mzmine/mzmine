@@ -41,7 +41,7 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardWorkflow;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
@@ -69,7 +69,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
   private final File exportPath;
   private final Boolean exportGnps;
 
-  public WizardBatchBuilderGcEiDeconvolution(final WizardWorkflow steps) {
+  public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
     super(steps);
 
