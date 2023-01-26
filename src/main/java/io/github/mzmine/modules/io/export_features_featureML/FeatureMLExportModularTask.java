@@ -196,7 +196,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
     writer.newLine();
     writer.write(String.format("    </dataProcessing>"));
     writer.newLine();
-    writer.write(String.format("    <featureList count='%d'>", rowTypes.size()));
+    writer.write(String.format("    <featureList count='%d'>", rows.size()));
     writer.newLine();
 
     double minRT = 100000.;
