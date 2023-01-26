@@ -76,11 +76,6 @@ public final class IonInterfaceHplcWizardParameters extends AbstractIonInterface
       true);
 
 
-  public IonInterfaceHplcWizardParameters() {
-    // set and change later
-    this(IonInterfaceDefaults.values()[0]);
-  }
-
   public IonInterfaceHplcWizardParameters(final IonInterfaceDefaults preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters

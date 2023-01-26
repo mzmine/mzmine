@@ -36,7 +36,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Used in the {@link WizardBatchBuilder}
+ * WizardWorkflow defines a sequence of steps defined as presets for specific {@link WizardPart}s.
+ * It's always sorted by WizardPart and might be a full wizard workflow or a partial workflow that
+ * is saved and loaded from files. Partial workflows can be {@link #apply(WizardWorkflow)} to other
+ * workflows, replacing the defined steps with new presets. Used in the {@link WizardBatchBuilder}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */

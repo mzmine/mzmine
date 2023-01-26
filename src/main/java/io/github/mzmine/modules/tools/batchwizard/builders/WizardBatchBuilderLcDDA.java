@@ -94,18 +94,19 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     // extract default parameters that are used for all workflows
     super(steps);
 
-    Optional<? extends AbstractWizardParameters<?>> params = steps.get(WizardPart.ION_INTERFACE)
+    Optional<? extends AbstractWizardParameters> params = steps.get(WizardPart.ION_INTERFACE)
         .map(WizardPreset::parameters);
     // special workflow parameter are extracted here
     // chromatography
-    rtSmoothing = get(params, IonInterfaceHplcWizardParameters.smoothing, false);
-    cropRtRange = get(params, IonInterfaceHplcWizardParameters.cropRtRange);
-    intraSampleRtTol = get(params, IonInterfaceHplcWizardParameters.intraSampleRTTolerance);
-    interSampleRtTol = get(params, IonInterfaceHplcWizardParameters.interSampleRTTolerance);
-    minRtDataPoints = get(params, IonInterfaceHplcWizardParameters.minNumberOfDataPoints);
-    maxIsomersInRt = get(params, IonInterfaceHplcWizardParameters.maximumIsomersInChromatogram);
-    rtFwhm = get(params, IonInterfaceHplcWizardParameters.approximateChromatographicFWHM);
-    stableIonizationAcrossSamples = get(params,
+    rtSmoothing = getValue(params, IonInterfaceHplcWizardParameters.smoothing);
+    cropRtRange = getValue(params, IonInterfaceHplcWizardParameters.cropRtRange);
+    intraSampleRtTol = getValue(params, IonInterfaceHplcWizardParameters.intraSampleRTTolerance);
+    interSampleRtTol = getValue(params, IonInterfaceHplcWizardParameters.interSampleRTTolerance);
+    minRtDataPoints = getValue(params, IonInterfaceHplcWizardParameters.minNumberOfDataPoints);
+    maxIsomersInRt = getValue(params,
+        IonInterfaceHplcWizardParameters.maximumIsomersInChromatogram);
+    rtFwhm = getValue(params, IonInterfaceHplcWizardParameters.approximateChromatographicFWHM);
+    stableIonizationAcrossSamples = getValue(params,
         IonInterfaceHplcWizardParameters.stableIonizationAcrossSamples);
 
     // DDA workflow parameters
@@ -113,8 +114,8 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = get(params, WorkflowDdaWizardParameters.exportGnps);
-    exportSirius = get(params, WorkflowDdaWizardParameters.exportSirius);
+    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
+    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
   }
 
   @Override

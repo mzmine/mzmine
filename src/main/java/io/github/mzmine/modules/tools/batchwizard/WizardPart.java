@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import io.github.mzmine.modules.tools.batchwizard.factories.AnnotationParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.DataImportParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.FilterParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
 import java.util.Arrays;
 import java.util.List;
@@ -60,12 +60,12 @@ public enum WizardPart {
    *
    * @return array of one string or the values of an enum - which implements
    */
-  public Object[] getDefaultPresets() {
+  public WizardParameterFactory[] getDefaultPresets() {
     return switch (this) {
       // only one option
-      case DATA_IMPORT -> new String[]{DataImportWizardParameters.ONLY_PRESET};
-      case FILTER -> new String[]{FilterWizardParameters.ONLY_PRESET};
-      case ANNOTATION -> new String[]{AnnotationWizardParameters.ONLY_PRESET};
+      case DATA_IMPORT -> DataImportParameterFactory.values();
+      case FILTER -> FilterParameterFactory.values();
+      case ANNOTATION -> AnnotationParameterFactory.values();
       // multiple options
       case ION_INTERFACE -> IonInterfaceDefaults.values();
       case IMS -> ImsDefaults.values();
@@ -80,16 +80,7 @@ public enum WizardPart {
    * @return list of presets
    */
   public List<WizardPreset> createPresetParameters() {
-    return switch (this) {
-      // single values
-      case DATA_IMPORT -> List.of(DataImportWizardParameters.createPreset());
-      case FILTER -> List.of(FilterWizardParameters.createPreset());
-      case ANNOTATION -> List.of(AnnotationWizardParameters.createPreset());
-      // enums
-      case ION_INTERFACE, IMS, MS, WORKFLOW ->
-          Arrays.stream(getDefaultPresets()).map(p -> ((WizardParameterFactory) p).create())
-              .toList();
-    };
+    return Arrays.stream(getDefaultPresets()).map(WizardParameterFactory::create).toList();
   }
 
 }

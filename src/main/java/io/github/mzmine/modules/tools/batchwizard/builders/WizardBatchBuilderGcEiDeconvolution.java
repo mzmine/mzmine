@@ -74,19 +74,19 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     // extract default parameters that are used for all workflows
     super(steps);
 
-    Optional<? extends AbstractWizardParameters<?>> params = steps.get(WizardPart.ION_INTERFACE)
+    Optional<? extends AbstractWizardParameters> params = steps.get(WizardPart.ION_INTERFACE)
         .map(WizardPreset::parameters);
     // special workflow parameter are extracted here
     // chromatography
-    rtSmoothing = get(params, IonInterfaceGcElectronImpactWizardParameters.smoothing, false);
-    cropRtRange = get(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
-    intraSampleRtTol = get(params,
+    rtSmoothing = getValue(params, IonInterfaceGcElectronImpactWizardParameters.smoothing);
+    cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
+    intraSampleRtTol = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.intraSampleRTTolerance);
-    interSampleRtTol = get(params,
+    interSampleRtTol = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.interSampleRTTolerance);
-    minRtDataPoints = get(params,
+    minRtDataPoints = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
-    rtFwhm = get(params,
+    rtFwhm = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM);
 
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
@@ -95,7 +95,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         WorkflowGcElectronImpactWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = get(params, WorkflowGcElectronImpactWizardParameters.exportGnps);
+    exportGnps = getValue(params, WorkflowGcElectronImpactWizardParameters.exportGnps);
   }
 
   @Override

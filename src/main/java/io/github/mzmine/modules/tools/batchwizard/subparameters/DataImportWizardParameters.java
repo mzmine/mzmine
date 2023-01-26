@@ -27,34 +27,19 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
+import io.github.mzmine.modules.tools.batchwizard.factories.DataImportParameterFactory;
 
 /**
  * Reuses the filenames {@link AllSpectralDataImportParameters}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public final class DataImportWizardParameters extends AbstractWizardParameters<String> {
-
-  /**
-   * There is only one preset no other options. If there are multiple options use an enum, see
-   * {@link MassSpectrometerWizardParameters} and {@link MsInstrumentDefaults}
-   */
-  public static final String ONLY_PRESET = "Data";
+public final class DataImportWizardParameters extends AbstractWizardParameters {
 
   public DataImportWizardParameters() {
-    super(WizardPart.DATA_IMPORT, ONLY_PRESET,
+    super(WizardPart.DATA_IMPORT, DataImportParameterFactory.Data,
         // parameters
         AllSpectralDataImportParameters.fileNames);
   }
 
-  public static WizardPreset createPreset() {
-    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new DataImportWizardParameters());
-  }
-
-  @Override
-  public String[] getPresetChoices() {
-    return new String[]{ONLY_PRESET};
-  }
 }

@@ -61,18 +61,18 @@ public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
     // extract default parameters that are used for all workflows
     super(steps);
 
-    Optional<? extends AbstractWizardParameters<?>> params = steps.get(WizardPart.ION_INTERFACE)
+    Optional<? extends AbstractWizardParameters> params = steps.get(WizardPart.ION_INTERFACE)
         .map(WizardPreset::parameters);
     // special workflow parameter are extracted here
-    minDataPoints = get(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
+    minDataPoints = getValue(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
 
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW).map(WizardPreset::parameters);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = get(params, WorkflowDdaWizardParameters.exportGnps);
-    exportSirius = get(params, WorkflowDdaWizardParameters.exportSirius);
+    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
+    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
   }
 
   @Override

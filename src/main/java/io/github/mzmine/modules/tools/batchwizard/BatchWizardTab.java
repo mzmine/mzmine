@@ -102,7 +102,7 @@ public class BatchWizardTab extends SimpleTab {
 
   public BatchWizardTab() {
     super("Processing Wizard");
-    ALL_PRESETS = WizardPresetDefaults.createPresets();
+    ALL_PRESETS = WizardPreset.createAllPresets();
     localPresetsButton = new LastFilesButton("Local presets", true,
         file -> applyLocalPartialWorkflow(localPresets.get(file)));
     createContentPane();

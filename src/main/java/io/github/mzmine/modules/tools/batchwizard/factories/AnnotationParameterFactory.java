@@ -23,28 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.modules.tools.batchwizard.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
 
-public final class IonInterfaceDirectAndFlowInjectWizardParameters extends
-    AbstractIonInterfaceWizardParameters {
+public enum AnnotationParameterFactory implements WizardParameterFactory {
+  Annotation;
 
-  public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Min # of data points", "Minimum number of consecutive data points in time dimension", 25, 1,
-      Integer.MAX_VALUE);
 
-  public IonInterfaceDirectAndFlowInjectWizardParameters(final IonInterfaceDefaults preset) {
-    super(WizardPart.ION_INTERFACE, preset,
-        // actual parameters
-        minNumberOfDataPoints);
+  @Override
+  public WizardPreset create() {
+    return new WizardPreset(toString(), getUniqueId(), new AnnotationWizardParameters());
   }
 
-  public IonInterfaceDirectAndFlowInjectWizardParameters(final IonInterfaceDefaults preset,
-      final int minDataPoints) {
-    this(preset);
-    setParameter(minNumberOfDataPoints, minDataPoints);
+  @Override
+  public String getUniqueId() {
+    return name();
   }
-
 }

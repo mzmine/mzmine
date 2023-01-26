@@ -35,11 +35,6 @@ public final class IonInterfaceImagingWizardParameters extends
       "Min # of data points", "Minimum number of data points as used in image building", 25, 1,
       Integer.MAX_VALUE);
 
-  public IonInterfaceImagingWizardParameters() {
-    // set and change later
-    this(IonInterfaceDefaults.values()[0]);
-  }
-
   public IonInterfaceImagingWizardParameters(final IonInterfaceDefaults preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters

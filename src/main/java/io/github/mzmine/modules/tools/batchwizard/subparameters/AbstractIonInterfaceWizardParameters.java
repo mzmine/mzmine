@@ -28,24 +28,19 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractIonInterfaceWizardParameters.IonInterfaceDefaults;
+import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 
 public abstract sealed class AbstractIonInterfaceWizardParameters extends
-    AbstractWizardParameters<IonInterfaceDefaults> permits IonInterfaceHplcWizardParameters,
+    AbstractWizardParameters permits IonInterfaceHplcWizardParameters,
     IonInterfaceGcElectronImpactWizardParameters, IonInterfaceImagingWizardParameters,
     IonInterfaceDirectAndFlowInjectWizardParameters {
 
   public AbstractIonInterfaceWizardParameters(final WizardPart part,
       final IonInterfaceDefaults preset, final Parameter<?>... parameters) {
     super(part, preset, parameters);
-  }
-
-  @Override
-  public IonInterfaceDefaults[] getPresetChoices() {
-    return IonInterfaceDefaults.values();
   }
 
   /**

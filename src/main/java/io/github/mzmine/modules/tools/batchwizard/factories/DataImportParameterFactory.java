@@ -23,10 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.factories;
 
-public enum WizardWorkflows {
-  DDA, GC_EI_DECONVOLUTION, GC_EI_LIBRARY_GENERATION
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+
+public enum DataImportParameterFactory implements WizardParameterFactory {
+  Data;
 
 
+  @Override
+  public WizardPreset create() {
+    return new WizardPreset(toString(), getUniqueId(), new DataImportWizardParameters());
+  }
+
+  @Override
+  public String getUniqueId() {
+    return name();
+  }
 }

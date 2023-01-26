@@ -113,7 +113,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -150,8 +149,6 @@ public abstract class WizardBatchBuilder {
   protected final Boolean imsSmoothing;
   protected final Double imsFwhm;
   protected final Integer minImsDataPoints;
-  private final WizardWorkflow steps;
-
 
   /**
    * Create workflow builder for workflow steps
@@ -173,44 +170,40 @@ public abstract class WizardBatchBuilder {
   }
 
   protected WizardBatchBuilder(WizardWorkflow steps) {
-    this.steps = steps;
     // input
-    Optional<? extends AbstractWizardParameters<?>> params = steps.get(WizardPart.DATA_IMPORT)
+    Optional<? extends AbstractWizardParameters> params = steps.get(WizardPart.DATA_IMPORT)
         .map(WizardPreset::parameters);
-    dataFiles = orElseGet(params, AllSpectralDataImportParameters.fileNames, () -> new File[0]);
+    dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION).map(WizardPreset::parameters);
-    libraries = orElseGet(params, SpectralLibraryImportParameters.dataBaseFiles, () -> new File[0]);
+    libraries = getValue(params, SpectralLibraryImportParameters.dataBaseFiles);
 
     // filter
     params = steps.get(WizardPart.FILTER).map(WizardPreset::parameters);
-    filter13C = get(params, FilterWizardParameters.filter13C, false);
-    minAlignedSamples = orElseGet(params, FilterWizardParameters.minNumberOfSamples, () -> 1);
-    handleOriginalFeatureLists = orElseGet(params,
-        FilterWizardParameters.handleOriginalFeatureLists, () -> OriginalFeatureListOption.REMOVE);
+    filter13C = getValue(params, FilterWizardParameters.filter13C);
+    minAlignedSamples = getValue(params, FilterWizardParameters.minNumberOfSamples);
+    handleOriginalFeatureLists = getValue(params,
+        FilterWizardParameters.handleOriginalFeatureLists);
 
     // ion mobility IMS
     params = steps.get(WizardPart.IMS).map(WizardPreset::parameters);
-    isImsActive = get(params, IonMobilityWizardParameters.imsActive, false);
-    imsInstrumentType = get(params, IonMobilityWizardParameters.instrumentType, MobilityType.NONE);
-    imsFwhm = get(params, IonMobilityWizardParameters.approximateImsFWHM, 0d);
-    minImsDataPoints = get(params, IonMobilityWizardParameters.minNumberOfDataPoints, 4);
-    imsSmoothing = get(params, IonMobilityWizardParameters.smoothing, false);
+    isImsActive = getValue(params, IonMobilityWizardParameters.imsActive);
+    imsInstrumentType = getValue(params, IonMobilityWizardParameters.instrumentType);
+    imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
+    minImsDataPoints = getValue(params, IonMobilityWizardParameters.minNumberOfDataPoints);
+    imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
 
     // mass spectrometer
     params = steps.get(WizardPart.MS).map(WizardPreset::parameters);
-    polarity = get(params, MassSpectrometerWizardParameters.polarity, Polarity.Positive);
-    noiseLevelMsn = get(params, MassSpectrometerWizardParameters.ms2NoiseLevel, 0d);
-    noiseLevelMs1 = get(params, MassSpectrometerWizardParameters.ms1NoiseLevel, 0d);
-    minFeatureHeight = get(params, MassSpectrometerWizardParameters.minimumFeatureHeight, 0d);
-    mzTolScans = orElseGet(params, MassSpectrometerWizardParameters.scanToScanMzTolerance,
-        () -> new MZTolerance(0.002, 15));
-    mzTolFeaturesIntraSample = orElseGet(params,
-        MassSpectrometerWizardParameters.featureToFeatureMzTolerance,
-        () -> new MZTolerance(0.002, 15));
-    mzTolInterSample = orElseGet(params, MassSpectrometerWizardParameters.sampleToSampleMzTolerance,
-        () -> new MZTolerance(0.002, 15));
+    polarity = getValue(params, MassSpectrometerWizardParameters.polarity);
+    noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.ms2NoiseLevel);
+    noiseLevelMs1 = getValue(params, MassSpectrometerWizardParameters.ms1NoiseLevel);
+    minFeatureHeight = getValue(params, MassSpectrometerWizardParameters.minimumFeatureHeight);
+    mzTolScans = getValue(params, MassSpectrometerWizardParameters.scanToScanMzTolerance);
+    mzTolFeaturesIntraSample = getValue(params,
+        MassSpectrometerWizardParameters.featureToFeatureMzTolerance);
+    mzTolInterSample = getValue(params, MassSpectrometerWizardParameters.sampleToSampleMzTolerance);
   }
 
   protected static MZmineProcessingStep<MZmineProcessingModule> makeDuplicateRowFilterStep(
@@ -251,7 +244,7 @@ public abstract class WizardBatchBuilder {
         new ScanSelection(cropRtRange == null ? null : RangeUtils.toFloatRange(cropRtRange), 1));
     param.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minRtDataPoints);
     param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
-    param.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
+    param.setParameter(ADAPChromatogramBuilderParameters.suffix, "eics");
     param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, noiseLevelMs1);
     param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minFeatureHeight);
 
@@ -326,59 +319,16 @@ public abstract class WizardBatchBuilder {
    */
   public abstract BatchQueue createQueue();
 
-  /**
-   * Get parameter if available or else
-   *
-   * @param params
-   * @param parameter
-   * @param orElse
-   * @param <T>
-   * @return
-   */
-  protected <T> T orElseGet(@NotNull final Optional<? extends AbstractWizardParameters<?>> params,
-      @NotNull final Parameter<T> parameter, @NotNull final Supplier<T> orElse) {
-    if (params.isPresent()) {
-      try {
-        return params.get().getValue(parameter);
-      } catch (Exception ex) {
-        logger.log(Level.WARNING,
-            "Error during extraction of value from parameter " + parameter.getName(), ex);
-      }
-    }
-    return orElse.get();
-  }
 
   /**
-   * Get parameter if available or else
+   * Get parameter if available or else return null. params usually comes from
+   * {@link WizardWorkflow#get(WizardPart)}
    *
-   * @param params
-   * @param parameter
-   * @param orElse
-   * @param <T>
-   * @return
+   * @param params    an optional parameter class for a part
+   * @param parameter parameter as defined in params class. Usually a static parameter
+   * @return the value of the parameter or null if !params.isPresent
    */
-  protected <T> T get(@NotNull final Optional<? extends AbstractWizardParameters<?>> params,
-      @NotNull final Parameter<T> parameter, T orElse) {
-    if (params.isPresent()) {
-      try {
-        return params.get().getValue(parameter);
-      } catch (Exception ex) {
-        logger.log(Level.WARNING,
-            "Error during extraction of value from parameter " + parameter.getName(), ex);
-      }
-    }
-    return orElse;
-  }
-
-  /**
-   * Get parameter if available or else
-   *
-   * @param params
-   * @param parameter
-   * @param <T>
-   * @return
-   */
-  protected <T> T get(@NotNull final Optional<? extends AbstractWizardParameters<?>> params,
+  protected <T> T getValue(@NotNull final Optional<? extends AbstractWizardParameters> params,
       @NotNull final Parameter<T> parameter) {
     if (params.isPresent()) {
       try {
@@ -392,14 +342,15 @@ public abstract class WizardBatchBuilder {
   }
 
   /**
-   * Get parameter if available or else
+   * Get parameter if available or else null. params usually comes from
+   * {@link WizardWorkflow#get(WizardPart)}
    *
-   * @param params
-   * @param parameter
+   * @param params    an optional parameter class for a part
+   * @param parameter parameter as defined in params class. Usually a static parameter
    * @return value and selection state of an OptionalParameter
    */
   protected <V, T extends UserParameter<V, ?>> OptionalValue<V> getOptional(
-      @NotNull final Optional<? extends AbstractWizardParameters<?>> params,
+      @NotNull final Optional<? extends AbstractWizardParameters> params,
       @NotNull final OptionalParameter<T> parameter) {
     if (params.isPresent()) {
       try {
@@ -438,7 +389,6 @@ public abstract class WizardBatchBuilder {
     return Arrays.stream(libraries).anyMatch(Objects::nonNull);
   }
 
-  @Nullable
   protected void makeRowFilterStep(final BatchQueue q) {
     if (!filter13C && minAlignedSamples < 2) {
       return;

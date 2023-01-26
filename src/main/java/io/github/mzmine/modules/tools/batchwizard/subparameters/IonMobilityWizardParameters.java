@@ -28,7 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
+import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -36,7 +36,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.text.DecimalFormat;
 
-public final class IonMobilityWizardParameters extends AbstractWizardParameters<ImsDefaults> {
+public final class IonMobilityWizardParameters extends AbstractWizardParameters {
 
   public static final DoubleParameter approximateImsFWHM = new DoubleParameter(
       "Approximate feature FWHM",
@@ -58,10 +58,6 @@ public final class IonMobilityWizardParameters extends AbstractWizardParameters<
       "Apply smoothing in the mobility dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public IonMobilityWizardParameters() {
-    this(ImsDefaults.NO_IMS);
-  }
-
   public IonMobilityWizardParameters(ImsDefaults preset) {
     super(WizardPart.IMS, preset,
         // parameters
@@ -79,11 +75,6 @@ public final class IonMobilityWizardParameters extends AbstractWizardParameters<
     setParameter(instrumentType, instrument);
   }
 
-
-  @Override
-  public ImsDefaults[] getPresetChoices() {
-    return ImsDefaults.values();
-  }
 
   /**
    * the defaults should not change the name of enum values. if strings are needed, override the

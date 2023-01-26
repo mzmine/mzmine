@@ -64,11 +64,6 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public IonInterfaceGcElectronImpactWizardParameters() {
-    // set and change later
-    this(IonInterfaceDefaults.values()[0]);
-  }
-
   public IonInterfaceGcElectronImpactWizardParameters(final IonInterfaceDefaults preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters

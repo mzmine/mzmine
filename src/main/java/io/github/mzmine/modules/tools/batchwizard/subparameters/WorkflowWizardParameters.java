@@ -27,20 +27,14 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters.WorkflowDefaults;
+import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 
-public sealed class WorkflowWizardParameters extends
-    AbstractWizardParameters<WorkflowDefaults> permits WorkflowDdaWizardParameters,
-    WorkflowGcElectronImpactWizardParameters {
+public sealed class WorkflowWizardParameters extends AbstractWizardParameters permits
+    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters {
 
   public WorkflowWizardParameters(final WorkflowDefaults preset, final Parameter<?>... parameters) {
     super(WizardPart.WORKFLOW, preset, parameters);
-  }
-
-  @Override
-  public WorkflowDefaults[] getPresetChoices() {
-    return WorkflowDefaults.values();
   }
 
   /**

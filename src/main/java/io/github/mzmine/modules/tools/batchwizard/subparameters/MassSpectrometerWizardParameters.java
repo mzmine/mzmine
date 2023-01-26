@@ -29,15 +29,14 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters.ImsDefaults;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public final class MassSpectrometerWizardParameters extends
-    AbstractWizardParameters<MsInstrumentDefaults> {
+public final class MassSpectrometerWizardParameters extends AbstractWizardParameters {
 
   public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
       "Polarity of the ion mode", Polarity.values(), Polarity.Positive);
@@ -70,10 +69,6 @@ public final class MassSpectrometerWizardParameters extends
       "Sample to sample m/z tolerance",
       "Describes the m/z fluctuations between different samples. Used for alignment.");
 
-  public MassSpectrometerWizardParameters() {
-    this(MsInstrumentDefaults.Orbitrap);
-  }
-
   public MassSpectrometerWizardParameters(MsInstrumentDefaults preset) {
     super(WizardPart.MS, preset,
         // parameters
@@ -91,11 +86,6 @@ public final class MassSpectrometerWizardParameters extends
     setParameter(scanToScanMzTolerance, scan2scanMzTolerance);
     setParameter(featureToFeatureMzTolerance, f2fMzTolerance);
     setParameter(sampleToSampleMzTolerance, sample2sampleMzTolerance);
-  }
-
-  @Override
-  public MsInstrumentDefaults[] getPresetChoices() {
-    return MsInstrumentDefaults.values();
   }
 
   /**

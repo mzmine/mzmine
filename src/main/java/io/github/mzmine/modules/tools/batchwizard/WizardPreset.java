@@ -27,6 +27,10 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AbstractWizardParameters;
 import io.github.mzmine.parameters.ParameterUtils;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -36,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  * @param parameters     the parameters - will be cloned internally
  */
 public record WizardPreset(@NotNull String name, @NotNull String uniquePresetId,
-                           @NotNull AbstractWizardParameters<?> parameters) implements
+                           @NotNull AbstractWizardParameters parameters) implements
     Comparable<WizardPreset> {
 
   /**
@@ -46,7 +50,7 @@ public record WizardPreset(@NotNull String name, @NotNull String uniquePresetId,
    * @param parameters     the parameters
    */
   public WizardPreset(final String name, final String uniquePresetId,
-      final AbstractWizardParameters<?> parameters) {
+      final AbstractWizardParameters parameters) {
     // needs the clone to separate the parameters from the static ones
     this.parameters = parameters;
     this.name = name;
@@ -84,5 +88,16 @@ public record WizardPreset(@NotNull String name, @NotNull String uniquePresetId,
   public WizardPreset createDefaultParameterPreset() {
     return part().createPresetParameters().stream()
         .filter(preset -> preset.uniquePresetId.equals(uniquePresetId)).findFirst().orElse(null);
+  }
+
+
+  /**
+   * Create map of all presets for every {@link WizardPart}
+   *
+   * @return map of part and list of presets
+   */
+  public static Map<WizardPart, List<WizardPreset>> createAllPresets() {
+    return Arrays.stream(WizardPart.values())
+        .collect(Collectors.toMap(part -> part, WizardPart::createPresetParameters));
   }
 }

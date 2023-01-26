@@ -27,39 +27,23 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters.MsInstrumentDefaults;
+import io.github.mzmine.modules.tools.batchwizard.factories.AnnotationParameterFactory;
 
 /**
  * Reuses spectral library files parameters of {@link SpectralLibraryImportParameters}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public final class AnnotationWizardParameters extends AbstractWizardParameters<String> {
-
-  /**
-   * There is only one preset no other options. If there are multiple options use an enum, see
-   * {@link MassSpectrometerWizardParameters} and {@link MsInstrumentDefaults}
-   */
-  public static final String ONLY_PRESET = "Annotations";
+public final class AnnotationWizardParameters extends AbstractWizardParameters {
 
   // TODO add LocalCSVDatabase search
   // needs less parameters only the most important ones to reproduce the library generation workflow
 //  public static final OptionalModuleParameter<LocalCSVDatabaseSearchParameters>
 
   public AnnotationWizardParameters() {
-    super(WizardPart.ANNOTATION, ONLY_PRESET,
+    super(WizardPart.ANNOTATION, AnnotationParameterFactory.Annotation,
         // parameters
         SpectralLibraryImportParameters.dataBaseFiles);
   }
 
-  public static WizardPreset createPreset() {
-    return new WizardPreset(ONLY_PRESET, ONLY_PRESET, new AnnotationWizardParameters());
-  }
-
-
-  @Override
-  public String[] getPresetChoices() {
-    return new String[]{ONLY_PRESET};
-  }
 }

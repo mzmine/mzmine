@@ -26,27 +26,29 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.ComposedParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class AbstractWizardParameters<T> extends ComposedParameterSet implements
-    Comparable<AbstractWizardParameters<?>> permits AbstractIonInterfaceWizardParameters,
+public abstract sealed class AbstractWizardParameters extends ComposedParameterSet implements
+    Comparable<AbstractWizardParameters> permits AbstractIonInterfaceWizardParameters,
     AnnotationWizardParameters, DataImportWizardParameters, FilterWizardParameters,
     IonMobilityWizardParameters, MassSpectrometerWizardParameters, WorkflowWizardParameters {
 
   private ParameterSet parameters;
   private final WizardPart part;
-  private T preset;
+  private WizardParameterFactory preset;
 
   /**
    * @param part       the part in the workflow
    * @param preset     preset chosen from 1 or more choices
    * @param parameters array of parameters
    */
-  public AbstractWizardParameters(WizardPart part, T preset, Parameter<?>... parameters) {
+  public AbstractWizardParameters(WizardPart part, WizardParameterFactory preset,
+      Parameter<?>... parameters) {
     this.parameters = new SimpleParameterSet(parameters).cloneParameterSet();
     this.part = part;
     this.preset = preset;
@@ -62,10 +64,7 @@ public abstract sealed class AbstractWizardParameters<T> extends ComposedParamet
     return part;
   }
 
-  /**
-   * @return the selected preset
-   */
-  public T getPreset() {
+  public WizardParameterFactory getPreset() {
     return preset;
   }
 
@@ -74,24 +73,9 @@ public abstract sealed class AbstractWizardParameters<T> extends ComposedParamet
    *
    * @param preset the new preset
    */
-  public void setPreset(final T preset) {
+  public void setPreset(final WizardParameterFactory preset) {
     this.preset = preset;
   }
-
-  /**
-   * Choices for presets are either a single String, or managed as {@link Enum}
-   *
-   * @return all choices for presets
-   */
-  public abstract T[] getPresetChoices();
-
-  /**
-   * Selected preset.toString
-   */
-  public String getPresetString() {
-    return getPreset().toString();
-  }
-
 
   @Override
   protected ParameterSet getParamSet() {
@@ -105,7 +89,7 @@ public abstract sealed class AbstractWizardParameters<T> extends ComposedParamet
 
   // for sorting
   @Override
-  public int compareTo(@NotNull final AbstractWizardParameters<?> o) {
+  public int compareTo(@NotNull final AbstractWizardParameters o) {
     return part.compareTo(o.part);
   }
 }

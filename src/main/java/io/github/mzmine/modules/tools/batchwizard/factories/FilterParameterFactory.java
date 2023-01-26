@@ -23,26 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard;
+package io.github.mzmine.modules.tools.batchwizard.factories;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 
-/**
- * Helper factory for presets
- */
-public class WizardPresetDefaults {
+public enum FilterParameterFactory implements WizardParameterFactory {
+  Filters;
 
-  /**
-   * Create list of presets for every {@link WizardPart}
-   *
-   * @return map of part and list of presets
-   */
-  public static Map<WizardPart, List<WizardPreset>> createPresets() {
-    return Arrays.stream(WizardPart.values())
-        .collect(Collectors.toMap(part -> part, WizardPart::createPresetParameters));
+
+  @Override
+  public WizardPreset create() {
+    return new WizardPreset(toString(), getUniqueId(), new FilterWizardParameters());
   }
 
+  @Override
+  public String getUniqueId() {
+    return name();
+  }
 }
