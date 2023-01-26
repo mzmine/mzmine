@@ -21,7 +21,6 @@ public class IsotopePatternMatcher {
   DoubleArrayList mustBeDetectedIntensities;
   double[] measuredMZValues;
   double[] measuredIntensities;
-  double[] measuredRTs;
   boolean[] mustBeDetectedMZValues;
   double[] predictedIntensities;
   double[] predictedMzs;
@@ -37,7 +36,6 @@ public class IsotopePatternMatcher {
     measuredMZValues = new double[isotopePattern.getNumberOfDataPoints()];
     measuredIntensities = new double[isotopePattern.getNumberOfDataPoints()];
     mustBeDetectedMZValues = new boolean[isotopePattern.getNumberOfDataPoints()];
-    measuredRTs = new double[isotopePattern.getNumberOfDataPoints()];
     predictedIntensities = new double[isotopePattern.getNumberOfDataPoints()];
     predictedMzs = new double[isotopePattern.getNumberOfDataPoints()];
     mustBeDetectedIntensities = new DoubleArrayList();
@@ -53,26 +51,22 @@ public class IsotopePatternMatcher {
     }
   }
 
-  public boolean offerDataPoint(double measuredMz, double measuredIntensity, float actualRt,
-      float predictedRt, MZTolerance mzTolerance, RTTolerance rtTolerance) {
+  public boolean offerDataPoint(double measuredMz, double measuredIntensity,
+      MZTolerance mzTolerance) {
     // Comparison of measuredMz & actualRt with MZvalues & RT of predictedIsotopePattern under
     // taking into account a MZ tolerance range, if the values correspond to each other,
     // return true and MZs & intensities are stored in measuredMZvalues & measuredIntensities,
     // if both matched
     for (int i = 0; i < predictedIsotopePattern.getNumberOfDataPoints(); i++) {
       if (mzTolerance.checkWithinTolerance(measuredMz, predictedIsotopePattern.getMzValue(i))) {
-        if (rtTolerance.checkWithinTolerance(actualRt, predictedRt)) {
           allMeasuredMZValues.add(measuredMz);
           allMeasuredIntensities.add(measuredIntensity);
           measuredMZValues[i] = measuredMz;
           measuredIntensities[i] = measuredIntensity;
-          measuredRTs[i] = actualRt;
           predictedIntensities[i] = (predictedIsotopePattern.getIntensityValue(i));
           predictedMzs[i] = (predictedIsotopePattern.getMzValue(i));
           return true;
-
         }
-      }
     }
     return false;
   }

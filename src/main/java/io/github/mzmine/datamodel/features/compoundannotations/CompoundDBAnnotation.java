@@ -88,9 +88,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
         continue;
       }
       try {
-        if (adduct.getName().contains("?")) {
-          continue;
-        }
         annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
         logger.log(Level.WARNING, e.getMessage(), e);

@@ -2,12 +2,9 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
-import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -15,42 +12,29 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import it.unimi.dsi.fastutil.doubles.DoubleList;
-import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import uk.ac.ebi.jmzml.model.mzml.ScanList;
 
 public class DatabaseIsotopeRefinerScanBased {
 
 
-  private static final Logger logger = Logger.getLogger(DatabaseIsotopeRefiner.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      DatabaseIsotopeRefinerScanBased.class.getName());
 
-  public static void refine(List<FeatureListRow> rows, MZTolerance mzTolerance,
-      RTTolerance rtTolerance, double minIntensity, double minIsotopeScore)
-      throws CloneNotSupportedException {
+  public static void refine(List<FeatureListRow> rows, MZTolerance mzTolerance, double minIntensity,
+      double minIsotopeScore) throws CloneNotSupportedException {
 
     final Map<RawDataFile, ScanDataAccess> accessMap = new HashMap<>();
 
@@ -98,8 +82,7 @@ public class DatabaseIsotopeRefinerScanBased {
         for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
           final double mz = access.getMzValue(i);
           final double intensity = access.getIntensityValue(i);
-          boolean foundIsotope = isotopePatternMatcher.offerDataPoint(mz, intensity,
-              row.getBestFeature().getRT(), row.getBestFeature().getRT(), mzTolerance, rtTolerance);
+          boolean foundIsotope = isotopePatternMatcher.offerDataPoint(mz, intensity, mzTolerance);
           if (foundIsotope) {
             rowsFoundIsotope.add(new SimpleDataPoint(mz, intensity));
             logger.info("Isotope peak found for " + row.getAverageMZ() + " at m/z " + intensity);
@@ -141,13 +124,8 @@ public class DatabaseIsotopeRefinerScanBased {
           return Double.compare(score1, score2) * -1;
         });
         row.setCompoundAnnotations(compoundAnnotations);
-
-
       }
-
-
     }
-
   }
 }
 

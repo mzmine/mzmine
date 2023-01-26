@@ -61,7 +61,6 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -97,10 +96,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final RTTolerance rtTolerance;
   private final IsotopePatternMatcherParameterSet isotopePatternMatcherParameterSet;
   private final MZTolerance isotopeMzTolerance;
-  private final RTTolerance isotopeRtTolerance;
-  private final double minIntensity;
+  private final double minRelativeIsotopeIntensity;
   private final double minIsotopeScore;
-  private final boolean scanBased;
   private final ParameterSet parameters;
   private final List<ImportType> importTypes;
   private final IonLibraryParameterSet ionLibraryParameterSet;
@@ -129,22 +126,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
     mzTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.rtTolerance).getValue();
-    Boolean isotopePatternMatcher = parameters.getValue(
-        LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
-    isotopePatternMatcherParameterSet =
-        isotopePatternMatcher != null && isotopePatternMatcher ? parameters.getParameter(
-            LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters() : null;
-    assert isotopePatternMatcherParameterSet != null;
-    isotopeMzTolerance = isotopePatternMatcherParameterSet.getParameter(
-        IsotopePatternMatcherParameterSet.isotopeMzTolerance).getValue();
-    isotopeRtTolerance = isotopePatternMatcherParameterSet.getParameter(
-        IsotopePatternMatcherParameterSet.isotopeRtTolerance).getValue();
-    minIntensity = isotopePatternMatcherParameterSet.getParameter(
-        IsotopePatternMatcherParameterSet.minIntensity).getValue();
-    minIsotopeScore = isotopePatternMatcherParameterSet.getParameter(
-        IsotopePatternMatcherParameterSet.minIsotopeScore).getValue();
-    scanBased = isotopePatternMatcherParameterSet.getParameter(
-        IsotopePatternMatcherParameterSet.scanBased).getValue();
     mobTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mobTolerance)
         .getValue();
     ccsTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.ccsTolerance)
@@ -156,6 +137,24 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
     sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
         .getEmbeddedParameter().getValue();
+
+    final boolean isotopePatternMatcher = parameters.getValue(
+        LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
+    if(isotopePatternMatcher) {
+      isotopePatternMatcherParameterSet = parameters.getParameter(
+          LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters();
+      isotopeMzTolerance = isotopePatternMatcherParameterSet.getParameter(
+          IsotopePatternMatcherParameterSet.isotopeMzTolerance).getValue();
+      minRelativeIsotopeIntensity = isotopePatternMatcherParameterSet.getParameter(
+          IsotopePatternMatcherParameterSet.minIntensity).getValue();
+      minIsotopeScore = isotopePatternMatcherParameterSet.getParameter(
+          IsotopePatternMatcherParameterSet.minIsotopeScore).getValue();
+    } else {
+      isotopePatternMatcherParameterSet = null;
+      isotopeMzTolerance = null;
+      minRelativeIsotopeIntensity = 0d;
+      minIsotopeScore = 0d;
+    }
   }
 
   @Override
@@ -230,7 +229,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       }
       dbFileReader.close();
 
-      refineAnnotations(flist);
+      if(isotopePatternMatcherParameterSet != null) {
+        refineAnnotations(flist);
+      }
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
@@ -249,20 +250,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private void refineAnnotations(FeatureList flist) {
-    if (scanBased) {
-      try {
-        DatabaseIsotopeRefinerScanBased.refine(flist.getRows(), isotopeMzTolerance,
-            isotopeRtTolerance, minIntensity, minIsotopeScore);
-      } catch (CloneNotSupportedException e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
-      }
-    } else {
-      try {
-        DatabaseIsotopeRefiner.refine(flist.getRows(), isotopeMzTolerance, isotopeRtTolerance,
-            minIntensity, minIsotopeScore);
-      } catch (CloneNotSupportedException e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
-      }
+    try {
+      DatabaseIsotopeRefinerScanBased.refine(flist.getRows(), isotopeMzTolerance,
+          minRelativeIsotopeIntensity, minIsotopeScore);
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
   }
 
