@@ -54,7 +54,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 // Export results to featureML format for visualization in TOPPView
@@ -145,13 +147,37 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
 
       // Open file
 
-      try (BufferedWriter writer =
-          Files.newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8)) {
-        exportFeatureList(featureList, writer);
+      try {
+
+        BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8);
+        // Get XMLOutputFactory instance.
+        XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
+
+        // Create XMLStreamWriter object from xmlOutputFactory.
+        XMLStreamWriter xmlStreamWriter = new IndentingXMLStreamWriter(xmlOutputFactory.createXMLStreamWriter(writer));
+
+        exportFeatureList(featureList, xmlStreamWriter);
+        
+        xmlStreamWriter.flush();
+        xmlStreamWriter.close();
+
+        writer.flush();
+        writer.close();
+
+        logger.log(Level.INFO, String.format("Written feature list to file '%s'", curFile.toPath()));
 
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Could not open file " + curFile + " for writing.");
+        logger.log(Level.WARNING,
+            String.format(
+                "Error writing featureML format to file: %s for feature list: %s. Message: %s",
+                curFile.getAbsolutePath(), featureList.getName(), e.getMessage()),
+            e);
+        return;
+      } catch (XMLStreamException e) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Could not write XML file " + curFile);
         logger.log(Level.WARNING,
             String.format(
                 "Error writing featureML format to file: %s for feature list: %s. Message: %s",
@@ -167,37 +193,14 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING) {
-      setStatus(TaskStatus.FINISHED);
-    }
+    setStatus(TaskStatus.FINISHED);
   }
 
-  @SuppressWarnings("rawtypes")
-  private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer)
-      throws IOException {
+  private void exportFeatureList(ModularFeatureList flist, XMLStreamWriter xmlWriter)
+      throws IOException, XMLStreamException {
     final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept)
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
-
-    List<DataType> rowTypes =
-        flist.getRowTypes().values().stream().filter(this::filterType).collect(Collectors.toList());
-
-    // write featureML header
-    writer.write(String.format("<?xml version='1.0' encoding='UTF-8'?>"));
-    writer.newLine();
-    writer.write(String.format(
-        "  <featureMap version='1.4' id='fm_16311276685788915066' xsi:noNamespaceSchemaLocation='http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>"));
-    writer.newLine();
-    writer.write(String.format("    <dataProcessing completion_time='%s'>",
-        new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())));
-    writer.newLine();
-    writer.write(String.format("      <software name='MzMine3' version='%s' />",
-        MZmineCore.getMZmineVersion().toString()));
-    writer.newLine();
-    writer.write(String.format("    </dataProcessing>"));
-    writer.newLine();
-    writer.write(String.format("    <featureList count='%d'>", rows.size()));
-    writer.newLine();
 
     double minRT = 100000.;
     double maxRT = 0.;
@@ -206,7 +209,34 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
     double maxMZ = 0.;
     double meanMZ = 0.;
 
+    // write featureML header
+    xmlWriter.writeStartDocument();
+
+    // featureMap
+    this.generateElement(xmlWriter, "featureMap",
+        new String[] {"version", "1.4", "id", "fm_16311276685788915066",
+            "xsi:noNamespaceSchemaLocation",
+            "http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd", "xmlns:xsi",
+            "http://www.w3.org/2001/XMLSchema-instance"});
+
+    // dataProcessing
+    this.generateElement(xmlWriter, "dataProcessing", new String[] {"completion_time",
+        new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())});
+
+    // software
+    this.generateEmptyElement(xmlWriter, "software",
+        new String[] {"name", "MzMine3", "version", MZmineCore.getMZmineVersion().toString()});
+
+    // end dataProcessing
+    xmlWriter.writeEndElement();
+
+    // featureList
+    this.generateElement(xmlWriter, "featureList",
+        new String[] {"count", String.format("%d", rows.size())});
+
+    int featureNum = 1;
     for (FeatureListRow row : rows) {
+      
       // get convex hull (min/max RT and MZ Range) for the feature in the experiment
       minRT = row.get(RTRangeType.class).lowerEndpoint();
       maxRT = row.get(RTRangeType.class).upperEndpoint();
@@ -219,37 +249,26 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       minRT = minRT * 60;
       maxRT = maxRT * 60;
       meanRT = meanRT * 60;
+      
+      // feature
+      this.generateElement(xmlWriter,
+          "feature", new String[] {
+              "id", String.format("%d", featureNum)
+      });
 
-      writer.write(String.format("      <feature id='%d'>", row.getID()));
-      writer.newLine();
-      writer.write(String.format("        <position dim='0'>%f</position>", meanRT));
-      writer.newLine();
-      writer.write(String.format("        <position dim='1'>%f</position>", meanMZ));
-      writer.newLine();
-      writer.write(String.format("        <intensity>1</intensity>"));
-      writer.newLine();
-      writer.write(String.format("        <quality dim='0'>0</quality>"));
-      writer.newLine();
-      writer.write(String.format("        <quality dim='1'>0</quality>"));
-      writer.newLine();
-      writer.write(
-          String.format("        <overallquality>%d</overallquality>", row.getNumberOfFeatures()));
-      writer.newLine();
-      writer.write(String.format("        <charge>1</charge>"));
-      writer.newLine();
-      writer.write(String.format("        <convexhull nr='0'>"));
-      writer.newLine();
-      writer.write(String.format("          <pt x='%f' y='%f' />", minRT, minMZ));
-      writer.newLine();
-      writer.write(String.format("          <pt x='%f' y='%f' />", minRT, maxMZ));
-      writer.newLine();
-      writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, maxMZ));
-      writer.newLine();
-      writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, minMZ));
-      writer.newLine();
-      writer.write(String.format("        </convexhull>"));
-      writer.newLine();
+      this.generateSimpleFilledElement(xmlWriter, "position", String.format("%f",  meanRT), new String[] {"dim", "0"});
+      this.generateSimpleFilledElement(xmlWriter, "position", String.format("%f",  meanMZ), new String[] {"dim", "1"});
+      
+      this.generateSimpleFilledElement(xmlWriter, "intensity", "1", new String[] {});
 
+      this.generateSimpleFilledElement(xmlWriter, "quality", "0", new String[] {"dim", "0"});
+      this.generateSimpleFilledElement(xmlWriter, "quality", "0", new String[] {"dim", "1"});
+      this.generateSimpleFilledElement(xmlWriter, "overallquality", String.format("%d", row.getNumberOfFeatures()), new String[] {});
+
+      this.generateSimpleFilledElement(xmlWriter, "charge", String.format("%d",  row.getRowCharge()), new String[] {});
+
+      this.generateConvexHullForXML(xmlWriter, 0, minRT, maxRT, minMZ, maxMZ);
+      
       // get convex hulls of individual features from the different samples
       int numberOfConvexHulls = 1;
       for (RawDataFile rawFile : rawDataFiles) {
@@ -260,36 +279,76 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
           // convert RTs to minutes
           minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;
           maxRT = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint() * 60;
-
-          writer.write(String.format("        <convexhull nr='%d'>", numberOfConvexHulls));
-          writer.newLine();
-          writer.write(String.format("          <pt x='%f' y='%f' />", minRT, minMZ));
-          writer.newLine();
-          writer.write(String.format("          <pt x='%f' y='%f' />", minRT, maxMZ));
-          writer.newLine();
-          writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, maxMZ));
-          writer.newLine();
-          writer.write(String.format("          <pt x='%f' y='%f' />", maxRT, minMZ));
-          writer.newLine();
-          writer.write(String.format("        </convexhull>"));
-          writer.newLine();
-
+          
+          this.generateConvexHullForXML(xmlWriter, numberOfConvexHulls, minRT, maxRT, minMZ, maxMZ);
           numberOfConvexHulls += 1;
         }
       }
+      
+      // end feature
+      xmlWriter.writeEndElement();
 
-      writer.write(String.format("      </feature>"));
-      writer.newLine();
+      featureNum += 1;
     }
 
-    // write featureML footer
-    writer.append("    </featureList>");
-    writer.newLine();
-    writer.append("  </featureMap>");
-    writer.newLine();
+    // end featureList
+    xmlWriter.writeEndElement();
 
-    exportedRows.incrementAndGet();
-    processedTypes++;
+    // end featureMap
+    xmlWriter.writeEndElement();
+    xmlWriter.writeEndDocument();
+
+    xmlWriter.flush();
+  }
+
+
+  private void generateEmptyElement(XMLStreamWriter xmlWriter, String elementName,
+      String[] attributeNamesAndValues) throws XMLStreamException {
+    this.generateElement(xmlWriter, elementName, attributeNamesAndValues, true);
+  }
+
+  private void generateElement(XMLStreamWriter xmlWriter, String elementName,
+                               String[] attributeNamesAndValues) throws XMLStreamException {
+    this.generateElement(xmlWriter, elementName, attributeNamesAndValues, false);
+  }
+  private void generateElement(XMLStreamWriter xmlWriter, String elementName,
+                               String[] attributeNamesAndValues, boolean selfContained) throws XMLStreamException {
+
+    if (attributeNamesAndValues.length % 2 != 0) {
+      throw (new IllegalArgumentException(
+          "Number of elements in parameter attributeNamesAndValues must be a multiple of 2 (attribute1Name, attribute1Value, attribute2Name, attribute2Value, ..."));
+    }
+
+    if (selfContained) {
+      xmlWriter.writeEmptyElement(elementName);
+    } else {
+      xmlWriter.writeStartElement(elementName);
+    }
+
+    for (int i = 0; i < attributeNamesAndValues.length; i += 2) {
+      xmlWriter.writeAttribute(attributeNamesAndValues[i], attributeNamesAndValues[i + 1]);
+    }
+  }
+  
+  private void generateSimpleFilledElement(XMLStreamWriter xmlWriter, String elementName, 
+      String elementValue, String[] attributeNamesAndValues) throws XMLStreamException {
+    this.generateElement(xmlWriter, elementName, attributeNamesAndValues);
+    xmlWriter.writeCharacters(elementValue);
+    xmlWriter.writeEndElement();
+  }
+  
+  private void generateConvexHullForXML(XMLStreamWriter xmlWriter, int convexHullNumber, double minRt, double maxRt, double minMZ, double maxMZ) throws XMLStreamException {
+    
+    // convexhull
+    this.generateElement(xmlWriter, "convexhull", new String[] {"nr", String.format("%d", convexHullNumber)});
+
+    this.generateEmptyElement(xmlWriter, "pt", new String[] {"x", String.format("%f",  minRt), "y", String.format("%f", minMZ)});
+    this.generateEmptyElement(xmlWriter, "pt", new String[] {"x", String.format("%f",  minRt), "y", String.format("%f", maxMZ)});
+    this.generateEmptyElement(xmlWriter, "pt", new String[] {"x", String.format("%f",  maxRt), "y", String.format("%f", maxMZ)});
+    this.generateEmptyElement(xmlWriter, "pt", new String[] {"x", String.format("%f",  maxRt), "y", String.format("%f", minMZ)});
+    
+    // end convexhull
+    xmlWriter.writeEndElement();
   }
 
 
