@@ -55,7 +55,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -163,14 +162,24 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
 
       for (int i = 0; i < batchQueues.getLength(); i++) {
         Element queueElement = (Element) batchQueues.item(i);
-        BatchQueue batchQueue = BatchQueue.loadFromXml(queueElement);
+
+        List<String> errorMessages = new ArrayList<>();
+        BatchQueue batchQueue = BatchQueue.loadFromXml(queueElement, errorMessages);
+        // TODO decide what to do with the warnings here
+        if (!errorMessages.isEmpty()) {
+          logger.log(Level.WARNING, "Warnings during batch file import:");
+          for (final String errorMessage : errorMessages) {
+            logger.log(Level.WARNING, errorMessage);
+          }
+        }
 
         if (!batchQueue.isEmpty()) {
           queues.add(batchQueue);
         }
       }
 
-    } catch (IOException | XPathExpressionException | ParserConfigurationException | SAXException e) {
+    } catch (IOException | XPathExpressionException | ParserConfigurationException |
+             SAXException e) {
       logger.log(Level.SEVERE, "Error while opening loading raw data file batch queue.", e);
     } finally {
       if (tempFile != null) {
