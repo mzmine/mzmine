@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -169,6 +170,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   void putAll(Map<DBEntryField, Object> fields);
 
+  /**
+   * @return True if the value was not null and the value was placed in the field.
+   */
   boolean putIfNotNull(DBEntryField field, Object value);
 
   Double getPrecursorMZ();
@@ -180,4 +184,23 @@ public interface SpectralLibraryEntry extends MassList {
   Map<DBEntryField, Object> getFields();
 
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
+
+  default boolean setCharge(@Nullable Integer charge) {
+    return setCharge(charge, PolarityType.fromInt(charge));
+  }
+
+  /**
+   * Sets the charge and the polarity of this entry. The polarity overrides any +/- in the charge
+   * integer.
+   *
+   * @return {@link #putIfNotNull(DBEntryField, Object)}
+   */
+  default boolean setCharge(@Nullable Integer charge, @Nullable PolarityType polarity) {
+    if (charge == null) {
+      return false;
+    }
+    return putIfNotNull(DBEntryField.CHARGE,
+        Math.abs(charge) + Objects.requireNonNullElse(polarity, PolarityType.POSITIVE)
+            .asSingleChar());
+  }
 }

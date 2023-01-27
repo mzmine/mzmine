@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.Objects;
+import javafx.scene.layout.Priority;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
@@ -70,6 +71,11 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
 
   public void setEmbeddedParameters(T embeddedParameters) {
     this.embeddedParameters = embeddedParameters;
+  }
+
+  @Override
+  public Priority getComponentVgrowPriority() {
+    return Priority.SOMETIMES;
   }
 
   @Override

@@ -39,33 +39,28 @@ import org.jetbrains.annotations.NotNull;
 
 public class CorrelateGroupingModule implements MZmineProcessingModule {
 
-  private static final String NAME = "metaCorrelate";
+  private static final String NAME = "Correlation grouping (metaCorrelate)";
 
-  private static final String DESCRIPTION =
-      "This method correlates and groups feature list rows based on multiple criteria (feature shape, intensity across samples, ...) ";
+  private static final String DESCRIPTION = "This method correlates and groups feature list rows based on multiple criteria (feature shape, intensity across samples, ...) ";
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return NAME;
   }
 
   @Override
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
 
     return DESCRIPTION;
   }
 
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURE_GROUPING;
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return CorrelateGroupingParameters.class;
   }
 
@@ -74,8 +69,8 @@ public class CorrelateGroupingModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
       @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    ModularFeatureList[] featureLists = parameters
-        .getParameter(CorrelateGroupingParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
+    ModularFeatureList[] featureLists = parameters.getParameter(
+        CorrelateGroupingParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
     for (ModularFeatureList pkl : featureLists) {
       tasks.add(new CorrelateGroupingTask(project, parameters, pkl, moduleCallDate));
     }

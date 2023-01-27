@@ -30,8 +30,8 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.XMLUtils;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -46,11 +46,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -97,13 +92,6 @@ public class WizardWorkflowIOUtils {
         configRoot.appendChild(moduleElement);
       }
 
-      TransformerFactory transfac = TransformerFactory.newInstance();
-      Transformer transformer = transfac.newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
       // Create parent folder if it does not exist
       File confParent = file.getParentFile();
       if ((confParent != null) && (!confParent.exists())) {
@@ -121,9 +109,7 @@ public class WizardWorkflowIOUtils {
         }
       }
 
-      StreamResult result = new StreamResult(new FileOutputStream(file));
-      DOMSource source = new DOMSource(configuration);
-      transformer.transform(source, result);
+      XMLUtils.saveToFile(file, configuration);
 
       // make user home config file invisible on windows
       if ((!skipSensitive) && (System.getProperty("os.name").toLowerCase().contains("windows"))

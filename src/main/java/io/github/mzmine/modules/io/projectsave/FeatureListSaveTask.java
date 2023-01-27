@@ -42,6 +42,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.XMLUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -61,12 +62,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -145,21 +141,7 @@ public class FeatureListSaveTask extends AbstractTask {
 
       appendMetadata(document, root, flist);
 
-      TransformerFactory transfac = TransformerFactory.newInstance();
-      Transformer transformer = transfac.newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-      try (var stream = new FileOutputStream(tempFile)) {
-        StreamResult result = new StreamResult(stream);
-        DOMSource source = new DOMSource(document);
-        transformer.transform(source, result);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
+      XMLUtils.saveToFile(tempFile, document);
       zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
 
       try (InputStream is = new FileInputStream(tempFile)) {
@@ -177,8 +159,8 @@ public class FeatureListSaveTask extends AbstractTask {
   }
 
   private void appendMetadata(Document document, Element root, ModularFeatureList flist) {
-    final Element appliedMethodsList = document
-        .createElement(CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
+    final Element appliedMethodsList = document.createElement(
+        CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
     root.appendChild(appliedMethodsList);
 
     // write metadata
@@ -213,9 +195,8 @@ public class FeatureListSaveTask extends AbstractTask {
       fileElement.appendChild(filePathElement);
 
       Element selectedScansElement = document.createElement(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT);
-      int[] indices = ParsingUtils
-          .getIndicesOfSubListElements((List<Scan>) flist.getSeletedScans(rawDataFile),
-              rawDataFile.getScans());
+      int[] indices = ParsingUtils.getIndicesOfSubListElements(
+          (List<Scan>) flist.getSeletedScans(rawDataFile), rawDataFile.getScans());
       selectedScansElement.setTextContent(ParsingUtils.intArrayToString(indices, indices.length));
 
       fileElement.appendChild(selectedScansElement);
@@ -319,7 +300,7 @@ public class FeatureListSaveTask extends AbstractTask {
       dataType.saveToXML(writer, value, flist, row, feature, file);
     } catch (XMLStreamException e) {
       logger.warning(() -> "Error while writing data type " + dataType.getClass().getSimpleName()
-                           + " with value " + String.valueOf(value) + " to xml.");
+          + " with value " + value + " to xml.");
       e.printStackTrace();
     }
     writer.writeEndElement();
@@ -336,8 +317,7 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rawDataFile.getName());
 
     for (Entry<DataType, Object> entry : feature.getMap().entrySet()) {
-      writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, feature,
-          rawDataFile);
+      writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, feature, rawDataFile);
     }
 
     writer.writeEndElement();
