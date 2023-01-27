@@ -70,21 +70,31 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   public static BatchQueue loadFromXml(final Element xmlElement,
       @NotNull final List<String> errorMessages) {
     final Semver mzmineVersion;
+    final String mzmineVersionError;
     if (xmlElement.hasAttribute(XML_MZMINE_VERSION_ATTR)) {
       mzmineVersion = new Semver(xmlElement.getAttribute(XML_MZMINE_VERSION_ATTR));
 
-      String vstring = switch (mzmineVersion.compareTo(MZmineCore.getMZmineVersion())) {
-        case -1 ->
-            "an older version of MZmine (%s). Make sure all parameters are the same and set potential new parameters - then save again.";
-        case 1 ->
-            "a newer version of MZmine (%s). Make sure all parameters are the same - then save again.";
-        case 0 -> "the same version of MZmine (%s).";
-        default -> "%s";
+      int versionCompare = mzmineVersion.compareTo(MZmineCore.getMZmineVersion());
+      String vstring = switch (versionCompare) {
+        case -1 -> "an older";
+        case 1 -> "a newer";
+        case 0 -> "the same";
+        default -> "";
       };
-      logger.info("The batch file was created with " + vstring.formatted(mzmineVersion));
+      String msg = "The batch file was created with %s version of MZmine%s (current version is %s).".formatted(
+          vstring, mzmineVersion, MZmineCore.getMZmineVersion());
+      logger.info(msg);
+      //
+      if (versionCompare != 0) {
+        mzmineVersionError = msg;
+      } else {
+        // same version no error
+        mzmineVersionError = null;
+      }
     } else {
-      logger.info(
-          "Batch was created with an older version of MZmine prior to MZmine 3.4.0. Please check all steps and parameters carefully and save the batch file again.");
+      mzmineVersionError = "Batch was created with an older version of MZmine prior to MZmine 3.4.0 (current version is %s).".formatted(
+          MZmineCore.getMZmineVersion());
+      logger.warning(mzmineVersionError);
     }
 
     // Set the parameter choice for the RowsFilterModule
@@ -99,6 +109,9 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
     // Get the loaded modules.
     final Collection<MZmineModule> allModules = MZmineCore.getAllModules();
+
+    // prior to versioning of batch steps
+    boolean noModuleVersion = false;
 
     // Process the batch step elements.
     final NodeList nodes = xmlElement.getElementsByTagName(BATCH_STEP_ELEMENT);
@@ -137,18 +150,17 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
         // check version introduced in MZmine 3.4.0
         if (!stepElement.hasAttribute(MODULE_VERSION_ATTR)) {
-          errorMessages.add(
-              "Batch was created with an older version of MZmine prior to MZmine 3.4.0. Please check all steps and parameters carefully and save the batch file again.");
+          noModuleVersion = true;
         } else {
           int version = Integer.parseInt(stepElement.getAttribute(MODULE_VERSION_ATTR));
           String diff = switch (Integer.compare(version, parameterSet.getVersion())) {
-            case -1 -> "an earlier";
-            case 1 -> "a newer";
+            case -1 -> "outdated";
+            case 1 -> "newer";
             default -> null;
           };
           if (diff != null) {
             errorMessages.add(
-                "'%s' step was created with %s version.".formatted(moduleFound.getName(), diff));
+                "'%s' step uses %s parameters.".formatted(moduleFound.getName(), diff));
           }
         }
 
@@ -158,6 +170,11 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       }
     }
     CollectionUtils.dropDuplicatesRetainOrder(errorMessages);
+
+    if ((noModuleVersion || !errorMessages.isEmpty()) && mzmineVersionError != null) {
+      errorMessages.add(0, mzmineVersionError);
+      errorMessages.add(1, "Check all steps and parameters carefully; then save the batch again.");
+    }
     return queue;
   }
 
