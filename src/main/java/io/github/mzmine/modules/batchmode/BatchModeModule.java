@@ -75,7 +75,19 @@ public class BatchModeModule implements MZmineProcessingModule {
     try {
       DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
       Document parsedBatchXML = docBuilder.parse(batchFile);
-      BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement());
+
+      List<String> errorMessages = new ArrayList<>();
+      BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement(),
+          errorMessages);
+
+      // versions might have changed
+      if (!errorMessages.isEmpty()) {
+        logger.log(Level.WARNING, "Warnings during batch file import:");
+        for (final String errorMessage : errorMessages) {
+          logger.log(Level.WARNING, errorMessage);
+        }
+      }
+
       ParameterSet parameters = new BatchModeParameters();
       parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
       Task batchTask = new BatchTask(project, parameters, moduleCallDate);
