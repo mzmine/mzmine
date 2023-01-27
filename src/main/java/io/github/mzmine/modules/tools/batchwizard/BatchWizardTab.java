@@ -49,6 +49,7 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +108,9 @@ public class BatchWizardTab extends SimpleTab {
         file -> applyLocalPartialWorkflow(localPresets.get(file)));
     createContentPane();
     findAllLocalPresetFiles();
+    // reset to mzmine default presets (loading the local presets have changed the parameters already once)
+    ALL_PRESETS.values().stream().flatMap(Collection::stream)
+        .forEach(WizardStepPreset::resetToDefaults);
   }
 
   private void createContentPane() {
@@ -221,7 +225,7 @@ public class BatchWizardTab extends SimpleTab {
     // add to schema
     addToSchema(step);
     // NOT add tabs without user parameters (components to set)
-    if (step.hasUserParameters()) {
+    if (step.hasUserParameters() && step.getFactory() != IonMobilityWizardParameterFactory.NO_IMS) {
       return new Tab(step.getPresetName(), paramPane);
     } else {
       return null;

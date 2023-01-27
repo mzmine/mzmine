@@ -161,4 +161,12 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
   public String getPresetName() {
     return factory.toString();
   }
+
+  /**
+   * Reset this preset to the default parameters
+   */
+  public void resetToDefaults() {
+    WizardStepPreset defaultPreset = createDefaultParameterPreset();
+    ParameterUtils.copyParameters(defaultPreset, this);
+  }
 }
