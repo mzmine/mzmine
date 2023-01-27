@@ -44,10 +44,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.javafx.DraggableListCell;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -71,12 +71,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -410,7 +405,7 @@ public class BatchComponentController implements LastFilesComponent {
    * @throws FileNotFoundException        if the file can't be found.
    */
   private void saveBatchSteps(final File file)
-      throws ParserConfigurationException, TransformerException, FileNotFoundException {
+      throws ParserConfigurationException, TransformerException, IOException {
 
     // Create the document.
     final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
@@ -421,15 +416,7 @@ public class BatchComponentController implements LastFilesComponent {
     // Serialize batch queue.
     batchQueue.saveToXml(element);
 
-    // Create transformer.
-    final Transformer transformer = TransformerFactory.newInstance().newTransformer();
-    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-    // Write to file and transform.
-    transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
+    XMLUtils.saveToFile(file, document);
 
     logger.info("Saved " + batchQueue.size() + " batch step(s) to " + file.getName());
     // add to last used files
@@ -447,10 +434,7 @@ public class BatchComponentController implements LastFilesComponent {
   public void loadBatchSteps(final File file)
       throws ParserConfigurationException, IOException, SAXException {
     List<String> errorMessages = new ArrayList<>();
-    Element xmlElement = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-        .getDocumentElement();
-    final BatchQueue queue = BatchQueue.loadFromXml(xmlElement, errorMessages);
-
+    final BatchQueue queue = BatchQueue.loadFromXml(XMLUtils.load(file).getDocumentElement(), errorMessages);
     // check error messages and show dialog
     if (!errorMessages.isEmpty()) {
       DialogLoggerUtil.showMessageDialog("Check batch parameters carefully.",
