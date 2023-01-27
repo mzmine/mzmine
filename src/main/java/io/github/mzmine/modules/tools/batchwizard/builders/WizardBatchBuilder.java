@@ -76,7 +76,6 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters.ChromatographyWorkflow;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
@@ -308,7 +307,6 @@ public abstract class WizardBatchBuilder {
 
   /**
    * Create different workflows in {@link BatchQueue}. Workflows are defined in
-   * {@link ChromatographyWorkflow}
    *
    * @return a batch queue
    */

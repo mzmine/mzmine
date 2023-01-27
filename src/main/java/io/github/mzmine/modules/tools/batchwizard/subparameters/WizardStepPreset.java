@@ -51,8 +51,8 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
     MassSpectrometerWizardParameters, WorkflowWizardParameters {
 
   private final WizardPart part;
+  private final WizardParameterFactory factory;
   private ParameterSet parameters;
-  private WizardParameterFactory factory;
 
   /**
    * @param part       the part in the workflow
@@ -99,15 +99,6 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
   @NotNull
   public WizardParameterFactory getFactory() {
     return factory;
-  }
-
-  /**
-   * Set the selected preset
-   *
-   * @param factory the new preset
-   */
-  public void setFactory(final WizardParameterFactory factory) {
-    this.factory = factory;
   }
 
   /**

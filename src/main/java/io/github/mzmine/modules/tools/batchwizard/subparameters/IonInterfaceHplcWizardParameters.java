@@ -100,7 +100,4 @@ public final class IonInterfaceHplcWizardParameters extends IonInterfaceWizardPa
     setParameter(interSampleRTTolerance, interSampleTolerance);
   }
 
-  public enum ChromatographyWorkflow {
-    LC, GC
-  }
 }
