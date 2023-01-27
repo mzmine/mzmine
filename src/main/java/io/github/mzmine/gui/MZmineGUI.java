@@ -611,6 +611,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void displayMessage(String title, String msg, @Nullable String url) {
+    logger.finest(() -> String.format("%s - %s - %s", title, msg, url));
+
     MZmineCore.runLater(() -> {
 
       Dialog<ButtonType> dialog = new Dialog<>();

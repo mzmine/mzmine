@@ -34,6 +34,8 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -53,10 +55,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
@@ -104,6 +108,9 @@ public class BatchComponentController implements LastFilesComponent {
   public Button btnClear;
   @FXML
   public TextField searchField;
+
+  @FXML
+  public ComboBox<OriginalFeatureListOption> cmbHandleFlists;
 
   private BatchQueue batchQueue;
 
@@ -187,6 +194,9 @@ public class BatchComponentController implements LastFilesComponent {
         setParametersPressed(null);
       }
     });
+
+    cmbHandleFlists.setItems(FXCollections.observableArrayList(OriginalFeatureListOption.values()));
+    cmbHandleFlists.setValue(OriginalFeatureListOption.REMOVE);
   }
 
   private boolean hasMatchingChild(TreeItem<Object> item, final String filter) {
@@ -486,5 +496,32 @@ public class BatchComponentController implements LastFilesComponent {
   // Queue operations.
   private enum QueueOperations {
     Replace, Prepend, Insert, Append
+  }
+
+  @FXML
+  void onHandleIntermediateFlistsPressed() {
+    final OriginalFeatureListOption option = cmbHandleFlists.getValue();
+    setHandleOriginalFeatureLists(option);
+    var str = switch (option) {
+      case KEEP -> "keep intermediate feature lists.";
+      case REMOVE -> "remove intermediate feature lists.";
+      case PROCESS_IN_PLACE -> "process on feature lists if possible and remove otherwise.";
+    };
+    MZmineCore.getDesktop()
+        .displayMessage("Batch mode updated", "Updated all batch steps to " + str);
+  }
+
+  public void setHandleOriginalFeatureLists(OriginalFeatureListOption option) {
+    final BatchQueue value = getValue();
+    for (MZmineProcessingStep<MZmineProcessingModule> step : value) {
+      final ParameterSet parameters = step.getParameterSet();
+      for (Parameter<?> parameter : parameters.getParameters()) {
+        if (parameter instanceof OriginalFeatureListHandlingParameter handleParameter) {
+          handleParameter.setValue(option != OriginalFeatureListOption.PROCESS_IN_PLACE ? option
+              : (handleParameter.isIncludeProcessInPlace()
+                  ? OriginalFeatureListOption.PROCESS_IN_PLACE : OriginalFeatureListOption.REMOVE));
+        }
+      }
+    }
   }
 }
