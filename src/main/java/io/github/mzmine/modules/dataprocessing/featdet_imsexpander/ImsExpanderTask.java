@@ -77,11 +77,10 @@ public class ImsExpanderTask extends AbstractTask {
   private final boolean useMzToleranceRange;
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final int binWidth;
+  private final int maxNumTraces;
   private String desc = "Mobility expanding.";
   private long totalRows = 1;
   private long createdRows = 0;
-
-  private final int maxNumTraces;
 
   public ImsExpanderTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final ModularFeatureList flist,
@@ -110,10 +109,15 @@ public class ImsExpanderTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return
-        0.4 * tasks.stream().mapToDouble(AbstractTask::getFinishedPercentage).sum() / tasks.size()
-            + 0.4 * (processedRows.get() / (double) totalRows)
-            + 0.2 * createdRows / (double) totalRows;
+    // stream / iterator for loop may lead to concurrend mod exception, use classic for loop here
+    double sum = 0.0;
+    for (int i = 0; i < tasks.size(); i++) {
+      AbstractTask task = tasks.get(i);
+      double finishedPercentage = task.getFinishedPercentage();
+      sum += finishedPercentage;
+    }
+    return 0.4 * sum / tasks.size() + 0.4 * (processedRows.get() / (double) totalRows)
+        + 0.2 * createdRows / (double) totalRows;
   }
 
   @Override
