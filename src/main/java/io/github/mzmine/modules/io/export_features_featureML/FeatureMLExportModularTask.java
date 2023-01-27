@@ -29,10 +29,6 @@ import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -62,10 +58,11 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.jetbrains.annotations.NotNull;
 
-// Export results to featureML format for visualization in TOPPView
-// schema available at
-// https://github.com/OpenMS/OpenMS/blob/7a2e4a41d4c9f511306afcb8bb4f1b773ace9b9a/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd
-
+/***
+ * Export results to featureML format for visualization in TOPPView
+ * schema available at
+ * https://github.com/OpenMS/OpenMS/blob/7a2e4a41d4c9f511306afcb8bb4f1b773ace9b9a/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd
+ */
 
 public class FeatureMLExportModularTask extends AbstractTask implements ProcessedItemsCounter {
 
@@ -146,10 +143,8 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
             curFile = FileAndPathUtil.getRealFilePath(curFile, "featureML");
 
             // Open file
+            try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8);) {
 
-            try {
-
-                BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8);
                 // Get XMLOutputFactory instance.
                 XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
@@ -160,9 +155,6 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
 
                 xmlStreamWriter.flush();
                 xmlStreamWriter.close();
-
-                writer.flush();
-                writer.close();
 
                 logger.log(Level.INFO, String.format("Written feature list to file '%s'", curFile.toPath()));
 
@@ -192,13 +184,6 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept).sorted(FeatureListRowSorter.DEFAULT_ID).toList();
         List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
-        double minRT = 100000.;
-        double maxRT = 0.;
-        double meanRT = 0.;
-        double minMZ = 0.;
-        double maxMZ = 0.;
-        double meanMZ = 0.;
-
         // write featureML header
         xmlWriter.writeStartDocument();
 
@@ -209,7 +194,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         this.generateElement(xmlWriter, "dataProcessing", new String[]{"completion_time", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())});
 
         // software
-        this.generateEmptyElement(xmlWriter, "software", new String[]{"name", "MzMine3", "version", MZmineCore.getMZmineVersion().toString()});
+        this.generateEmptyElement(xmlWriter, "software", new String[]{"name", "MZmine", "version", MZmineCore.getMZmineVersion().toString()});
 
         // end dataProcessing
         xmlWriter.writeEndElement();
@@ -221,12 +206,12 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
         for (FeatureListRow row : rows) {
 
             // get convex hull (min/max RT and MZ Range) for the feature in the experiment
-            minRT = row.get(RTRangeType.class).lowerEndpoint();
-            maxRT = row.get(RTRangeType.class).upperEndpoint();
-            meanRT = row.getAverageRT();
-            minMZ = row.getMZRange().lowerEndpoint();
-            maxMZ = row.getMZRange().upperEndpoint();
-            meanMZ = row.getAverageMZ();
+            double minRT = row.get(RTRangeType.class).lowerEndpoint();
+            double maxRT = row.get(RTRangeType.class).upperEndpoint();
+            double meanRT = row.getAverageRT();
+            double minMZ = row.getMZRange().lowerEndpoint();
+            double maxMZ = row.getMZRange().upperEndpoint();
+            double meanMZ = row.getAverageMZ();
 
             // convert RTs to minutes
             minRT = minRT * 60;
@@ -325,13 +310,5 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
 
         // end convexhull
         xmlWriter.writeEndElement();
-    }
-
-
-    /**
-     * @return true if type should be exported
-     */
-    public boolean filterType(DataType type) {
-        return !(type instanceof NoTextColumn || type instanceof NullColumnType || type instanceof LinkedGraphicalType);
     }
 }
