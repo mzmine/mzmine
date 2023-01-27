@@ -28,11 +28,13 @@ package io.github.mzmine.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -78,6 +80,7 @@ class FeatureListUtilsTest {
     f.set(MZType.class, values.doubleValue());
     f.set(RTType.class, values);
     f.set(MobilityType.class, values);
+    f.set(DetectionType.class, FeatureStatus.DETECTED);
     ModularFeatureListRow row = new ModularFeatureListRow(flist, 1, f);
     return row;
   }

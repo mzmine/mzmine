@@ -915,10 +915,8 @@ public class WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
     param.setParameter(SiriusExportParameters.MERGE_PARAMETER, false);
-    param.setParameter(SiriusExportParameters.EXCLUDE_EMPTY_MSMS, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
-    param.setParameter(SiriusExportParameters.RENUMBER_ID, false);
     param.setParameter(SiriusExportParameters.NEED_ANNOTATION, false);
     param.setParameter(SiriusExportParameters.MZ_TOL, new MZTolerance(0.002, 5));
     param.setParameter(SiriusExportParameters.FILENAME, fileName);
