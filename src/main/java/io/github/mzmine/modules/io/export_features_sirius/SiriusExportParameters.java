@@ -73,10 +73,6 @@ public class SiriusExportParameters extends SimpleParameterSet {
   public static final BooleanParameter NEED_ANNOTATION = new BooleanParameter(
       "Only rows with annotation",
       "Only export rows with an annotation (run MS annotate or metaMSEcorrelate)", false);
-  public static final BooleanParameter EXCLUDE_EMPTY_MSMS = new BooleanParameter(
-      "Exclude empty MS/MS spectra",
-      "Do not export empty MS/MS spectra (only features with MS/MS spectrum with at least 1 signal are exported)",
-      false);
   public static final BooleanParameter EXCLUDE_MULTICHARGE = new BooleanParameter(
       "Exclude multiple charge", "Do not export multiply charged rows", false);
   public static final BooleanParameter EXCLUDE_MULTIMERS = new BooleanParameter("Exclude multimers",
@@ -84,16 +80,16 @@ public class SiriusExportParameters extends SimpleParameterSet {
       false);
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MGF file. " + "Use pattern \"" + SiriusExportTaskNew.MULTI_NAME_PATTERN
+      "Name of the output MGF file. " + "Use pattern \"" + SiriusExportTask.MULTI_NAME_PATTERN
           + "\" in the file name to substitute with feature list name. " + "(i.e. \"blah"
-          + SiriusExportTaskNew.MULTI_NAME_PATTERN
+          + SiriusExportTask.MULTI_NAME_PATTERN
           + "blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.", extensions,
       FileSelectionType.SAVE);
 
   public SiriusExportParameters() {
     super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
-        EXCLUDE_EMPTY_MSMS, EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS});
+        EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS});
   }
 
   // public static final BooleanParameter FRACTIONAL_MZ = new
@@ -125,9 +121,9 @@ public class SiriusExportParameters extends SimpleParameterSet {
     boolean superCheck = super.checkParameterValues(errorMessages);
 
     if (getValue(FEATURE_LISTS).getMatchingFeatureLists().length > 1 && !getValue(
-        FILENAME).getName().contains(SiriusExportTaskNew.MULTI_NAME_PATTERN)) {
+        FILENAME).getName().contains(SiriusExportTask.MULTI_NAME_PATTERN)) {
       errorMessages.add(
-          "More than one feature list selected but \"" + SiriusExportTaskNew.MULTI_NAME_PATTERN
+          "More than one feature list selected but \"" + SiriusExportTask.MULTI_NAME_PATTERN
               + "\" pattern not found in name."
               + "Please add the name pattern to create individual files.");
       superCheck = false;
