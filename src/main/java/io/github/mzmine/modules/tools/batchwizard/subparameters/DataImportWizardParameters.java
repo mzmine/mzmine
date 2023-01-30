@@ -25,18 +25,21 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
 
 /**
- * Parameter to harmonize the wizard part parameter which needs to be present in all sub parameter
- * sets
+ * Reuses the filenames {@link AllSpectralDataImportParameters}
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class WizardPartParameter extends HiddenParameter<WizardPart> {
+public final class DataImportWizardParameters extends WizardStepParameters {
 
-  public WizardPartParameter(final WizardPart defaultPart) {
-    super(new ComboParameter<>("Wizard part category", "Defines the wizard part category",
-        WizardPart.values(), defaultPart));
+  public DataImportWizardParameters() {
+    super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,
+        // parameters
+        AllSpectralDataImportParameters.fileNames);
   }
+
 }

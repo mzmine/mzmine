@@ -23,29 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.align_append_rows;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 
-public class MergeAlignerParameters extends SimpleParameterSet {
+/**
+ * the defaults should not change the name of enum values. if strings are needed, override the
+ * toString method
+ */
+public enum DataImportWizardParameterFactory implements WizardParameterFactory {
+  Data;
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final StringParameter peakListName = new StringParameter("Feature list name",
-      "Feature list name", "Merged feature list");
-
-  public MergeAlignerParameters() {
-    super(new Parameter[]{featureLists, peakListName},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/align_merge_lists/align_merge_lists.html");
+  @Override
+  public WizardStepParameters create() {
+    return new DataImportWizardParameters();
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public String getUniqueId() {
+    return name();
   }
 }

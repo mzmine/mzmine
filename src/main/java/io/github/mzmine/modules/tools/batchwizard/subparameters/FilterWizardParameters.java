@@ -26,8 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -36,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 /**
  * Filtering steps throughout the batch mode
  */
-public class WizardFilterParameters extends SimpleParameterSet {
+public final class FilterWizardParameters extends WizardStepParameters {
 
   public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
       "Min samples per aligned feature",
@@ -51,14 +50,10 @@ public class WizardFilterParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.REMOVE);
 
-  /**
-   * the part category of presets - is used in all wizard parameter classes
-   */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.FILTER);
 
-  public WizardFilterParameters() {
-    super(new Parameter[]{wizardPartCategory, handleOriginalFeatureLists, minNumberOfSamples,
-        filter13C});
+  public FilterWizardParameters() {
+    super(WizardPart.FILTER, FilterWizardParameterFactory.Filters, handleOriginalFeatureLists,
+        minNumberOfSamples, filter13C);
   }
+
 }

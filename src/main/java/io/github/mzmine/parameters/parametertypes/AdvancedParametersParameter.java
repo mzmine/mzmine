@@ -24,10 +24,10 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.modules.io.projectsave.RawDataSavingUtils;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.Objects;
@@ -179,7 +179,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
       return false;
     }
 
-    return RawDataSavingUtils.parameterSetsEqual(getEmbeddedParameters(),
-        thatOpt.getEmbeddedParameters(), false, false);
+    return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
+        false, false);
   }
 }

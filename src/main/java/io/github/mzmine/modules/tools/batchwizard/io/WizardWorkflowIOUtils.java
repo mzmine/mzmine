@@ -25,25 +25,33 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardDefaultPresets;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -51,18 +59,20 @@ import org.w3c.dom.NodeList;
 /**
  * Import and export the batch wizard parameters
  */
-public class BatchWizardPresetIOUtils {
+public class WizardWorkflowIOUtils {
 
-  private static final Logger logger = Logger.getLogger(BatchWizardPresetIOUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(WizardWorkflowIOUtils.class.getName());
+  public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("MZmine wizard preset",
+      "*.mzmwizard");
   private static final String PART_TAG = "wiz_part";
   private static final String ELEMENT_TAG = "wizard";
   private static final String PART_ATTRIBUTE = "part";
   private static final String PRESET_ATTRIBUTE = "preset";
 
-  private BatchWizardPresetIOUtils() {
+  private WizardWorkflowIOUtils() {
   }
 
-  public static void saveToFile(final List<WizardPreset> parts, final File file,
+  public static void saveToFile(final List<WizardStepParameters> workflow, final File file,
       final boolean skipSensitive) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -72,13 +82,13 @@ public class BatchWizardPresetIOUtils {
       Element configRoot = configuration.createElement(ELEMENT_TAG);
       configuration.appendChild(configRoot);
 
-      for (var part : parts) {
+      for (var step : workflow) {
         Element moduleElement = configuration.createElement(PART_TAG);
-        moduleElement.setAttribute(PART_ATTRIBUTE, part.part().name());
-        moduleElement.setAttribute(PRESET_ATTRIBUTE, part.name());
+        moduleElement.setAttribute(PART_ATTRIBUTE, step.getPart().name());
+        moduleElement.setAttribute(PRESET_ATTRIBUTE, step.getUniquePresetId());
         // save parameters
-        part.parameters().setSkipSensitiveParameters(skipSensitive);
-        part.parameters().saveValuesToXML(moduleElement);
+        step.setSkipSensitiveParameters(skipSensitive);
+        step.saveValuesToXML(moduleElement);
         configRoot.appendChild(moduleElement);
       }
 
@@ -116,11 +126,13 @@ public class BatchWizardPresetIOUtils {
   /**
    * Load presets from file - might be only parts of the whole workflow
    *
-   * @param file wizard preset xml file
-   * @return a new list of presets for each defined part
-   * @throws IOException
+   * @param file       wizard preset xml file
+   * @param allPresets all presets as defined in the {@link BatchWizardTab}
+   * @return a new list of presets for each defined part - empty on error or if nothing was defined
+   * @throws IOException when loading file
    */
-  public static List<WizardPreset> loadFromFile(final File file) throws IOException {
+  public static @NotNull WizardSequence loadFromFile(final File file,
+      Map<WizardPart, List<WizardStepParameters>> allPresets) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -129,42 +141,109 @@ public class BatchWizardPresetIOUtils {
       XPath xpath = factory.newXPath();
 
       logger.finest("Loading wizard parameters from file " + file.getAbsolutePath());
-      // all presets
-      Map<WizardPart, List<WizardPreset>> allPresets = WizardDefaultPresets.createPresets();
+      // use all presets from the WizardTab
+      // find the one with the unique ID and part
+      // copy all parameters - this way, even new parameters are handled with their default value
       // result
-      List<WizardPreset> parts = new ArrayList<>();
+      WizardSequence workflow = new WizardSequence();
 
       XPathExpression expr = xpath.compile("//" + ELEMENT_TAG + "/" + PART_TAG);
       NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
       WizardPart part = null;
-      String presetName = null;
+      String uniquePresetId = null;
       int length = nodes.getLength();
       for (int i = 0; i < length; i++) {
         try {
           Element xmlNode = (Element) nodes.item(i);
           part = WizardPart.valueOf(xmlNode.getAttribute(PART_ATTRIBUTE));
-          presetName = xmlNode.getAttribute(PRESET_ATTRIBUTE);
-          final String finalPresetName = presetName;
+          uniquePresetId = xmlNode.getAttribute(PRESET_ATTRIBUTE);
+          final String uniqeId = uniquePresetId;
           // load preset parameters and add to wizard
-          allPresets.get(part).stream().filter(preset -> preset.name().equals(finalPresetName))
+          allPresets.get(part).stream().filter(preset -> preset.getUniquePresetId().equals(uniqeId))
               .findFirst().ifPresent(preset -> {
-                parts.add(preset);
-                preset.parameters().loadValuesFromXML(xmlNode);
+                workflow.add(preset);
+                preset.loadValuesFromXML(xmlNode);
               });
         } catch (Exception e) {
-          logger.warning(
-              "Cannot set preset " + presetName + " to part " + part + ". Maybe it was renamed. "
-                  + e.getMessage());
+          logger.warning("Cannot set preset " + uniquePresetId + " to part " + part
+              + ". Maybe it was renamed. " + e.getMessage());
         }
       }
 
-      parts.sort(Comparator.comparingInt(value -> value.part().ordinal()));
+      workflow.sort();
 
       logger.info("Loaded wizard parameters from file " + file);
-      return parts;
+      return workflow;
     } catch (Exception e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Shows a file chooser and loads presets from file - might be only parts of the whole workflow
+   *
+   * @param allPresets all presets as defined in the {@link BatchWizardTab}
+   * @return a new list of presets for each defined part - empty on error or if nothing was defined
+   */
+  public static @NotNull WizardSequence chooseAndLoadFile(
+      final Map<WizardPart, List<WizardStepParameters>> allPresets) {
+    File prefPath = getWizardSettingsPath();
+    FileChooser chooser = new FileChooser();
+    chooser.setInitialDirectory(prefPath);
+    chooser.getExtensionFilters().add(FILE_FILTER);
+    chooser.setSelectedExtensionFilter(FILE_FILTER);
+    File file = chooser.showOpenDialog(null);
+    if (file != null) {
+      try {
+        return WizardWorkflowIOUtils.loadFromFile(file, allPresets);
+      } catch (IOException e) {
+        logger.log(Level.WARNING, "Cannot read batch wizard presets from " + file.getAbsolutePath(),
+            e);
+
+      }
+    }
+    return new WizardSequence();
+  }
+
+  /**
+   * Local files are save to {@link #getWizardSettingsPath()}
+   *
+   * @param ALL_PRESETS all presets so that the correct object can be used
+   * @return A list of local wizard workflows
+   */
+  public static @NotNull List<LocalWizardWorkflowFile> findAllLocalPresetFiles(
+      final Map<WizardPart, List<WizardStepParameters>> ALL_PRESETS) {
+    File path = getWizardSettingsPath();
+    if (path == null) {
+      return List.of();
+    }
+
+    return FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
+        .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
+          try {
+            WizardSequence presets = WizardWorkflowIOUtils.loadFromFile(file, ALL_PRESETS);
+            return new LocalWizardWorkflowFile(file, presets);
+          } catch (IOException e) {
+            logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
+            return null;
+          }
+        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardWorkflowFile::getName))
+        .toList();
+  }
+
+  /**
+   * User/.mzmine/wizard/
+   */
+  @Nullable
+  public static File getWizardSettingsPath() {
+    File prefPath = FileAndPathUtil.getUserSettingsDir();
+    if (prefPath == null) {
+      logger.warning("Cannot find parameters default location in user folder");
+    } else {
+      prefPath = new File(prefPath, "wizard");
+      FileAndPathUtil.createDirectory(prefPath);
+    }
+    return prefPath;
   }
 
 }

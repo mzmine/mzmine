@@ -23,29 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.align_append_rows;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
 
-public class MergeAlignerParameters extends SimpleParameterSet {
+/**
+ * Reuses spectral library files parameters of {@link SpectralLibraryImportParameters}
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
+public final class AnnotationWizardParameters extends WizardStepParameters {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
+  // TODO add LocalCSVDatabase search
+  // needs less parameters only the most important ones to reproduce the library generation workflow
+//  public static final OptionalModuleParameter<LocalCSVDatabaseSearchParameters>
 
-  public static final StringParameter peakListName = new StringParameter("Feature list name",
-      "Feature list name", "Merged feature list");
-
-  public MergeAlignerParameters() {
-    super(new Parameter[]{featureLists, peakListName},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/align_merge_lists/align_merge_lists.html");
+  public AnnotationWizardParameters() {
+    super(WizardPart.ANNOTATION, AnnotationWizardParameterFactory.Annotation,
+        // parameters
+        SpectralLibraryImportParameters.dataBaseFiles);
   }
 
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
 }

@@ -25,40 +25,63 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ChromatographyDefaults;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.DefaultOptions;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.ImsDefaults;
-import io.github.mzmine.modules.tools.batchwizard.WizardPreset.MsInstrumentDefaults;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Describes the sequence of steps in the wizard. Elements should stay in correct order.
  */
 public enum WizardPart {
-  DATA_IMPORT, CHROMATOGRAPHY, IMS, MS, FILTER, EXPORT;
+  DATA_IMPORT, ION_INTERFACE, IMS, MS, FILTER, ANNOTATION, WORKFLOW;
 
-  public Enum<?>[] getDefaultsEnum() {
+  @Override
+  public String toString() {
     return switch (this) {
-      // only one option
-      case DATA_IMPORT, FILTER, EXPORT -> DefaultOptions.values();
-      // multiple options
-      case CHROMATOGRAPHY -> ChromatographyDefaults.values();
-      case IMS -> ImsDefaults.values();
-      case MS -> MsInstrumentDefaults.values();
+      case IMS, MS -> super.toString();
+      case DATA_IMPORT -> "Data";
+      case FILTER -> "Filter";
+      case ANNOTATION -> "Annotation";
+      case WORKFLOW -> "Workflow";
+      case ION_INTERFACE -> "Sample introduction/ionization";
     };
   }
 
   /**
-   * @return the corresponding ParameterSetParameter to this preset
+   * 1 String for parts with only one preset. Parts with more presets are managed by an
+   * {@link Enum}
+   *
+   * @return array of one string or the values of an enum - which implements
    */
-  public ParameterSetParameter getParameterSetParameter() {
+  public WizardParameterFactory[] getDefaultPresets() {
     return switch (this) {
-      case DATA_IMPORT -> BatchWizardParameters.dataInputParams;
-      case CHROMATOGRAPHY -> BatchWizardParameters.hplcParams;
-      case IMS -> BatchWizardParameters.imsParameters;
-      case MS -> BatchWizardParameters.msParams;
-      case FILTER -> BatchWizardParameters.filterParameters;
-      case EXPORT -> BatchWizardParameters.exportParameters;
+      // only one option
+      case DATA_IMPORT -> DataImportWizardParameterFactory.values();
+      case FILTER -> FilterWizardParameterFactory.values();
+      case ANNOTATION -> AnnotationWizardParameterFactory.values();
+      // multiple options
+      case ION_INTERFACE -> IonInterfaceWizardParameterFactory.values();
+      case IMS -> IonMobilityWizardParameterFactory.values();
+      case MS -> MassSpectrometerWizardParameterFactory.values();
+      case WORKFLOW -> WorkflowWizardParameterFactory.values();
     };
   }
+
+  /**
+   * Create all presets of this part
+   *
+   * @return list of presets
+   */
+  public List<WizardStepParameters> createPresetParameters() {
+    return Arrays.stream(getDefaultPresets()).map(WizardParameterFactory::create).toList();
+  }
+
 }

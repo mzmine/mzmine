@@ -23,29 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.align_append_rows;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public class MergeAlignerParameters extends SimpleParameterSet {
+public final class IonInterfaceDirectAndFlowInjectWizardParameters extends
+    IonInterfaceWizardParameters {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
+  public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
+      "Min # of data points", "Minimum number of consecutive data points in time dimension", 25, 1,
+      Integer.MAX_VALUE);
 
-  public static final StringParameter peakListName = new StringParameter("Feature list name",
-      "Feature list name", "Merged feature list");
-
-  public MergeAlignerParameters() {
-    super(new Parameter[]{featureLists, peakListName},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/align_merge_lists/align_merge_lists.html");
+  public IonInterfaceDirectAndFlowInjectWizardParameters(
+      final IonInterfaceWizardParameterFactory preset) {
+    super(WizardPart.ION_INTERFACE, preset,
+        // actual parameters
+        minNumberOfDataPoints);
   }
 
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public IonInterfaceDirectAndFlowInjectWizardParameters(
+      final IonInterfaceWizardParameterFactory preset, final int minDataPoints) {
+    this(preset);
+    setParameter(minNumberOfDataPoints, minDataPoints);
   }
+
 }

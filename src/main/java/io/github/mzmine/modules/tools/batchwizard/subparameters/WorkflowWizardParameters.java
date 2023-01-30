@@ -23,29 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.align_append_rows;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
 
-public class MergeAlignerParameters extends SimpleParameterSet {
+public sealed class WorkflowWizardParameters extends WizardStepParameters permits
+    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
-  public static final StringParameter peakListName = new StringParameter("Feature list name",
-      "Feature list name", "Merged feature list");
-
-  public MergeAlignerParameters() {
-    super(new Parameter[]{featureLists, peakListName},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/align_merge_lists/align_merge_lists.html");
+  public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
+      final Parameter<?>... parameters) {
+    super(WizardPart.WORKFLOW, preset, parameters);
   }
 
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
 }
