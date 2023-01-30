@@ -266,7 +266,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     // going back into scans so rather use scan mz tol
     param.setParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ,
         MzMode.AS_IN_FEATURE_TABLE);
-    param.setParameter(GnpsGcExportAndSubmitParameters.SUBMIT, false);
     param.setParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER, false);
     param.setParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY,
         FeatureMeasurementType.AREA);
