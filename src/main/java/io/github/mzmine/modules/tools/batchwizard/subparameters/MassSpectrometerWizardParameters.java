@@ -47,6 +47,7 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
       "Noise level for peaks in MS2 spectra. Should remove noise but keep analyte signals.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
+  //CHROMAGOGRAM BUILDING
   public static final DoubleParameter minimumFeatureHeight = new DoubleParameter(
       "Minimum feature height",
       "Intensity threshold at one retention time to be recognised as a feature.",
