@@ -32,7 +32,9 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import org.w3c.dom.Element;
@@ -149,7 +151,9 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
   @Override
   public void loadValueFromXML(final Element xmlElement) {
-    value = BatchQueue.loadFromXml(xmlElement);
+    List<String> errorMessages = new ArrayList<>();
+    value = BatchQueue.loadFromXml(xmlElement, errorMessages);
+    // do not log warnings here it's called on startup of mzmine
   }
 
   @Override

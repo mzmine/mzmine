@@ -25,35 +25,38 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import java.io.File;
 
-public class WizardExportParameters extends SimpleParameterSet {
+public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWizardParameters {
 
-  public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
-      true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
-      "Export for GNPS FBMN/IIMN",
-      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
+      "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
       true);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
+          "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...",
           FileSelectionType.SAVE, false), false);
 
-  /**
-   * the part category of presets - is used in all wizard parameter classes
-   */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.EXPORT);
 
-  public WizardExportParameters() {
-    super(new Parameter[]{wizardPartCategory, exportPath, exportGnps, exportSirius});
+  public WorkflowGcElectronImpactWizardParameters() {
+    super(WorkflowWizardParameterFactory.DDA,
+        // actual parameters
+        exportPath, exportGnps);
   }
+
+
+  public WorkflowGcElectronImpactWizardParameters(final boolean exportActive,
+      final File exportBasePath, final boolean exportGnpsActive) {
+    this();
+    setParameter(exportPath, exportActive);
+    getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
+    setParameter(exportGnps, exportGnpsActive);
+  }
+
 }

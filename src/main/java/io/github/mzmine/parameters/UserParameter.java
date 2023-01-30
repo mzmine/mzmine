@@ -26,25 +26,34 @@
 package io.github.mzmine.parameters;
 
 import javafx.scene.Node;
+import javafx.scene.layout.Priority;
 
 /**
  * Parameter interface, represents parameters or variables used in the project
  */
-public interface UserParameter<ValueType, EditorComponent extends Node>
-    extends Parameter<ValueType> {
+public interface UserParameter<ValueType, EditorComponent extends Node> extends
+    Parameter<ValueType> {
 
   /**
-   * 
    * @return Detailed description of the parameter
    */
-  public String getDescription();
+  String getDescription();
 
-  public EditorComponent createEditingComponent();
+  EditorComponent createEditingComponent();
 
-  public void setValueFromComponent(EditorComponent component);
+  void setValueFromComponent(EditorComponent component);
 
-  public void setValueToComponent(EditorComponent component, ValueType newValue);
+  void setValueToComponent(EditorComponent component, ValueType newValue);
 
-  public UserParameter<ValueType, EditorComponent> cloneParameter();
+  UserParameter<ValueType, EditorComponent> cloneParameter();
+
+  /**
+   * Defines if the component grows in height in the layout
+   *
+   * @return row grow priority
+   */
+  default Priority getComponentVgrowPriority() {
+    return Priority.NEVER;
+  }
 
 }

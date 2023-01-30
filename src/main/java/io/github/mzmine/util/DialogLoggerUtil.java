@@ -28,9 +28,12 @@ package io.github.mzmine.util;
 import java.util.Optional;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 public class DialogLoggerUtil {
@@ -44,14 +47,27 @@ public class DialogLoggerUtil {
   }
 
   public static void showErrorDialog(String title, String message) {
-    Alert alert = new Alert(AlertType.ERROR, message);
+    Alert alert = new Alert(AlertType.ERROR, null);
     alert.setTitle(title);
+    // seems like a good size for the dialog message when an old batch is loaded into new version
+    Text label = new Text(message);
+    label.setWrappingWidth(415);
+    HBox box = new HBox(label);
+    box.setPadding(new Insets(5));
+    alert.getDialogPane().setContent(box);
     alert.showAndWait();
   }
 
   public static void showMessageDialog(String title, String message) {
-    Alert alert = new Alert(AlertType.INFORMATION, message);
+    Alert alert = new Alert(AlertType.INFORMATION, null);
     alert.setTitle(title);
+    alert.setHeaderText(title);
+    // seems like a good size for the dialog message when an old batch is loaded into new version
+    Text label = new Text(message);
+    label.setWrappingWidth(415);
+    HBox box = new HBox(label);
+    box.setPadding(new Insets(5));
+    alert.getDialogPane().setContent(box);
     alert.showAndWait();
   }
 
@@ -65,7 +81,6 @@ public class DialogLoggerUtil {
   /**
    * shows a message dialog just for a few given milliseconds
    *
-   * @param parent
    * @param title
    * @param message
    * @param time

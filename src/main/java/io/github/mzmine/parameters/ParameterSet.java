@@ -26,9 +26,11 @@
 package io.github.mzmine.parameters;
 
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
@@ -41,6 +43,17 @@ import org.w3c.dom.Element;
  * SimpleParameterSet instance.
  */
 public interface ParameterSet extends ParameterContainer {
+
+  /**
+   * Version is saved to the batch file steps and compared when loaded. This version number should
+   * change when parameter names change or if parameters are added or removed. Override the method
+   * and increment the version.
+   *
+   * @return the parameter set version, 0 if unspecified (before MZmine 3.4.0)
+   */
+  default int getVersion() {
+    return 1;
+  }
 
   Parameter<?>[] getParameters();
 
@@ -91,7 +104,7 @@ public interface ParameterSet extends ParameterContainer {
    * it's fitness for ion mobility data, even if it will still return
    * {@link IonMobilitySupport#UNTESTED}.
    *
-   * @return
+   * @return true if module supports IMS
    */
   @NotNull
   default IonMobilitySupport getIonMobilitySupport() {
@@ -137,4 +150,14 @@ public interface ParameterSet extends ParameterContainer {
   void setModuleNameAttribute(String moduleName);
 
   String getModuleNameAttribute();
+
+  /**
+   * Defines if user has to setup parameters
+   *
+   * @return true if there are user options
+   */
+  default boolean hasUserParameters() {
+    return Arrays.stream(getParameters())
+        .anyMatch(p -> p instanceof UserParameter<?, ?> && !(p instanceof HiddenParameter));
+  }
 }

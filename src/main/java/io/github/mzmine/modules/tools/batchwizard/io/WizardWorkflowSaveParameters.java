@@ -25,9 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -35,11 +33,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import java.io.File;
 import java.util.Optional;
 
-public class BatchWizardPresetSaveParameters extends SimpleParameterSet {
+public class WizardWorkflowSaveParameters extends SimpleParameterSet {
 
   public static final DirectoryParameter directory = new DirectoryParameter("Directory",
       "The default preset directory is the user folder/.mzmine/wizard/",
-      Optional.ofNullable(BatchWizardTab.getWizardSettingsPath()).map(File::getAbsolutePath)
+      Optional.ofNullable(WizardWorkflowIOUtils.getWizardSettingsPath()).map(File::getAbsolutePath)
           .orElse(""));
 
   public static final StringParameter fileName = new StringParameter("Filename", "", "");
@@ -47,12 +45,12 @@ public class BatchWizardPresetSaveParameters extends SimpleParameterSet {
   public static final MultiChoiceParameter<WizardPart> exportParts = new MultiChoiceParameter<>(
       "Export", """
       Parts to export. This way the different instruments and methods for LC, GC, MS, ...
-      can be defined and combined later. When importing a preset that only defines some parts of the workflow, 
+      can be defined and combined later. When importing a preset that only defines some parts of the workflow,
       the rest of the workflow is kept at the current definitions in the UI.""",
       WizardPart.values(), WizardPart.values());
 
-  public BatchWizardPresetSaveParameters() {
-    super(new Parameter[]{directory, fileName, exportParts});
+  public WizardWorkflowSaveParameters() {
+    super(directory, fileName, exportParts);
   }
 
 }

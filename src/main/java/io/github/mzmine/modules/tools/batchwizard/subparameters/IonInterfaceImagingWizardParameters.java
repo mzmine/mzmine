@@ -25,28 +25,26 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-/**
- * Reuses the filenames and spectral library files parameters of
- * {@link AllSpectralDataImportParameters} and {@link SpectralLibraryImportParameters}
- *
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
- */
-public class WizardDataImportParameters extends SimpleParameterSet {
+public final class IonInterfaceImagingWizardParameters extends IonInterfaceWizardParameters {
 
-  /**
-   * the part category of presets - is used in all wizard parameter classes
-   */
-  public static final WizardPartParameter wizardPartCategory = new WizardPartParameter(
-      WizardPart.DATA_IMPORT);
+  public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
+      "Min # of data points", "Minimum number of data points as used in image building", 25, 1,
+      Integer.MAX_VALUE);
 
-  public WizardDataImportParameters() {
-    super(new Parameter[]{wizardPartCategory, AllSpectralDataImportParameters.fileNames,
-        SpectralLibraryImportParameters.dataBaseFiles});
+  public IonInterfaceImagingWizardParameters(final IonInterfaceWizardParameterFactory preset) {
+    super(WizardPart.ION_INTERFACE, preset,
+        // actual parameters
+        minNumberOfDataPoints);
   }
+
+  public IonInterfaceImagingWizardParameters(final IonInterfaceWizardParameterFactory preset,
+      final int minDataPoints) {
+    this(preset);
+    setParameter(minNumberOfDataPoints, minDataPoints);
+  }
+
 }

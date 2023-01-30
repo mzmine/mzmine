@@ -109,6 +109,7 @@ public class ImsExpanderTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
+    // stream / iterator for loop may lead to concurrend mod exception, use classic for loop here
     double sum = 0.0;
     for (int i = 0; i < tasks.size(); i++) {
       AbstractTask task = tasks.get(i);
