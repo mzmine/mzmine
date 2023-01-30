@@ -94,7 +94,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected String xlabel, ylabel;
   protected Color clrXGrid, clrYGrid;
   // not final because we want themes without offsets for the export.
-  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(5, 5, 0, 5);
+  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(0, 0, 0, 0);
   private RectangleInsets MIRROR_PLOT_AXIS_OFFSET = new RectangleInsets(0, 4, 0, 4);
   private Font itemLabelFont;
   private BasicStroke defaultDataStroke;
