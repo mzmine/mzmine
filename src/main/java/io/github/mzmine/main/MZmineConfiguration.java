@@ -103,7 +103,7 @@ public interface MZmineConfiguration {
 
   UnitFormat getUnitFormat();
 
-  void loadConfiguration(File file) throws IOException;
+  void loadConfiguration(File file, boolean loadPreferences) throws IOException;
 
   void saveConfiguration(File file) throws IOException;
 

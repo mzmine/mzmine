@@ -146,7 +146,7 @@ public final class MZmineCore {
       // Load configuration
       if (prefFile.exists() && prefFile.canRead()) {
         try {
-          getInstance().configuration.loadConfiguration(prefFile);
+          getInstance().configuration.loadConfiguration(prefFile, true);
           updateTempDir = true;
         } catch (Exception e) {
           logger.log(Level.WARNING,
