@@ -52,7 +52,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
@@ -91,7 +91,7 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     // extract default parameters that are used for all workflows
     super(steps);
 
-    Optional<? extends WizardStepPreset> params = steps.get(WizardPart.ION_INTERFACE);
+    Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
     // special workflow parameter are extracted here
     // chromatography
     rtSmoothing = getValue(params, IonInterfaceHplcWizardParameters.smoothing);

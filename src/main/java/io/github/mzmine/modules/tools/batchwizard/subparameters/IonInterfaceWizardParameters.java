@@ -29,7 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 
-public abstract sealed class IonInterfaceWizardParameters extends WizardStepPreset permits
+public abstract sealed class IonInterfaceWizardParameters extends WizardStepParameters permits
     IonInterfaceHplcWizardParameters, IonInterfaceGcElectronImpactWizardParameters,
     IonInterfaceImagingWizardParameters, IonInterfaceDirectAndFlowInjectWizardParameters {
 

@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -37,7 +37,7 @@ public enum FilterWizardParameterFactory implements WizardParameterFactory {
 
 
   @Override
-  public WizardStepPreset create() {
+  public WizardStepParameters create() {
     return new FilterWizardParameters();
   }
 

@@ -34,7 +34,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Annota
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public final class AnnotationWizardParameters extends WizardStepPreset {
+public final class AnnotationWizardParameters extends WizardStepParameters {
 
   // TODO add LocalCSVDatabase search
   // needs less parameters only the most important ones to reproduce the library generation workflow

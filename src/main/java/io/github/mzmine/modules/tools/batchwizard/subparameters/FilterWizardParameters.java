@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 /**
  * Filtering steps throughout the batch mode
  */
-public final class FilterWizardParameters extends WizardStepPreset {
+public final class FilterWizardParameters extends WizardStepParameters {
 
   public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
       "Min samples per aligned feature",

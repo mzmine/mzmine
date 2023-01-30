@@ -34,7 +34,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataIm
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public final class DataImportWizardParameters extends WizardStepPreset {
+public final class DataImportWizardParameters extends WizardStepParameters {
 
   public DataImportWizardParameters() {
     super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,

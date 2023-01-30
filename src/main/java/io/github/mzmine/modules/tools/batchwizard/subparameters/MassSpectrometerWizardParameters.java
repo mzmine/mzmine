@@ -34,7 +34,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public final class MassSpectrometerWizardParameters extends WizardStepPreset {
+public final class MassSpectrometerWizardParameters extends WizardStepParameters {
 
   public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
       "Polarity of the ion mode", Polarity.values(), Polarity.Positive);

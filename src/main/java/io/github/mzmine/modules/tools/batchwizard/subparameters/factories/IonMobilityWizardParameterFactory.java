@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -55,7 +55,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    * Create parameters from defaults
    */
   @Override
-  public WizardStepPreset create() {
+  public WizardStepParameters create() {
     return switch (this) {
       case NO_IMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, false, MobilityType.NONE);
       case TIMS -> new IonMobilityWizardParameters(this, 5, 0.01, true, true, MobilityType.TIMS);

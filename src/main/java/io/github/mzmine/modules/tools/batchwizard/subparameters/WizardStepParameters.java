@@ -45,10 +45,10 @@ import org.jetbrains.annotations.NotNull;
  * {@link WizardParameterFactory} {@link #getFactory()}. In a {@link WizardSequence} the presets
  * define the actual processing workflow that is built in {@link WizardBatchBuilder}
  */
-public abstract sealed class WizardStepPreset extends ComposedParameterSet implements
-    Comparable<WizardStepPreset> permits IonInterfaceWizardParameters, AnnotationWizardParameters,
-    DataImportWizardParameters, FilterWizardParameters, IonMobilityWizardParameters,
-    MassSpectrometerWizardParameters, WorkflowWizardParameters {
+public abstract sealed class WizardStepParameters extends ComposedParameterSet implements
+    Comparable<WizardStepParameters> permits IonInterfaceWizardParameters,
+    AnnotationWizardParameters, DataImportWizardParameters, FilterWizardParameters,
+    IonMobilityWizardParameters, MassSpectrometerWizardParameters, WorkflowWizardParameters {
 
   private final WizardPart part;
   private final WizardParameterFactory factory;
@@ -59,7 +59,7 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
    * @param factory    preset chosen from 1 or more choices
    * @param parameters array of parameters
    */
-  public WizardStepPreset(WizardPart part, WizardParameterFactory factory,
+  public WizardStepParameters(WizardPart part, WizardParameterFactory factory,
       Parameter<?>... parameters) {
     this.parameters = new SimpleParameterSet(parameters).cloneParameterSet();
     this.part = part;
@@ -71,7 +71,7 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
    *
    * @return map of part and list of presets
    */
-  public static Map<WizardPart, List<WizardStepPreset>> createAllPresets() {
+  public static Map<WizardPart, List<WizardStepParameters>> createAllPresets() {
     return Arrays.stream(WizardPart.values())
         .collect(Collectors.toMap(part -> part, WizardPart::createPresetParameters));
   }
@@ -133,13 +133,13 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
   /**
    * @return the default parameters preset
    */
-  public WizardStepPreset createDefaultParameterPreset() {
+  public WizardStepParameters createDefaultParameterPreset() {
     return factory.create();
   }
 
   // for sorting
   @Override
-  public int compareTo(@NotNull final WizardStepPreset o) {
+  public int compareTo(@NotNull final WizardStepParameters o) {
     return part.compareTo(o.part);
   }
 
@@ -157,7 +157,7 @@ public abstract sealed class WizardStepPreset extends ComposedParameterSet imple
    * Reset this preset to the default parameters
    */
   public void resetToDefaults() {
-    WizardStepPreset defaultPreset = createDefaultParameterPreset();
+    WizardStepParameters defaultPreset = createDefaultParameterPreset();
     ParameterUtils.copyParameters(defaultPreset, this);
   }
 }

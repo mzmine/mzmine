@@ -34,7 +34,7 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
@@ -58,7 +58,7 @@ public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
     // extract default parameters that are used for all workflows
     super(steps);
 
-    Optional<? extends WizardStepPreset> params = steps.get(WizardPart.ION_INTERFACE);
+    Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
     // special workflow parameter are extracted here
     minDataPoints = getValue(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
 

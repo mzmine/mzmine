@@ -28,9 +28,9 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
-import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -72,7 +72,7 @@ public class WizardWorkflowIOUtils {
   private WizardWorkflowIOUtils() {
   }
 
-  public static void saveToFile(final List<WizardStepPreset> workflow, final File file,
+  public static void saveToFile(final List<WizardStepParameters> workflow, final File file,
       final boolean skipSensitive) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -132,7 +132,7 @@ public class WizardWorkflowIOUtils {
    * @throws IOException when loading file
    */
   public static @NotNull WizardSequence loadFromFile(final File file,
-      Map<WizardPart, List<WizardStepPreset>> allPresets) throws IOException {
+      Map<WizardPart, List<WizardStepParameters>> allPresets) throws IOException {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -186,7 +186,7 @@ public class WizardWorkflowIOUtils {
    * @return a new list of presets for each defined part - empty on error or if nothing was defined
    */
   public static @NotNull WizardSequence chooseAndLoadFile(
-      final Map<WizardPart, List<WizardStepPreset>> allPresets) {
+      final Map<WizardPart, List<WizardStepParameters>> allPresets) {
     File prefPath = getWizardSettingsPath();
     FileChooser chooser = new FileChooser();
     chooser.setInitialDirectory(prefPath);
@@ -212,7 +212,7 @@ public class WizardWorkflowIOUtils {
    * @return A list of local wizard workflows
    */
   public static @NotNull List<LocalWizardWorkflowFile> findAllLocalPresetFiles(
-      final Map<WizardPart, List<WizardStepPreset>> ALL_PRESETS) {
+      final Map<WizardPart, List<WizardStepParameters>> ALL_PRESETS) {
     File path = getWizardSettingsPath();
     if (path == null) {
       return List.of();

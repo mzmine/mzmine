@@ -30,7 +30,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceDire
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 
@@ -84,7 +84,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
   /**
    * Create parameters from defaults
    */
-  public WizardStepPreset create() {
+  public WizardStepParameters create() {
     // override defaults
     return switch (this) {
       case HPLC -> new IonInterfaceHplcWizardParameters(this, true, 15, 4, Range.closed(0.5, 60d),

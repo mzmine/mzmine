@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
@@ -80,7 +80,7 @@ public enum WizardPart {
    *
    * @return list of presets
    */
-  public List<WizardStepPreset> createPresetParameters() {
+  public List<WizardStepParameters> createPresetParameters() {
     return Arrays.stream(getDefaultPresets()).map(WizardParameterFactory::create).toList();
   }
 

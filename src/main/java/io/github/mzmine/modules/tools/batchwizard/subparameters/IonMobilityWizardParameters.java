@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.text.DecimalFormat;
 
-public final class IonMobilityWizardParameters extends WizardStepPreset {
+public final class IonMobilityWizardParameters extends WizardStepParameters {
 
   public static final DoubleParameter approximateImsFWHM = new DoubleParameter(
       "Approximate feature FWHM",

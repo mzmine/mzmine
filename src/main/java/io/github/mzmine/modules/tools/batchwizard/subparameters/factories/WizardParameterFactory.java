@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 
 /**
  * implemented by preset enums of parts with multiple preset options
@@ -35,7 +35,7 @@ public interface WizardParameterFactory {
   /**
    * @return the default parameters for this preset
    */
-  WizardStepPreset create();
+  WizardStepParameters create();
 
   /**
    * Used to save and load from file

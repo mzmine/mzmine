@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 /**
@@ -66,7 +66,7 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
    * User options for instruments go here
    */
   @Override
-  public WizardStepPreset create() {
+  public WizardStepParameters create() {
     return switch (this) {
       case Orbitrap ->
           new MassSpectrometerWizardParameters(this, 1E4, 3E3, 5E4, new MZTolerance(0.002, 10),

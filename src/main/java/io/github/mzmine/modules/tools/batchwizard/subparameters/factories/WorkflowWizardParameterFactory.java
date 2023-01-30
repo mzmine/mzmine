@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
@@ -53,7 +53,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   }
 
   @Override
-  public WizardStepPreset create() {
+  public WizardStepParameters create() {
     return switch (this) {
       // EMPTY parameter set
       case MS1_ONLY, LIBRARY_GENERATION -> new WorkflowWizardParameters(this);

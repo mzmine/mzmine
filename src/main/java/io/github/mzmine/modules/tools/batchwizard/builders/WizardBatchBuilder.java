@@ -78,7 +78,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepPreset;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -118,7 +118,7 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 /**
- * Creates a batch queue from a list of {@link WizardStepPreset} making up a workflow defined in
+ * Creates a batch queue from a list of {@link WizardStepParameters} making up a workflow defined in
  * {@link WizardPart}
  */
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -151,7 +151,7 @@ public abstract class WizardBatchBuilder {
 
   protected WizardBatchBuilder(WizardSequence steps) {
     // input
-    Optional<? extends WizardStepPreset> params = steps.get(WizardPart.DATA_IMPORT);
+    Optional<? extends WizardStepParameters> params = steps.get(WizardPart.DATA_IMPORT);
     dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
 
     // annotation
@@ -193,7 +193,7 @@ public abstract class WizardBatchBuilder {
    */
   public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardSequence steps) {
     // workflow is always set
-    Optional<WizardStepPreset> preset = steps.get(WizardPart.WORKFLOW);
+    Optional<WizardStepParameters> preset = steps.get(WizardPart.WORKFLOW);
     var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getFactory();
     return switch (workflowPreset) {
       case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
@@ -320,7 +320,7 @@ public abstract class WizardBatchBuilder {
    * @param parameter parameter as defined in params class. Usually a static parameter
    * @return the value of the parameter or null if !params.isPresent
    */
-  protected <T> T getValue(@NotNull final Optional<? extends WizardStepPreset> params,
+  protected <T> T getValue(@NotNull final Optional<? extends WizardStepParameters> params,
       @NotNull final Parameter<T> parameter) {
     if (params.isPresent()) {
       try {
@@ -342,7 +342,7 @@ public abstract class WizardBatchBuilder {
    * @return value and selection state of an OptionalParameter
    */
   protected <V, T extends UserParameter<V, ?>> OptionalValue<V> getOptional(
-      @NotNull final Optional<? extends WizardStepPreset> params,
+      @NotNull final Optional<? extends WizardStepParameters> params,
       @NotNull final OptionalParameter<T> parameter) {
     if (params.isPresent()) {
       try {
