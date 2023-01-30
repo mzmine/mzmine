@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.io.export_features_featureML;
 
+import com.google.common.collect.Range;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
@@ -34,11 +36,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.files.FileAndPathUtil;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -48,32 +48,28 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-
 import org.jetbrains.annotations.NotNull;
 
-/***
- * Export results to featureML format for visualization in TOPPView
- * schema available at
- * https://github.com/OpenMS/OpenMS/blob/7a2e4a41d4c9f511306afcb8bb4f1b773ace9b9a/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd
+/**
+ * Export results to featureML format for visualization in TOPPView schema available at <a
+ * href="https://github.com/OpenMS/OpenMS/blob/7a2e4a41d4c9f511306afcb8bb4f1b773ace9b9a/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd"></a>
  */
 
-public class FeatureMLExportModularTask extends AbstractTask implements ProcessedItemsCounter {
+public class FeatureMLExportModularTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(FeatureMLExportModularTask.class.getName());
   private final ModularFeatureList[] featureLists;
   // parameter values
   private final File fileName;
   private final FeatureListRowsFilter rowFilter;
-  // track number of exported items
-  private final AtomicInteger exportedRows = new AtomicInteger(0);
-  private int processedTypes = 0, totalTypes = 0;
+  private int processedRows = 0;
+  private int totalRows = 0;
 
   public FeatureMLExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -96,16 +92,8 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
   }
 
   @Override
-  public int getProcessedItems() {
-    return exportedRows.get();
-  }
-
-  @Override
   public double getFinishedPercentage() {
-    if (totalTypes == 0) {
-      return 0;
-    }
-    return (double) processedTypes / (double) totalTypes;
+    return totalRows == 0 ? 0 : processedRows / (double) totalRows;
   }
 
   @Override
@@ -121,14 +109,22 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
     String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
+    if (!substitute && featureLists.length > 1) {
+      setErrorMessage("""
+          Cannot export multiple feature lists to the same featureML file. Please use "{}" pattern in filename.\
+          This will be replaced with the feature list name to generate one file per feature list.
+          """);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     // Total number of rows
     for (ModularFeatureList featureList : featureLists) {
-      totalTypes += featureList.getNumberOfRows();
+      totalRows += featureList.getNumberOfRows();
     }
 
     // Process feature lists
     for (ModularFeatureList featureList : featureLists) {
-      // Cancel?
       if (isCanceled()) {
         return;
       }
@@ -147,7 +143,7 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
 
       // Open file
       try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
-          StandardCharsets.UTF_8);) {
+          StandardCharsets.UTF_8)) {
 
         // Get XMLOutputFactory instance.
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -262,12 +258,15 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       int numberOfConvexHulls = 1;
       for (RawDataFile rawFile : rawDataFiles) {
 
-        if (row.getFeature(rawFile) != null) {
-          minMZ = row.getFeature(rawFile).getRawDataPointsMZRange().lowerEndpoint();
-          maxMZ = row.getFeature(rawFile).getRawDataPointsMZRange().upperEndpoint();
+        Feature feature = row.getFeature(rawFile);
+        if (feature != null) {
+          Range<Double> mzRange = feature.getRawDataPointsMZRange();
+          minMZ = mzRange.lowerEndpoint();
+          maxMZ = mzRange.upperEndpoint();
           // convert RTs to minutes
-          minRT = row.getFeature(rawFile).getRawDataPointsRTRange().lowerEndpoint() * 60;
-          maxRT = row.getFeature(rawFile).getRawDataPointsRTRange().upperEndpoint() * 60;
+          Range<Float> rtRange = feature.getRawDataPointsRTRange();
+          minRT = rtRange.lowerEndpoint() * 60;
+          maxRT = rtRange.upperEndpoint() * 60;
 
           this.generateConvexHullForXML(xmlWriter, numberOfConvexHulls, minRT, maxRT, minMZ, maxMZ);
           numberOfConvexHulls += 1;
@@ -277,7 +276,8 @@ public class FeatureMLExportModularTask extends AbstractTask implements Processe
       // end feature
       xmlWriter.writeEndElement();
 
-      featureNum += 1;
+      featureNum++;
+      processedRows++;
     }
 
     // end featureList
