@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.gui.framework.fx.FilterableTreeItem;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
@@ -55,6 +56,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -66,7 +68,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -85,8 +86,8 @@ public class BatchComponentController implements LastFilesComponent {
   private final static Logger logger = Logger.getLogger(BatchComponentController.class.getName());
 
   // by using linked hash map, the items will be added to the tree view as specified in the modules list
-  private final Map<MainCategory, TreeItem<Object>> mainCategoryItems = new LinkedHashMap<>();
-  private final Map<MZmineModuleCategory, TreeItem<Object>> categoryItems = new LinkedHashMap<>();
+  private final Map<MainCategory, FilterableTreeItem<Object>> mainCategoryItems = new LinkedHashMap<>();
+  private final Map<MZmineModuleCategory, FilterableTreeItem<Object>> categoryItems = new LinkedHashMap<>();
 
   @FXML
   public AnchorPane root;
@@ -148,32 +149,51 @@ public class BatchComponentController implements LastFilesComponent {
     for (Class<? extends MZmineProcessingModule> moduleClass : BatchModeModulesList.MODULES) {
       final MZmineProcessingModule module = MZmineCore.getModuleInstance(moduleClass);
       final MZmineModuleCategory category = module.getModuleCategory();
-      final TreeItem<Object> categoryItem = categoryItems.computeIfAbsent(category, c -> {
-        final TreeItem<Object> item = new TreeItem<>(c);
-        final TreeItem<Object> mainItem = mainCategoryItems.computeIfAbsent(c.getMainCategory(),
-            TreeItem::new);
-        mainItem.getChildren().add(item);
+      final FilterableTreeItem<Object> categoryItem = categoryItems.computeIfAbsent(category, c -> {
+        final FilterableTreeItem<Object> item = new FilterableTreeItem<>(c);
+        final FilterableTreeItem<Object> mainItem = mainCategoryItems.computeIfAbsent(
+            c.getMainCategory(), FilterableTreeItem::new);
+        mainItem.getSourceChildren().add(item);
         return item;
       });
-      categoryItem.getChildren().add(new TreeItem<>(new BatchModuleWrapper(module)));
+      categoryItem.getSourceChildren()
+          .add(new FilterableTreeItem<>(new BatchModuleWrapper(module)));
     }
 
-    final TreeItem<Object> originalRoot = new TreeItem<>("Root");
-    originalRoot.getChildren().addAll(mainCategoryItems.values());
+    final FilterableTreeItem<Object> originalRoot = new FilterableTreeItem<>("Root");
+    originalRoot.getSourceChildren().addAll(mainCategoryItems.values());
     tvModules.setRoot(originalRoot);
     tvModules.setShowRoot(false);
 
     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue.isEmpty() && !newValue.isBlank()) {
-        for (TreeItem<Object> child : originalRoot.getChildren()) {
-          child.setExpanded(hasMatchingChild(child, newValue.toLowerCase()));
+      String stripValue = newValue.strip().toLowerCase();
+      Predicate<Object> filter = child -> newValue.isBlank() || child.toString().toLowerCase()
+          .contains(stripValue);
+//      originalRoot.predicateProperty().set(filter);
+
+      for (final FilterableTreeItem<Object> childMain : originalRoot.getSourceChildren()) {
+//        childMain.predicateProperty().set(filter);
+        boolean match = false;
+        for (final FilterableTreeItem<Object> childMid : childMain.getSourceChildren()) {
+          for (final FilterableTreeItem<Object> childModule : childMid.getSourceChildren()) {
+            childModule.predicateProperty().set(filter);
+            match = match || filter.test(childModule.getValue());
+          }
+          childMid.setExpanded(match);
         }
-        selectFirstMatch(originalRoot, newValue.toLowerCase());
-      } else {
-        for (TreeItem<Object> child : originalRoot.getChildren()) {
-          child.setExpanded(false);
-        }
+        childMain.setExpanded(match);
       }
+
+//      if (!newValue.isEmpty() && !newValue.isBlank()) {
+//        for (FilterableTreeItem<Object> child : originalRoot.getChildren()) {
+//          child.setExpanded(hasMatchingChild(child, newValue.toLowerCase()));
+//        }
+//        selectFirstMatch(originalRoot, newValue.toLowerCase());
+//      } else {
+//        for (FilterableTreeItem<Object> child : originalRoot.getChildren()) {
+//          child.setExpanded(false);
+//        }
+//      }
     });
 
     searchField.setOnKeyPressed(event -> {
@@ -201,30 +221,30 @@ public class BatchComponentController implements LastFilesComponent {
     cmbHandleFlists.setValue(OriginalFeatureListOption.REMOVE);
   }
 
-  private boolean hasMatchingChild(TreeItem<Object> item, final String filter) {
-    if (!item.isLeaf()) {
-      for (var child : item.getChildren()) {
-        if (hasMatchingChild(child, filter)) {
-          item.setExpanded(true);
-          return true;
-        }
-      }
-    } else {
-      if (filter.isEmpty()) {
-        return false;
-      }
-      boolean contains = item.getValue().toString().toLowerCase().contains(filter);
-//      if (!contains) {
-//        item.getParent().getChildren().remove(item);
+//  private boolean hasMatchingChild(FilterableTreeItem<Object> item, final String filter) {
+//    if (!item.isLeaf()) {
+//      for (var child : item.getChildren()) {
+//        if (hasMatchingChild(child, filter)) {
+//          item.setExpanded(true);
+//          return true;
+//        }
 //      }
-      return contains;
-    }
-    return false;
-  }
+//    } else {
+//      if (filter.isEmpty()) {
+//        return false;
+//      }
+//      boolean contains = item.getValue().toString().toLowerCase().contains(filter);
+////      if (!contains) {
+////        item.getParent().getChildren().remove(item);
+////      }
+//      return contains;
+//    }
+//    return false;
+//  }
 
-  private boolean selectFirstMatch(TreeItem<Object> item, final String filter) {
+  private boolean selectFirstMatch(FilterableTreeItem<Object> item, final String filter) {
     if (!item.isLeaf()) {
-      for (var child : item.getChildren()) {
+      for (var child : item.getSourceChildren()) {
         if (selectFirstMatch(child, filter)) {
           return true;
         }
@@ -444,7 +464,8 @@ public class BatchComponentController implements LastFilesComponent {
   public void loadBatchSteps(final File file)
       throws ParserConfigurationException, IOException, SAXException {
     List<String> errorMessages = new ArrayList<>();
-    final BatchQueue queue = BatchQueue.loadFromXml(XMLUtils.load(file).getDocumentElement(), errorMessages);
+    final BatchQueue queue = BatchQueue.loadFromXml(XMLUtils.load(file).getDocumentElement(),
+        errorMessages);
     // check error messages and show dialog
     if (!errorMessages.isEmpty()) {
       DialogLoggerUtil.showMessageDialog("Check batch parameters carefully.",
@@ -492,12 +513,12 @@ public class BatchComponentController implements LastFilesComponent {
     addLastUsedFile(file);
   }
 
-  private TreeItem<Object> cloneTreeItem(TreeItem<Object> item) {
-    // not a deep clone
-    final TreeItem<Object> clone = new TreeItem<>(item.getValue());
-    item.getChildren().forEach(child -> clone.getChildren().add(cloneTreeItem(child)));
-    return item;
-  }
+//  private FilterableTreeItem<Object> cloneTreeItem(FilterableTreeItem<Object> item) {
+//    // not a deep clone
+//    final FilterableTreeItem<Object> clone = new FilterableTreeItem<>(item.getValue());
+//    item.getChildren().forEach(child -> clone.getChildren().add(cloneTreeItem(child)));
+//    return item;
+//  }
 
 
   // Queue operations.
