@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -247,7 +248,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @SuppressWarnings("unchecked")
   @Override
-  public void loadConfiguration(File file) throws IOException {
+  public void loadConfiguration(File file, boolean loadPreferences) throws IOException {
 
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -260,27 +261,31 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
       logger.finest("Loading desktop configuration");
 
-      XPathExpression expr = xpath.compile("//configuration/preferences");
-      NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
-      if (nodes.getLength() == 1) {
-        Element preferencesElement = (Element) nodes.item(0);
-        // loading encryption key
-        // this has to be read first because following parameters may
-        // already contain encrypted data
-        // that needs this key for encryption
-        if (file.equals(MZmineConfiguration.CONFIG_FILE)) {
-          new SimpleParameterSet(new Parameter[]{globalEncrypter}).loadValuesFromXML(
-              preferencesElement);
+      XPathExpression expr;
+      NodeList nodes;
+      if (loadPreferences) {
+        expr = xpath.compile("//configuration/preferences");
+        nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
+        if (nodes.getLength() == 1) {
+          Element preferencesElement = (Element) nodes.item(0);
+          // loading encryption key
+          // this has to be read first because following parameters may
+          // already contain encrypted data
+          // that needs this key for encryption
+          if (file.equals(MZmineConfiguration.CONFIG_FILE)) {
+            new SimpleParameterSet(new Parameter[]{globalEncrypter}).loadValuesFromXML(
+                preferencesElement);
+          }
+          preferences.loadValuesFromXML(preferencesElement);
         }
-        preferences.loadValuesFromXML(preferencesElement);
-      }
 
-      logger.finest("Loading last projects");
-      expr = xpath.compile("//configuration/lastprojects");
-      nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
-      if (nodes.getLength() == 1) {
-        Element lastProjectsElement = (Element) nodes.item(0);
-        lastProjects.loadValueFromXML(lastProjectsElement);
+        logger.finest("Loading last projects");
+        expr = xpath.compile("//configuration/lastprojects");
+        nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
+        if (nodes.getLength() == 1) {
+          Element lastProjectsElement = (Element) nodes.item(0);
+          lastProjects.loadValueFromXML(lastProjectsElement);
+        }
       }
 
       logger.finest("Loading modules configuration");
