@@ -24,7 +24,7 @@
  */
 
 .text-field {
-  -fx-prompt-text-fill: derive(-fx-text-color, -50%);
+  -fx-prompt-text-fill: derive(-fx-text-fill, -50%);
 }
 
 .region-match-chart-bg, .tool-bar, .status-bar, .button-bar {

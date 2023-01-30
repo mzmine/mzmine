@@ -185,7 +185,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     filterStr = filterStr.replace(" ", "");
 
     if (filterStr.isEmpty()) { // Empty filter
-      textField.setStyle("-fx-prompt-text-fill: derive(-fx-text-color, -50%);");
+      textField.setStyle("-fx-prompt-text-fill: derive(-fx-text-fill, -50%);");
       return RangeUtils.DOUBLE_INFINITE_RANGE;
     } else if (filterStr.contains("-") && filterStr.indexOf("-") > 0) { // Filter by range
       try {
