@@ -49,6 +49,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -135,15 +136,32 @@ public class IonMobilityUtils {
       @NotNull final Range<Double> mzRange, @NotNull final MobilogramType type,
       @Nullable final MemoryMapStorage storage) {
 
-    final int numScans = frame.getNumberOfMobilityScans();
+    return buildMobilogramForMzRange(frame.getMobilityScans(), mzRange, type, storage);
+  }
+
+  /**
+   * Builds a mobilogram for the given mz range in the frame. Should only be used for previews and
+   * visualisations, less perfomant than a ims feature detector.
+   *
+   * @param mobilityScans The mobility scans. must belong to a single frame and sorted by ascending
+   *                      mobility scan number.
+   * @param mzRange       The mz/Range of the mobilogram
+   * @param type          basepeak or tic (summed)
+   * @param storage       The storage to use
+   * @return The built mobilogram.
+   */
+  public static IonMobilitySeries buildMobilogramForMzRange(
+      @NotNull final List<MobilityScan> mobilityScans, @NotNull final Range<Double> mzRange,
+      @NotNull final MobilogramType type, @Nullable final MemoryMapStorage storage) {
+
+    final int numScans = mobilityScans.size();
     final double rangeCenter = RangeUtils.rangeCenter(mzRange);
 
-    final double[] intensities = new double[frame.getNumberOfMobilityScans()];
-    final double[] mzs = new double[frame.getNumberOfMobilityScans()];
+    final double[] intensities = new double[numScans];
+    final double[] mzs = new double[numScans];
 
-    final List<MobilityScan> mobilityScans = frame.getMobilityScans();
-
-    final int maxNumDataPoints = frame.getMaxMobilityScanRawDataPoints();
+    final int maxNumDataPoints =
+        numScans != 0 ? mobilityScans.get(0).getFrame().getMaxMobilityScanRawDataPoints() : 0;
 
     final double[] intensitiesBuffer = new double[maxNumDataPoints];
     final double[] mzsBuffer = new double[maxNumDataPoints];
@@ -153,17 +171,20 @@ public class IonMobilityUtils {
       scan.getMzValues(mzsBuffer);
       scan.getIntensityValues(intensitiesBuffer);
 
-      if (type == MobilogramType.BASE_PEAK) {
-        DataPoint bp = ScanUtils.findBasePeak(mzsBuffer, intensitiesBuffer, mzRange,
-            scan.getNumberOfDataPoints());
-        if (bp != null) {
-          mzs[i] = bp.getMZ();
-          intensities[i] = bp.getIntensity();
+      switch (type) {
+        case BASE_PEAK -> {
+          DataPoint bp = ScanUtils.findBasePeak(mzsBuffer, intensitiesBuffer, mzRange,
+              scan.getNumberOfDataPoints());
+          if (bp != null) {
+            mzs[i] = bp.getMZ();
+            intensities[i] = bp.getIntensity();
+          }
         }
-      } else if (type == MobilogramType.TIC) {
-        mzs[i] = rangeCenter;
-        intensities[i] = ScanUtils.calculateTIC(mzsBuffer, intensitiesBuffer, mzRange,
-            scan.getNumberOfDataPoints());
+        case TIC -> {
+          mzs[i] = rangeCenter;
+          intensities[i] = ScanUtils.calculateTIC(mzsBuffer, intensitiesBuffer, mzRange,
+              scan.getNumberOfDataPoints());
+        }
       }
     }
 
@@ -390,8 +411,30 @@ public class IonMobilityUtils {
         : 0d;
   }
 
+  public static SummedIntensityMobilitySeries normalizeMobilogram(
+      final SummedIntensityMobilitySeries mobilogram, @Nullable Double normalizationFactor) {
+    double[] newIntensities = new double[mobilogram.getNumberOfValues()];
+    double[] newMobilities = new double[mobilogram.getNumberOfValues()];
+    mobilogram.getMobilityValues(newMobilities);
+    mobilogram.getIntensityValues(newIntensities);
+
+    final double max = normalizationFactor != null ? normalizationFactor
+        : Arrays.stream(newIntensities).max().orElse(1d);
+    for (int i = 0; i < newIntensities.length; i++) {
+      newIntensities[i] /= max;
+    }
+    return new SummedIntensityMobilitySeries(null, newMobilities, newIntensities);
+  }
+
   public enum MobilogramType {
-    BASE_PEAK, TIC
+    BASE_PEAK, TIC;
+
+    public String shortString() {
+      return switch (this) {
+        case BASE_PEAK -> "BPM";
+        case TIC -> "TIM";
+      };
+    }
   }
 
 }

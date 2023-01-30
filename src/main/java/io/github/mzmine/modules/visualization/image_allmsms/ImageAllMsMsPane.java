@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.image_allmsms;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
@@ -33,9 +34,13 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MobilityScanMobilogramProvider;
 import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
@@ -44,9 +49,13 @@ import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
+import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
+import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -58,25 +67,36 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYPointerAnnotation;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.data.xy.XYDataset;
 
 public class ImageAllMsMsPane extends BorderPane {
 
   private static final Logger logger = Logger.getLogger(ImageAllMsMsPane.class.getName());
+  private static final Comparator<Scan> msmsCollisionEnergySorter = Comparator.comparingDouble(
+      msms -> {
+        final MsMsInfo msMsInfo = msms.getMsMsInfo();
+        if (msMsInfo == null) {
+          return 0d;
+        }
+        return Objects.requireNonNullElse(msMsInfo.getActivationEnergy(), 0f).doubleValue();
+      });
 
+  private static final boolean normalizeMobilograms = true;
   protected final SplitPane mainSplit = new SplitPane();
   protected final BorderPane mainContent = new BorderPane();
   protected final ScrollPane msmsScroll = new ScrollPane();
   protected final VBox msmsContent = new VBox();
   protected final VBox spectrumContentWrapper = new VBox();
   protected final VBox ms1Content = new VBox();
-
   protected final SpectraVisualizerTab tab;
-
   protected final ImagingPlot imagePlot;
-
   protected final ObjectProperty<Feature> featureProperty = new SimpleObjectProperty<>();
+  private final NumberFormats format = MZmineCore.getConfiguration().getGuiFormats();
   private final ImageNormalization imageNormalization;
+
+  private final Font markerFont = MZmineCore.getConfiguration().getDefaultChartTheme()
+      .getRegularFont();
 
   public ImageAllMsMsPane(@Nullable final Feature feature) {
     super();
@@ -89,6 +109,7 @@ public class ImageAllMsMsPane extends BorderPane {
 
     tab = new SpectraVisualizerTab(feature.getRawDataFile());
     final SpectraPlot spectrumPlot = tab.getSpectrumPlot();
+    spectrumPlot.setLabelColorMatch(true);
     spectrumPlot.minHeightProperty().bind(mainSplit.heightProperty().divide(3));
     ms1Content.getChildren().add(spectrumPlot);
 
@@ -130,11 +151,22 @@ public class ImageAllMsMsPane extends BorderPane {
     }
   }
 
+  @Nullable
+  public static MaldiSpotInfo getMsMsSpotInfo(Scan scan) {
+    if (scan instanceof MergedMsMsSpectrum merged) {
+      final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
+      final MobilityScan mobilityScan = (MobilityScan) sourceSpectra.stream()
+          .filter(s -> s instanceof MobilityScan).findFirst().orElse(null);
+      if (mobilityScan != null && mobilityScan.getFrame() instanceof ImagingFrame imagingFrame) {
+        return imagingFrame.getMaldiSpotInfo();
+      }
+    }
+    return null;
+  }
+
   private void featureChanged(final Feature feature) {
 
     final Color markerColor = MZmineCore.getConfiguration().getDefaultColorPalette()
-        .getPositiveColorAWT();
-    final Color outlineColor = MZmineCore.getConfiguration().getDefaultColorPalette()
         .getNegativeColorAWT();
 
     imagePlot.getChart().removeAllDatasets();
@@ -146,48 +178,75 @@ public class ImageAllMsMsPane extends BorderPane {
       return;
     }
 
-    AtomicInteger integer = new AtomicInteger(10);
     imagePlot.getChart().applyWithNotifyChanges(false, () -> {
       if (feature != null) {
         imagePlot.setData(new ColoredXYZDataset(new FeatureImageProvider<>(feature,
             (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
             imageNormalization)));
 
-        imagePlot.getChart().applyWithNotifyChanges(false, () -> {
-          for (Scan scan : feature.getAllMS2FragmentScans()) {
-            final MaldiSpotInfo info = getMsMsSpotInfo(scan);
-            if (info == null) {
-              continue;
-            }
-
-            // transform the coordinates back to the original file coordinates
-            final double[] ms2Coord = transformCoordinates(info,
-                (ImagingRawDataFile) feature.getRawDataFile());
-            if (ms2Coord != null) {
-              XYPointerAnnotation msMsMarker = new XYPointerAnnotation(
-                  String.format("%.0f um, %.0f um (%s)", ms2Coord[0], ms2Coord[1], info.spotName()),
-                  ms2Coord[0], ms2Coord[1], 315);
-              msMsMarker.setBaseRadius(50);
-              msMsMarker.setTipRadius(10);
-              msMsMarker.setArrowPaint(markerColor);
-              msMsMarker.setArrowWidth(3d);
-              imagePlot.getChart().getChart().getXYPlot().addAnnotation(msMsMarker, false);
-            }
+        for (Scan scan : feature.getAllMS2FragmentScans()) {
+          final MaldiSpotInfo info = getMsMsSpotInfo(scan);
+          if (info == null) {
+            continue;
           }
-        });
+
+          // transform the coordinates back to the original file coordinates
+          final double[] ms2Coord = transformCoordinates(info,
+              (ImagingRawDataFile) feature.getRawDataFile());
+          if (ms2Coord != null) {
+            XYPointerAnnotation msMsMarker = new XYPointerAnnotation(
+                String.format("%.0f um, %.0f um (%s)", ms2Coord[0], ms2Coord[1], info.spotName()),
+                ms2Coord[0], ms2Coord[1], 315);
+            final BasicStroke stroke = new BasicStroke(2.0f);
+            msMsMarker.setBaseRadius(50);
+            msMsMarker.setTipRadius(10);
+            msMsMarker.setArrowPaint(markerColor);
+            msMsMarker.setArrowWidth(3d);
+            msMsMarker.setArrowStroke(stroke);
+            msMsMarker.setFont(markerFont);
+
+            imagePlot.getChart().getChart().getXYPlot().addAnnotation(msMsMarker, false);
+          }
+        }
       }
     });
 
-    final MobilogramChart mobilogramChart = new MobilogramChart(feature);
-    mobilogramChart.setMinHeight(200);
+    final MobilogramChart mobilogramChart = new MobilogramChart(feature, normalizeMobilograms);
     msmsContent.getChildren().add(mobilogramChart);
-    for (final Scan msms : feature.getAllMS2FragmentScans()) {
+    final List<PlotXYDataProvider> mobilogramProviders = feature.getAllMS2FragmentScans().stream()
+        .filter(msms -> msms instanceof MergedMsMsSpectrum).sorted(msmsCollisionEnergySorter).map(
+            msms -> new MobilityScanMobilogramProvider(MobilogramType.TIC,
+                ((List<MobilityScan>) (List<? extends MassSpectrum>) ((MergedMsMsSpectrum) msms).getSourceSpectra()),
+                normalizeMobilograms)).map(provider -> (PlotXYDataProvider) provider).toList();
+    mobilogramChart.addProviders(mobilogramProviders);
+
+    // have all spectra in the same range so they are easier to compare
+    final double minMz = feature.getAllMS2FragmentScans().stream().map(Scan::getDataPointMZRange)
+        .filter(Objects::nonNull).mapToDouble(Range::lowerEndpoint).min().orElse(0);
+    final double maxMz = feature.getAllMS2FragmentScans().stream().map(Scan::getDataPointMZRange)
+        .filter(Objects::nonNull).mapToDouble(Range::upperEndpoint).max()
+        .orElse(feature.getMZ() + 20d);
+
+    // add spectra sorted by collision energy
+    feature.getAllMS2FragmentScans().stream().sorted(msmsCollisionEnergySorter).map(msms -> {
       SpectraVisualizerTab ms2Tab = new SpectraVisualizerTab(msms.getDataFile());
       SpectraPlot spectrumPlot = ms2Tab.getSpectrumPlot();
+      final ValueAxis domainAxis = spectrumPlot.getXYPlot().getDomainAxis();
+
+      domainAxis.setDefaultAutoRange(new org.jfree.data.Range(minMz, maxMz));
+
       ms2Tab.loadRawData(msms);
-      msmsContent.getChildren().add(spectrumPlot);
+      final MaldiSpotInfo info = getMsMsSpotInfo(msms);
+      if (info != null) {
+        spectrumPlot.setTitle(
+            "MS2 of " + format.mz(msms.getPrecursorMz()) + " at " + info.spotName() + ", CE: "
+                + msms.getMsMsInfo().getActivationEnergy(), "");
+      }
       spectrumPlot.setMinHeight(250);
-    }
+      spectrumPlot.setLabelColorMatch(true);
+      domainAxis.setRange(minMz, maxMz);
+      return spectrumPlot;
+    }).forEachOrdered(plot -> msmsContent.getChildren().add(plot));
   }
 
   private double[] transformCoordinates(MaldiSpotInfo info, ImagingRawDataFile rawDataFile) {
@@ -211,18 +270,5 @@ public class ImageAllMsMsPane extends BorderPane {
     final Coordinates scanCoord = matchingScan.getCoordinates();
     return scanCoord != null ? new double[]{scanCoord.getX() * width, scanCoord.getY() * height}
         : null;
-  }
-
-  @Nullable
-  public static MaldiSpotInfo getMsMsSpotInfo(Scan scan) {
-    if (scan instanceof MergedMsMsSpectrum merged) {
-      final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
-      final MobilityScan mobilityScan = (MobilityScan) sourceSpectra.stream()
-          .filter(s -> s instanceof MobilityScan).findFirst().orElse(null);
-      if (mobilityScan != null && mobilityScan.getFrame() instanceof ImagingFrame imagingFrame) {
-        return imagingFrame.getMaldiSpotInfo();
-      }
-    }
-    return null;
   }
 }
