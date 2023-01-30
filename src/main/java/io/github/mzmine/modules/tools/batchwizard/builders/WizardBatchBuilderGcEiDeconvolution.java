@@ -40,6 +40,8 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
+import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
+import io.github.mzmine.modules.io.export_features_msp.AdapMspExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
@@ -148,19 +150,17 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         cropRtRange);
 //    makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
-    // TODO add ADAP resolver step
-    makeAndAddRtAdapResolver(q);
 
-    // TODO GC-EI spectral deconvolution
+    makeAndAddRtAdapResolver(q);
     makeMultiCurveResolutionStep(q);
     // currently do not support IMS with GC?
     // or just do all of it?
-    if (isImsActive) {
-      makeAndAddImsExpanderStep(q);
-      makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
-      makeAndAddMobilityResolvingStep(q);
-      makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
-    }
+//    if (isImsActive) {
+//      makeAndAddImsExpanderStep(q);
+//      makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
+//      makeAndAddMobilityResolvingStep(q);
+//      makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
+//    }
 
     // detect potential isotope pattern
     //makeAndAddIsotopeFinderStep(q);
@@ -172,11 +172,14 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
     // annotation
     //makeAndAddLibrarySearchStep(q);
-    if (isExportActive) {
-      if (exportGnps) {
-        makeAndAddGnpsExportStep(q);
-      }
-    }
+//    if (isExportActive) {
+//      if (exportGnps) {
+//        //makeAndAddGnpsExportStep(q);
+//      }
+//    }
+
+    makeAndAddMSPExportStep(q);
+
     return q;
   }
 
@@ -273,6 +276,21 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(GnpsGcExportAndSubmitModule.class), param));
+  }
+
+  protected void makeAndAddMSPExportStep(final BatchQueue q){
+    final ParameterSet param = new AdapMspExportParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), fileName.getName() + "_gc_ei_msp");
+
+    param.setParameter(AdapMspExportParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+
+    param.setParameter(AdapMspExportParameters.FILENAME, fileName);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(AdapMspExportModule.class), param));
   }
 
 }
