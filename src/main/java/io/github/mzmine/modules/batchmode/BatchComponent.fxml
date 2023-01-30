@@ -114,25 +114,11 @@
         <Insets top="5.0"/>
       </padding>
     </VBox>
-    <FlowPane alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2"
-      GridPane.rowIndex="4">
-      <children>
-        <Button fx:id="btnSetHandleIntermediateFlists" mnemonicParsing="false"
-          onAction="#onHandleIntermediateFlistsPressed" text="Apply to batch"/>
-      </children>
+    <FlowPane alignment="BOTTOM_CENTER" columnHalignment="CENTER" hgap="5.0" GridPane.columnSpan="3" GridPane.columnIndex="0" GridPane.rowIndex="4">
+      <Label alignment="CENTER" text="Intermediate feature lists"/>
+      <ComboBox fx:id="cmbHandleFlists"/>
+      <Button mnemonicParsing="false" onAction="#onHandleIntermediateFlistsPressed" text="Apply to batch"/>
     </FlowPane>
-    <FlowPane alignment="CENTER_RIGHT" GridPane.halignment="RIGHT" GridPane.rowIndex="4"
-      GridPane.valignment="CENTER">
-      <children>
-        <Label alignment="CENTER" text="Intermediate feature lists"/>
-      </children>
-    </FlowPane>
-    <ComboBox fx:id="cmbHandleFlists" GridPane.columnIndex="1"
-      GridPane.rowIndex="4">
-      <padding>
-        <Insets top="5.0"/>
-      </padding>
-    </ComboBox>
     <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
       <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
@@ -143,7 +129,8 @@
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
-      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+<!--  make this row higher so that there is a gap to the option apply to intermediate feature lists   -->
+      <RowConstraints minHeight="10.0" prefHeight="45.0" vgrow="NEVER"/>
     </rowConstraints>
   </GridPane>
 </AnchorPane>
