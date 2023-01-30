@@ -81,6 +81,8 @@ public class MobilogramChart extends BorderPane {
     if (feature != null) {
       addFeature(feature);
     }
+
+    mobilogramChart.getChart().removeLegend();
   }
 
   public void addFeature(@NotNull Feature feature) {
