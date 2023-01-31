@@ -64,23 +64,14 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
   public static final DoubleParameter PREF_WINDOW_WIDTH = new DoubleParameter(
       "Deconvolution window width (min)", "Preferred width of deconvolution windows (in minutes).",
       NumberFormat.getNumberInstance(), 0.2);
-  public static final DoubleParameter SAMPLE_COUNT_RATIO = new DoubleParameter(
-      "Min confidence (between 0 and 1)",
-      "A fraction of the total number of samples. An aligned feature must be detected at "
-          + "least in several samples.\nThis parameter determines the minimum number of samples where a "
-          + "feature must be detected.",
-      NumberFormat.getInstance(), 0.7, 0.0, 1.0);
-  public static final DoubleParameter SCORE_TOLERANCE = new DoubleParameter(
-      "Alignment Score threshold ",
-      "The minimum value of the similarity function required for features to be aligned together.",
-      NumberFormat.getInstance(), 0.75, 0.0, 1.0);
+
 
   public IonInterfaceGcElectronImpactWizardParameters(
       final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
         minNumberOfDataPoints, intraSampleRTTolerance, interSampleRTTolerance,
-        SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION, PREF_WINDOW_WIDTH, SAMPLE_COUNT_RATIO,  SCORE_TOLERANCE
+        SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION, PREF_WINDOW_WIDTH
         );
   }
 
@@ -88,8 +79,7 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
       final IonInterfaceWizardParameterFactory preset, final int minDataPoints,
       final RTTolerance intraSampleTolerance, final RTTolerance interSampleTolerance,
       final Double minFeatureHeight, final Double snThreshold,
-      final Range<Double> rtforCWT, final Double windowWidth,
-      final Double sampleCountRatio, final Double scoreTolerance) {
+      final Range<Double> rtforCWT, final Double windowWidth) {
 
     this(preset);
 
@@ -100,8 +90,6 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
     setParameter(SN_THRESHOLD, snThreshold);
     setParameter(RT_FOR_CWT_SCALES_DURATION, rtforCWT);
     setParameter(PREF_WINDOW_WIDTH, windowWidth);
-    setParameter(SAMPLE_COUNT_RATIO, sampleCountRatio);
-    setParameter(SCORE_TOLERANCE, scoreTolerance);
   }
 
 }

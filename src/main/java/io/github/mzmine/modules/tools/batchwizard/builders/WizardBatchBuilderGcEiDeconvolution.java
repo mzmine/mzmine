@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAP3DecompositionV2Parameters;
@@ -46,6 +47,7 @@ import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
@@ -81,13 +83,14 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
   private final Range<Double> rtforCWT;
   private final Double windowWidth;
   private final Double sampleCountRatio;
-  private final Double scoreTolerance;
+
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
     super(steps);
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
-    // special workflow parameter are extracted here
+    Optional<? extends WizardStepParameters> filterParams = steps.get(WizardPart.FILTER);
+    double numOfSamples = dataFiles.length;
 
     intraSampleRtTol = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.intraSampleRTTolerance);
@@ -101,10 +104,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
     windowWidth =getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.PREF_WINDOW_WIDTH);
-    sampleCountRatio =getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.SAMPLE_COUNT_RATIO);
-    scoreTolerance =getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.SCORE_TOLERANCE);
+    sampleCountRatio =getValue(filterParams,
+        FilterWizardParameters.minNumberOfSamples)/numOfSamples;
 
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
     params = steps.get(WizardPart.WORKFLOW);
@@ -181,7 +182,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     param.setParameter(ADAP3AlignerParameters.MZ_RANGE,
         mzTolInterSample);
     param.setParameter(ADAP3AlignerParameters.SCORE_TOLERANCE,
-        scoreTolerance);
+        0.5);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ADAP3AlignerModule.class),
         param));
