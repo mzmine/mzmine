@@ -92,7 +92,7 @@ import org.jfree.data.xy.XYZDataset;
 public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   private static final Logger logger = Logger.getLogger(EChartViewer.class.getName());
-
+  private final Menu exportMenu;
   // one history for each plot/subplot
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
@@ -102,7 +102,6 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
-  private final Menu exportMenu;
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
@@ -169,6 +168,10 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     // Add chart and configure
     if (chart != null) {
       setChart(chart);
+
+      getChart().getXYPlot().getDomainAxis().setUpperMargin(0.05);
+      getChart().getXYPlot().getRangeAxis().setUpperMargin(0.05);
+      getChart().getXYPlot().getRangeAxis().setLowerMargin(0.05);
     }
 
     exportMenu = (Menu) getContextMenu().getItems().get(0);
