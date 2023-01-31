@@ -102,13 +102,8 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new RTTolerance(0.1f, Unit.MINUTES));
       // different workflow for GC-EI
       case GC_EI ->
-          new IonInterfaceGcElectronImpactWizardParameters(this, 6, Range.closed(0.3, 30d),
-              new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
-              new RTTolerance(0.1f, Unit.MINUTES), 1000.0, new MZTolerance(0.05, 10),
-               5.0, Range.closed(0.001, 0.06),
-              0.2, 0.02,1, 0.5,
-              new RTTolerance(0.1f, Unit.MINUTES),
-              new MZTolerance(0.05, 10),0.5);
+          new IonInterfaceGcElectronImpactWizardParameters(this, 4, new RTTolerance(0.04f, Unit.MINUTES),
+          new RTTolerance(0.1f, Unit.MINUTES), 1000.0, 5.0, Range.closed(0.001, 0.06), 0.2, 0.5, 0.5);
       // parameters for imaging
       case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25);
       //

@@ -42,7 +42,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
     return switch (this) {
       case DDA -> super.toString();
       case MS1_ONLY -> "MS1 only";
-      case GC_EI_DECONVOLUTION -> "GC-EI deconvolution";
+      case GC_EI_DECONVOLUTION -> "GC-EI export";
       case LIBRARY_GENERATION -> "Library generation";
     };
   }
