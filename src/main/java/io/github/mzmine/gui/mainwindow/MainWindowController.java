@@ -121,6 +121,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -602,7 +603,11 @@ public class MainWindowController {
         e -> Arrays.stream(MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
             .forEach(t -> t.getActualTask().cancel()));
     miniTaskView.getProgressBarContextMenu().getItems().add(cancelAll);
-    miniTaskView.setOnProgressBarClicked(e -> MZmineCore.getDesktop().handleShowTaskView());
+    miniTaskView.setOnProgressBarClicked(e -> {
+      if(e.getButton() == MouseButton.PRIMARY) {
+        MZmineCore.getDesktop().handleShowTaskView();
+      }
+    });
 
     Timeline timeline = new Timeline(300);
     timeline.setCycleCount(Animation.INDEFINITE);
