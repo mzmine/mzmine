@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.gui.framework.fx.FilterableTreeItem;
+import io.github.mzmine.gui.framework.fx.TreeItemPredicate;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
@@ -56,11 +57,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
@@ -68,6 +67,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -77,6 +77,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -166,54 +167,32 @@ public class BatchComponentController implements LastFilesComponent {
     tvModules.setShowRoot(false);
 
     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-      String stripValue = newValue.strip().toLowerCase();
-      Predicate<Object> filter = child -> newValue.isBlank() || child.toString().toLowerCase()
-          .contains(stripValue);
-//      originalRoot.predicateProperty().set(filter);
+      // filter, expand, and select
+      TreeItemPredicate<Object> predicate = TreeItemPredicate.createSubStringPredicate(newValue);
+      originalRoot.predicateProperty().set(predicate);
 
-      for (final FilterableTreeItem<Object> childMain : originalRoot.getSourceChildren()) {
-//        childMain.predicateProperty().set(filter);
-        boolean match = false;
-        for (final FilterableTreeItem<Object> childMid : childMain.getSourceChildren()) {
-          for (final FilterableTreeItem<Object> childModule : childMid.getSourceChildren()) {
-            childModule.predicateProperty().set(filter);
-            match = match || filter.test(childModule.getValue());
-          }
-          childMid.setExpanded(match);
-        }
-        childMain.setExpanded(match);
-      }
-
-//      if (!newValue.isEmpty() && !newValue.isBlank()) {
-//        for (FilterableTreeItem<Object> child : originalRoot.getChildren()) {
-//          child.setExpanded(hasMatchingChild(child, newValue.toLowerCase()));
-//        }
-//        selectFirstMatch(originalRoot, newValue.toLowerCase());
-//      } else {
-//        for (FilterableTreeItem<Object> child : originalRoot.getChildren()) {
-//          child.setExpanded(false);
-//        }
-//      }
+      var firstMatchingNode = expandAllMatches(originalRoot, predicate);
+      tvModules.getSelectionModel().select(firstMatchingNode);
     });
 
     searchField.setOnKeyPressed(event -> {
       if (event.getCode() == KeyCode.ENTER) {
         event.consume();
-        onAddModulePressed(null);
+        onAddModulePressed();
       }
     });
 
     tvModules.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
         e.consume();
-        onAddModulePressed(null);
+        onAddModulePressed();
       }
     });
 
     currentStepsList.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
         e.consume();
-        setParametersPressed(null);
+        setParametersPressed();
       }
     });
 
@@ -242,83 +221,97 @@ public class BatchComponentController implements LastFilesComponent {
 //    return false;
 //  }
 
-  private boolean selectFirstMatch(FilterableTreeItem<Object> item, final String filter) {
-    if (!item.isLeaf()) {
-      for (var child : item.getSourceChildren()) {
-        if (selectFirstMatch(child, filter)) {
-          return true;
-        }
-      }
-    } else {
-      if (item.getValue().toString().toLowerCase().contains(filter)) {
-        tvModules.getSelectionModel().select(item);
-        return true;
+  /**
+   * Expands all matching nodes if on of their children has a match
+   *
+   * @param node   the TreeNode
+   * @param filter the sub string filter
+   * @return the first matching leaf - or other node if no leaf matches
+   */
+  @Nullable
+  private TreeItem<Object> expandAllMatches(TreeItem<Object> node,
+      final TreeItemPredicate<Object> filter) {
+    // prefer leaf to other nodes
+    TreeItem<Object> firstMatch = null;
+
+    for (final TreeItem<Object> child : node.getChildren()) {
+      var match = expandAllMatches(child, filter);
+      if (firstMatch == null || (!firstMatch.isLeaf() && match != null && match.isLeaf())) {
+        firstMatch = match;
       }
     }
-    return false;
+    if (firstMatch == null && filter.test(node.getParent(), node.getValue())) {
+      firstMatch = node;
+    }
+
+    node.setExpanded(firstMatch != null);
+
+    return firstMatch;
   }
 
-  public void onAddModulePressed(ActionEvent actionEvent) {
+  public void onAddModulePressed() {
     // Processing module selected?
-    final Object selectedItem = tvModules.getSelectionModel().getSelectedItem().getValue();
-    if (selectedItem == null) {
+    TreeItem<Object> selectedNode = tvModules.getSelectionModel().getSelectedItem();
+    if (selectedNode == null || selectedNode.getValue() == null) {
       return;
     }
-    if (selectedItem instanceof BatchModuleWrapper wrappedModule) {
-      // Show method's set-up dialog.
-      final MZmineProcessingModule selectedMethod = (MZmineProcessingModule) wrappedModule.getModule();
-      final ParameterSet methodParams = MZmineCore.getConfiguration()
-          .getModuleParameters(selectedMethod.getClass());
-
-      // Clone the parameter set
-      final ParameterSet stepParams =
-          methodParams == null ? new SimpleParameterSet() : methodParams.cloneParameterSet();
-
-      // If this is not the first batch step, set the default for raw
-      // data file and feature list selection
-      if (!batchQueue.isEmpty()) {
-        for (Parameter<?> param : stepParams.getParameters()) {
-          if (param instanceof final RawDataFilesParameter rdfp) {
-            final RawDataFilesSelection selection = new RawDataFilesSelection();
-            selection.setSelectionType(RawDataFilesSelectionType.BATCH_LAST_FILES);
-            rdfp.setValue(selection);
-          }
-          if (param instanceof final FeatureListsParameter plp) {
-            final FeatureListsSelection selection = new FeatureListsSelection();
-            selection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS);
-            plp.setValue(selection);
-          }
-        }
-      }
-
-      // Configure parameters
-      if (stepParams.getParameters().length > 0) {
-        ExitCode exitCode = stepParams.showSetupDialog(false);
-        if (exitCode != ExitCode.OK) {
-          return;
-        }
-      }
-
-      // Make a new batch step
-      final MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
-          selectedMethod, stepParams);
-
-      // Add step to queue.
-      batchQueue.add(step);
-      currentStepsList.setItems(batchQueue);
-      currentStepsList.getSelectionModel().select(batchQueue.size() - 1);
-
+    final Object selectedItem = selectedNode.getValue();
+    if (!(selectedItem instanceof BatchModuleWrapper wrappedModule)) {
+      return;
     }
+
+    // Show method's set-up dialog.
+    final MZmineProcessingModule selectedMethod = (MZmineProcessingModule) wrappedModule.getModule();
+    final ParameterSet methodParams = MZmineCore.getConfiguration()
+        .getModuleParameters(selectedMethod.getClass());
+
+    // Clone the parameter set
+    final ParameterSet stepParams =
+        methodParams == null ? new SimpleParameterSet() : methodParams.cloneParameterSet();
+
+    // If this is not the first batch step, set the default for raw
+    // data file and feature list selection
+    if (!batchQueue.isEmpty()) {
+      for (Parameter<?> param : stepParams.getParameters()) {
+        if (param instanceof final RawDataFilesParameter rdfp) {
+          final RawDataFilesSelection selection = new RawDataFilesSelection();
+          selection.setSelectionType(RawDataFilesSelectionType.BATCH_LAST_FILES);
+          rdfp.setValue(selection);
+        }
+        if (param instanceof final FeatureListsParameter plp) {
+          final FeatureListsSelection selection = new FeatureListsSelection();
+          selection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS);
+          plp.setValue(selection);
+        }
+      }
+    }
+
+    // Configure parameters
+    if (stepParams.getParameters().length > 0) {
+      ExitCode exitCode = stepParams.showSetupDialog(false);
+      if (exitCode != ExitCode.OK) {
+        return;
+      }
+    }
+
+    // Make a new batch step
+    final MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+        selectedMethod, stepParams);
+
+    // Add step to queue.
+    batchQueue.add(step);
+    currentStepsList.setItems(batchQueue);
+    currentStepsList.getSelectionModel().select(batchQueue.size() - 1);
   }
 
-  public void onRemoveModulePressed(ActionEvent actionEvent) {
+  public void onRemoveModulePressed() {
     var selected = currentStepsList.getSelectionModel().getSelectedItem();
     if (selected != null) {
       batchQueue.remove(selected);
     }
   }
 
-  public void setParametersPressed(ActionEvent actionEvent) {
+  public void setParametersPressed() {
     // Configure the selected item.
     var selected = currentStepsList.getSelectionModel().getSelectedItem();
     final ParameterSet parameters = selected == null ? null : selected.getParameterSet();
@@ -327,7 +320,7 @@ public class BatchComponentController implements LastFilesComponent {
     }
   }
 
-  public void onLoadPressed(ActionEvent actionEvent) {
+  public void onLoadPressed() {
     try {
       final FileChooser chooser = new FileChooser();
 
@@ -351,7 +344,7 @@ public class BatchComponentController implements LastFilesComponent {
     }
   }
 
-  public void onSavePressed(ActionEvent actionEvent) {
+  public void onSavePressed() {
     try {
       final FileChooser chooser = new FileChooser();
       final ExtensionFilter extension = new ExtensionFilter("MZmine batch files", "*.xml");
@@ -373,14 +366,14 @@ public class BatchComponentController implements LastFilesComponent {
     }
   }
 
-  public void clearPressed(ActionEvent actionEvent) {
+  public void clearPressed() {
     batchQueue.clear();
   }
 
   /**
    * Add a file to the last files button if not already added
    *
-   * @param f
+   * @param f last file
    */
   public void addLastUsedFile(File f) {
     btnLoadLast.addFile(f);
@@ -488,23 +481,23 @@ public class BatchComponentController implements LastFilesComponent {
 
     int index = currentStepsList.getSelectionModel().getSelectedIndex();
     switch (option) {
-      case Replace:
+      case Replace -> {
         index = 0;
         batchQueue.clear();
         batchQueue.addAll(queue);
-        break;
-      case Prepend:
+      }
+      case Prepend -> {
         index = 0;
         batchQueue.addAll(0, queue);
-        break;
-      case Insert:
-        index = index < 0 ? 0 : index;
+      }
+      case Insert -> {
+        index = Math.max(index, 0);
         batchQueue.addAll(index, queue);
-        break;
-      case Append:
+      }
+      case Append -> {
         index = batchQueue.size();
         batchQueue.addAll(queue);
-        break;
+      }
     }
 
     selectStep(index);
