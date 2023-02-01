@@ -39,6 +39,7 @@ import io.github.mzmine.gui.mainwindow.tasksview.TasksView;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
@@ -57,6 +58,7 @@ import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
@@ -534,6 +536,16 @@ public class MainWindowController {
         MZmineCore.getDesktop().handleShowTaskView();
       }
     });
+
+    final MenuItem cancelBatch = new MenuItem("Cancel batch");
+    cancelBatch.setOnAction(e -> {
+      final Optional<BatchTask> batchTask = Arrays.stream(
+              MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
+          .filter(t -> t.getActualTask() instanceof BatchTask)
+          .map(t -> (BatchTask) t.getActualTask()).findFirst();
+      batchTask.ifPresent(AbstractTask::cancel);
+    });
+    miniTaskView.getBatchBarContextMenu().getItems().add(cancelBatch);
 
     Timeline timeline = new Timeline(300);
     timeline.setCycleCount(Animation.INDEFINITE);

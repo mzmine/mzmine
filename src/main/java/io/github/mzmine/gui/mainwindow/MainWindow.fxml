@@ -62,23 +62,24 @@
     xmlns="http://javafx.com/javafx/14.0.1">
     <bottom>
       <VBox fx:id="bottomBox" maxHeight="130">
-        <TasksView fx:id="taskView" maxHeight="1000000"/>
+        <TasksView fx:id="taskView"/>
         <StatusBar maxHeight="30" minHeight="30" fx:id="statusBar">
           <rightItems>
-            <HBox spacing="5" fx:id="statusBarRight">
-              <MiniTaskView minWidth="200" opacity="0.3" prefWidth="200" fx:id="miniTaskView"/>
-              <StackPane scaleShape="true">
-                <Label alignment="CENTER"
-                  minWidth="150" onMouseClicked="#handleMemoryBarClick"
-                  prefWidth="150" fx:id="memoryBarLabel">
-                  <tooltip>
-                    <Tooltip text="Free/total Java heap size"/>
-                  </tooltip>
-                </Label>
-                <ProgressBar minWidth="150" opacity="0.3"
-                  prefWidth="150" fx:id="memoryBar"/>
-              </StackPane>
-            </HBox>
+            <HBox spacing="5">
+              <MiniTaskView fx:id="miniTaskView" progressBarOpacity="0.3" prefWidth="250"
+              maxWidth="300" minWidth="250" alignment="CENTER_RIGHT" hgap="5"/>
+                <StackPane scaleShape="true">
+                  <Label alignment="CENTER"
+                    minWidth="150" onMouseClicked="#handleMemoryBarClick"
+                    prefWidth="150" fx:id="memoryBarLabel">
+                    <tooltip>
+                      <Tooltip text="Free/total Java heap size"/>
+                    </tooltip>
+                  </Label>
+                  <ProgressBar minWidth="150" opacity="0.3"
+                    prefWidth="150" fx:id="memoryBar"/>
+                </StackPane>
+              </HBox>
           </rightItems>
         </StatusBar>
       </VBox>

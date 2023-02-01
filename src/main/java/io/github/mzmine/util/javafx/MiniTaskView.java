@@ -25,51 +25,107 @@
 
 package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.TaskController;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 
-public class MiniTaskView extends StackPane {
+public class MiniTaskView extends FlowPane {
 
-  private final ProgressBar progressBar = new ProgressBar(0.0d);
+  private final ProgressBar tasksProgressBar = new ProgressBar(0.0d);
+  private final Label tasksLabel = new Label();
+
+  private final ProgressBar batchProgressBar = new ProgressBar(0.0d);
+  private final Label batchLabel = new Label();
+  private final StackPane batchPane = new StackPane();
   private ContextMenu contextMenu = null;
-  private final Label label = new Label();
+  private ContextMenu batchContextMenu = null;
 
-  public MiniTaskView() {
-    this.getChildren().add(progressBar);
-    this.getChildren().add(label);
-    label.setMouseTransparent(true);
+  public MiniTaskView(@NamedArg("progressBarOpacity") Double progressBarOpacity) {
 
-    widthProperty().addListener(
-        ((observableValue, oldValue, newValue) -> progressBar.setMinWidth(newValue.doubleValue())));
-    label.setText("%d tasks".formatted(0));
+    batchPane.getChildren().add(batchProgressBar);
+    batchPane.getChildren().add(batchLabel);
+    batchLabel.setMouseTransparent(true);
+    batchPane.setVisible(false);
+    getChildren().add(batchPane);
+
+    var mainProgress = new StackPane();
+    mainProgress.getChildren().add(tasksProgressBar);
+    mainProgress.getChildren().add(tasksLabel);
+    tasksLabel.setMouseTransparent(true);
+    getChildren().add(mainProgress);
+
+    widthProperty().addListener(((observableValue, oldValue, newValue) -> {
+      tasksProgressBar.setMinWidth(Math.floor((getWidth() - getHgap()) / 2));
+      batchProgressBar.setMinWidth(Math.floor((getWidth() - getHgap()) / 2));
+    }));
+
+    if (progressBarOpacity != null) {
+      batchProgressBar.setOpacity(progressBarOpacity);
+      tasksProgressBar.setOpacity(progressBarOpacity);
+    }
+
+    tasksLabel.setText("%d tasks".formatted(0));
   }
 
   public void refresh(TaskController controller) {
     if (controller == null) {
-      label.setText("ERROR: No task controller.");
+      tasksLabel.setText("ERROR: No task controller.");
       return;
     }
     final int percent = controller.getTaskQueue().getTotalPercentComplete();
-    final int tasks = controller.getTaskQueue().getQueueSnapshot().length;
+    final WrappedTask[] queueSnapshot = controller.getTaskQueue().getQueueSnapshot();
+    final int tasks = queueSnapshot.length;
 
-    progressBar.setProgress(percent * 0.01);
-    label.setText(tasks != 0 ? "%d tasks (%d %%)".formatted(tasks, percent) : "%d tasks".formatted(tasks));
+    tasksProgressBar.setProgress(percent * 0.01);
+    tasksLabel.setText(
+        tasks != 0 ? "%d tasks (%d %%)".formatted(tasks, percent) : "%d tasks".formatted(tasks));
+
+    if (controller.isTaskInstanceRunningOrQueued(BatchTask.class)) {
+      if (!getChildren().contains(batchPane)) {
+        batchPane.setVisible(true);
+        getChildren().add(0, batchPane);
+      }
+      for (WrappedTask wrappedTask : queueSnapshot) {
+        if (wrappedTask.getActualTask() instanceof BatchTask batchTask) {
+          final double batchFinished = batchTask.getFinishedPercentage();
+          batchProgressBar.setProgress(batchFinished);
+          batchLabel.setText(batchTask.getTaskDescription());
+        }
+      }
+    } else {
+      getChildren().remove(batchPane);
+      batchPane.setVisible(false);
+      batchProgressBar.setProgress(0d);
+      batchLabel.setText("No batch");
+    }
   }
 
   public ContextMenu getProgressBarContextMenu() {
     if (contextMenu == null) {
       contextMenu = new ContextMenu();
-      progressBar.setContextMenu(contextMenu);
+      tasksProgressBar.setContextMenu(contextMenu);
     }
     return contextMenu;
   }
 
   public void setOnProgressBarClicked(EventHandler<? super MouseEvent> e) {
-    progressBar.setOnMousePressed(e);
+    tasksProgressBar.setOnMousePressed(e);
+    batchProgressBar.setOnMousePressed(e);
+  }
+
+  public ContextMenu getBatchBarContextMenu() {
+    if (batchContextMenu == null) {
+      batchContextMenu = new ContextMenu();
+      batchProgressBar.setContextMenu(batchContextMenu);
+    }
+    return batchProgressBar.getContextMenu();
   }
 }
