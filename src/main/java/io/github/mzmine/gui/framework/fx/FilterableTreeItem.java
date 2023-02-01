@@ -25,41 +25,58 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.TreeItem;
 
 public class FilterableTreeItem<T> extends TreeItem<T> {
 
   private final ObservableList<FilterableTreeItem<T>> sourceChildren = FXCollections.observableArrayList();
-  private final ObjectProperty<TreeItemPredicate<T>> predicate = new SimpleObjectProperty<>();
+  private TreeItemPredicate<T> predicate = TreeItemPredicate.create(t -> true);
 
   public FilterableTreeItem(T value) {
     super(value);
-    FilteredList<FilterableTreeItem<T>> filteredChildren = new FilteredList<>(sourceChildren);
-    filteredChildren.predicateProperty().bind(Bindings.createObjectBinding(() -> child -> {
-      if (child instanceof FilterableTreeItem<T> fchild) {
-        fchild.predicateProperty().set(predicate.get());
-      }
-      if (predicate.get() == null || !child.getChildren().isEmpty()) {
-        return true;
-      }
-      return this.predicate.get().test(this, child.getValue());
-    }, predicate));
-
-    Bindings.bindContent(super.getChildren(), filteredChildren);
+    sourceChildren.addListener(
+        (ListChangeListener<? super FilterableTreeItem<T>>) c -> expandAllMatches(predicate));
   }
 
   public ObservableList<FilterableTreeItem<T>> getSourceChildren() {
     return sourceChildren;
   }
 
-  public ObjectProperty<TreeItemPredicate<T>> predicateProperty() {
-    return predicate;
+  public void setPredicate(final TreeItemPredicate<T> predicate) {
+    this.predicate = predicate != null ? predicate : TreeItemPredicate.create(v -> true);
   }
 
+  /**
+   * Expands all matching nodes if on of their children has a match
+   *
+   * @param filter the sub string filter
+   * @return the first matching leaf - or other node if no leaf matches
+   */
+  public FilterableTreeItem<T> expandAllMatches(final TreeItemPredicate<T> filter) {
+    setPredicate(filter);
+    // prefer leaf to other nodes
+    FilterableTreeItem<T> firstMatch = null;
+
+    getChildren().setAll(getSourceChildren());
+
+    for (final FilterableTreeItem<T> child : getSourceChildren()) {
+      var match = child.expandAllMatches(filter);
+      if (match != null && (firstMatch == null || !firstMatch.isLeaf() && match.isLeaf())) {
+        firstMatch = match;
+      }
+    }
+    if (firstMatch == null && filter.test(this.getParent(), this.getValue())) {
+      firstMatch = this;
+    }
+
+    this.setExpanded(firstMatch != null);
+
+    // only show expanded
+    getChildren().setAll(sourceChildren.stream().filter(TreeItem::isExpanded).toList());
+
+    return firstMatch;
+  }
 }

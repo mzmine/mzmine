@@ -77,7 +77,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -168,10 +167,10 @@ public class BatchComponentController implements LastFilesComponent {
 
     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
       // filter, expand, and select
-      TreeItemPredicate<Object> predicate = TreeItemPredicate.createSubStringPredicate(newValue);
-      originalRoot.predicateProperty().set(predicate);
+      TreeItemPredicate<Object> predicate = TreeItemPredicate.createSubStringPredicate(
+          newValue.split(" "));
 
-      var firstMatchingNode = expandAllMatches(originalRoot, predicate);
+      var firstMatchingNode = originalRoot.expandAllMatches(predicate);
       tvModules.getSelectionModel().select(firstMatchingNode);
     });
 
@@ -220,34 +219,6 @@ public class BatchComponentController implements LastFilesComponent {
 //    }
 //    return false;
 //  }
-
-  /**
-   * Expands all matching nodes if on of their children has a match
-   *
-   * @param node   the TreeNode
-   * @param filter the sub string filter
-   * @return the first matching leaf - or other node if no leaf matches
-   */
-  @Nullable
-  private TreeItem<Object> expandAllMatches(TreeItem<Object> node,
-      final TreeItemPredicate<Object> filter) {
-    // prefer leaf to other nodes
-    TreeItem<Object> firstMatch = null;
-
-    for (final TreeItem<Object> child : node.getChildren()) {
-      var match = expandAllMatches(child, filter);
-      if (firstMatch == null || (!firstMatch.isLeaf() && match != null && match.isLeaf())) {
-        firstMatch = match;
-      }
-    }
-    if (firstMatch == null && filter.test(node.getParent(), node.getValue())) {
-      firstMatch = node;
-    }
-
-    node.setExpanded(firstMatch != null);
-
-    return firstMatch;
-  }
 
   public void onAddModulePressed() {
     // Processing module selected?
@@ -505,14 +476,6 @@ public class BatchComponentController implements LastFilesComponent {
     // add to last used files
     addLastUsedFile(file);
   }
-
-//  private FilterableTreeItem<Object> cloneTreeItem(FilterableTreeItem<Object> item) {
-//    // not a deep clone
-//    final FilterableTreeItem<Object> clone = new FilterableTreeItem<>(item.getValue());
-//    item.getChildren().forEach(child -> clone.getChildren().add(cloneTreeItem(child)));
-//    return item;
-//  }
-
 
   // Queue operations.
   private enum QueueOperations {

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.framework.fx;
 
+import java.util.Arrays;
 import java.util.function.Predicate;
 import javafx.scene.control.TreeItem;
 
@@ -53,8 +54,25 @@ public interface TreeItemPredicate<T> {
    * @return a sub string filter
    */
   static TreeItemPredicate<Object> createSubStringPredicate(final String subStr) {
-    return create(actor -> subStr.isBlank() || actor.toString().toLowerCase()
-        .contains(subStr.strip().toLowerCase()));
+    final String cleanSub = subStr.strip().toLowerCase();
+    return create(name -> subStr.isBlank() || name.toString().toLowerCase().contains(cleanSub));
+  }
+
+  /**
+   * Creates a TreeItemPredicate that matches a sub string within the name of the tree items
+   *
+   * @param subStrs a list of sub strings to match. will be stripped and toLower for matching
+   * @return a sub string filter
+   */
+  static TreeItemPredicate<Object> createSubStringPredicate(final String[] subStrs) {
+    final boolean noFilter =
+        subStrs == null || subStrs.length == 0 || Arrays.stream(subStrs).allMatch(String::isBlank);
+    String[] cleanStrs = subStrs == null ? null
+        : Arrays.stream(subStrs).map(String::strip).map(String::toLowerCase).toArray(String[]::new);
+    return create(actor -> {
+      String title = actor.toString().toLowerCase();
+      return noFilter || Arrays.stream(cleanStrs).allMatch(subStr -> title.contains(subStr));
+    });
   }
 
   /**
