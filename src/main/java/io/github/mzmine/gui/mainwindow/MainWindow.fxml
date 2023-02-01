@@ -100,33 +100,24 @@
                         <contextMenu>
                           <ContextMenu fx:id="rawDataContextMenu">
                             <items>
-                              <Menu text="Raw data export">
-                                <MenuItem onAction="#runModule"
-                                  text="Export raw data file to mzML"
-                                  userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule"/>
-                                <MenuItem onAction="#runModule"
-                                  text="Export scans mgf, txt, msp and mzML"
-                                  userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
-                              </Menu>
-                              <Menu text="Set color" fx:id="rawDataSetColorMenu">
-                                <!-- <ColorPickerMenuItem fx:id="rawDataFileColorPicker" /> add in controller, this breaks fxml... -->
-                              </Menu>
                               <MenuItem onAction="#handleShowRawDataOverview"
                                 text="Show raw data overview"/>
-
                               <MenuItem onAction="#handleShowIMSDataOverview"
                                 text="Show ion mobility raw data overview"/>
                               <MenuItem onAction="#handleShowImageViewer"
                                 text="Show image viewer"/>
+
+                              <SeparatorMenuItem/>
                               <MenuItem onAction="#handleShowChromatogram"
                                 text="Show chromatogram"/>
                               <MenuItem onAction="#handleShowMsSpectrum"
                                 text="Show mass spectrum"/>
                               <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
                               <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
-
                               <MenuItem onAction="#handleShowMsMsPlot"
                                 text="Show MS/MS scatter plot"/>
+
+                              <SeparatorMenuItem/>
                               <MenuItem onAction="#handleRawDataSort"
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleRemoveFileExtension"
@@ -135,17 +126,24 @@
                               <MenuItem onAction="#handleShowFileSummary"
                                 text="Show file summary"/>
 
+                              <SeparatorMenuItem/>
+                              <Menu text="Raw data export">
+                                <MenuItem onAction="#runModule"
+                                  text="Export raw data file to mzML"
+                                  userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule"/>
+                                <MenuItem onAction="#runModule"
+                                  text="Export scans mgf, txt, msp and mzML"
+                                  userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
+                              </Menu>
                               <MenuItem onAction="#handleRenameRawData"
                                 text="Rename" fx:id="rawDataRenameMenuItem"/>
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
                               <MenuItem onAction="#handleGroupRawDataFiles"
                                 text="Group/Ungroup files" fx:id="rawDataGroupMenuItem"/>
-                              <SeparatorMenuItem/>
-                              <SeparatorMenuItem/>
 
                               <SeparatorMenuItem/>
-                              <SeparatorMenuItem/>
+                              <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
@@ -171,14 +169,13 @@
                                 fx:id="showFeatureListSummaryMenuItem"/>
                               <MenuItem onAction="#handleShowScatterPlot"
                                 text="Show scatter plot"/>
-
+                              <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleRenameFeatureList"
-                                text="Rename" fx:id="featureListsRenameMenuItem"/>
+                                text="Rename feature list" fx:id="featureListsRenameMenuItem"/>
                               <MenuItem onAction="#handleRemoveFeatureList"
                                 text="Remove feature list" fx:id="featureListsRemoveMenuItem"/>
-                              <SeparatorMenuItem/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
