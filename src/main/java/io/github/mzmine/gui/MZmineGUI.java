@@ -38,6 +38,7 @@ import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.mainwindow.tasksview.TasksView;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
@@ -124,7 +125,7 @@ public class MZmineGUI extends Application implements Desktop {
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
-  private static WindowLocation currentTaskManagerLocation = WindowLocation.MAIN;
+  private static WindowLocation currentTaskManagerLocation = WindowLocation.TAB;
   private static Stage currentTaskWindow;
   private Label statusLabel;
 
@@ -368,21 +369,11 @@ public class MZmineGUI extends Application implements Desktop {
     event.consume();
   }
 
-  public static TableView<WrappedTask> removeTasksFromBottom() {
-    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
-    mainWindowController.getBottomBox().getChildren().remove(tasksView);
-    return tasksView;
-  }
-
-  public static void addTasksToBottom() {
-    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
-    ObservableList<Node> children = mainWindowController.getBottomBox().getChildren();
-    if (!children.contains(tasksView)) {
-      children.add(0, tasksView);
-    }
-  }
-
   public static void handleTaskManagerLocationChange(WindowLocation loc) {
+    if (mainWindowController == null) {
+      return;
+    }
+
     if (loc == TAB && MZmineCore.getDesktop().getAllTabs().stream()
         .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
         currentTaskManagerLocation))) {
@@ -391,12 +382,12 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     String title = "Tasks";
-    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+    TasksView tasksView = mainWindowController.getTasksView();
 
     // remove
     switch (currentTaskManagerLocation) {
       case TAB -> mainWindowController.removeTab(title);
-      case MAIN -> removeTasksFromBottom();
+      case MAIN -> mainWindowController.removeTasksFromBottom();
       case HIDDEN -> {
       }
       case EXTERNAL -> {
@@ -418,7 +409,7 @@ public class MZmineGUI extends Application implements Desktop {
       case EXTERNAL -> {
         currentTaskWindow = addWindow(tasksView, title);
       }
-      case MAIN -> addTasksToBottom();
+      case MAIN -> mainWindowController.addTasksToBottom();
       case HIDDEN -> {
       }
     }
@@ -567,7 +558,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public TableView<WrappedTask> getTasksView() {
-    return mainWindowController.getTasksView();
+    return mainWindowController.getTasksView().getTable();
   }
 
   @Override
@@ -769,6 +760,9 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public List<MZmineTab> getAllTabs() {
+    if (mainWindowController == null) {
+      return List.of();
+    }
     List<MZmineTab> tabs = new ArrayList<>();
 
     mainWindowController.getTabs().forEach(t -> {
@@ -789,6 +783,10 @@ public class MZmineGUI extends Application implements Desktop {
   @NotNull
   @Override
   public List<MZmineTab> getTabsInMainWindow() {
+    if (mainWindowController == null) {
+      return List.of();
+    }
+
     List<MZmineTab> tabs = new ArrayList<>();
 
     mainWindowController.getTabs().forEach(t -> {
