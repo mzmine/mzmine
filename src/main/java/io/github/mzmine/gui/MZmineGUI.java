@@ -26,6 +26,7 @@
 package io.github.mzmine.gui;
 
 
+import static io.github.mzmine.gui.WindowLocation.TAB;
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 
 import com.google.common.collect.ImmutableList;
@@ -382,7 +383,10 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   public static void handleTaskManagerLocationChange(WindowLocation loc) {
-    if (Objects.equals(loc, currentTaskManagerLocation)) {
+    if (loc == TAB && MZmineCore.getDesktop().getAllTabs().stream()
+        .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
+        currentTaskManagerLocation))) {
+      // only return if we have that tab
       return;
     }
 
@@ -409,6 +413,7 @@ public class MZmineGUI extends Application implements Desktop {
         MZmineTab tab = new SimpleTab(title);
         tab.setContent(tasksView);
         MZmineCore.getDesktop().addTab(tab);
+        mainWindowController.selectTab(title);
       }
       case EXTERNAL -> {
         currentTaskWindow = addWindow(tasksView, title);
@@ -419,6 +424,28 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     currentTaskManagerLocation = loc;
+  }
+
+  @Override
+  public void handleShowTaskView() {
+    switch (currentTaskManagerLocation) {
+      case MAIN -> { // nothing, already visible
+      }
+      case TAB -> {
+        handleTaskManagerLocationChange(TAB);
+        mainWindowController.selectTab("Tasks");
+      }
+      case EXTERNAL -> {
+        if (currentTaskWindow != null) {
+          currentTaskWindow.hide();
+          currentTaskWindow.show();
+        } else {
+          handleTaskManagerLocationChange(TAB);
+        }
+      }
+      case HIDDEN -> handleTaskManagerLocationChange(TAB);
+
+    }
   }
 
   @Override

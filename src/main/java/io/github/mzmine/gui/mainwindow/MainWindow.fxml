@@ -25,8 +25,9 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 
-<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>
+<!--<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>-->
 <?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
+<?import io.github.mzmine.util.javafx.MiniTaskView?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
@@ -43,6 +44,7 @@
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.Scene?>
@@ -81,9 +83,12 @@
                             <contextMenu>
                               <ContextMenu fx:id="rawDataContextMenu">
                                 <items>
-                                  <MenuItem text="Show raw data overview" onAction="#handleShowRawDataOverview"/>
-                                  <MenuItem text="Show ion mobility raw data overview" onAction="#handleShowIMSDataOverview"/>
-                                  <MenuItem text="Show image viewer" onAction="#handleShowImageViewer" />
+                                  <MenuItem text="Show raw data overview"
+                                    onAction="#handleShowRawDataOverview"/>
+                                  <MenuItem text="Show ion mobility raw data overview"
+                                    onAction="#handleShowIMSDataOverview"/>
+                                  <MenuItem text="Show image viewer"
+                                    onAction="#handleShowImageViewer"/>
 
                                   <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleShowChromatogram"
@@ -96,20 +101,22 @@
                                     text="Show MS/MS scatter plot"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem onAction="#handleRawDataSort" text="Sort alphabetically"/>
+                                  <MenuItem onAction="#handleRawDataSort"
+                                    text="Sort alphabetically"/>
                                   <MenuItem fx:id="rawDataRemoveExtensionMenuItem"
                                     onAction="#handleRemoveFileExtension"
                                     text="Remove file extension"/>
-                                  <MenuItem onAction="#handleShowFileSummary" text="Show file summary"/>
+                                  <MenuItem onAction="#handleShowFileSummary"
+                                    text="Show file summary"/>
 
                                   <SeparatorMenuItem/>
                                   <Menu text="Raw data export">
                                     <MenuItem text="Export raw data file to mzML"
                                       onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule" />
+                                      userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule"/>
                                     <MenuItem text="Export scans mgf, txt, msp and mzML"
                                       onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule" />
+                                      userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
                                   </Menu>
                                   <MenuItem fx:id="rawDataRenameMenuItem"
                                     onAction="#handleRenameRawData" text="Rename"/>
@@ -120,7 +127,7 @@
 
                                   <SeparatorMenuItem/>
                                   <Menu text="Set color" fx:id="rawDataSetColorMenu">
-                                    <ColorPickerMenuItem fx:id="rawDataFileColorPicker" />
+                                    <!-- <ColorPickerMenuItem fx:id="rawDataFileColorPicker" /> add in controller, this breaks fxml... -->
                                   </Menu>
                                 </items>
                               </ContextMenu>
@@ -143,7 +150,8 @@
                                   <MenuItem fx:id="openFeatureListMenuItem"
                                     text="Open feature list" onAction="#handleOpenFeatureList"/>
                                   <MenuItem fx:id="showFeatureListSummaryMenuItem"
-                                    text="Show feature list summary" onAction="#handleShowFeatureListSummary"/>
+                                    text="Show feature list summary"
+                                    onAction="#handleShowFeatureListSummary"/>
                                   <MenuItem text="Show scatter plot"
                                     onAction="#handleShowScatterPlot"/>
 
@@ -236,17 +244,20 @@
         </TableView>
         <StatusBar fx:id="statusBar" minHeight="30" maxHeight="30">
           <rightItems>
-            <StackPane scaleShape="true">
-              <ProgressBar fx:id="memoryBar" opacity="0.3"
-                prefWidth="150" minWidth="150"/>
-              <Label fx:id="memoryBarLabel"
-                onMouseClicked="#handleMemoryBarClick" prefWidth="150"
-                minWidth="150" alignment="CENTER">
-                <tooltip>
-                  <Tooltip text="Free/total Java heap size"/>
-                </tooltip>
-              </Label>
-            </StackPane>
+            <HBox fx:id="statusBarRight" spacing="5">
+              <MiniTaskView fx:id="miniTaskView" opacity="0.3" prefWidth="200" minWidth="200"/>
+              <StackPane scaleShape="true">
+                <ProgressBar fx:id="memoryBar" opacity="0.3"
+                  prefWidth="150" minWidth="150"/>
+                <Label fx:id="memoryBarLabel"
+                  onMouseClicked="#handleMemoryBarClick" prefWidth="150"
+                  minWidth="150" alignment="CENTER">
+                  <tooltip>
+                    <Tooltip text="Free/total Java heap size"/>
+                  </tooltip>
+                </Label>
+              </StackPane>
+            </HBox>
           </rightItems>
         </StatusBar>
       </VBox>

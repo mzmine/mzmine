@@ -63,6 +63,7 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.MiniTaskView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
@@ -71,8 +72,11 @@ import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -216,6 +220,9 @@ public class MainWindowController {
   private Label memoryBarLabel;
 
   @FXML
+  private ProgressBar miniProgressBar;
+
+  @FXML
   private TableColumn<WrappedTask, String> taskNameColumn;
 
   @FXML
@@ -226,6 +233,9 @@ public class MainWindowController {
 
   @FXML
   private TableColumn<WrappedTask, Double> taskProgressColumn;
+
+  @FXML
+  private MiniTaskView miniTaskView;
 
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
@@ -495,16 +505,8 @@ public class MainWindowController {
     }));
     memoryUpdater.play();
 
-    // Setup the Timeline to update the MZmine tasks periodically final
-    /*
-     * Timeline msdkTaskUpdater = new Timeline(); UPDATE_FREQUENCY = 50; // ms
-     * msdkTaskUpdater.setCycleCount(Animation.INDEFINITE); msdkTaskUpdater.getKeyFrames() .add(new
-     * KeyFrame(Duration.millis(UPDATE_FREQUENCY), e -> {
-     *
-     * Collection<Task<?>> tasks = tasksView.getTasks(); for (Task<?> task : tasks) { if (task
-     * instanceof MZmineTask) { MZmineTask mzmineTask = (MZmineTask) task;
-     * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
-     */
+    initMiniTaskView();
+
 
     // Update rawDataList context menu depending on selected items
     rawDataList.getSelectionModel().getSelectedItems()
@@ -562,7 +564,7 @@ public class MainWindowController {
                   .get(0) instanceof GroupEntity) {
                 featureListsRenameMenuItem.setText("Rename group");
               } else {
-                featureListsRenameMenuItem.setText("Rename file");
+                featureListsRenameMenuItem.setText("Rename feature list");
               }
             } else {
               featureListsRenameMenuItem.setDisable(true);
@@ -571,6 +573,13 @@ public class MainWindowController {
         });
 
     addTab(new MZmineIntroductionTab());
+
+    try {
+      rawDataFileColorPicker = new ColorPickerMenuItem();
+      rawDataSetColorMenu.getItems().add(rawDataFileColorPicker);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot initialize rawDataFileColorPicker.", e);
+    }
 
     rawDataFileColorPicker.selectedColorProperty().addListener((observable, oldValue, newValue) -> {
       if (rawDataList.getSelectionModel() == null) {
@@ -585,6 +594,28 @@ public class MainWindowController {
         row.setColor(newValue);
       }
     });
+  }
+
+  private void initMiniTaskView() {
+    final MenuItem cancelAll = new MenuItem("Cancel all tasks");
+    cancelAll.setOnAction(
+        e -> Arrays.stream(MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
+            .forEach(t -> t.getActualTask().cancel()));
+    miniTaskView.getProgressBarContextMenu().getItems().add(cancelAll);
+    miniTaskView.setOnProgressBarClicked(e -> MZmineCore.getDesktop().handleShowTaskView());
+
+    Timeline timeline = new Timeline(300);
+    timeline.setCycleCount(Animation.INDEFINITE);
+    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(300), e -> {
+      miniTaskView.refresh(MZmineCore.getTaskController());
+    }));
+    timeline.play();
+  }
+
+  public void selectTab(String title) {
+    final Optional<Tab> first = mainTabPane.getTabs().stream()
+        .filter(f -> f.getText().equals(title)).findFirst();
+    first.ifPresent(tab -> mainTabPane.getSelectionModel().select(tab));
   }
 
   public GroupableListView<RawDataFile> getRawDataList() {
