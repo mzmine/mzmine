@@ -526,11 +526,15 @@ public class MainWindowController {
   }
 
   private void initMiniTaskView() {
+    final MenuItem showTasks = new MenuItem("Show tasks view");
+    showTasks.setOnAction(e -> {
+      MZmineCore.getDesktop().handleShowTaskView();
+    });
     final MenuItem cancelAll = new MenuItem("Cancel all tasks");
     cancelAll.setOnAction(
         e -> Arrays.stream(MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
             .forEach(t -> t.getActualTask().cancel()));
-    miniTaskView.getProgressBarContextMenu().getItems().add(cancelAll);
+    miniTaskView.getProgressBarContextMenu().getItems().addAll(showTasks, cancelAll);
     miniTaskView.setOnProgressBarClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY) {
         MZmineCore.getDesktop().handleShowTaskView();

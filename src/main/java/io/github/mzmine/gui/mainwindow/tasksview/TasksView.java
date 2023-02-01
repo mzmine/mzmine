@@ -51,7 +51,7 @@ import javafx.scene.layout.VBox;
 
 public class TasksView extends VBox {
 
-  private final NumberFormat format = new DecimalFormat("0.0f%");
+  private final NumberFormat format = new DecimalFormat("0%");
   @FXML
   private TableColumn<WrappedTask, String> taskNameColumn;
   @FXML
