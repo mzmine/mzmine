@@ -57,8 +57,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizar
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
-import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt;
-import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt.Mode;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
@@ -299,9 +299,8 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     var minSampleP = param.getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER)
         .getEmbeddedParameters();
     minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_GROUP,
-        new AbsoluteNRelativeInt(0, 0, Mode.ROUND_DOWN));
-    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_ALL,
-        new AbsoluteNRelativeInt(minAlignedSamples, 0, Mode.ROUND_DOWN));
+        new AbsoluteAndRelativeInt(0, 0, Mode.ROUND_DOWN));
+    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_ALL, minAlignedSamples);
     minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_INTENSITY_OVERLAP, 0.6d);
     minSampleP.setParameter(MinimumFeaturesFilterParameters.EXCLUDE_ESTIMATED, true);
 

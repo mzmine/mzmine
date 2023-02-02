@@ -25,58 +25,40 @@
 
 package io.github.mzmine.parameters.parametertypes.absoluterelative;
 
-import java.util.Collection;
-
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class AbsoluteNRelativeIntParameter
-    implements UserParameter<AbsoluteNRelativeInt, AbsoluteNRelativeIntComponent> {
+public class AbsoluteAndRelativeIntParameter implements
+    UserParameter<AbsoluteAndRelativeInt, AbsoluteAndRelativeIntComponent> {
 
-  private String name, description;
-  private AbsoluteNRelativeInt value;
-  private Integer minAbs, maxAbs;
+  protected final String absUnit;
+  protected final String name;
+  protected final String description;
+  protected final Integer minAbs, maxAbs;
+  protected AbsoluteAndRelativeInt value;
 
-  public AbsoluteNRelativeIntParameter(String name, String description) {
-    this(name, description, 0, 0);
+  public AbsoluteAndRelativeIntParameter(String name, String description, String absUnit,
+      AbsoluteAndRelativeInt value) {
+    this(name, description, absUnit, value, null, null);
   }
 
-  public AbsoluteNRelativeIntParameter(String name, String description, int abs, float rel) {
-    this(name, description, abs, rel, AbsoluteNRelativeInt.Mode.ROUND, null, null);
+
+  public AbsoluteAndRelativeIntParameter(String name, String description, String absUnit,
+      AbsoluteAndRelativeInt value, Integer minAbs) {
+    this(name, description, absUnit, value, minAbs, null);
   }
 
-
-  public AbsoluteNRelativeIntParameter(String name, String description, int abs, float rel,
-      int minAbs) {
-    this(name, description, abs, rel, AbsoluteNRelativeInt.Mode.ROUND, minAbs, null);
-  }
-
-  public AbsoluteNRelativeIntParameter(String name, String description, int abs, float rel,
-      int minAbs, int maxAbs) {
-    this(name, description, abs, rel, AbsoluteNRelativeInt.Mode.ROUND, minAbs, maxAbs);
-  }
-
-  public AbsoluteNRelativeIntParameter(String name, String description, int abs, float rel,
-      AbsoluteNRelativeInt.Mode roundMode) {
+  public AbsoluteAndRelativeIntParameter(String name, String description, String absUnit,
+      AbsoluteAndRelativeInt value, Integer minAbs, Integer maxAbs) {
     this.name = name;
     this.description = description;
-    value = new AbsoluteNRelativeInt(abs, rel, roundMode);
-  }
-
-  public AbsoluteNRelativeIntParameter(String name, String description, int abs, float rel,
-      AbsoluteNRelativeInt.Mode roundMode, int minAbs) {
-    this(name, description, abs, rel, roundMode, minAbs, null);
-  }
-
-  public AbsoluteNRelativeIntParameter(String name, String description, int abs, float rel,
-      AbsoluteNRelativeInt.Mode roundMode, Integer minAbs, Integer maxAbs) {
-    this.name = name;
-    this.description = description;
+    this.absUnit = absUnit;
     this.minAbs = minAbs;
     this.maxAbs = maxAbs;
-    value = new AbsoluteNRelativeInt(abs, rel, roundMode);
+    this.value = value;
   }
 
   @Override
@@ -90,35 +72,33 @@ public class AbsoluteNRelativeIntParameter
   }
 
   @Override
-  public AbsoluteNRelativeIntComponent createEditingComponent() {
-    return new AbsoluteNRelativeIntComponent();
+  public AbsoluteAndRelativeIntComponent createEditingComponent() {
+    return new AbsoluteAndRelativeIntComponent(absUnit);
   }
 
   @Override
-  public AbsoluteNRelativeIntParameter cloneParameter() {
-    AbsoluteNRelativeIntParameter copy = new AbsoluteNRelativeIntParameter(name, description);
-    copy.setValue(this.getValue());
-    return copy;
+  public AbsoluteAndRelativeIntParameter cloneParameter() {
+    return new AbsoluteAndRelativeIntParameter(name, description, absUnit, value, minAbs, maxAbs);
   }
 
   @Override
-  public void setValueFromComponent(AbsoluteNRelativeIntComponent component) {
+  public void setValueFromComponent(AbsoluteAndRelativeIntComponent component) {
     value = component.getValue();
   }
 
   @Override
-  public void setValueToComponent(AbsoluteNRelativeIntComponent component,
-      AbsoluteNRelativeInt newValue) {
+  public void setValueToComponent(AbsoluteAndRelativeIntComponent component,
+      AbsoluteAndRelativeInt newValue) {
     component.setValue(newValue);
   }
 
   @Override
-  public AbsoluteNRelativeInt getValue() {
+  public AbsoluteAndRelativeInt getValue() {
     return value;
   }
 
   @Override
-  public void setValue(AbsoluteNRelativeInt newValue) {
+  public void setValue(AbsoluteAndRelativeInt newValue) {
     this.value = newValue;
   }
 
@@ -138,13 +118,14 @@ public class AbsoluteNRelativeIntParameter
       rel = Float.parseFloat(itemString);
     }
 
-    this.value = new AbsoluteNRelativeInt(abs, rel);
+    this.value = new AbsoluteAndRelativeInt(abs, rel);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     Element newElement = parentDocument.createElement("abs");
     newElement.setTextContent(String.valueOf(value.getAbsolute()));

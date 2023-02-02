@@ -45,7 +45,7 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
 
 
   public WorkflowGcElectronImpactWizardParameters() {
-    super(WorkflowWizardParameterFactory.DDA,
+    super(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION,
         // actual parameters
         exportPath, exportGnps);
   }

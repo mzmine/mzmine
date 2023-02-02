@@ -28,7 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 
@@ -37,10 +37,10 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
  */
 public final class FilterWizardParameters extends WizardStepParameters {
 
-  public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
+  public static final MinimumSamplesParameter minNumberOfSamples = new MinimumSamplesParameter(
       "Min samples per aligned feature",
       "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
-          + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
+          + "Used in feature list rows filter and feature grouping.");
 
 
   public static final BooleanParameter filter13C = new BooleanParameter(
