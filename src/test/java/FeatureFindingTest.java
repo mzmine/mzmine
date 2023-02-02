@@ -54,6 +54,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.FeatureLimitOptions;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
@@ -418,13 +419,14 @@ public class FeatureFindingTest {
 
     // group ms2
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    GroupMS2SubParameters groupMS2SubParameters = generalParam.getParameter(
+    GroupMS2SubParameters groupMs2Params = generalParam.getParameter(
         MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
-    groupMS2SubParameters.setParameter(GroupMS2Parameters.limitRTByFeature, false);
-    groupMS2SubParameters.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.05, 10));
-    groupMS2SubParameters.setParameter(GroupMS2Parameters.rtTol,
-        new RTTolerance(0.15f, Unit.MINUTES));
+    groupMs2Params.setParameter(GroupMS2Parameters.rtFilter, FeatureLimitOptions.USE_TOLERANCE);
+    groupMs2Params.getParameter(GroupMS2Parameters.rtFilter).getEmbeddedParameter()
+        .setValue(new RTTolerance(0.15f, Unit.MINUTES));
 
+    groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, false);
+    groupMs2Params.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.05, 10));
     logger.info("Testing chromatogram deconvolution");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(45,
         MinimumSearchFeatureResolverModule.class, generalParam);

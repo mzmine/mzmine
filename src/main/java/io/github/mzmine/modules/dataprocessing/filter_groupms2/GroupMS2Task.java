@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RtMs2ApexDistanceType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -75,9 +76,9 @@ public class GroupMS2Task extends AbstractTask {
   private final FeatureList list;
   private final RTTolerance rtTol;
   private final MZTolerance mzTol;
-  private final boolean limitRTByFeature;
   private final boolean lockToFeatureMobilityRange;
   private final int minimumSignals;
+  private final FeatureLimitOptions rtFilter;
   private int processedRows, totalRows;
 
   /**
@@ -91,9 +92,13 @@ public class GroupMS2Task extends AbstractTask {
     super(null, moduleCallDate); // no new data stored -> null
 
     parameters = parameterSet;
-    rtTol = parameters.getValue(GroupMS2Parameters.rtTol);
+    // RT has two options / tolerance is only provided for second option
+    var rtFilterParam = parameters.getParameter(GroupMS2Parameters.rtFilter);
+    rtFilter = rtFilterParam.getValue();
+    rtTol = rtFilterParam.useEmbeddedParameter() ? rtFilterParam.getEmbeddedParameter().getValue()
+        : null;
+
     mzTol = parameters.getValue(GroupMS2Parameters.mzTol);
-    limitRTByFeature = parameters.getValue(GroupMS2Parameters.limitRTByFeature);
     combineTimsMS2 = parameterSet.getValue(GroupMS2Parameters.combineTimsMsMs);
     lockToFeatureMobilityRange = parameterSet.getValue(GroupMS2Parameters.limitMobilityByFeature);
     minMs2IntensityAbs = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
@@ -181,13 +186,9 @@ public class GroupMS2Task extends AbstractTask {
   private List<Scan> findFragmentScans(final ModularFeature feature) {
     final List<Scan> scans;
     RawDataFile raw = feature.getRawDataFile();
-    float frt = feature.getRT();
-    double fmz = feature.getMZ();
-    Range<Float> rtRange = feature.getRawDataPointsRTRange();
 
     scans = raw.stream().filter(scan -> scan.getMSLevel() > 1)
-        .filter(scan -> filterScan(scan, frt, fmz, rtRange)).sorted(FragmentScanSorter.DEFAULT_TIC)
-        .toList();
+        .filter(scan -> filterScan(scan, feature)).sorted(FragmentScanSorter.DEFAULT_TIC).toList();
     return scans;
   }
 
@@ -214,13 +215,10 @@ public class GroupMS2Task extends AbstractTask {
   /**
    * Filter scans based on rt and mz
    *
-   * @param scan           tested scan
-   * @param frt            feature rt
-   * @param fmz            feature mz
-   * @param featureRtRange feature RT range
+   * @param scan tested scan
    * @return true if matches all criteria
    */
-  private boolean filterScan(Scan scan, float frt, double fmz, Range<Float> featureRtRange) {
+  private boolean filterScan(Scan scan, ModularFeature feature) {
     // minimum signals
     if (minimumSignals > 0) {
       MassList massList = scan.getMassList();
@@ -240,9 +238,29 @@ public class GroupMS2Task extends AbstractTask {
     } else {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
-    return (!limitRTByFeature || featureRtRange.contains(scan.getRetentionTime()))
-        && rtTol.checkWithinTolerance(frt, scan.getRetentionTime()) && precursorMZ != 0
-        && mzTol.checkWithinTolerance(fmz, precursorMZ);
+    return matchesRtFilter(scan, feature) && precursorMZ != 0 && mzTol.checkWithinTolerance(
+        feature.getMZ(), precursorMZ);
+  }
+
+  /**
+   * @return true if feature contains no retention time or if all filters match
+   */
+  private boolean matchesRtFilter(final Scan scan, ModularFeature feature) {
+//    (!limitRTByFeature || )
+//      && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
+    return switch (rtFilter) {
+      case USE_FEATURE_EDGES -> {
+        // dont use shorcut as this returns a non null singleton range
+//        Range<Float> rtRange = feature.getRawDataPointsRTRange();
+        // true if no range means that there was no retention time like in IMS-MS data without time component
+        Range<Float> rtRange = feature.get(RTRangeType.class);
+        yield rtRange == null || rtRange.contains(scan.getRetentionTime());
+      }
+      case USE_TOLERANCE -> {
+        Float rt = feature.getRT();
+        yield rt == null || rtTol.checkWithinTolerance(rt, scan.getRetentionTime());
+      }
+    };
   }
 
   /**
@@ -259,10 +277,8 @@ public class GroupMS2Task extends AbstractTask {
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
     Float mobility = feature.getMobility();
 
-    final List<? extends Scan> scans = feature.getRawDataFile().getScanNumbers(2).stream().filter(
-            scan -> (!limitRTByFeature && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) || (
-                limitRTByFeature && rtRange.contains(scan.getRetentionTime())))
-        .collect(Collectors.toList());
+    final List<? extends Scan> scans = feature.getRawDataFile().getScanNumbers(2).stream()
+        .filter(scan -> matchesRtFilter(scan, feature)).collect(Collectors.toList());
 
     if (scans.isEmpty() || !(scans.get(0) instanceof Frame)) {
       return List.of();

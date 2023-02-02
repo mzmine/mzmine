@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboWithInputParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -46,7 +47,7 @@ public class GroupMS2Parameters extends SimpleParameterSet {
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final OptionalParameter<IntegerParameter> minRequiredSignals = new OptionalParameter<>(
-      new IntegerParameter("Min required signals",
+      new IntegerParameter("Minimum required signals",
           "Only assign fragmentation spectra with at least n signals in the filtered spectrum after mass detection etc.",
           1), true);
 
@@ -55,14 +56,14 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       "Describes the tolerance between the precursor ion in a MS1 scan and the precursor "
           + "m/z assigned to the MS2 scan.", 0.01, 10);
 
-  public static final RTToleranceParameter rtTol = new RTToleranceParameter(
-      "Retention time tolerance",
-      "The maximum offset between the highest point of the chromatographic peak and the time the MS2 was acquired.",
-      new RTTolerance(0.2f, Unit.MINUTES));
 
-  public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
-      "Use the feature's edges (retention time) as a filter.", true);
-
+  public static final ComboWithInputParameter<FeatureLimitOptions, RTToleranceParameter> rtFilter = new ComboWithInputParameter<>(
+      new RTToleranceParameter("Retention time filter", """
+          This parameter either limits the grouping to the RT limits of each feature OR
+          sets a tolerance around the feature RT.""", new RTTolerance(0.2f, Unit.MINUTES)),
+      // options
+      FeatureLimitOptions.values(), FeatureLimitOptions.USE_FEATURE_EDGES,
+      FeatureLimitOptions.USE_TOLERANCE);
 
   // IMS specific parameters
   public static final BooleanParameter limitMobilityByFeature = new BooleanParameter(
@@ -86,13 +87,12 @@ public class GroupMS2Parameters extends SimpleParameterSet {
 
   public static final OptionalParameter<PercentParameter> outputNoiseLevelRelative = new OptionalParameter<>(
       new PercentParameter("Minimum signal intensity (relative, IMS)",
-          "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
+          "If an ion mobility spectrometry (TIMS) feature is processed, this parameter "
               + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
               + "MS/MS mobility scans need to be merged together.", 0.01d), true);
 
   public GroupMS2Parameters() {
-    super(new Parameter[]{PEAK_LISTS, minRequiredSignals, mzTol, rtTol, limitRTByFeature,
-            limitMobilityByFeature,
+    super(new Parameter[]{PEAK_LISTS, minRequiredSignals, mzTol, rtFilter, limitMobilityByFeature,
 
             // TIMS specific
             combineTimsMsMs, outputNoiseLevel, outputNoiseLevelRelative},
