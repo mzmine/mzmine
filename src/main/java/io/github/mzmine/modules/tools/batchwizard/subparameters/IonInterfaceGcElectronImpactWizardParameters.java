@@ -43,6 +43,13 @@ import java.text.NumberFormat;
 public final class IonInterfaceGcElectronImpactWizardParameters extends
     IonInterfaceWizardParameters {
 
+  public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
+      "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"
+          + "and after the separation, where in many runs cleaning and re-equilibration starts.",
+      true, Range.closed(0.5, 30d));
+  public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
+      "Approximate feature FWHM",
+      "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ");
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
       "Intra-sample RT tolerance",
       "Retention time tolerance for multiple signals of the same compound in the same "
@@ -61,35 +68,32 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
       "RT wavelet range",
       "Upper and lower bounds of retention times to be used for setting the wavelet scales. Choose a range that that simmilar to the range of peak widths expected to be found from the data.",
       MZmineCore.getConfiguration().getRTFormat(), true, true, Range.closed(0.001, 0.1));
-  public static final DoubleParameter PREF_WINDOW_WIDTH = new DoubleParameter(
-      "Deconvolution window width (min)", "Preferred width of deconvolution windows (in minutes).",
-      NumberFormat.getNumberInstance(), 0.2);
 
 
   public IonInterfaceGcElectronImpactWizardParameters(
       final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
-        minNumberOfDataPoints, intraSampleRTTolerance, interSampleRTTolerance,
-        SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION, PREF_WINDOW_WIDTH
-        );
+        cropRtRange, approximateChromatographicFWHM, minNumberOfDataPoints, intraSampleRTTolerance,
+        interSampleRTTolerance, SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION);
   }
 
   public IonInterfaceGcElectronImpactWizardParameters(
-      final IonInterfaceWizardParameterFactory preset, final int minDataPoints,
-      final RTTolerance intraSampleTolerance, final RTTolerance interSampleTolerance,
-      final Double minFeatureHeight, final Double snThreshold,
-      final Range<Double> rtforCWT, final Double windowWidth) {
+      final IonInterfaceWizardParameterFactory preset, final Range<Double> cropRt,
+      final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
+      final RTTolerance interSampleTolerance, final int minDataPoints, final Double snThreshold,
+      final Range<Double> rtforCWT) {
 
     this(preset);
 
     // defaults - others override those values
+    setParameter(cropRtRange, cropRt);
+    setParameter(approximateChromatographicFWHM, fwhm);
     setParameter(intraSampleRTTolerance, intraSampleTolerance);
     setParameter(interSampleRTTolerance, interSampleTolerance);
     setParameter(minNumberOfDataPoints, minDataPoints);
     setParameter(SN_THRESHOLD, snThreshold);
     setParameter(RT_FOR_CWT_SCALES_DURATION, rtforCWT);
-    setParameter(PREF_WINDOW_WIDTH, windowWidth);
   }
 
 }

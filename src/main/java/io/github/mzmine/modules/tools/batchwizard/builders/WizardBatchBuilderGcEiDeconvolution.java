@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
+
 import com.google.common.collect.Range;
+import dulab.adap.workflow.AlignmentParameters;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
@@ -37,6 +39,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.A
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.IntensityWindowsSNEstimator;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -72,16 +75,16 @@ import org.jetbrains.annotations.Nullable;
 
 public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
-
+  private final Range<Double> cropRtRange;
   private final RTTolerance intraSampleRtTol;
   private final RTTolerance interSampleRtTol;
+  private final double rtFwhm;
   private final boolean isExportActive;
   private final File exportPath;
   private final Boolean exportGnps;
   private final Integer minRtDataPoints; //min number of data points
   private final Double snThreshold;
   private final Range<Double> rtforCWT;
-  private final Double windowWidth;
   private final Double sampleCountRatio;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
@@ -90,22 +93,25 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
     Optional<? extends WizardStepParameters> filterParams = steps.get(WizardPart.FILTER);
+    double minNumOfSamples = getValue(filterParams, FilterWizardParameters.minNumberOfSamples);
     double numOfSamples = dataFiles.length;
-
+    // special workflow parameter are extracted here
+    // chromatography
+    cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
     intraSampleRtTol = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.intraSampleRTTolerance);
     interSampleRtTol = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.interSampleRTTolerance);
     minRtDataPoints = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
-    snThreshold = getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.SN_THRESHOLD);
-    rtforCWT= getValue(params,
+    rtFwhm = getValue(params,
+        IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM).getTolerance()
+        * 2;
+    snThreshold = getValue(params, IonInterfaceGcElectronImpactWizardParameters.SN_THRESHOLD);
+    rtforCWT = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
-    windowWidth =getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.PREF_WINDOW_WIDTH);
-    sampleCountRatio =getValue(filterParams,
-        FilterWizardParameters.minNumberOfSamples)/numOfSamples;
+    sampleCountRatio = (minNumOfSamples < 1 && minNumOfSamples > 0) ? minNumOfSamples
+        : minNumOfSamples / numOfSamples;
 
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
     params = steps.get(WizardPart.WORKFLOW);
@@ -121,7 +127,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
-    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints, null);
+    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
+        cropRtRange);
     makeAndAddRtAdapResolver(q);
     makeMultiCurveResolutionStep(q);
     makeAndAddAlignmentStep(q);
@@ -129,9 +136,9 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     if (isExportActive) {
       if (exportGnps) {
         makeAndAddGnpsExportStep(q);
-      }
-      else
+      } else {
         makeAndAddMSPExportStep(q);
+      }
     }
     return q;
   }
@@ -143,46 +150,46 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ADAPResolverParameters.handleOriginal, OriginalFeatureListOption.REMOVE);
 
-    param.setParameter(ADAPResolverParameters.SN_THRESHOLD,
-        snThreshold);
-    param.setParameter(ADAPResolverParameters.MIN_FEAT_HEIGHT,
-        minFeatureHeight);
-    param.setParameter(ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION,
-        rtforCWT);
-
+    param.setParameter(ADAPResolverParameters.SN_THRESHOLD, snThreshold);
+    param.setParameter(ADAPResolverParameters.MIN_FEAT_HEIGHT, minFeatureHeight);
+    param.setParameter(ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION, rtforCWT);
+    param.setParameter(ADAPResolverParameters.COEF_AREA_THRESHOLD, 110.0);
+    param.setParameter(ADAPResolverParameters.SN_ESTIMATORS,
+        ADAPResolverParameters.SN_ESTIMATORS.getValue());
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapResolverModule.class),
         param));
   }
-  private void makeMultiCurveResolutionStep(final BatchQueue q){
+
+  private void makeMultiCurveResolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAPMultivariateCurveResolutionModule.class).cloneParameterSet();
-    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH,
-        windowWidth);
+    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, rtFwhm);
     param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
-        (double)intraSampleRtTol.getTolerance());
-    param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE,
-       1);
-    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-
-    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ADAPMultivariateCurveResolutionModule.class),
-        param));
+        (double) intraSampleRtTol.getTolerance());
+    param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE, 1);
+    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME, false);
+    param.setParameter(ADAP3DecompositionV2Parameters.SUFFIX, "Spectral Deconvolution");
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(ADAPMultivariateCurveResolutionModule.class), param));
 
   }
+
   protected void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAP3AlignerModule.class).cloneParameterSet();
     param.setParameter(ADAP3AlignerParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ADAP3AlignerParameters.NEW_PEAK_LIST_NAME, "Aligned feature list");
-    param.setParameter(ADAP3AlignerParameters.SAMPLE_COUNT_RATIO,
-        sampleCountRatio);
-    param.setParameter(ADAP3AlignerParameters.RET_TIME_RANGE,
-       interSampleRtTol);
-    param.setParameter(ADAP3AlignerParameters.MZ_RANGE,
-        mzTolInterSample);
-    param.setParameter(ADAP3AlignerParameters.SCORE_TOLERANCE,
-        0.5);
+    param.setParameter(ADAP3AlignerParameters.SAMPLE_COUNT_RATIO, sampleCountRatio);
+    param.setParameter(ADAP3AlignerParameters.RET_TIME_RANGE, interSampleRtTol);
+    param.setParameter(ADAP3AlignerParameters.MZ_RANGE, mzTolInterSample);
+    param.setParameter(ADAP3AlignerParameters.SCORE_TOLERANCE, 0.5);
+    param.setParameter(ADAP3AlignerParameters.SCORE_WEIGHT, 0.1);
+    param.setParameter(ADAP3AlignerParameters.EIC_SCORE, AlignmentParameters.RT_DIFFERENCE);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ADAP3AlignerModule.class),
         param));
@@ -224,7 +231,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(GnpsGcExportAndSubmitModule.class), param));
   }
 
-  protected void makeAndAddMSPExportStep(final BatchQueue q){
+  protected void makeAndAddMSPExportStep(final BatchQueue q) {
     final ParameterSet param = new AdapMspExportParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
@@ -233,9 +240,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     param.setParameter(AdapMspExportParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(AdapMspExportParameters.FILENAME, fileName);
+    param.setParameter(AdapMspExportParameters.ADD_RET_TIME, true);
+    param.setParameter(AdapMspExportParameters.ADD_ANOVA_P_VALUE, true);
+    param.setParameter(AdapMspExportParameters.INTEGER_MZ, false);
 
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(AdapMspExportModule.class), param));
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapMspExportModule.class),
+        param));
   }
 
 }
