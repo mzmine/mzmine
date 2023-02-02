@@ -65,7 +65,7 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       FeatureLimitOptions.values(), FeatureLimitOptions.USE_FEATURE_EDGES,
       FeatureLimitOptions.USE_TOLERANCE);
 
-  // IMS specific parameters
+  // TIMS specific parameters
   public static final BooleanParameter limitMobilityByFeature = new BooleanParameter(
       "Limit by ion mobility edges",
       "If checked, only mobility scans from the mobility range of the feature will be merged.\n"
@@ -86,7 +86,7 @@ public class GroupMS2Parameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE), false);
 
   public static final OptionalParameter<PercentParameter> outputNoiseLevelRelative = new OptionalParameter<>(
-      new PercentParameter("Minimum signal intensity (relative, IMS)",
+      new PercentParameter("Minimum signal intensity (relative, TIMS)",
           "If an ion mobility spectrometry (TIMS) feature is processed, this parameter "
               + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
               + "MS/MS mobility scans need to be merged together.", 0.01d), true);
