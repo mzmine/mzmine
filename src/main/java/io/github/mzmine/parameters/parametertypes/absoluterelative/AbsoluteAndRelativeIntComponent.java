@@ -25,38 +25,38 @@
 
 package io.github.mzmine.parameters.parametertypes.absoluterelative;
 
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 
-public class AbsoluteNRelativeDoubleComponent extends FlowPane {
+public class AbsoluteAndRelativeIntComponent extends HBox {
 
-  private static final long serialVersionUID = 1L;
-  private final TextField absField, relField;
+  private final TextField absField;
+  private final TextField relField;
 
-  public AbsoluteNRelativeDoubleComponent() {
+  public AbsoluteAndRelativeIntComponent(String absUnit) {
+    setAlignment(Pos.CENTER_LEFT);
+    setSpacing(5);
+
     absField = new TextField();
-    absField.setPrefColumnCount(8);
-
+    absField.setPrefColumnCount(4);
+    absField.setAlignment(Pos.CENTER_RIGHT);
 
     relField = new TextField();
-    relField.setPrefColumnCount(8);
+    relField.setPrefColumnCount(4);
+    relField.setAlignment(Pos.CENTER_RIGHT);
 
-    getChildren().addAll(new Label("abs="),absField, new Label("rel="), relField,
-            new Label("%"));
+    getChildren().addAll(new Label("Max of"), absField, new Label(absUnit + "  or "), relField,
+        new Label("%"));
   }
 
-  public void setValue(AbsoluteNRelativeDouble value) {
-    absField.setText(String.valueOf(value.getAbsolute()));
-    relField.setText(String.valueOf(value.getRelative() * 100.0));
-  }
-
-  public AbsoluteNRelativeDouble getValue() {
+  public AbsoluteAndRelativeInt getValue() {
     try {
-      double abs = Double.parseDouble(absField.getText().trim());
-      double rel = Double.parseDouble(relField.getText().trim()) / 100.0;
-      AbsoluteNRelativeDouble value = new AbsoluteNRelativeDouble(abs, rel);
+      int abs = Integer.parseInt(absField.getText().trim());
+      float rel = Float.parseFloat(relField.getText().trim()) / 100.f;
+      AbsoluteAndRelativeInt value = new AbsoluteAndRelativeInt(abs, rel);
       return value;
     } catch (NumberFormatException e) {
       return null;
@@ -64,8 +64,14 @@ public class AbsoluteNRelativeDoubleComponent extends FlowPane {
 
   }
 
+  public void setValue(AbsoluteAndRelativeInt value) {
+    absField.setText(String.valueOf(value.getAbsolute()));
+    relField.setText(String.valueOf(value.getRelative() * 100.f));
+  }
+
   public void setToolTipText(String toolTip) {
     absField.setTooltip(new Tooltip(toolTip));
     relField.setTooltip(new Tooltip(toolTip));
   }
+
 }
