@@ -67,7 +67,7 @@ public class FeatureMLExportModularParameters extends SimpleParameterSet {
     String plNamePattern = "{}";
     boolean substitute = filename.getValue().getPath().contains(plNamePattern);
 
-    if (!substitute && featureLists.getValue().getSpecificFeatureLists().length > 1) {
+    if (!substitute && this.getValue(featureLists).getMatchingFeatureLists().length > 1) {
       errorMessages.add("""
           Cannot export multiple feature lists to the same featureML file. Please use "{}" pattern in filename. \
           This will be replaced with the feature list name to generate one file per feature list.
