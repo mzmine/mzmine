@@ -179,4 +179,9 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
     }
   }
 
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
