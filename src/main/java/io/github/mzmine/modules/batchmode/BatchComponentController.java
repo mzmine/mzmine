@@ -199,26 +199,6 @@ public class BatchComponentController implements LastFilesComponent {
     cmbHandleFlists.setValue(OriginalFeatureListOption.REMOVE);
   }
 
-//  private boolean hasMatchingChild(FilterableTreeItem<Object> item, final String filter) {
-//    if (!item.isLeaf()) {
-//      for (var child : item.getChildren()) {
-//        if (hasMatchingChild(child, filter)) {
-//          item.setExpanded(true);
-//          return true;
-//        }
-//      }
-//    } else {
-//      if (filter.isEmpty()) {
-//        return false;
-//      }
-//      boolean contains = item.getValue().toString().toLowerCase().contains(filter);
-////      if (!contains) {
-////        item.getParent().getChildren().remove(item);
-////      }
-//      return contains;
-//    }
-//    return false;
-//  }
 
   public void onAddModulePressed() {
     // Processing module selected?
