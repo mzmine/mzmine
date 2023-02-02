@@ -33,13 +33,15 @@ import javafx.scene.web.WebView;
 
 public class MZmineIntroductionTab extends SimpleTab {
 
+  public static final String TITLE = "Welcome to MZmine 3";
+
   public MZmineIntroductionTab() {
-    super("Welcome to MZmine 3");
+    super(TITLE);
 
     final WebView browser = new WebView();
     final WebEngine engine = browser.getEngine();
 
-    if(MZmineCore.getConfiguration().isDarkMode()) {
+    if (MZmineCore.getConfiguration().isDarkMode()) {
       engine.load(getClass().getResource("MZmineIntroduction_darkmode.html").toString());
     } else {
       engine.load(getClass().getResource("MZmineIntroduction.html").toString());
