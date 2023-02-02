@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -43,6 +44,11 @@ import org.jetbrains.annotations.NotNull;
 public class GroupMS2Parameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
+
+  public static final OptionalParameter<IntegerParameter> minRequiredSignals = new OptionalParameter<>(
+      new IntegerParameter("Min required signals",
+          "Only assign fragmentation spectra with at least n signals in the filtered spectrum after mass detection etc.",
+          1), true);
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter(
       "MS1 to MS2 precursor tolerance (m/z)",
@@ -57,34 +63,39 @@ public class GroupMS2Parameters extends SimpleParameterSet {
   public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
       "Use the feature's edges (retention time) as a filter.", true);
 
-  public static final BooleanParameter combineTimsMsMs = new BooleanParameter(
-      "Combine MS/MS spectra (TIMS)",
-      "If checked, all assigned MS/MS spectra with the same collision energy will be merged into a single MS/MS spectrum.",
-      false);
 
-  public static final BooleanParameter lockMS2ToFeatureMobilityRange = new BooleanParameter(
-      "Lock to feature mobility range",
+  // IMS specific parameters
+  public static final BooleanParameter limitMobilityByFeature = new BooleanParameter(
+      "Limit by ion mobility edges",
       "If checked, only mobility scans from the mobility range of the feature will be merged.\n"
           + "This is usually not needed. However, if isomeres/isobares elute at the same retention time and are close in mobility, "
           + "the MS/MS window might be larger than the peak in mobility dimension and thus cause chimeric MS/MS spectra.\n"
           + "This can be investigated in hte \"All MS MS\" window", false);
 
+  public static final BooleanParameter combineTimsMsMs = new BooleanParameter(
+      "Merge MS/MS spectra (TIMS)",
+      "If checked, all assigned MS/MS spectra with the same collision energy will be merged into a single MS/MS spectrum.",
+      false);
+
   public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
-      new DoubleParameter("Minimum merged intensity (absolute, IMS)",
-          "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
-              + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
+      new DoubleParameter("Minimum signal intensity (absolute, TIMS)",
+          "If a TIMS feature is processed, this parameter "
+              + "can be used to filter low abundant signals in the MS/MS spectrum, since multiple "
               + "MS/MS mobility scans need to be merged together.",
-          MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE));
+          MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE), false);
 
   public static final OptionalParameter<PercentParameter> outputNoiseLevelRelative = new OptionalParameter<>(
-      new PercentParameter("Minimum merged intensity (relative, IMS)",
+      new PercentParameter("Minimum signal intensity (relative, IMS)",
           "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
               + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
               + "MS/MS mobility scans need to be merged together.", 0.01d), true);
 
   public GroupMS2Parameters() {
-    super(new Parameter[]{PEAK_LISTS, rtTol, mzTol, limitRTByFeature, combineTimsMsMs,
-            lockMS2ToFeatureMobilityRange, outputNoiseLevel, outputNoiseLevelRelative},
+    super(new Parameter[]{PEAK_LISTS, minRequiredSignals, mzTol, rtTol, limitRTByFeature,
+            limitMobilityByFeature,
+
+            // TIMS specific
+            combineTimsMsMs, outputNoiseLevel, outputNoiseLevelRelative},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
   }
 

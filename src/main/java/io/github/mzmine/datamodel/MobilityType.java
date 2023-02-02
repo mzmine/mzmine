@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 
@@ -75,5 +76,16 @@ public enum MobilityType {
   @Override
   public String toString() {
     return name;
+  }
+
+  /**
+   * Check if the mobility type of feature or its raw data file matches this type
+   *
+   * @param f the tested feature
+   * @return true if the types match
+   */
+  public boolean isTypeOf(final ModularFeature f) {
+    return f.getMobilityUnit() == this || (f.getRawDataFile() instanceof IMSRawDataFile imsfile
+        && imsfile.getMobilityType() == this);
   }
 }

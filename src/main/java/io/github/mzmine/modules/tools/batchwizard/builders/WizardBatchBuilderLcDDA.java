@@ -35,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
@@ -171,22 +172,25 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     final GroupMS2SubParameters groupParam = param.getParameter(
         MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
     // Using a fixed wide range here because precursor isolation is usually unit resolution
-    groupParam.setParameter(GroupMS2SubParameters.mzTol, new MZTolerance(0.01, 10));
+    groupParam.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.01, 10));
     // TODO check
-    groupParam.setParameter(GroupMS2SubParameters.combineTimsMsMs, false);
+    groupParam.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
     boolean limitByRTEdges = minRtDataPoints >= 4;
-    groupParam.setParameter(GroupMS2SubParameters.limitRTByFeature, limitByRTEdges);
-    groupParam.setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, true);
+    groupParam.setParameter(GroupMS2Parameters.limitRTByFeature, limitByRTEdges);
+    groupParam.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
     // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early
     // change rt tol depending on number of datapoints
-    groupParam.setParameter(GroupMS2SubParameters.rtTol,
+    groupParam.setParameter(GroupMS2Parameters.rtTol,
         new RTTolerance(limitByRTEdges ? fwhm * 3 : fwhm, Unit.MINUTES));
-    groupParam.setParameter(GroupMS2SubParameters.outputNoiseLevel, hasIMS);
-    groupParam.getParameter(GroupMS2SubParameters.outputNoiseLevel).getEmbeddedParameter()
+    groupParam.setParameter(GroupMS2Parameters.outputNoiseLevel, hasIMS);
+    groupParam.getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
         .setValue(noiseLevelMsn * 2);
-    groupParam.setParameter(GroupMS2SubParameters.outputNoiseLevelRelative, hasIMS);
-    groupParam.getParameter(GroupMS2SubParameters.outputNoiseLevelRelative).getEmbeddedParameter()
+    groupParam.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasIMS);
+    groupParam.getParameter(GroupMS2Parameters.outputNoiseLevelRelative).getEmbeddedParameter()
         .setValue(0.1);
+    groupParam.setParameter(GroupMS2Parameters.minRequiredSignals, true);
+    groupParam.getParameter(GroupMS2Parameters.minRequiredSignals).getEmbeddedParameter()
+        .setValue(1);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
