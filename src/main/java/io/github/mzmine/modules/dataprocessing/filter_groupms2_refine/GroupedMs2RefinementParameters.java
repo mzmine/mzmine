@@ -41,7 +41,7 @@ public class GroupedMs2RefinementParameters extends SimpleParameterSet {
   public static final PercentParameter minimumRelativeFeatureHeight = new PercentParameter(
       "Minimum relative feature height",
       "If an MS2 was assigned to multiple features, only keep the feature assignments where feature height is at least X% of the highest feature.",
-      0.20, 0d, 1d);
+      0.25, 0d, 1d);
 
   public static final DoubleParameter minimumAbsoluteFeatureHeight = new DoubleParameter(
       "Minimum absolute feature height",
