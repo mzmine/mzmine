@@ -87,7 +87,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
   private final Integer minRtDataPoints; //min number of data points
   private final Double snThreshold;
   private final Range<Double> rtforCWT;
-  private final Double sampleCountRatio;
+  private final double sampleCountRatio;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -95,8 +95,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
     Optional<? extends WizardStepParameters> filterParams = steps.get(WizardPart.FILTER);
-    double minNumOfSamples = getValue(filterParams, FilterWizardParameters.minNumberOfSamples);
-    double numOfSamples = dataFiles.length;
     // special workflow parameter are extracted here
     // chromatography
     cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
@@ -112,8 +110,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     snThreshold = getValue(params, IonInterfaceGcElectronImpactWizardParameters.SN_THRESHOLD);
     rtforCWT = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
-    sampleCountRatio = (minNumOfSamples < 1 && minNumOfSamples > 0) ? minNumOfSamples
-        : minNumOfSamples / numOfSamples;
+    sampleCountRatio = getValue(filterParams, FilterWizardParameters.minNumberOfSamples).rel();
 
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
     params = steps.get(WizardPart.WORKFLOW);
