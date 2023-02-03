@@ -53,6 +53,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.S
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.FeatureLimitOptions;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
@@ -87,6 +89,7 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -95,7 +98,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -132,7 +134,7 @@ public abstract class WizardBatchBuilder {
   protected final File[] libraries;
   //filter
   protected final Boolean filter13C;
-  protected final Integer minAlignedSamples;
+  protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // MS parameters currently all the same
   protected final Double noiseLevelMsn;
@@ -382,7 +384,7 @@ public abstract class WizardBatchBuilder {
   }
 
   protected void makeAndAddRowFilterStep(final BatchQueue q) {
-    if (!filter13C && minAlignedSamples < 2) {
+    if (!filter13C && !minAlignedSamples.isGreaterZero()) {
       return;
     }
 
@@ -391,14 +393,14 @@ public abstract class WizardBatchBuilder {
     param.setParameter(RowsFilterParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     String suffix = (filter13C ? "13C" : "");
-    if (minAlignedSamples > 1) {
+    if (minAlignedSamples.isGreaterZero()) {
       suffix = suffix + (suffix.isEmpty() ? "" : " ") + "peak";
     }
     param.setParameter(RowsFilterParameters.SUFFIX, suffix);
-    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples > 0);
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples.isGreaterZero());
     // TODO maybe change to a relative cutoff? 5% of samples, i.e. 0.05
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
-        .setValue((double) minAlignedSamples);
+        .setValue(minAlignedSamples);
 
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
     param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, filter13C);
@@ -568,28 +570,21 @@ public abstract class WizardBatchBuilder {
         handleOriginalFeatureLists);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.mzTol, mzTolScans);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.combineTimsMsMs, false);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.limitRTByFeature, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters()
-        .setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters()
-        .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.outputNoiseLevel, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
-        .getEmbeddedParameter().setValue(noiseLevelMsn * 2);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.outputNoiseLevelRelative, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevelRelative)
-        .getEmbeddedParameter().setValue(0.01);
+    GroupMS2SubParameters groupMs2Params = param.getParameter(
+        MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
+    groupMs2Params.setParameter(GroupMS2Parameters.mzTol, mzTolScans);
+    groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
+    groupMs2Params.setParameter(GroupMS2Parameters.rtFilter, FeatureLimitOptions.USE_FEATURE_EDGES);
+    groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
+    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, true);
+    groupMs2Params.getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
+        .setValue(noiseLevelMsn * 2);
+    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, true);
+    groupMs2Params.getParameter(GroupMS2Parameters.outputNoiseLevelRelative).getEmbeddedParameter()
+        .setValue(0.01);
+    groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true);
+    groupMs2Params.getParameter(GroupMS2Parameters.minRequiredSignals).getEmbeddedParameter()
+        .setValue(1);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.MOBILITY);

@@ -141,6 +141,15 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
+    if (!substitute && featureLists.length > 1) {
+      setErrorMessage("""
+          Cannot export multiple feature lists to the same CSV file. Please use "{}" pattern in filename.\
+          This will be replaced with the feature list name to generate one file per feature list.
+          """);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     // Total number of rows
     for (ModularFeatureList featureList : featureLists) {
       totalTypes += featureList.getNumberOfRows();

@@ -25,31 +25,39 @@
 
 package io.github.mzmine.parameters.parametertypes.absoluterelative;
 
-import java.text.MessageFormat;
 import com.google.common.collect.Range;
+import java.text.MessageFormat;
 
 /**
  * This parameter holds a relative and absolute value/threshold/tolerance
  */
-public class AbsoluteNRelativeInt {
+public record AbsoluteAndRelativeInt(int abs, float rel, Mode mode) {
 
-  public enum Mode {
-    ROUND, ROUND_UP, ROUND_DOWN;
+  public AbsoluteAndRelativeInt {
+
   }
 
-  private Mode mode;
-  private final int abs;
-  private final float rel;
-
-  public AbsoluteNRelativeInt(final int abs, final float rel) {
-    this.abs = abs;
-    this.rel = rel;
+  public AbsoluteAndRelativeInt(final int abs, final float rel) {
+    this(abs, rel, Mode.ROUND);
   }
 
-  public AbsoluteNRelativeInt(final int abs, final float rel, Mode mode) {
-    this.abs = abs;
-    this.rel = rel;
-    this.mode = mode;
+  /**
+   * Maximum of absolute or value*relative (e.g., to define a threshold)
+   *
+   * @param value
+   * @return
+   */
+  public int getMaximumValue(int value) {
+    float v2 = value * rel;
+    if (abs >= v2) {
+      return abs;
+    } else {
+      return switch (mode) {
+        case ROUND -> Math.round(v2);
+        case ROUND_DOWN -> (int) Math.floor(v2);
+        case ROUND_UP -> (int) Math.ceil(v2);
+      };
+    }
   }
 
   public int getAbsolute() {
@@ -61,51 +69,29 @@ public class AbsoluteNRelativeInt {
   }
 
   /**
-   * Maximum of absolute or value*relative (e.g., to define a threshold)
-   * 
-   * @param value
-   * @return
-   */
-  public int getMaximumValue(int value) {
-    float v2 = value * rel;
-    if (abs >= v2)
-      return abs;
-    else
-      switch (mode) {
-        case ROUND:
-          return Math.round(v2);
-        case ROUND_DOWN:
-          return (int) Math.floor(v2);
-        case ROUND_UP:
-          return (int) Math.ceil(v2);
-      }
-    return 0;
-  }
-
-  /**
    * Minimum of absolute or value*relative (e.g., to define a threshold)
-   * 
+   *
    * @param value
    * @return
    */
   public int getMinimumValue(int value) {
     float v2 = value * rel;
-    if (abs <= v2)
+    if (abs <= v2) {
       return abs;
-    else
-      switch (mode) {
-        case ROUND:
-          return Math.round(v2);
-        case ROUND_DOWN:
-          return (int) Math.floor(v2);
-        case ROUND_UP:
-          return (int) Math.ceil(v2);
-      }
-    return 0;
+    } else {
+      return switch (mode) {
+        case ROUND -> Math.round(v2);
+        case ROUND_DOWN -> (int) Math.floor(v2);
+        case ROUND_UP -> (int) Math.ceil(v2);
+      };
+    }
+  }
+
+  public enum Mode {
+    ROUND, ROUND_UP, ROUND_DOWN
   }
 
   /**
-   * 
    * @param total is the total number to calculate with the relative
    * @param value value to check
    * @return

@@ -23,32 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.javafx.HtmlLinkOpenExternalBrowserListener;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
+public enum FeatureLimitOptions {
+  USE_FEATURE_EDGES, USE_TOLERANCE;
 
-public class MZmineIntroductionTab extends SimpleTab {
-
-  public static final String TITLE = "Welcome to MZmine 3";
-
-  public MZmineIntroductionTab() {
-    super(TITLE);
-
-    final WebView browser = new WebView();
-    final WebEngine engine = browser.getEngine();
-
-    if (MZmineCore.getConfiguration().isDarkMode()) {
-      engine.load(getClass().getResource("MZmineIntroduction_darkmode.html").toString());
-    } else {
-      engine.load(getClass().getResource("MZmineIntroduction.html").toString());
-    }
-    engine.getLoadWorker().stateProperty()
-        .addListener(new HtmlLinkOpenExternalBrowserListener(browser));
-
-    super.setContent(browser);
+  @Override
+  public String toString() {
+    return switch (this) {
+      case USE_FEATURE_EDGES -> "Use feature edges";
+      case USE_TOLERANCE -> "Use tolerance";
+    };
   }
 }

@@ -176,4 +176,8 @@ public class HeadLessDesktop implements Desktop {
     return ButtonType.YES;
   }
 
+  @Override
+  public void handleShowTaskView() {
+    // nothing
+  }
 }
