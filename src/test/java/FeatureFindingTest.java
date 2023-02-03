@@ -425,6 +425,7 @@ public class FeatureFindingTest {
     groupMs2Params.getParameter(GroupMS2Parameters.rtFilter).getEmbeddedParameter()
         .setValue(new RTTolerance(0.15f, Unit.MINUTES));
 
+    groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, false);
     groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, false);
     groupMs2Params.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.05, 10));
     logger.info("Testing chromatogram deconvolution");
