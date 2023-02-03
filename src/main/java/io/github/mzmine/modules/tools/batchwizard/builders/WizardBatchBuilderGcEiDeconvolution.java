@@ -40,6 +40,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.IntensityWindowsSNEstimator;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -70,6 +71,7 @@ import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,7 +108,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
         IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
     rtFwhm = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM).getTolerance()
-        * 2;
+        * 4;
     snThreshold = getValue(params, IonInterfaceGcElectronImpactWizardParameters.SN_THRESHOLD);
     rtforCWT = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
@@ -142,7 +144,22 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     }
     return q;
   }
-
+  @Override
+  protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
+    if (isImsActive) {
+      final boolean isImsFromMzml = Arrays.stream(dataFiles)
+          .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"));
+      if (!isImsFromMzml) { // == Bruker file
+        makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
+      }
+      makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.MOBLITY_SCANS);
+      if (isImsFromMzml) {
+        makeAndAddMobilityScanMergerStep(q);
+      }
+    } else {
+      makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.SCANS);
+    }
+  }
   protected void makeAndAddRtAdapResolver(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AdapResolverModule.class).cloneParameterSet();
