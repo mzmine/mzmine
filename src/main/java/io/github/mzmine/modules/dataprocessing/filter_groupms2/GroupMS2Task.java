@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Filters out feature list rows.
+ * Groups fragmentation scans with features in range
  */
 public class GroupMS2Task extends AbstractTask {
 
@@ -160,18 +160,18 @@ public class GroupMS2Task extends AbstractTask {
   /**
    * Group all MS2 scans with the corresponding features (per raw data file)
    *
-   * @param row
+   * @param row does this for each feature in this row
    */
   public void processRow(FeatureListRow row) {
     for (ModularFeature feature : row.getFeatures()) {
-      final List<Scan> scans;
+      List<Scan> scans;
       if (MobilityType.TIMS.isTypeOfBackingRawData(feature)) {
         scans = findFragmentScansForTimsFeature(feature);
       } else {
         scans = findFragmentScans(feature);
       }
 
-      filterByMinimumSignals(scans);
+      scans = filterByMinimumSignals(scans);
       feature.setAllMS2FragmentScans(scans.isEmpty() ? null : scans, true);
       // get proximity
       setRtApexProximity(feature, scans);
@@ -273,9 +273,7 @@ public class GroupMS2Task extends AbstractTask {
   @NotNull
   private List<Scan> findFragmentScansForTimsFeature(ModularFeature feature) {
 
-    float frt = feature.getRT();
     double fmz = feature.getMZ();
-    Range<Float> rtRange = feature.getRawDataPointsRTRange();
     Float mobility = feature.getMobility();
 
     final List<? extends Scan> scans = feature.getRawDataFile().getScanNumbers(2).stream()
@@ -338,11 +336,11 @@ public class GroupMS2Task extends AbstractTask {
   /**
    * remove all scans with less than minimumSignals in mass list
    *
-   * @param scans input list, is changed
+   * @param scans returns a filtered list or the input list if no filter is applied
    */
-  private void filterByMinimumSignals(final List<Scan> scans) {
+  private List<Scan> filterByMinimumSignals(final List<Scan> scans) {
     if (minimumSignals <= 0) {
-      return;
+      return scans;
     }
 
     for (final Scan scan : scans) {
@@ -351,6 +349,7 @@ public class GroupMS2Task extends AbstractTask {
       }
     }
 
-    scans.removeIf(scan -> scan.getMassList().getNumberOfDataPoints() < minimumSignals);
+    return scans.stream()
+        .filter(scan -> scan.getMassList().getNumberOfDataPoints() >= minimumSignals).toList();
   }
 }
