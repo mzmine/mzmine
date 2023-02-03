@@ -74,7 +74,7 @@ public class CSVExportModularParameters extends SimpleParameterSet {
 
     // Check if substitute pattern is present in filename if several feature lists are selected by the user
     String plNamePattern = "{}";
-    boolean substitute = filename.getValue().getPath().contains(plNamePattern);
+    boolean substitute = this.getValue(filename).getPath().contains(plNamePattern);
 
     if (!substitute && this.getValue(featureLists).getMatchingFeatureLists().length > 1) {
       errorMessages.add("""
