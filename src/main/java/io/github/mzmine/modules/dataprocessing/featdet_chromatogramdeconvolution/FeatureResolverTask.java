@@ -149,7 +149,7 @@ public class FeatureResolverTask extends AbstractTask {
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
             GroupMS2SubParameters ms2params = parameters.getParameter(
                 GeneralResolverParameters.groupMS2Parameters).getEmbeddedParameters();
-            GroupMS2Task task = new GroupMS2Task(project, newPeakList, ms2params, moduleCallDate);
+            GroupMS2Task task = new GroupMS2Task(newPeakList, ms2params, moduleCallDate);
             // restart progress
             processedRows = 0;
             totalRows = newPeakList.getNumberOfRows();
@@ -317,8 +317,10 @@ public class FeatureResolverTask extends AbstractTask {
   }*/
 
   /**
-   * Used for compatibility with old {@link FeatureResolver}s. New methods should implement {@link
-   * Resolver}. See {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
+   * Used for compatibility with old {@link FeatureResolver}s. New methods should implement
+   * {@link Resolver}. See
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
    * as an example implementation.
    *
    * @throws RSessionWrapperException
@@ -436,7 +438,8 @@ public class FeatureResolverTask extends AbstractTask {
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
-    final Integer minNumDp = parameters.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
+    final Integer minNumDp = parameters.getValue(
+        GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
 
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
@@ -447,7 +450,7 @@ public class FeatureResolverTask extends AbstractTask {
           mzCenterFunction, msmsRange, RTRangeMSMS);
 
       for (final ResolvedPeak peak : peaks) {
-        if(peak.getScanNumbers().length < minNumDp) {
+        if (peak.getScanNumbers().length < minNumDp) {
           continue;
         }
         peak.setParentChromatogramRowID(originalRow.getID());

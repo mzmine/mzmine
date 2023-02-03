@@ -82,7 +82,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
   private final List<Scan> matchingScans;
   private final IonNetworkLibrary ionLibrary;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
@@ -93,10 +93,11 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
   private final MobilityTolerance mobTol;
   private final double intTolerance;
   private final ParameterSet parameters;
-  private int processedScans, totalScans;
+  private int processedScans;
+  private final int totalScans;
   private final File featureListFile;
   private final char fieldSeparator;
-  private int finishedLines = 0;
+  private final int finishedLines = 0;
   private int ID = 1;
   private final int minDataPoints = 5;
 
@@ -121,9 +122,9 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         .getValue();
     mzTolerance = parameters.getParameter(TargetedFeatureDetectionParameters.mzTolerance)
         .getValue();
-    rtTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+    rtTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElseGet(
         TargetedFeatureDetectionParameters.rtTolerance, () -> null);
-    mobTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+    mobTol = parameters.getEmbeddedParameterValueIfSelectedOrElseGet(
         TargetedFeatureDetectionParameters.mobilityTolerance, () -> null);
 
     final boolean useIonLibrary = parameters.getValue(

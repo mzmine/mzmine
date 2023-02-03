@@ -25,31 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.parameters.parametertypes.ComboWithInputParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class GroupMS2SubParameters extends SimpleParameterSet {
+public class RtLimitOptionsParameter extends
+    ComboWithInputParameter<FeatureLimitOptions, RTToleranceParameter> {
 
-  public GroupMS2SubParameters() {
-    super(new Parameter[]{GroupMS2Parameters.minRequiredSignals, GroupMS2Parameters.mzTol,
-            GroupMS2Parameters.rtFilter, GroupMS2Parameters.limitMobilityByFeature,
+  public RtLimitOptionsParameter(final RTToleranceParameter embeddedParameter) {
+    super(embeddedParameter, FeatureLimitOptions.values(), FeatureLimitOptions.USE_FEATURE_EDGES,
+        FeatureLimitOptions.USE_TOLERANCE);
 
-            // TIMS specific
-            GroupMS2Parameters.combineTimsMsMs, GroupMS2Parameters.outputNoiseLevel,
-            GroupMS2Parameters.outputNoiseLevelRelative},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
-  }
-
-
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
-
-  @Override
-  public int getVersion() {
-    return 2;
   }
 }

@@ -73,7 +73,7 @@ public interface ParameterSet extends ParameterContainer {
   /**
    * @param defaultValueSupplier A supplier for the default value. may be null.
    */
-  default <V, T extends UserParameter<V, ?>> V getEmbeddedParameterValueIfSelectedOrElse(
+  default <V, T extends UserParameter<V, ?>> V getEmbeddedParameterValueIfSelectedOrElseGet(
       OptionalParameter<T> parameter, @Nullable Supplier<V> defaultValueSupplier) {
     if (getValue(parameter)) {
       final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
@@ -81,6 +81,19 @@ public interface ParameterSet extends ParameterContainer {
     }
     return defaultValueSupplier != null ? defaultValueSupplier.get() : null;
   }
+
+  /**
+   * @param defaultValue A default value. may be null.
+   */
+  default <V, T extends UserParameter<V, ?>> V getEmbeddedParameterValueIfSelectedOrElse(
+      OptionalParameter<T> parameter, @Nullable V defaultValue) {
+    if (getValue(parameter)) {
+      final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
+      return actualParam == null ? null : actualParam.getValue();
+    }
+    return defaultValue;
+  }
+
 
   default <T extends ParameterSet> ParameterSet getEmbeddedParameterValue(
       OptionalModuleParameter<T> parameter) {
@@ -160,4 +173,5 @@ public interface ParameterSet extends ParameterContainer {
     return Arrays.stream(getParameters())
         .anyMatch(p -> p instanceof UserParameter<?, ?> && !(p instanceof HiddenParameter));
   }
+
 }

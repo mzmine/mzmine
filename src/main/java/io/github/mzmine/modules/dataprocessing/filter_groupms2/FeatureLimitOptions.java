@@ -25,31 +25,14 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import org.jetbrains.annotations.NotNull;
-
-public class GroupMS2SubParameters extends SimpleParameterSet {
-
-  public GroupMS2SubParameters() {
-    super(new Parameter[]{GroupMS2Parameters.minRequiredSignals, GroupMS2Parameters.mzTol,
-            GroupMS2Parameters.rtFilter, GroupMS2Parameters.limitMobilityByFeature,
-
-            // TIMS specific
-            GroupMS2Parameters.combineTimsMsMs, GroupMS2Parameters.outputNoiseLevel,
-            GroupMS2Parameters.outputNoiseLevelRelative},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
-  }
-
+public enum FeatureLimitOptions {
+  USE_FEATURE_EDGES, USE_TOLERANCE;
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
-
-  @Override
-  public int getVersion() {
-    return 2;
+  public String toString() {
+    return switch (this) {
+      case USE_FEATURE_EDGES -> "Use feature edges";
+      case USE_TOLERANCE -> "Use tolerance";
+    };
   }
 }
