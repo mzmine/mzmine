@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -79,7 +80,10 @@ public class GroupMS2Task extends AbstractTask {
   private final boolean lockToFeatureMobilityRange;
   private final int minimumSignals;
   private final FeatureLimitOptions rtFilter;
-  private int processedRows, totalRows;
+  private final Double minimumRelativeFeatureHeight;
+  private final int totalRows;
+  private int processedRows;
+  private GroupedMs2RefinementTask refineTask;
 
   /**
    * Create the task.
@@ -106,25 +110,33 @@ public class GroupMS2Task extends AbstractTask {
     minMs2IntensityRel = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMS2Parameters.outputNoiseLevelRelative, null);
 
+    // if active, only features with min relative height get MS2
+    minimumRelativeFeatureHeight = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
+        GroupMS2Parameters.minimumRelativeFeatureHeight, null);
+
     // 0 is deactivated
     minimumSignals = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMS2Parameters.minRequiredSignals, 0);
 
     this.list = list;
     processedRows = 0;
-    totalRows = 0;
+    totalRows = list.getNumberOfRows();
   }
 
   @Override
   public double getFinishedPercentage() {
-
+    if (refineTask != null) {
+      return refineTask.getFinishedPercentage();
+    }
     return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
   }
 
   @Override
   public String getTaskDescription() {
-
-    return "Adding all MS2 scans to their features in list " + list.getName();
+    if (refineTask != null) {
+      return refineTask.getTaskDescription();
+    }
+    return "Grouping MS2 scans to their features in list " + list.getName();
   }
 
   @Override
@@ -132,15 +144,9 @@ public class GroupMS2Task extends AbstractTask {
     try {
       setStatus(TaskStatus.PROCESSING);
 
-      totalRows = list.getNumberOfRows();
-      // for all features
-      for (FeatureListRow row : list.getRows()) {
-        if (isCanceled()) {
-          return;
-        }
-
-        processRow(row);
-        processedRows++;
+      processFeatureList(this);
+      if (isCanceled()) {
+        return;
       }
 
       list.getAppliedMethods().add(
@@ -154,6 +160,24 @@ public class GroupMS2Task extends AbstractTask {
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
       logger.log(Level.SEVERE, "Error while adding all MS2 scans to their feautres", t);
+    }
+  }
+
+  public void processFeatureList(AbstractTask parentTask) {
+    // for all features
+    for (FeatureListRow row : list.getRows()) {
+      if (parentTask.isCanceled()) {
+        return;
+      }
+
+      processRow(row);
+      processedRows++;
+    }
+
+    // refine MS2 groupings with features that are at least X % of the highest feature that was grouped with each MS2
+    if (minimumRelativeFeatureHeight != null) {
+      refineTask = new GroupedMs2RefinementTask(list, minimumRelativeFeatureHeight, 0d);
+      refineTask.processFeatureList(parentTask);
     }
   }
 

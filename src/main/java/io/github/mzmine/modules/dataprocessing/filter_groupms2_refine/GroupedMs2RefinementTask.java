@@ -55,7 +55,6 @@ public class GroupedMs2RefinementTask extends AbstractTask {
 
   private final FeatureList featureList;
   private final ParameterSet parameters;
-  private final String description;
   private final Double minAbsFeatureHeight;
   private final Double minRelFeatureHeight;
   private final AtomicLong totalFeatures = new AtomicLong(0);
@@ -72,8 +71,6 @@ public class GroupedMs2RefinementTask extends AbstractTask {
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureList = featureList;
-    description = "Refine grouped fragmentation spectra for feature in %s".formatted(
-        featureList.getName());
 
     parameters = parameterSet;
     // RT has two options / tolerance is only provided for second option
@@ -83,12 +80,30 @@ public class GroupedMs2RefinementTask extends AbstractTask {
         GroupedMs2RefinementParameters.minimumRelativeFeatureHeight);
   }
 
+  public GroupedMs2RefinementTask(final FeatureList featureList, final double minRelFeatureHeight,
+      final double minAbsFeatureHeight) {
+    super(null, Instant.now());
+    this.featureList = featureList;
+    this.minRelFeatureHeight = minRelFeatureHeight;
+    this.minAbsFeatureHeight = minAbsFeatureHeight;
+    parameters = MZmineCore.getConfiguration().getModuleParameters(GroupedMs2RefinementModule.class)
+        .cloneParameterSet();
+    parameters.setParameter(GroupedMs2RefinementParameters.minimumRelativeFeatureHeight,
+        minRelFeatureHeight);
+    parameters.setParameter(GroupedMs2RefinementParameters.minimumAbsoluteFeatureHeight,
+        minAbsFeatureHeight);
+  }
+
   @Override
   public void run() {
     try {
       setStatus(TaskStatus.PROCESSING);
 
-      processFeatureList();
+      processFeatureList(this);
+
+      if (isCanceled()) {
+        return;
+      }
 
       featureList.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(GroupedMs2RefinementModule.class, parameters,
@@ -107,12 +122,15 @@ public class GroupedMs2RefinementTask extends AbstractTask {
   /**
    * Refine fragmentation scans of the selected feature list of this object. This is done for all
    * {@link RawDataFile}.
+   *
+   * @param parentTask this or the parent task listed in the task controller
    */
-  public void processFeatureList() {
+  public void processFeatureList(final AbstractTask parentTask) {
     if (featureList.getRawDataFiles().size() == 1) {
-      processDataFile(featureList.getRawDataFiles().get(0));
+      processDataFile(parentTask, featureList.getRawDataFiles().get(0));
     } else {
-      featureList.getRawDataFiles().parallelStream().forEach(this::processDataFile);
+      featureList.getRawDataFiles().parallelStream()
+          .forEach(raw -> processDataFile(parentTask, raw));
     }
 
     // log statistics
@@ -126,7 +144,11 @@ public class GroupedMs2RefinementTask extends AbstractTask {
         config.getIntensityFormat().format(minAbsFeatureHeight)));
   }
 
-  private void processDataFile(final RawDataFile raw) {
+  /**
+   * @param parentTask this or the parent task listed in the task controller
+   * @param raw        file to process
+   */
+  private void processDataFile(final AbstractTask parentTask, final RawDataFile raw) {
     // create map
     List<ModularFeature> features = featureList.getFeatures(raw);
     totalFeatures.addAndGet(features.size());
@@ -136,7 +158,7 @@ public class GroupedMs2RefinementTask extends AbstractTask {
     Object2FloatOpenHashMap<Scan> scanToHeightMap = new Object2FloatOpenHashMap<>();
 
     for (final ModularFeature feature : features) {
-      if (isCanceled()) {
+      if (parentTask.isCanceled()) {
         return;
       }
       final float height = feature.getHeight();
@@ -170,6 +192,6 @@ public class GroupedMs2RefinementTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return description;
+    return "Refine grouped fragmentation spectra for features in " + featureList.getName();
   }
 }
