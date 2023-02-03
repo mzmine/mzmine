@@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Desktop extends MZmineModule {
 
+  void handleShowTaskView();
+
   /**
    * Returns a reference to main application window. May return null if MZmine is running in
    * headless (batch) mode.

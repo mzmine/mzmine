@@ -42,6 +42,7 @@ public class ColorPickerMenuItem extends CustomMenuItem {
   private final ObjectProperty<Color> selectedColor = new SimpleObjectProperty<>();
 
   public ColorPickerMenuItem() throws IOException {
+    super();
     URL url = getClass().getResource("ColorPicker.fxml");
     assert url != null;
     FXMLLoader loader = new FXMLLoader(url);

@@ -89,6 +89,7 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -133,7 +134,7 @@ public abstract class WizardBatchBuilder {
   protected final File[] libraries;
   //filter
   protected final Boolean filter13C;
-  protected final Integer minAlignedSamples;
+  protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // MS parameters currently all the same
   protected final Double noiseLevelMsn;
@@ -383,7 +384,7 @@ public abstract class WizardBatchBuilder {
   }
 
   protected void makeAndAddRowFilterStep(final BatchQueue q) {
-    if (!filter13C && minAlignedSamples < 2) {
+    if (!filter13C && !minAlignedSamples.isGreaterZero()) {
       return;
     }
 
@@ -392,14 +393,14 @@ public abstract class WizardBatchBuilder {
     param.setParameter(RowsFilterParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     String suffix = (filter13C ? "13C" : "");
-    if (minAlignedSamples > 1) {
+    if (minAlignedSamples.isGreaterZero()) {
       suffix = suffix + (suffix.isEmpty() ? "" : " ") + "peak";
     }
     param.setParameter(RowsFilterParameters.SUFFIX, suffix);
-    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples > 0);
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples.isGreaterZero());
     // TODO maybe change to a relative cutoff? 5% of samples, i.e. 0.05
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
-        .setValue((double) minAlignedSamples);
+        .setValue(minAlignedSamples);
 
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
     param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, filter13C);
