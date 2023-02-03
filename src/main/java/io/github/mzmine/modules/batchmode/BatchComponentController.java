@@ -256,9 +256,12 @@ public class BatchComponentController implements LastFilesComponent {
   }
 
   public void onRemoveModulePressed() {
-    var selected = currentStepsList.getSelectionModel().getSelectedItem();
-    if (selected != null) {
+    var selected = currentStepsList.getSelectionModel().getSelectedIndex();
+    if (selected != -1) {
       batchQueue.remove(selected);
+      currentStepsList.getSelectionModel()
+          .select(Math.min(selected, currentStepsList.getItems().size() - 1));
+      currentStepsList.requestFocus();
     }
   }
 
