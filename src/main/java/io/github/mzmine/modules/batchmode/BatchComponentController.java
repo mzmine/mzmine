@@ -188,6 +188,13 @@ public class BatchComponentController implements LastFilesComponent {
       }
     });
 
+    tvModules.setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.ENTER) {
+        event.consume();
+        onAddModulePressed();
+      }
+    });
+
     currentStepsList.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
         e.consume();
@@ -197,6 +204,43 @@ public class BatchComponentController implements LastFilesComponent {
 
     cmbHandleFlists.setItems(FXCollections.observableArrayList(OriginalFeatureListOption.values()));
     cmbHandleFlists.setValue(OriginalFeatureListOption.REMOVE);
+
+    // add key support
+    currentStepsList.setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.ENTER) {
+        setParametersPressed();
+      }
+      if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+        onRemoveModulePressed();
+      }
+      boolean modifier = event.isAltDown() || event.isShortcutDown();
+      if (event.getCode() == KeyCode.PAGE_DOWN && modifier) {
+        shiftSelectedStep(1);
+      }
+      if (event.getCode() == KeyCode.PAGE_UP && modifier) {
+        shiftSelectedStep(-1);
+      }
+      if (event.getCode() == KeyCode.DOWN && modifier) {
+        shiftSelectedStep(1);
+      }
+      if (event.getCode() == KeyCode.UP && modifier) {
+        shiftSelectedStep(-1);
+      }
+      event.consume();
+    });
+  }
+
+  private void shiftSelectedStep(final int stepShift) {
+    int selected = currentStepsList.getSelectionModel().getSelectedIndex();
+    if (selected == -1 || selected + stepShift >= currentStepsList.getItems().size()
+        || selected + stepShift < 0) {
+      return;
+    }
+
+    MZmineProcessingStep<MZmineProcessingModule> step = batchQueue.remove(selected);
+    batchQueue.add(selected + stepShift, step);
+    currentStepsList.setItems(batchQueue);
+    currentStepsList.getSelectionModel().select(selected + stepShift);
   }
 
 
