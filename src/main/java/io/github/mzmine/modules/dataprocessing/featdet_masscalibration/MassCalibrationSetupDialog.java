@@ -91,8 +91,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
-    // super(valueCheckRequired, parameters);
-
     super(valueCheckRequired, parameters, universalCalibrantsMessage);
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();

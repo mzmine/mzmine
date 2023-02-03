@@ -23,32 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.javafx.HtmlLinkOpenExternalBrowserListener;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
+import io.github.mzmine.parameters.parametertypes.ComboWithInputParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class MZmineIntroductionTab extends SimpleTab {
+public class RtLimitOptionsParameter extends
+    ComboWithInputParameter<FeatureLimitOptions, RTToleranceParameter> {
 
-  public static final String TITLE = "Welcome to MZmine 3";
+  public RtLimitOptionsParameter(final RTToleranceParameter embeddedParameter) {
+    super(embeddedParameter, FeatureLimitOptions.values(), FeatureLimitOptions.USE_FEATURE_EDGES,
+        FeatureLimitOptions.USE_TOLERANCE);
 
-  public MZmineIntroductionTab() {
-    super(TITLE);
-
-    final WebView browser = new WebView();
-    final WebEngine engine = browser.getEngine();
-
-    if (MZmineCore.getConfiguration().isDarkMode()) {
-      engine.load(getClass().getResource("MZmineIntroduction_darkmode.html").toString());
-    } else {
-      engine.load(getClass().getResource("MZmineIntroduction.html").toString());
-    }
-    engine.getLoadWorker().stateProperty()
-        .addListener(new HtmlLinkOpenExternalBrowserListener(browser));
-
-    super.setContent(browser);
   }
 }

@@ -29,7 +29,6 @@ package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -58,8 +57,8 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
 
   // GROUPING
   // sample sets
-  public static final OptionalParameter<ComboParameter<Object>> GROUPSPARAMETER =
-      new OptionalParameter<ComboParameter<Object>>(new ComboParameter<Object>("Sample set",
+  public static final OptionalParameter<ComboParameter<Object>> GROUPSPARAMETER = new OptionalParameter<ComboParameter<Object>>(
+      new ComboParameter<Object>("Sample set",
           "Paremeter defining the sample set of each sample. (Set them in Project/Set sample parameters)",
           new Object[0]), false);
 
@@ -73,37 +72,36 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
   /**
    * Filter by minimum height
    */
-  public static final DoubleParameter NOISE_LEVEL =
-      new DoubleParameter("Intensity correlation threshold",
-          "This intensity threshold is used to filter data points before feature shape correlation",
-          MZmineCore.getConfiguration().getIntensityFormat(), 1E4);
+  public static final DoubleParameter NOISE_LEVEL = new DoubleParameter(
+      "Intensity correlation threshold",
+      "This intensity threshold is used to filter data points before feature shape correlation",
+      MZmineCore.getConfiguration().getIntensityFormat(), 1E4);
 
   /**
    * Filter out by minimum number of features in all samples and/or in at least one sample group
    * features with height>=minHeight
    */
-  public static final SubModuleParameter<MinimumFeaturesFilterParameters> MIN_SAMPLES_FILTER =
-      new SubModuleParameter<>("Min samples filter",
-          "Filter out by min number of features in all samples and in sample groups",
-          new MinimumFeaturesFilterParameters(true));
+  public static final SubModuleParameter<MinimumFeaturesFilterParameters> MIN_SAMPLES_FILTER = new SubModuleParameter<>(
+      "Min samples filter",
+      "Filter out by min number of features in all samples and in sample groups",
+      new MinimumFeaturesFilterParameters(true));
 
   // Sub parameters of correlation grouping
-  public static final OptionalModuleParameter<FeatureShapeCorrelationParameters> FSHAPE_CORRELATION =
-      new OptionalModuleParameter<>("Correlation grouping",
-          "Grouping based on Pearson correlation of the feature shapes.",
-          new FeatureShapeCorrelationParameters(true), true);
+  public static final OptionalModuleParameter<FeatureShapeCorrelationParameters> FSHAPE_CORRELATION = new OptionalModuleParameter<>(
+      "Correlation grouping", "Grouping based on Pearson correlation of the feature shapes.",
+      new FeatureShapeCorrelationParameters(true), true);
 
-  public static final OptionalModuleParameter<InterSampleHeightCorrParameters> IMAX_CORRELATION =
-      new OptionalModuleParameter<>("Feature height correlation",
-          "Feature to feature correlation of the maximum intensities across all samples.",
-          new InterSampleHeightCorrParameters(true), true);
+  public static final OptionalModuleParameter<InterSampleHeightCorrParameters> IMAX_CORRELATION = new OptionalModuleParameter<>(
+      "Feature height correlation",
+      "Feature to feature correlation of the maximum intensities across all samples.",
+      new InterSampleHeightCorrParameters(true), true);
 
   public static final OptionalParameter<StringParameter> SUFFIX = new OptionalParameter<>(
       new StringParameter("Suffix (or auto)", "Select suffix or deselect for auto suffix"), false);
 
   // Constructor
   public CorrelateGroupingParameters() {
-    super(new Parameter[]{PEAK_LISTS, RT_TOLERANCE,
+    super(PEAK_LISTS, RT_TOLERANCE,
         // Group and minimum samples filter
         GROUPSPARAMETER,
         // feature filter
@@ -113,7 +111,7 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
         // intensity max correlation
         IMAX_CORRELATION,
         // suffix or auto suffix
-        SUFFIX});
+        SUFFIX);
   }
 
   public CorrelateGroupingParameters(RTTolerance rtTol, boolean useGroups, String gParam,
@@ -121,7 +119,7 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
       MinimumFeaturesFilterParameters minFFilter, boolean useFShapeCorr, boolean useImaxCorr,
       FeatureShapeCorrelationParameters fShapeParam,
       InterSampleHeightCorrParameters heightCorrParam) {
-    super(new Parameter[]{RT_TOLERANCE,
+    super(RT_TOLERANCE,
         // Group and minimum samples filter
         GROUPSPARAMETER,
         // feature filter
@@ -131,7 +129,7 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
         // intensity max correlation
         IMAX_CORRELATION,
         // suffix or auto suffix
-        SUFFIX});
+        SUFFIX);
     this.getParameter(RT_TOLERANCE).setValue(rtTol);
     this.getParameter(GROUPSPARAMETER).setValue(useGroups);
     this.getParameter(GROUPSPARAMETER).getEmbeddedParameter().setValue(gParam);
@@ -150,8 +148,8 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();
     // Update the parameter choices
-    UserParameter<?, ?> newChoices[] =
-        MZmineCore.getProjectManager().getCurrentProject().getParameters();
+    UserParameter<?, ?>[] newChoices = MZmineCore.getProjectManager().getCurrentProject()
+        .getParameters();
     String[] choices;
     if (newChoices == null || newChoices.length == 0) {
       choices = new String[1];
@@ -181,5 +179,10 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }
