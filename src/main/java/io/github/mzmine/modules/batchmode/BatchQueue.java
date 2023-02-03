@@ -81,7 +81,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         case 0 -> "the same";
         default -> "";
       };
-      String msg = "The batch file was created with %s version of MZmine%s (current version is %s).".formatted(
+      String msg = "The batch file was created with %s version of MZmine%s (this version is %s).".formatted(
           vstring, mzmineVersion, MZmineCore.getMZmineVersion());
       logger.info(msg);
       //
@@ -92,7 +92,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         mzmineVersionError = null;
       }
     } else {
-      mzmineVersionError = "Batch was created with an older version of MZmine prior to MZmine 3.4.0 (current version is %s).".formatted(
+      mzmineVersionError = "Batch was created with an older version of MZmine prior to MZmine 3.4.0 (this version is %s).".formatted(
           MZmineCore.getMZmineVersion());
       logger.warning(mzmineVersionError);
     }
@@ -147,13 +147,19 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         final ParameterSet parameterSet = MZmineCore.getConfiguration()
             .getModuleParameters(moduleFound.getClass());
         final ParameterSet methodParams = parameterSet.cloneParameterSet();
+        int currentVersion = parameterSet.getVersion();
 
         // check version introduced in MZmine 3.4.0
         if (!stepElement.hasAttribute(MODULE_VERSION_ATTR)) {
           noModuleVersion = true;
+          // version is known to have changed in MZmine 3.4.0
+          if (currentVersion > 1) {
+            errorMessages.add(
+                "'%s' step parameters were changed.".formatted(moduleFound.getName()));
+          }
         } else {
           int version = Integer.parseInt(stepElement.getAttribute(MODULE_VERSION_ATTR));
-          String diff = switch (Integer.compare(version, parameterSet.getVersion())) {
+          String diff = switch (Integer.compare(version, currentVersion)) {
             case -1 -> "outdated";
             case 1 -> "newer";
             default -> null;
