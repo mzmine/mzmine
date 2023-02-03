@@ -165,12 +165,13 @@ public class GroupMS2Task extends AbstractTask {
   public void processRow(FeatureListRow row) {
     for (ModularFeature feature : row.getFeatures()) {
       final List<Scan> scans;
-      if (MobilityType.TIMS.isTypeOf(feature)) {
+      if (MobilityType.TIMS.isTypeOfBackingRawData(feature)) {
         scans = findFragmentScansForTimsFeature(feature);
       } else {
         scans = findFragmentScans(feature);
       }
 
+      filterByMinimumSignals(scans);
       feature.setAllMS2FragmentScans(scans.isEmpty() ? null : scans, true);
       // get proximity
       setRtApexProximity(feature, scans);
@@ -327,8 +328,6 @@ public class GroupMS2Task extends AbstractTask {
     }
 
     if (!msmsSpectra.isEmpty() && combineTimsMS2) {
-      // filter for minimum spectra TODO steffen check if this is okay here before the final merging
-      filterByMinimumSignals(msmsSpectra);
       return SpectraMerging.mergeMsMsSpectra(msmsSpectra, SpectraMerging.pasefMS2MergeTol,
           IntensityMergingType.SUMMED, ((ModularFeatureList) list).getMemoryMapStorage());
     }
