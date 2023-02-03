@@ -27,24 +27,30 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 public final class IonInterfaceImagingWizardParameters extends IonInterfaceWizardParameters {
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Min # of data points", "Minimum number of data points as used in image building", 25, 1,
+      "Min # of data points", "Minimum number of data points as used in image building", 30, 1,
       Integer.MAX_VALUE);
+
+  public static final BooleanParameter enableDeisotoping = new BooleanParameter(
+      "Enable deisotoping", "Enables feature list deisotoping during the workflow.\n"
+      + "If enabled, this might falsely remove unique features from isobaric overlaps.", false);
 
   public IonInterfaceImagingWizardParameters(final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
-        minNumberOfDataPoints);
+        minNumberOfDataPoints, enableDeisotoping);
   }
 
   public IonInterfaceImagingWizardParameters(final IonInterfaceWizardParameterFactory preset,
-      final int minDataPoints) {
+      final int minDataPoints, final boolean enableDeisotoping) {
     this(preset);
     setParameter(minNumberOfDataPoints, minDataPoints);
+    setParameter(this.enableDeisotoping, enableDeisotoping);
   }
 
 }

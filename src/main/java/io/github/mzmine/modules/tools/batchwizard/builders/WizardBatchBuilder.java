@@ -198,7 +198,7 @@ public abstract class WizardBatchBuilder {
     Optional<WizardStepParameters> preset = steps.get(WizardPart.WORKFLOW);
     var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getFactory();
     return switch (workflowPreset) {
-      case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
+      case DDA -> steps.isImaging() ? new WizardBatchBuilderImaging(steps)
           : new WizardBatchBuilderLcDDA(steps);
       case GC_EI_DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
       case LIBRARY_GENERATION, MS1_ONLY -> throw new UnsupportedOperationException(
@@ -523,6 +523,7 @@ public abstract class WizardBatchBuilder {
     param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
         .setValue(mzTolScans);
     param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
+    param.setParameter(ImsExpanderParameters.maxNumTraces, false, 10);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
         param));
