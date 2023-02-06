@@ -38,6 +38,10 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
       "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
       true);
 
+  public static final BooleanParameter exportMsp = new BooleanParameter(
+      "Export for MSP", "Export to MSP",
+      true);
+
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
           "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...",
@@ -47,16 +51,17 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
   public WorkflowGcElectronImpactWizardParameters() {
     super(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION,
         // actual parameters
-        exportPath, exportGnps);
+        exportPath, exportGnps, exportMsp);
   }
 
 
   public WorkflowGcElectronImpactWizardParameters(final boolean exportActive,
-      final File exportBasePath, final boolean exportGnpsActive) {
+      final File exportBasePath, final boolean exportGnpsActive, final boolean exportMspActive) {
     this();
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
+    setParameter(exportMsp, exportMspActive);
   }
 
 }

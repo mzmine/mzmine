@@ -84,6 +84,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
   private final boolean isExportActive;
   private final File exportPath;
   private final Boolean exportGnps;
+  private final Boolean exportMsp;
   private final Integer minRtDataPoints; //min number of data points
   private final Double snThreshold;
   private final Range<Double> rtforCWT;
@@ -105,8 +106,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     minRtDataPoints = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
     rtFwhm = getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM).getTolerance()
-        * 4;
+        IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM).getTolerance();
     snThreshold = getValue(params, IonInterfaceGcElectronImpactWizardParameters.SN_THRESHOLD);
     rtforCWT = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
@@ -119,6 +119,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     isExportActive = optional.active();
     exportPath = optional.value();
     exportGnps = getValue(params, WorkflowGcElectronImpactWizardParameters.exportGnps);
+    exportMsp = getValue(params, WorkflowGcElectronImpactWizardParameters.exportMsp);
   }
 
   @Override
@@ -135,12 +136,14 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     if (isExportActive) {
       if (exportGnps) {
         makeAndAddGnpsExportStep(q);
-      } else {
+      }
+      if(exportMsp){
         makeAndAddMSPExportStep(q);
       }
     }
     return q;
   }
+
   @Override
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
     if (isImsActive) {
@@ -157,6 +160,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.SCANS);
     }
   }
+
   protected void makeAndAddRtAdapResolver(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AdapResolverModule.class).cloneParameterSet();
@@ -168,8 +172,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     param.setParameter(ADAPResolverParameters.MIN_FEAT_HEIGHT, minFeatureHeight);
     param.setParameter(ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION, rtforCWT);
     param.setParameter(ADAPResolverParameters.COEF_AREA_THRESHOLD, 110.0);
-    param.setParameter(ADAPResolverParameters.SN_ESTIMATORS,
-        ADAPResolverParameters.SN_ESTIMATORS.getValue());
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapResolverModule.class),
         param));
   }
@@ -177,7 +179,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
   private void makeMultiCurveResolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAPMultivariateCurveResolutionModule.class).cloneParameterSet();
-    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, rtFwhm);
+    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, rtFwhm*4);
     param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
         (double) intraSampleRtTol.getTolerance());
     param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE, 1);
