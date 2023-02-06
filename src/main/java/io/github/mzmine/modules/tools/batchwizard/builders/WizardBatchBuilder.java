@@ -225,14 +225,10 @@ public abstract class WizardBatchBuilder {
     // going back into scans so rather use scan mz tol
     param.setParameter(DuplicateFilterParameters.mzDifferenceMax, mzTol);
     param.setParameter(DuplicateFilterParameters.rtDifferenceMax, rtTol);
-//    param.setParameter(DuplicateFilterParameters.mobilityDifferenceMax,
-//        mobilityType != MobilityType.NONE);
-//    param.getParameter(DuplicateFilterParameters.mobilityDifferenceMax).getEmbeddedParameter()
-//        .setValue(new MobilityTolerance(mobilityType == MobilityType.TIMS ? 0.008f : 1f));
-    param.setParameter(DuplicateFilterParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(DuplicateFilterParameters.mobilityDifferenceMax,
         mobilityType != MobilityType.NONE,
         new MobilityTolerance(mobilityType == MobilityType.TIMS ? 0.008f : 1f));
+    param.setParameter(DuplicateFilterParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(DuplicateFilterParameters.suffix, "dup");
     param.setParameter(DuplicateFilterParameters.requireSameIdentification, false);
     param.setParameter(DuplicateFilterParameters.filterMode, FilterMode.NEW_AVERAGE);
