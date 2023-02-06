@@ -145,7 +145,7 @@ public class SiriusExportTask extends AbstractTask {
     } else if (f.getMostIntenseFragmentScan().getMsMsInfo() instanceof DDAMsMsInfo dda) {
       charge = dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : charge;
     }
-    charge = charge == 0 ? 1 : charge;
+    charge = Math.max(charge, 1); // no zero charge
 
     entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
     entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
@@ -495,13 +495,21 @@ public class SiriusExportTask extends AbstractTask {
     }
   }
 
-  private void removeDuplicateDataPoints(List<DataPoint> dp, MZTolerance tolerance) {
-    for (int i = 0; i < dp.size() - 1; i++) {
-      if (mzTol.checkWithinTolerance(dp.get(i).getMZ(), dp.get(i + 1).getMZ())) {
-        if (dp.get(i) instanceof AnnotatedDataPoint) {
-          dp.remove(i + 1);
+  /**
+   * Removes duplicate data points from the given list. In this case, isotopic features may be among
+   * the correlated ions and thus be added from the isotope pattern of the monoisotopic mass and as
+   * a correlated ion.
+   *
+   * @param sortedDp  data points sorted by mz.
+   * @param tolerance MZ tolerance to filter equal data points.
+   */
+  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance tolerance) {
+    for (int i = 0; i < sortedDp.size() - 1; i++) {
+      if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
+        if (sortedDp.get(i) instanceof AnnotatedDataPoint) {
+          sortedDp.remove(i + 1);
         } else {
-          dp.remove(i);
+          sortedDp.remove(i);
         }
       }
     }
