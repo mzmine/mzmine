@@ -145,6 +145,7 @@ public class SiriusExportTask extends AbstractTask {
     } else if (f.getMostIntenseFragmentScan().getMsMsInfo() instanceof DDAMsMsInfo dda) {
       charge = dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : charge;
     }
+    charge = charge == 0 ? 1 : charge;
 
     entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
     entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
@@ -166,7 +167,6 @@ public class SiriusExportTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-
 
     // Process feature lists
     for (FeatureList featureList : featureLists) {
@@ -223,7 +223,7 @@ public class SiriusExportTask extends AbstractTask {
         return;
       }
 
-      if(exportRow(writer, row)) {
+      if (exportRow(writer, row)) {
         exportedRows.getAndIncrement();
       }
 
@@ -232,7 +232,6 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   /**
-   *
    * @return True if the row was exported.
    */
   public boolean exportRow(BufferedWriter writer, FeatureListRow row) throws IOException {
@@ -304,6 +303,11 @@ public class SiriusExportTask extends AbstractTask {
       }
       case MS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
       case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
+    }
+
+    final IonIdentity ionType = f.getRow().getBestIonIdentity();
+    if (ionType != null) {
+      entry.putIfNotNull(DBEntryField.ION_TYPE, ionType.getAdduct());
     }
 
     if (spectrum instanceof MergedSpectrum spec) {
@@ -442,7 +446,7 @@ public class SiriusExportTask extends AbstractTask {
     if (group == null) {
       // add isotope pattern of this feature only if we don't have a group, otherwise the isotope
       // pattern is exported below.
-      addIsotopePattern(feature, dps, true, ip);
+      addIsotopePattern(feature, dps, ip);
     }
 
     if (group != null) {
@@ -466,12 +470,14 @@ public class SiriusExportTask extends AbstractTask {
           }
 
           // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
-          addIsotopePattern(sameFileFeature, dps, false, sameFileFeature.getIsotopePattern());
+          addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
         }
       }
     }
 
     dps.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    removeDuplicateDataPoints(dps,
+        mzTol); // remove duplicate isotope peaks (might be correlated features too)
     final double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dps);
     return dps.isEmpty() ? null : new SimpleMassSpectrum(dp[0], dp[1]);
   }
@@ -480,12 +486,21 @@ public class SiriusExportTask extends AbstractTask {
    * Adds the isotopic peaks of this row to the list of data points.
    */
   private void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
-      boolean exportMolecularIon, @Nullable IsotopePattern ip) {
+      @Nullable IsotopePattern ip) {
     if (ip != null) {
       for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
-        // make sure to not export the molecular ion twice. Mass might change a bit due to smoothing
-        if (mzTol.checkWithinTolerance(feature.getMZ(), ip.getMzValue(i)) && exportMolecularIon) {
-          dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
+        dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
+      }
+    }
+  }
+
+  private void removeDuplicateDataPoints(List<DataPoint> dp, MZTolerance tolerance) {
+    for (int i = 0; i < dp.size() - 1; i++) {
+      if (mzTol.checkWithinTolerance(dp.get(i).getMZ(), dp.get(i + 1).getMZ())) {
+        if (dp.get(i) instanceof AnnotatedDataPoint) {
+          dp.remove(i + 1);
+        } else {
+          dp.remove(i);
         }
       }
     }
