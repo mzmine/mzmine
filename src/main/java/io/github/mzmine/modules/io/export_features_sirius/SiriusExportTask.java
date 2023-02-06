@@ -83,8 +83,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class SiriusExportTask extends AbstractTask {
 
+  public static final String MULTI_NAME_PATTERN = "{}";
   private static final Logger logger = Logger.getLogger(SiriusExportTask.class.getName());
-
   private final ParameterSet parameters;
   private final ModularFeatureList[] featureLists;
   private final File fileName;
@@ -96,7 +96,6 @@ public class SiriusExportTask extends AbstractTask {
   private final Boolean excludeMultimers;
   private final Boolean needAnnotation;
   private final int totalRows;
-  public static final String MULTI_NAME_PATTERN = "{}";
   private final NumberFormats format = MZmineCore.getConfiguration().getExportFormats();
   private final MergeMode mergeMode;
   private AtomicInteger exportedRows = new AtomicInteger(0);
@@ -126,6 +125,31 @@ public class SiriusExportTask extends AbstractTask {
     // experimental
 
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
+  }
+
+  private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
+      SpectralLibraryEntry entry) {
+    entry.putIfNotNull(DBEntryField.FILENAME,
+        Arrays.stream(spectrum.origins).map(RawDataFile::getName).collect(Collectors.joining(";")));
+    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_SCANS,
+        Arrays.stream(spectrum.scanIds).mapToObj(Integer::toString)
+            .collect(Collectors.joining(",")));
+    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_STATS, spectrum.getMergeStatsDescription());
+  }
+
+  private static void putFeatureFieldsIntoEntry(Feature f, SpectralLibraryEntry entry) {
+    int charge = 1;
+    PolarityType polarity = f.getRepresentativeScan().getPolarity();
+    if (f.getRow().getRowCharge() != null) {
+      charge = f.getRow().getRowCharge();
+    } else if (f.getMostIntenseFragmentScan().getMsMsInfo() instanceof DDAMsMsInfo dda) {
+      charge = dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : charge;
+    }
+
+    entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
+    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
+    entry.putIfNotNull(DBEntryField.RT, f.getRT() * 60);
+    entry.setCharge(charge, polarity);
   }
 
   @Override
@@ -222,8 +246,8 @@ public class SiriusExportTask extends AbstractTask {
 
     // export either correlated OR MS1
     final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
-    if (correlated != null) {
-      spectrumToEntry(MsType.CORRELATED, correlated, row.getBestFeature());
+    if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
+      entries.add(spectrumToEntry(MsType.CORRELATED, correlated, row.getBestFeature()));
     } else {
       // export best MS1
       entries.add(spectrumToEntry(MsType.MS, row.getBestFeature().getRepresentativeScan(),
@@ -287,31 +311,6 @@ public class SiriusExportTask extends AbstractTask {
     }
 
     return entry;
-  }
-
-  private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
-      SpectralLibraryEntry entry) {
-    entry.putIfNotNull(DBEntryField.FILENAME,
-        Arrays.stream(spectrum.origins).map(RawDataFile::getName).collect(Collectors.joining(";")));
-    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_SCANS,
-        Arrays.stream(spectrum.scanIds).mapToObj(Integer::toString)
-            .collect(Collectors.joining(",")));
-    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_STATS, spectrum.getMergeStatsDescription());
-  }
-
-  private static void putFeatureFieldsIntoEntry(Feature f, SpectralLibraryEntry entry) {
-    int charge = 1;
-    PolarityType polarity = f.getRepresentativeScan().getPolarity();
-    if (f.getRow().getRowCharge() != null) {
-      charge = f.getRow().getRowCharge();
-    } else if (f.getMostIntenseFragmentScan().getMsMsInfo() instanceof DDAMsMsInfo dda) {
-      charge = dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : charge;
-    }
-
-    entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
-    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
-    entry.putIfNotNull(DBEntryField.RT, f.getRT() * 60);
-    entry.setCharge(charge, polarity);
   }
 
   private List<SpectralLibraryEntry> getMergedMs2SpectraEntries(MergeMode mergeMode,
@@ -417,22 +416,6 @@ public class SiriusExportTask extends AbstractTask {
     return curFile;
   }
 
-  private enum MsType {
-    /**
-     * Describes the original MS1 spectrum
-     */
-    MS,
-    /**
-     * The MS2 spectrum, either merged raw spectra, or the best raw spectrum.
-     */
-    MSMS,
-    /**
-     * Only contains m/zs of features that correlate with this feature. (e.g. isotopic signals or
-     * different adducts).
-     */
-    CORRELATED
-  }
-
   /**
    * Generates a spectrum of all correlated features, such as isotope patterns and adducts assigned
    * via IIN (+ their isotopes).
@@ -506,5 +489,21 @@ public class SiriusExportTask extends AbstractTask {
         }
       }
     }
+  }
+
+  private enum MsType {
+    /**
+     * Describes the original MS1 spectrum
+     */
+    MS,
+    /**
+     * The MS2 spectrum, either merged raw spectra, or the best raw spectrum.
+     */
+    MSMS,
+    /**
+     * Only contains m/zs of features that correlate with this feature. (e.g. isotopic signals or
+     * different adducts).
+     */
+    CORRELATED
   }
 }
