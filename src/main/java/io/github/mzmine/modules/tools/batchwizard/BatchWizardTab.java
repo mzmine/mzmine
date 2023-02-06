@@ -408,7 +408,7 @@ public class BatchWizardTab extends SimpleTab {
     }
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
-        .getModuleParameters(BatchModeModule.class);
+        .getModuleParameters(BatchModeModule.class).cloneParameterSet();
     final BatchQueue q = WizardBatchBuilder.createBatchBuilderForWorkflow(workflowSteps)
         .createQueue();
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
