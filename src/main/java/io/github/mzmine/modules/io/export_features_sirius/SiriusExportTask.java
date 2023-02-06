@@ -296,6 +296,7 @@ public class SiriusExportTask extends AbstractTask {
 
     switch (spectrumType) {
       case CORRELATED -> {
+        entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
         entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, "CORRELATED MS");
         entry.putIfNotNull(DBEntryField.FILENAME,
             f.getRow().getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
