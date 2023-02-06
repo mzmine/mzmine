@@ -82,7 +82,7 @@ public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
       makeAndAddSmoothingStep(q, false, minDataPoints, imsSmoothing);
-      makeAndAddMobilityResolvingStep(q);
+      makeAndAddMobilityResolvingStep(q, null);
       makeAndAddSmoothingStep(q, false, minDataPoints, imsSmoothing);
     }
 
