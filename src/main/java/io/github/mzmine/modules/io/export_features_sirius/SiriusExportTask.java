@@ -504,7 +504,7 @@ public class SiriusExportTask extends AbstractTask {
    * @param tolerance MZ tolerance to filter equal data points.
    */
   private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance tolerance) {
-    for (int i = 0; i < sortedDp.size() - 1; i++) {
+    for (int i = sortedDp.size() - 2; i >= 0; i--) {
       if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
         if (sortedDp.get(i) instanceof AnnotatedDataPoint) {
           sortedDp.remove(i + 1);
