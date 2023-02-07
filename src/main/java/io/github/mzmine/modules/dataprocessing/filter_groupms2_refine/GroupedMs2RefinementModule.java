@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_groupms2;
+package io.github.mzmine.modules.dataprocessing.filter_groupms2_refine;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -37,12 +37,13 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Group all MS2 scans to their features
+ * After grouping of fragmentation scans with features, only keep those that have at least X % of
+ * the highest grouped feature
  */
-public class GroupMS2Module implements MZmineProcessingModule {
+public class GroupedMs2RefinementModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Group MS2 scans with features";
-  private static final String MODULE_DESCRIPTION = "This method assigns all MS2 scans within range to all features in this feature list";
+  private static final String MODULE_NAME = "Refine fragmentation scans of features";
+  private static final String MODULE_DESCRIPTION = "After grouping of fragmentation scans with features, only keep those that have at least X % of the highest grouped feature";
 
   @Override
   public @NotNull String getName() {
@@ -59,11 +60,11 @@ public class GroupMS2Module implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    final FeatureList[] peakLists = parameters.getParameter(GroupMS2Parameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+    final FeatureList[] featureLists = parameters.getParameter(
+        GroupedMs2RefinementParameters.featureLists).getValue().getMatchingFeatureLists();
 
-    for (FeatureList peakList : peakLists) {
-      Task newTask = new GroupMS2Task(peakList, parameters, moduleCallDate);
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new GroupedMs2RefinementTask(featureList, parameters, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;
@@ -76,6 +77,6 @@ public class GroupMS2Module implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return GroupMS2Parameters.class;
+    return GroupedMs2RefinementParameters.class;
   }
 }

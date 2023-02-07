@@ -337,6 +337,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module"/>
       <MenuItem onAction="#runModule" text="Refine IMS MS/MS spectra"
         userData="io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMsMsRefinementModule"/>
+      <MenuItem onAction="#runModule" text="Refine fragmentation scans of features"
+        userData="io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule"/>
       <MenuItem onAction="#runModule"
         text="Internal reference CCS calibration"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule"/>

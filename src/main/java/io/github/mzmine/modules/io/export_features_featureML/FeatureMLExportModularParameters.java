@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
+import java.util.Collection;
 import java.util.List;
 
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -57,4 +58,22 @@ public class FeatureMLExportModularParameters extends SimpleParameterSet {
     super(new Parameter[]{featureLists, filename, filter});
   }
 
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    final boolean superCheck = super.checkParameterValues(errorMessages);
+
+    // Check if substitute pattern is present in filename if several feature lists are selected by the user
+    String plNamePattern = "{}";
+    boolean substitute = this.getValue(filename).getPath().contains(plNamePattern);
+
+    if (!substitute && this.getValue(featureLists).getMatchingFeatureLists().length > 1) {
+      errorMessages.add("""
+          Cannot export multiple feature lists to the same featureML file. Please use "{}" pattern in filename. \
+          This will be replaced with the feature list name to generate one file per feature list.
+          """);
+    }
+
+    return superCheck && errorMessages.isEmpty();
+  }
 }

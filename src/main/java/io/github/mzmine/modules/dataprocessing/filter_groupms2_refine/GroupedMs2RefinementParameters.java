@@ -23,34 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_groupms2;
+package io.github.mzmine.modules.dataprocessing.filter_groupms2_refine;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import org.jetbrains.annotations.NotNull;
 
-public class GroupMS2SubParameters extends SimpleParameterSet {
+public class GroupedMs2RefinementParameters extends SimpleParameterSet {
 
-  public GroupMS2SubParameters() {
-    super(new Parameter[]{GroupMS2Parameters.minimumRelativeFeatureHeight,
-            GroupMS2Parameters.minRequiredSignals, GroupMS2Parameters.mzTol,
-            GroupMS2Parameters.rtFilter, GroupMS2Parameters.limitMobilityByFeature,
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-            // TIMS specific
-            GroupMS2Parameters.combineTimsMsMs, GroupMS2Parameters.outputNoiseLevel,
-            GroupMS2Parameters.outputNoiseLevelRelative},
+  public static final PercentParameter minimumRelativeFeatureHeight = new PercentParameter(
+      "Minimum relative feature height",
+      "If an MS2 was assigned to multiple features, only keep the feature assignments where feature height is at least X% of the highest feature.",
+      0.25, 0d, 1d);
+
+  public static final DoubleParameter minimumAbsoluteFeatureHeight = new DoubleParameter(
+      "Minimum absolute feature height",
+      "Only keep MS2-feature assignments if the feature height is at least this value. (comparable to the trigger intensity)",
+      MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+
+
+  public GroupedMs2RefinementParameters() {
+    super(new Parameter[]{featureLists, minimumRelativeFeatureHeight, minimumAbsoluteFeatureHeight},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
   }
-
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
 
-  @Override
-  public int getVersion() {
-    return 2;
-  }
 }

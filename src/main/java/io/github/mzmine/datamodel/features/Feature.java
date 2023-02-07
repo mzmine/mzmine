@@ -113,8 +113,8 @@ public interface Feature {
   }
 
   /**
-   * Used to loop over retention time, scans, and data points in combination with ({@link
-   * #getDataPointAtIndex(int)}
+   * Used to loop over retention time, scans, and data points in combination with
+   * ({@link #getDataPointAtIndex(int)}
    *
    * @param i index
    * @return
@@ -187,8 +187,7 @@ public interface Feature {
    * Sorted list of all fragmentation scans of this feature. First is the representative ("best")
    * fragmentation spectrum.
    */
-  @NotNull
-  List<Scan> getAllMS2FragmentScans();
+  @NotNull List<Scan> getAllMS2FragmentScans();
 
   /**
    * Set all fragmentation scans. First element is "best" representative scan. No sorting is
@@ -204,18 +203,22 @@ public interface Feature {
    * Set all fragmentation scans. First element is "best" representative scan. Option to apply the
    * default sorting.
    *
-   * @param allMS2FragmentScanNumbers usually sorted by most intense scans first (represantative
-   *                                  scan as first element)
-   * @param applyDefaultSorting       applies the default sorting to the list (in place)
+   * @param allFragmentScans    usually sorted by most intense scans first (represantative scan as
+   *                            first element)
+   * @param applyDefaultSorting applies the default sorting to the list (in place)
    */
-  default void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers,
-      boolean applyDefaultSorting) {
-    if (applyDefaultSorting && allMS2FragmentScanNumbers != null) {
-      // in case list is immutable
-      allMS2FragmentScanNumbers = new ArrayList<>(allMS2FragmentScanNumbers);
-      allMS2FragmentScanNumbers.sort(FragmentScanSorter.DEFAULT_TIC);
+  default void setAllMS2FragmentScans(List<Scan> allFragmentScans, boolean applyDefaultSorting) {
+    if (allFragmentScans == null || allFragmentScans.isEmpty()) {
+      setAllMS2FragmentScans(allFragmentScans);
+      return;
     }
-    setAllMS2FragmentScans(allMS2FragmentScanNumbers);
+
+    if (applyDefaultSorting) {
+      // in case list is immutable
+      allFragmentScans = new ArrayList<>(allFragmentScans);
+      allFragmentScans.sort(FragmentScanSorter.DEFAULT_TIC);
+    }
+    setAllMS2FragmentScans(allFragmentScans);
   }
 
   /**
@@ -226,8 +229,8 @@ public interface Feature {
   @Nullable Float getMobility();
 
   /**
-   * Sets the mobility of this feature. Note that mobility has a unit, which should be set by {@link
-   * Feature#setMobilityUnit(MobilityType)}.
+   * Sets the mobility of this feature. Note that mobility has a unit, which should be set by
+   * {@link Feature#setMobilityUnit(MobilityType)}.
    *
    * @param mobility The mobility.
    */

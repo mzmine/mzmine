@@ -85,4 +85,9 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return null;
   }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
