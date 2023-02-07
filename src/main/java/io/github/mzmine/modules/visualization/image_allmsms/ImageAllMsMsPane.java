@@ -82,7 +82,7 @@ public class ImageAllMsMsPane extends BorderPane {
         return Objects.requireNonNullElse(msMsInfo.getActivationEnergy(), 0f).doubleValue();
       });
 
-  private static final boolean normalizeMobilograms = true;
+  private static final boolean normalizeMobilograms = false;
   protected final SplitPane mainSplit = new SplitPane();
   protected final BorderPane mainContent = new BorderPane();
   protected final ScrollPane msmsScroll = new ScrollPane();
