@@ -325,7 +325,7 @@ public enum DBEntryField {
       case INCHIKEY -> "INCHIAUX";
       case INSTRUMENT -> "SOURCE_INSTRUMENT";
       case INSTRUMENT_TYPE -> "INSTRUMENT_TYPE";
-      case ION_TYPE -> "PRECURSOR_TYPE";
+      case ION_TYPE -> "ADDUCT";
       case POLARITY -> "IONMODE"; // Positive Negative
       case ION_SOURCE -> "ION_SOURCE";
       case PRECURSOR_MZ -> "PEPMASS";

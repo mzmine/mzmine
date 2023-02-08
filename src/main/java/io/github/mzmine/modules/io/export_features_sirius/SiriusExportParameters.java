@@ -56,10 +56,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("mgf format for SIRIUS", "*.mgf") //
-  );
-
   public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
       "Merge MS/MS",
       "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
@@ -68,8 +64,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
    * MZTolerance to exclude duplicates in correlated spectrum
    */
   public static final MZToleranceParameter MZ_TOL = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance to exclude duplicates in correlated spectrum", 0.001, 5);
-
+      "m/z tolerance to exclude duplicates in correlated spectrum", 0.003, 5);
   public static final BooleanParameter NEED_ANNOTATION = new BooleanParameter(
       "Only rows with annotation",
       "Only export rows with an annotation (run MS annotate or metaMSEcorrelate)", false);
@@ -79,6 +74,9 @@ public class SiriusExportParameters extends SimpleParameterSet {
       "Do not export rows that were annotated as multimers (2M) (run MS annotate or metaMSEcorrelate)",
       false);
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("mgf format for SIRIUS", "*.mgf") //
+  );
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the output MGF file. " + "Use pattern \"" + SiriusExportTask.MULTI_NAME_PATTERN
           + "\" in the file name to substitute with feature list name. " + "(i.e. \"blah"
