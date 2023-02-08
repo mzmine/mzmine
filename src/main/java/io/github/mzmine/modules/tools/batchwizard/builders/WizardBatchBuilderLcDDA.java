@@ -88,6 +88,7 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
   private final Boolean exportSirius;
   private final File exportPath;
   private final Boolean rtSmoothing;
+  private GroupMS2SubParameters groupMs2Params;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -129,7 +130,7 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
       makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
-      makeAndAddMobilityResolvingStep(q);
+      makeAndAddMobilityResolvingStep(q, groupMs2Params);
       makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
 
@@ -168,31 +169,26 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
         handleOriginalFeatureLists);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    final GroupMS2SubParameters groupParam = param.getParameter(
-        MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
+    groupMs2Params = param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters();
     // Using a fixed wide range here because precursor isolation is usually unit resolution
-    groupParam.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.01, 10));
-    // TODO check
-    groupParam.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
-    boolean limitByRTEdges = minRtDataPoints >= 4;
-    groupParam.setParameter(GroupMS2Parameters.rtFilter,
-        limitByRTEdges ? FeatureLimitOptions.USE_FEATURE_EDGES : FeatureLimitOptions.USE_TOLERANCE);
+    groupMs2Params.setParameter(GroupMS2Parameters.mzTol, MZTolerance.max(mzTolScans, 0.01, 10.0));
+    groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
+    groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
+    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasIMS, noiseLevelMsn * 2);
+    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasIMS, 0.01);
+    groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true, 1);
+    groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, true, 0.25);
+    // retention time
     // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early
-    // change rt tol depending on number of datapoints
-    groupParam.getParameter(GroupMS2Parameters.rtFilter).getEmbeddedParameter()
-        .setValue(new RTTolerance(fwhm * 1.1f, Unit.MINUTES));
+    // change rt tol depending on number of data points
+    boolean limitByRTEdges = minRtDataPoints >= 4;
+    groupMs2Params.setParameter(GroupMS2Parameters.rtFilter,
+        limitByRTEdges ? FeatureLimitOptions.USE_FEATURE_EDGES : FeatureLimitOptions.USE_TOLERANCE);
+    groupMs2Params.getParameter(GroupMS2Parameters.rtFilter).getEmbeddedParameter()
+        .setValue(new RTTolerance(fwhm, Unit.MINUTES));
 
-    groupParam.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
-    groupParam.setParameter(GroupMS2Parameters.outputNoiseLevel, hasIMS);
-    groupParam.getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
-        .setValue(noiseLevelMsn * 2);
-    groupParam.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasIMS);
-    groupParam.getParameter(GroupMS2Parameters.outputNoiseLevelRelative).getEmbeddedParameter()
-        .setValue(0.1);
-    groupParam.setParameter(GroupMS2Parameters.minRequiredSignals, true);
-    groupParam.getParameter(GroupMS2Parameters.minRequiredSignals).getEmbeddedParameter()
-        .setValue(1);
-
+    // important apply to retention time
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
     // should be relatively high - unless user suspects many same m/z peaks in chromatogram

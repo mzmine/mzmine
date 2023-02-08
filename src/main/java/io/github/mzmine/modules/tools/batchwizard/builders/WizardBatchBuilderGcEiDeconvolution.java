@@ -113,7 +113,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
       makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
-      makeAndAddMobilityResolvingStep(q);
+      makeAndAddMobilityResolvingStep(q, null);
       makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
 

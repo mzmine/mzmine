@@ -53,8 +53,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.S
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.FeatureLimitOptions;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
@@ -565,7 +563,13 @@ public abstract class WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddMobilityResolvingStep(final BatchQueue q) {
+
+  /**
+   * @param groupMs2Params this might be the same parameterset used for retention time resolving.
+   *                       Will be cloned
+   */
+  protected void makeAndAddMobilityResolvingStep(final BatchQueue q,
+      @Nullable GroupMS2SubParameters groupMs2Params) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
@@ -574,22 +578,12 @@ public abstract class WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
         handleOriginalFeatureLists);
 
-    param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    GroupMS2SubParameters groupMs2Params = param.getParameter(
-        MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
-    groupMs2Params.setParameter(GroupMS2Parameters.mzTol, mzTolScans);
-    groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
-    groupMs2Params.setParameter(GroupMS2Parameters.rtFilter, FeatureLimitOptions.USE_FEATURE_EDGES);
-    groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, true);
-    groupMs2Params.getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
-        .setValue(noiseLevelMsn * 2);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, true);
-    groupMs2Params.getParameter(GroupMS2Parameters.outputNoiseLevelRelative).getEmbeddedParameter()
-        .setValue(0.01);
-    groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true);
-    groupMs2Params.getParameter(GroupMS2Parameters.minRequiredSignals).getEmbeddedParameter()
-        .setValue(1);
+    param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters,
+        groupMs2Params != null);
+    if (groupMs2Params != null) {
+      param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+          .setEmbeddedParameters((GroupMS2SubParameters) groupMs2Params.cloneParameterSet());
+    }
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.MOBILITY);
