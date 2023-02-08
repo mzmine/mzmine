@@ -138,10 +138,8 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
     makeAndAddGapFillStep(q);
-    if (!isImsActive) { // might filter IMS resolved isomers
-      makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
-          rtFwhm);
-    }
+    makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
+        rtFwhm, imsInstrumentType);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
     makeAndAddIinStep(q);

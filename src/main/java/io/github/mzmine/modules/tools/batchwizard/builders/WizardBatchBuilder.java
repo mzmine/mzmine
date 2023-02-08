@@ -98,6 +98,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -208,7 +209,8 @@ public abstract class WizardBatchBuilder {
 
   protected static void makeAndAddDuplicateRowFilterStep(final BatchQueue q,
       final OriginalFeatureListOption handleOriginalFeatureLists,
-      final MZTolerance mzTolFeaturesIntraSample, final RTTolerance rtFwhm) {
+      final MZTolerance mzTolFeaturesIntraSample, final RTTolerance rtFwhm,
+      final MobilityType mobilityType) {
     // reduced rt tolerance - after gap filling the rt difference should be very small
     RTTolerance rtTol = new RTTolerance(rtFwhm.getTolerance() * 0.7f, rtFwhm.getUnit());
 
@@ -223,6 +225,9 @@ public abstract class WizardBatchBuilder {
     // going back into scans so rather use scan mz tol
     param.setParameter(DuplicateFilterParameters.mzDifferenceMax, mzTol);
     param.setParameter(DuplicateFilterParameters.rtDifferenceMax, rtTol);
+    param.setParameter(DuplicateFilterParameters.mobilityDifferenceMax,
+        mobilityType != MobilityType.NONE,
+        new MobilityTolerance(mobilityType == MobilityType.TIMS ? 0.008f : 1f));
     param.setParameter(DuplicateFilterParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(DuplicateFilterParameters.suffix, "dup");
     param.setParameter(DuplicateFilterParameters.requireSameIdentification, false);

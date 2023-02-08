@@ -29,13 +29,43 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 
 public class DuplicateFilterParameters extends SimpleParameterSet {
+
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
+  public static final StringParameter suffix = new StringParameter("Name suffix",
+      "Suffix to be added to feature list name", "filtered");
+  public static final ComboParameter<FilterMode> filterMode = new ComboParameter<>("Filter mode",
+      "Old average: Only keep the row with the maximum avg area.\n New average: Create consensus row from duplicates (DETECTED>ESTIMATED>UNKNOWN).\n "
+          + "Single feature: Marks rows as duplicates if they share at least one feature (in one raw data file) with the same RT and m/z. Creates a consensus row.",
+      FilterMode.values(), FilterMode.NEW_AVERAGE);
+  public static final MZToleranceParameter mzDifferenceMax = new MZToleranceParameter(
+      "m/z tolerance", "Maximum m/z difference between duplicate peaks");
+  public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
+      "RT tolerance", "Maximum retention time difference between duplicate peaks");
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityDifferenceMax = new OptionalParameter<>(
+      new MobilityToleranceParameter("Mobility tolerance",
+          "Maximum mobility difference between duplicate peaks", new MobilityTolerance(0.008f)),
+      true);
+  public static final BooleanParameter requireSameIdentification = new BooleanParameter(
+      "Require same identification",
+      "If checked, duplicate peaks must have same identification(s)");
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      true);
+
+  public DuplicateFilterParameters() {
+    super(new Parameter[]{peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
+            mobilityDifferenceMax, requireSameIdentification, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_duplicate_features/duplicate_feature_filter.html");
+  }
 
   public enum FilterMode {
     OLD_AVERAGE, NEW_AVERAGE, SINGLE_FEATURE;
@@ -44,34 +74,6 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
     public String toString() {
       return super.toString().replaceAll("_", " ");
     }
-  }
-
-  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
-
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "filtered");
-
-  public static final ComboParameter<FilterMode> filterMode = new ComboParameter<>("Filter mode",
-      "Old average: Only keep the row with the maximum avg area.\n New average: Create consensus row from duplicates (DETECTED>ESTIMATED>UNKNOWN).\n "
-          + "Single feature: Marks rows as duplicates if they share at least one feature (in one raw data file) with the same RT and m/z. Creates a consensus row.",
-      FilterMode.values(), FilterMode.NEW_AVERAGE);
-
-  public static final MZToleranceParameter mzDifferenceMax =
-      new MZToleranceParameter("m/z tolerance", "Maximum m/z difference between duplicate peaks");
-  public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
-      "RT tolerance", "Maximum retention time difference between duplicate peaks");
-
-  public static final BooleanParameter requireSameIdentification =
-      new BooleanParameter("Require same identification",
-          "If checked, duplicate peaks must have same identification(s)");
-
-  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
-      true);
-
-  public DuplicateFilterParameters() {
-    super(new Parameter[]{peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
-        requireSameIdentification, handleOriginal},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_duplicate_features/duplicate_feature_filter.html");
   }
 
 }

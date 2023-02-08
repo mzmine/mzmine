@@ -145,8 +145,8 @@ public interface ParameterSet extends ParameterContainer {
 
   default <V, T extends UserParameter<V, ?>> void setParameter(OptionalParameter<T> optParam,
       boolean enabled, V value) {
-    optParam.setValue(enabled);
-    optParam.getEmbeddedParameter().setValue(value);
+    getParameter(optParam).setValue(enabled);
+    getParameter(optParam).getEmbeddedParameter().setValue(value);
   }
 
   /**
@@ -160,9 +160,9 @@ public interface ParameterSet extends ParameterContainer {
 
   @Nullable String getOnlineHelpUrl();
 
-  void setModuleNameAttribute(String moduleName);
-
   String getModuleNameAttribute();
+
+  void setModuleNameAttribute(String moduleName);
 
   /**
    * Defines if user has to setup parameters
