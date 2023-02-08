@@ -178,7 +178,7 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
     groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
     groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasIMS, noiseLevelMsn * 2);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasIMS, 0.1);
+    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasIMS, 0.01);
     groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true, 1);
     groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, true, 0.25);
     // retention time
