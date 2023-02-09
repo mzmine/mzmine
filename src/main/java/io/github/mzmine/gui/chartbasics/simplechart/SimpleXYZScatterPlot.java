@@ -131,14 +131,16 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   private Title currentLegend = null;
 
+  private boolean legendVisible = true;
+
   public SimpleXYZScatterPlot() {
     this("");
   }
 
   public SimpleXYZScatterPlot(@NotNull String title) {
 
-    super(ChartFactory.createScatterPlot("", "x", "y", null,
-        PlotOrientation.VERTICAL, true, false, true), true, true, true, true, false);
+    super(ChartFactory.createScatterPlot("", "x", "y", null, PlotOrientation.VERTICAL, true, false,
+        true), true, true, true, true, false);
 
     chart = getChart();
     chartTitle = new TextTitle(title);
@@ -167,8 +169,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   /**
-   * Updates the legend to the paint scale currently set via {@link #setLegendPaintScale(PaintScale)}
-   * or the paint scale from data set with index 0. If neither is set, the legend is removed.
+   * Updates the legend to the paint scale currently set via
+   * {@link #setLegendPaintScale(PaintScale)} or the paint scale from data set with index 0. If
+   * neither is set, the legend is removed.
    */
   public void updateLegend() {
     final XYDataset dataset = getXYPlot().getDataset(0);
@@ -176,6 +179,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       return;
     }
     getChart().clearSubtitles();
+    if (!legendVisible) {
+      return;
+    }
 
     if (dataset instanceof PaintScaleProvider) {
       final PaintScale paintScale;
@@ -198,8 +204,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     } else {
       LegendTitle legend = new LegendTitle(getChart().getXYPlot());
       legend.setPosition(RectangleEdge.BOTTOM);
-      final EStandardChartTheme theme = MZmineCore.getConfiguration()
-          .getDefaultChartTheme();
+      final EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
       legend.setBackgroundPaint(legendBg);
       legend.setItemFont(theme.getRegularFont());
       legend.setItemPaint(theme.getLegendItemPaint());
@@ -309,8 +314,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     return addDataset(dataset, defaultRenderer.get());
   }
 
-  public void addDatasetsAndRenderers(
-      Map<XYZDataset, XYItemRenderer> datasetsAndRenderers) {
+  public void addDatasetsAndRenderers(Map<XYZDataset, XYItemRenderer> datasetsAndRenderers) {
     getChart().setNotify(false);
     getXYPlot().setNotify(false);
     datasetsAndRenderers.forEach(this::addDataset);
@@ -428,10 +432,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       }
     }
 
-    return (index != -1) ?
-        new PlotCursorPosition(domainValue, rangeValue, zValue, index,
-            plot.getDataset(datasetIndex)) :
-        new PlotCursorPosition(domainValue, rangeValue, index, null);
+    return (index != -1) ? new PlotCursorPosition(domainValue, rangeValue, zValue, index,
+        plot.getDataset(datasetIndex))
+        : new PlotCursorPosition(domainValue, rangeValue, index, null);
   }
 
   public XYPlot getXYPlot() {
@@ -685,7 +688,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   /**
    * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
-   * added to a region. Region selection can be finished by {@link SimpleXYZScatterPlot#finishPath()}.
+   * added to a region. Region selection can be finished by
+   * {@link SimpleXYZScatterPlot#finishPath()}.
    */
   @Override
   public void startRegion() {
@@ -726,5 +730,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     RegionSelectionListener tempRegionListener = currentRegionListener;
     currentRegionListener = null;
     return tempRegionListener;
+  }
+
+  public boolean isLegendVisible() {
+    return legendVisible;
+  }
+
+  public void setLegendVisible(boolean legendVisible) {
+    this.legendVisible = legendVisible;
+    updateLegend();
   }
 }
