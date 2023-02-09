@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -67,6 +68,7 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -339,6 +341,11 @@ public class AnnotationTypeTests {
 
     Assertions.assertNotEquals(newIdentity, newIdentity2);
     Assertions.assertNotEquals(newIdentity, null);
+
+    // test FeatureUtils.extractSubValueFromAllAnnotations
+    final Map<? extends ListWithSubsType<?>, String> formulas = FeatureUtils.extractSubValueFromAllAnnotations(
+        row, FormulaType.class);
+    Assertions.assertEquals(formulas.get(new CompoundDatabaseMatchesType()), "C6H6O6");
   }
 
   @Test

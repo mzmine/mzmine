@@ -36,7 +36,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -47,6 +49,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
   private final RawDataFile newMZmineFile;
   private final AbstractTask importTask;
+  private final Boolean denormalizeMSnScans;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
 
@@ -80,6 +83,8 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
       this.ms2Detector = advancedParam.getParameter(
           AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
     }
+    denormalizeMSnScans = advancedParam.getValue(
+        AdvancedSpectraImportParameters.denormalizeMSnScans);
   }
 
   @Override
@@ -146,11 +151,16 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
       Scan scan = data.nextScan();
 
+      int msLevel = Objects.requireNonNullElse(scan.getMSLevel(), 1);
       double[][] mzIntensities = null;
-      if (ms1Detector != null && scan.getMSLevel() <= 1) {
+      if (ms1Detector != null && msLevel <= 1) {
         mzIntensities = ms1Detector.getModule().getMassValues(data, ms1Detector.getParameterSet());
-      } else if (ms2Detector != null && scan.getMSLevel() >= 2) {
+      } else if (ms2Detector != null && msLevel >= 2) {
         mzIntensities = ms2Detector.getModule().getMassValues(data, ms2Detector.getParameterSet());
+        if (denormalizeMSnScans) {
+          ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
+              scan.getInjectionTime());
+        }
       }
 
       if (mzIntensities != null) {

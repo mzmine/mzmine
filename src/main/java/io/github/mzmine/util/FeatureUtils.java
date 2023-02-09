@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -58,7 +59,11 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +72,8 @@ import org.jetbrains.annotations.Nullable;
  * Utilities for feature lists
  */
 public class FeatureUtils {
+
+  private static final Logger logger = Logger.getLogger(FeatureUtils.class.getName());
 
   private static final FeatureListRowSorter ascMzRowSorter = new FeatureListRowSorter(
       SortingProperty.MZ, SortingDirection.Ascending);
@@ -502,6 +509,7 @@ public class FeatureUtils {
 
   /**
    * Extracts the best (most confident) {@link FeatureAnnotation} from a feature/row.
+   *
    * @param m The row/feature.
    * @return The annotation or null.
    */
@@ -518,5 +526,78 @@ public class FeatureUtils {
     }
 
     return null;
+  }
+
+
+  /**
+   * Extracts a sub-value for any data type from annotations that implement {@link ListWithSubsType}
+   * and {@link AnnotationType}, e.g. {@link CompoundDatabaseMatchesType} and
+   * {@link SpectralLibraryMatchesType}. (Basically all annotations should implement this) Can be
+   * used to create a consensus formula, annotation or else.
+   *
+   * @param featureListRow The row.
+   * @param theType        The sub data type of which to extract the value from.
+   * @param <K>            The class of the annotation that contains the data type theType.
+   * @param <V>            The value of the data type in the annotation class K.
+   * @return A mapping of annotation list type to the sub data type value.
+   */
+  public static <K extends ListWithSubsType & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
+      FeatureListRow featureListRow, Class<? extends DataType<V>> theType) {
+
+    return extractSubValueFromAllAnnotations(featureListRow, DataTypes.get(theType));
+  }
+
+  /**
+   * Extracts a sub-value for any data type from annotations that implement {@link ListWithSubsType}
+   * and {@link AnnotationType}, e.g. {@link CompoundDatabaseMatchesType} and
+   * {@link SpectralLibraryMatchesType}. (Basically all annotations should implement this) Can be
+   * used to create a consensus formula, annotation or else.
+   *
+   * @param featureListRow The row.
+   * @param theType        The sub data type of which to extract the value from.
+   * @param <K>            The class of the annotation that contains the data type theType.
+   * @param <V>            The value of the data type in the annotation class K.
+   * @return A mapping of annotation list type to the sub data type value.
+   */
+  public static <K extends ListWithSubsType & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
+      FeatureListRow featureListRow, DataType<V> theType) {
+    final Map<K, V> result = new HashMap<>();
+
+    // get ALL DataTypes from the feature list
+    final Collection<DataType> dataTypes = featureListRow.getTypes().values();
+
+    for (DataType<?> type : dataTypes) {
+
+      // filter for ListWithSubsType which are an annotation
+      if (!(type instanceof ListWithSubsType<?> listType)
+          || !(listType instanceof AnnotationType)) {
+        continue;
+      }
+
+      // get the actual value of the ListWithSubsType stored in the feature list, we know its a list
+      final List<?> annotationList = featureListRow.get(listType);
+
+      if (annotationList == null || annotationList.isEmpty()) {
+        continue;
+      }
+
+      // get the list of subTypes
+      final List<DataType> subDataTypeList = listType.getSubDataTypes();
+
+      // check if the searched data type exists in the listWithSubsType
+      final int subColIndex = subDataTypeList.indexOf(theType);
+      if (subColIndex == -1) {
+        continue;
+      }
+
+      try {
+        V value = (V) listType.getSubColValue(subColIndex, annotationList);
+        result.put((K) listType, value);
+      } catch (ClassCastException e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+    }
+
+    return result;
   }
 }

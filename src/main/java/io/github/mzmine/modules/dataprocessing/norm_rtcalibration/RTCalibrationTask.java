@@ -218,15 +218,15 @@ class RTCalibrationTask extends AbstractTask {
     }
 
     // Add new feature lists to the project
-
     for (int i = 0; i < originalFeatureLists.length; i++) {
-      // add or remove lists
-      handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureLists[i],
-          originalFeatureLists[i]);
-
       // Load previous applied methods
       for (FeatureListAppliedMethod proc : originalFeatureLists[i].getAppliedMethods()) {
         normalizedFeatureLists[i].addDescriptionOfAppliedTask(proc);
+      }
+
+      // set selected scans
+      for (RawDataFile f : originalFeatureLists[i].getRawDataFiles()) {
+        normalizedFeatureLists[i].setSelectedScans(f, originalFeatureLists[i].getSeletedScans(f));
       }
 
       // Add task description to feature list
@@ -234,6 +234,9 @@ class RTCalibrationTask extends AbstractTask {
           new SimpleFeatureListAppliedMethod("Retention time normalization",
               RTCalibrationModule.class, parameters, getModuleCallDate()));
 
+      // add or remove lists
+      handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureLists[i],
+          originalFeatureLists[i]);
     }
 
     logger.info("Finished retention time normalizer");

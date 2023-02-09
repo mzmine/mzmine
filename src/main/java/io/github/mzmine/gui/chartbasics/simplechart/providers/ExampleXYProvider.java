@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 
 /**
  * Example implementation of a PlotXYDatasetProvider. This can be your usual data-class, you just
@@ -62,7 +62,7 @@ public class ExampleXYProvider implements PlotXYDataProvider {
    * in case our values need to be resorted, we need to store the resorted values.
    */
   private List<DataPoint> sortedDps;
-  private List<DataPoint> originalDatapoints;
+  private final List<DataPoint> originalDatapoints;
 
   private double finishedPercentage;
 
@@ -102,8 +102,8 @@ public class ExampleXYProvider implements PlotXYDataProvider {
 
   @Override
   public String getToolTipText(int itemIndex) {
-    return "\nm/z " + mzFormat.format(sortedDps.get(itemIndex).getMZ())
-        + "\nIntensity: " + intensityFormat.format(yValues.get(itemIndex));
+    return "\nm/z " + mzFormat.format(sortedDps.get(itemIndex).getMZ()) + "\nIntensity: "
+        + intensityFormat.format(yValues.get(itemIndex));
   }
 
   @Override
@@ -122,7 +122,7 @@ public class ExampleXYProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     // here we can load and sort our data. remember to store the sorted data, so we can generate
     // labels based on the indices.
     sortedDps = originalDatapoints.stream().sorted(Comparator.comparingDouble(DataPoint::getMZ))

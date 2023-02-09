@@ -26,29 +26,33 @@
 package io.github.mzmine.taskcontrol;
 
 /**
- * 
  *
  */
 public interface Task extends Runnable {
 
-  public String getTaskDescription();
+  String getTaskDescription();
 
-  public double getFinishedPercentage();
+  double getFinishedPercentage();
 
-  public TaskStatus getStatus();
+  TaskStatus getStatus();
 
-  public String getErrorMessage();
+  String getErrorMessage();
 
   /**
    * The standard TaskPriority assign to this task
-   * 
+   *
    * @return
    */
-  public TaskPriority getTaskPriority();
+  TaskPriority getTaskPriority();
 
   /**
    * Cancel a running task by user request.
    */
-  public void cancel();
+  void cancel();
 
+  void addTaskStatusListener(TaskStatusListener list);
+
+  boolean removeTaskStatusListener(TaskStatusListener list);
+
+  void clearTaskStatusListener();
 }

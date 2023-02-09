@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
@@ -94,7 +95,9 @@ public class RawDataFileImpl implements RawDataFile {
 
   private boolean containsEmptyScans;
   private MassSpectrumType spectraType;
-  private LocalDateTime startTimeStamp;
+
+  @Nullable
+  private LocalDateTime startTimeStamp = null;
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage) {
@@ -123,97 +126,103 @@ public class RawDataFileImpl implements RawDataFile {
     return (RawDataFile) super.clone();
   }
 
-  /**
-   * The maximum number of centroid data points in all scans (after mass detection and optional
-   * processing)
-   *
-   * @return data point with maximum intensity (centroided)
-   */
   @Override
   public int getMaxCentroidDataPoints() {
     return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
         .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
   }
 
-  /**
-   * The maximum number of raw data points in all scans
-   *
-   * @return data point with maximum intensity in unprocessed data points
-   */
   @Override
   public int getMaxRawDataPoints() {
     return maxRawDataPoints;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getNumOfScans()
-   */
   @Override
   public int getNumOfScans() {
     return scans.size();
   }
 
-  /**
-   * @param rt      The rt
-   * @param mslevel The ms level
-   * @return The scan number at a given retention time within a range of 2 (min/sec?) or -1 if no
-   * scan can be found.
-   */
   @Override
-  public Scan getScanNumberAtRT(float rt, int mslevel) {
-    if (rt > getDataRTRange(mslevel).upperEndpoint()) {
-      return null;
-    }
-    Range<Float> range = Range.closed(rt - 2, rt + 2);
-    Scan[] scanNumbers = getScanNumbers(mslevel, range);
-    double minDiff = 10E6;
+  public int binarySearchClosestScanIndex(final float rt) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int closestIndex = Math.abs(BinarySearch.binarySearch(rt, true, getNumOfScans(),
+        index -> getScan(index).getRetentionTime()));
+    return closestIndex >= getNumOfScans() ? -1 : closestIndex;
+  }
 
-    for (int i = 0; i < scanNumbers.length; i++) {
-      Scan scanNum = scanNumbers[i];
-      double diff = Math.abs(rt - scanNum.getRetentionTime());
-      if (diff < minDiff) {
-        minDiff = diff;
-      } else if (diff > minDiff) { // not triggered in first run
-        return scanNumbers[i - 1]; // the previous one was better
+  @Override
+  public int binarySearchClosestScanIndex(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan == -1) {
+      return -1;
+    }
+    //matches ms level
+    if (getScan(indexClosestScan).getMSLevel() == mslevel) {
+      return indexClosestScan;
+    }
+
+    // find the closest scan with msLevel around the found scan (might be other level)
+    int before = -1;
+    int after = -1;
+    for (int i = indexClosestScan; i < getNumOfScans(); i++) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        after = i;
+        break;
       }
+    }
+    for (int i = indexClosestScan - 1; i > 0; i--) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        before = i;
+        break;
+      }
+    }
+    if (after != -1 && before != -1) {
+      if (Math.abs(getScan(after).getRetentionTime() - rt) < Math.abs(
+          getScan(before).getRetentionTime() - rt)) {
+        return after;
+      } else {
+        return before;
+      }
+    } else if (after != -1) {
+      return after;
+    } else {
+      return before;
+    }
+  }
+
+  @Override
+  @Nullable
+  public Scan binarySearchClosestScan(float rt) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
+      return getScan(indexClosestScan);
     }
     return null;
   }
 
-  /**
-   * @param rt The rt
-   * @return The scan at a given retention time within a range of 2 (min/sec?) or null if no scan
-   * can be found.
-   */
   @Override
-  public Scan getScanNumberAtRT(float rt) {
-    if (rt > getDataRTRange().upperEndpoint()) {
-      return null;
-    }
-    double minDiff = 10E10;
-    for (Scan scan : scans) {
-      double diff = Math.abs(rt - scan.getRetentionTime());
-      if (diff < minDiff) {
-        minDiff = diff;
-      } else if (diff > minDiff) { // not triggered in first run
-        return scan;
-      }
+  @Nullable
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt, mslevel);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
+      return getScan(indexClosestScan);
     }
     return null;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int)
-   */
   @Override
   @NotNull
   public List<Scan> getScanNumbers(int msLevel) {
     return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
-   */
   @Override
   public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     return scans.stream()
@@ -221,18 +230,12 @@ public class RawDataFileImpl implements RawDataFile {
         .toArray(Scan[]::new);
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getMSLevels()
-   */
   @Override
   @NotNull
   public int[] getMSLevels() {
     return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity(int)
-   */
   @Override
   public double getDataMaxBasePeakIntensity(int msLevel) {
     // check if we have this value already cached
@@ -254,9 +257,6 @@ public class RawDataFileImpl implements RawDataFile {
     });
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent(int)
-   */
   @Override
   public double getDataMaxTotalIonCurrent(int msLevel) {
     // check if we have this value already cached
@@ -276,7 +276,6 @@ public class RawDataFileImpl implements RawDataFile {
       return Double.compare(Double.NEGATIVE_INFINITY, max) == 0 ? -1d : max;
     });
   }
-
 
   @Override
   public synchronized void addScan(Scan newScan) throws IOException {
@@ -306,18 +305,18 @@ public class RawDataFileImpl implements RawDataFile {
     // check for zero intensity because this might indicate incorrect conversion by msconvert
     // when not using peak picking as the first step
     if (!containsZeroIntensity) {
-        double[] intensities = newScan.getIntensityValues(new double[0]);
-        for (double v : intensities) {
-          if (v <= 0) {
-            containsZeroIntensity = true;
-            if (spectraType.isCentroided()) {
-              logger.warning("""
-                  Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert. 
-                  Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses 
-                  a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
-                  This leads to degraded mass accuracies.""");
-            }
-            break;
+      double[] intensities = newScan.getIntensityValues(new double[0]);
+      for (double v : intensities) {
+        if (v <= 0) {
+          containsZeroIntensity = true;
+          if (spectraType.isCentroided()) {
+            logger.warning("""
+                Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert.
+                Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses
+                a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
+                This leads to degraded mass accuracies.""");
+          }
+          break;
         }
       }
     }
@@ -333,11 +332,10 @@ public class RawDataFileImpl implements RawDataFile {
     return containsZeroIntensity;
   }
 
-
+  @Override
   public boolean isContainsEmptyScans() {
     return containsEmptyScans;
   }
-
 
   @Override
   public MassSpectrumType getSpectraType() {
@@ -533,11 +531,11 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public LocalDateTime getStartTimeStamp() {
+  public @Nullable LocalDateTime getStartTimeStamp() {
     return startTimeStamp;
   }
 
-  public void setStartTimeStamp(LocalDateTime startTimeStamp) {
+  public void setStartTimeStamp(@Nullable LocalDateTime startTimeStamp) {
     this.startTimeStamp = startTimeStamp;
   }
 
@@ -548,6 +546,7 @@ public class RawDataFileImpl implements RawDataFile {
    * @param old    old mass list
    * @param masses new mass list
    */
+  @Override
   public void applyMassListChanged(Scan scan, MassList old, MassList masses) {
   }
 
@@ -556,4 +555,5 @@ public class RawDataFileImpl implements RawDataFile {
   public String getAbsolutePath() {
     return absolutePath;
   }
+
 }

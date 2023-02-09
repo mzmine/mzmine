@@ -118,7 +118,7 @@ public class MirrorChartFactory {
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{Color.black, // black = filtered
+    final Color[] colors = new Color[]{palette.getNeutralColorAWT(), // grey = filtered
         palette.getNegativeColorAWT(), // unaligned
         palette.getPositiveColorAWT() // aligned
     };
@@ -160,8 +160,7 @@ public class MirrorChartFactory {
     // masslist
     for (int i = 0; i < tags.length; i++) {
       DataPointsTag tag = tags[i];
-      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true,
-          "Query " + tag.toRemainderString());
+      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
       for (DataPoint dp : query[i]) {
         // not contained in other
         if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0) {
@@ -169,8 +168,7 @@ public class MirrorChartFactory {
         }
       }
 
-      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true,
-          "Library " + tag.toRemainderString());
+      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
       for (DataPoint dp : library[i]) {
         if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0) {
           ldata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseDB * 100d, null);
@@ -186,6 +184,7 @@ public class MirrorChartFactory {
 
       libraryPlot.setDataset(i, ldata);
       libraryPlot.setRenderer(i, renderer2);
+      renderer2.setDefaultSeriesVisibleInLegend(false, false);
     }
 
     // add legend
@@ -209,6 +208,7 @@ public class MirrorChartFactory {
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(mirrorSpecrumPlot.getChart());
+    mirrorSpecrumPlot.getChart().getLegend().setVisible(true);
 
     return mirrorSpecrumPlot;
   }
@@ -252,7 +252,7 @@ public class MirrorChartFactory {
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{Color.black, // unaligned
+    final Color[] colors = new Color[]{palette.getNeutralColorAWT(), // unaligned
         palette.getNegativeColorAWT(), // modified
         palette.getPositiveColorAWT() // aligned
     };

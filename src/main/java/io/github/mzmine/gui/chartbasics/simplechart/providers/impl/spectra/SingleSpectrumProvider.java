@@ -33,7 +33,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.NumberFormat;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,13 +84,12 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    return "m/z: " + mzFormat
-        .format(spectrum.getMzValue(itemIndex)) + "\nIntensity: " + intensityFormat
-        .format(spectrum.getIntensityValue(itemIndex));
+    return "m/z: " + mzFormat.format(spectrum.getMzValue(itemIndex)) + "\nIntensity: "
+        + intensityFormat.format(spectrum.getIntensityValue(itemIndex));
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
   }
 

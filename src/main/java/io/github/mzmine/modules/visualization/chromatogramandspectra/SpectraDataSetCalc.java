@@ -91,9 +91,9 @@ public class SpectraDataSetCalc extends AbstractTask {
       rawDataFiles.forEach(rawDataFile -> {
         Scan scan = null;
         if (scanSelection.getMsLevel() != null) {
-          scan = rawDataFile.getScanNumberAtRT((float) rt, scanSelection.getMsLevel());
+          scan = rawDataFile.binarySearchClosestScan((float) rt, scanSelection.getMsLevel());
         } else {
-          scan = rawDataFile.getScanNumberAtRT((float) rt);
+          scan = rawDataFile.binarySearchClosestScan((float) rt);
         }
         if (scan != null) {
           ScanDataSet dataSet = new ScanDataSet(scan);
@@ -102,7 +102,6 @@ public class SpectraDataSetCalc extends AbstractTask {
         doneFiles++;
 
         if (getStatus() == TaskStatus.CANCELED) {
-          return;
         }
 
       });

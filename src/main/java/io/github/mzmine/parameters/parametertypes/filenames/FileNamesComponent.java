@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.HPos;
@@ -54,10 +55,12 @@ public class FileNamesComponent extends BorderPane {
   private final CheckBox useSubFolders;
 
   private final List<ExtensionFilter> filters;
+  private final Path defaultDir;
 
-  public FileNamesComponent(List<ExtensionFilter> filters) {
+  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir) {
 
     this.filters = ImmutableList.copyOf(filters);
+    this.defaultDir = defaultDir;
 
     txtFilename = new TextArea();
     txtFilename.setPrefColumnCount(65);
@@ -70,6 +73,9 @@ public class FileNamesComponent extends BorderPane {
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
+      if(defaultDir != null) {
+        fileChooser.setInitialDirectory(defaultDir.toFile());
+      }
       fileChooser.setTitle("Select files");
 
       fileChooser.getExtensionFilters().addAll(this.filters);

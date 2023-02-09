@@ -45,6 +45,11 @@ import java.util.Map;
 import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Important Note: when changing any of the parameter names, reflect the changes in the
+ * {@link io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters} to
+ * keep the compatibility.
+ */
 public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
@@ -53,17 +58,18 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       new ScanSelection(1));
 
   public static final IntegerParameter minimumScanSpan = new IntegerParameter(
-      "Min group size in # of scans",
-      "Minimum scan span over which some feature in the chromatogram must have (continuous) points above the noise level\n"
-          + "to be recognized as a chromatogram.\n"
-          + "The optimal value depends on the chromatography system setup. The best way to set this parameter\n"
-          + "is by studying the raw data and determining what is the typical time span of chromatographic features.",
+      "Min group size in # of scans", """
+      Minimum scan span over which some feature in the chromatogram must have (continuous) points above the noise level
+      to be recognized as a chromatogram.
+      The optimal value depends on the chromatography system setup. The best way to set this parameter
+      is by studying the raw data and determining what is the typical time span of chromatographic features.""",
       5, true, 1, null);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-      "Scan to scan accuracy (m/z)", "m/z tolerance of the same compound between two scans.\n"
-      + "This does not describe the deviation of the accurate mass (measured) from the exact mass (calculated),\n"
-      + "but the fluctuation of the accurate between two scans.", 0.002, 10);
+      "Scan to scan accuracy (m/z)", """
+      m/z tolerance of the same compound between two scans.
+      This does not describe the deviation of the accurate mass (measured) from the exact mass (calculated),
+      but the fluctuation of the accurate between two scans.""", 0.002, 10);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "chromatograms");
@@ -79,7 +85,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       MZmineCore.getConfiguration().getIntensityFormat());
   // End Owen Edit
 
-  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> allowSingleScans = new HiddenParameter<>(
+  public static final HiddenParameter<Map<String, Boolean>> allowSingleScans = new HiddenParameter<>(
       new OptOutParameter("Allow single scan chromatograms",
           "Allows selection of single scans as chromatograms. This is useful for "
               + "feature table generation if MALDI point measurements."));
@@ -115,7 +121,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.RESTRICTED;
+    return IonMobilitySupport.SUPPORTED;
   }
 
   @Override
@@ -128,16 +134,13 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         .get("optoutsinglescancheck");
 
     if (getParameter(minimumScanSpan).getValue() <= 1 && (singleScansOkOptOut == null
-        || singleScansOkOptOut == false)) {
+        || !singleScansOkOptOut)) {
       ButtonType buttonType = MZmineCore.getDesktop()
           .createAlertWithOptOut("Confirmation", "Single consecutive scan selected.",
               "The number of consecutive scans was set to <= 1.\nThis can lead to more noise"
                   + " detected as EICs.\nDo you want to proceed?", "Do not show again.",
               b -> this.getParameter(allowSingleScans).getValue().put("optoutsinglescancheck", b));
-      if (buttonType.equals(ButtonType.YES)) {
-        return true;
-      }
-      return false;
+      return buttonType.equals(ButtonType.YES);
     }
     return true;
   }

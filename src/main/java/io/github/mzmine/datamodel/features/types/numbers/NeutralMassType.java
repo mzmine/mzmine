@@ -48,9 +48,19 @@ public class NeutralMassType extends DoubleType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
-      return MZmineCore.getConfiguration().getMZFormat();
+      return MZmineCore.getConfiguration().getGuiFormats().mzFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().mzFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;

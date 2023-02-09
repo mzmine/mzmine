@@ -36,6 +36,7 @@ import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Project manager implementation
@@ -43,26 +44,25 @@ import java.util.logging.Logger;
 public class ProjectManagerImpl implements ProjectManager {
 
   private static final Logger logger = Logger.getLogger(ProjectManagerImpl.class.getName());
-  private static ProjectManagerImpl myInstance;
+  private static final ProjectManagerImpl myInstance = new ProjectManagerImpl();
 
-  MZmineProject currentProject;
+  private MZmineProject currentProject;
+
+  private ProjectManagerImpl() {
+    this.currentProject = new MZmineProjectImpl();
+  }
 
   public static ProjectManagerImpl getInstance() {
     return myInstance;
   }
 
-  public void initModule() {
-    currentProject = new MZmineProjectImpl();
-    myInstance = this;
-  }
-
   @Override
-  public MZmineProject getCurrentProject() {
+  public @NotNull MZmineProject getCurrentProject() {
     return currentProject;
   }
 
   @Override
-  public void setCurrentProject(MZmineProject project) {
+  public void setCurrentProject(@NotNull MZmineProject project) {
 
     if (project == currentProject) {
       return;

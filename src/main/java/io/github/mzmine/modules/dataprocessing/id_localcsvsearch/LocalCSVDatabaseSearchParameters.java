@@ -69,9 +69,12 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
       "Name of file that contains information for peak identification", FileSelectionType.OPEN);
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file", ",");
-  public static final StringParameter commentFields = new StringParameter("Append comment fields",
+  public static final StringParameter fieldSeparator = new StringParameter(
+      "Field separator",
+      "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
+      ",");
+  public static final StringParameter commentFields = new StringParameter(
+      "Append comment fields",
       "Multiple fields separated by comma that are appended to the comment. Like: Pathway,Synonyms",
       "", false);
 

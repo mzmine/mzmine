@@ -44,11 +44,12 @@ import java.util.List;
 
 public class Gap {
 
-  protected FeatureListRow peakListRow;
+  protected FeatureListRow featureListRow;
   protected RawDataFile rawDataFile;
 
   protected Range<Double> mzRange;
   protected Range<Float> rtRange;
+  private final boolean validateRtShape;
   protected double intTolerance;
 
   // These store information about peak that is currently under construction
@@ -64,12 +65,18 @@ public class Gap {
    */
   public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
       Range<Float> rtRange, double intTolerance) {
+    this(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, true);
+  }
 
-    this.peakListRow = peakListRow;
+  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
+      Range<Float> rtRange, double intTolerance, boolean validateRtShape) {
+
+    this.featureListRow = peakListRow;
     this.rawDataFile = rawDataFile;
     this.intTolerance = intTolerance;
     this.mzRange = mzRange;
     this.rtRange = rtRange;
+    this.validateRtShape = validateRtShape;
   }
 
   public void offerNextScan(Scan scan) {
@@ -146,14 +153,15 @@ public class Gap {
   protected boolean addFeatureToRow() {
     final double[][] mzIntensities = DataPointUtils.getDataPointsAsDoubleArray(bestPeakDataPoints);
     final IonTimeSeries<?> series = new SimpleIonTimeSeries(
-        ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(), mzIntensities[0],
-        mzIntensities[1], bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
+        ((ModularFeatureList) featureListRow.getFeatureList()).getMemoryMapStorage(),
+        mzIntensities[0], mzIntensities[1],
+        bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
 
-    final Feature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+    final Feature newPeak = new ModularFeature((ModularFeatureList) featureListRow.getFeatureList(),
         rawDataFile, series, FeatureStatus.ESTIMATED);
 
     // Fill the gap
-    peakListRow.addFeature(rawDataFile, newPeak, false);
+    featureListRow.addFeature(rawDataFile, newPeak, false);
     return true;
   }
 
@@ -162,6 +170,9 @@ public class Gap {
    * to add given m/z peak at the end of the peak.
    */
   protected boolean checkRTShape(GapDataPoint dp) {
+    if (!validateRtShape) {
+      return true;
+    }
 
     if (dp.getRT() < rtRange.lowerEndpoint()) {
       double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
@@ -254,4 +265,7 @@ public class Gap {
 
   }
 
+  public FeatureListRow getFeatureListRow() {
+    return featureListRow;
+  }
 }

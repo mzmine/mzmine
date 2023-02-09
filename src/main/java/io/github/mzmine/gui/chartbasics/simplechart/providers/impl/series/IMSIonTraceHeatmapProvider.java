@@ -40,15 +40,15 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 /**
  * Constructs an ion trace with a given mz and rt range from a raw data file. This trace is freshly
- * calculated from the raw data. If a dataset has already been calculated in a {@link
- * io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the {@link
- * IonTimeSeriesToXYProvider} instead.
+ * calculated from the raw data. If a dataset has already been calculated in a
+ * {@link io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the
+ * {@link IonTimeSeriesToXYProvider} instead.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -69,9 +69,9 @@ public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider,
 
   /**
    * Constructs an ion trace with a given mz and rt range from a raw data file. This trace is
-   * freshly calculated from the raw data. If a dataset has already been calculated in a {@link
-   * io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the {@link
-   * IonMobilogramTimeSeriesToRtMobilityHeatmapProvider} instead.
+   * freshly calculated from the raw data. If a dataset has already been calculated in a
+   * {@link io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the
+   * {@link IonMobilogramTimeSeriesToRtMobilityHeatmapProvider} instead.
    *
    * @author https://github.com/SteffenHeu
    */
@@ -90,19 +90,19 @@ public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider,
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
     Collection<? extends Frame> eligibleFrames = rawDataFile.getFrames(1, rtRange);
     int num = 0;
     int numFrames = eligibleFrames.size();
     for (Frame frame : eligibleFrames) {
-      if (status.get() == TaskStatus.CANCELED) {
+      if (status.getValue() == TaskStatus.CANCELED) {
         return;
       }
       // todo mobilityscandataaccess
       for (MobilityScan scan : frame.getMobilityScans()) {
-        DataPoint[] dps =
-            ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange);
+        DataPoint[] dps = ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan),
+            mzRange);
         if (dps.length == 0) {
           continue;
         }

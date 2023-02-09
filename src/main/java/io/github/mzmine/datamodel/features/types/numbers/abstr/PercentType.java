@@ -41,11 +41,21 @@ public abstract class PercentType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getPercentFormat();
     } catch (Exception e) {
       return defaultFormatter;
+    }
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().percentFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
     }
   }
 }

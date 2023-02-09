@@ -57,6 +57,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -147,7 +148,8 @@ public class MsMsQualityExportTask extends AbstractTask {
           }
 
           if (matchCompoundToFlist && (annotation.getCompoundName() == null
-              || !featureList.getName().contains(annotation.getCompoundName()))) {
+              || !featureList.getName() // annotations may have unsafe characters, flists not
+              .contains(FileAndPathUtil.safePathEncode(annotation.getCompoundName())))) {
             processedRows++;
             continue;
           }

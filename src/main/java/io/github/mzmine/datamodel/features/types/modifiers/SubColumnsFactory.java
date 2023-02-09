@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public interface SubColumnsFactory {
+
+  Logger logger = Logger.getLogger(SubColumnsFactory.class.getName());
 
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
@@ -69,11 +73,78 @@ public interface SubColumnsFactory {
    */
   @NotNull DataType<?> getType(int subcolumn);
 
-  @Nullable
-  String getFormattedSubColValue(int subcolumn, Object cellData);
+  /**
+   * Formatted string for GUI and other uses in MZMine. Use
+   * {@link #getFormattedSubColExportValue(int, Object)} for export value formatting
+   *
+   * @param subcolumn sub column
+   * @param value     main value that contains the sub values
+   * @return
+   */
+  default @Nullable String getFormattedSubColValue(int subcolumn, Object value, boolean export) {
+    DataType sub = getType(subcolumn);
+    if (sub == null) {
+      return "";
+    }
+    if (value == null) {
+      return sub.getFormattedString(sub.getDefaultValue(), export);
+    }
 
-  @Nullable
-  Object getSubColValue(int subcolumn, Object cellData);
+    Object subvalue = null;
+    try {
+      subvalue = getSubColValue(sub, value);
+      return sub.getFormattedString(subvalue == null ? sub.getDefaultValue() : subvalue, export);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, String.format(
+          "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",
+          this.getClass().getName(), sub.getClass().getName(),
+          (subvalue == null ? "null" : subvalue.getClass())), ex);
+      return "";
+    }
+  }
+
+  /**
+   * Formatted string for export - usually with more precision. Best override
+   * {@link #getFormattedSubColValue(int, Object, boolean)} instead of this method.
+   *
+   * @param subcolumn the subcolumn index
+   * @param value     the main value of this type that contains sub values
+   * @return the formatted string or null or empty strings
+   */
+  default @Nullable String getFormattedSubColExportValue(int subcolumn, Object value) {
+    return getFormattedSubColValue(subcolumn, value, true);
+  }
+
+  /**
+   * Formatted string for GUI and other uses in MZMine. Use
+   * {@link #getFormattedSubColExportValue(int, Object)} for export value formatting. Best override
+   * * {@link #getFormattedSubColValue(int, Object, boolean)} instead of this method.
+   *
+   * @param subcolumn sub column
+   * @param value     main value that contains the sub values
+   * @return
+   */
+  default @Nullable String getFormattedSubColValue(int subcolumn, Object value) {
+    return getFormattedSubColValue(subcolumn, value, false);
+  }
+
+  /**
+   * Get sub column value from main value
+   *
+   * @param sub   sub column
+   * @param value main value that contains the sub value
+   * @return The sub value
+   */
+  @Nullable Object getSubColValue(DataType sub, Object value);
+
+  /**
+   * Get sub column value from main value
+   *
+   * @param subcolumn sub column index
+   * @param cellData  main value that contains the sub value
+   * @return The sub value
+   */
+  @Nullable Object getSubColValue(int subcolumn, Object cellData);
 
   /**
    * Handle value change in this parent type

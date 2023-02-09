@@ -40,18 +40,15 @@ import org.jetbrains.annotations.NotNull;
 public class ModularADAPChromatogramBuilderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "ADAP Chromatogram Builder";
-  private static final String MODULE_DESCRIPTION =
-      "This module connects data points from mass lists and builds chromatograms.";
+  private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds chromatograms.";
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
@@ -67,7 +64,8 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask = new ModularADAPChromatogramBuilderTask(project, dataFiles[i],
-          parameters.cloneParameterSet(true), storage, moduleCallDate);
+          parameters.cloneParameterSet(true), storage, moduleCallDate,
+          ModularADAPChromatogramBuilderModule.class);
       tasks.add(newTask);
     }
 
@@ -75,14 +73,12 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
   }
 
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.EIC_DETECTION;
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ADAPChromatogramBuilderParameters.class;
   }
 

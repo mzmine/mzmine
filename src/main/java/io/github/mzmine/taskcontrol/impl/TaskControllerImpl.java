@@ -53,22 +53,21 @@ public class TaskControllerImpl implements TaskController, Runnable {
    * Update the task progress window every 300 ms
    */
   private final int TASKCONTROLLER_THREAD_SLEEP = 300;
-  ArrayList<TaskControlListener> listeners = new ArrayList<>();
-  private Thread taskControllerThread;
 
-  private TaskQueue taskQueue;
+  private static final TaskControllerImpl INSTANCE = new TaskControllerImpl();
+  private final ArrayList<TaskControlListener> listeners = new ArrayList<>();
+  private final Thread taskControllerThread;
+
+  private final TaskQueue taskQueue;
 
   /**
    * This vector contains references to all running threads of NORMAL priority. Maximum number of
    * concurrent threads is specified in the preferences dialog.
    */
-  private Vector<WorkerThread> runningThreads;
+  private final Vector<WorkerThread> runningThreads;
 
-  /**
-   * Initialize the task controller
-   */
-  public void initModule() {
 
+  private TaskControllerImpl() {
     logger.finest("Starting task controller thread");
     taskQueue = new TaskQueue();
 
@@ -79,7 +78,10 @@ public class TaskControllerImpl implements TaskController, Runnable {
     taskControllerThread = new Thread(this, "Task controller thread");
     taskControllerThread.setPriority(Thread.MIN_PRIORITY);
     taskControllerThread.start();
+  }
 
+  public static TaskControllerImpl getInstance() {
+    return INSTANCE;
   }
 
   @Override
@@ -261,7 +263,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
     if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
       desktop.getTasksView().refresh();
     }
-
   }
 
   @Override

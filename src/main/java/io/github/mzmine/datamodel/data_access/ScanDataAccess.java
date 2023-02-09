@@ -394,6 +394,6 @@ public abstract class ScanDataAccess implements Scan {
   @Override
   public @Nullable Float getInjectionTime() {
     Scan scan = getCurrentScan();
-    return (scan == null || scan.isEmptyScan()) ? null : scan.getInjectionTime();
+    return scan == null ? null : scan.getInjectionTime();
   }
 }

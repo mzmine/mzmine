@@ -70,7 +70,7 @@ public class MZmineProjectImpl implements MZmineProject {
   private final ReadWriteLock featureLock = new ReentrantReadWriteLock();
 
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
-  private MetadataTable projectMetadata;
+  private final MetadataTable projectMetadata;
   private File projectFile;
 
   @Nullable
@@ -100,13 +100,8 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public MetadataTable getProjectMetadata() {
+  public @NotNull MetadataTable getProjectMetadata() {
     return projectMetadata;
-  }
-
-  @Override
-  public void setProjectMetadata(MetadataTable metadata) {
-    this.projectMetadata = metadata;
   }
 
   @Override
@@ -303,6 +298,24 @@ public class MZmineProjectImpl implements MZmineProject {
     try {
       rawLock.readLock().lock();
       return List.copyOf(rawDataFiles);
+    } finally {
+      rawLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public @Nullable RawDataFile getDataFileByName(@Nullable String name) {
+    if (name == null) {
+      return null;
+    }
+    try {
+      rawLock.readLock().lock();
+      for (final RawDataFile raw : rawDataFiles) {
+        if (name.equalsIgnoreCase(raw.getName())) {
+          return raw;
+        }
+      }
+      return null;
     } finally {
       rawLock.readLock().unlock();
     }

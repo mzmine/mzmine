@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<BorderPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataPaneController">
+  <center>
+    <TableView fx:id="parameterTable" prefHeight="350" prefWidth="600">
+      <placeholder>
+        <Label text="No Parameters"/>
+      </placeholder>
+    </TableView>
+  </center>
+  <bottom>
+    <VBox>
+<!--      <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">-->
+      <ButtonBar>
+        <buttons>
+          <Button onAction="#addParameter" mnemonicParsing="false" text="Add new column"
+            ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#removeParameters" mnemonicParsing="false"
+            text="Remove selected column" ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#importParameters" mnemonicParsing="false" text="Import"
+            ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#exportParameters" mnemonicParsing="false" text="Export"
+            ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#reload" mnemonicParsing="false" text="Reload"
+            ButtonBar.buttonData="LEFT"/>
+          <Button onAction="#onClickHelp" mnemonicParsing="false" text="Help"
+            ButtonBar.buttonData="LEFT"/>
+        </buttons>
+        <padding>
+          <Insets bottom="10.0" left="5.0" right="5.0" top="5.0"/>
+        </padding>
+      </ButtonBar>
+    </VBox>
+  </bottom>
+</BorderPane>

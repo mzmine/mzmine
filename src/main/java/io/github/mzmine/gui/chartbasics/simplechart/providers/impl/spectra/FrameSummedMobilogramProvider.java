@@ -34,7 +34,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 
 /**
  * Calculates a summed mobilogram of a given frame. This wrapper is intended for alignment with a
@@ -73,7 +73,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
     this(frame, 1);
   }
 
-      @Override
+  @Override
   public double getDomainValue(int index) {
     return intensities[index];
   }
@@ -103,10 +103,9 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
     if (scan == null || scan.getBasePeakMz() == null || scan.getBasePeakIntensity() == null) {
       return null;
     }
-    return "Scan #" + scan.getMobilityScanNumber() + "\nMobility: "
-        + mobilityFormat.format(scan.getMobility()) + "\nBase peak m/z "
-        + mzFormat.format(scan.getBasePeakMz()) + "\nBase peak intensity "
-        + intensityFormat.format(scan.getBasePeakIntensity());
+    return "Scan #" + scan.getMobilityScanNumber() + "\nMobility: " + mobilityFormat.format(
+        scan.getMobility()) + "\nBase peak m/z " + mzFormat.format(scan.getBasePeakMz())
+        + "\nBase peak intensity " + intensityFormat.format(scan.getBasePeakIntensity());
   }
 
   @Override
@@ -131,10 +130,10 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     List<MobilityScan> scans = frame.getSortedMobilityScans();
 
-    final int numScans = ((int)(scans.size() / binWidth)) * binWidth;
+    final int numScans = (scans.size() / binWidth) * binWidth;
     mobilites = new double[numScans / binWidth];
     intensities = new double[numScans / binWidth];
     for (int i = 0; i < numScans; i++) {

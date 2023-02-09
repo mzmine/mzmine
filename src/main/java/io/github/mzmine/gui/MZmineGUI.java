@@ -26,6 +26,7 @@
 package io.github.mzmine.gui;
 
 
+import static io.github.mzmine.gui.WindowLocation.TAB;
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 
 import com.google.common.collect.ImmutableList;
@@ -37,6 +38,7 @@ import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.mainwindow.tasksview.TasksView;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
@@ -47,7 +49,6 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
@@ -58,6 +59,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.web.WebUtils;
 import java.io.File;
 import java.net.URL;
 import java.time.Instant;
@@ -87,6 +89,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -94,8 +98,10 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.commons.io.FileUtils;
@@ -104,6 +110,7 @@ import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
 import org.controlsfx.control.action.Action;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
@@ -118,13 +125,16 @@ public class MZmineGUI extends Application implements Desktop {
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
-  private static WindowLocation currentTaskManagerLocation = WindowLocation.MAIN;
+  private static WindowLocation currentTaskManagerLocation = WindowLocation.TAB;
   private static Stage currentTaskWindow;
+  private Label statusLabel;
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Exit MZmine");
@@ -146,6 +156,8 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Close project");
@@ -185,7 +197,7 @@ public class MZmineGUI extends Application implements Desktop {
     return newStage;
   }
 
-  public static void activateProject(MZmineProject project) {
+  public static void activateProject(@NotNull MZmineProject project) {
 
     MZmineCore.runLater(() -> {
 
@@ -248,19 +260,6 @@ public class MZmineGUI extends Application implements Desktop {
     final var spectralLibraryView = mainWindowController.getSpectralLibraryList();
     return FXCollections.unmodifiableObservableList(
         spectralLibraryView.getSelectionModel().getSelectedItems());
-  }
-
-  @NotNull
-  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
-      Class<ModuleType> moduleClass) {
-
-    final ParameterSet moduleParameters = MZmineCore.getConfiguration()
-        .getModuleParameters(moduleClass);
-    ExitCode result = moduleParameters.showSetupDialog(true);
-    if (result == ExitCode.OK) {
-      MZmineCore.runMZmineModule(moduleClass, moduleParameters);
-    }
-
   }
 
   public static void showAboutWindow() {
@@ -370,32 +369,25 @@ public class MZmineGUI extends Application implements Desktop {
     event.consume();
   }
 
-  public static TableView<WrappedTask> removeTasksFromBottom() {
-    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
-    mainWindowController.getBottomBox().getChildren().remove(tasksView);
-    return tasksView;
-  }
-
-  public static void addTasksToBottom() {
-    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
-    ObservableList<Node> children = mainWindowController.getBottomBox().getChildren();
-    if (!children.contains(tasksView)) {
-      children.add(0, tasksView);
-    }
-  }
-
   public static void handleTaskManagerLocationChange(WindowLocation loc) {
-    if (Objects.equals(loc, currentTaskManagerLocation)) {
+    if (mainWindowController == null) {
+      return;
+    }
+
+    if (loc == TAB && MZmineCore.getDesktop().getAllTabs().stream()
+        .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
+        currentTaskManagerLocation))) {
+      // only return if we have that tab
       return;
     }
 
     String title = "Tasks";
-    TableView<WrappedTask> tasksView = mainWindowController.getTasksView();
+    TasksView tasksView = mainWindowController.getTasksView();
 
     // remove
     switch (currentTaskManagerLocation) {
       case TAB -> mainWindowController.removeTab(title);
-      case MAIN -> removeTasksFromBottom();
+      case MAIN -> mainWindowController.removeTasksFromBottom();
       case HIDDEN -> {
       }
       case EXTERNAL -> {
@@ -412,16 +404,39 @@ public class MZmineGUI extends Application implements Desktop {
         MZmineTab tab = new SimpleTab(title);
         tab.setContent(tasksView);
         MZmineCore.getDesktop().addTab(tab);
+        mainWindowController.selectTab(title);
       }
       case EXTERNAL -> {
         currentTaskWindow = addWindow(tasksView, title);
       }
-      case MAIN -> addTasksToBottom();
+      case MAIN -> mainWindowController.addTasksToBottom();
       case HIDDEN -> {
       }
     }
 
     currentTaskManagerLocation = loc;
+  }
+
+  @Override
+  public void handleShowTaskView() {
+    switch (currentTaskManagerLocation) {
+      case MAIN -> { // nothing, already visible
+      }
+      case TAB -> {
+        handleTaskManagerLocationChange(TAB);
+        mainWindowController.selectTab("Tasks");
+      }
+      case EXTERNAL -> {
+        if (currentTaskWindow != null) {
+          currentTaskWindow.hide();
+          currentTaskWindow.show();
+        } else {
+          handleTaskManagerLocationChange(TAB);
+        }
+      }
+      case HIDDEN -> handleTaskManagerLocationChange(TAB);
+
+    }
   }
 
   @Override
@@ -441,17 +456,7 @@ public class MZmineGUI extends Application implements Desktop {
       rootScene = loader.load();
       mainWindowController = loader.getController();
       stage.setScene(rootScene);
-      rootScene.getStylesheets()
-          .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-
-      Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
-      if (darkMode != null && darkMode) {
-        rootScene.getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
-      } else {
-        rootScene.getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-      }
+      preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -517,9 +522,7 @@ public class MZmineGUI extends Application implements Desktop {
      */
 
     // Activate project - bind it to the desktop's project tree
-    MZmineProjectImpl currentProject = (MZmineProjectImpl) MZmineCore.getProjectManager()
-        .getCurrentProject();
-    MZmineGUI.activateProject(currentProject);
+    MZmineGUI.activateProject(MZmineCore.getProject());
 
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
@@ -555,7 +558,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public TableView<WrappedTask> getTasksView() {
-    return mainWindowController.getTasksView();
+    return mainWindowController.getTasksView().getTable();
   }
 
   @Override
@@ -586,13 +589,8 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public void setStatusBarText(String message) {
-    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY : Color.BLACK;
-    setStatusBarText(message, messageColor);
-  }
-
-  @Override
-  public void setStatusBarText(String message, Color textColor) {
+  public void setStatusBarText(@Nullable String message, @Nullable Color textColor,
+      @Nullable String url) {
     MZmineCore.runLater(() -> {
       if (mainWindowController == null) {
         return;
@@ -601,8 +599,21 @@ public class MZmineGUI extends Application implements Desktop {
       if (statusBar == null) {
         return;
       }
-      statusBar.setText(message);
-      statusBar.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
+      statusBar.setText(null);
+      if (statusLabel != null) {
+        statusBar.getLeftItems().remove(statusLabel);
+      }
+      statusLabel = new Label(message);
+      statusBar.getLeftItems().add(statusLabel);
+      if (textColor != null) {
+        statusLabel.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
+      }
+      if (url != null) {
+        statusLabel.setOnMouseClicked(event -> {
+          WebUtils.openURL(url);
+          event.consume();
+        });
+      }
     });
   }
 
@@ -613,6 +624,13 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void displayMessage(String title, String msg) {
+    displayMessage(title, msg, null);
+  }
+
+  @Override
+  public void displayMessage(String title, String msg, @Nullable String url) {
+    logger.finest(() -> String.format("%s - %s - %s", title, msg, url));
+
     MZmineCore.runLater(() -> {
 
       Dialog<ButtonType> dialog = new Dialog<>();
@@ -623,12 +641,14 @@ public class MZmineGUI extends Application implements Desktop {
       dialog.setTitle(title);
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
-      final Text text = new Text();
-      text.getStyleClass().add("text-id");
+      TextFlow flow = new TextFlow(new Text(msg));
+      if (url != null) {
+        Hyperlink href = new Hyperlink(url);
+        flow.getChildren().add(href);
+        href.setOnAction(event -> WebUtils.openURL(url));
+      }
 
-      text.setWrappingWidth(400);
-      text.setText(msg);
-      final FlowPane pane = new FlowPane(text);
+      final StackPane pane = new StackPane(flow);
       pane.setPadding(new Insets(5));
       dialog.getDialogPane().setContent(pane);
 
@@ -740,6 +760,9 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public List<MZmineTab> getAllTabs() {
+    if (mainWindowController == null) {
+      return List.of();
+    }
     List<MZmineTab> tabs = new ArrayList<>();
 
     mainWindowController.getTabs().forEach(t -> {
@@ -760,6 +783,10 @@ public class MZmineGUI extends Application implements Desktop {
   @NotNull
   @Override
   public List<MZmineTab> getTabsInMainWindow() {
+    if (mainWindowController == null) {
+      return List.of();
+    }
+
     List<MZmineTab> tabs = new ArrayList<>();
 
     mainWindowController.getTabs().forEach(t -> {

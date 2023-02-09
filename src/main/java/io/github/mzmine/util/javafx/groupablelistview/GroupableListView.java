@@ -71,10 +71,14 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
           if (change.getList() == null) {
             return;
           }
-          ImmutableList<GroupableListViewEntity> items = ImmutableList.copyOf(change.getList());
+          var items = change.getList();
           selectedValues.clear();
           selectedGroups.clear();
           for (GroupableListViewEntity item : items) {
+            if (item == null) {
+              continue;
+            }
+
             if (item instanceof GroupEntity) {
               selectedGroups.add((GroupEntity) item);
               selectedValues.addAll(listGroups.get(item).stream().map(ValueEntity::getValue)

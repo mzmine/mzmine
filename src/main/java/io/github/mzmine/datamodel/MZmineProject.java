@@ -27,10 +27,10 @@ package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.project.impl.ProjectChangeListener;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.Hashtable;
@@ -167,10 +167,10 @@ public interface MZmineProject {
 
   /**
    * Enables/disables usage of {@link CachedIMSRawDataFile}s for {@link IMSRawDataFile}s in the
-   * project. Cached files are used during feature list import to avoid multiple copies of {@link
-   * io.github.mzmine.datamodel.MobilityScan}s, since the main implementation ({@link
-   * io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on demand and passed through
-   * data types.
+   * project. Cached files are used during feature list import to avoid multiple copies of
+   * {@link io.github.mzmine.datamodel.MobilityScan}s, since the main implementation
+   * ({@link io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on demand and passed
+   * through data types.
    * <p></p>
    * After the project import, the files have to be replaced to lower ram consumption and allow
    * further processing.
@@ -228,7 +228,13 @@ public interface MZmineProject {
 
   int getNumberOfDataFiles();
 
-  MetadataTable getProjectMetadata();
+  @NotNull MetadataTable getProjectMetadata();
 
-  void setProjectMetadata(MetadataTable metadata);
+  /**
+   * find data file by name. Acquires read lock on files for synchronization.
+   *
+   * @param name name of the file, compared with ignore case
+   * @return the RawDataFile or null if the name was null or no such file exists
+   */
+  @Nullable RawDataFile getDataFileByName(@Nullable String name);
 }

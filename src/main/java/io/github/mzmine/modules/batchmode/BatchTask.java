@@ -442,10 +442,12 @@ public class BatchTask extends AbstractTask {
         return "Batch mode";
       } else {
         return String.format("Batch step %d/%d of dataset %d/%d",
-            processedSteps % stepsPerDataset + 1, stepsPerDataset, currentDataset + 1, datasets);
+            Math.min(processedSteps % stepsPerDataset + 1, totalSteps), stepsPerDataset,
+            currentDataset + 1, datasets);
       }
     } else {
-      return String.format("Batch step %d/%d", processedSteps + 1, totalSteps);
+      return String.format("Batch step %d/%d", Math.min(processedSteps + 1, totalSteps),
+          totalSteps);
     }
   }
 
