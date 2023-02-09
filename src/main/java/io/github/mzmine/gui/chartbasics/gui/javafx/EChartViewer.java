@@ -169,9 +169,13 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     if (chart != null) {
       setChart(chart);
 
-      getChart().getXYPlot().getDomainAxis().setUpperMargin(0.05);
-      getChart().getXYPlot().getRangeAxis().setUpperMargin(0.05);
-      getChart().getXYPlot().getRangeAxis().setLowerMargin(0.05);
+      if (chart.getXYPlot().getDomainAxis() != null) {
+        getChart().getXYPlot().getDomainAxis().setUpperMargin(0.05);
+      }
+      if (chart.getXYPlot().getRangeAxis() != null) {
+        getChart().getXYPlot().getRangeAxis().setUpperMargin(0.05);
+        getChart().getXYPlot().getRangeAxis().setLowerMargin(0.05);
+      }
     }
 
     exportMenu = (Menu) getContextMenu().getItems().get(0);

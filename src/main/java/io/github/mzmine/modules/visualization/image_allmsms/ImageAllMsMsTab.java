@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -42,13 +43,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class ImageAllMsMsTab extends MZmineTab {
 
-  public static void addNewImageAllMsMsTab(@Nullable FeatureTableFX featureTable, @Nullable Feature f, boolean showBinding, boolean defaultBindingState) {
-    MZmineCore.getDesktop().addTab(new ImageAllMsMsTab(featureTable, f, "Image All MS/MS", showBinding, defaultBindingState));
-  }
-
   private final FeatureTableFX featureTable;
 
-  public ImageAllMsMsTab(@Nullable FeatureTableFX featureTable, @Nullable Feature feature, String title, boolean showBinding, boolean defaultBindingState) {
+  public ImageAllMsMsTab(@Nullable FeatureTableFX featureTable, @Nullable Feature feature,
+      String title, boolean showBinding, boolean defaultBindingState) {
     super(title, showBinding, defaultBindingState);
 
     this.featureTable = featureTable;
@@ -74,8 +72,15 @@ public class ImageAllMsMsTab extends MZmineTab {
 
     if (featureTable != null) {
       featureTable.getSelectionModel().selectedItemProperty().addListener(listener);
-      setOnClosed(e -> featureTable.getSelectionModel().selectedItemProperty().removeListener(listener));
+      setOnClosed(
+          e -> featureTable.getSelectionModel().selectedItemProperty().removeListener(listener));
     }
+  }
+
+  public static void addNewImageAllMsMsTab(@Nullable FeatureTableFX featureTable,
+      @Nullable Feature f, boolean showBinding, boolean defaultBindingState) {
+    MZmineCore.getDesktop().addTab(
+        new ImageAllMsMsTab(featureTable, f, "Image All MS/MS", showBinding, defaultBindingState));
   }
 
   @Override

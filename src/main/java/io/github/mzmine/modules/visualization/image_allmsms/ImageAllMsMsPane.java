@@ -50,11 +50,14 @@ import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
@@ -65,6 +68,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYPointerAnnotation;
 import org.jfree.chart.axis.ValueAxis;
@@ -151,17 +155,22 @@ public class ImageAllMsMsPane extends BorderPane {
     }
   }
 
-  @Nullable
-  public static MaldiSpotInfo getMsMsSpotInfo(Scan scan) {
+  /**
+   * @param scan A {@link MergedMsMsSpectrum}
+   * @return A list of all MaldiSpotInfos associated with this MS2 spectrum. May be multiple if the
+   * MS2 was merged from several events.
+   */
+  @NotNull
+  public static List<MaldiSpotInfo> getMsMsSpotInfos(Scan scan) {
     if (scan instanceof MergedMsMsSpectrum merged) {
       final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
-      final MobilityScan mobilityScan = (MobilityScan) sourceSpectra.stream()
-          .filter(s -> s instanceof MobilityScan).findFirst().orElse(null);
-      if (mobilityScan != null && mobilityScan.getFrame() instanceof ImagingFrame imagingFrame) {
-        return imagingFrame.getMaldiSpotInfo();
-      }
+      final List<MaldiSpotInfo> infos = sourceSpectra.stream()
+          .filter(s -> s instanceof MobilityScan).map(s -> ((MobilityScan) s).getFrame()).distinct()
+          .filter(f -> f instanceof ImagingFrame).map(f -> ((ImagingFrame) f).getMaldiSpotInfo())
+          .toList();
+      return infos;
     }
-    return null;
+    return List.of();
   }
 
   private void featureChanged(final Feature feature) {
@@ -173,36 +182,43 @@ public class ImageAllMsMsPane extends BorderPane {
     imagePlot.getChart().getChart().getXYPlot().clearAnnotations();
     msmsContent.getChildren().clear();
 
-    if (feature.getFeatureData() == null || feature.getFeatureData().getSpectra().isEmpty()
-        || !(feature.getFeatureData().getSpectra().get(0) instanceof ImagingScan)) {
+    if (feature == null || feature.getFeatureData() == null || feature.getFeatureData().getSpectra()
+        .isEmpty() || !(feature.getFeatureData().getSpectra().get(0) instanceof ImagingScan)) {
       return;
     }
 
     imagePlot.getChart().applyWithNotifyChanges(false, () -> {
-      if (feature != null) {
-        imagePlot.setData(new ColoredXYZDataset(new FeatureImageProvider<>(feature,
-            (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
-            imageNormalization)));
+      imagePlot.setData(new ColoredXYZDataset(new FeatureImageProvider<>(feature,
+          (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+          imageNormalization)));
 
-        for (Scan scan : feature.getAllMS2FragmentScans()) {
-          final MaldiSpotInfo info = getMsMsSpotInfo(scan);
-          if (info == null) {
-            continue;
-          }
+      final Map<Float, Color> ceColor = new HashMap<>();
+      final SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette()
+          .clone();
 
+      for (Scan scan : feature.getAllMS2FragmentScans()) {
+        final List<MaldiSpotInfo> infos = getMsMsSpotInfos(scan);
+        if (infos.isEmpty()) {
+          continue;
+        }
+
+        for (MaldiSpotInfo info : infos) {
           // transform the coordinates back to the original file coordinates
           final double[] ms2Coord = transformCoordinates(info,
               (ImagingRawDataFile) feature.getRawDataFile());
           if (ms2Coord != null) {
-            XYPointerAnnotation msMsMarker = new XYPointerAnnotation(
-                String.format("%.0f um, %.0f um (%s)", ms2Coord[0], ms2Coord[1], info.spotName()),
+            final Float ce = scan.getMsMsInfo().getActivationEnergy();
+            ceColor.computeIfAbsent(ce, energy -> palette.getNextColorAWT());
+
+            XYPointerAnnotation msMsMarker = new XYPointerAnnotation(String.format("%.0f eV", ce),
                 ms2Coord[0], ms2Coord[1], 315);
-            final BasicStroke stroke = new BasicStroke(2.0f);
+            final BasicStroke stroke = new BasicStroke(3.0f);
             msMsMarker.setBaseRadius(50);
             msMsMarker.setTipRadius(10);
             msMsMarker.setArrowPaint(markerColor);
             msMsMarker.setArrowWidth(3d);
             msMsMarker.setArrowStroke(stroke);
+            msMsMarker.setLabelOffset(10);
             msMsMarker.setFont(markerFont);
 
             imagePlot.getChart().getChart().getXYPlot().addAnnotation(msMsMarker, false);
@@ -222,10 +238,10 @@ public class ImageAllMsMsPane extends BorderPane {
 
     // have all spectra in the same range so they are easier to compare
     final double minMz = feature.getAllMS2FragmentScans().stream().map(Scan::getDataPointMZRange)
-        .filter(Objects::nonNull).mapToDouble(Range::lowerEndpoint).min().orElse(0);
+        .filter(Objects::nonNull).mapToDouble(Range::lowerEndpoint).min().orElse(0) * 0.8;
     final double maxMz = feature.getAllMS2FragmentScans().stream().map(Scan::getDataPointMZRange)
         .filter(Objects::nonNull).mapToDouble(Range::upperEndpoint).max()
-        .orElse(feature.getMZ() + 20d);
+        .orElse(feature.getMZ() + 20d) * 1.2;
 
     // add spectra sorted by collision energy
     feature.getAllMS2FragmentScans().stream().sorted(msmsCollisionEnergySorter).map(msms -> {
@@ -236,10 +252,13 @@ public class ImageAllMsMsPane extends BorderPane {
       domainAxis.setDefaultAutoRange(new org.jfree.data.Range(minMz, maxMz));
 
       ms2Tab.loadRawData(msms);
-      final MaldiSpotInfo info = getMsMsSpotInfo(msms);
-      if (info != null) {
+      final List<MaldiSpotInfo> info = getMsMsSpotInfos(msms);
+      if (!info.isEmpty()) {
+        final String spotstr =
+            info.size() == 1 ? info.get(0).spotName() : "%d spots".formatted(info.size());
+
         spectrumPlot.setTitle(
-            "MS2 of " + format.mz(msms.getPrecursorMz()) + " at " + info.spotName() + ", CE: "
+            "MS2 of " + format.mz(msms.getPrecursorMz()) + " at " + spotstr + ", CE: "
                 + msms.getMsMsInfo().getActivationEnergy(), "");
       }
       spectrumPlot.setMinHeight(250);
