@@ -96,6 +96,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
     Optional<? extends WizardStepParameters> filterParams = steps.get(WizardPart.FILTER);
+    int minNumOfSamplesAbs = getValue(filterParams,
+        FilterWizardParameters.minNumberOfSamples).abs();
+    double minNumOfSamplesRel = getValue(filterParams,
+        FilterWizardParameters.minNumberOfSamples).rel();
+    double numOfSamples = dataFiles.length;
+
     // special workflow parameter are extracted here
     // chromatography
     cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
@@ -110,7 +116,9 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     snThreshold = getValue(params, IonInterfaceGcElectronImpactWizardParameters.SN_THRESHOLD);
     rtforCWT = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
-    sampleCountRatio = getValue(filterParams, FilterWizardParameters.minNumberOfSamples).rel();
+    sampleCountRatio =
+        minNumOfSamplesAbs / numOfSamples > minNumOfSamplesRel ? minNumOfSamplesAbs / numOfSamples
+            : minNumOfSamplesRel;
 
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
     params = steps.get(WizardPart.WORKFLOW);
@@ -137,7 +145,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
       if (exportGnps) {
         makeAndAddGnpsExportStep(q);
       }
-      if(exportMsp){
+      if (exportMsp) {
         makeAndAddMSPExportStep(q);
       }
     }
@@ -179,7 +187,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
   private void makeMultiCurveResolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAPMultivariateCurveResolutionModule.class).cloneParameterSet();
-    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, rtFwhm*4);
+    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, rtFwhm * 4);
     param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
         (double) intraSampleRtTol.getTolerance());
     param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE, 1);
