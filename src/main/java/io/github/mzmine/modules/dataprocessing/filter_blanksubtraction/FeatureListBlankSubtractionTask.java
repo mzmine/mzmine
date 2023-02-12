@@ -59,9 +59,12 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private final int totalRows;
   private final int minBlankDetections;
   private final String suffix;
+  private final boolean createDeletedFeatureList;
+  private final String suffixDeleted;
   private final boolean checkFoldChange;
   private final double foldChange;
-  private final BlankIntensityType intensityType;
+  private final RatioType ratioType;
+  private final QuantType quantType;
 
   private AtomicInteger processedRows = new AtomicInteger(0);
   private MZmineProject project;
@@ -86,12 +89,24 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     this.minBlankDetections = parameters.getParameter(
         FeatureListBlankSubtractionParameters.minBlanks).getValue();
     this.suffix = parameters.getParameter(FeatureListBlankSubtractionParameters.suffix).getValue();
+    this.createDeletedFeatureList = parameters.getParameter(
+        FeatureListBlankSubtractionParameters.createDeleted).getValue();
+    this.suffixDeleted = parameters.getParameter(
+        FeatureListBlankSubtractionParameters.suffixDeleted).getValue();
     checkFoldChange = parameters.getParameter(FeatureListBlankSubtractionParameters.foldChange)
         .getValue();
     foldChange = parameters.getParameter(FeatureListBlankSubtractionParameters.foldChange)
         .getEmbeddedParameter().getValue();
-    intensityType = BlankIntensityType.Maximum;
+    this.ratioType =
+        parameters.getParameter(FeatureListBlankSubtractionParameters.ratioType).getValue()
+            .equals("Maximum") ? RatioType.Maximum : RatioType.Average;
+    this.quantType =
+        parameters.getParameter(FeatureListBlankSubtractionParameters.quantType).getValue()
+            .equals("Height") ? QuantType.Height : QuantType.Area;
     totalRows = originalFeatureList.getNumberOfRows();
+    logger.info(
+        String.format("Blank subtraction with quantifier '%s' and ratio '%s'", this.quantType,
+            this.ratioType));
 
     setStatus(TaskStatus.WAITING);
     logger.setLevel(Level.FINEST);
@@ -120,9 +135,12 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     // get the files that are not considered as blank
     final List<RawDataFile> nonBlankFiles = new ArrayList<>();
+    final List<RawDataFile> blankFiles = new ArrayList<>();
     for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
       if (!blankRaws.contains(file)) {
         nonBlankFiles.add(file);
+      } else {
+        blankFiles.add(file);
       }
     }
     logger.finest(() -> originalFeatureList.getName() + " contains " + nonBlankFiles.size()
@@ -130,47 +148,85 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     final ModularFeatureList result = new ModularFeatureList(
         originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), nonBlankFiles);
+    final ModularFeatureList blankResult = new ModularFeatureList(
+        originalFeatureList.getName() + " " + suffixDeleted, getMemoryMapStorage(),
+        originalFeatureList.getRawDataFiles());
+
     originalFeatureList.getRowTypes().values().forEach(result::addRowType);
     nonBlankFiles.forEach(f -> result.setSelectedScans(f, originalFeatureList.getSeletedScans(f)));
 
+    originalFeatureList.getRowTypes().values().forEach(blankResult::addRowType);
+    originalFeatureList.getRawDataFiles()
+        .forEach(f -> blankResult.setSelectedScans(f, originalFeatureList.getSeletedScans(f)));
+
     final List<FeatureListRow> filteredRows = new ArrayList<>();
+    final List<FeatureListRow> removedRows = new ArrayList<>();
     for (FeatureListRow originalRow : originalFeatureList.getRows()) {
       int numBlankDetections = 0;
+      int numFeatures = 0;
+
+      final ModularFeatureListRow filteredRow = new ModularFeatureListRow(result,
+          originalRow.getID(), (ModularFeatureListRow) originalRow, false);
+      final ModularFeatureListRow removedRow = new ModularFeatureListRow(blankResult,
+          originalRow.getID(), (ModularFeatureListRow) originalRow, false);
+
       for (RawDataFile blankRaw : blankRaws) {
         if (originalRow.hasFeature(blankRaw)) {
+          // save blank detections to a blank-list
+          final Feature f = originalRow.getFeature(blankRaw);
+          removedRow.addFeature(blankRaw, new ModularFeature(blankResult, f));
           numBlankDetections++;
         }
       }
 
       if (numBlankDetections < minBlankDetections || checkFoldChange) {
-        final ModularFeatureListRow filteredRow = new ModularFeatureListRow(result,
-            originalRow.getID(), (ModularFeatureListRow) originalRow, false);
         final double blankIntensity =
-            checkFoldChange ? getBlankIntensity(originalRow, blankRaws, intensityType) : 1d;
-        int numFeatures = 0;
+            checkFoldChange ? getBlankIntensity(originalRow, blankRaws, quantType, ratioType) : 1d;
         // copy features from non-blank files.
         for (RawDataFile file : nonBlankFiles) {
           final Feature f = originalRow.getFeature(file);
           // check if there's actually a feature
           if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
             // check validity
+            double quant = getFeatureQuantifier(f, quantType);
             if (!checkFoldChange || f.getHeight() / blankIntensity >= foldChange) {
               filteredRow.addFeature(file, new ModularFeature(result, f));
               numFeatures++;
+            } else {
+              // or put feature to not-used list
+              removedRow.addFeature(file, new ModularFeature(blankResult, f));
             }
           }
         }
-        // copy row types
-        if (numFeatures > 0) {
-//          row.stream().filter(e -> !(e.getKey() instanceof FeaturesType))
-//              .forEach(entry -> filteredRow.set(entry.getKey(), entry.getValue()));
-          filteredRows.add(filteredRow);
-        }
+      }
+
+      // copy row types
+      if (numFeatures > 0) {
+        // use feature in the new results feature list
+        filteredRows.add(filteredRow);
+      }
+      if (numBlankDetections > 0 && numFeatures == 0) {
+        // put not-used features on the removed list
+        removedRows.add(removedRow);
       }
 
       processedRows.getAndIncrement();
     }
 
+    // create the list with not-used features first so the used features are the last list to be
+    // created and can be used in the next step when the "last-list" option is used
+    if (this.createDeletedFeatureList) {
+      removedRows.sort(FeatureListRowSorter.DEFAULT_RT);
+      removedRows.forEach(blankResult::addRow);
+
+      blankResult.getAppliedMethods().addAll(originalFeatureList.getAppliedMethods());
+      blankResult.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(FeatureListBlankSubtractionModule.class, parameters,
+              getModuleCallDate()));
+      project.addFeatureList(blankResult);
+    }
+
+    // create the filtered list so that the next step can use it
     filteredRows.sort(FeatureListRowSorter.DEFAULT_RT);
     filteredRows.forEach(result::addRow);
 
@@ -183,25 +239,36 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  private double getFeatureQuantifier(Feature f, QuantType quantType) {
+    if (quantType == QuantType.Height) {
+      return f.getHeight();
+    } else if (quantType == QuantType.Area) {
+      return f.getArea();
+    }
+    throw new RuntimeException("Unknown parameter");
+  }
+
   private double getBlankIntensity(FeatureListRow row, Collection<RawDataFile> blankRaws,
-      BlankIntensityType intensityType) {
+      QuantType quantType, RatioType ratioType) {
     double intensity = 0d;
     int numDetections = 0;
 
     for (RawDataFile file : blankRaws) {
       final Feature f = row.getFeature(file);
       if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
-        if (intensityType == BlankIntensityType.Average) {
-          intensity += f.getHeight();
+        double quant = getFeatureQuantifier(f, quantType);
+
+        if (ratioType == RatioType.Average) {
+          intensity += quant;
           numDetections++;
-        } else if (intensityType == BlankIntensityType.Maximum) {
-          intensity = Math.max(f.getHeight(), intensity);
+        } else if (ratioType == RatioType.Maximum) {
+          intensity = Math.max(quant, intensity);
         }
       }
     }
 
-    return intensityType == BlankIntensityType.Average && numDetections != 0 ? intensity
-        / numDetections : intensity;
+    return ratioType == RatioType.Average && numDetections != 0 ? intensity / numDetections
+        : intensity;
   }
 
   private boolean checkBlankSelection(FeatureList aligned, List<RawDataFile> blankRaws) {
@@ -230,7 +297,11 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     return true;
   }
 
-  enum BlankIntensityType {
+  enum RatioType {
     Average, Maximum
+  }
+
+  enum QuantType {
+    Height, Area
   }
 }

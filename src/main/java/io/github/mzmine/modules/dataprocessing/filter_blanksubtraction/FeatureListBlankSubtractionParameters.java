@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
@@ -38,27 +40,44 @@ import org.jetbrains.annotations.NotNull;
 
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter alignedPeakList =
-      new FeatureListsParameter("Aligned feature list", 1, 1);
+  public static final FeatureListsParameter alignedPeakList = new FeatureListsParameter(
+      "Aligned feature list", 1, 1);
 
-  public static final RawDataFilesParameter blankRawDataFiles =
-      new RawDataFilesParameter("Blank/Control raw data files", 1, 100);
+  public static final RawDataFilesParameter blankRawDataFiles = new RawDataFilesParameter(
+      "Blank/Control raw data files", 1, 100);
 
-  public static final IntegerParameter minBlanks =
-      new IntegerParameter("Minimum # of detection in blanks",
-          "Specifies in how many of the blank files a peak has to be detected.");
+  public static final IntegerParameter minBlanks = new IntegerParameter(
+      "Minimum # of detection in blanks",
+      "Specifies in how many of the blank files a peak has to be detected.");
 
-  public static final OptionalParameter<PercentParameter> foldChange =
-      new OptionalParameter<>(new PercentParameter("Fold change increase",
+  public static final ComboParameter quantType = new ComboParameter("Quantification qualifier",
+      "Use either the features' height or area for the subtraction", new String[]{"Height", "Area"},
+      "Height");
+
+  public static final ComboParameter ratioType = new ComboParameter("Ratio type",
+      "Use either the maximum or the average blank value for calculating the blank-ratio",
+      new String[]{"Maximum", "Average"}, "Maximum");
+
+  public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(
+      new PercentParameter("Fold change increase",
           "Specifies a percentage of increase of the intensity of a feature. If the intensity in the list to be"
               + " filtered increases more than the given percentage to the blank, it will not be deleted from "
-              + "the feature list.",
-          3.0, 1.0, 1E5));
+              + "the feature list.", 3.0, 1.0, 1E5));
+
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "subtracted");
 
+  public static final BooleanParameter createDeleted = new BooleanParameter(
+      "Create deleted feature list",
+      "Indicates whether an additional feature list containing all non-used (deleted) features should be saved.");
+
+  public static final StringParameter suffixDeleted = new StringParameter(
+      "Suffix deleted feature list",
+      "The suffix for the feature list containing the not-used features.", "backgroundFeatures");
+
   public FeatureListBlankSubtractionParameters() {
-    super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, foldChange, suffix},
+    super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, quantType, ratioType,
+            foldChange, suffix, createDeleted, suffixDeleted},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }
 
