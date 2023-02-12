@@ -63,6 +63,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private final String suffixDeleted;
   private final boolean checkFoldChange;
   private final double foldChange;
+  private final boolean keepBackgroundFeatures;
   private final RatioType ratioType;
   private final QuantType quantType;
 
@@ -88,6 +89,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         .getMatchingFeatureLists()[0];
     this.minBlankDetections = parameters.getParameter(
         FeatureListBlankSubtractionParameters.minBlanks).getValue();
+    this.keepBackgroundFeatures = parameters.getParameter(
+        FeatureListBlankSubtractionParameters.keepBackgroundFeatures).getValue();
     this.suffix = parameters.getParameter(FeatureListBlankSubtractionParameters.suffix).getValue();
     this.createDeletedFeatureList = parameters.getParameter(
         FeatureListBlankSubtractionParameters.createDeleted).getValue();
@@ -147,13 +150,20 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         + " raw data files not classified as blank.");
 
     final ModularFeatureList result = new ModularFeatureList(
-        originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), nonBlankFiles);
+        originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(),
+        keepBackgroundFeatures ? originalFeatureList.getRawDataFiles() : nonBlankFiles);
     final ModularFeatureList blankResult = new ModularFeatureList(
         originalFeatureList.getName() + " " + suffixDeleted, getMemoryMapStorage(),
         originalFeatureList.getRawDataFiles());
 
     originalFeatureList.getRowTypes().values().forEach(result::addRowType);
-    nonBlankFiles.forEach(f -> result.setSelectedScans(f, originalFeatureList.getSeletedScans(f)));
+    if (!keepBackgroundFeatures) {
+      originalFeatureList.getRawDataFiles()
+          .forEach(f -> result.setSelectedScans(f, originalFeatureList.getSeletedScans(f)));
+    } else {
+      nonBlankFiles.forEach(
+          f -> result.setSelectedScans(f, originalFeatureList.getSeletedScans(f)));
+    }
 
     originalFeatureList.getRowTypes().values().forEach(blankResult::addRowType);
     originalFeatureList.getRawDataFiles()
@@ -190,7 +200,9 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
             // check validity
             double quant = getFeatureQuantifier(f, quantType);
             if (!checkFoldChange || quant / blankIntensity >= foldChange) {
-              filteredRow.addFeature(file, new ModularFeature(result, f));
+              if (!keepBackgroundFeatures) {
+                filteredRow.addFeature(file, new ModularFeature(result, f));
+              }
               numFeatures++;
             } else {
               // or put feature to not-used list
@@ -203,6 +215,15 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       // copy row types
       if (numFeatures > 0) {
         // use feature in the new results feature list
+        if (keepBackgroundFeatures) {
+          for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
+            final Feature f = originalRow.getFeature(file);
+            if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+              filteredRow.addFeature(file, new ModularFeature(result, f));
+            }
+          }
+        }
+
         filteredRows.add(filteredRow);
       }
       if (numBlankDetections > 0 && numFeatures == 0) {

@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import javolution.io.Struct.Bool;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
@@ -64,6 +65,13 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
               + " filtered increases more than the given percentage to the blank, it will not be deleted from "
               + "the feature list.", 3.0, 1.0, 1E5));
 
+  public static final BooleanParameter keepBackgroundFeatures = new BooleanParameter(
+      "Keep features",
+      "When this option is activated, any feature in a sample that is likely a background will still be kept"
+          + "if the same feature is not a background in another samples. This option does not change the generated "
+          + "feature list, but keeps the features in the blank samples and in those where these are similar to the blank ones.",
+      false);
+
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "subtracted");
 
@@ -77,7 +85,7 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
   public FeatureListBlankSubtractionParameters() {
     super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, quantType, ratioType,
-            foldChange, suffix, createDeleted, suffixDeleted},
+            foldChange, keepBackgroundFeatures, suffix, createDeleted, suffixDeleted},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }
 
