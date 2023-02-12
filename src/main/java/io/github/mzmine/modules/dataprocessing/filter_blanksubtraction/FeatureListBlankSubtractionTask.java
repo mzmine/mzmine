@@ -189,7 +189,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
           if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
             // check validity
             double quant = getFeatureQuantifier(f, quantType);
-            if (!checkFoldChange || f.getHeight() / blankIntensity >= foldChange) {
+            if (!checkFoldChange || quant / blankIntensity >= foldChange) {
               filteredRow.addFeature(file, new ModularFeature(result, f));
               numFeatures++;
             } else {
