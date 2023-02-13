@@ -25,6 +25,17 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import java.util.Objects;
+import java.util.function.Supplier;
+
 public record OptionalValue<T>(boolean active, T value) {
+
+  public T orElse(T defaultValue) {
+    return Objects.requireNonNullElse(value, defaultValue);
+  }
+
+  public T orElseGet(Supplier<? extends T> defaultValue) {
+    return Objects.requireNonNullElseGet(value, defaultValue);
+  }
 
 }
