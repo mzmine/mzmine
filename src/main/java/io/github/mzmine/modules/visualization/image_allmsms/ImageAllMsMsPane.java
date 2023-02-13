@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.image_allmsms;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -43,12 +42,11 @@ import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
-import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
-import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
+import io.github.mzmine.util.ImagingUtils;
 import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
@@ -68,7 +66,6 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYPointerAnnotation;
 import org.jfree.chart.axis.ValueAxis;
@@ -155,28 +152,7 @@ public class ImageAllMsMsPane extends BorderPane {
     }
   }
 
-  /**
-   * @param scan A {@link MergedMsMsSpectrum}
-   * @return A list of all MaldiSpotInfos associated with this MS2 spectrum. May be multiple if the
-   * MS2 was merged from several events.
-   */
-  @NotNull
-  public static List<MaldiSpotInfo> getMsMsSpotInfos(Scan scan) {
-    if (scan instanceof MergedMsMsSpectrum merged) {
-      final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
-      final List<MaldiSpotInfo> infos = sourceSpectra.stream()
-          .filter(s -> s instanceof MobilityScan).map(s -> ((MobilityScan) s).getFrame()).distinct()
-          .filter(f -> f instanceof ImagingFrame).map(f -> ((ImagingFrame) f).getMaldiSpotInfo())
-          .toList();
-      return infos;
-    }
-    return List.of();
-  }
-
   private void featureChanged(final Feature feature) {
-
-    final Color markerColor = MZmineCore.getConfiguration().getDefaultColorPalette()
-        .getNegativeColorAWT();
 
     imagePlot.getChart().removeAllDatasets();
     imagePlot.getChart().getChart().getXYPlot().clearAnnotations();
@@ -197,25 +173,25 @@ public class ImageAllMsMsPane extends BorderPane {
           .clone();
 
       for (Scan scan : feature.getAllMS2FragmentScans()) {
-        final List<MaldiSpotInfo> infos = getMsMsSpotInfos(scan);
+        final List<MaldiSpotInfo> infos = ImagingUtils.getMsMsSpotInfosFromScan(scan);
         if (infos.isEmpty()) {
           continue;
         }
 
         for (MaldiSpotInfo info : infos) {
           // transform the coordinates back to the original file coordinates
-          final double[] ms2Coord = transformCoordinates(info,
+          final double[] ms2Coord = ImagingUtils.transformCoordinates(info,
               (ImagingRawDataFile) feature.getRawDataFile());
           if (ms2Coord != null) {
             final Float ce = scan.getMsMsInfo().getActivationEnergy();
-            ceColor.computeIfAbsent(ce, energy -> palette.getNextColorAWT());
+            final Color clr = ceColor.computeIfAbsent(ce, energy -> palette.getNextColorAWT());
 
             XYPointerAnnotation msMsMarker = new XYPointerAnnotation(String.format("%.0f eV", ce),
                 ms2Coord[0], ms2Coord[1], 315);
             final BasicStroke stroke = new BasicStroke(3.0f);
-            msMsMarker.setBaseRadius(50);
-            msMsMarker.setTipRadius(10);
-            msMsMarker.setArrowPaint(markerColor);
+//            msMsMarker.setBaseRadius(0);
+//            msMsMarker.setTipRadius(10);
+            msMsMarker.setArrowPaint(clr);
             msMsMarker.setArrowWidth(3d);
             msMsMarker.setArrowStroke(stroke);
             msMsMarker.setLabelOffset(10);
@@ -252,7 +228,7 @@ public class ImageAllMsMsPane extends BorderPane {
       domainAxis.setDefaultAutoRange(new org.jfree.data.Range(minMz, maxMz));
 
       ms2Tab.loadRawData(msms);
-      final List<MaldiSpotInfo> info = getMsMsSpotInfos(msms);
+      final List<MaldiSpotInfo> info = ImagingUtils.getMsMsSpotInfosFromScan(msms);
       if (!info.isEmpty()) {
         final String spotstr =
             info.size() == 1 ? info.get(0).spotName() : "%d spots".formatted(info.size());
@@ -268,26 +244,4 @@ public class ImageAllMsMsPane extends BorderPane {
     }).forEachOrdered(plot -> msmsContent.getChildren().add(plot));
   }
 
-  private double[] transformCoordinates(MaldiSpotInfo info, ImagingRawDataFile rawDataFile) {
-    final String spotName = info.spotName();
-    final ImagingScan matchingScan = (ImagingScan) rawDataFile.getScans().stream().filter(
-            scan -> scan instanceof ImagingScan is && is.getMaldiSpotInfo().spotName().equals(spotName))
-        .findFirst().orElse(null);
-
-    if (matchingScan == null) {
-      return null;
-    }
-
-    final ImagingParameters imagingParam = rawDataFile.getImagingParam();
-    if (imagingParam == null) {
-      return null;
-    }
-
-    final double height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
-    final double width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
-
-    final Coordinates scanCoord = matchingScan.getCoordinates();
-    return scanCoord != null ? new double[]{scanCoord.getX() * width, scanCoord.getY() * height}
-        : null;
-  }
 }
