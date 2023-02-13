@@ -34,7 +34,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYDatas
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.util.AbundanceMeasure;
 import java.util.Vector;
 import java.util.logging.Logger;
 import jmprojection.Preprocess;
@@ -233,7 +233,7 @@ public class SammonsDataset extends AbstractTaskXYDataset implements ProjectionP
     // Generate matrix of raw data (input to Sammon's projection)
     boolean useArea =
         parameters.getParameter(ProjectionPlotParameters.featureMeasurementType).getValue()
-            == FeatureMeasurementType.AREA;
+            == AbundanceMeasure.Area;
 
     double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
     for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {

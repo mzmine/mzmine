@@ -49,7 +49,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.util.AbundanceMeasure;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -193,8 +193,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     param.setParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ,
         MzMode.AS_IN_FEATURE_TABLE);
     param.setParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER, false);
-    param.setParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY,
-        FeatureMeasurementType.AREA);
+    param.setParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
     param.setParameter(GnpsGcExportAndSubmitParameters.FILENAME, fileName);
 
     q.add(new MZmineProcessingStepImpl<>(

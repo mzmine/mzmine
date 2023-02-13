@@ -47,8 +47,8 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.AbundanceMeasure;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.FeatureMeasurementType;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -72,9 +72,9 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       "CSV export",
       "Either the new comprehensive export of MZmine 3 or the legacy export from MZmine 2",
       FeatureTableExportType.values(), FeatureTableExportType.SIMPLE);
-  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY = new ComboParameter<>(
+  public static final ComboParameter<AbundanceMeasure> FEATURE_INTENSITY = new ComboParameter<>(
       "Feature intensity", "Intensity in the quantification table (csv).",
-      FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
+      AbundanceMeasure.values(), AbundanceMeasure.Area);
   private static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("MGF mascot file (spectra)", "*.mgf"), //
       new ExtensionFilter("All files", "*.*") //
@@ -89,7 +89,8 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
   public GnpsFbmnExportAndSubmitParameters() {
     super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY,
-        CSV_TYPE, SUBMIT, OPEN_FOLDER}, "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
+            CSV_TYPE, SUBMIT, OPEN_FOLDER},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
   }
 
   @Override
