@@ -162,7 +162,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     // create feature list containing all background features and all samples
     final ModularFeatureList backgroundAlignedFeaturesList = new ModularFeatureList(
-        originalFeatureList.getName() + " background", getMemoryMapStorage(),
+        originalFeatureList.getName() + " subtractedBackground", getMemoryMapStorage(),
         originalFeatureList.getRawDataFiles());
     originalFeatureList.getRowTypes().values().forEach(backgroundAlignedFeaturesList::addRowType);
     originalFeatureList.getRawDataFiles().forEach(

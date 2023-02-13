@@ -53,12 +53,12 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "Specifies in how many of the blank files a peak has to be detected.");
 
   public static final ComboParameter<FeatureMeasurementType> quantType = new ComboParameter<FeatureMeasurementType>(
-      "Quantification qualifier", "Use either the features' height or area for the subtraction",
+      "Quantification", "Use either the features' height or area for the subtraction. ",
       FeatureMeasurementType.values(), FeatureMeasurementType.HEIGHT);
 
   public static final ComboParameter<RatioType> ratioType = new ComboParameter<RatioType>(
       "Ratio type",
-      "Use either the maximum or the average blank value for calculating the blank-ratio",
+      "Use either the maximum or the average blank value for calculating the blank-ratio. ",
       RatioType.values(), RatioType.MAXIMUM);
 
   public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(
@@ -68,19 +68,21 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
               + "the feature list.", 3.0, 1.0, 1E5));
 
   public static final BooleanParameter keepBackgroundFeatures = new BooleanParameter(
-      "Keep background samples", """
-      When this option is activated, any feature in a sample that is likely a background will still be kept
-      if the same feature is not a background in another samples. This option does not change the generated
-      feature list, but keeps the features in the blank samples and in those where these are similar to the 
-      blank ones.""", false);
+      "Keep background samples/features", """
+      When this option is activated, the rational of the blank subtraction is changed slightly. Background
+      features are not removed, but aligned features are sorted into those that have
+      features distinguishable from the background and
+      features indistinguishable from the background in all non-blank samples.
+      Furthermore, if the option is activated, abundances for the blank samples will be retained.""",
+      false);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "subtracted");
 
   public static final BooleanParameter createDeleted = new BooleanParameter(
       "Create deleted feature list", """
-      Indicates whether an additional feature list containing all non-used (deleted) features should be saved.
-      All features removed by this step will then be saved to a new feature list with the suffix 'background'.""",
+      Indicates whether an additional feature list containing all non-used (deleted) background-features should be saved.
+      All features removed by this step will then be saved to a new feature list with the suffix 'subtractedBackground'.""",
       false);
 
   public FeatureListBlankSubtractionParameters() {
