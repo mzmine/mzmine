@@ -199,7 +199,8 @@ public abstract class WizardBatchBuilder {
     return switch (workflowPreset) {
       case DDA -> steps.isImaging() ? new WizardBatchBuilderImagingDda(steps)
           : new WizardBatchBuilderLcDDA(steps);
-      case GC_EI_DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
+      case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
+      case IMAGING -> new WizardBatchBuilderImagingDda(steps);
       case LIBRARY_GENERATION, MS1_ONLY -> throw new UnsupportedOperationException(
           "Currently not implemented workflow " + workflowPreset);
     };
