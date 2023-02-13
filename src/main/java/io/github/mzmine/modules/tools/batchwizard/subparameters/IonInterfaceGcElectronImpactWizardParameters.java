@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import java.text.NumberFormat;
 
@@ -47,25 +48,28 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
       true, Range.closed(0.5, 30d));
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
-      "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ");
+      "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ",
+      new RTTolerance(0.05f, Unit.MINUTES));
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
       "Intra-sample RT tolerance",
       "Retention time tolerance for multiple signals of the same compound in the same "
-          + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.");
+          + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.",
+      new RTTolerance(0.04f, Unit.MINUTES));
   public static final RTToleranceParameter interSampleRTTolerance = new RTToleranceParameter(
       "Inter-sample RT tolerance",
       "Retention time tolerance for the same compound in different samples.\n"
-          + "Used to align multiple measurements of the same sample or a batch run.");
+          + "Used to align multiple measurements of the same sample or a batch run.",
+      new RTTolerance(0.1f, Unit.MINUTES));
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Min # of data points",
       "Minimum number of data points as used in chromatogram building and feature resolving.", 4, 1,
       Integer.MAX_VALUE);
-  public static final DoubleParameter SN_THRESHOLD = new DoubleParameter("S/N threshold",
-      "Signal to noise ratio threshold", NumberFormat.getNumberInstance(), 10.0, 0.0, null);
+  public static final DoubleParameter SN_THRESHOLD = new DoubleParameter("Signal/noise threshold",
+      "Signal to noise ratio threshold", NumberFormat.getNumberInstance(), 5d, 0.0, null);
   public static final DoubleRangeParameter RT_FOR_CWT_SCALES_DURATION = new DoubleRangeParameter(
       "Min/max feature width",
       "Upper and lower bounds of retention times to be used for setting the wavelet scales. Choose a range that that simmilar to the range of peak widths expected to be found from the data.",
-      MZmineCore.getConfiguration().getRTFormat(), true, true, Range.closed(0.001, 0.1));
+      MZmineCore.getConfiguration().getRTFormat(), true, true, Range.closed(0.001, 0.06));
 
   public static final BooleanParameter smoothing = new BooleanParameter("Smoothing",
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",

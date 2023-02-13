@@ -450,6 +450,13 @@ public abstract class WizardBatchBuilder {
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
   }
 
+  protected void makeAndAddMassDetectionStepForAllScans(final BatchQueue q) {
+    makeAndAddMassDetectionStep(q, 0, SelectedScanTypes.SCANS);
+  }
+
+  /**
+   * @param msLevel use 0 to apply without MS level filter
+   */
   protected void makeAndAddMassDetectionStep(final BatchQueue q, int msLevel,
       SelectedScanTypes scanTypes) {
 
@@ -482,7 +489,9 @@ public abstract class WizardBatchBuilder {
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();
     param.setParameter(MassDetectionParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
-    param.setParameter(MassDetectionParameters.scanSelection, new ScanSelection(msLevel));
+    // if MS level 0 then apply to all scans
+    param.setParameter(MassDetectionParameters.scanSelection,
+        new ScanSelection(msLevel < 1 ? null : msLevel));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
