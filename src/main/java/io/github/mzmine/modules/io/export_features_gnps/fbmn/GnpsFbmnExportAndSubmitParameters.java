@@ -113,4 +113,9 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }

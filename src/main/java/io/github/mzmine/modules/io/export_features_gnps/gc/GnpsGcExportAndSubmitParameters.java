@@ -101,4 +101,10 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
     dialog.showAndWait();
     return dialog.getExitCode();
   }
+
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
