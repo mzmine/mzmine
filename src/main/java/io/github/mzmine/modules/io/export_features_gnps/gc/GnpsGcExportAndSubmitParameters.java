@@ -36,6 +36,7 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.gc;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -46,7 +47,6 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.AbundanceMeasure;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;

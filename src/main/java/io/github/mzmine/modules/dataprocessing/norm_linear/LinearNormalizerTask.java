@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -40,7 +41,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.AbundanceMeasure;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Hashtable;

@@ -26,13 +26,13 @@
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
 import com.google.common.primitives.Doubles;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZDataset;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.AbundanceMeasure;
 import io.github.mzmine.util.MathUtils;
 import java.util.Vector;
 import java.util.logging.Logger;

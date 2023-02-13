@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.util.AbundanceMeasure;
 import io.github.mzmine.util.ExitCode;
 
 public class CVParameters extends SimpleParameterSet {

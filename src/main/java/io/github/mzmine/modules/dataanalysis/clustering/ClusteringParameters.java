@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.clustering;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataanalysis.clustering.em.EMClusterer;
 import io.github.mzmine.modules.dataanalysis.clustering.farthestfirst.FarthestFirstClusterer;
 import io.github.mzmine.modules.dataanalysis.clustering.hierarchical.HierarClusterer;
@@ -38,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionPara
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.AbundanceMeasure;
 import java.util.Arrays;
 
 public class ClusteringParameters extends SimpleParameterSet {
