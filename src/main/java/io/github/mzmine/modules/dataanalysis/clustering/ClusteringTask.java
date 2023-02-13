@@ -24,6 +24,7 @@
  */
 package io.github.mzmine.modules.dataanalysis.clustering;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -37,7 +38,6 @@ import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotDatas
 import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;
@@ -380,11 +380,11 @@ public class ClusteringTask extends AbstractTaskXYDataset implements ProjectionP
     // Generate matrix of raw data (input to CDA)
     boolean useArea = true;
     if (parameters.getParameter(ClusteringParameters.featureMeasurementType).getValue()
-        == FeatureMeasurementType.AREA) {
+        == AbundanceMeasure.Area) {
       useArea = true;
     }
     if (parameters.getParameter(ClusteringParameters.featureMeasurementType).getValue()
-        == FeatureMeasurementType.HEIGHT) {
+        == AbundanceMeasure.Height) {
       useArea = false;
     }
     double[][] rawData;

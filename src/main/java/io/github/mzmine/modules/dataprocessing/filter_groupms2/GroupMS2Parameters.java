@@ -46,6 +46,13 @@ public class GroupMS2Parameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
+  // refine grouped MS2 to only those where relative feature height is at least X %
+  public static final OptionalParameter<PercentParameter> minimumRelativeFeatureHeight = new OptionalParameter<>(
+      new PercentParameter("Minimum relative feature height",
+          "If an MS2 was assigned to multiple features, only keep the feature assignments where feature height is at least X% of the highest feature.",
+          0.25, 0d, 1d), true);
+
+
   public static final OptionalParameter<IntegerParameter> minRequiredSignals = new OptionalParameter<>(
       new IntegerParameter("Minimum required signals",
           "Only assign fragmentation spectra with at least n signals in the filtered spectrum after mass detection etc.",
@@ -92,8 +99,8 @@ public class GroupMS2Parameters extends SimpleParameterSet {
               + "MS/MS mobility scans need to be merged together.", 0.01d), true);
 
   public GroupMS2Parameters() {
-    super(new Parameter[]{PEAK_LISTS, minRequiredSignals, mzTol, rtFilter, limitMobilityByFeature,
-
+    super(new Parameter[]{PEAK_LISTS, minimumRelativeFeatureHeight, minRequiredSignals, mzTol,
+            rtFilter, limitMobilityByFeature,
             // TIMS specific
             combineTimsMsMs, outputNoiseLevel, outputNoiseLevelRelative},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");

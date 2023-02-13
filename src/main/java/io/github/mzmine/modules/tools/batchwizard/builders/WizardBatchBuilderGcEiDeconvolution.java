@@ -28,18 +28,15 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
 import dulab.adap.workflow.AlignmentParameters;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAP3DecompositionV2Parameters;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.IntensityWindowsSNEstimator;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
@@ -56,24 +53,15 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcEl
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.util.FeatureMeasurementType;
-import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
-import org.jetbrains.annotations.Nullable;
 
 public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
 
@@ -137,6 +125,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     makeAndAddMassDetectorSteps(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
         cropRtRange);
+    makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
     makeAndAddRtAdapResolver(q);
     makeMultiCurveResolutionStep(q);
     makeAndAddAlignmentStep(q);
@@ -247,8 +236,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     param.setParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ,
         MzMode.AS_IN_FEATURE_TABLE);
     param.setParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER, false);
-    param.setParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY,
-        FeatureMeasurementType.AREA);
+    param.setParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
     param.setParameter(GnpsGcExportAndSubmitParameters.FILENAME, fileName);
 
     q.add(new MZmineProcessingStepImpl<>(

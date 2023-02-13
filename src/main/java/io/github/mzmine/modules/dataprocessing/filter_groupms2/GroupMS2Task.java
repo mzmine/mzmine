@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -63,7 +64,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Filters out feature list rows.
+ * Groups fragmentation scans with features in range
  */
 public class GroupMS2Task extends AbstractTask {
 
@@ -79,7 +80,10 @@ public class GroupMS2Task extends AbstractTask {
   private final boolean lockToFeatureMobilityRange;
   private final int minimumSignals;
   private final FeatureLimitOptions rtFilter;
-  private int processedRows, totalRows;
+  private final Double minimumRelativeFeatureHeight;
+  private final int totalRows;
+  private int processedRows;
+  private GroupedMs2RefinementTask refineTask;
 
   /**
    * Create the task.
@@ -106,25 +110,33 @@ public class GroupMS2Task extends AbstractTask {
     minMs2IntensityRel = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMS2Parameters.outputNoiseLevelRelative, null);
 
+    // if active, only features with min relative height get MS2
+    minimumRelativeFeatureHeight = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
+        GroupMS2Parameters.minimumRelativeFeatureHeight, null);
+
     // 0 is deactivated
     minimumSignals = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMS2Parameters.minRequiredSignals, 0);
 
     this.list = list;
     processedRows = 0;
-    totalRows = 0;
+    totalRows = list.getNumberOfRows();
   }
 
   @Override
   public double getFinishedPercentage() {
-
+    if (refineTask != null) {
+      return refineTask.getFinishedPercentage();
+    }
     return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
   }
 
   @Override
   public String getTaskDescription() {
-
-    return "Adding all MS2 scans to their features in list " + list.getName();
+    if (refineTask != null) {
+      return refineTask.getTaskDescription();
+    }
+    return "Grouping MS2 scans to their features in list " + list.getName();
   }
 
   @Override
@@ -132,15 +144,9 @@ public class GroupMS2Task extends AbstractTask {
     try {
       setStatus(TaskStatus.PROCESSING);
 
-      totalRows = list.getNumberOfRows();
-      // for all features
-      for (FeatureListRow row : list.getRows()) {
-        if (isCanceled()) {
-          return;
-        }
-
-        processRow(row);
-        processedRows++;
+      processFeatureList(this);
+      if (isCanceled()) {
+        return;
       }
 
       list.getAppliedMethods().add(
@@ -157,21 +163,39 @@ public class GroupMS2Task extends AbstractTask {
     }
   }
 
+  public void processFeatureList(AbstractTask parentTask) {
+    // for all features
+    for (FeatureListRow row : list.getRows()) {
+      if (parentTask.isCanceled()) {
+        return;
+      }
+
+      processRow(row);
+      processedRows++;
+    }
+
+    // refine MS2 groupings with features that are at least X % of the highest feature that was grouped with each MS2
+    if (minimumRelativeFeatureHeight != null) {
+      refineTask = new GroupedMs2RefinementTask(list, minimumRelativeFeatureHeight, 0d);
+      refineTask.processFeatureList(parentTask);
+    }
+  }
+
   /**
    * Group all MS2 scans with the corresponding features (per raw data file)
    *
-   * @param row
+   * @param row does this for each feature in this row
    */
   public void processRow(FeatureListRow row) {
     for (ModularFeature feature : row.getFeatures()) {
-      final List<Scan> scans;
+      List<Scan> scans;
       if (MobilityType.TIMS.isTypeOfBackingRawData(feature)) {
         scans = findFragmentScansForTimsFeature(feature);
       } else {
         scans = findFragmentScans(feature);
       }
 
-      filterByMinimumSignals(scans);
+      scans = filterByMinimumSignals(scans);
       feature.setAllMS2FragmentScans(scans.isEmpty() ? null : scans, true);
       // get proximity
       setRtApexProximity(feature, scans);
@@ -273,9 +297,7 @@ public class GroupMS2Task extends AbstractTask {
   @NotNull
   private List<Scan> findFragmentScansForTimsFeature(ModularFeature feature) {
 
-    float frt = feature.getRT();
     double fmz = feature.getMZ();
-    Range<Float> rtRange = feature.getRawDataPointsRTRange();
     Float mobility = feature.getMobility();
 
     final List<? extends Scan> scans = feature.getRawDataFile().getScanNumbers(2).stream()
@@ -338,11 +360,11 @@ public class GroupMS2Task extends AbstractTask {
   /**
    * remove all scans with less than minimumSignals in mass list
    *
-   * @param scans input list, is changed
+   * @param scans returns a filtered list or the input list if no filter is applied
    */
-  private void filterByMinimumSignals(final List<Scan> scans) {
+  private List<Scan> filterByMinimumSignals(final List<Scan> scans) {
     if (minimumSignals <= 0) {
-      return;
+      return scans;
     }
 
     for (final Scan scan : scans) {
@@ -351,6 +373,7 @@ public class GroupMS2Task extends AbstractTask {
       }
     }
 
-    scans.removeIf(scan -> scan.getMassList().getNumberOfDataPoints() < minimumSignals);
+    return scans.stream()
+        .filter(scan -> scan.getMassList().getNumberOfDataPoints() >= minimumSignals).toList();
   }
 }
