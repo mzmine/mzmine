@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
@@ -35,7 +36,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
 import java.util.Vector;
 import java.util.logging.Logger;
 import jmprojection.CDA;
@@ -240,7 +240,7 @@ public class CDADataset extends AbstractTaskXYDataset implements ProjectionPlotD
     // Generate matrix of raw data (input to CDA)
     boolean useArea =
         parameters.getParameter(ProjectionPlotParameters.featureMeasurementType).getValue()
-            == FeatureMeasurementType.AREA;
+            == AbundanceMeasure.Area;
 
     double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
     for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {

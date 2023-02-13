@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -40,7 +41,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Hashtable;
@@ -53,22 +53,25 @@ import org.jetbrains.annotations.Nullable;
 class LinearNormalizerTask extends AbstractTask {
 
   private final OriginalFeatureListOption handleOriginal;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   static final float maximumOverallFeatureHeightAfterNormalization = 100000.0f;
 
   private final MZmineProject project;
-  private ModularFeatureList originalFeatureList, normalizedFeatureList;
+  private final ModularFeatureList originalFeatureList;
+  private ModularFeatureList normalizedFeatureList;
 
-  private int processedDataFiles, totalDataFiles;
+  private int processedDataFiles;
+  private final int totalDataFiles;
 
-  private String suffix;
-  private NormalizationType normalizationType;
-  private FeatureMeasurementType featureMeasurementType;
-  private ParameterSet parameters;
+  private final String suffix;
+  private final NormalizationType normalizationType;
+  private final AbundanceMeasure abundanceMeasure;
+  private final ParameterSet parameters;
 
-  public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  public LinearNormalizerTask(MZmineProject project, FeatureList featureList,
+      ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate); // no new data stored -> null
 
     this.project = project;
@@ -78,10 +81,10 @@ class LinearNormalizerTask extends AbstractTask {
     totalDataFiles = originalFeatureList.getNumberOfRawDataFiles();
 
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
-    normalizationType =
-        parameters.getParameter(LinearNormalizerParameters.normalizationType).getValue();
-    featureMeasurementType = parameters.getParameter(
-        LinearNormalizerParameters.featureMeasurementType).getValue();
+    normalizationType = parameters.getParameter(LinearNormalizerParameters.normalizationType)
+        .getValue();
+    abundanceMeasure = parameters.getParameter(LinearNormalizerParameters.featureMeasurementType)
+        .getValue();
     handleOriginal = parameters.getParameter(LinearNormalizerParameters.handleOriginal).getValue();
 
   }
@@ -104,12 +107,12 @@ class LinearNormalizerTask extends AbstractTask {
     Hashtable<FeatureListRow, ModularFeatureListRow> rowMap = new Hashtable<>();
 
     // Create new feature list
-    normalizedFeatureList =
-        new ModularFeatureList(originalFeatureList + " " + suffix, getMemoryMapStorage(),
-            originalFeatureList.getRawDataFiles());
+    normalizedFeatureList = new ModularFeatureList(originalFeatureList + " " + suffix,
+        getMemoryMapStorage(), originalFeatureList.getRawDataFiles());
 
-
-    originalFeatureList.getRawDataFiles().forEach(file-> normalizedFeatureList.setSelectedScans(file, originalFeatureList.getSeletedScans(file)));
+    originalFeatureList.getRawDataFiles().forEach(
+        file -> normalizedFeatureList.setSelectedScans(file,
+            originalFeatureList.getSeletedScans(file)));
     // Loop through all raw data files, and find the feature with biggest
     // height
     float maxOriginalHeight = 0f;
@@ -117,8 +120,9 @@ class LinearNormalizerTask extends AbstractTask {
       for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
         Feature p = originalFeatureListRow.getFeature(file);
         if (p != null) {
-          if (maxOriginalHeight <= p.getHeight())
+          if (maxOriginalHeight <= p.getHeight()) {
             maxOriginalHeight = p.getHeight();
+          }
         }
       }
     }
@@ -141,7 +145,7 @@ class LinearNormalizerTask extends AbstractTask {
         for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
           Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
+            if (abundanceMeasure == AbundanceMeasure.Height) {
               intensitySum += p.getHeight();
             } else {
               intensitySum += p.getArea();
@@ -159,7 +163,7 @@ class LinearNormalizerTask extends AbstractTask {
         for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
           Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
+            if (abundanceMeasure == AbundanceMeasure.Height) {
               intensitySum += (p.getHeight() * p.getHeight());
             } else {
               intensitySum += (p.getArea() * p.getArea());
@@ -176,12 +180,14 @@ class LinearNormalizerTask extends AbstractTask {
         for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
           Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
-              if (maximumIntensity < p.getHeight())
+            if (abundanceMeasure == AbundanceMeasure.Height) {
+              if (maximumIntensity < p.getHeight()) {
                 maximumIntensity = p.getHeight();
+              }
             } else {
-              if (maximumIntensity < p.getArea())
+              if (maximumIntensity < p.getArea()) {
                 maximumIntensity = p.getArea();
+              }
             }
 
           }
@@ -217,7 +223,8 @@ class LinearNormalizerTask extends AbstractTask {
         Feature originalFeature = originalFeatureListRow.getFeature(file);
         if (originalFeature != null) {
 
-          ModularFeature normalizedFeature = new ModularFeature(normalizedFeatureList, originalFeature);
+          ModularFeature normalizedFeature = new ModularFeature(normalizedFeatureList,
+              originalFeature);
 
           float normalizedHeight = originalFeature.getHeight() / normalizationFactor;
           float normalizedArea = originalFeature.getArea() / normalizationFactor;
@@ -228,8 +235,8 @@ class LinearNormalizerTask extends AbstractTask {
 
           if (normalizedRow == null) {
 
-            normalizedRow = new ModularFeatureListRow(normalizedFeatureList,
-                    originalFeatureListRow, false);
+            normalizedRow = new ModularFeatureListRow(normalizedFeatureList, originalFeatureListRow,
+                false);
 
             rowMap.put(originalFeatureListRow, normalizedRow);
           }
@@ -248,8 +255,9 @@ class LinearNormalizerTask extends AbstractTask {
     // Finally add all normalized rows to normalized alignment result
     for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
       ModularFeatureListRow normalizedRow = rowMap.get(originalFeatureListRow);
-      if (normalizedRow == null)
+      if (normalizedRow == null) {
         continue;
+      }
       normalizedFeatureList.addRow(normalizedRow);
     }
 
@@ -263,9 +271,9 @@ class LinearNormalizerTask extends AbstractTask {
     }
 
     // Add task description to feature List
-    normalizedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Linear normalization of by " + normalizationType,
-        LinearNormalizerModule.class, parameters, getModuleCallDate()));
+    normalizedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Linear normalization of by " + normalizationType,
+            LinearNormalizerModule.class, parameters, getModuleCallDate()));
 
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);

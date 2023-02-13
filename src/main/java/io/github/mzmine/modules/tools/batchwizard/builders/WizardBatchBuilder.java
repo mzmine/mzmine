@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -97,7 +98,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelec
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Weighting;
@@ -280,8 +280,7 @@ public abstract class WizardBatchBuilder {
     param.setParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER, false);
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY,
-        FeatureMeasurementType.AREA);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FILENAME, fileName);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FILTER,
         FeatureListRowsFilter.MS2_OR_ION_IDENTITY);

@@ -23,21 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.datamodel;
 
-public enum FeatureMeasurementType {
-  // needs to be named Peak for GNPS (for now)
-  HEIGHT("Peak height"), //
-  AREA("Peak area");
-
-  private final String name;
-
-  FeatureMeasurementType(String name) {
-    this.name = name;
-  }
-
-  public String toString() {
-    return this.name;
-  }
-
+/**
+ * Used to define the abundance of features
+ */
+public enum AbundanceMeasure {
+  Height, Area
 }
