@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.RatioType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -36,7 +37,7 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import javolution.io.Struct.Bool;
+import io.github.mzmine.util.FeatureMeasurementType;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
@@ -51,13 +52,14 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "Minimum # of detection in blanks",
       "Specifies in how many of the blank files a peak has to be detected.");
 
-  public static final ComboParameter quantType = new ComboParameter("Quantification qualifier",
-      "Use either the features' height or area for the subtraction", new String[]{"Height", "Area"},
-      "Height");
+  public static final ComboParameter<FeatureMeasurementType> quantType = new ComboParameter<FeatureMeasurementType>(
+      "Quantification qualifier", "Use either the features' height or area for the subtraction",
+      FeatureMeasurementType.values(), FeatureMeasurementType.HEIGHT);
 
-  public static final ComboParameter ratioType = new ComboParameter("Ratio type",
+  public static final ComboParameter<RatioType> ratioType = new ComboParameter<RatioType>(
+      "Ratio type",
       "Use either the maximum or the average blank value for calculating the blank-ratio",
-      new String[]{"Maximum", "Average"}, "Maximum");
+      RatioType.values(), RatioType.MAXIMUM);
 
   public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(
       new PercentParameter("Fold change increase",
@@ -66,26 +68,24 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
               + "the feature list.", 3.0, 1.0, 1E5));
 
   public static final BooleanParameter keepBackgroundFeatures = new BooleanParameter(
-      "Keep features",
-      "When this option is activated, any feature in a sample that is likely a background will still be kept"
-          + "if the same feature is not a background in another samples. This option does not change the generated "
-          + "feature list, but keeps the features in the blank samples and in those where these are similar to the blank ones.",
-      false);
+      "Keep background samples", """
+      When this option is activated, any feature in a sample that is likely a background will still be kept
+      if the same feature is not a background in another samples. This option does not change the generated
+      feature list, but keeps the features in the blank samples and in those where these are similar to the 
+      blank ones.""", false);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "subtracted");
 
   public static final BooleanParameter createDeleted = new BooleanParameter(
-      "Create deleted feature list",
-      "Indicates whether an additional feature list containing all non-used (deleted) features should be saved.");
-
-  public static final StringParameter suffixDeleted = new StringParameter(
-      "Suffix deleted feature list",
-      "The suffix for the feature list containing the not-used features.", "backgroundFeatures");
+      "Create deleted feature list", """
+      Indicates whether an additional feature list containing all non-used (deleted) features should be saved.
+      All features removed by this step will then be saved to a new feature list with the suffix 'background'.""",
+      false);
 
   public FeatureListBlankSubtractionParameters() {
     super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, quantType, ratioType,
-            foldChange, keepBackgroundFeatures, suffix, createDeleted, suffixDeleted},
+            foldChange, keepBackgroundFeatures, suffix, createDeleted},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }
 
