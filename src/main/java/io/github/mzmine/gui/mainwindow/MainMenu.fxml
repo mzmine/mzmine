@@ -107,7 +107,7 @@
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
     <Menu text="Raw data import">
-      <MenuItem onAction="#runModule" text="MS data (advanced)"
+      <MenuItem onAction="#runModule" text="Import MS data"
         userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
         <accelerator>
           <KeyCodeCombination alt="UP" code="I"
