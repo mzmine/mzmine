@@ -51,7 +51,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,16 +63,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TimsTOFImageMsMsTask extends AbstractTask {
 
+  public static final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
   private static final Logger logger = Logger.getLogger(
       TimsTOFMaldiAcquisitionTask.class.getName());
-
-  public static final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
-
   public final FeatureList[] flists;
   public final ParameterSet parameters;
   private final Double maxMobilityWidth;
@@ -84,6 +86,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final int minDistance;
 
   private final double minChimerityScore;
+  private final boolean scheduleOnly;
   private final int[] spotsFeatureCounter;
 
   private final Ms2ImagingMode ms2ImagingMode;
@@ -91,14 +94,16 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final @NotNull MaldiMs2AcqusitionWriter ms2Module;
   private final List<Double> collisionEnergies;
   private final CeSteppingTables ceSteppingTables;
-
+  private final int totalMsMsPerFeature;
+  private final Map<Feature, List<ImagingSpot>> featureSpotMap = new HashMap<>();
+  private final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
   private File currentCeFile = null;
-  private final int totalMsMsPerFeature;
 
   protected TimsTOFImageMsMsTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project) {
+      @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project,
+      boolean scheduleOnly) {
     super(storage, moduleCallDate);
     this.parameters = parameters;
 
@@ -114,6 +119,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     minMsMsIntensity = parameters.getValue(TimsTOFImageMsMsParameters.minimumIntensity);
     minDistance = parameters.getValue(TimsTOFImageMsMsParameters.minimumDistance);
     minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.maximumChimerity);
+    this.scheduleOnly = scheduleOnly;
     isolationWindow = new MZTolerance((isolationWidth / 1.7) / 2,
         0d); // isolation window typically wider than set
     ms2Module = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode).getModule();
@@ -126,6 +132,14 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     spotsFeatureCounter = new int[totalMsMsPerFeature + 1];
 
     ceSteppingTables = new CeSteppingTables(collisionEnergies, isolationWidth);
+  }
+
+  public Map<Feature, List<ImagingSpot>> getFeatureSpotMap() {
+    return featureSpotMap;
+  }
+
+  public Map<ImagingFrame, ImagingSpot> getFrameSpotMap() {
+    return frameSpotMap;
   }
 
   @Override
@@ -161,8 +175,6 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       return;
     }
 
-    final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
-    final Map<Feature, List<ImagingSpot>> featureSpotMap = new HashMap<>();
     List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
     // sort low to high area. First find spots for low intensity features so we definitely fragment
     // those. should be easier to find spots for high area features
@@ -216,6 +228,11 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
               j, (spotsFeatureCounter[j] / (double) rows.size() * 100)));
     }
 
+    if (scheduleOnly) {
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
+
     final File acqFile = new File(savePathDir, "acquisition.txt");
     acqFile.delete();
 
@@ -233,32 +250,11 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     ms2Module.writeAcqusitionFile(acqFile, sortedSpots, ceSteppingTables, ms2ModuleParameters,
         this::isCanceled, savePathDir);
 
-    /*for (int i = 0; i < sortedSpots.size(); i++) {
-      final ImagingSpot spot = sortedSpots.get(i);
-
-      progress = 0.2 + 0.8 * i / sortedSpots.size();
-      if (isCanceled()) {
-        return;
-      }
-
-      final MaldiSpotInfo spotInfo = spot.spotInfo();
-
-      int counter = 1;
-      for (int x = 0; x < 2; x++) {
-        for (int y = 0; y < 2; y++) {
-          if (x == 0 && y == 0 || spot.getPrecursorList(x, y).isEmpty()) {
-            continue;
-          }
-          try {
-            TimsTOFAcquisitionUtils.appendToCommandFile(acqFile, spotInfo.spotName(),
-                spot.getPrecursorList(x, y), null, null, x * laserOffsetX, y * laserOffsetY,
-                counter++, 0, savePathDir, spotInfo.spotName() + "_" + counter, null, false);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      }
-    }*/
+    try {
+      dumpImagingSpotInfos(sortedSpots);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     if (!isCanceled()) {
       TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
@@ -394,5 +390,79 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
     }
     return frames;
+  }
+
+  private void dumpImagingSpotInfos(List<ImagingSpot> spots) throws IOException {
+    desc = "Dumping msms info";
+    progress = 0;
+    double step = 1d / spots.size() * 0.5;
+
+    final StringBuilder spotBuilder = new StringBuilder();
+    spotBuilder.append("spot_name,x_index,y_index,ce,num_precursors,precursor_ids\n");
+    for (ImagingSpot spot : spots) {
+      final MaldiSpotInfo info = spot.spotInfo();
+      spotBuilder.append(info.spotName()).append(",");
+      spotBuilder.append(info.xIndexPos()).append(",");
+      spotBuilder.append(info.yIndexPos()).append(",");
+      spotBuilder.append(spot.getCollisionEnergy()).append(",");
+      final List<MaldiTimsPrecursor> precursorList = spot.getPrecursorList(0, 0);
+      spotBuilder.append(precursorList.size()).append(",");
+      spotBuilder.append("{");
+      spotBuilder.append(precursorList.stream().map(p -> p.feature().getRow().getID().toString())
+          .collect(Collectors.joining(";")));
+      spotBuilder.append("}");
+      spotBuilder.append("\n");
+      progress += step;
+    }
+
+    final List<MaldiTimsPrecursor> precursors = spots.stream()
+        .flatMap(spot -> spot.getPrecursorList(0, 0).stream()).distinct()
+        .sorted(Comparator.comparingDouble(p -> p.feature().getHeight())).toList();
+
+    step = 1d / precursors.size();
+    final StringBuilder precursorBuilder = new StringBuilder();
+    precursorBuilder.append("id,height,area,mz,spots_above_threshold,total_spots,");
+    for (Double ce : collisionEnergies) {
+      precursorBuilder.append("spots_").append(ce).append(",");
+    }
+    precursorBuilder.append("\n");
+    for (MaldiTimsPrecursor precursor : precursors) {
+      precursorBuilder.append(precursor.feature().getRow().getID()).append(",");
+      precursorBuilder.append(precursor.feature().getHeight()).append(",");
+      precursorBuilder.append(precursor.feature().getArea()).append(",");
+      precursorBuilder.append(precursor.mz()).append(",");
+      precursorBuilder.append(getSpotsAboveThreshold(precursor)).append(",");
+      precursorBuilder.append(precursor.getTotalMsMs()).append(",");
+      for (Double ce : collisionEnergies) {
+        precursorBuilder.append(precursor.getMsMsSpotsForCollisionEnergy(ce)).append(",");
+      }
+      precursorBuilder.append("\n");
+      progress += step;
+    }
+
+    final File spotFile = new File("D:\\", "spots.csv");
+    spotFile.createNewFile();
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(spotFile))) {
+      writer.write(spotBuilder.toString());
+    }
+
+    final File precursorFile = new File("D:\\", "precursors.csv");
+    precursorFile.createNewFile();
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(precursorFile))) {
+      writer.write(precursorBuilder.toString());
+    }
+  }
+
+  private int getSpotsAboveThreshold(MaldiTimsPrecursor p) {
+    final IonTimeSeries<? extends Scan> data = p.feature().getFeatureData();
+
+    int counter = 0;
+    for (int i = 0; i < data.getNumberOfValues(); i++) {
+      if (data.getIntensity(i) > minMsMsIntensity) {
+        counter++;
+      }
+    }
+
+    return counter;
   }
 }
