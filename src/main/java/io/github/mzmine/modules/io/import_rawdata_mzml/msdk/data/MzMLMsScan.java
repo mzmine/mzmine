@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.Range;
+import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
@@ -39,7 +40,9 @@ import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgo
 import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +50,8 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
+import javolution.text.CharArray;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 public class MzMLMsScan implements MsScan {
+  //public class MzMLMsScan extends AbstractStorableSpectrum implements MsScan {
 
   private final @NotNull MzMLRawDataFile dataFile;
   private final MzMLCVGroup cvParams;
@@ -75,6 +81,10 @@ public class MzMLMsScan implements MsScan {
   private Range<Double> mzRange;
   private Range<Double> mzScanWindowRange;
   private double[] mzValues;
+
+  private DoubleBuffer mappedMzValues;
+
+  private float[] mappedIntensityValues;
   private float[] intensityValues;
   private @NotNull InputStream inputStream;
 
@@ -252,17 +262,18 @@ public class MzMLMsScan implements MsScan {
                 + getScanNumber() + ")");
       }
 
-      try {
-        mzValues = MzMLPeaksDecoder.decodeToDouble(inputStream, getMzBinaryDataInfo(), array);
-      } catch (Exception e) {
-        throw (new MSDKRuntimeException(e));
-      }
+//      try {
+//        mzValues = MzMLPeaksDecoder.decodeToDouble(inputStream, getMzBinaryDataInfo(), array);
+//
+//      } catch (Exception e) {
+//        throw (new MSDKRuntimeException(e));
+//      }
     }
 
     if (array == null || array.length < getNumberOfDataPoints()) {
       array = new double[getNumberOfDataPoints()];
 
-      System.arraycopy(mzValues, 0, array, 0, numOfDataPoints);
+      System.arraycopy(this.mzValues, 0, array, 0, numOfDataPoints);
     }
 
     return array;
@@ -280,12 +291,12 @@ public class MzMLMsScan implements MsScan {
                 + getScanNumber() + ")");
       }
 
-      try {
-        intensityValues = MzMLPeaksDecoder.decodeToFloat(inputStream, getIntensityBinaryDataInfo(),
-            array);
-      } catch (Exception e) {
-        throw (new MSDKRuntimeException(e));
-      }
+//      try {
+////        intensityValues = MzMLPeaksDecoder.decodeToFloat(inputStream, getIntensityBinaryDataInfo(),
+////            array);
+//      } catch (Exception e) {
+//        throw (new MSDKRuntimeException(e));
+//      }
     }
 
     if (array == null || array.length < numOfDataPoints) {
@@ -295,6 +306,20 @@ public class MzMLMsScan implements MsScan {
     }
 
     return array;
+  }
+
+
+  public void processBinaryValues(CharArray XMLMzContent, MzMLBinaryDataInfo binaryDataInfo)
+      throws MSDKException, IOException, DataFormatException {
+    if (MzMLCV.cvMzArray.equals(binaryDataInfo.getArrayType().getAccession())) {
+      double[] array1 = new double[this.numOfDataPoints];
+      this.mzValues = MzMLPeaksDecoder.decodeToDouble(XMLMzContent, binaryDataInfo, array1);
+    }
+    if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
+      float[] array1 = new float[this.numOfDataPoints];
+      this.intensityValues = MzMLPeaksDecoder.decodeToFloat(XMLMzContent, binaryDataInfo, array1);
+    }
+
   }
 
   /**

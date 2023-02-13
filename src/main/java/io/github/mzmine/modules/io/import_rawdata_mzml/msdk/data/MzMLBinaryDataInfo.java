@@ -41,6 +41,8 @@ public class MzMLBinaryDataInfo {
   private MzMLBitLength bitLength;
   private MzMLArrayType arrayType;
 
+//  private String binaryArray;
+
   /**
    * <p>
    * Constructor for MzMLBinaryDataInfo
@@ -279,4 +281,13 @@ public class MzMLBinaryDataInfo {
   public int getArrayLength() {
     return arrayLength;
   }
+//
+//  public void setBinaryArray(CharArray array) {
+//    this.binaryArray = array.toString();
+//  }
+//
+//  public String getBinaryArray() {
+//    return this.binaryArray;
+//  }
+
 }

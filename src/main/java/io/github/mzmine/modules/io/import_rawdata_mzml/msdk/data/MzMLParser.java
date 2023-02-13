@@ -25,11 +25,12 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.MsScan;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +38,10 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
 import javolution.text.CharArray;
 import javolution.xml.internal.stream.XMLStreamReaderImpl;
+import javolution.xml.stream.XMLStreamException;
 import javolution.xml.stream.XMLStreamReader;
 import org.apache.commons.io.IOUtils;
 
@@ -83,7 +86,8 @@ public class MzMLParser {
    * @param openingTagName  The tag <code>xmlStreamReader</code> entered
    */
   public void processOpeningTag(XMLStreamReaderImpl xmlStreamReader, InputStream is,
-      CharArray openingTagName) {
+      CharArray openingTagName)
+      throws XMLStreamException, IOException, DataFormatException, MSDKException {
     tracker.enter(openingTagName);
 
     if (tracker.current().contentEquals((MzMLTags.TAG_RUN))) {
@@ -208,6 +212,9 @@ public class MzMLParser {
           int bomOffset = xmlStreamReader.getLocation().getBomLength();
           vars.binaryDataInfo.setPosition(
               xmlStreamReader.getLocation().getTotalCharsRead() + bomOffset);
+
+          vars.spectrum.processBinaryValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
+          tracker.exit(tracker.current());
         }
         if (!vars.skipBinaryDataArray) {
           if (MzMLCV.cvMzArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
@@ -306,7 +313,6 @@ public class MzMLParser {
             && vars.chromatogram != null) {
           MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
           vars.chromatogram.getCVParams().addCVParam(cvParam);
-          ;
         }
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
@@ -329,7 +335,6 @@ public class MzMLParser {
           if (MzMLCV.cvRetentionTimeArray.equals(
               vars.binaryDataInfo.getArrayType().getAccession())) {
             vars.chromatogram.setRtBinaryDataInfo(vars.binaryDataInfo);
-            ;
           }
           if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
             vars.chromatogram.setIntensityBinaryDataInfo(vars.binaryDataInfo);
