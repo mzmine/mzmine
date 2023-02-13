@@ -160,9 +160,8 @@ public class BatchWizardTab extends SimpleTab {
     List<WizardStepParameters> filteredWorkflows = ALL_PRESETS.get(WizardPart.WORKFLOW).stream()
         .filter(workflow -> switch (ionization) {
           case HPLC, UHPLC, HILIC, GC_CI, DIRECT_INFUSION, FLOW_INJECT, MALDI, LDI, DESI, SIMS ->
-              !workflow.getFactory().equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION);
-          case GC_EI ->
-              workflow.getFactory().equals(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION);
+              !workflow.getFactory().equals(WorkflowWizardParameterFactory.DECONVOLUTION);
+          case GC_EI -> workflow.getFactory().equals(WorkflowWizardParameterFactory.DECONVOLUTION);
         }).toList();
 
     ComboBox<WizardStepParameters> workflowCombo = combos.get(WizardPart.WORKFLOW);

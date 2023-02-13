@@ -34,8 +34,6 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import java.text.NumberFormat;
@@ -69,24 +67,29 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
       "Upper and lower bounds of retention times to be used for setting the wavelet scales. Choose a range that that simmilar to the range of peak widths expected to be found from the data.",
       MZmineCore.getConfiguration().getRTFormat(), true, true, Range.closed(0.001, 0.1));
 
+  public static final BooleanParameter smoothing = new BooleanParameter("Smoothing",
+      "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
+      false);
 
   public IonInterfaceGcElectronImpactWizardParameters(
       final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
-        cropRtRange, approximateChromatographicFWHM, minNumberOfDataPoints, intraSampleRTTolerance,
-        interSampleRTTolerance, SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION);
+        smoothing, cropRtRange, minNumberOfDataPoints, SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION,
+        // tolerances
+        approximateChromatographicFWHM, intraSampleRTTolerance, interSampleRTTolerance);
   }
 
   public IonInterfaceGcElectronImpactWizardParameters(
-      final IonInterfaceWizardParameterFactory preset, final Range<Double> cropRt,
-      final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
+      final IonInterfaceWizardParameterFactory preset, final boolean smoothingActive,
+      final Range<Double> cropRt, final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
       final RTTolerance interSampleTolerance, final int minDataPoints, final Double snThreshold,
       final Range<Double> rtforCWT) {
 
     this(preset);
 
     // defaults - others override those values
+    setParameter(smoothing, smoothingActive);
     setParameter(cropRtRange, cropRt);
     setParameter(approximateChromatographicFWHM, fwhm);
     setParameter(intraSampleRTTolerance, intraSampleTolerance);
