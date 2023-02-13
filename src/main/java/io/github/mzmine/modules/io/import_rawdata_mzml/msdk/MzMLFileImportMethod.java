@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.zip.DataFormatException;
 import javolution.text.CharArray;
 import javolution.xml.internal.stream.XMLStreamReaderImpl;
 import javolution.xml.stream.XMLStreamConstants;
@@ -272,6 +273,8 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
 
         } while (eventType != XMLStreamConstants.END_DOCUMENT);
 
+      } catch (DataFormatException e) {
+        throw new RuntimeException(e);
       } finally {
         if (xmlStreamReader != null) {
           xmlStreamReader.close();
