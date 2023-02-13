@@ -43,18 +43,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
@@ -93,19 +88,6 @@ public class MassDetectionParameters extends SimpleParameterSet {
       Mobility scans only: Applies mass detection to mobility scans only.
       """, SelectedScanTypes.values(), SelectedScanTypes.SCANS);
 
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("CDF", "*.cdf"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
-
-  public static final FileNameParameter outFilename = new FileNameParameter(
-      "Output netCDF filename (optional)",
-      "If selected, centroided spectra will be written to this file netCDF file. "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
-
-  public static final OptionalParameter<FileNameParameter> outFilenameOption = new OptionalParameter<>(
-      outFilename);
 
   public static final BooleanParameter denormalizeMSnScans = new BooleanParameter(
       "Denormalize fragment scans (traps)", """
@@ -117,8 +99,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, denormalizeMSnScans,
-            outFilenameOption},
+    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, denormalizeMSnScans},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
   }
 
