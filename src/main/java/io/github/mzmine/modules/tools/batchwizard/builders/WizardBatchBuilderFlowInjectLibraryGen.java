@@ -43,7 +43,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderFlowInjectLibraryGen extends WizardBatchBuilder {
+public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuilder {
 
   private final Integer minRtDataPoints;
   private final Boolean exportGnps;

@@ -49,7 +49,7 @@ import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
+public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
   private final Range<Double> cropRtRange;
   private final RTTolerance intraSampleRtTol;

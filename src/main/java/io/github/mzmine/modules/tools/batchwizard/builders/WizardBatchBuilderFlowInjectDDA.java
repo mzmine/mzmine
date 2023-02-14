@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
+public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
 
   private final Integer minRtDataPoints;
   private final Boolean isExportActive;

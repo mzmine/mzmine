@@ -61,7 +61,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
+public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder {
 
   private final Range<Double> cropRtRange;
   private final RTTolerance intraSampleRtTol;
