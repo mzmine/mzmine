@@ -39,7 +39,8 @@ import org.w3c.dom.Element;
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  * @see UserParameter
  */
-public class HiddenParameter<ValueType> implements Parameter<ValueType> {
+public class HiddenParameter<ValueType> implements Parameter<ValueType>,
+    EmbeddedParameter<Parameter<ValueType>> {
 
   private Parameter<ValueType> embeddedParameter;
 
@@ -82,6 +83,7 @@ public class HiddenParameter<ValueType> implements Parameter<ValueType> {
     return new HiddenParameter<>(embeddedParameter.cloneParameter());
   }
 
+  @Override
   public Parameter<ValueType> getEmbeddedParameter() {
     return embeddedParameter;
   }
