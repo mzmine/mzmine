@@ -309,9 +309,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
           a -> new ImagingSpot(a.getMaldiSpotInfo(), ms2ImagingMode, collisionEnergy));
       if (spot.addPrecursor(precursor)) {
         spots.add(spot);
-        logger.finest(
-            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to new spot "
-                + spot.spotInfo().spotName());
+//        logger.finest(
+//            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to new spot "
+//                + spot.spotInfo().spotName());
       }
     }
   }
@@ -343,9 +343,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
       // check if the entry fits into the precursor ramp at that spot
       if (imagingSpot.addPrecursor(precursor)) {
-        logger.finest(
-            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to existing spot "
-                + imagingSpot.spotInfo().spotName());
+//        logger.finest(
+//            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to existing spot "
+//                + imagingSpot.spotInfo().spotName());
         spots.add(imagingSpot);
       }
 
