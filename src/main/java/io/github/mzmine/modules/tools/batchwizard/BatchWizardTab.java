@@ -248,7 +248,7 @@ public class BatchWizardTab extends SimpleTab {
           MessageFormat.format(formatPath, specialSet, parent));
       ImageView view = new ImageView(icon);
       view.setPreserveRatio(true);
-      view.setFitHeight(100);
+      view.setFitHeight(125);
 
       if (MZmineCore.getConfiguration().isDarkMode()) {
         ColorAdjust whiteEffect = new ColorAdjust();
