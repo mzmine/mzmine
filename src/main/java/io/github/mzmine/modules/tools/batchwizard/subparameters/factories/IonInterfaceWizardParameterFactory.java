@@ -71,8 +71,8 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
       case HPLC, UHPLC, HILIC, MALDI, LDI, DESI, SIMS -> super.toString();
       case GC_EI -> "GC-EI";
       case GC_CI -> "GC-CI";
-      case DIRECT_INFUSION -> "DIRECT";
-      case FLOW_INJECT -> "FLOW INJECT";
+      case DIRECT_INFUSION -> "Direct";
+      case FLOW_INJECT -> "Flow inject";
     };
   }
 
