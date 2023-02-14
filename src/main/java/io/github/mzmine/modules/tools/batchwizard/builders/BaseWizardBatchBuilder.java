@@ -50,7 +50,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
@@ -611,7 +610,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .setEmbeddedParameters(libGenMetadata);
 
     q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MsnTreeFeatureDetectionModule.class), param));
+        MZmineCore.getModuleInstance(LibraryBatchGenerationModule.class), param));
 
     // add reimport of library as sanity check
     var importParams = MZmineCore.getConfiguration()
