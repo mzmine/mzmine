@@ -490,8 +490,24 @@ public class SpectraMerging {
     final int msLevel = source.stream().filter(s -> s instanceof Scan)
         .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
 
+    if (msLevel > 1) {
+      // TODO find way to merge MsMsInfo or just use a list of them?
+      var infos = source.stream().map(SpectraMerging::getMsMsInfo).filter(Objects::nonNull)
+          .findFirst().orElse(null);
+      final MsMsInfo copy = infos.createCopy();
+      return new SimpleMergedMsMsSpectrum(storage, mzIntensities[0], mzIntensities[1], copy,
+          msLevel, source, intensityMergingType, centerFunction, mergeType);
+    }
     return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
         source, intensityMergingType, centerFunction, mergeType);
+  }
+
+  public static @Nullable MsMsInfo getMsMsInfo(MassSpectrum spec) {
+    if (spec instanceof Scan scan) {
+      return scan.getMsMsInfo();
+    } else {
+      return null;
+    }
   }
 
   public static Frame getMergedFrame(@Nullable final MemoryMapStorage storage,
