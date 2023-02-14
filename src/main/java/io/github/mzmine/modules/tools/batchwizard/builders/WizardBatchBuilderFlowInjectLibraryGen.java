@@ -31,11 +31,12 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceDirectAndFlowInjectWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
+public class WizardBatchBuilderFlowInjectLibraryGen extends WizardBatchBuilder {
 
   private final Integer minRtDataPoints;
   private final Boolean isExportActive;
@@ -43,7 +44,7 @@ public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
   private final Boolean exportSirius;
   private final File exportPath;
 
-  public WizardBatchBuilderFlowInjectDDA(final WizardSequence steps) {
+  public WizardBatchBuilderFlowInjectLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
     super(steps);
 
@@ -56,7 +57,7 @@ public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
+    exportGnps = getValue(params, WorkflowLibraryGenerationWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
   }
 
@@ -76,6 +77,7 @@ public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
       makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
     } else {
+      // add MS2 grouping if no IMS was selected
       makeAndAddMs2GrouperStep(q, groupMs2Params);
     }
 
@@ -95,6 +97,7 @@ public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
     return q;
   }
+
 
 }
 

@@ -79,6 +79,8 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -93,6 +95,9 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters.MassOptions;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
@@ -103,6 +108,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -117,6 +123,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -156,7 +163,13 @@ public abstract class WizardBatchBuilder {
   // annotation
   protected final File[] libraries;
   //filter
-  protected final Boolean filter13C;
+  protected final boolean filter13C;
+  // IMS parameter currently all the same
+  protected final boolean isImsActive;
+  protected final boolean imsSmoothing;
+  // csv database
+  private final boolean checkLocalCsvDatabase;
+  private MassOptions csvMassOptions;
   protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // MS parameters currently all the same
@@ -167,10 +180,9 @@ public abstract class WizardBatchBuilder {
   protected final MZTolerance mzTolFeaturesIntraSample;
   protected final MZTolerance mzTolInterSample;
   protected final Polarity polarity;
-  // IMS parameter currently all the same
-  protected final Boolean isImsActive;
+  private List<ImportType> csvColumns;
   protected final MobilityType imsInstrumentType;
-  protected final Boolean imsSmoothing;
+  private File csvLibraryFile;
   protected final Double imsFwhm;
   protected final Integer minImsDataPoints;
 
@@ -182,6 +194,16 @@ public abstract class WizardBatchBuilder {
     // annotation
     params = steps.get(WizardPart.ANNOTATION);
     libraries = getValue(params, SpectralLibraryImportParameters.dataBaseFiles);
+
+    var csvOptional = getOptionalParameters(params, AnnotationWizardParameters.localCsvSearch);
+    checkLocalCsvDatabase = csvOptional.active();
+    var csvParams = csvOptional.value();
+    if (checkLocalCsvDatabase) {
+      csvColumns = csvParams.getValue(LocalCSVDatabaseSearchParameters.columns);
+      csvLibraryFile = csvParams.getValue(LocalCSVDatabaseSearchParameters.dataBaseFile);
+      csvMassOptions = csvParams.getValue(
+          AnnotationLocalCSVDatabaseSearchParameters.massOptionsComboParameter);
+    }
 
     // filter
     params = steps.get(WizardPart.FILTER);
@@ -245,6 +267,83 @@ public abstract class WizardBatchBuilder {
           "Currently not implemented workflow " + workflowPreset);
     };
   }
+
+  /**
+   * Create different workflows in {@link BatchQueue}. Workflows are defined in
+   *
+   * @return a batch queue
+   */
+  public abstract BatchQueue createQueue();
+
+  /**
+   * Get parameter if available or else return null. params usually comes from
+   * {@link WizardSequence#get(WizardPart)}
+   *
+   * @param params    an optional parameter class for a part
+   * @param parameter parameter as defined in params class. Usually a static parameter
+   * @return the value of the parameter or null if !params.isPresent
+   */
+  protected <T> T getValue(@NotNull final Optional<? extends WizardStepParameters> params,
+      @NotNull final Parameter<T> parameter) {
+    if (params.isPresent()) {
+      try {
+        return params.get().getValue(parameter);
+      } catch (Exception ex) {
+        logger.log(Level.WARNING,
+            "Error during extraction of value from parameter " + parameter.getName(), ex);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get parameter if available or else null. params usually comes from
+   * {@link WizardSequence#get(WizardPart)}
+   *
+   * @param params    an optional parameter class for a part
+   * @param parameter parameter as defined in params class. Usually a static parameter
+   * @return value and selection state of an OptionalParameter
+   */
+  protected <V, T extends UserParameter<V, ?>> OptionalValue<V> getOptional(
+      @NotNull final Optional<? extends WizardStepParameters> params,
+      @NotNull final OptionalParameter<T> parameter) {
+    if (params.isPresent()) {
+      try {
+        OptionalParameter<T> param = params.get().getParameter(parameter);
+        return new OptionalValue<>(param.getValue(), param.getEmbeddedParameter().getValue());
+      } catch (Exception ex) {
+        logger.log(Level.WARNING,
+            "Error during extraction of value from parameter " + parameter.getName(), ex);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get parameter if available or else null. params usually comes from
+   * {@link WizardSequence#get(WizardPart)}
+   *
+   * @param params    an optional parameter class for a part
+   * @param parameter parameter as defined in params class. Usually a static parameter
+   * @return embedded parameterset and selection state of an OptionalParameter
+   */
+  protected <T extends ParameterSet> OptionalValue<T> getOptionalParameters(
+      @NotNull final Optional<? extends WizardStepParameters> params,
+      @NotNull final OptionalModuleParameter<T> parameter) {
+    if (params.isPresent()) {
+      try {
+        OptionalModuleParameter<T> param = params.get().getParameter(parameter);
+        return new OptionalValue<>(param.getValue(), param.getEmbeddedParameters());
+      } catch (Exception ex) {
+        logger.log(Level.WARNING,
+            "Error during extraction of value from parameter " + parameter.getName(), ex);
+      }
+    }
+    return null;
+  }
+
+  // #################################################################################
+  // create various steps
 
   protected static void makeAndAddDuplicateRowFilterStep(final BatchQueue q,
       final OriginalFeatureListOption handleOriginalFeatureLists,
@@ -443,6 +542,13 @@ public abstract class WizardBatchBuilder {
     // ion library
     var ionLibraryParam = param.getParameter(IonNetworkingParameters.LIBRARY)
         .getEmbeddedParameters();
+    createAndSetIonLibrary(ionLibraryParam);
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
+        param));
+  }
+
+  private void createAndSetIonLibrary(final IonLibraryParameterSet ionLibraryParam) {
     ionLibraryParam.setParameter(IonLibraryParameterSet.POSITIVE_MODE,
         polarity == Polarity.Positive ? "POSITIVE" : "NEGATIVE");
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
@@ -459,9 +565,6 @@ public abstract class WizardBatchBuilder {
         IonModification.H2O_2};
     ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
         new IonModification[][]{adducts, modifications});
-
-    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
-        param));
   }
 
 
@@ -517,57 +620,6 @@ public abstract class WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SiriusExportModule.class),
         param));
-  }
-
-  /**
-   * Create different workflows in {@link BatchQueue}. Workflows are defined in
-   *
-   * @return a batch queue
-   */
-  public abstract BatchQueue createQueue();
-
-  /**
-   * Get parameter if available or else return null. params usually comes from
-   * {@link WizardSequence#get(WizardPart)}
-   *
-   * @param params    an optional parameter class for a part
-   * @param parameter parameter as defined in params class. Usually a static parameter
-   * @return the value of the parameter or null if !params.isPresent
-   */
-  protected <T> T getValue(@NotNull final Optional<? extends WizardStepParameters> params,
-      @NotNull final Parameter<T> parameter) {
-    if (params.isPresent()) {
-      try {
-        return params.get().getValue(parameter);
-      } catch (Exception ex) {
-        logger.log(Level.WARNING,
-            "Error during extraction of value from parameter " + parameter.getName(), ex);
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Get parameter if available or else null. params usually comes from
-   * {@link WizardSequence#get(WizardPart)}
-   *
-   * @param params    an optional parameter class for a part
-   * @param parameter parameter as defined in params class. Usually a static parameter
-   * @return value and selection state of an OptionalParameter
-   */
-  protected <V, T extends UserParameter<V, ?>> OptionalValue<V> getOptional(
-      @NotNull final Optional<? extends WizardStepParameters> params,
-      @NotNull final OptionalParameter<T> parameter) {
-    if (params.isPresent()) {
-      try {
-        OptionalParameter<T> param = params.get().getParameter(parameter);
-        return new OptionalValue<>(param.getValue(), param.getEmbeddedParameter().getValue());
-      } catch (Exception ex) {
-        logger.log(Level.WARNING,
-            "Error during extraction of value from parameter " + parameter.getName(), ex);
-      }
-    }
-    return null;
   }
 
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
@@ -931,6 +983,42 @@ public abstract class WizardBatchBuilder {
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralLibrarySearchModule.class), param);
+    q.add(step);
+  }
+
+
+  protected void makeAndAddLocalCsvDatabaseSearchStep(final BatchQueue q,
+      final @Nullable RTTolerance rtTol, final @NotNull String fileHeaderFilter) {
+    if (!checkLocalCsvDatabase) {
+      return;
+    }
+
+    var param = MZmineCore.getConfiguration()
+        .getModuleParameters(LocalCSVDatabaseSearchModule.class);
+
+    param.setParameter(LocalCSVDatabaseSearchParameters.peakLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(LocalCSVDatabaseSearchParameters.dataBaseFile, csvLibraryFile);
+    param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator,
+        csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\t");
+    param.setParameter(LocalCSVDatabaseSearchParameters.columns, csvColumns);
+    param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance, mzTolInterSample);
+    param.setParameter(LocalCSVDatabaseSearchParameters.rtTolerance,
+        Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
+    param.setParameter(LocalCSVDatabaseSearchParameters.mobTolerance, new MobilityTolerance(0.01f));
+    param.setParameter(LocalCSVDatabaseSearchParameters.ccsTolerance, 0.05);
+    param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples, !fileHeaderFilter.isBlank(),
+        fileHeaderFilter.trim());
+    param.setParameter(LocalCSVDatabaseSearchParameters.commentFields, "");
+    // define ions
+    var ionLibParams = param.getParameter(LocalCSVDatabaseSearchParameters.ionLibrary)
+        .getEmbeddedParameters();
+    createAndSetIonLibrary(ionLibParams);
+    param.setParameter(LocalCSVDatabaseSearchParameters.ionLibrary,
+        csvMassOptions == MassOptions.MASS_AND_IONS);
+
+    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(LocalCSVDatabaseSearchModule.class), param);
     q.add(step);
   }
 

@@ -25,17 +25,34 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 
-public sealed class WorkflowWizardParameters extends WizardStepParameters permits
-    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters,
-    WorkflowLibraryGenerationWizardParameters {
+/**
+ * Reduced set of parameter for {@link LocalCSVDatabaseSearchParameters} used in the wizard
+ */
+public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
-  public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
-      final Parameter<?>... parameters) {
-    super(WizardPart.WORKFLOW, preset, parameters);
+  public static ComboParameter<MassOptions> massOptionsComboParameter = new ComboParameter<>(
+      "Use precursor m/z",
+      "Either use the precursor m/z from the database, or calculate various ions from the neutral mass",
+      MassOptions.values(), MassOptions.MASS_AND_IONS);
+
+  public AnnotationLocalCSVDatabaseSearchParameters() {
+    super(LocalCSVDatabaseSearchParameters.dataBaseFile, massOptionsComboParameter,
+        LocalCSVDatabaseSearchParameters.columns);
   }
 
+  public enum MassOptions {
+    PRECURSOR_MZ, MASS_AND_IONS;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case MASS_AND_IONS -> "as calculated from neutral mass + ions";
+        case PRECURSOR_MZ -> "as listed in database";
+      };
+    }
+  }
 }
