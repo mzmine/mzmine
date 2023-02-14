@@ -130,4 +130,36 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
       case GC_EI -> IonIterfaceGroup.CHROMATOGRAPHY_HARD;
     };
   }
+
+  /**
+   * Not all combinations work.
+   *
+   * @return supported combinations
+   */
+  public IonMobilityWizardParameterFactory[] getMatchingImsPresets() {
+    return switch (this) {
+      case DIRECT_INFUSION, FLOW_INJECT, HPLC, UHPLC, HILIC, GC_CI, MALDI, LDI, DESI, SIMS ->
+          IonMobilityWizardParameterFactory.values();
+      case GC_EI ->
+          new IonMobilityWizardParameterFactory[]{IonMobilityWizardParameterFactory.NO_IMS};
+    };
+  }
+
+  /**
+   * Not all combinations work.
+   *
+   * @return supported combinations
+   */
+  public WorkflowWizardParameterFactory[] getMatchingWorkflowPresets() {
+    return switch (this) {
+      case DIRECT_INFUSION, FLOW_INJECT, HPLC, UHPLC, HILIC, GC_CI ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
+              WorkflowWizardParameterFactory.LIBRARY_GENERATION,
+              WorkflowWizardParameterFactory.MS1_ONLY};
+      case GC_EI ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
+      case MALDI, LDI, DESI, SIMS ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING};
+    };
+  }
 }

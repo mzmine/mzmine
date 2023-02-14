@@ -39,7 +39,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -153,50 +154,60 @@ public class BatchWizardTab extends SimpleTab {
     tabPane.getSelectionModel().select(selectedIndex);
   }
 
+  /**
+   * {@link WizardPart#ION_INTERFACE} limits {@link WizardPart#IMS}
+   * <p>
+   * {@link WizardPart#ION_INTERFACE} limits {@link WizardPart#WORKFLOW}
+   * <p>
+   * {@link WizardPart#IMS} limits {@link WizardPart#MS}
+   */
   private void evaluateWorkflowLimitChoices() {
     var ionization = workflowSteps.get(WizardPart.ION_INTERFACE)
         .map(step -> (IonInterfaceWizardParameterFactory) step.getFactory())
         .orElse(IonInterfaceWizardParameterFactory.HPLC);
 
-    List<WizardStepParameters> filteredWorkflows = ALL_PRESETS.get(WizardPart.WORKFLOW).stream()
-        .filter(workflow -> switch (ionization) {
-          case HPLC, UHPLC, HILIC, GC_CI, DIRECT_INFUSION, FLOW_INJECT, MALDI, LDI, DESI, SIMS ->
-              !workflow.getFactory().equals(WorkflowWizardParameterFactory.DECONVOLUTION);
-          case GC_EI -> workflow.getFactory().equals(WorkflowWizardParameterFactory.DECONVOLUTION);
-        }).toList();
-
-    ComboBox<WizardStepParameters> workflowCombo = combos.get(WizardPart.WORKFLOW);
-    ObservableList<WizardStepParameters> currentWorkflows = workflowCombo.getItems();
-    if (!currentWorkflows.equals(filteredWorkflows)) {
-      // need to set new selection to workflow
-      workflowSteps.set(WizardPart.WORKFLOW,
-          setItemsToCombo(workflowCombo, filteredWorkflows, false));
-    }
+    // apply filters
+    filterComboBox(WizardPart.IMS, ionization.getMatchingImsPresets());
+    filterComboBox(WizardPart.WORKFLOW, ionization.getMatchingWorkflowPresets());
 
     // check timsTOF and TWIMS TOF only
     var ims = workflowSteps.get(WizardPart.IMS)
         .map(step -> (IonMobilityWizardParameterFactory) step.getFactory())
         .orElse(IonMobilityWizardParameterFactory.NO_IMS);
 
-    ComboBox<WizardStepParameters> msCombo = combos.get(WizardPart.MS);
-    ObservableList<WizardStepParameters> currentMs = msCombo.getItems();
-    List<WizardStepParameters> filteredMs = ALL_PRESETS.get(WizardPart.MS).stream()
-        .filter(ms -> switch (ims) {
-          case TIMS, TWIMS -> ms.getFactory().equals(MassSpectrometerWizardParameterFactory.QTOF);
-          case NO_IMS, IMS, DTIMS -> true;
-        }).toList();
+    filterComboBox(WizardPart.MS, ims.getMatchingMassSpectrometerPresets());
+  }
 
-    if (!currentMs.equals(filteredMs)) {
-      WizardStepParameters selectedMs = setItemsToCombo(msCombo, filteredMs, false);
+  /**
+   * Filter combobox and set new selection
+   *
+   * @param part              the part
+   * @param filteredFactories the filtered list of presets
+   */
+  private void filterComboBox(final WizardPart part, WizardParameterFactory[] filteredFactories) {
+    var filterSet = Set.of(filteredFactories);
+
+    List<WizardStepParameters> filteredPresets = ALL_PRESETS.get(part).stream()
+        .filter(workflow -> filterSet.contains(workflow.getFactory())).toList();
+
+    ComboBox<WizardStepParameters> combo = combos.get(part);
+    ObservableList<WizardStepParameters> currentPresets = combo.getItems();
+    if (!currentPresets.equals(filteredPresets)) {
       // need to set new selection to workflow
-      workflowSteps.set(WizardPart.MS, selectedMs);
+      var selected = setItemsToCombo(combo, filteredPresets, false);
+      workflowSteps.set(part, selected);
 
-      // reduce the parameters for timsTOF to something meaningful
-      // only if the MS parameter for tof are unchanged (if user already selected other inputs, keep
-      MassSpectrometerWizardParameters msParamsForIms = MassSpectrometerWizardParameterFactory.createForIms(
-          ims);
-      if (msParamsForIms != null && selectedMs.hasDefaultParameters()) {
-        ParameterUtils.copyParameters(msParamsForIms, selectedMs);
+      if (part == WizardPart.MS) {
+        var ims = workflowSteps.get(WizardPart.IMS)
+            .map(step -> (IonMobilityWizardParameterFactory) step.getFactory())
+            .orElse(IonMobilityWizardParameterFactory.NO_IMS);
+        // reduce the parameters for timsTOF to something meaningful
+        // only if the MS parameter for tof are unchanged (if user already selected other inputs, keep
+        MassSpectrometerWizardParameters msParamsForIms = MassSpectrometerWizardParameterFactory.createForIms(
+            ims);
+        if (msParamsForIms != null && selected.hasDefaultParameters()) {
+          ParameterUtils.copyParameters(msParamsForIms, selected);
+        }
       }
     }
   }

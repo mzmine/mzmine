@@ -71,4 +71,18 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
   public String getUniqueId() {
     return name();
   }
+
+
+  /**
+   * Not all combinations work.
+   *
+   * @return supported combinations
+   */
+  public MassSpectrometerWizardParameterFactory[] getMatchingMassSpectrometerPresets() {
+    return switch (this) {
+      case TIMS, TWIMS ->
+          new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF};
+      case NO_IMS, IMS, DTIMS -> MassSpectrometerWizardParameterFactory.values();
+    };
+  }
 }
