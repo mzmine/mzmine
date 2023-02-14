@@ -92,7 +92,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends WizardBatchBuilder {
 
     // annotation
     makeAndAddLibrarySearchStep(q);
-    makeAndAddLocalCsvDatabaseSearchStep(q, null, "");
+    makeAndAddLocalCsvDatabaseSearchStep(q, null);
 
     // library generation, reload library
     makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);

@@ -28,6 +28,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 
 /**
  * Reduced set of parameter for {@link LocalCSVDatabaseSearchParameters} used in the wizard
@@ -39,9 +41,15 @@ public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterS
       "Either use the precursor m/z from the database, or calculate various ions from the neutral mass",
       MassOptions.values(), MassOptions.MASS_AND_IONS);
 
+
+  public static final OptionalParameter<StringParameter> filterSamplesColumn = new OptionalParameter<>(
+      new StringParameter("Filename column (library generation)",
+          "Column header to filter matches to only occur in the given sample. Sample name needs to contain the value of this column. Used for library generation workflows.",
+          "filename"), false);
+
   public AnnotationLocalCSVDatabaseSearchParameters() {
     super(LocalCSVDatabaseSearchParameters.dataBaseFile, massOptionsComboParameter,
-        LocalCSVDatabaseSearchParameters.columns);
+        filterSamplesColumn, LocalCSVDatabaseSearchParameters.columns);
   }
 
   public enum MassOptions {

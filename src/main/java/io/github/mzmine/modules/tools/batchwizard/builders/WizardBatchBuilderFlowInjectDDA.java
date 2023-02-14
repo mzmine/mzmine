@@ -90,7 +90,7 @@ public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
 
     // annotation
     makeAndAddLibrarySearchStep(q);
-    makeAndAddLocalCsvDatabaseSearchStep(q, null, "");
+    makeAndAddLocalCsvDatabaseSearchStep(q, null);
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
     return q;

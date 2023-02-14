@@ -123,7 +123,7 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
 
     // annotation
     makeAndAddLibrarySearchStep(q);
-    makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol, "");
+    makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
     return q;

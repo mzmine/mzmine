@@ -183,6 +183,7 @@ public abstract class WizardBatchBuilder {
   protected final boolean imsSmoothing;
   // csv database
   private final boolean checkLocalCsvDatabase;
+  private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
   protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
@@ -218,6 +219,8 @@ public abstract class WizardBatchBuilder {
       csvLibraryFile = csvParams.getValue(LocalCSVDatabaseSearchParameters.dataBaseFile);
       csvMassOptions = csvParams.getValue(
           AnnotationLocalCSVDatabaseSearchParameters.massOptionsComboParameter);
+      csvFilterSamplesColumn = csvParams.getEmbeddedParameterValueIfSelectedOrElse(
+          AnnotationLocalCSVDatabaseSearchParameters.filterSamplesColumn, "");
     }
 
     // filter
@@ -1075,7 +1078,7 @@ public abstract class WizardBatchBuilder {
 
 
   protected void makeAndAddLocalCsvDatabaseSearchStep(final BatchQueue q,
-      final @Nullable RTTolerance rtTol, final @NotNull String fileHeaderFilter) {
+      final @Nullable RTTolerance rtTol) {
     if (!checkLocalCsvDatabase) {
       return;
     }
@@ -1094,8 +1097,8 @@ public abstract class WizardBatchBuilder {
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
     param.setParameter(LocalCSVDatabaseSearchParameters.mobTolerance, new MobilityTolerance(0.01f));
     param.setParameter(LocalCSVDatabaseSearchParameters.ccsTolerance, 0.05);
-    param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples, !fileHeaderFilter.isBlank(),
-        fileHeaderFilter.trim());
+    param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples,
+        !csvFilterSamplesColumn.isBlank(), csvFilterSamplesColumn.trim());
     param.setParameter(LocalCSVDatabaseSearchParameters.commentFields, "");
     // define ions
     var ionLibParams = param.getParameter(LocalCSVDatabaseSearchParameters.ionLibrary)
