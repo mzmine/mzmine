@@ -182,16 +182,4 @@ public class WizardSequence extends AbstractList<WizardStepParameters> {
         .orElse(false);
   }
 
-  /**
-   * @return true if RT resolving is active
-   */
-  public boolean isRtResolvingActive() {
-    return get(WizardPart.ION_INTERFACE).map(preset -> {
-      var ionInterface = IonInterfaceWizardParameterFactory.valueOf(preset.getUniquePresetId());
-      return switch (ionInterface) {
-        case HPLC, UHPLC, HILIC, GC_CI, GC_EI -> true;
-        case MALDI, LDI, DESI, SIMS, DIRECT_INFUSION, FLOW_INJECT -> false;
-      };
-    }).orElse(false);
-  }
 }

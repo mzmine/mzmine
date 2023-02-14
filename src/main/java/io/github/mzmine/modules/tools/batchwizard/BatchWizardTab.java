@@ -136,7 +136,6 @@ public class BatchWizardTab extends SimpleTab {
    * Called once any part in the workflow changes the preset, e.g., HPLC - GC-EI
    */
   private synchronized void createParameterPanes() {
-    updateAllParametersFromUi();
     schemaPane.getChildren().clear();
     paramPaneMap.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
@@ -317,6 +316,8 @@ public class BatchWizardTab extends SimpleTab {
           .addListener((observable, oldValue, newValue) -> {
             if (listenersActive) {
               workflowSteps.set(part, newValue);
+              // keep old parameters before changing pane
+              updateAllParametersFromUi();
               createParameterPanes();
             }
           });
@@ -345,7 +346,7 @@ public class BatchWizardTab extends SimpleTab {
    * Find local preset files and add to the drop-down
    */
   private void findAllLocalPresetFiles() {
-    var newLocalPresets = WizardWorkflowIOUtils.findAllLocalPresetFiles(ALL_PRESETS);
+    var newLocalPresets = WizardWorkflowIOUtils.findAllLocalPresetFiles();
 
     localPresets.clear();
     for (final LocalWizardWorkflowFile preset : newLocalPresets) {
@@ -364,17 +365,29 @@ public class BatchWizardTab extends SimpleTab {
     if (partialWorkflow == null) {
       return;
     }
-    appendPresetsToUi(partialWorkflow.parts());
+    applyPartialWorkflow(partialWorkflow.parts());
   }
 
   /**
    * @param partialWorkflow might contain some or all steps of the workflow
    */
-  private void appendPresetsToUi(final WizardSequence partialWorkflow) {
+  private void applyPartialWorkflow(final WizardSequence partialWorkflow) {
     setListenersActive(false);
 
+    // partialWorkflow might contain other instances of the presets (after loading)
+    // need to apply all parameter changes to ALL_PRESETS
+    WizardSequence correctPartialWorkflow = new WizardSequence();
+    for (final WizardStepParameters otherPreset : partialWorkflow) {
+      ALL_PRESETS.get(otherPreset.getPart()).stream()
+          .filter(allPreset -> allPreset.getFactory().equals(otherPreset.getFactory()))
+          .forEach(allPreset -> {
+            ParameterUtils.copyParameters(otherPreset, allPreset);
+            correctPartialWorkflow.add(allPreset);
+          });
+    }
+
     // keep current as default parameters
-    workflowSteps.apply(partialWorkflow);
+    workflowSteps.apply(correctPartialWorkflow);
 
     for (var preset : workflowSteps) {
       ComboBox<WizardStepParameters> combo = combos.get(preset.getPart());
@@ -394,9 +407,9 @@ public class BatchWizardTab extends SimpleTab {
     // update all parameters to use them as a default for each step
     updateAllParametersFromUi();
     // only load those steps that were defined in the local preset file
-    WizardSequence wizardPresets = WizardWorkflowIOUtils.chooseAndLoadFile(ALL_PRESETS);
+    WizardSequence wizardPresets = WizardWorkflowIOUtils.chooseAndLoadFile();
     if (!wizardPresets.isEmpty()) {
-      appendPresetsToUi(wizardPresets);
+      applyPartialWorkflow(wizardPresets);
     }
   }
 
