@@ -26,8 +26,11 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
@@ -39,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.io.File;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -87,11 +91,32 @@ public abstract class WizardBatchBuilder {
       // only used for GC EI
       case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
       case IMAGING -> new WizardBatchBuilderImagingDda(steps);
-      case LIBRARY_GENERATION -> switch (ionInterface.group()) {
-        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDDA(steps);
-        case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectLibraryGen(steps);
-        case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING -> throw unsupportedException;
-      };
+      case LIBRARY_GENERATION -> {
+        // requires annotation!
+        var annotation = steps.get(WizardPart.ANNOTATION);
+        var params = getOptionalParameters(annotation, AnnotationWizardParameters.localCsvSearch);
+        boolean useAnnotation = params.active();
+        boolean sampleFilterValid = !params.value().getEmbeddedParameterValueIfSelectedOrElse(
+            AnnotationLocalCSVDatabaseSearchParameters.filterSamplesColumn, "").isBlank();
+        File file = params.value().getValue(LocalCSVDatabaseSearchParameters.dataBaseFile);
+        if (sampleFilterValid) {
+          logger.warning(
+              "Tt is recommended to specify a column to filter annotations for specific samples that contain the compound.");
+        }
+        if (!useAnnotation || file == null || file.toString().isBlank()) {
+          throw new IllegalArgumentException("""
+              Configure local CSV database annotation!
+              The library generation workflow requires the local CSV database search active under \
+              Annotation, a valid file, and it is recommended to specify a column to filter annotations \
+              for specific samples that contain the compound.""");
+        }
+
+        yield switch (ionInterface.group()) {
+          case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDDA(steps);
+          case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectLibraryGen(steps);
+          case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING -> throw unsupportedException;
+        };
+      }
       case MS1_ONLY -> throw new UnsupportedOperationException(
           "Currently not implemented workflow " + workflowPreset);
     };
@@ -112,7 +137,7 @@ public abstract class WizardBatchBuilder {
    * @param parameter parameter as defined in params class. Usually a static parameter
    * @return the value of the parameter or null if !params.isPresent
    */
-  protected <T> T getValue(@NotNull final Optional<? extends WizardStepParameters> params,
+  public static <T> T getValue(@NotNull final Optional<? extends WizardStepParameters> params,
       @NotNull final Parameter<T> parameter) {
     if (params.isPresent()) {
       try {
@@ -133,7 +158,7 @@ public abstract class WizardBatchBuilder {
    * @param parameter parameter as defined in params class. Usually a static parameter
    * @return value and selection state of an OptionalParameter
    */
-  protected <V, T extends UserParameter<V, ?>> OptionalValue<V> getOptional(
+  public static <V, T extends UserParameter<V, ?>> OptionalValue<V> getOptional(
       @NotNull final Optional<? extends WizardStepParameters> params,
       @NotNull final OptionalParameter<T> parameter) {
     if (params.isPresent()) {
@@ -156,7 +181,7 @@ public abstract class WizardBatchBuilder {
    * @param parameter parameter as defined in params class. Usually a static parameter
    * @return embedded parameterset and selection state of an OptionalParameter
    */
-  protected <T extends ParameterSet> OptionalValue<T> getOptionalParameters(
+  public static <T extends ParameterSet> OptionalValue<T> getOptionalParameters(
       @NotNull final Optional<? extends WizardStepParameters> params,
       @NotNull final EmbeddedParameterSet<T, ?> parameter) {
     if (params.isPresent()) {

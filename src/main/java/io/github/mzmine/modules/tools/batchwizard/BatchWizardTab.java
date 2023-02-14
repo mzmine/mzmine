@@ -43,6 +43,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.io.File;
@@ -408,12 +409,16 @@ public class BatchWizardTab extends SimpleTab {
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
-    final BatchQueue q = WizardBatchBuilder.createBatchBuilderForWorkflow(workflowSteps)
-        .createQueue();
-    batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
+    try {
+      final BatchQueue q = WizardBatchBuilder.createBatchBuilderForWorkflow(workflowSteps)
+          .createQueue();
+      batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
-    if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
-      MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
+      if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
+        MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
+      }
+    } catch (Exception e) {
+      DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
     }
   }
 
