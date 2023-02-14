@@ -25,44 +25,41 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.FeatureMeasurementType;
 
 public class LogratioParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
-  public static final MultiChoiceParameter<RawDataFile> groupOneFiles =
-      new MultiChoiceParameter<RawDataFile>("Group one", "Samples in group one", new RawDataFile[0],
-          null, 1);
+  public static final MultiChoiceParameter<RawDataFile> groupOneFiles = new MultiChoiceParameter<RawDataFile>(
+      "Group one", "Samples in group one", new RawDataFile[0], null, 1);
 
-  public static final MultiChoiceParameter<RawDataFile> groupTwoFiles =
-      new MultiChoiceParameter<RawDataFile>("Group two", "Samples in group two", new RawDataFile[0],
-          null, 1);
+  public static final MultiChoiceParameter<RawDataFile> groupTwoFiles = new MultiChoiceParameter<RawDataFile>(
+      "Group two", "Samples in group two", new RawDataFile[0], null, 1);
 
-  public static final ComboParameter<FeatureMeasurementType> measurementType =
-      new ComboParameter<FeatureMeasurementType>("Peak measurement type",
-          "Determines whether peak's area or height is used in computations.",
-          FeatureMeasurementType.values());
+  public static final ComboParameter<AbundanceMeasure> measurementType = new ComboParameter<AbundanceMeasure>(
+      "Peak measurement type", "Determines whether peak's area or height is used in computations.",
+      AbundanceMeasure.values());
 
   public LogratioParameters() {
-    super(new Parameter[] {featureLists, groupOneFiles, groupTwoFiles, measurementType});
+    super(featureLists, groupOneFiles, groupTwoFiles, measurementType);
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     FeatureListsSelection featureListSel = getParameter(featureLists).getValue();
-    FeatureList selectedFeatureLists[] = featureListSel.getMatchingFeatureLists();
-    RawDataFile plDataFiles[] = selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
+    FeatureList[] selectedFeatureLists = featureListSel.getMatchingFeatureLists();
+    RawDataFile[] plDataFiles = selectedFeatureLists[0].getRawDataFiles()
+        .toArray(RawDataFile[]::new);
 
     getParameter(groupOneFiles).setChoices(plDataFiles);
     getParameter(groupTwoFiles).setChoices(plDataFiles);

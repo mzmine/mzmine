@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_all;
 
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -37,10 +36,10 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
       "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.raw", "*.RAW", "*.mzData",
-      "*.mzdata", "*.aird");
+      "*.netcdf", "*.mzdata", "*.aird");
 
   public static final List<ExtensionFilter> extensions = List.of( //
-      ALL_MS_DATA_FILTER, new ExtensionFilter("mzML MS data", "*.mzML", "*.mzml"), //
+      new ExtensionFilter("mzML MS data", "*.mzML", "*.mzml"), //
       new ExtensionFilter("mzXML MS data", "*.mzXML", "*.mzxml"), //
       new ExtensionFilter("imzML MS imaging data", "*.imzML", "*.imzml"), //
       new ExtensionFilter("Bruker tdf files", "*.d"), //
@@ -48,6 +47,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       new ExtensionFilter("Waters RAW folders", "*.raw", "*.RAW"), //
       new ExtensionFilter("mzData MS data", "*.mzData", "*.mzdata"),
       new ExtensionFilter("aird MS data", "*.aird", "*.Aird", "*.AIRD"), //
+      new ExtensionFilter("netCDF", "*.cdf", "*.CDF", "*.netcdf", "*.NETCDF", "*.nc", "*.NC"), //
       new ExtensionFilter("zip", "*.zip", "*.gz"), //
       new ExtensionFilter("All files", "*.*") //
   );
@@ -67,10 +67,10 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       new AdvancedSpectraImportParameters(), true);
 
   public AllSpectralDataImportParameters() {
-    super(new Parameter[]{fileNames, //
+    super(fileNames, //
         advancedImport, // directly process masslists
         // allow import of spectral libraries
-        SpectralLibraryImportParameters.dataBaseFiles});
+        SpectralLibraryImportParameters.dataBaseFiles);
   }
 
 }

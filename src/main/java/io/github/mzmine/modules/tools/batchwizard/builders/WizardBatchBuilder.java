@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -53,8 +54,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.S
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.FeatureLimitOptions;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
@@ -98,7 +97,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Weighting;
@@ -200,7 +199,8 @@ public abstract class WizardBatchBuilder {
     return switch (workflowPreset) {
       case DDA -> steps.isImaging() ? new WizardBatchBuilderImaging(steps)
           : new WizardBatchBuilderLcDDA(steps);
-      case GC_EI_DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
+      case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
+      case IMAGING -> new WizardBatchBuilderImagingDda(steps);
       case LIBRARY_GENERATION, MS1_ONLY -> throw new UnsupportedOperationException(
           "Currently not implemented workflow " + workflowPreset);
     };
@@ -208,7 +208,8 @@ public abstract class WizardBatchBuilder {
 
   protected static void makeAndAddDuplicateRowFilterStep(final BatchQueue q,
       final OriginalFeatureListOption handleOriginalFeatureLists,
-      final MZTolerance mzTolFeaturesIntraSample, final RTTolerance rtFwhm) {
+      final MZTolerance mzTolFeaturesIntraSample, final RTTolerance rtFwhm,
+      final MobilityType mobilityType) {
     // reduced rt tolerance - after gap filling the rt difference should be very small
     RTTolerance rtTol = new RTTolerance(rtFwhm.getTolerance() * 0.7f, rtFwhm.getUnit());
 
@@ -223,6 +224,9 @@ public abstract class WizardBatchBuilder {
     // going back into scans so rather use scan mz tol
     param.setParameter(DuplicateFilterParameters.mzDifferenceMax, mzTol);
     param.setParameter(DuplicateFilterParameters.rtDifferenceMax, rtTol);
+    param.setParameter(DuplicateFilterParameters.mobilityDifferenceMax,
+        mobilityType != MobilityType.NONE,
+        new MobilityTolerance(mobilityType == MobilityType.TIMS ? 0.008f : 1f));
     param.setParameter(DuplicateFilterParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(DuplicateFilterParameters.suffix, "dup");
     param.setParameter(DuplicateFilterParameters.requireSameIdentification, false);
@@ -277,8 +281,7 @@ public abstract class WizardBatchBuilder {
     param.setParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER, false);
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY,
-        FeatureMeasurementType.AREA);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FILENAME, fileName);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FILTER,
         FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
@@ -447,6 +450,13 @@ public abstract class WizardBatchBuilder {
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
   }
 
+  protected void makeAndAddMassDetectionStepForAllScans(final BatchQueue q) {
+    makeAndAddMassDetectionStep(q, 0, SelectedScanTypes.SCANS);
+  }
+
+  /**
+   * @param msLevel use 0 to apply without MS level filter
+   */
   protected void makeAndAddMassDetectionStep(final BatchQueue q, int msLevel,
       SelectedScanTypes scanTypes) {
 
@@ -479,7 +489,9 @@ public abstract class WizardBatchBuilder {
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();
     param.setParameter(MassDetectionParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
-    param.setParameter(MassDetectionParameters.scanSelection, new ScanSelection(msLevel));
+    // if MS level 0 then apply to all scans
+    param.setParameter(MassDetectionParameters.scanSelection,
+        new ScanSelection(msLevel < 1 ? null : msLevel));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
@@ -561,7 +573,13 @@ public abstract class WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddMobilityResolvingStep(final BatchQueue q) {
+
+  /**
+   * @param groupMs2Params this might be the same parameterset used for retention time resolving.
+   *                       Will be cloned
+   */
+  protected void makeAndAddMobilityResolvingStep(final BatchQueue q,
+      @Nullable GroupMS2SubParameters groupMs2Params) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
@@ -570,22 +588,12 @@ public abstract class WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
         handleOriginalFeatureLists);
 
-    param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    GroupMS2SubParameters groupMs2Params = param.getParameter(
-        MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
-    groupMs2Params.setParameter(GroupMS2Parameters.mzTol, mzTolScans);
-    groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
-    groupMs2Params.setParameter(GroupMS2Parameters.rtFilter, FeatureLimitOptions.USE_FEATURE_EDGES);
-    groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, true);
-    groupMs2Params.getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
-        .setValue(noiseLevelMsn * 2);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, true);
-    groupMs2Params.getParameter(GroupMS2Parameters.outputNoiseLevelRelative).getEmbeddedParameter()
-        .setValue(0.01);
-    groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true);
-    groupMs2Params.getParameter(GroupMS2Parameters.minRequiredSignals).getEmbeddedParameter()
-        .setValue(1);
+    param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters,
+        groupMs2Params != null);
+    if (groupMs2Params != null) {
+      param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+          .setEmbeddedParameters((GroupMS2SubParameters) groupMs2Params.cloneParameterSet());
+    }
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.MOBILITY);
