@@ -25,24 +25,31 @@
 
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionParameters;
+import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceDirectAndFlowInjectWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
-import io.github.mzmine.parameters.parametertypes.OptionalValue;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.io.File;
 import java.util.Optional;
 
 public class WizardBatchBuilderFlowInjectLibraryGen extends WizardBatchBuilder {
 
   private final Integer minRtDataPoints;
-  private final Boolean isExportActive;
   private final Boolean exportGnps;
   private final Boolean exportSirius;
   private final File exportPath;
+  private final LibraryBatchMetadataParameters libGenMetadata;
 
   public WizardBatchBuilderFlowInjectLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -52,13 +59,14 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends WizardBatchBuilder {
     // special workflow parameter are extracted here
     minRtDataPoints = getValue(params,
         IonInterfaceDirectAndFlowInjectWizardParameters.minNumberOfDataPoints);
+
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
-    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
-    isExportActive = optional.active();
-    exportPath = optional.value();
+    exportPath = getValue(params, WorkflowLibraryGenerationWizardParameters.exportPath);
     exportGnps = getValue(params, WorkflowLibraryGenerationWizardParameters.exportGnps);
-    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+    exportSirius = getValue(params, WorkflowLibraryGenerationWizardParameters.exportSirius);
+    libGenMetadata = getOptionalParameters(params,
+        WorkflowLibraryGenerationWizardParameters.metadata).value();
   }
 
   @Override
@@ -66,26 +74,18 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends WizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
-    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
-        null);
-
-    var groupMs2Params = createMs2GrouperParameters(minRtDataPoints, false, null);
+    makeAndAddMsNTreeBuilderStep(q);
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
       makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
+      var groupMs2Params = createMs2GrouperParameters(minRtDataPoints, false, null);
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
       makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
-    } else {
-      // add MS2 grouping if no IMS was selected
-      makeAndAddMs2GrouperStep(q, groupMs2Params);
     }
-
-    makeAndAddDeisotopingStep(q, null);
+    // NO FILTERING FOR ISOTOPES
     makeAndAddIsotopeFinderStep(q);
-    makeAndAddJoinAlignmentStep(q, null);
-    makeAndAddRowFilterStep(q);
-    makeAndAddGapFillStep(q, null);
+
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q, minRtDataPoints, null, true);
     makeAndAddIinStep(q);
@@ -93,11 +93,31 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends WizardBatchBuilder {
     // annotation
     makeAndAddLibrarySearchStep(q);
     makeAndAddLocalCsvDatabaseSearchStep(q, null, "");
+
+    // library generation, reload library
+    makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);
+
+    // join after the generation but just concat all lists together
+    makeAndAddJoinAlignmentStep(q, null);
+
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius);
     return q;
   }
 
+  protected void makeAndAddMsNTreeBuilderStep(final BatchQueue q) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(MsnTreeFeatureDetectionModule.class).cloneParameterSet();
+
+    param.setParameter(MsnTreeFeatureDetectionParameters.dataFiles,
+        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
+    param.setParameter(MsnTreeFeatureDetectionParameters.scanSelection, new ScanSelection(1));
+    param.setParameter(MsnTreeFeatureDetectionParameters.mzTol, mzTolScans);
+    param.setParameter(MsnTreeFeatureDetectionParameters.suffix, "msn trees");
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MsnTreeFeatureDetectionModule.class), param));
+  }
 
 }
 

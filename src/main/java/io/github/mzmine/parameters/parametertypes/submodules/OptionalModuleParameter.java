@@ -40,7 +40,8 @@ import org.w3c.dom.Element;
  * Parameter represented by check box with additional sub-module
  */
 public class OptionalModuleParameter<T extends ParameterSet> implements
-    UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer, EmbeddedParameterSet {
+    UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer,
+    EmbeddedParameterSet<T, Boolean> {
 
   private final String name;
   private final String description;

@@ -50,6 +50,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
@@ -91,7 +92,15 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryExportQualityParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
@@ -103,11 +112,14 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
@@ -157,6 +169,8 @@ import org.openscience.cdk.Element;
 public abstract class WizardBatchBuilder {
 
   private static final Logger logger = Logger.getLogger(WizardBatchBuilder.class.getName());
+
+  protected final WizardSequence steps;
   // only parameters that are used in all workflows
   // input
   protected final File[] dataFiles;
@@ -187,6 +201,7 @@ public abstract class WizardBatchBuilder {
   protected final Integer minImsDataPoints;
 
   protected WizardBatchBuilder(WizardSequence steps) {
+    this.steps = steps;
     // input
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.DATA_IMPORT);
     dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
@@ -242,27 +257,29 @@ public abstract class WizardBatchBuilder {
     // workflow is always set
     Optional<WizardStepParameters> preset = steps.get(WizardPart.WORKFLOW);
     var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getFactory();
-    var ionInterface = steps.get(WizardPart.ION_INTERFACE).get().getFactory();
+    var ionInterface = (IonInterfaceWizardParameterFactory) steps.get(WizardPart.ION_INTERFACE)
+        .get().getFactory();
 
-    final boolean isImaging = steps.isImaging();
+    // throw in case we hit unsupported workflow
+    // those combinations should be filtered out previously though
+    var unsupportedException = new UnsupportedOperationException(
+        "Currently not implemented workflow " + workflowPreset);
+
     return switch (workflowPreset) {
-      case DDA ->
-          isImaging ? new WizardBatchBuilderImagingDda(steps) : new WizardBatchBuilderLcDDA(steps);
+      case DDA -> switch (ionInterface.group()) {
+        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDDA(steps);
+        case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectDDA(steps);
+        case SPATIAL_IMAGING -> new WizardBatchBuilderImagingDda(steps);
+        case CHROMATOGRAPHY_HARD -> throw unsupportedException;
+      };
       // only used for GC EI
       case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
       case IMAGING -> new WizardBatchBuilderImagingDda(steps);
-      case LIBRARY_GENERATION -> {
-        if (ionInterface == IonInterfaceWizardParameterFactory.FLOW_INJECT) {
-          yield new WizardBatchBuilderFlowInjectDDA(steps);
-        } else if (isImaging) {
-          yield new WizardBatchBuilderImagingDda(steps);
-        } else if (ionInterface == IonInterfaceWizardParameterFactory.GC_EI) {
-          throw new UnsupportedOperationException(
-              "Currently not implemented workflow " + workflowPreset);
-        } else {
-          yield new WizardBatchBuilderLcDDA(steps);
-        }
-      }
+      case LIBRARY_GENERATION -> switch (ionInterface.group()) {
+        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDDA(steps);
+        case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectLibraryGen(steps);
+        case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING -> throw unsupportedException;
+      };
       case MS1_ONLY -> throw new UnsupportedOperationException(
           "Currently not implemented workflow " + workflowPreset);
     };
@@ -329,11 +346,19 @@ public abstract class WizardBatchBuilder {
    */
   protected <T extends ParameterSet> OptionalValue<T> getOptionalParameters(
       @NotNull final Optional<? extends WizardStepParameters> params,
-      @NotNull final OptionalModuleParameter<T> parameter) {
+      @NotNull final EmbeddedParameterSet<T, ?> parameter) {
     if (params.isPresent()) {
       try {
-        OptionalModuleParameter<T> param = params.get().getParameter(parameter);
-        return new OptionalValue<>(param.getValue(), param.getEmbeddedParameters());
+        EmbeddedParameterSet<T, ?> param = params.get().getParameter(parameter);
+        boolean state = true;
+        if (param instanceof AdvancedParametersParameter<?> check) {
+          state = check.getValue();
+        }
+        if (param instanceof OptionalModuleParameter<?> check) {
+          state = check.getValue();
+        }
+
+        return new OptionalValue<>(state, param.getEmbeddedParameters());
       } catch (Exception ex) {
         logger.log(Level.WARNING,
             "Error during extraction of value from parameter " + parameter.getName(), ex);
@@ -473,7 +498,7 @@ public abstract class WizardBatchBuilder {
     final boolean useCorrGrouping = minRtDataPoints > 3;
 
     ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(CorrelateGroupingModule.class);
+        .getModuleParameters(CorrelateGroupingModule.class).cloneParameterSet();
     param.setParameter(CorrelateGroupingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
@@ -521,7 +546,7 @@ public abstract class WizardBatchBuilder {
 
   protected void makeAndAddIinStep(final BatchQueue q) {
     ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(IonNetworkingModule.class);
+        .getModuleParameters(IonNetworkingModule.class).cloneParameterSet();
     param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
     param.setParameter(IonNetworkingParameters.MZ_TOLERANCE, mzTolFeaturesIntraSample);
     param.setParameter(IonNetworkingParameters.PEAK_LISTS,
@@ -565,6 +590,68 @@ public abstract class WizardBatchBuilder {
         IonModification.H2O_2};
     ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
         new IonModification[][]{adducts, modifications});
+  }
+
+
+  /**
+   * Batch generation of library spectra
+   */
+  protected void makeAndAddBatchLibraryGeneration(final BatchQueue q, final File exportPath,
+      final LibraryBatchMetadataParameters libGenMetadata) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(LibraryBatchGenerationModule.class).cloneParameterSet();
+
+    var exportFormat = SpectralLibraryExportFormats.json;
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(),
+        fileName.getName() + "_lib." + exportFormat.getExtension());
+
+    param.setParameter(LibraryBatchGenerationParameters.flists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(LibraryBatchGenerationParameters.mergeMzTolerance, true, mzTolScans);
+    param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
+    param.setParameter(LibraryBatchGenerationParameters.file, fileName);
+    // chimerics
+    param.setParameter(LibraryBatchGenerationParameters.handleChimerics, true);
+    var chimerics = param.getParameter(LibraryBatchGenerationParameters.handleChimerics)
+        .getEmbeddedParameters();
+    chimerics.setParameter(HandleChimericMsMsParameters.option, ChimericMsOption.FLAG);
+    chimerics.setParameter(HandleChimericMsMsParameters.mainMassWindow, mzTolScans);
+    chimerics.setParameter(HandleChimericMsMsParameters.isolationWindow,
+        getIsolationToleranceForInstrument(steps));
+    chimerics.setParameter(HandleChimericMsMsParameters.allowedOtherSignals, 0.2);
+
+    // quality
+    var quality = param.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters();
+    quality.setParameter(LibraryExportQualityParameters.minExplainedIntensity, true, 0.35);
+    quality.setParameter(LibraryExportQualityParameters.minExplainedSignals, false, 0.2);
+    quality.setParameter(LibraryExportQualityParameters.exportFlistNameMatchOnly, false);
+    quality.setParameter(LibraryExportQualityParameters.exportExplainedSignalsOnly, false);
+    quality.setParameter(LibraryExportQualityParameters.formulaTolerance, mzTolScans);
+
+    // metadata is user defined
+    param.getParameter(LibraryBatchGenerationParameters.metadata)
+        .setEmbeddedParameters(libGenMetadata);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MsnTreeFeatureDetectionModule.class), param));
+
+    // add reimport of library as sanity check
+    var importParams = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralLibraryImportModule.class).cloneParameterSet();
+    importParams.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[]{fileName});
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(SpectralLibraryImportModule.class), param));
+  }
+
+  protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
+    var ms = steps.get(WizardPart.MS).get().getFactory();
+    return switch ((MassSpectrometerWizardParameterFactory) ms) {
+      case Orbitrap, FTICR, LOW_RES -> new MZTolerance(0.4, 5);
+      case QTOF -> new MZTolerance(1.6, 5);
+    };
   }
 
 
@@ -940,7 +1027,7 @@ public abstract class WizardBatchBuilder {
     }
 
     ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(SpectralLibrarySearchModule.class);
+        .getModuleParameters(SpectralLibrarySearchModule.class).cloneParameterSet();
 
     param.setParameter(SpectralLibrarySearchParameters.peakLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
@@ -994,7 +1081,7 @@ public abstract class WizardBatchBuilder {
     }
 
     var param = MZmineCore.getConfiguration()
-        .getModuleParameters(LocalCSVDatabaseSearchModule.class);
+        .getModuleParameters(LocalCSVDatabaseSearchModule.class).cloneParameterSet();
 
     param.setParameter(LocalCSVDatabaseSearchParameters.peakLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));

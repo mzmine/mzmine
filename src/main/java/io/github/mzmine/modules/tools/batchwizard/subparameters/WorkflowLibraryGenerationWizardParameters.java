@@ -25,11 +25,12 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import java.io.File;
 
 public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWizardParameters {
@@ -41,23 +42,26 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
       "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
       true);
 
-  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
-      new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
-          FileSelectionType.SAVE, false), false);
+  public static final FileNameParameter exportPath = new FileNameParameter("Export path",
+      "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
+      FileSelectionType.SAVE, false);
+
+
+  public static final SubModuleParameter<LibraryBatchMetadataParameters> metadata = new SubModuleParameter<>(
+      "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
 
   public WorkflowLibraryGenerationWizardParameters() {
-    super(WorkflowWizardParameterFactory.DDA,
+    super(WorkflowWizardParameterFactory.LIBRARY_GENERATION,
         // actual parameters
-        exportPath, exportGnps, exportSirius);
+        metadata, exportPath, exportGnps, exportSirius);
   }
 
 
-  public WorkflowLibraryGenerationWizardParameters(final boolean exportActive,
-      final File exportBasePath, final boolean exportGnpsActive, boolean exportSiriusActive) {
+  public WorkflowLibraryGenerationWizardParameters(final File exportBasePath,
+      final boolean exportGnpsActive, boolean exportSiriusActive) {
     this();
-    setParameter(exportPath, exportActive, exportBasePath);
+    setParameter(exportPath, exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportSirius, exportSiriusActive);
   }

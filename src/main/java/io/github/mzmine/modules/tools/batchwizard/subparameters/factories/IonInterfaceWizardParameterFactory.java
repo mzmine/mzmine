@@ -118,4 +118,16 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
       case HPLC, UHPLC, HILIC, GC_CI, GC_EI, DIRECT_INFUSION, FLOW_INJECT -> false;
     };
   }
+
+  /**
+   * Group values for easier decisions
+   */
+  public IonIterfaceGroup group() {
+    return switch (this) {
+      case MALDI, LDI, DESI, SIMS -> IonIterfaceGroup.SPATIAL_IMAGING;
+      case HPLC, UHPLC, HILIC, GC_CI -> IonIterfaceGroup.CHROMATOGRAPHY_SOFT;
+      case DIRECT_INFUSION, FLOW_INJECT -> IonIterfaceGroup.DIRECT_AND_FLOW;
+      case GC_EI -> IonIterfaceGroup.CHROMATOGRAPHY_HARD;
+    };
+  }
 }

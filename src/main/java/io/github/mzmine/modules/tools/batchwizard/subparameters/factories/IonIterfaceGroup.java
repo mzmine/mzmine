@@ -23,25 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.spectraldbsubmit.batch;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-public enum SpectralLibraryExportFormats {
-  json, msp, mgf;
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case json -> "MZmine json (recommended)";
-      case msp -> "NIST msp";
-      case mgf -> "mgf";
-    };
-  }
-
-  public String getExtension() {
-    return switch (this) {
-      case json -> "json";
-      case msp -> "msp";
-      case mgf -> "mgf";
-    };
-  }
+public enum IonIterfaceGroup {
+  CHROMATOGRAPHY_SOFT, CHROMATOGRAPHY_HARD, SPATIAL_IMAGING, DIRECT_AND_FLOW
 }
