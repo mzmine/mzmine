@@ -25,40 +25,51 @@
 
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
-import io.github.mzmine.main.MZmineCore;
+import com.google.common.collect.Range;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
-import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionParameters;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceDirectAndFlowInjectWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuilder {
+public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
+  private final Range<Double> cropRtRange;
+  private final RTTolerance intraSampleRtTol;
+  private final RTTolerance interSampleRtTol;
   private final Integer minRtDataPoints;
+  private final Integer maxIsomersInRt;
+  private final RTTolerance rtFwhm;
+  private final Boolean stableIonizationAcrossSamples;
   private final Boolean exportGnps;
   private final Boolean exportSirius;
   private final File exportPath;
+  private final Boolean rtSmoothing;
   private final LibraryBatchMetadataParameters libGenMetadata;
 
-  public WizardBatchBuilderFlowInjectLibraryGen(final WizardSequence steps) {
+  public WizardBatchBuilderLcLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
     super(steps);
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
     // special workflow parameter are extracted here
-    minRtDataPoints = getValue(params,
-        IonInterfaceDirectAndFlowInjectWizardParameters.minNumberOfDataPoints);
+    // chromatography
+    rtSmoothing = getValue(params, IonInterfaceHplcWizardParameters.smoothing);
+    cropRtRange = getValue(params, IonInterfaceHplcWizardParameters.cropRtRange);
+    intraSampleRtTol = getValue(params, IonInterfaceHplcWizardParameters.intraSampleRTTolerance);
+    interSampleRtTol = getValue(params, IonInterfaceHplcWizardParameters.interSampleRTTolerance);
+    minRtDataPoints = getValue(params, IonInterfaceHplcWizardParameters.minNumberOfDataPoints);
+    maxIsomersInRt = getValue(params,
+        IonInterfaceHplcWizardParameters.maximumIsomersInChromatogram);
+    rtFwhm = getValue(params, IonInterfaceHplcWizardParameters.approximateChromatographicFWHM);
+    stableIonizationAcrossSamples = getValue(params,
+        IonInterfaceHplcWizardParameters.stableIonizationAcrossSamples);
 
     // library generation workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
@@ -74,20 +85,25 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
-    makeAndAddMsNTreeBuilderStep(q);
+    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
+        cropRtRange);
+    makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
+
+    var groupMs2Params = createMs2GrouperParameters();
+    makeAndAddRtLocalMinResolver(q, groupMs2Params, minRtDataPoints, cropRtRange, rtFwhm,
+        maxIsomersInRt);
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
       makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
-      var groupMs2Params = createMs2GrouperParameters(minRtDataPoints, false, null);
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
-      makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
+      makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
     // NO FILTERING FOR ISOTOPES
     makeAndAddIsotopeFinderStep(q);
 
     // annotation
-    makeAndAddLocalCsvDatabaseSearchStep(q, null);
+    makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
 
     // library generation, reload library
     makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);
@@ -96,7 +112,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     makeAndAddJoinAlignmentStep(q, null);
 
     // ions annotation and feature grouping
-    makeAndAddMetaCorrStep(q, minRtDataPoints, null, true);
+    makeAndAddMetaCorrStep(q);
     makeAndAddIinStep(q);
 
     // match against own library
@@ -107,20 +123,16 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     return q;
   }
 
-  protected void makeAndAddMsNTreeBuilderStep(final BatchQueue q) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(MsnTreeFeatureDetectionModule.class).cloneParameterSet();
+  protected ParameterSet createMs2GrouperParameters() {
+    return super.createMs2GrouperParameters(minRtDataPoints, minRtDataPoints >= 4, rtFwhm);
+  }
 
-    param.setParameter(MsnTreeFeatureDetectionParameters.dataFiles,
-        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
-    param.setParameter(MsnTreeFeatureDetectionParameters.scanSelection, new ScanSelection(1));
-    param.setParameter(MsnTreeFeatureDetectionParameters.mzTol, mzTolScans);
-    param.setParameter(MsnTreeFeatureDetectionParameters.suffix, "msn trees");
 
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MsnTreeFeatureDetectionModule.class), param));
+  protected void makeAndAddMetaCorrStep(final BatchQueue q) {
+    final boolean useCorrGrouping = minRtDataPoints > 3;
+    RTTolerance rtTol = new RTTolerance(rtFwhm.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
+        rtFwhm.getUnit());
+    makeAndAddMetaCorrStep(q, minRtDataPoints, rtTol, stableIonizationAcrossSamples);
   }
 
 }
-
-

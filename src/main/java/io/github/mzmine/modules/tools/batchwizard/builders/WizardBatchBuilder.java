@@ -112,7 +112,7 @@ public abstract class WizardBatchBuilder {
         }
 
         yield switch (ionInterface.group()) {
-          case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDDA(steps);
+          case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcLibraryGen(steps);
           case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectLibraryGen(steps);
           case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING -> throw unsupportedException;
         };

@@ -26,26 +26,15 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.util.Optional;
 
@@ -101,7 +90,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     var groupMs2Params = createMs2GrouperParameters();
-    makeAndAddRtLocalMinResolver(q, groupMs2Params);
+    makeAndAddRtLocalMinResolver(q, groupMs2Params, minRtDataPoints, cropRtRange, rtFwhm,
+        maxIsomersInRt);
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
@@ -131,60 +121,6 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
   protected ParameterSet createMs2GrouperParameters() {
     return super.createMs2GrouperParameters(minRtDataPoints, minRtDataPoints >= 4, rtFwhm);
-  }
-
-  protected void makeAndAddRtLocalMinResolver(final BatchQueue q,
-      final ParameterSet groupMs2Params) {
-    final double totalRtWidth = RangeUtils.rangeLength(cropRtRange);
-    final float fwhm = rtFwhm.getToleranceInMinutes();
-
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
-    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, "r");
-    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
-        handleOriginalFeatureLists);
-
-    // set MS2 grouping
-    param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters,
-        groupMs2Params != null);
-    if (groupMs2Params != null) {
-      // the grouper parameterset might not be SUB set but the original one from the Grouper Module
-      var subParameterSet = param.getParameter(
-              MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters()
-          .cloneParameterSet();
-      ParameterUtils.copyParameters(groupMs2Params, subParameterSet);
-
-      param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-          .setEmbeddedParameters((GroupMS2SubParameters) subParameterSet);
-    }
-
-    // important apply to retention time
-    param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
-        ResolvingDimension.RETENTION_TIME);
-    // should be relatively high - unless user suspects many same m/z peaks in chromatogram
-    // e.g., isomers or fragments in GC-EI-MS
-    // 10 isomers, 0.05 min FWHM, 10 min total time = 0.90 threshold
-    // ranges from 0.3 - 0.9
-    final double thresholdPercent = MathUtils.within(1d - fwhm * maxIsomersInRt / totalRtWidth * 2d,
-        0.3, 0.9, 3);
-
-    param.setParameter(MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL,
-        thresholdPercent);
-    param.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, (double) fwhm);
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT,
-        minFeatureHeight);
-    final double ratioTopToEdge = minRtDataPoints == 3 ? 1.4 : (minRtDataPoints == 4 ? 1.8 : 2);
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, ratioTopToEdge);
-    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION,
-        Range.closed(0d, fwhm * 30d));
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS,
-        minRtDataPoints);
-
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param));
   }
 
   protected void makeAndAddMetaCorrStep(final BatchQueue q) {
