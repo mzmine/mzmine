@@ -26,51 +26,26 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
-import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.FeatureLimitOptions;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
-import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
-import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
-import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
-import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingParameters;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
-import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
-import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.io.File;
 import java.util.Optional;
 
@@ -88,7 +63,6 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
   private final Boolean exportSirius;
   private final File exportPath;
   private final Boolean rtSmoothing;
-  private GroupMS2SubParameters groupMs2Params;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -125,7 +99,9 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
         cropRtRange);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
-    makeAndAddRtLocalMinResolver(q);
+
+    var groupMs2Params = createMs2GrouperParameters();
+    makeAndAddRtLocalMinResolver(q, groupMs2Params);
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
@@ -134,11 +110,11 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
       makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
 
-    makeAndAddDeisotopingStep(q);
+    makeAndAddDeisotopingStep(q, intraSampleRtTol);
     makeAndAddIsotopeFinderStep(q);
-    makeAndAddAlignmentStep(q);
+    makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
-    makeAndAddGapFillStep(q);
+    makeAndAddGapFillStep(q, interSampleRtTol);
     makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
         rtFwhm, imsInstrumentType);
     // ions annotation and feature grouping
@@ -152,11 +128,12 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     return q;
   }
 
-  protected void makeAndAddRtLocalMinResolver(final BatchQueue q) {
-    // only TIMS currently supports DDA MS2 acquisition with PASEF
-    // other instruments have the fragmentation before the IMS cell
-    boolean hasIMS = isImsActive && imsInstrumentType.equals(MobilityType.TIMS);
+  protected ParameterSet createMs2GrouperParameters() {
+    return super.createMs2GrouperParameters(minRtDataPoints, minRtDataPoints >= 4, rtFwhm);
+  }
 
+  protected void makeAndAddRtLocalMinResolver(final BatchQueue q,
+      final ParameterSet groupMs2Params) {
     final double totalRtWidth = RangeUtils.rangeLength(cropRtRange);
     final float fwhm = rtFwhm.getToleranceInMinutes();
 
@@ -168,25 +145,19 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
         handleOriginalFeatureLists);
 
-    param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    groupMs2Params = param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters();
-    // Using a fixed wide range here because precursor isolation is usually unit resolution
-    groupMs2Params.setParameter(GroupMS2Parameters.mzTol, MZTolerance.max(mzTolScans, 0.01, 10.0));
-    groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
-    groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasIMS, noiseLevelMsn * 2);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasIMS, 0.01);
-    groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true, 1);
-    groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, true, 0.25);
-    // retention time
-    // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early
-    // change rt tol depending on number of data points
-    boolean limitByRTEdges = minRtDataPoints >= 4;
-    groupMs2Params.setParameter(GroupMS2Parameters.rtFilter,
-        limitByRTEdges ? FeatureLimitOptions.USE_FEATURE_EDGES : FeatureLimitOptions.USE_TOLERANCE);
-    groupMs2Params.getParameter(GroupMS2Parameters.rtFilter).getEmbeddedParameter()
-        .setValue(new RTTolerance(fwhm, Unit.MINUTES));
+    // set MS2 grouping
+    param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters,
+        groupMs2Params != null);
+    if (groupMs2Params != null) {
+      // the grouper parameterset might not be SUB set but the original one from the Grouper Module
+      var subParameterSet = param.getParameter(
+              MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters()
+          .cloneParameterSet();
+      ParameterUtils.copyParameters(groupMs2Params, subParameterSet);
+
+      param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+          .setEmbeddedParameters((GroupMS2SubParameters) subParameterSet);
+    }
 
     // important apply to retention time
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
@@ -215,164 +186,11 @@ public class WizardBatchBuilderLcDDA extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param));
   }
 
-  protected void makeAndAddDeisotopingStep(final BatchQueue q) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(IsotopeGrouperModule.class).cloneParameterSet();
-
-    param.setParameter(IsotopeGrouperParameters.peakLists,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(IsotopeGrouperParameters.suffix, "deiso");
-    param.setParameter(IsotopeGrouperParameters.mzTolerance, mzTolFeaturesIntraSample);
-    param.setParameter(IsotopeGrouperParameters.rtTolerance, intraSampleRtTol);
-    param.setParameter(IsotopeGrouperParameters.mobilityTolerace, isImsActive);
-    param.getParameter(IsotopeGrouperParameters.mobilityTolerace).getEmbeddedParameter().setValue(
-        imsInstrumentType == MobilityType.TIMS ? new MobilityTolerance(0.008f)
-            : new MobilityTolerance(1f));
-    param.setParameter(IsotopeGrouperParameters.monotonicShape, true);
-    param.setParameter(IsotopeGrouperParameters.keepAllMS2, true);
-    param.setParameter(IsotopeGrouperParameters.maximumCharge, 2);
-    param.setParameter(IsotopeGrouperParameters.representativeIsotope,
-        IsotopeGrouperParameters.ChooseTopIntensity);
-    param.setParameter(IsotopeGrouperParameters.handleOriginal, handleOriginalFeatureLists);
-
-    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeGrouperModule.class),
-        param));
-  }
-
-
-  protected void makeAndAddAlignmentStep(final BatchQueue q) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(JoinAlignerModule.class).cloneParameterSet();
-    param.setParameter(JoinAlignerParameters.peakLists,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(JoinAlignerParameters.peakListName, "Aligned feature list");
-    param.setParameter(JoinAlignerParameters.MZTolerance, mzTolInterSample);
-    param.setParameter(JoinAlignerParameters.MZWeight, 3d);
-    param.setParameter(JoinAlignerParameters.RTTolerance, interSampleRtTol);
-    param.setParameter(JoinAlignerParameters.RTWeight, 1d);
-    param.setParameter(JoinAlignerParameters.mobilityTolerance, isImsActive);
-    param.getParameter(JoinAlignerParameters.mobilityTolerance).getEmbeddedParameter().setValue(
-        imsInstrumentType == MobilityType.TIMS ? new MobilityTolerance(0.01f)
-            : new MobilityTolerance(1f));
-    param.setParameter(JoinAlignerParameters.SameChargeRequired, false);
-    param.setParameter(JoinAlignerParameters.SameIDRequired, false);
-    param.setParameter(JoinAlignerParameters.compareIsotopePattern, false);
-    param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
-    param.setParameter(JoinAlignerParameters.handleOriginal, handleOriginalFeatureLists);
-
-    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
-        param));
-  }
-
-  protected void makeAndAddGapFillStep(final BatchQueue q) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(MultiThreadPeakFinderModule.class).cloneParameterSet();
-
-    param.setParameter(MultiThreadPeakFinderParameters.peakLists,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    // going back into scans so rather use scan mz tol
-    param.setParameter(MultiThreadPeakFinderParameters.MZTolerance, mzTolScans);
-    param.setParameter(MultiThreadPeakFinderParameters.RTTolerance, interSampleRtTol);
-    param.setParameter(MultiThreadPeakFinderParameters.intTolerance, 0.2);
-    param.setParameter(MultiThreadPeakFinderParameters.handleOriginal, handleOriginalFeatureLists);
-    param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
-
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(MultiThreadPeakFinderModule.class), param));
-  }
-
   protected void makeAndAddMetaCorrStep(final BatchQueue q) {
     final boolean useCorrGrouping = minRtDataPoints > 3;
     RTTolerance rtTol = new RTTolerance(rtFwhm.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
         rtFwhm.getUnit());
-
-    ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(CorrelateGroupingModule.class);
-    param.setParameter(CorrelateGroupingParameters.PEAK_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE, rtTol);
-    param.setParameter(CorrelateGroupingParameters.GROUPSPARAMETER, false);
-    param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);
-    param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, noiseLevelMs1);
-    param.setParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER, true);
-
-    // min samples
-    var minSampleP = param.getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER)
-        .getEmbeddedParameters();
-    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_GROUP,
-        new AbsoluteAndRelativeInt(0, 0, Mode.ROUND_DOWN));
-    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_ALL, minAlignedSamples);
-    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_INTENSITY_OVERLAP, 0.6d);
-    minSampleP.setParameter(MinimumFeaturesFilterParameters.EXCLUDE_ESTIMATED, true);
-
-    //
-    param.setParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION, useCorrGrouping);
-    var fshapeCorrP = param.getParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION)
-        .getEmbeddedParameters();
-    // MIN_DP_CORR_PEAK_SHAPE, MIN_DP_FEATURE_EDGE, MEASURE, MIN_R_SHAPE_INTRA, MIN_TOTAL_CORR
-    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_DP_FEATURE_EDGE, 2);
-    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_DP_CORR_PEAK_SHAPE, 5);
-    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MEASURE, SimilarityMeasure.PEARSON);
-    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_R_SHAPE_INTRA, 0.85);
-    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_TOTAL_CORR, false);
-    fshapeCorrP.getParameter(FeatureShapeCorrelationParameters.MIN_TOTAL_CORR)
-        .getEmbeddedParameter().setValue(0.5d);
-
-    // inter sample height correlation - only if same conditions
-    param.setParameter(CorrelateGroupingParameters.IMAX_CORRELATION, stableIonizationAcrossSamples);
-    var interSampleCorrParam = param.getParameter(CorrelateGroupingParameters.IMAX_CORRELATION)
-        .getEmbeddedParameters();
-    interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MIN_CORRELATION, 0.7);
-    interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MIN_DP, 2);
-    interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MEASURE,
-        SimilarityMeasure.PEARSON);
-
-    q.add(
-        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CorrelateGroupingModule.class),
-            param));
+    makeAndAddMetaCorrStep(q, minRtDataPoints, rtTol, stableIonizationAcrossSamples);
   }
 
-  protected void makeAndAddIinStep(final BatchQueue q) {
-    ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(IonNetworkingModule.class);
-    param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
-    param.setParameter(IonNetworkingParameters.MZ_TOLERANCE, mzTolFeaturesIntraSample);
-    param.setParameter(IonNetworkingParameters.PEAK_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-
-    // refinement
-    param.setParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS, true);
-    var refinementParam = param.getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS)
-        .getEmbeddedParameters();
-    refinementParam.setParameter(IonNetworkRefinementParameters.MIN_NETWORK_SIZE, false);
-    refinementParam.setParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD, true);
-    refinementParam.getParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD)
-        .getEmbeddedParameter().setValue(4);
-    refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_SMALL_NO_MAJOR, true);
-    refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_ROWS_WITHOUT_ID, false);
-    refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_WITHOUT_MONOMER, true);
-
-    // ion library
-    var ionLibraryParam = param.getParameter(IonNetworkingParameters.LIBRARY)
-        .getEmbeddedParameters();
-    ionLibraryParam.setParameter(IonLibraryParameterSet.POSITIVE_MODE,
-        polarity == Polarity.Positive ? "POSITIVE" : "NEGATIVE");
-    ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
-    ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 2);
-    IonModification[] adducts;
-    if (polarity == Polarity.Positive) {
-      adducts = new IonModification[]{IonModification.H, IonModification.NA,
-          IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus};
-    } else {
-      adducts = new IonModification[]{IonModification.H_NEG, IonModification.FA,
-          IonModification.NA_2H, IonModification.CL};
-    }
-    IonModification[] modifications = new IonModification[]{IonModification.H2O,
-        IonModification.H2O_2};
-    ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
-        new IonModification[][]{adducts, modifications});
-
-    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
-        param));
-  }
 }

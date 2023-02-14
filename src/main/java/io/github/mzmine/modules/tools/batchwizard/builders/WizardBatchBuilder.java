@@ -323,7 +323,8 @@ public abstract class WizardBatchBuilder {
   }
 
 
-  protected void makeAndAddAlignmentStep(final BatchQueue q, final @Nullable RTTolerance rtTol) {
+  protected void makeAndAddJoinAlignmentStep(final BatchQueue q,
+      final @Nullable RTTolerance rtTol) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(JoinAlignerModule.class).cloneParameterSet();
     param.setParameter(JoinAlignerParameters.peakLists,
@@ -331,9 +332,11 @@ public abstract class WizardBatchBuilder {
     param.setParameter(JoinAlignerParameters.peakListName, "Aligned feature list");
     param.setParameter(JoinAlignerParameters.MZTolerance, mzTolInterSample);
     param.setParameter(JoinAlignerParameters.MZWeight, 3d);
+    // RT tolerance is not needed for some workflows
     param.setParameter(JoinAlignerParameters.RTTolerance,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
-    param.setParameter(JoinAlignerParameters.RTWeight, 1d);
+    param.setParameter(JoinAlignerParameters.RTWeight, rtTol != null ? 1d : 0d);
+    // IMS
     param.setParameter(JoinAlignerParameters.mobilityTolerance, isImsActive);
     param.getParameter(JoinAlignerParameters.mobilityTolerance).getEmbeddedParameter().setValue(
         imsInstrumentType == MobilityType.TIMS ? new MobilityTolerance(0.01f)
@@ -607,7 +610,6 @@ public abstract class WizardBatchBuilder {
     }
     param.setParameter(RowsFilterParameters.SUFFIX, suffix);
     param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples.isGreaterZero());
-    // TODO maybe change to a relative cutoff? 5% of samples, i.e. 0.05
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
         .setValue(minAlignedSamples);
 

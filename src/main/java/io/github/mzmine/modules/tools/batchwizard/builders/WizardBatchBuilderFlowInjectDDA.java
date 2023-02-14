@@ -81,7 +81,7 @@ public class WizardBatchBuilderFlowInjectDDA extends WizardBatchBuilder {
 
     makeAndAddDeisotopingStep(q, null);
     makeAndAddIsotopeFinderStep(q);
-    makeAndAddAlignmentStep(q, null);
+    makeAndAddJoinAlignmentStep(q, null);
     makeAndAddRowFilterStep(q);
     makeAndAddGapFillStep(q, null);
     // ions annotation and feature grouping
