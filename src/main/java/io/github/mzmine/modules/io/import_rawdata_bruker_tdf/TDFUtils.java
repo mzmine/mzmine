@@ -223,9 +223,15 @@ public class TDFUtils {
           + "library could not be initialised.");
       return 0L;
     }
+
+    final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.applyTimsPressureCompensation);
+    int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
+
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
       if (handle == 0) {
         printLastError(0);
         throw new RuntimeException("Error opening tdf file.");
@@ -235,7 +241,7 @@ public class TDFUtils {
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getAbsolutePath(), useRecalibratedState, pressureCompensation);
       if (handle == 0) {
         printLastError(0);
         throw new RuntimeException("Error opening tdf file.");
