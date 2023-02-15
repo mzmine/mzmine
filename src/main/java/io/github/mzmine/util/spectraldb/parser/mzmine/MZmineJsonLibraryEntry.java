@@ -170,6 +170,7 @@ public class MZmineJsonLibraryEntry {
       case DATA_COLLECTOR -> dataCollector;
       case SOFTWARE -> softwaresource;
       case DATASET_ID -> datasetId;
+      case FILENAME -> null;
       case USI -> usi;
       case SPLASH -> splash;
       case QUALITY -> quality;
@@ -183,6 +184,9 @@ public class MZmineJsonLibraryEntry {
       case GNPS_ID -> null;
       case MONA_ID -> null;
       case CHEMSPIDER -> null;
+      case SIRIUS_MERGED_SCANS -> null;
+      case SIRIUS_MERGED_STATS -> null;
+      case FEATURE_ID -> null;
       case SCAN_NUMBER -> scanNumber;
     };
   }
