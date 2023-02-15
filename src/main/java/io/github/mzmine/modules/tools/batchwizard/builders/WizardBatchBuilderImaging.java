@@ -101,7 +101,7 @@ public class WizardBatchBuilderImaging extends WizardBatchBuilder {
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
       makeAndAddSmoothingStep(q, false, 5, imsSmoothing);
-      makeAndAddMobilityResolvingStep(q);
+      makeAndAddMobilityResolvingStep(q, null);
       makeAndAddSmoothingStep(q, false, 5, imsSmoothing);
     }
 
