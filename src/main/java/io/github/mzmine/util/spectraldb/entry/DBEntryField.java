@@ -67,7 +67,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, FILENAME, USI, SCAN_NUMBER(Integer.class), DATAFILE_COLON_SCAN_NUMBER, SPLASH,
+  DATASET_ID, FILENAME, USI, SCAN_NUMBER(Integer.class), SPLASH,
 
   // Quality measures in wrapper object
   QUALITY, // individual properties
@@ -180,9 +180,8 @@ public enum DBEntryField {
       case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
-          DATAFILE_COLON_SCAN_NUMBER, QUALITY, QUALITY_CHIMERIC, FILENAME, //
-          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS ->
-          StringType.class;
+          QUALITY, QUALITY_CHIMERIC, FILENAME, //
+          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS -> StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
