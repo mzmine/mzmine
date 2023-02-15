@@ -61,8 +61,23 @@ public class CCSType extends FloatType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
-    return MZmineCore.getConfiguration().getCCSFormat();
+  public NumberFormat getFormat() {
+    try {
+      return MZmineCore.getConfiguration().getGuiFormats().ccsFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    try {
+      return MZmineCore.getConfiguration().getExportFormats().ccsFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
   }
 
   @NotNull

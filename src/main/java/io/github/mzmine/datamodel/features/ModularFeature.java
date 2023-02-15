@@ -129,8 +129,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Deprecated
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt, float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
-      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
+      float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
+      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers,
+      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
       @NotNull Range<Float> intensityRange) {
     this(flist);
 
@@ -192,7 +194,8 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
-   * Creates a new feature. The properties are determined via {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
+   * Creates a new feature. The properties are determined via
+   * {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
    *
    * @param flist         The feature list.
    * @param dataFile      The raw data file of this feature.
@@ -288,7 +291,8 @@ public class ModularFeature implements Feature, ModularDataModel {
         DataType newType = tclass.getConstructor().newInstance();
         ModularFeatureList flist = (ModularFeatureList) getFeatureList();
         flist.addFeatureType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+      } catch (NullPointerException | InstantiationException | NoSuchMethodException |
+               InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
         return false;
       }
@@ -317,7 +321,9 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
-   * Use {@link ModularFeature#getFeatureData()} and {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensityForSpectrum(MassSpectrum)}
+   * Use {@link ModularFeature#getFeatureData()} and
+   * {@link
+   * io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensityForSpectrum(MassSpectrum)}
    * or {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensity} instead.
    *
    * @param scan
@@ -375,9 +381,9 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers) {
-    //    logger.finest("SET MS2 to feature");
-    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
+  public void setAllMS2FragmentScans(List<Scan> allFragmentScans) {
+    boolean empty = allFragmentScans == null || allFragmentScans.isEmpty();
+    set(FragmentScanNumbersType.class, empty ? null : allFragmentScans);
   }
 
   @Nullable

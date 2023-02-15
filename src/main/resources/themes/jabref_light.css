@@ -159,7 +159,7 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Base.css
      */
     -fx-control-inner-background: derive(-fx-base, 95%);
     /* Version of -fx-control-inner-background for alternative rows */
-    -fx-control-inner-background-alt: derive(-fx-control-inner-background, -6%);
+    -fx-control-inner-background-alt: derive(-fx-control-inner-background, -0%);
 
     /* One of these colors will be chosen based upon a ladder calculation
      * that uses the brightness of a background color.  Instead of using these

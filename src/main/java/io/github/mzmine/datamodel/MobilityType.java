@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 
@@ -45,6 +46,7 @@ public enum MobilityType {
    * Mixed types in row bindings - aligned samples from different instruments
    */
   MIXED("none", "none", "mixed"), //
+  OTHER("none", "none", "other IMS"), //
   TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
   DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
   TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
@@ -62,10 +64,8 @@ public enum MobilityType {
 
   public String getAxisLabel() {
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
-    StringBuilder sb = new StringBuilder("Mobility (");
-    sb.append(axisLabel);
-    sb.append(")");
-    return uf.format(sb.toString(), getUnit());
+    final String sb = "Mobility (" + axisLabel + ")";
+    return uf.format(sb, getUnit());
   }
 
   public String getUnit() {
@@ -77,4 +77,36 @@ public enum MobilityType {
   public String toString() {
     return name;
   }
+
+  /**
+   * Check if the mobility type of feature matches this type. Only if this feature is actually an
+   * IMS feature so usually after IMS expanding
+   *
+   * @param f the tested feature
+   * @return true if the types match and the feature is an IMS feature
+   */
+  public boolean isTypeOf(final Feature f) {
+    return f.getMobilityUnit() == this;
+  }
+
+  /**
+   * Check if the mobility type of raw data file matches this type
+   *
+   * @param raw the tested file
+   * @return true if the types match
+   */
+  public boolean isTypeOf(final RawDataFile raw) {
+    return raw instanceof IMSRawDataFile imsfile && imsfile.getMobilityType() == this;
+  }
+
+  /**
+   * Check if the mobility type of feature or its raw data file matches this type
+   *
+   * @param f the tested feature and its raw data file
+   * @return true if the types match in the feature or the underlying {@link RawDataFile}
+   */
+  public boolean isTypeOfBackingRawData(final Feature f) {
+    return isTypeOf(f) || isTypeOf(f.getRawDataFile());
+  }
+
 }

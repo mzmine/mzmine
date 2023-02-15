@@ -49,7 +49,6 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   private final List<ExtensionFilter> filters;
   private File value;
   private List<File> lastFiles;
-  private int textfield_columns = 15;
   private boolean allowEmptyString = true;
 
   /**
@@ -108,24 +107,6 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
     this.allowEmptyString = allowEmptyString;
   }
 
-  /**
-   * @param name
-   * @param description
-   * @param filters
-   * @param textfield_columns
-   * @param type              FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save
-   *                          to a file.
-   */
-  public FileNameParameter(String name, String description, List<ExtensionFilter> filters,
-      int textfield_columns, FileSelectionType type) {
-    this.name = name;
-    this.description = description;
-    this.filters = filters;
-    this.textfield_columns = textfield_columns;
-    lastFiles = new ArrayList<>();
-    this.type = type;
-  }
-
   @Override
   public String getName() {
     return name;
@@ -138,7 +119,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameComponent createEditingComponent() {
-    return new FileNameComponent(textfield_columns, lastFiles, type, filters);
+    return new FileNameComponent(lastFiles, type, filters);
   }
 
   @Override

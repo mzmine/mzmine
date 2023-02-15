@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
@@ -67,7 +66,7 @@ public class SimpleParameterSet implements ParameterSet {
   private static final String nameAttribute = "name";
 
   private String moduleNameAttribute;
-  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+  private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
   private boolean skipSensitiveParameters = false;
@@ -77,11 +76,11 @@ public class SimpleParameterSet implements ParameterSet {
     this(new Parameter<?>[0], null);
   }
 
-  public SimpleParameterSet(Parameter<?> parameters[]) {
+  public SimpleParameterSet(Parameter<?>... parameters) {
     this(parameters, null);
   }
 
-  public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl) {
+  public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {
     this.parameters = parameters;
     this.helpUrl = onlineHelpUrl;
   }
@@ -156,7 +155,7 @@ public class SimpleParameterSet implements ParameterSet {
       if (value.getClass().isArray()) {
         s.append(Arrays.toString((Object[]) value));
       } else {
-        s.append(value.toString());
+        s.append(value);
       }
       if (i < parameters.length - 1) {
         s.append(", ");
@@ -177,7 +176,7 @@ public class SimpleParameterSet implements ParameterSet {
   public ParameterSet cloneParameterSet(boolean keepSelection) {
 
     // Make a deep copy of the parameters
-    Parameter<?> newParameters[] = new Parameter[parameters.length];
+    Parameter<?>[] newParameters = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
       if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
         newParameters[i] = rfp.cloneParameter(keepSelection);
@@ -236,7 +235,7 @@ public class SimpleParameterSet implements ParameterSet {
       if (!pOK) {
         allParametersOK = false;
       }
-      if(p instanceof HiddenParameter<?,?> hidden) {
+      if (p instanceof HiddenParameter<?> hidden) {
         p = hidden.getEmbeddedParameter();
       }
 
@@ -352,8 +351,12 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public void setModuleNameAttribute(String moduleName) { this.moduleNameAttribute = moduleName; }
+  public String getModuleNameAttribute() {
+    return moduleNameAttribute;
+  }
 
   @Override
-  public String getModuleNameAttribute() { return moduleNameAttribute; }
+  public void setModuleNameAttribute(String moduleName) {
+    this.moduleNameAttribute = moduleName;
+  }
 }

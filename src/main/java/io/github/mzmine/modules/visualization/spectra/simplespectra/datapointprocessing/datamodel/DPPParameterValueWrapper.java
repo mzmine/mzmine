@@ -26,26 +26,22 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
+import io.github.mzmine.util.XMLUtils;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class DPPParameterValueWrapper {
+
   DataPointProcessingQueue[] queues;
   Boolean differentiateMSn;
 
@@ -59,8 +55,9 @@ public class DPPParameterValueWrapper {
   private static final String MAINFILE_ELEMENT = "DPPParameters";
 
   public DPPParameterValueWrapper() {
-    for (MSLevel mslevel : MSLevel.cropValues())
+    for (MSLevel mslevel : MSLevel.cropValues()) {
       MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()] = mslevel.toString();
+    }
 
     differentiateMSn = false;
     queues = new DataPointProcessingQueue[MSLevel.cropValues().length];
@@ -86,7 +83,7 @@ public class DPPParameterValueWrapper {
   }
 
   public boolean checkValue(Collection<String> errorMessage) {
-    Boolean val = true;;
+    Boolean val = true;
     if (differentiateMSn == null) {
       errorMessage.add("Value of boolean parameter differentiateMSn == null.");
       val = false;
@@ -147,19 +144,9 @@ public class DPPParameterValueWrapper {
 
       this.saveValueToXML(element);
 
-      // Create transformer.
-      final Transformer transformer = TransformerFactory.newInstance().newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-      FileOutputStream os = new FileOutputStream(file);
-      StreamResult res = new StreamResult(os);
-      // Write to file and transform.
-      transformer.transform(new DOMSource(document), res);
-      os.close();
-    } catch (ParserConfigurationException | TransformerFactoryConfigurationError | TransformerException | IOException e) {
+      XMLUtils.saveToFile(file, document);
+    } catch (ParserConfigurationException | TransformerFactoryConfigurationError |
+             TransformerException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
@@ -167,8 +154,7 @@ public class DPPParameterValueWrapper {
 
   public void loadFromFile(@NotNull File file) {
     try {
-      Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-          .getDocumentElement();
+      Element element = XMLUtils.load(file).getDocumentElement();
       loadfromXML(element);
     } catch (SAXException | IOException | ParserConfigurationException e) {
       e.printStackTrace();
@@ -197,19 +183,23 @@ public class DPPParameterValueWrapper {
   public DPPParameterValueWrapper clone() {
     DPPParameterValueWrapper clone = new DPPParameterValueWrapper();
     clone.setDifferentiateMSn(this.isDifferentiateMSn());
-    for (MSLevel mslevel : MSLevel.cropValues())
+    for (MSLevel mslevel : MSLevel.cropValues()) {
       clone.setQueue(mslevel, getQueue(mslevel).clone());
+    }
     return clone;
   }
 
   private void checkValues() {
-    if (differentiateMSn == null)
+    if (differentiateMSn == null) {
       differentiateMSn = false;
-    if (queues == null)
+    }
+    if (queues == null) {
       queues = new DataPointProcessingQueue[MSLevel.cropValues().length];
+    }
     for (int i = 0; i < queues.length; i++) {
-      if (queues[i] == null)
+      if (queues[i] == null) {
         queues[i] = new DataPointProcessingQueue();
+      }
     }
   }
 }

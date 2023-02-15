@@ -59,13 +59,8 @@ public abstract class DoubleType extends NumberType<Double> {
     return Double.class;
   }
 
-  @Override
-  public @NotNull String getFormattedString(Double value) {
-    return value == null ? "" : getFormatter().format(value);
-  }
-
   public @NotNull String getFormattedString(double value) {
-    return getFormatter().format(value);
+    return getFormat().format(value);
   }
 
   @Override
@@ -80,7 +75,7 @@ public abstract class DoubleType extends NumberType<Double> {
     } else {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
   }
 

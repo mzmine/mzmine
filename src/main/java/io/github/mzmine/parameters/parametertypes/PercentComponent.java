@@ -25,22 +25,25 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
 /**
+ *
  */
 public class PercentComponent extends FlowPane {
 
-  private TextField percentField;
+  private final TextField percentField;
 
   public PercentComponent() {
 
     // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
     percentField = new TextField();
     percentField.setPrefColumnCount(4);
+    percentField.setAlignment(Pos.CENTER_RIGHT);
 
     getChildren().addAll(percentField, new Label("%"));
 

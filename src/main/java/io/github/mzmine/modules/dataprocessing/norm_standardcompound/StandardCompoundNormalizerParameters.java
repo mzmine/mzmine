@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -33,7 +34,6 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
-import io.github.mzmine.util.FeatureMeasurementType;
 
 public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
@@ -45,8 +45,8 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
   public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<StandardUsageType>(
       "Normalization type", "Normalize intensities using ", StandardUsageType.values());
 
-  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType = new ComboParameter<FeatureMeasurementType>(
-      "Feature measurement type", "Measure features using ", FeatureMeasurementType.values());
+  public static final ComboParameter<AbundanceMeasure> featureMeasurementType = new ComboParameter<AbundanceMeasure>(
+      "Feature measurement type", "Measure features using ", AbundanceMeasure.values());
 
   public static final DoubleParameter MZvsRTBalance = new DoubleParameter("m/z vs RT balance",
       "Used in distance measuring as multiplier of m/z difference");
@@ -61,7 +61,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
   public StandardCompoundNormalizerParameters() {
     super(new Parameter[]{featureList, suffix, standardUsageType, featureMeasurementType,
-        MZvsRTBalance, standardCompounds, handleOriginal},
+            MZvsRTBalance, standardCompounds, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_stand_cmpd/norm_stand_cmpd.html");
   }
 
