@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
@@ -63,6 +64,7 @@ import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
+import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -82,6 +84,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.shape.Rectangle;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.Layer;
@@ -115,7 +118,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final ObjectProperty<MobilityScan> selectedMobilityScan;
   private final ObjectProperty<Range<Double>> selectedMz;
   private final Stroke markerStroke = new BasicStroke(1.0f);
-
+  private final Color markerColor;
+  private final Set<Integer> mzRangeTicDatasetIndices;
   // not thread safe, so we need one for building the selected and one for building all the others
   private BinningMobilogramDataAccess selectedBinningMobilogramDataAccess;
   private BinningMobilogramDataAccess rangesBinningMobilogramDataAccess;
@@ -126,13 +130,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private double mobilityScanNoiseLevel;
   private int binWidth;
   private Float rtWidth;
-
-  private final Color markerColor;
   private IMSRawDataFile rawDataFile;
   private int selectedMobilogramDatasetIndex;
   private int selectedChromatogramDatasetIndex;
-  private final Set<Integer> mzRangeTicDatasetIndices;
-
   private FontIcon massDetectionScanIcon;
   private FontIcon massDetectionFrameIcon;
   private GridPane massDetectionPane;
@@ -233,16 +233,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-    massDetectionFrameIcon =
-        selectedFrame.get().getMassList() != null ?
-            FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? FxIconUtil.getCheckedIcon()
+        : FxIconUtil.getUncheckedIcon();
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
     massDetectionPane.getChildren().remove(massDetectionScanIcon);
     massDetectionScanIcon =
         selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
-            ? FxIconUtil.getCheckedIcon()
-            : FxIconUtil.getUncheckedIcon();
+            ? FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
     massDetectionPane.add(massDetectionScanIcon, 1, 1);
 
     mzRangeTicDatasetIndices.clear();
@@ -280,6 +278,21 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     updateValueMarkers();
 
+    final Color boxClr = MZmineCore.getConfiguration().getDefaultColorPalette()
+        .getNegativeColorAWT();
+    final Color transparent = new Color(0.5f, 0f, 0f, 0.5f);
+    for (PasefMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
+      final double mobLow = selectedFrame.get()
+          .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().lowerEndpoint());
+      final double mobHigh = selectedFrame.get()
+          .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().upperEndpoint());
+      var rect = new Rectangle2D.Double(info.getIsolationWindow().lowerEndpoint(),
+          Math.min(mobLow, mobHigh), RangeUtils.rangeLength(info.getIsolationWindow()),
+          Math.abs(mobHigh - mobLow));
+      final XYShapeAnnotation precursorIso = new XYShapeAnnotation(rect, new BasicStroke(1f),
+          Color.red, null);
+      heatmapChart.getXYPlot().addAnnotation(precursorIso);
+    }
   }
 
   private void updateAxisLabels() {
@@ -578,6 +591,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     mobilogramChart.removeAllDatasets();
     summedSpectrumChart.removeAllDatasets();
     heatmapChart.removeAllDatasets();
+    heatmapChart.getXYPlot().clearAnnotations();
     singleSpectrumChart.removeAllDatasets();
   }
 
