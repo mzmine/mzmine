@@ -31,6 +31,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.Ms2ImagingMode;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
+import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TopNSelectionModule;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -187,5 +188,18 @@ public class TimsTofAcquisitionUtilsTest {
 
     Assertions.assertThrows(IllegalArgumentException.class,
         () -> precursor.incrementSpotCounterForCollisionEnergy(25));
+  }
+
+  @Test
+  void testOverlaps() {
+    final List<Double> ce = List.of(20d);
+    final var p1 = new MaldiTimsPrecursor(null, 0d, Range.closed(0.846f, 0.884f), ce);
+    final var p2 = new MaldiTimsPrecursor(null, 0d, Range.closed(0.886f, 0.912f), ce);
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p1, p2));
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p2, p1));
+
+    final var p3 = new MaldiTimsPrecursor(null, 0d, Range.closed(0.887f, 0.912f), ce);
+    Assertions.assertTrue(TopNSelectionModule.overlaps(p2, p3));
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p1, p3));
   }
 }

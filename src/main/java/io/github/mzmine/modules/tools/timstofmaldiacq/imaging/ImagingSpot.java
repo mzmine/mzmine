@@ -34,6 +34,8 @@ import java.util.Objects;
 
 public final class ImagingSpot {
 
+  private static final int MAX_PRECURSORS = 15;
+
   private final MaldiSpotInfo spotInfo;
   private final List<MaldiTimsPrecursor>[][] precursorLists;
 
@@ -116,7 +118,9 @@ public final class ImagingSpot {
    */
   public boolean addPrecursorToList(MaldiTimsPrecursor precursor, int xOffset, int yOffset) {
     var list = getPrecursorList(xOffset, yOffset);
-
+    if (list.size() == 15) {
+      return false;
+    }
     for (MaldiTimsPrecursor p : list) {
       if (TopNSelectionModule.overlaps(p, precursor)) {
         return false;

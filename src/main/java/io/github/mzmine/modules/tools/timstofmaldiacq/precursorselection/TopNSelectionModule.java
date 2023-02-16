@@ -38,43 +38,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class TopNSelectionModule implements PrecursorSelectionModule {
 
-  @Override
-  public @NotNull String getName() {
-    return "Top N Precursor selection module";
-  }
-
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return TopNSelectionParameters.class;
-  }
-
-  @Override
-  public List<List<MaldiTimsPrecursor>> getPrecursorList(Collection<MaldiTimsPrecursor> precursors,
-      ParameterSet parameters) {
-    final int numPrecursors = parameters.getValue(TopNSelectionParameters.numPrecursors);
-
-    // get the top N precursors
-    final List<MaldiTimsPrecursor> precursorSorted = new ArrayList<>(precursors.stream()
-        .sorted((p1, p2) -> -1 * Float.compare(p1.feature().getHeight(), p2.feature().getHeight()))
-        .toList());
-
-    final List<MaldiTimsPrecursor> annotated = precursorSorted.stream()
-        .filter(p -> p.feature().getRow().isIdentified()).toList();
-
-    final List<MaldiTimsPrecursor> topN = new ArrayList<>();
-    topN.addAll(annotated);
-    precursorSorted.removeAll(topN);
-    final int endIndex = Math.min(numPrecursors - topN.size(),
-        precursorSorted.size() - topN.size());
-    if (topN.size() < numPrecursors && endIndex > 0) {
-      topN.addAll(precursorSorted.subList(0, endIndex));
-    }
-
-    // arrange the topN precursors into non overlapping lists
-    final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = findOverlaps(topN);
-    return findRampsIterative(overlaps);
-  }
-
   public static Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> findOverlaps(
       List<MaldiTimsPrecursor> precursors) {
 
@@ -151,7 +114,6 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
     }
   }
 
-
   /**
    * Finds the next precursor in the allPrecursorOverlaps list to fit into the current ramp. Does
    * not alter any of the lists!
@@ -191,6 +153,52 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
         (int) Math.round(p2.oneOverK0().lowerEndpoint() * digitMult),
         (int) Math.round(p2.oneOverK0().upperEndpoint() * digitMult));
 
+    final float lowerBound = Math.min(p1.oneOverK0().upperEndpoint(),
+        p2.oneOverK0().upperEndpoint());
+    final float upperBound = Math.max(p2.oneOverK0().lowerEndpoint(),
+        p2.oneOverK0().lowerEndpoint());
+
+    if (Math.abs(lowerBound - upperBound) < 0.0021f) {
+      return false;
+    }
+
     return r1.isConnected(r2);
+  }
+
+  @Override
+  public @NotNull String getName() {
+    return "Top N Precursor selection module";
+  }
+
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return TopNSelectionParameters.class;
+  }
+
+  @Override
+  public List<List<MaldiTimsPrecursor>> getPrecursorList(Collection<MaldiTimsPrecursor> precursors,
+      ParameterSet parameters) {
+    final int numPrecursors = parameters.getValue(TopNSelectionParameters.numPrecursors);
+
+    // get the top N precursors
+    final List<MaldiTimsPrecursor> precursorSorted = new ArrayList<>(precursors.stream()
+        .sorted((p1, p2) -> -1 * Float.compare(p1.feature().getHeight(), p2.feature().getHeight()))
+        .toList());
+
+    final List<MaldiTimsPrecursor> annotated = precursorSorted.stream()
+        .filter(p -> p.feature().getRow().isIdentified()).toList();
+
+    final List<MaldiTimsPrecursor> topN = new ArrayList<>();
+    topN.addAll(annotated);
+    precursorSorted.removeAll(topN);
+    final int endIndex = Math.min(numPrecursors - topN.size(),
+        precursorSorted.size() - topN.size());
+    if (topN.size() < numPrecursors && endIndex > 0) {
+      topN.addAll(precursorSorted.subList(0, endIndex));
+    }
+
+    // arrange the topN precursors into non overlapping lists
+    final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = findOverlaps(topN);
+    return findRampsIterative(overlaps);
   }
 }
