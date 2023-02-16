@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -56,6 +57,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -74,9 +76,11 @@ public class TDFUtils {
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
   private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
+  private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private final int numThreads;
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
+
 
   /**
    * the handle of the currently opened file
@@ -227,12 +231,21 @@ public class TDFUtils {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
       handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
           pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
@@ -674,7 +687,6 @@ public class TDFUtils {
     } else {
       return false;
     }
-
   }
 
   public void setNumThreads(int numThreads) {
