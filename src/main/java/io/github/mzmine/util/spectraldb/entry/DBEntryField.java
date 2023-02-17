@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -43,7 +44,9 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.main.MZmineCore;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 public enum DBEntryField {
   // Compound specific
@@ -312,6 +315,7 @@ public enum DBEntryField {
    */
   public String getMgfID() {
     return switch (this) {
+      case RT -> "RTINSECONDS";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
       case ENTRY_ID -> "SPECTRUMID";
@@ -336,7 +340,7 @@ public enum DBEntryField {
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
-      case ACQUISITION, NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RT, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY ->
+      case ACQUISITION, NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY ->
           toString();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
@@ -430,4 +434,20 @@ public enum DBEntryField {
     return content;
   }
 
+  public String formatForMgf(@NotNull final Object value) {
+    return switch (this) {
+      case GNPS_ID, PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, COMMENT, DESCRIPTION, MOLWEIGHT, EXACT_MASS, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, DATASET_ID, USI, SCAN_NUMBER, DATAFILE_COLON_SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC ->
+          value.toString();
+      case RT -> switch (value) {
+        case Double d -> "%.2f".formatted(d * 60.0);
+        case Float f -> "%.2f".formatted(f * 60.f);
+        default -> throw new IllegalArgumentException("RT has to be a number");
+      };
+      case PRECURSOR_MZ -> switch (value) {
+        case Number d -> MZmineCore.getConfiguration().getExportFormats().mz(d);
+        default -> throw new IllegalArgumentException("MZ has to be a number");
+      };
+      case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "Negative" : "Positive";
+    };
+  }
 }
