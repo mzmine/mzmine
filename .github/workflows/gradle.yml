@@ -23,6 +23,7 @@ jobs:
           distribution: 'temurin'
           java-version: '19.0.1'
           cache: 'gradle'
+      - uses: actions/setup-node@v3
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -120,6 +121,12 @@ jobs:
 #        with:
 #          files: build/jpackage/
 #          dest: build/jpackage/MZmine_macOS_portable.zip
+      # TODO: refactor
+      - name: .app to .dmg
+        run: |
+          npm install -g appdmg
+          cd build/jpackage/
+          appdmg ../../gradle/appdmg.json MZmine_macOS_installer.dmg
       - name: Upload macos portable builds
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
@@ -132,8 +139,8 @@ jobs:
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_macos_dmg
-          path: build/jpackage/*.dmg
+          name: MZmine_macos_installer
+          path: build/jpackage/MZmine_macOS_installer.dmg
           retention-days: 7  # store for 7 days
 
   # release dev version
