@@ -128,6 +128,14 @@ jobs:
           path: build/jpackage/MZmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
 
+      - name: Upload macos dmg
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_macos_dmg
+          path: build/jpackage/MZmine_macOS_installer-3.3.1.dmg
+          retention-days: 7  # store for 7 days
+
   # release dev version
   release_dev:
     name: Release dev version

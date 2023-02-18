@@ -278,7 +278,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "16"
+    version = "19"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
@@ -361,8 +361,8 @@ runtime {
             ]
             installerOptions = [
                     "--license-file", "LICENSE.txt",
-//                    "--mac-sign",
-//                    "--mac-signing-key-user-name", developerID,
+                    "--mac-sign",
+                    "--mac-signing-key-user-name", developerID,
             ]
             installerName = "MZmine_macOS_installer"
         }
