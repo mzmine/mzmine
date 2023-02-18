@@ -125,8 +125,7 @@ jobs:
       - name: .app to .dmg
         run: |
           npm install -g appdmg
-          cd build/jpackage/
-          appdmg ../../gradle/appdmg.json MZmine_macOS_installer.dmg
+          appdmg gradle/appdmg.json build/jpackage/MZmine_macOS_installer.dmg
       - name: Upload macos portable builds
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
