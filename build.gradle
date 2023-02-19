@@ -361,8 +361,8 @@ runtime {
             ]
             installerOptions = [
                     "--license-file", "LICENSE.txt",
-//                    "--mac-sign",
-//                    "--mac-signing-key-user-name", developerID,
+                    "--mac-sign",
+                    "--mac-signing-key-user-name", developerID,
             ]
             installerName = "MZmine_macOS_installer"
         }
