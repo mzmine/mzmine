@@ -2,19 +2,18 @@ name: Test Build
 
 on:
   push:
-    branches: [ master, macos-signing ]
+    branches: [ master ]
     paths-ignore:
       - 'src/main/resources/mzmineversion.properties'
   pull_request:
-    branches: [ master, macos-signing ]
+    branches: [ master ]
 
 jobs:
   gradle_build:
     name: test and build
     strategy:
       matrix:
-        #os: [ ubuntu-latest, macos-latest, windows-latest ]
-        os: [ macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -26,21 +25,11 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+
+#      do macOS further down, ubuntu and windows here
       - name: Execute Gradle build
-        run: |
-          echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
-          security create-keychain -p abc123 build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p abc123 build.keychain
-          security import certificate.p12 -k build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
-          ./gradlew --stacktrace --info
-        env:
-          MACOS_DEVELOPER_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE }}
-          MACOS_DEVELOPER_CERTIFICATE_PWD: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE_PWD }}
-          MACOS_APPLE_ID_PWD: ${{ secrets.MACOS_APPLE_ID_PWD }}
-          MACOS_APP_IDENTITY_ID: ${{ secrets.MACOS_APP_IDENTITY_ID }}
-          MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
+        if: matrix.os != 'macos-latest'
+        run: ./gradlew --stacktrace --info
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
@@ -94,39 +83,68 @@ jobs:
           path: build/jpackage/MZmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
+
+
       # for macOS:
       # 1. upload the dmg installer
       # 2. remove the dmg isntaller from path
       # 3. zip and upload the jpackage directory
       # This is needed because zipping of the /jpackage/MZmine.app portable version zips the content
       # of the folder not the folder itself
-#      - name: Upload builds macos
-#        if: matrix.os == 'macos-latest'
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: MZmine_macos_dmg_installer
-#          path: build/jpackage/*.dmg
-#          retention-days: 7  # store for 7 days
-#
+      - name: Setup node for macOS packaging
+        if: matrix.os == 'macos-latest'
+        uses: actions/setup-node@v3  # To install appdmg
+
+      - name: Execute Gradle build on macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p abc123 build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p abc123 build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
+          ./gradlew --stacktrace --info
+        env:
+          MACOS_DEVELOPER_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE }}
+          MACOS_DEVELOPER_CERTIFICATE_PWD: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE_PWD }}
+          MACOS_APPLE_ID_PWD: ${{ secrets.MACOS_APPLE_ID_PWD }}
+          MACOS_APP_IDENTITY_ID: ${{ secrets.MACOS_APP_IDENTITY_ID }}
+          MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
+
+      - name: Pack macOS .app to .dmg
+        if: matrix.os == 'macos-latest'
+        run: |
+          npm install -g appdmg
+          appdmg gradle/appdmg.json build/jpackage/MZmine_macOS_installer.dmg
+
+      - name: Upload macOS installer
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_macOS_installer
+          path: build/jpackage/MZmine_macOS_installer.dmg
+          retention-days: 7  # store for 7 days
+
 #      - name: Remove dmg File and Make .app executable
 #        if: matrix.os == 'macos-latest'
 #        run: |
 #          find ./build/jpackage/ -name '*.dmg' -delete
 #          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
-#
 #      - name: Zip portable macos
 #        if: matrix.os == 'macos-latest'
 #        uses: papeloto/action-zip@v1
 #        with:
 #          files: build/jpackage/
 #          dest: build/jpackage/MZmine_macOS_portable.zip
-      - name: Upload macos portable builds
+      - name: Upload macOS portable builds
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_macos_portable
           path: build/jpackage/MZmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
+
 
   # release dev version
   release_dev:
@@ -167,3 +185,4 @@ jobs:
         with:
           commit_message: Increment patch version
           branch: master
+
