@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
@@ -168,8 +169,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // create custom button context menu to select columns
     FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
-    addContextMenuItem(contextMenuHelper, "Compact LC/GC-MS",
-        e -> showCompactChromatographyColumns());
+    addContextMenuItem(contextMenuHelper, "Compact table", e -> showCompactChromatographyColumns());
     addContextMenuItem(contextMenuHelper, "Toggle Ion Identities", e -> toggleIonIdentities());
     addContextMenuItem(contextMenuHelper, "Toggle Library Matches", e -> toggleLibraryMatches());
 
@@ -767,13 +767,19 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   private void showCompactChromatographyColumns() {
+    var flist = getFeatureList();
+    if (flist == null) {
+      return;
+    }
+
     // disable all feature types but height
     featureTypesParameter.setAll(false);
     setVisible(ColumnType.FEATURE_TYPE, HeightType.class, true);
 
     // keep states of all row types but check graphical columns
-    setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class,
-        getFeatureList().getNumberOfRawDataFiles() <= 10);
+    boolean smallDataset = flist.getNumberOfRawDataFiles() <= 10;
+    setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class, smallDataset);
+    setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, smallDataset);
     setVisible(ColumnType.ROW_TYPE, FeaturesType.class, true);
 
     applyVisibilityParametersToAllColumns();
@@ -786,7 +792,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   private void setVisible(ColumnType columnType, String parentHeader, Class clazz,
       boolean visible) {
     final DataType type = DataTypes.get(clazz);
-    String key = (parentHeader != null && parentHeader.isBlank() ? parentHeader + ":" : "")
+    String key = (parentHeader == null || parentHeader.isBlank() ? "" : parentHeader + ":")
         + type.getHeaderString();
     if (columnType == ColumnType.ROW_TYPE) {
       rowTypesParameter.setDataTypeVisible(key, visible);
