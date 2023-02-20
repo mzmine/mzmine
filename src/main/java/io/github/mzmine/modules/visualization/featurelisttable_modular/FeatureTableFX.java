@@ -60,6 +60,7 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -170,6 +171,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
     addContextMenuItem(contextMenuHelper, "Compact table", e -> showCompactChromatographyColumns());
+    addContextMenuItem(contextMenuHelper, "Toggle shape columns", e -> toggleShapeColumns());
     addContextMenuItem(contextMenuHelper, "Toggle Ion Identities", e -> toggleIonIdentities());
     addContextMenuItem(contextMenuHelper, "Toggle Library Matches", e -> toggleLibraryMatches());
 
@@ -180,6 +182,30 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         copySelectionToClipboard(this);
       }
     });
+  }
+
+  /**
+   * @return the default height or area DataType to show in the table
+   */
+  public Class<? extends HeightType> getDefaultAbundanceMeasureType() {
+    return switch (parameters.getValue(FeatureTableFXParameters.defaultAbundanceMeasure)) {
+      case Height -> HeightType.class;
+      case Area -> AreaType.class;
+    };
+  }
+
+  private void toggleShapeColumns() {
+    final var columnEntry = getColumnEntry(FeatureShapeType.class);
+    if (columnEntry == null) {
+      return;
+    }
+
+    final ColumnID mainColumn = columnEntry.getValue();
+    final boolean toggledState = !rowTypesParameter.isDataTypeVisible(mainColumn);
+    // set visibility of all types to the same
+    rowTypesParameter.setDataTypeVisible(mainColumn, toggledState);
+    setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, toggledState);
+    applyVisibilityParametersToAllColumns();
   }
 
   private void toggleIonIdentities() {
@@ -772,9 +798,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
 
-    // disable all feature types but height
+    // disable all feature types but the default abundance measure type
     featureTypesParameter.setAll(false);
-    setVisible(ColumnType.FEATURE_TYPE, HeightType.class, true);
+    setVisible(ColumnType.FEATURE_TYPE, getDefaultAbundanceMeasureType(), true);
 
     // keep states of all row types but check graphical columns
     boolean smallDataset = flist.getNumberOfRawDataFiles() <= 10;
