@@ -46,6 +46,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorEl
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -120,8 +121,8 @@ public class ConversionUtils {
    * @return a {@link SimpleScan}
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
-    double[] mzs = scan.getMzValues();
-    double[] intensities = convertFloatsToDoubles(scan.getIntensityValues());
+    DoubleBuffer mzs = scan.getDoubleBufferMzValues();
+    DoubleBuffer intensities = scan.getDoubleBufferMzValues();
     // we are sorting at this point to make sure mz are sorted, as not all mzML files are sorted
     // latest converters should also ensure sorting of data points
     // the other method uses sorted arrays

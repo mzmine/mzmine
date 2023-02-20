@@ -234,4 +234,11 @@ public class DataPointUtils {
     Arrays.sort(dps, sorter);
     return getDataPointsAsDoubleArray(dps);
   }
+
+  public static double[][] sort(DoubleBuffer mzs, DoubleBuffer intensities, DataPointSorter sorter) {
+    assert mzs.array().length == intensities.array().length;
+    DataPoint[] dps = DataPointUtils.getDataPoints(mzs.array(), intensities.array());
+    Arrays.sort(dps, sorter);
+    return getDataPointsAsDoubleArray(dps);
+  }
 }

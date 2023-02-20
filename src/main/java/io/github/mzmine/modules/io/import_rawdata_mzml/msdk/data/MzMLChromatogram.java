@@ -25,7 +25,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import io.github.msdk.MSDKException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +36,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javolution.text.CharArray;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
@@ -52,7 +56,7 @@ import io.github.msdk.datamodel.SimpleIsolationInfo;
 class MzMLChromatogram implements Chromatogram {
 
   private final @NotNull MzMLRawDataFile dataFile;
-  private @NotNull InputStream inputStream;
+//  private @NotNull InputStream inputStream;
   private final @NotNull String chromatogramId;
   private final @NotNull Integer chromatogramNumber;
   private final @NotNull Integer numOfDataPoints;
@@ -66,7 +70,8 @@ class MzMLChromatogram implements Chromatogram {
   private Double mz;
   private SeparationType separationType;
   private Range<Float> rtRange;
-  private float[] rtValues;
+//  private float[] rtValues;
+  private DoubleBuffer rtValues;
   private float[] intensityValues;
 
   private final Logger logger = Logger.getLogger(getClass().getName());
@@ -77,16 +82,15 @@ class MzMLChromatogram implements Chromatogram {
    * </p>
    *
    * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the data in
-   * @param is an {@link InputStream InputStream} of the MzML format data
+//   * @param is an {@link InputStream InputStream} of the MzML format data
    * @param chromatogramId the Chromatogram ID
    * @param chromatogramNumber the Chromatogram number
    * @param numOfDataPoints the number of data points in the retention time and intensity arrays
    */
-  MzMLChromatogram(@NotNull MzMLRawDataFile dataFile, InputStream is, String chromatogramId,
+  MzMLChromatogram(@NotNull MzMLRawDataFile dataFile, String chromatogramId,
       Integer chromatogramNumber, Integer numOfDataPoints) {
     this.cvParams = new MzMLCVGroup();
     this.dataFile = dataFile;
-    this.inputStream = is;
     this.chromatogramId = chromatogramId;
     this.chromatogramNumber = chromatogramNumber;
     this.numOfDataPoints = numOfDataPoints;
@@ -168,28 +172,6 @@ class MzMLChromatogram implements Chromatogram {
    */
   public void setIntensityBinaryDataInfo(MzMLBinaryDataInfo intensityBinaryDataInfo) {
     this.intensityBinaryDataInfo = intensityBinaryDataInfo;
-  }
-
-  /**
-   * <p>
-   * getInputStream.
-   * </p>
-   *
-   * @return a {@link io.github.msdk.io.mzml2.util.io.ByteBufferInputStream} object.
-   */
-  public InputStream getInputStream() {
-    return inputStream;
-  }
-
-  /**
-   * <p>
-   * setInputStream.
-   * </p>
-   *
-   * @param inputStream a {@link InputStream} object.
-   */
-  public void setInputStream(InputStream inputStream) {
-    this.inputStream = inputStream;
   }
 
   /**
@@ -389,29 +371,18 @@ class MzMLChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @NotNull
   public float[] getRetentionTimes(@Nullable float array[]) {
-    if (rtValues == null) {
-      if (getRtBinaryDataInfo().getArrayLength() != numOfDataPoints) {
-        logger.warning(
-            "Retention time binary data array contains a different array length from the default array length of the scan (#"
-                + getChromatogramNumber() + ")");
-      }
+    throw new UnsupportedOperationException("This chromatogram was used for import only. Use the DoubleBuffer method");
+  }
 
-      try {
-//        rtValues = MzMLPeaksDecoder.decodeToFloat(inputStream, getRtBinaryDataInfo(), array);
-      } catch (Exception e) {
-        throw (new MSDKRuntimeException(e));
-      }
-    }
+  public DoubleBuffer getDoubleBufferRetentionTimes() {
+    return this.rtValues;
+  }
 
-    if (array == null || array.length < numOfDataPoints) {
-      array = new float[numOfDataPoints];
-
-      System.arraycopy(rtValues, 0, array, 0, numOfDataPoints);
-    }
-
-    return array;
+  public void processBinaryValues(CharArray XMLMzContent, MzMLBinaryDataInfo binaryDataInfo)
+      throws MSDKException, IOException {
+    double[] array = new double[this.numOfDataPoints];
+    this.rtValues = MzMLPeaksDecoder.decodeToDouble(XMLMzContent, binaryDataInfo, array);
   }
 
   /** {@inheritDoc} */

@@ -32,6 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.DoubleBuffer;
 import java.util.Base64;
 import java.util.zip.DataFormatException;
 import java.util.zip.InflaterInputStream;
@@ -52,20 +53,16 @@ public class MzMLPeaksDecoder {
    * @param binaryDataInfo meta-info about the compressed data
    * @param data           an array of float.
    * @return a float array containing the decoded values
-   * @throws DataFormatException if any.
    * @throws IOException         if any.
    * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
-//  public static float[] decodeToFloat(InputStream inputStream, MzMLBinaryDataInfo binaryDataInfo,
-//      float[] data) throws DataFormatException, IOException, MSDKException {
   public static float[] decodeToFloat(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
       float[] data) throws IOException, MSDKException {
 
     int lengthIn = binaryDataInfo.getEncodedLength();
     int numPoints = binaryDataInfo.getArrayLength();
-    InputStream is = null;
+    InputStream is;
 
-//    InputStream inputStream = new ByteArrayInputStream(binaryDataInfo.getBinaryArray().toString().getBytes());
     InputStream inputStream = new ByteArrayInputStream(binaryData.toString().getBytes());
 
     is = Base64.getDecoder().wrap(inputStream);
@@ -77,9 +74,9 @@ public class MzMLPeaksDecoder {
       return new float[0];
     }
 
-    InflaterInputStream iis = null;
-    LittleEndianDataInputStream dis = null;
-    byte[] bytes = null;
+    InflaterInputStream iis;
+    LittleEndianDataInputStream dis;
+    byte[] bytes;
 
     if (data == null || data.length < numPoints) {
       data = new float[numPoints];
@@ -197,16 +194,13 @@ public class MzMLPeaksDecoder {
    * @throws IOException         if any.
    * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
-//  public static double[] decodeToDouble(InputStream inputStream, MzMLBinaryDataInfo binaryDataInfo,
-//      double[] data) throws DataFormatException, IOException, MSDKException {
-  public static double[] decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
-      double[] data) throws DataFormatException, IOException, MSDKException {
+  public static DoubleBuffer decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
+      double[] data) throws IOException, MSDKException {
     int lengthIn = binaryDataInfo.getEncodedLength();
     int numPoints = binaryDataInfo.getArrayLength();
 
-    InputStream is = null;
+    InputStream is;
 
-//    InputStream inputStream = new ByteArrayInputStream(binaryDataInfo.getBinaryArray().toString().getBytes());
     InputStream inputStream = new ByteArrayInputStream(binaryData.toString().getBytes());
 
     is = Base64.getDecoder().wrap(inputStream);
@@ -215,8 +209,7 @@ public class MzMLPeaksDecoder {
     // (ms2 usually)
     // in this case we just return an empty result
     if (lengthIn == 0) {
-      return new double[0];
-//      return DoubleBuffer.wrap(new double[0]);
+      return DoubleBuffer.wrap(new double[0]);
     }
 
     InflaterInputStream iis = null;
@@ -254,7 +247,7 @@ public class MzMLPeaksDecoder {
           if (numDecodedDoubles < 0) {
             throw new MSDKException("MSNumpress linear decoder failed");
           }
-          return data;
+          return DoubleBuffer.wrap(data);
         case NUMPRESS_POSINT:
         case NUMPRESS_POSINT_ZLIB:
           bytes = IOUtils.toByteArray(dis);
@@ -262,7 +255,7 @@ public class MzMLPeaksDecoder {
           if (numDecodedDoubles < 0) {
             throw new MSDKException("MSNumpress positive integer decoder failed");
           }
-          return data;
+          return DoubleBuffer.wrap(data);
         case NUMPRESS_SHLOGF:
         case NUMPRESS_SHLOGF_ZLIB:
           bytes = IOUtils.toByteArray(dis);
@@ -270,7 +263,7 @@ public class MzMLPeaksDecoder {
           if (numDecodedDoubles < 0) {
             throw new MSDKException("MSNumpress short logged float decoder failed");
           }
-          return data;
+          return DoubleBuffer.wrap(data);
         default:
           break;
       }
@@ -324,7 +317,7 @@ public class MzMLPeaksDecoder {
     } finally {
       dis.close();
     }
-    return data;
+    return DoubleBuffer.wrap(data);
   }
 
 }

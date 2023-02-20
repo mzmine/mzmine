@@ -43,7 +43,6 @@ import javolution.text.CharArray;
 import javolution.xml.internal.stream.XMLStreamReaderImpl;
 import javolution.xml.stream.XMLStreamException;
 import javolution.xml.stream.XMLStreamReader;
-import org.apache.commons.io.IOUtils;
 
 /**
  * <p>
@@ -144,7 +143,8 @@ public class MzMLParser {
         vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
             "defaultArrayLength").toInt();
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
-        vars.spectrum = new MzMLMsScan(newRawFile, is, id, scanNumber, vars.defaultArrayLength);
+//        vars.spectrum = new MzMLMsScan(newRawFile, is, id, scanNumber, vars.defaultArrayLength);
+        vars.spectrum = new MzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
@@ -209,10 +209,6 @@ public class MzMLParser {
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
-          int bomOffset = xmlStreamReader.getLocation().getBomLength();
-          vars.binaryDataInfo.setPosition(
-              xmlStreamReader.getLocation().getTotalCharsRead() + bomOffset);
-
           vars.spectrum.processBinaryValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
           tracker.exit(tracker.current());
         }
@@ -304,7 +300,9 @@ public class MzMLParser {
         Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
         vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
             "defaultArrayLength").toInt();
-        vars.chromatogram = new MzMLChromatogram(newRawFile, is, chromatogramId, chromatogramNumber,
+//        vars.chromatogram = new MzMLChromatogram(newRawFile, is, chromatogramId, chromatogramNumber,
+//            vars.defaultArrayLength);
+        vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
             vars.defaultArrayLength);
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
@@ -327,9 +325,7 @@ public class MzMLParser {
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
         if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
-          int bomOffset = xmlStreamReader.getLocation().getBomLength();
-          vars.binaryDataInfo.setPosition(
-              xmlStreamReader.getLocation().getTotalCharsRead() + bomOffset);
+          vars.chromatogram.processBinaryValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
         }
         if (!vars.skipBinaryDataArray) {
           if (MzMLCV.cvRetentionTimeArray.equals(
@@ -529,22 +525,20 @@ public class MzMLParser {
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && importer.getMsScanPredicate()
           .test(vars.spectrum)) {
-        vars.spectrum.setInputStream(IOUtils.toInputStream(xmlStreamReader.getText()));
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
           case MzMLCV.cvMzArray:
-            vars.spectrum.getMzValues();
+            vars.spectrum.getDoubleBufferMzValues();
             break;
 
           case MzMLCV.cvIntensityArray:
-            vars.spectrum.getIntensityValues();
+            vars.spectrum.getDoubleBufferMzValues();
             break;
         }
       } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)
           && importer.getChromatogramPredicate().test(vars.chromatogram)) {
-        vars.chromatogram.setInputStream(IOUtils.toInputStream(xmlStreamReader.getText()));
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
           case MzMLCV.cvRetentionTimeArray:
-            vars.chromatogram.getRetentionTimes();
+            vars.chromatogram.getDoubleBufferRetentionTimes();
             break;
 
           case MzMLCV.cvIntensityArray:

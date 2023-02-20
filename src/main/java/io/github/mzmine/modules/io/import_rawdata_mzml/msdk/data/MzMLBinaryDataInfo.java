@@ -255,11 +255,13 @@ public class MzMLBinaryDataInfo {
    * <p>
    * Set the position of the binary array in the {@link java.io.InputStream InputStream}
    * corresponding to the MzML format data
+   * Deprecated at the moment due to the problems with xml reader random access in case of 3- and 4-byte characters
    * </p>
    *
    * @param position a <code>long</code> number defining the position of the binary array in the
    *        {@link java.io.InputStream InputStream} corresponding to the MzML format data
    */
+  @Deprecated
   public void setPosition(long position) {
     this.position = position;
   }
@@ -281,13 +283,5 @@ public class MzMLBinaryDataInfo {
   public int getArrayLength() {
     return arrayLength;
   }
-//
-//  public void setBinaryArray(CharArray array) {
-//    this.binaryArray = array.toString();
-//  }
-//
-//  public String getBinaryArray() {
-//    return this.binaryArray;
-//  }
 
 }
