@@ -26,9 +26,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-#      do macOS further down, ubuntu and windows here
-      - name: Execute Gradle build
-        if: matrix.os != 'macos-latest'
+#      in PR, without signing
+#      in push to master use signed version for macOS
+      - name: Execute Gradle build (unsigned)
+        if: matrix.os != 'macos-latest' || ${{ github.event_name != 'push' }}
         run: ./gradlew --stacktrace --info
 
       # ZIP PORTABLE VERSIONS
@@ -95,8 +96,8 @@ jobs:
         if: matrix.os == 'macos-latest'
         uses: actions/setup-node@v3  # To install appdmg
 
-      - name: Execute Gradle build on macOS
-        if: matrix.os == 'macos-latest'
+      - name: Execute Gradle build on macOS (signed)
+        if: matrix.os == 'macos-latest' && ${{ github.event_name == 'push' }}
         run: |
           echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
           security create-keychain -p abc123 build.keychain
