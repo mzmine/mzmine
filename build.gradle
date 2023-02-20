@@ -23,8 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
 import org.gradle.internal.os.OperatingSystem
-import java.nio.file.*
+
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.util.function.Consumer
 
 plugins {
@@ -70,15 +75,15 @@ if (OperatingSystem.current().isMacOsX()) {
 
     project.ext.developerID = System.getenv("MACOS_APP_IDENTITY_ID")
     if (developerID == null || developerID.isBlank()) {
-        throw new GradleException("System variable MACOS_APP_IDENTITY_ID is not set.")
+        getLogger().warn('System variable MACOS_APP_IDENTITY_ID is not set for signing.')
     }
     project.ext.appleIDPassword = System.getenv("MACOS_APPLE_ID_PWD")
     if (appleIDPassword == null || appleIDPassword.isBlank()) {
-        throw new GradleException("System variable MACOS_APPLE_ID_PWD is not set.")
+        getLogger().warn('System variable MACOS_APPLE_ID_PWD is not set for signing.')
     }
     project.ext.appleTeamID = System.getenv("MACOS_APP_IDENTITY_TEAM_ID")
     if (appleTeamID == null || appleTeamID.isBlank()) {
-        throw new GradleException("System variable MACOS_APP_IDENTITY_TEAM_ID is not set.")
+        getLogger().warn('System variable MACOS_APP_IDENTITY_TEAM_ID is not set for signing.')
     }
 
     project.ext.imageDir = buildDir.toPath().resolve('jpackage').resolve('MZmine.app').toFile()
@@ -393,7 +398,7 @@ runtime {
 
 task signApp(dependsOn: jpackage) {
 
-    if (OperatingSystem.current().isMacOsX()) {
+    if (OperatingSystem.current().isMacOsX() && !(appleIDPassword == null || appleIDPassword.isBlank())) {
 
         doLast {
 
@@ -409,7 +414,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle('Deleting unused "non-notarizable" libraries...')
 
             // Delete unused dependencies of dependencies causing notarization issues
-            jarsDir.listFiles((FilenameFilter)((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
+            jarsDir.listFiles((FilenameFilter) ((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
                     || n.startsWith('jocl'))).stream().forEach(File::delete)
 
             getLogger().lifecycle("Signing native ThermoRawFileParser...")
@@ -417,8 +422,10 @@ task signApp(dependsOn: jpackage) {
             // Unzip ThermoRawFileParser.zip
             String mzmineJarName = "mzmine3-${semver.version}"
             exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
-            exec { commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
-                    "ThermoRawFileParser.zip -d ThermoRawFileParser"]) }
+            exec {
+                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
+                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
+            }
 
             // Sign ThermoRawFileParser content
             for (File f : jarsDir.toPath().resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
@@ -432,8 +439,10 @@ task signApp(dependsOn: jpackage) {
             }
 
             // Zip ThermoRawFileParser back
-            exec { commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo " +
-                                "&& zip -rq ThermoRawFileParser.zip ThermoRawFileParser && rm -rf ThermoRawFileParser"]) }
+            exec {
+                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo " +
+                        "&& zip -rq ThermoRawFileParser.zip ThermoRawFileParser && rm -rf ThermoRawFileParser"])
+            }
             exec { commandLine(['sh', '-c', "cd ${jarsDir} && jar cvf ${mzmineJarName}.jar -C ${mzmineJarName}/ ."]) }
             exec { commandLine(['sh', '-c', "rm -rf ${jarsDir}/${mzmineJarName}"]) }
 
@@ -483,15 +492,17 @@ task signApp(dependsOn: jpackage) {
             codesign(imageDir.toPath())
 
             getLogger().lifecycle("Zipping .app directory...")
-            exec { commandLine(['sh', '-c', "cd ${buildDir.toPath().resolve('jpackage')} " +
-                    "&& zip -rq MZmine_macOS_portable.zip MZmine.app"]) }
+            exec {
+                commandLine(['sh', '-c', "cd ${buildDir.toPath().resolve('jpackage')} " +
+                        "&& zip -rq MZmine_macOS_portable.zip MZmine.app"])
+            }
         }
     }
 }
 
 task notarizeApp(dependsOn: signApp) {
 
-    if (OperatingSystem.current().isMacOsX()) {
+    if (OperatingSystem.current().isMacOsX() && !(appleIDPassword == null || appleIDPassword.isBlank())) {
 
         doLast {
 
