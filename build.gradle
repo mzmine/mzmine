@@ -76,6 +76,8 @@ if (OperatingSystem.current().isMacOsX()) {
     project.ext.developerID = System.getenv("MACOS_APP_IDENTITY_ID")
     if (developerID == null || developerID.isBlank()) {
         getLogger().warn('System variable MACOS_APP_IDENTITY_ID is not set for signing.')
+//        needs a developerID as its passed in to the build
+        project.ext.developerID = 'MZmine'
     }
     project.ext.appleIDPassword = System.getenv("MACOS_APPLE_ID_PWD")
     if (appleIDPassword == null || appleIDPassword.isBlank()) {
