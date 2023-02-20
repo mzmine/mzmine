@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 
 public class FeatureTableFXParameters extends SimpleParameterSet {
@@ -46,6 +47,14 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "Default feature intensity", "Used in the compact table", AbundanceMeasure.values(),
       AbundanceMeasure.Height);
 
+  public static final BooleanParameter defaultVisibilityOfShapes = new BooleanParameter(
+      "Default visibility of shapes", "This parameter is applied when opening a new feature table",
+      true);
+
+  public static final IntegerParameter deactivateShapesGreaterNSamples = new IntegerParameter(
+      "Deactivate shapes >N samples", "Deactivate shapes for better performance above N samples.",
+      12);
+
   public static final BooleanParameter lockImagesToAspectRatio = new BooleanParameter(
       "Lock images to aspect ratio",
       "If enabled, the width of the column will be determined by the lateral width of "
@@ -57,7 +66,8 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public FeatureTableFXParameters() {
     super(showRowTypeColumns, showFeatureTypeColumns, defaultAbundanceMeasure,
-        lockImagesToAspectRatio, hideImageAxes);
+        defaultVisibilityOfShapes, deactivateShapesGreaterNSamples, lockImagesToAspectRatio,
+        hideImageAxes);
   }
 
 }

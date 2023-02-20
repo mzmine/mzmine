@@ -194,18 +194,37 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     };
   }
 
+  /**
+   * Applies when a new FeatureTableFX is created
+   *
+   * @return default visibility of shapes
+   */
+  public boolean getDefaultVisibilityOfShapes() {
+    return parameters.getValue(FeatureTableFXParameters.defaultVisibilityOfShapes);
+  }
+
+  /**
+   * @return the maximum samples before deactivating the shapes columns
+   */
+  public int getMaximumSamplesForVisibleShapes() {
+    return parameters.getValue(FeatureTableFXParameters.deactivateShapesGreaterNSamples);
+  }
+
+  private void setShapeColumnsVisible(boolean state) {
+    setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class, state);
+    setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, state);
+    applyVisibilityParametersToAllColumns();
+  }
+
   private void toggleShapeColumns() {
     final var columnEntry = getColumnEntry(FeatureShapeType.class);
     if (columnEntry == null) {
       return;
     }
 
-    final ColumnID mainColumn = columnEntry.getValue();
-    final boolean toggledState = !rowTypesParameter.isDataTypeVisible(mainColumn);
+    final boolean toggledState = !rowTypesParameter.isDataTypeVisible(columnEntry.getValue());
     // set visibility of all types to the same
-    rowTypesParameter.setDataTypeVisible(mainColumn, toggledState);
-    setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, toggledState);
-    applyVisibilityParametersToAllColumns();
+    setShapeColumnsVisible(toggledState);
   }
 
   private void toggleIonIdentities() {
@@ -773,7 +792,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         }
         addColumns(newValue);
         // first check if feature list is too large
-        if (newValue.getNumberOfRawDataFiles() > 10) {
+        setShapeColumnsVisible(getDefaultVisibilityOfShapes());
+        if (newValue.getNumberOfRawDataFiles() > getMaximumSamplesForVisibleShapes()) {
           showCompactChromatographyColumns();
         }
 
@@ -803,7 +823,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     setVisible(ColumnType.FEATURE_TYPE, getDefaultAbundanceMeasureType(), true);
 
     // keep states of all row types but check graphical columns
-    boolean smallDataset = flist.getNumberOfRawDataFiles() <= 10;
+    boolean smallDataset = flist.getNumberOfRawDataFiles() <= getMaximumSamplesForVisibleShapes();
     setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class, smallDataset);
     setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, smallDataset);
     setVisible(ColumnType.ROW_TYPE, FeaturesType.class, true);
