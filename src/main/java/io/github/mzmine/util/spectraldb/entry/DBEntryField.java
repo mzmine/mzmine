@@ -40,7 +40,10 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
@@ -48,6 +51,9 @@ import io.github.mzmine.main.MZmineCore;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The order reflects the rough order of these fields when exported
+ */
 public enum DBEntryField {
   // Compound specific
   ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
@@ -76,7 +82,8 @@ public enum DBEntryField {
   QUALITY_CHIMERIC,
 
   // number of signals
-  NUM_PEAKS(Integer.class);
+  NUM_PEAKS(Integer.class), // only used for everything that cannot easily be mapped
+  UNSPECIFIED;
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -174,11 +181,36 @@ public enum DBEntryField {
   }
 
   /**
+   * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
+   */
+  public static @NotNull DBEntryField fromDataType(@NotNull DataType type) {
+    return switch (type) {
+      case BestScanNumberType ignored -> SCAN_NUMBER;
+      case PrecursorMZType ignored -> PRECURSOR_MZ;
+      case MZType ignored -> PRECURSOR_MZ;
+      case NeutralMassType ignored -> EXACT_MASS;
+      case IDType ignored -> FEATURE_ID;
+      case ChargeType ignored -> CHARGE;
+      case FormulaType ignored -> FORMULA;
+      case InChIStructureType ignored -> INCHI;
+      case InChIKeyStructureType ignored -> INCHIKEY;
+      case SmilesStructureType ignored -> SMILES;
+      case IonTypeType ignored -> ION_TYPE;
+      case CompoundNameType ignored -> NAME;
+      case RTType ignored -> RT;
+      case CCSType ignored -> CCS;
+      case UsiType ignored -> USI;
+      case SplashType ignored -> SPLASH;
+      default -> UNSPECIFIED;
+    };
+  }
+
+  /**
    * @return The mzmine json format key or an empty String
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC, FILENAME, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS ->
+      case UNSPECIFIED, ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM, CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, DATAFILE_COLON_SCAN_NUMBER, QUALITY_CHIMERIC, FILENAME, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS ->
           StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
@@ -260,6 +292,7 @@ public enum DBEntryField {
       case FILENAME -> "raw_file_name";
       case SIRIUS_MERGED_SCANS -> "merged_scans";
       case SIRIUS_MERGED_STATS -> "merged_statistics";
+      case UNSPECIFIED -> "";
     };
   }
 
@@ -307,6 +340,7 @@ public enum DBEntryField {
       case FILENAME -> "file_name";
       case SIRIUS_MERGED_SCANS -> "";
       case SIRIUS_MERGED_STATS -> "";
+      case UNSPECIFIED -> "";
     };
   }
 
@@ -356,6 +390,7 @@ public enum DBEntryField {
       case FILENAME -> "FILENAME";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
+      case UNSPECIFIED -> "";
     };
   }
 
@@ -410,6 +445,7 @@ public enum DBEntryField {
       case DATASET_ID -> "";
       case FEATURE_ID -> "";
       case SIRIUS_MERGED_SCANS -> "";
+      case UNSPECIFIED -> "";
       case SIRIUS_MERGED_STATS -> "";
     };
   }
@@ -436,7 +472,7 @@ public enum DBEntryField {
 
   public String formatForMgf(@NotNull final Object value) {
     return switch (this) {
-      case GNPS_ID, PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, COMMENT, DESCRIPTION, MOLWEIGHT, EXACT_MASS, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, DATASET_ID, USI, SCAN_NUMBER, DATAFILE_COLON_SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC ->
+      case UNSPECIFIED, GNPS_ID, PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, COMMENT, DESCRIPTION, MOLWEIGHT, EXACT_MASS, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, DATASET_ID, USI, SCAN_NUMBER, DATAFILE_COLON_SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC ->
           value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
