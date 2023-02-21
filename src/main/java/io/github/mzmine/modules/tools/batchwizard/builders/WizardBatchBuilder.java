@@ -69,7 +69,7 @@ public abstract class WizardBatchBuilder {
    * @param steps workflow
    * @return the builder
    */
-  public static WizardBatchBuilder createBatchBuilderForWorkflow(final WizardSequence steps) {
+  public static WizardBatchBuilder createBatchBuilderForSequence(final WizardSequence steps) {
     // workflow is always set
     Optional<WizardStepParameters> preset = steps.get(WizardPart.WORKFLOW);
     var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getFactory();

@@ -80,9 +80,9 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    */
   public MassSpectrometerWizardParameterFactory[] getMatchingMassSpectrometerPresets() {
     return switch (this) {
-      case TIMS, TWIMS ->
+      case TIMS, TWIMS, DTIMS ->
           new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF};
-      case NO_IMS, IMS, DTIMS -> MassSpectrometerWizardParameterFactory.values();
+      case NO_IMS, IMS -> MassSpectrometerWizardParameterFactory.values();
     };
   }
 }

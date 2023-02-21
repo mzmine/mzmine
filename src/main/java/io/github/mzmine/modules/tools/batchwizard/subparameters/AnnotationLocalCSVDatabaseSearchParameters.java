@@ -36,16 +36,14 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
-  public static ComboParameter<MassOptions> massOptionsComboParameter = new ComboParameter<>(
-      "Use precursor m/z",
-      "Either use the precursor m/z from the database, or calculate various ions from the neutral mass",
-      MassOptions.values(), MassOptions.MASS_AND_IONS);
-
-
   public static final OptionalParameter<StringParameter> filterSamplesColumn = new OptionalParameter<>(
-      new StringParameter("Filename column (library generation)",
+      new StringParameter("Filename column (for library generation)",
           "Column header to filter matches to only occur in the given sample. Sample name needs to contain the value of this column. Used for library generation workflows.",
           "filename"), false);
+  public static ComboParameter<MassOptions> massOptionsComboParameter = new ComboParameter<>(
+      "Use precursor m/z",
+      "Either use the precursor m/z from the database, or calculate various ions from the neutral mass/formula/smiles",
+      MassOptions.values(), MassOptions.MASS_AND_IONS);
 
   public AnnotationLocalCSVDatabaseSearchParameters() {
     super(LocalCSVDatabaseSearchParameters.dataBaseFile, massOptionsComboParameter,
@@ -58,7 +56,7 @@ public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterS
     @Override
     public String toString() {
       return switch (this) {
-        case MASS_AND_IONS -> "as calculated from neutral mass + ions";
+        case MASS_AND_IONS -> "as calculated from neutral mass (or formula/smiles) + ions";
         case PRECURSOR_MZ -> "as listed in database";
       };
     }

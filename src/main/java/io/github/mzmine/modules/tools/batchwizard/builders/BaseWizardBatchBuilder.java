@@ -162,11 +162,16 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final File[] libraries;
   //filter
   protected final boolean filter13C;
+  protected final AbsoluteAndRelativeInt minAlignedSamples;
+  protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
   protected final boolean imsSmoothing;
-  protected final AbsoluteAndRelativeInt minAlignedSamples;
-  protected final OriginalFeatureListOption handleOriginalFeatureLists;
+  protected final MobilityType imsInstrumentType;
+  protected final Integer minImsDataPoints;
+  protected final Double imsFwhm;
+  protected final MobilityTolerance imsFwhmMobTolerance;
+
   // MS parameters currently all the same
   protected final Double noiseLevelMsn;
   protected final Double noiseLevelMs1;
@@ -175,9 +180,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final MZTolerance mzTolFeaturesIntraSample;
   protected final MZTolerance mzTolInterSample;
   protected final Polarity polarity;
-  protected final MobilityType imsInstrumentType;
-  protected final Double imsFwhm;
-  protected final Integer minImsDataPoints;
   // csv database
   private final boolean checkLocalCsvDatabase;
   private @NotNull String csvFilterSamplesColumn = "";
@@ -218,9 +220,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     params = steps.get(WizardPart.IMS);
     isImsActive = getValue(params, IonMobilityWizardParameters.imsActive);
     imsInstrumentType = getValue(params, IonMobilityWizardParameters.instrumentType);
-    imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     minImsDataPoints = getValue(params, IonMobilityWizardParameters.minNumberOfDataPoints);
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
+    imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
+    imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
 
     // mass spectrometer
     params = steps.get(WizardPart.MS);
@@ -1012,7 +1015,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LocalCSVDatabaseSearchParameters.rtTolerance,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
-    param.setParameter(LocalCSVDatabaseSearchParameters.mobTolerance, new MobilityTolerance(0.01f));
+    param.setParameter(LocalCSVDatabaseSearchParameters.mobTolerance, imsFwhmMobTolerance);
     param.setParameter(LocalCSVDatabaseSearchParameters.ccsTolerance, 0.05);
     param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples,
         !csvFilterSamplesColumn.isBlank(), csvFilterSamplesColumn.trim());

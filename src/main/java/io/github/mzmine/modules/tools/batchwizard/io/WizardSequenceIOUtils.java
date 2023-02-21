@@ -57,9 +57,9 @@ import org.w3c.dom.NodeList;
 /**
  * Import and export the batch wizard parameters
  */
-public class WizardWorkflowIOUtils {
+public class WizardSequenceIOUtils {
 
-  private static final Logger logger = Logger.getLogger(WizardWorkflowIOUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(WizardSequenceIOUtils.class.getName());
   public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("MZmine wizard preset",
       "*.mzmwizard");
   private static final String PART_TAG = "wiz_part";
@@ -67,7 +67,7 @@ public class WizardWorkflowIOUtils {
   private static final String PART_ATTRIBUTE = "part";
   private static final String PRESET_ATTRIBUTE = "preset";
 
-  private WizardWorkflowIOUtils() {
+  private WizardSequenceIOUtils() {
   }
 
   public static void saveToFile(final List<WizardStepParameters> workflow, final File file,
@@ -190,7 +190,7 @@ public class WizardWorkflowIOUtils {
     File file = chooser.showOpenDialog(null);
     if (file != null) {
       try {
-        return WizardWorkflowIOUtils.loadFromFile(file);
+        return WizardSequenceIOUtils.loadFromFile(file);
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot read batch wizard presets from " + file.getAbsolutePath(),
             e);
@@ -204,7 +204,7 @@ public class WizardWorkflowIOUtils {
    *
    * @return A list of local wizard workflows
    */
-  public static @NotNull List<LocalWizardWorkflowFile> findAllLocalPresetFiles() {
+  public static @NotNull List<LocalWizardSequenceFile> findAllLocalPresetFiles() {
     File path = getWizardSettingsPath();
     if (path == null) {
       return List.of();
@@ -213,13 +213,13 @@ public class WizardWorkflowIOUtils {
     return FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
         .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
           try {
-            WizardSequence presets = WizardWorkflowIOUtils.loadFromFile(file);
-            return new LocalWizardWorkflowFile(file, presets);
+            WizardSequence presets = WizardSequenceIOUtils.loadFromFile(file);
+            return new LocalWizardSequenceFile(file, presets);
           } catch (IOException e) {
             logger.warning("Could not import wizard preset file " + file.getAbsolutePath());
             return null;
           }
-        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardWorkflowFile::getName))
+        }).filter(Objects::nonNull).sorted(Comparator.comparing(LocalWizardSequenceFile::getName))
         .toList();
   }
 

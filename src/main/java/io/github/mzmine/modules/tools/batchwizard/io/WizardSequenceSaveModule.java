@@ -40,27 +40,27 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class WizardWorkflowSaveModule implements MZmineModule {
+public class WizardSequenceSaveModule implements MZmineModule {
 
-  private static final Logger logger = Logger.getLogger(WizardWorkflowSaveModule.class.getName());
+  private static final Logger logger = Logger.getLogger(WizardSequenceSaveModule.class.getName());
 
   public static void setupAndSave(final WizardSequence workflow) {
     ParameterSet params = MZmineCore.getConfiguration()
-        .getModuleParameters(WizardWorkflowSaveModule.class);
+        .getModuleParameters(WizardSequenceSaveModule.class);
     if (params.showSetupDialog(true) == ExitCode.OK) {
-      MZmineCore.getConfiguration().setModuleParameters(WizardWorkflowSaveModule.class, params);
+      MZmineCore.getConfiguration().setModuleParameters(WizardSequenceSaveModule.class, params);
 
-      File directory = params.getValue(WizardWorkflowSaveParameters.directory);
-      String fileName = params.getValue(WizardWorkflowSaveParameters.fileName);
+      File directory = params.getValue(WizardSequenceSaveParameters.directory);
+      String fileName = params.getValue(WizardSequenceSaveParameters.fileName);
       final var exportParts = Arrays.stream(
-          params.getValue(WizardWorkflowSaveParameters.exportParts)).collect(Collectors.toSet());
+          params.getValue(WizardSequenceSaveParameters.exportParts)).collect(Collectors.toSet());
       File file = FileAndPathUtil.getRealFilePath(directory, fileName,
-          WizardWorkflowIOUtils.FILE_FILTER.getExtensions().get(0).split("\\.")[1]);
+          WizardSequenceIOUtils.FILE_FILTER.getExtensions().get(0).split("\\.")[1]);
       try {
         // only keep parts to export
         var filteredWorkflow = workflow.stream()
             .filter(preset -> exportParts.contains(preset.getPart())).toList();
-        WizardWorkflowIOUtils.saveToFile(filteredWorkflow, file, true);
+        WizardSequenceIOUtils.saveToFile(filteredWorkflow, file, true);
       } catch (IOException e) {
         logger.log(Level.WARNING, "Cannot write batch wizard presets to " + file.getAbsolutePath(),
             e);
@@ -75,7 +75,7 @@ public class WizardWorkflowSaveModule implements MZmineModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return WizardWorkflowSaveParameters.class;
+    return WizardSequenceSaveParameters.class;
   }
 
 }
