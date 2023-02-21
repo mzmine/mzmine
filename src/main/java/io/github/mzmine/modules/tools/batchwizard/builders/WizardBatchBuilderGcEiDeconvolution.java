@@ -175,7 +175,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends WizardBatchBuilder {
     param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME, false);
-    param.setParameter(ADAP3DecompositionV2Parameters.AUTO_REMOVE, handleOriginalFeatureLists.name().equals("REMOVE") ? true : false);
+    param.setParameter(ADAP3DecompositionV2Parameters.AUTO_REMOVE, handleOriginalFeatureLists == OriginalFeatureListOption.REMOVE ? true : false);
 
     param.setParameter(ADAP3DecompositionV2Parameters.SUFFIX, "spec_deconv");
     q.add(new MZmineProcessingStepImpl<>(
