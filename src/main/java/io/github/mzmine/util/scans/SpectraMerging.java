@@ -491,10 +491,11 @@ public class SpectraMerging {
         .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
 
     if (msLevel > 1) {
-      // TODO find way to merge MsMsInfo or just use a list of them?
-      var infos = source.stream().map(SpectraMerging::getMsMsInfo).filter(Objects::nonNull)
-          .findFirst().orElse(null);
-      final MsMsInfo copy = infos.createCopy();
+      // Just use the one with the lowest MS level.
+      // source scans have all MsMsInfos inside merged scan
+      var copy = source.stream().map(SpectraMerging::getMsMsInfo).filter(Objects::nonNull)
+          .min(Comparator.comparingInt(MsMsInfo::getMsLevel)).map(MsMsInfo::createCopy)
+          .orElse(null);
       return new SimpleMergedMsMsSpectrum(storage, mzIntensities[0], mzIntensities[1], copy,
           msLevel, source, intensityMergingType, centerFunction, mergeType);
     }
