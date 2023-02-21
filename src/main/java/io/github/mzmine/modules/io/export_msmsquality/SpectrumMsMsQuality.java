@@ -25,14 +25,14 @@
 
 package io.github.mzmine.modules.io.export_msmsquality;
 
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 
 public record SpectrumMsMsQuality(float chimerity, MSMSScore explainedIntensityScore,
                                   MSMSScore explainedPeaksScore, int numPeaks,
                                   float spectralEntropy, float normalizedEntropy,
                                   float weightedEntropy, float normalizedWeightedEntropy,
-                                  FeatureAnnotation annotation) {
+                                  CompoundAnnotation annotation) {
 
   public String toCsvString(CharSequence separator) {
     return String.join(separator, annotation != null ? annotation.getCompoundName() : "",

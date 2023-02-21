@@ -37,7 +37,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
@@ -139,7 +139,7 @@ public class MsMsQualityExportTask extends AbstractTask {
           final ModularFeature feature = (ModularFeature) row.getBestFeature();
           final RawDataFile file = feature.getRawDataFile();
 
-          final FeatureAnnotation annotation = FeatureUtils.getBestFeatureAnnotation(row);
+          final CompoundAnnotation annotation = FeatureUtils.getBestFeatureAnnotation(row);
           final String formula = annotation != null ? annotation.getFormula() : null;
 
           if (annotatedOnly && formula == null) {
@@ -172,7 +172,7 @@ public class MsMsQualityExportTask extends AbstractTask {
   }
 
   private void processImsFeature(BufferedWriter writer, FeatureList featureList,
-      ModularFeature feature, FeatureAnnotation annotation, String formula) throws IOException {
+      ModularFeature feature, CompoundAnnotation annotation, String formula) throws IOException {
     final IMSRawDataFile imsFile = (IMSRawDataFile) feature.getRawDataFile();
     final MobilityScanDataAccess mobScanAccess = mobScanAccessMap.computeIfAbsent(imsFile,
         f -> new MobilityScanDataAccess(f, MobilityScanDataType.CENTROID,
@@ -195,7 +195,7 @@ public class MsMsQualityExportTask extends AbstractTask {
 
   private SpectrumMsMsQuality getImsMsMsQuality(ModularFeature feature, String formula,
       MobilityScanDataAccess mobScanAccess, Scan msmsScan, MergedMsMsSpectrum mergedMsMs,
-      FeatureAnnotation annotation) {
+      CompoundAnnotation annotation) {
 
     final PasefMsMsInfo info = (PasefMsMsInfo) mergedMsMs.getMsMsInfo();
     final Double window = RangeUtils.rangeLength(mergedMsMs.getMsMsInfo().getIsolationWindow());

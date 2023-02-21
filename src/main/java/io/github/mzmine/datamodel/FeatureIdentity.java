@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
@@ -38,17 +39,17 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface represents an identification result.
- *
- * To be replaced by {@link io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation}.
+ * <p>
+ * To be replaced by {@link CompoundAnnotation}.
  */
 @Deprecated
 @ScheduledForRemoval
 public interface FeatureIdentity extends Cloneable {
 
-  public static final String XML_IDENTITY_TYPE_ATTR = "identitytype";
-  public static final String XML_GENERAL_IDENTITY_ELEMENT = "featureidentity";
-  public static final String XML_PROPERTY_ELEMENT = "property";
-  public static final String XML_NAME_ATTR = "name";
+  String XML_IDENTITY_TYPE_ATTR = "identitytype";
+  String XML_GENERAL_IDENTITY_ELEMENT = "featureidentity";
+  String XML_PROPERTY_ELEMENT = "property";
+  String XML_NAME_ATTR = "name";
 
   /**
    * These variables define standard properties. The PROPERTY_NAME must be present in all instances
@@ -61,7 +62,7 @@ public interface FeatureIdentity extends Cloneable {
   String PROPERTY_URL = "URL";
   String PROPERTY_SPECTRUM = "SPECTRUM";
   String PROPERTY_COMMENT = "Comment";
-  String PROPERTY_ADDUCT ="Adduct";
+  String PROPERTY_ADDUCT = "Adduct";
   String PROPERTY_SMILES = "Smiles";
   String PROPERTY_INCHI_KEY = "InChIKey";
   String PROPERTY_RT = "RT (lib)";
@@ -99,24 +100,23 @@ public interface FeatureIdentity extends Cloneable {
    */
   @NotNull Map<String, String> getAllProperties();
 
-  @NotNull
-  public Object clone();
+  @NotNull Object clone();
 
   /**
    * Appends a feature identity to the current element.
    */
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
+  void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
-  public static FeatureIdentity loadFromXML(XMLStreamReader reader,
-      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+  static FeatureIdentity loadFromXML(XMLStreamReader reader, Collection<RawDataFile> possibleFiles)
+      throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_GENERAL_IDENTITY_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature identity element");
     }
 
     return switch (reader.getAttributeValue(null, XML_IDENTITY_TYPE_ATTR)) {
       case SimpleFeatureIdentity.XML_IDENTITY_TYPE -> SimpleFeatureIdentity.loadFromXML(reader);
-      case SpectralDBFeatureIdentity.XML_IDENTITY_TYPE -> SpectralDBFeatureIdentity
-          .loadFromXML(reader, possibleFiles);
+      case SpectralDBFeatureIdentity.XML_IDENTITY_TYPE ->
+          SpectralDBFeatureIdentity.loadFromXML(reader, possibleFiles);
       case CompoundDBIdentity.XML_IDENTITY_TYPE -> CompoundDBIdentity.loadFromXML(reader);
       default -> null;
     };

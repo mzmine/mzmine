@@ -126,7 +126,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
     if (!((reader.isStartElement() && startElementName.equals(XML_ELEMENT_OLD) // old case
         && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
-        || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
+        || (reader.isStartElement() && startElementName.equals(CompoundAnnotation.XML_ELEMENT)
         && startElementAttrValue.equals(XML_ATTR)))) {
       throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
     }

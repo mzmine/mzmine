@@ -30,8 +30,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
@@ -159,8 +159,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
         if (id != null) {
           ids.add(id);
         }
-      } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)) {
-        final FeatureAnnotation id = FeatureAnnotation.loadFromXML(reader, project, flist, row);
+      } else if (reader.getLocalName().equals(CompoundAnnotation.XML_ELEMENT)) {
+        final CompoundAnnotation id = CompoundAnnotation.loadFromXML(reader, project, flist, row);
         if (id instanceof CompoundDBAnnotation cid) {
           ids.add(cid);
         } else {

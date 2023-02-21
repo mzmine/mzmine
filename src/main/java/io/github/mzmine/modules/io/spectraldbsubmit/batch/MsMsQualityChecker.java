@@ -28,7 +28,7 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
@@ -57,7 +57,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
    * requirements.
    */
   public List<DataPoint> matchAndGetExplainedSignals(final Scan msmsScan,
-      final FeatureAnnotation annotation, FeatureListRow f) {
+      final CompoundAnnotation annotation, FeatureListRow f) {
 
     if (minNumSignals != null && msmsScan.getNumberOfDataPoints() < minNumSignals) {
       return null;

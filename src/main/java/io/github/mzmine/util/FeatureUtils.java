@@ -43,8 +43,8 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
@@ -406,11 +406,11 @@ public class FeatureUtils {
     Scan[] scanRange = dataFile.getScanNumbers(1, rtRange);
 
     // Feature parameters.
-    DataPoint targetDP[] = new DataPoint[scanRange.length];
+    DataPoint[] targetDP = new DataPoint[scanRange.length];
     double targetMZ;
     float targetRT, targetHeight, targetArea;
     targetMZ = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2;
-    targetRT = (float) (rtRange.upperEndpoint() + rtRange.lowerEndpoint()) / 2;
+    targetRT = (rtRange.upperEndpoint() + rtRange.lowerEndpoint()) / 2;
     targetHeight = targetArea = 0;
     Scan representativeScan = null;
     List<Scan> allMS2fragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(dataFile, rtRange,
@@ -508,13 +508,13 @@ public class FeatureUtils {
   }
 
   /**
-   * Extracts the best (most confident) {@link FeatureAnnotation} from a feature/row.
+   * Extracts the best (most confident) {@link CompoundAnnotation} from a feature/row.
    *
    * @param m The row/feature.
    * @return The annotation or null.
    */
   @Nullable
-  public static FeatureAnnotation getBestFeatureAnnotation(ModularDataModel m) {
+  public static CompoundAnnotation getBestFeatureAnnotation(ModularDataModel m) {
     final List<SpectralDBAnnotation> specDb = m.get(SpectralLibraryMatchesType.class);
     if (specDb != null && !specDb.isEmpty()) {
       return specDb.get(0);
