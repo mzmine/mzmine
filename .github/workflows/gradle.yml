@@ -30,18 +30,18 @@ jobs:
 #      in PR, without signing
 #      in push to master use signed version for macOS
       - name: Execute Gradle build (unsigned)
-        if: matrix.os != 'macos-latest' || ${{ github.event_name != 'push' }}
+        if: runner.os != 'macOS' || ${{ github.event_name != 'push' }}
         run: ./gradlew --stacktrace --info
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         uses: papeloto/action-zip@v1
         with:
           files: build/jpackage/MZmine/
           dest: build/jpackage/MZmine_Windows_portable.zip
       - name: Zip portable linux
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         uses: papeloto/action-zip@v1
         with:
           files: build/jpackage/MZmine/
@@ -49,14 +49,14 @@ jobs:
 
       # UPLOAD ALL FILES
       - name: Upload windows builds
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_windows_msi_installer
           path: build/jpackage/*.msi
           retention-days: 7  # store for 7 days
       - name: Upload windows portable builds
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_windows_portable
@@ -64,21 +64,21 @@ jobs:
           retention-days: 7  # store for 7 days
 
       - name: Upload builds ubuntu deb
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_linux_deb_package
           path: build/jpackage/*.deb
           retention-days: 7  # store for 7 days
       - name: Upload builds ubuntu rpm
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_linux_rpm_package
           path: build/jpackage/*.rpm
           retention-days: 7  # store for 7 days
       - name: Upload linux portable builds
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_linux_portable
@@ -94,11 +94,11 @@ jobs:
       # This is needed because zipping of the /jpackage/MZmine.app portable version zips the content
       # of the folder not the folder itself
       - name: Setup node for macOS packaging
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         uses: actions/setup-node@v3  # To install appdmg
 
       - name: Execute Gradle build on macOS (signed)
-        if: matrix.os == 'macos-latest' && ${{ github.event_name == 'push' }}
+        if: runner.os == 'macOS' && ${{ github.event_name == 'push' }}
         run: |
           echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
           security create-keychain -p abc123 build.keychain
@@ -115,13 +115,13 @@ jobs:
           MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
 
       - name: Pack macOS .app to .dmg
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
           npm install -g appdmg
           appdmg gradle/appdmg.json build/jpackage/MZmine_macOS_installer.dmg
 
       - name: Upload macOS installer
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_macOS_installer
@@ -129,18 +129,18 @@ jobs:
           retention-days: 7  # store for 7 days
 
 #      - name: Remove dmg File and Make .app executable
-#        if: matrix.os == 'macos-latest'
+#        if: runner.os == 'macOS'
 #        run: |
 #          find ./build/jpackage/ -name '*.dmg' -delete
 #          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
 #      - name: Zip portable macos
-#        if: matrix.os == 'macos-latest'
+#        if: runner.os == 'macOS'
 #        uses: papeloto/action-zip@v1
 #        with:
 #          files: build/jpackage/
 #          dest: build/jpackage/MZmine_macOS_portable.zip
       - name: Upload macOS portable builds
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_macos_portable
