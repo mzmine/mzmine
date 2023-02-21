@@ -589,10 +589,14 @@ public class ChartLogicsFX {
       }
 
       chart.getXYPlot().getDomainAxis().setUpperMargin(margin);
+    } catch (Exception ex) {
+      // ignore as it only fails for combined plots or non XY plots
+    }
+    try {
       chart.getXYPlot().getRangeAxis().setUpperMargin(margin);
       chart.getXYPlot().getRangeAxis().setLowerMargin(margin);
     } catch (Exception ex) {
-      // fails for combined charts
+      // ignore as it only fails for combined plots or non XY plots
     }
   }
 }
