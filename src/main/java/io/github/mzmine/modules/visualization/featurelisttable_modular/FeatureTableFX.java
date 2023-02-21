@@ -204,6 +204,24 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   /**
+   * Applies when a new FeatureTableFX is created
+   *
+   * @return default visibility of images in features
+   */
+  public boolean getDefaultVisibilityOfImages() {
+    return parameters.getValue(FeatureTableFXParameters.defaultVisibilityOfImages);
+  }
+
+  /**
+   * Applies when a new FeatureTableFX is created
+   *
+   * @return default visibility of ims charts in features
+   */
+  public boolean getDefaultVisibilityOfImsFeature() {
+    return parameters.getValue(FeatureTableFXParameters.defaultVisibilityOfImsFeature);
+  }
+
+  /**
    * @return the maximum samples before deactivating the shapes columns
    */
   public int getMaximumSamplesForVisibleShapes() {
@@ -792,7 +810,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         }
         addColumns(newValue);
         // first check if feature list is too large
-        setShapeColumnsVisible(getDefaultVisibilityOfShapes());
+        applyDefaultColumnVisibilities();
         if (newValue.getNumberOfRawDataFiles() > getMaximumSamplesForVisibleShapes()) {
           showCompactChromatographyColumns();
         }
@@ -810,6 +828,27 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         newValue.getRows().addListener(this);
       });
     });
+  }
+
+  /**
+   * Apply default visibility to all columns
+   */
+  private void applyDefaultColumnVisibilities() {
+    setShapeColumnsVisible(getDefaultVisibilityOfShapes());
+    // feature types only for single samples - otherwise too much performance impact
+    var featureList = getFeatureList();
+    if (featureList == null) {
+      return;
+    }
+    var raws = featureList.getRawDataFiles();
+    int samples = raws.size();
+    long imagingFiles = raws.stream().filter(raw -> raw instanceof ImagingRawDataFile).count();
+    boolean imsVisible = getDefaultVisibilityOfImsFeature() && samples == 1;
+    boolean imagesVisible = getDefaultVisibilityOfImages() && imagingFiles == 1;
+    setVisible(ColumnType.FEATURE_TYPE, FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
+        imsVisible);
+    setVisible(ColumnType.FEATURE_TYPE, FeatureShapeMobilogramType.class, imagesVisible);
+    applyVisibilityParametersToAllColumns();
   }
 
   private void showCompactChromatographyColumns() {

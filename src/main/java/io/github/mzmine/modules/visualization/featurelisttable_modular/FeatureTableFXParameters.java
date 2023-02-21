@@ -47,8 +47,18 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "Default feature intensity", "Used in the compact table", AbundanceMeasure.values(),
       AbundanceMeasure.Height);
 
+  public static final BooleanParameter defaultVisibilityOfImsFeature = new BooleanParameter(
+      "Default visibility (IMS feature charts)",
+      "This parameter is applied when opening a new feature table. Only used for single sample feature lists.",
+      true);
+
+  public static final BooleanParameter defaultVisibilityOfImages = new BooleanParameter(
+      "Default visibility (images)",
+      "This parameter is applied when opening a new feature table.  Only used for single sample feature lists.",
+      true);
+
   public static final BooleanParameter defaultVisibilityOfShapes = new BooleanParameter(
-      "Default visibility of shapes", "This parameter is applied when opening a new feature table",
+      "Default visibility (shapes)", "This parameter is applied when opening a new feature table",
       true);
 
   public static final IntegerParameter deactivateShapesGreaterNSamples = new IntegerParameter(
@@ -66,8 +76,8 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public FeatureTableFXParameters() {
     super(showRowTypeColumns, showFeatureTypeColumns, defaultAbundanceMeasure,
-        defaultVisibilityOfShapes, deactivateShapesGreaterNSamples, lockImagesToAspectRatio,
-        hideImageAxes);
+        defaultVisibilityOfImsFeature, defaultVisibilityOfImages, defaultVisibilityOfShapes,
+        deactivateShapesGreaterNSamples, lockImagesToAspectRatio, hideImageAxes);
   }
 
 }
