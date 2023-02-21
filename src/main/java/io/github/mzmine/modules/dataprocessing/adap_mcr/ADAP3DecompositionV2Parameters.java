@@ -24,6 +24,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import java.awt.Window;
@@ -86,13 +87,12 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
       "This string is added to feature list name as suffix", "Spectral Deconvolution");
 
-  public static final BooleanParameter AUTO_REMOVE =
-      new BooleanParameter("Remove original feature lists",
-          "If checked, original chromomatogram and feature lists will be removed");
+  public static final OriginalFeatureListHandlingParameter HANDLE_ORIGINAL =
+      new OriginalFeatureListHandlingParameter(false);
 
   public ADAP3DecompositionV2Parameters() {
     super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH, RET_TIME_TOLERANCE,
-        MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE},
+        MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, HANDLE_ORIGINAL},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_multivariate_curve_res/featdet_multivar_curve_res.html");
   }
 
