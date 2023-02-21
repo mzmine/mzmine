@@ -374,7 +374,7 @@ public class SpectraMerging {
     final List<Scan> mergedSpectra = new ArrayList<>();
     // group spectra with the same CE into the same list
     final Map<Float, List<Scan>> grouped = spectra.stream()
-        .collect(Collectors.groupingBy(SpectraMerging::getCollisionEnergy));
+        .collect(Collectors.groupingBy(spec1 -> getCollisionEnergy(spec1)));
 
     for (final Entry<Float, List<Scan>> entry : grouped.entrySet()) {
       final Scan spectrum = entry.getValue().get(0);
@@ -402,15 +402,20 @@ public class SpectraMerging {
     return mergedSpectra;
   }
 
-  private static Float getCollisionEnergy(final Scan spec) {
+  /**
+   * Cannot return null as it's used for grouping
+   *
+   * @return the collision energy or -1 if null
+   */
+  private static float getCollisionEnergy(final Scan spec) {
     if (spec instanceof MergedMsMsSpectrum merged) {
       return merged.getCollisionEnergy();
     }
     MsMsInfo info = spec.getMsMsInfo();
     if (info != null) {
-      return info.getActivationEnergy();
+      return Objects.requireNonNullElse(info.getActivationEnergy(), -1f);
     }
-    return null;
+    return -1f;
   }
 
   @Nullable
