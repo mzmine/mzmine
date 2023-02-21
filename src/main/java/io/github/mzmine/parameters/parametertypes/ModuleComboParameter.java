@@ -43,7 +43,8 @@ import org.w3c.dom.NodeList;
  * individually
  */
 public class ModuleComboParameter<ModuleType extends MZmineModule> implements
-    UserParameter<MZmineProcessingStep<ModuleType>, ModuleComboComponent>, EmbeddedParameterSet {
+    UserParameter<MZmineProcessingStep<ModuleType>, ModuleComboComponent>,
+    EmbeddedParameterSet<ParameterSet, MZmineProcessingStep<ModuleType>> {
 
   private static final Logger logger = Logger.getLogger(ModuleComboParameter.class.getName());
 
@@ -53,7 +54,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
   private MZmineProcessingStep<ModuleType> value;
 
   @SuppressWarnings("unchecked")
-  public ModuleComboParameter(String name, String description, @NotNull final ModuleType modules[],
+  public ModuleComboParameter(String name, String description, @NotNull final ModuleType[] modules,
       @NotNull final ModuleType defaultValue) {
     assert modules.length > 0;
 
@@ -128,8 +129,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
       return value;
     }
     for (Parameter<?> p : embeddedParameters.getParameters()) {
-      if (p instanceof UserParameter) {
-        UserParameter<?, ?> up = (UserParameter<?, ?>) p;
+      if (p instanceof UserParameter<?, ?> up) {
         Object upValue = up.getValue();
         if (upValue == null) {
           return null;
@@ -154,7 +154,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
   @SuppressWarnings("unchecked")
   @Override
   public ModuleComboParameter<ModuleType> cloneParameter() {
-    MZmineProcessingStep<ModuleType> newModules[] = new MZmineProcessingStep[modulesWithParams.length];
+    MZmineProcessingStep<ModuleType>[] newModules = new MZmineProcessingStep[modulesWithParams.length];
     MZmineProcessingStep<ModuleType> newValue = null;
     for (int i = 0; i < modulesWithParams.length; i++) {
       ModuleType module = modulesWithParams[i].getModule();

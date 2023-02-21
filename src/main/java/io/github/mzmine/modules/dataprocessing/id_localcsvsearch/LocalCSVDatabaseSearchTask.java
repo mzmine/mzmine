@@ -161,6 +161,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           error);
       if (lineIds == null) {
         setErrorMessage(error.get());
+        setStatus(TaskStatus.ERROR);
         return;
       }
 
