@@ -101,24 +101,22 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                   correct++;
                 }
                 state = State.WAIT_FOR_META;
-              } else if (l.toLowerCase().startsWith("scans")) {
-                // belongs to the previously created entry and
-                // is another spectrum
-
-                // data starts
-                state = State.DATA;
               } else {
+                sep = l.indexOf('=');
+                if (sep == -1) {
+                  // data starts
+                  state = State.DATA;
+                }
                 switch (state) {
                   case WAIT_FOR_META:
                     // wait for next entry
                     break;
                   case DATA:
-                    String[] data = l.split("\t");
+                    String[] data = l.split("[\\p{Zs}]");
                     dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
                         Double.parseDouble(data[1])));
                     break;
                   case META:
-                    sep = l.indexOf('=');
                     if (sep != -1 && sep < l.length() - 1) {
                       DBEntryField field = DBEntryField.forMgfID(l.substring(0, sep));
                       if (field != null) {
@@ -143,6 +141,10 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                                   fields.put(DBEntryField.ION_TYPE, adduct);
                                 }
                               }
+                            }
+                            // retention time is in seconds, mzmine uses minutes
+                            if (field.equals(DBEntryField.RT)) {
+                              value = ((Float) value) / 60.f;
                             }
 
                             fields.put(field, value);
