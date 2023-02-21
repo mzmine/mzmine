@@ -27,18 +27,18 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
+public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
   private final Range<Double> cropRtRange;
   private final RTTolerance intraSampleRtTol;
@@ -47,13 +47,13 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   private final Integer maxIsomersInRt;
   private final RTTolerance rtFwhm;
   private final Boolean stableIonizationAcrossSamples;
-  private final Boolean isExportActive;
   private final Boolean exportGnps;
   private final Boolean exportSirius;
   private final File exportPath;
   private final Boolean rtSmoothing;
+  private final LibraryBatchMetadataParameters libGenMetadata;
 
-  public WizardBatchBuilderLcDDA(final WizardSequence steps) {
+  public WizardBatchBuilderLcLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
     super(steps);
 
@@ -71,13 +71,13 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     stableIonizationAcrossSamples = getValue(params,
         IonInterfaceHplcWizardParameters.stableIonizationAcrossSamples);
 
-    // DDA workflow parameters
+    // library generation workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
-    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
-    isExportActive = optional.active();
-    exportPath = optional.value();
-    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
-    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+    exportPath = getValue(params, WorkflowLibraryGenerationWizardParameters.exportPath);
+    exportGnps = getValue(params, WorkflowLibraryGenerationWizardParameters.exportGnps);
+    exportSirius = getValue(params, WorkflowLibraryGenerationWizardParameters.exportSirius);
+    libGenMetadata = getOptionalParameters(params,
+        WorkflowLibraryGenerationWizardParameters.metadata).value();
   }
 
   @Override
@@ -99,29 +99,34 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
       makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
-
-    makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    // NO FILTERING FOR ISOTOPES
     makeAndAddIsotopeFinderStep(q);
-    makeAndAddJoinAlignmentStep(q, interSampleRtTol);
-    makeAndAddRowFilterStep(q);
-    makeAndAddGapFillStep(q, interSampleRtTol);
-    makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
-        rtFwhm, imsInstrumentType);
+
+    // annotation
+    makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
+
+    // library generation, reload library
+    makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);
+
+    // join after the generation but just concat all lists together
+    makeAndAddJoinAlignmentStep(q, null);
+
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
     makeAndAddIinStep(q);
 
-    // annotation
+    // match against own library
     makeAndAddLibrarySearchStep(q);
-    makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
+
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius);
     return q;
   }
 
   protected ParameterSet createMs2GrouperParameters() {
     return super.createMs2GrouperParameters(minRtDataPoints, minRtDataPoints >= 4, rtFwhm);
   }
+
 
   protected void makeAndAddMetaCorrStep(final BatchQueue q) {
     final boolean useCorrGrouping = minRtDataPoints > 3;

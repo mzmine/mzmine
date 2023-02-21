@@ -402,15 +402,20 @@ public class SpectraMerging {
     return mergedSpectra;
   }
 
-  private static Float getCollisionEnergy(final Scan spec) {
+  /**
+   * Cannot return null as it's used for grouping
+   *
+   * @return the collision energy or -1 if null
+   */
+  private static float getCollisionEnergy(final Scan spec) {
     if (spec instanceof MergedMsMsSpectrum merged) {
       return merged.getCollisionEnergy();
     }
     MsMsInfo info = spec.getMsMsInfo();
     if (info != null) {
-      return info.getActivationEnergy();
+      return Objects.requireNonNullElse(info.getActivationEnergy(), -1f);
     }
-    return null;
+    return -1f;
   }
 
   @Nullable
@@ -490,8 +495,25 @@ public class SpectraMerging {
     final int msLevel = source.stream().filter(s -> s instanceof Scan)
         .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
 
+    if (msLevel > 1) {
+      // Just use the one with the lowest MS level.
+      // source scans have all MsMsInfos inside merged scan
+      var copy = source.stream().map(SpectraMerging::getMsMsInfo).filter(Objects::nonNull)
+          .min(Comparator.comparingInt(MsMsInfo::getMsLevel)).map(MsMsInfo::createCopy)
+          .orElse(null);
+      return new SimpleMergedMsMsSpectrum(storage, mzIntensities[0], mzIntensities[1], copy,
+          msLevel, source, intensityMergingType, centerFunction, mergeType);
+    }
     return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
         source, intensityMergingType, centerFunction, mergeType);
+  }
+
+  public static @Nullable MsMsInfo getMsMsInfo(MassSpectrum spec) {
+    if (spec instanceof Scan scan) {
+      return scan.getMsMsInfo();
+    } else {
+      return null;
+    }
   }
 
   public static Frame getMergedFrame(@Nullable final MemoryMapStorage storage,
