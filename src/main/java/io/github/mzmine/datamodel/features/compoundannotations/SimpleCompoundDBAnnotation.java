@@ -53,6 +53,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -282,8 +284,10 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   @Override
   public String toString() {
-    return getCompoundName();
+    return Stream.of(getCompoundName(), getAdductType(), getScoreString()).filter(Objects::nonNull)
+        .map(Objects::toString).collect(Collectors.joining(": "));
   }
+
 
   @Override
   public boolean equals(Object o) {

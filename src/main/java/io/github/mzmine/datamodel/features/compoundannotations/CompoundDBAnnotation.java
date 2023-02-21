@@ -115,11 +115,10 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   static boolean isBaseAnnotationValid(CompoundDBAnnotation baseAnnotation, boolean useIonLibrary) {
     if (baseAnnotation.getPrecursorMZ() != null && !useIonLibrary) {
       return true;
-    } else if (useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
-        || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null)) {
-      return true;
+    } else {
+      return useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
+          || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null);
     }
-    return false;
   }
 
   /**
@@ -153,7 +152,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
    *
    * @return The neutral mass or null.
    */
-  public static Double calcNeutralMass(CompoundDBAnnotation annotation) {
+  static Double calcNeutralMass(CompoundDBAnnotation annotation) {
     final IonType currentAdduct = annotation.get(IonTypeType.class);
     if (currentAdduct != null && annotation.getPrecursorMZ() != null) {
       return currentAdduct.getMass(annotation.getPrecursorMZ());
@@ -434,4 +433,5 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return getReadOnlyMap().entrySet().stream()
         .map(e -> e.getKey().getUniqueID() + ": " + e.getValue()).collect(Collectors.joining(", "));
   }
+
 }
