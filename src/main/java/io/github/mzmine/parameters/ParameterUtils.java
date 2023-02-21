@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -48,15 +49,35 @@ public class ParameterUtils {
   public static void copyParameters(final ParameterSet source, final ParameterSet target) {
     Map<String, ? extends Parameter<?>> sourceParams = Arrays.stream(source.getParameters())
         .collect(Collectors.toMap(Parameter::getName, key -> key));
-    for (Parameter p : target.getParameters()) {
-      Parameter<?> value = sourceParams.getOrDefault(p.getName(), null);
-      if (value != null) {
-        try {
-          p.setValue(value.getValue());
-        } catch (Exception e) {
-          logger.warning("Failed copy parameter value from " + p.getName() + ". " + e.getMessage());
-        }
+    for (Parameter targetParam : target.getParameters()) {
+      Parameter<?> sourceParam = sourceParams.getOrDefault(targetParam.getName(), null);
+      if (sourceParam != null) {
+        copyParameterValue(sourceParam, targetParam);
       }
+    }
+  }
+
+  /**
+   * Set value of source to target. Also apply to nested parameters of {@link EmbeddedParameter} and
+   * {@link EmbeddedParameterSet}
+   *
+   * @param sourceParam source parameter is set to target
+   * @param targetParam target parameter
+   */
+  public static void copyParameterValue(final Parameter sourceParam, final Parameter targetParam) {
+    try {
+      targetParam.setValue(sourceParam.getValue());
+      if (targetParam instanceof EmbeddedParameterSet<?, ?> targetEm
+          && sourceParam instanceof EmbeddedParameterSet<?, ?> sourceEm) {
+        copyParameters(sourceEm.getEmbeddedParameters(), targetEm.getEmbeddedParameters());
+      }
+      if (targetParam instanceof EmbeddedParameter<?> targetEm
+          && sourceParam instanceof EmbeddedParameter<?> sourceEm) {
+        copyParameterValue(sourceEm.getEmbeddedParameter(), targetEm.getEmbeddedParameter());
+      }
+    } catch (Exception e) {
+      logger.warning(
+          "Failed copy parameter value from " + targetParam.getName() + ". " + e.getMessage());
     }
   }
 

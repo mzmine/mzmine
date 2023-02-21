@@ -23,19 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 
-public sealed class WorkflowWizardParameters extends WizardStepParameters permits
-    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters,
-    WorkflowLibraryGenerationWizardParameters {
+/**
+ * Loaded from file, the presets for each part in the sequence
+ *
+ * @param file  the file loaded
+ * @param parts the presets in sequential order
+ */
+public record LocalWizardSequenceFile(File file, WizardSequence parts) {
 
-  public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
-      final Parameter<?>... parameters) {
-    super(WizardPart.WORKFLOW, preset, parameters);
+  /**
+   * File name without extension is used as name for presets
+   */
+  public String getName() {
+    return FileAndPathUtil.eraseFormat(file.getName());
   }
 
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

@@ -76,6 +76,8 @@ if (OperatingSystem.current().isMacOsX()) {
     project.ext.developerID = System.getenv("MACOS_APP_IDENTITY_ID")
     if (developerID == null || developerID.isBlank()) {
         getLogger().warn('System variable MACOS_APP_IDENTITY_ID is not set for signing.')
+//        needs a developerID as its passed in to the build
+        project.ext.developerID = 'MZmine'
     }
     project.ext.appleIDPassword = System.getenv("MACOS_APPLE_ID_PWD")
     if (appleIDPassword == null || appleIDPassword.isBlank()) {
@@ -357,18 +359,24 @@ runtime {
         if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"
             // additional options for jpackage
-            imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns",
-                            "--mac-sign",
-                            "--mac-package-name", appName,
-                            "--mac-package-identifier", "io.github.mzmine.main",
-                            "--mac-signing-key-user-name", developerID,
-                            "--verbose"
-            ]
-            installerOptions = [
-                    "--license-file", "LICENSE.txt",
-                    "--mac-sign",
-                    "--mac-signing-key-user-name", developerID,
-            ]
+            // only sign if all needed information is present
+            if ((appleIDPassword == null || appleIDPassword.isBlank())) {
+                imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns"]
+                installerOptions = ["--license-file", "LICENSE.txt"]
+            } else {
+                imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns",
+                                "--mac-sign",
+                                "--mac-package-name", appName,
+                                "--mac-package-identifier", "io.github.mzmine.main",
+                                "--mac-signing-key-user-name", developerID,
+                                "--verbose"
+                ]
+                installerOptions = [
+                        "--license-file", "LICENSE.txt",
+                        "--mac-sign",
+                        "--mac-signing-key-user-name", developerID,
+                ]
+            }
             installerName = "MZmine_macOS_installer"
         }
         if (OperatingSystem.current().isLinux()) {

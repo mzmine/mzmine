@@ -56,7 +56,7 @@ import org.jfree.data.Range;
  */
 public class ChartLogicsFX {
 
-  private static Logger logger = Logger.getLogger(ChartLogicsFX.class.getName());
+  private static final Logger logger = Logger.getLogger(ChartLogicsFX.class.getName());
 
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
@@ -111,13 +111,11 @@ public class ChartLogicsFX {
       RectangleEdge domainAxisEdge = plot.getDomainAxisEdge();
       RectangleEdge rangeAxisEdge = plot.getRangeAxisEdge();
       // parent?
-      if (domainAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot) {
-        XYPlot pp = ((XYPlot) plot.getParent());
+      if (domainAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot pp) {
         domainAxis = pp.getDomainAxis();
         domainAxisEdge = pp.getDomainAxisEdge();
       }
-      if (rangeAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot) {
-        XYPlot pp = ((XYPlot) plot.getParent());
+      if (rangeAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot pp) {
         rangeAxis = pp.getRangeAxis();
         rangeAxisEdge = pp.getRangeAxisEdge();
       }
@@ -562,5 +560,43 @@ public class ChartLogicsFX {
     // chartPanel).isMouseZoomable()
     // : chartPanel.isRangeZoomable() && chartPanel.isDomainZoomable();
     return chart.getCanvas().isRangeZoomable() && chart.getCanvas().isDomainZoomable();
+  }
+
+  /**
+   * Set margins of axes in plots
+   */
+  public static void setAxesMargins(final JFreeChart chart, final double margin) {
+    try {
+      var plot = chart.getPlot();
+
+      if (plot instanceof CombinedDomainXYPlot cp) {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof XYPlot xy) {
+            xy.getDomainAxis().setUpperMargin(margin);
+            xy.getRangeAxis().setUpperMargin(margin);
+            xy.getRangeAxis().setLowerMargin(margin);
+          }
+        }
+      }
+      if (plot instanceof CombinedRangeXYPlot cp) {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof XYPlot xy) {
+            xy.getDomainAxis().setUpperMargin(margin);
+            xy.getRangeAxis().setUpperMargin(margin);
+            xy.getRangeAxis().setLowerMargin(margin);
+          }
+        }
+      }
+
+      chart.getXYPlot().getDomainAxis().setUpperMargin(margin);
+    } catch (Exception ex) {
+      // ignore as it only fails for combined plots or non XY plots
+    }
+    try {
+      chart.getXYPlot().getRangeAxis().setUpperMargin(margin);
+      chart.getXYPlot().getRangeAxis().setLowerMargin(margin);
+    } catch (Exception ex) {
+      // ignore as it only fails for combined plots or non XY plots
+    }
   }
 }

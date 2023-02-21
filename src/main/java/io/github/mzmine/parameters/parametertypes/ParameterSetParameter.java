@@ -39,7 +39,7 @@ import org.w3c.dom.NodeList;
  * @author aleksandrsmirnov
  */
 public class ParameterSetParameter implements UserParameter<ParameterSet, ParameterSetComponent>,
-    ParameterContainer, EmbeddedParameterSet {
+    ParameterContainer, EmbeddedParameterSet<ParameterSet, ParameterSet> {
 
   private static final Logger logger = Logger.getLogger(ParameterSetParameter.class.getName());
   private final String name;

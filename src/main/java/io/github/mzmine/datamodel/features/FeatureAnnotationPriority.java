@@ -23,19 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.datamodel.features;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-public sealed class WorkflowWizardParameters extends WizardStepParameters permits
-    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters,
-    WorkflowLibraryGenerationWizardParameters {
+/**
+ * Priority of feature annotations. Stream annotations in this priority see
+ * {@link FeatureAnnotationIterator}
+ */
+public enum FeatureAnnotationPriority {
+  MANUAL, SPECTRAL_LIBRARY, LIPID, EXACT_COMPOUND, FORMULA;
 
-  public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
-      final Parameter<?>... parameters) {
-    super(WizardPart.WORKFLOW, preset, parameters);
+  @NotNull
+  public List<?> getAll(FeatureListRow row) {
+    return switch (this) {
+      case MANUAL -> {
+        ManualAnnotation annotation = row.getManualAnnotation();
+        if (annotation != null && annotation.getCompoundName() != null
+            && !annotation.getCompoundName().isBlank()) {
+          yield List.of(annotation);
+        } else {
+          yield List.of();
+        }
+      }
+      case SPECTRAL_LIBRARY -> row.getSpectralLibraryMatches();
+      case LIPID -> row.getLipidMatches();
+      case EXACT_COMPOUND -> row.getCompoundAnnotations();
+      case FORMULA -> row.getFormulas();
+    };
   }
 
 }
