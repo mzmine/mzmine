@@ -440,13 +440,13 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       progress += step;
     }
 
-    final File spotFile = new File("D:\\", "spots.csv");
+    final File spotFile = new File(savePathDir, "spots.csv");
     spotFile.createNewFile();
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(spotFile))) {
       writer.write(spotBuilder.toString());
     }
 
-    final File precursorFile = new File("D:\\", "precursors.csv");
+    final File precursorFile = new File(savePathDir, "precursors.csv");
     precursorFile.createNewFile();
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(precursorFile))) {
       writer.write(precursorBuilder.toString());

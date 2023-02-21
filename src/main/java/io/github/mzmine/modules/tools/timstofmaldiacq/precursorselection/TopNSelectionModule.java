@@ -142,7 +142,7 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
   }
 
   public static boolean overlaps(MaldiTimsPrecursor p1, MaldiTimsPrecursor p2) {
-    final int digits = 2;
+    final int digits = 3;
     final double digitMult = Math.pow(10d, digits);
 
     final Range<Integer> r1 = Range.closed(
@@ -158,11 +158,9 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
     final float upperBound = Math.max(p2.oneOverK0().lowerEndpoint(),
         p2.oneOverK0().lowerEndpoint());
 
-    if (Math.abs(lowerBound - upperBound) < 0.0021f) {
-      return false;
-    }
+//    p1.oneOverK0().isConnected(p2.oneOverK0());
 
-    return r1.isConnected(r2);
+    return r1.isConnected(r2) || Math.abs(lowerBound - upperBound) < 0.0021f;
   }
 
   @Override

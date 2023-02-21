@@ -118,7 +118,7 @@ public final class ImagingSpot {
    */
   public boolean addPrecursorToList(MaldiTimsPrecursor precursor, int xOffset, int yOffset) {
     var list = getPrecursorList(xOffset, yOffset);
-    if (list.size() == 15) {
+    if (list.size() == 25) {
       return false;
     }
     for (MaldiTimsPrecursor p : list) {

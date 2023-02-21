@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -36,7 +36,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TimsTOFImageMsMsModule implements MZmineRunnableModule {
+public class TimsTOFImageMsMsModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
@@ -63,6 +63,6 @@ public class TimsTOFImageMsMsModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return null;
+    return MZmineModuleCategory.TOOLS;
   }
 }

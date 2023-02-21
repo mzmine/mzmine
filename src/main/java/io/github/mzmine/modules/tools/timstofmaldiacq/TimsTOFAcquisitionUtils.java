@@ -86,8 +86,8 @@ public class TimsTOFAcquisitionUtils {
 
     try (var writer = new FileWriter(csv)) {
       BufferedWriter w = new BufferedWriter(writer);
-      w.write("1");  // activate CE settings from the MALDI MS/MS tab
-      w.newLine();
+//      w.write("1");  // activate CE settings from the MALDI MS/MS tab
+//      w.newLine();
 
       // make sure the precursors are sorted
       precursorList.sort(Comparator.comparingDouble(p -> p.oneOverK0().lowerEndpoint()));
