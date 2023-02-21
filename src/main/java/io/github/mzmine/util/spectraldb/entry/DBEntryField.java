@@ -439,8 +439,9 @@ public enum DBEntryField {
       case GNPS_ID, PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, COMMENT, DESCRIPTION, MOLWEIGHT, EXACT_MASS, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, DATASET_ID, USI, SCAN_NUMBER, DATAFILE_COLON_SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC ->
           value.toString();
       case RT -> switch (value) {
-        case Double d -> "%.2f".formatted(d * 60.0);
+        // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);
+        case Double d -> "%.2f".formatted(d * 60.0);
         default -> throw new IllegalArgumentException("RT has to be a number");
       };
       case PRECURSOR_MZ -> switch (value) {
