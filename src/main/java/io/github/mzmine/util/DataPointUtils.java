@@ -88,16 +88,9 @@ public class DataPointUtils {
    */
   public static double[][] getDataPointsAsDoubleArray(DoubleBuffer mzValues,
       DoubleBuffer intensityValues) {
-    assert mzValues.capacity() == intensityValues.capacity();
-
-    double[][] data = new double[2][];
-    data[0] = new double[mzValues.capacity()];
-    data[1] = new double[mzValues.capacity()];
-    for (int i = 0; i < mzValues.capacity(); i++) {
-      data[0][i] = mzValues.get(i);
-      data[1][i] = intensityValues.get(i);
-    }
-    return data;
+    assert mzValues.limit() == intensityValues.limit();
+    return new double[][]{getDoubleBufferAsArray(mzValues),
+        getDoubleBufferAsArray(intensityValues)};
   }
 
   /**
@@ -106,7 +99,8 @@ public class DataPointUtils {
    */
   public static double[] getDoubleBufferAsArray(DoubleBuffer values) {
     double[] data = new double[values.limit()];
-    values.get(data);
+    // set start to 0 to get absolute array not relative to point
+    values.get(0, data);
     return data;
   }
 
@@ -142,12 +136,12 @@ public class DataPointUtils {
 
   public static double[][] getDatapointsAboveNoiseLevel(DoubleBuffer rawMzs,
       DoubleBuffer rawIntensities, double noiseLevel) {
-    assert rawMzs.capacity() == rawIntensities.capacity();
+    assert rawMzs.limit() == rawIntensities.limit();
 
     List<Double> mzs = new ArrayList<>();
     List<Double> intensities = new ArrayList<>();
 
-    for (int i = 0; i < rawMzs.capacity(); i++) {
+    for (int i = 0; i < rawMzs.limit(); i++) {
       if (rawIntensities.get(i) > noiseLevel) {
         mzs.add(rawMzs.get(i));
         intensities.add(rawIntensities.get(i));
