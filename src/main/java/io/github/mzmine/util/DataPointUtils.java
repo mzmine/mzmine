@@ -105,11 +105,8 @@ public class DataPointUtils {
    * subclasses. Usually, the data should be accessed directly via the buffer.
    */
   public static double[] getDoubleBufferAsArray(DoubleBuffer values) {
-    double[] data = new double[values.capacity()];
-
-    for (int i = 0; i < values.capacity(); i++) {
-      data[i] = values.get(i);
-    }
+    double[] data = new double[values.limit()];
+    values.get(data);
     return data;
   }
 
