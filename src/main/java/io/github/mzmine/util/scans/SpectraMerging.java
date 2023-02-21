@@ -374,7 +374,7 @@ public class SpectraMerging {
     final List<Scan> mergedSpectra = new ArrayList<>();
     // group spectra with the same CE into the same list
     final Map<Float, List<Scan>> grouped = spectra.stream()
-        .collect(Collectors.groupingBy(spec1 -> getCollisionEnergy(spec1)));
+        .collect(Collectors.groupingBy(SpectraMerging::getCollisionEnergy));
 
     for (final Entry<Float, List<Scan>> entry : grouped.entrySet()) {
       final Scan spectrum = entry.getValue().get(0);
