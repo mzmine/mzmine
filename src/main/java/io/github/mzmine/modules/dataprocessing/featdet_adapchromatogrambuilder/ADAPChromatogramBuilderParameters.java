@@ -59,16 +59,18 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       new ScanSelection(1));
 
   public static final IntegerParameter minimumScanSpan = new IntegerParameter(
-      "Minimum consecutive scans ≥ Intensity threshold", """
+      "Minimum consecutive scans", """
       Minimum number of consecutive scans (data points) where a signal has to be detected to build a valid chromatogram (EIC).
       At least this number of scans need to be above the specified intensity threshold and one needs to reach the minimum 
       The optimal value depends on the chromatography system setup. The best way to set this parameter
       is by studying the raw data and determining what is the typical time span (number of data points) of chromatographic features.""",
       5, true, 1, null);
 
-  public static final DoubleParameter minGroupIntensity = new DoubleParameter("Intensity threshold",
-      "This parameter is the intensity value for which intensities greater than this value can contribute to the minimumScanSpan count.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+  public static final DoubleParameter minGroupIntensity = new DoubleParameter(
+      "Minimum intensity for consecutive scans", """
+      This threshold is only used to find consecutive scans (data points) above a certain intensity.
+      All data points, even below this level can be added to a chromatogram but at least N consecutive scans need to be above.
+      """, MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "Scan to scan accuracy (m/z)", """
