@@ -308,7 +308,7 @@
         userData="io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule"/>
       <MenuItem text="MGF file (ADAP)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule"/>
-      <MenuItem text="GNPS - feature based molecular networking" onAction="#runModule"
+      <MenuItem text="Molecular networking files (e.g., GNPS, FBMN, IIMN, MetGem)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
@@ -583,9 +583,10 @@
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
     <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
-    <MenuItem text="Kovats index extraction"
-      onAction="#runModule"
-      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>
+<!--    There is an exception with a combobox value being null in the dialog. not sure how to fix -->
+<!--    <MenuItem text="Kovats index extraction"-->
+<!--      onAction="#runModule"-->
+<!--      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>-->
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>

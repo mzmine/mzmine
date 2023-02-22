@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.import_spectral_library;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import java.util.List;
@@ -34,7 +33,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class SpectralLibraryImportParameters extends SimpleParameterSet {
 
   public static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("All library files", "*.json", "*.mgf", "*.msp", "*.jdx"), //
       new ExtensionFilter("json files from MoNA or GNPS", "*.json"), //
       new ExtensionFilter("mgf files", "*.mgf"), //
       new ExtensionFilter("msp files from NIST", "*.msp"), //
@@ -48,7 +46,7 @@ public class SpectralLibraryImportParameters extends SimpleParameterSet {
       extensions);
 
   public SpectralLibraryImportParameters() {
-    super(new Parameter[]{dataBaseFiles});
+    super(dataBaseFiles);
   }
 
 }

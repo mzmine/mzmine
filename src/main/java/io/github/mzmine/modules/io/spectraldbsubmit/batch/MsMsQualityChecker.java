@@ -40,6 +40,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -91,10 +92,11 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
 
     final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
 
+    int precursorCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
     if (minExplainedIntensity != null) {
       MSMSScore intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(
           msmsFormulaTolerance, molecularFormula, dataPoints, msmsScan.getPrecursorMz(),
-          msmsScan.getPrecursorCharge(), dataPoints.length);
+          precursorCharge, dataPoints.length);
       if (intensityFormulaScore == null
           || intensityFormulaScore.getScore() < minExplainedIntensity.floatValue()) {
         return null;
@@ -104,7 +106,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
 
     if (minExplainedSignals != null) {
       MSMSScore peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance,
-          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(),
+          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), precursorCharge,
           dataPoints.length);
       if (peakFormulaScore == null
           || peakFormulaScore.getScore() < minExplainedSignals.floatValue()) {

@@ -40,7 +40,8 @@ import org.w3c.dom.Element;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ComboWithInputParameter<EnumType, EmbeddedParameterType extends UserParameter<?, ?>> implements
-    UserParameter<EnumType, ComboWIthInputComponent<EnumType>> {
+    UserParameter<EnumType, ComboWIthInputComponent<EnumType>>,
+    EmbeddedParameter<EmbeddedParameterType> {
 
   private final EmbeddedParameterType embeddedParameter;
   private final ObservableList<EnumType> choices;
@@ -60,6 +61,7 @@ public class ComboWithInputParameter<EnumType, EmbeddedParameterType extends Use
     this.inputTrigger = inputTrigger;
   }
 
+  @Override
   public EmbeddedParameterType getEmbeddedParameter() {
     return embeddedParameter;
   }
