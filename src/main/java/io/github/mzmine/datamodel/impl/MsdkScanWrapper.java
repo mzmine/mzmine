@@ -26,6 +26,8 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
@@ -60,8 +62,14 @@ public class MsdkScanWrapper implements Scan {
     this.scan = scan;
 
     // preload as getMzValue(i) is inefficient in MSDK scans
-    mzs = scan.getMzValues();
-    intensities = scan.getIntensityValues();
+    if (scan instanceof BuildingMzMLMsScan) {
+      //todo the tests were failing because of getMzValues() and getIntensityValues here - fix
+      mzs = ((BuildingMzMLMsScan) scan).getDoubleBufferMzValues().array();
+      intensities = Floats.toArray(Doubles.asList(((BuildingMzMLMsScan) scan).getDoubleBufferIntensityValues().array()));
+    } else {
+      mzs = scan.getMzValues();
+      intensities = scan.getIntensityValues();
+    }
 
     scan.getIsolations();
     if (!scan.getIsolations().isEmpty()) {
