@@ -47,12 +47,12 @@ import javolution.xml.stream.XMLStreamException;
 
 /**
  * <p>
- * This class contains methods which parse data in MzML format from {@link File File}, {@link Path
- * Path} or {@link InputStream InputStream} <br> {@link MsScan Scan}s and {@link Chromatogram
- * Chromatogram}s will be parsed, and the values pre-loaded when the {@link Predicate Predicate} is
- * passed. Other {@link MsScan Scan}s and {@link Chromatogram Chromatogram}s can be loaded on demand
- * if the source is a {@link File File}, whereas, they will be dropped if the source is an {@link
- * InputStream InputStream}
+ * This class contains methods which parse data in MzML format from {@link File File},
+ * {@link Path Path} or {@link InputStream InputStream} <br> {@link MsScan Scan}s and
+ * {@link Chromatogram Chromatogram}s will be parsed, and the values pre-loaded when the
+ * {@link Predicate Predicate} is passed. Other {@link MsScan Scan}s and
+ * {@link Chromatogram Chromatogram}s can be loaded on demand if the source is a {@link File File},
+ * whereas, they will be dropped if the source is an {@link InputStream InputStream}
  * </p>
  */
 public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
@@ -87,13 +87,13 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * @param mzMLFilePath          a {@link String String} which contains the absolute path to the
    *                              MzML File.
    * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
+   *                              parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
+   *                              will be parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    */
   public MzMLFileImportMethod(String mzMLFilePath, Predicate<MsScan> msScanPredicate,
       Predicate<Chromatogram> chromatogramPredicate) {
@@ -119,13 +119,13 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * @param mzMLFilePath          a {@link Path Path} object which contains the path to the MzML
    *                              File.
    * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
+   *                              parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
+   *                              will be parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    */
   public MzMLFileImportMethod(Path mzMLFilePath, Predicate<MsScan> msScanPredicate,
       Predicate<Chromatogram> chromatogramPredicate) {
@@ -150,13 +150,13 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    *
    * @param mzMLFile              a {@link File File} object instance of the MzML File.
    * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
+   *                              parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
+   *                              will be parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    */
   public MzMLFileImportMethod(File mzMLFile, Predicate<MsScan> msScanPredicate,
       Predicate<Chromatogram> chromatogramPredicate) {
@@ -182,13 +182,13 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * @param inputStream           an {@link InputStream InputStream} which contains data in MzML
    *                              format.
    * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
+   *                              parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
+   *                              will be parsed by the parser and added to the
+   *                              {@link MzMLRawDataFile RawDataFile} returned by the
+   *                              {@link #getResult() getResult()} method.
    */
   public MzMLFileImportMethod(InputStream inputStream, Predicate<MsScan> msScanPredicate,
       Predicate<Chromatogram> chromatogramPredicate) {
@@ -266,9 +266,11 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
               parser.processClosingTag(xmlStreamReader, closingTagName);
               break;
 
-            case XMLStreamConstants.CHARACTERS:
-              parser.processCharacters(xmlStreamReader);
-              break;
+//            processCharacters method is not used in the moment
+//            might be returned if new random access xml parser is introduced
+//            case XMLStreamConstants.CHARACTERS:
+//              parser.processCharacters(xmlStreamReader);
+//              break;
           }
 
         } while (eventType != XMLStreamConstants.END_DOCUMENT);
@@ -322,8 +324,8 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * Getter for the field <code>msScanPredicate</code>.
    * </p>
    *
-   * @return {@link Predicate Predicate} specified for {@link MsScan MsScan}s <br> The {@link
-   * Predicate Predicate} evaluates to true always, if it wasn't specified on initialization
+   * @return {@link Predicate Predicate} specified for {@link MsScan MsScan}s <br> The
+   * {@link Predicate Predicate} evaluates to true always, if it wasn't specified on initialization
    */
   public Predicate<MsScan> getMsScanPredicate() {
     return msScanPredicate;

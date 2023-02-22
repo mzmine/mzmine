@@ -36,7 +36,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.Date;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
@@ -175,7 +174,7 @@ public class ThermoRawImportTask extends AbstractTask {
           return;
         }
 
-        Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, (MzMLMsScan) scan);
+        Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, (BuildingMzMLMsScan) scan);
 
         newMZmineFile.addScan(newScan);
         parsedScans++;

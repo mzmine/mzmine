@@ -143,8 +143,7 @@ public class MzMLParser {
         vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
             "defaultArrayLength").toInt();
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
-//        vars.spectrum = new MzMLMsScan(newRawFile, is, id, scanNumber, vars.defaultArrayLength);
-        vars.spectrum = new MzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
+        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
@@ -209,7 +208,9 @@ public class MzMLParser {
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
-          vars.spectrum.processBinaryValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
+          //here we obtain the text value of the whole TAG_BINARY
+          //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
+          vars.spectrum.processBinaryScanValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
           tracker.exit(tracker.current());
         }
         if (!vars.skipBinaryDataArray) {
@@ -300,8 +301,6 @@ public class MzMLParser {
         Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
         vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
             "defaultArrayLength").toInt();
-//        vars.chromatogram = new MzMLChromatogram(newRawFile, is, chromatogramId, chromatogramNumber,
-//            vars.defaultArrayLength);
         vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
             vars.defaultArrayLength);
 
@@ -325,7 +324,8 @@ public class MzMLParser {
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
         if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
-          vars.chromatogram.processBinaryValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
+          vars.chromatogram.processBinaryChromatogramValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
+          tracker.exit(tracker.current());
         }
         if (!vars.skipBinaryDataArray) {
           if (MzMLCV.cvRetentionTimeArray.equals(
@@ -516,10 +516,12 @@ public class MzMLParser {
    * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
    * XMLStreamReaderImpl} when {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS
    * CHARACTERS} are found
+   * Deprecated until random access parser is introduced
    * </p>
    *
    * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
    */
+  @Deprecated
   public void processCharacters(XMLStreamReaderImpl xmlStreamReader) {
     if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
@@ -531,7 +533,7 @@ public class MzMLParser {
             break;
 
           case MzMLCV.cvIntensityArray:
-            vars.spectrum.getDoubleBufferMzValues();
+            vars.spectrum.getDoubleBufferIntensityValues();
             break;
         }
       } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)
@@ -694,7 +696,7 @@ public class MzMLParser {
 
     int defaultArrayLength;
     boolean skipBinaryDataArray;
-    MzMLMsScan spectrum;
+    BuildingMzMLMsScan spectrum;
     MzMLChromatogram chromatogram;
     MzMLBinaryDataInfo binaryDataInfo;
     MzMLReferenceableParamGroup referenceableParamGroup;

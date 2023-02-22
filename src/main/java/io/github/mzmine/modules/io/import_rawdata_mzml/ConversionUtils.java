@@ -37,10 +37,10 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
@@ -120,7 +120,7 @@ public class ConversionUtils {
    * @param scan the scan
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan) {
     DoubleBuffer mzs = scan.getDoubleBufferMzValues();
     DoubleBuffer intensities = scan.getDoubleBufferMzValues();
     // we are sorting at this point to make sure mz are sorted, as not all mzML files are sorted
@@ -138,7 +138,7 @@ public class ConversionUtils {
    * @param sortedIntensities use these intensity values instead of the scan data
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan,
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
       double[] sortedMzs, double[] sortedIntensities) {
     return msdkScanToSimpleScan(rawDataFile, scan, sortedMzs, sortedIntensities,
         ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
@@ -153,7 +153,7 @@ public class ConversionUtils {
    * @param spectrumType      override spectrum type
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan,
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
       double[] sortedMzs, double[] sortedIntensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
@@ -197,7 +197,7 @@ public class ConversionUtils {
    * @param currentFrameNumber the IMS frame
    * @param currentScanNumber  the IMS scan number
    */
-  public static void extractImsMsMsInfo(final MzMLMsScan scan,
+  public static void extractImsMsMsInfo(final BuildingMzMLMsScan scan,
       @NotNull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
       final int currentScanNumber) {
     Double lowerWindow = null;

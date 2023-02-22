@@ -41,8 +41,6 @@ public class MzMLBinaryDataInfo {
   private MzMLBitLength bitLength;
   private MzMLArrayType arrayType;
 
-//  private String binaryArray;
-
   /**
    * <p>
    * Constructor for MzMLBinaryDataInfo

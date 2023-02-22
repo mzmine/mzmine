@@ -48,7 +48,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -179,7 +179,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       totalScans = msdkFile.getScans().size();
 
       final boolean isIms = msdkFile.getScans().stream()
-          .anyMatch(s -> s instanceof MzMLMsScan scan && scan.getMobility() != null);
+          .anyMatch(s -> s instanceof BuildingMzMLMsScan scan && scan.getMobility() != null);
 
       if (isIms) {
         newMZmineFile = new IMSRawDataFileImpl(this.file.getName(), file.getAbsolutePath(),
@@ -248,7 +248,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-      MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      BuildingMzMLMsScan mzMLScan = (BuildingMzMLMsScan) scan;
 
       Scan newScan = null;
       if (applyMassDetection) {
@@ -316,7 +316,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-      MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      BuildingMzMLMsScan mzMLScan = (BuildingMzMLMsScan) scan;
       if (mzMLScan.getMobility() == null) {
         continue;
       }
@@ -416,7 +416,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     boolean isTims = false;
     for (MsScan scan : file.getScans()) {
-      MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      BuildingMzMLMsScan mzMLScan = (BuildingMzMLMsScan) scan;
       final Matcher matcher = watersPattern.matcher(mzMLScan.getId());
       if (matcher.matches() && !matcher.group(1).equals("1")) {
         continue;

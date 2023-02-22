@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
@@ -40,8 +39,7 @@ import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgo
 import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
-import java.io.IOException;
-import java.io.InputStream;
+import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
  * MzMLMsScan class.
  * </p>
  */
-public class MzMLMsScan implements MsScan {
+public class BuildingMzMLMsScan implements MsScan {
   //public class MzMLMsScan extends AbstractStorableSpectrum implements MsScan {
 
   private final @NotNull MzMLRawDataFile dataFile;
@@ -85,18 +83,16 @@ public class MzMLMsScan implements MsScan {
 
   /**
    * <p>
-   * Constructor for {@link MzMLMsScan MzMLMsScan}
+   * Constructor for {@link BuildingMzMLMsScan MzMLMsScan}
    * </p>
    *
    * @param dataFile        a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the
    *                        data in
-   * @param is              an {@link InputStream InputStream} of the MzML format data
    * @param id              the Scan ID
    * @param scanNumber      the Scan Number
    * @param numOfDataPoints the number of data points in the m/z and intensity arrays
    */
-  public MzMLMsScan(MzMLRawDataFile dataFile, String id, Integer scanNumber,
-      int numOfDataPoints) {
+  public BuildingMzMLMsScan(MzMLRawDataFile dataFile, String id, Integer scanNumber, int numOfDataPoints) {
     this.cvParams = new MzMLCVGroup();
     this.precursorList = new MzMLPrecursorList();
     this.productList = new MzMLProductList();
@@ -229,7 +225,8 @@ public class MzMLMsScan implements MsScan {
    */
   @Override
   public double[] getMzValues(double[] array) {
-    throw new UnsupportedOperationException("This scan was only used for import. Use the DoubleBuffer instead");
+    throw new UnsupportedOperationException(
+        "This scan was only used for import. Use the DoubleBuffer instead");
   }
 
   public DoubleBuffer getDoubleBufferMzValues() {
@@ -241,18 +238,31 @@ public class MzMLMsScan implements MsScan {
    */
   @Override
   public float[] getIntensityValues(float[] array) {
-    throw new UnsupportedOperationException("This scan was only used for import. Use the DoubleBuffer instead");
+    throw new UnsupportedOperationException(
+        "This scan was only used for import. Use the DoubleBuffer instead");
+  }
+
+  public DoubleBuffer getDoubleBufferIntensityValues() {
+    return this.intensityValues;
   }
 
 
-  public void processBinaryValues(CharArray XMLMzContent, MzMLBinaryDataInfo binaryDataInfo)
-      throws MSDKException, IOException {
-    double[] array = new double[this.numOfDataPoints];
-    if (MzMLCV.cvMzArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-      this.mzValues = MzMLPeaksDecoder.decodeToDouble(XMLMzContent, binaryDataInfo, array);
+  public void processBinaryScanValues(CharArray xmlMzContent, MzMLBinaryDataInfo binaryDataInfo) {
+    if (binaryDataInfo.getArrayLength() != this.numOfDataPoints) {
+      logger.warning(
+          "Binary data array contains an array of different length than the default array length of the scan (#"
+              + getScanNumber() + ")");
     }
-    if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-      this.intensityValues = MzMLPeaksDecoder.decodeToDouble(XMLMzContent, binaryDataInfo, array);
+    try {
+      double[] array = new double[this.numOfDataPoints];
+      if (MzMLCV.cvMzArray.equals(binaryDataInfo.getArrayType().getAccession())) {
+        this.mzValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
+      }
+      if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
+        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
+      }
+    } catch (Exception e) {
+      throw (new MSDKRuntimeException(e));
     }
   }
 
@@ -306,7 +316,9 @@ public class MzMLMsScan implements MsScan {
       Optional<String> cvv = getCVValue(MzMLCV.cvLowestMz);
       Optional<String> cvv1 = getCVValue(MzMLCV.cvHighestMz);
       if (cvv.isEmpty() || cvv1.isEmpty()) {
-        mzRange = MsSpectrumUtil.getMzRange(getDoubleBufferMzValues().array(), getMzBinaryDataInfo().getArrayLength());
+        mzRange = MsSpectrumUtil.getMzRange(
+            DataPointUtils.getDoubleBufferAsArray(getDoubleBufferMzValues()),
+            getMzBinaryDataInfo().getArrayLength());
         return mzRange;
       }
       try {

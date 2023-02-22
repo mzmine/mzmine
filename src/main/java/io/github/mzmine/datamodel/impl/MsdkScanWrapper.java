@@ -38,8 +38,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import java.util.Iterator;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -212,7 +212,7 @@ public class MsdkScanWrapper implements Scan {
   @Override
   public @Nullable Float getInjectionTime() {
     try {
-      return ((MzMLMsScan) scan).getScanList().getScans().get(0).getCVParamsList().stream()
+      return ((BuildingMzMLMsScan) scan).getScanList().getScans().get(0).getCVParamsList().stream()
           .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
           .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
           .orElse(null);
