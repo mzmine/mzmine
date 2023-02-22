@@ -102,19 +102,23 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   public void loadValuesFromXML(Element xmlElement) {
+    var nameParameterMap = getNameParameterMap();
     NodeList list = xmlElement.getElementsByTagName(parameterElement);
     for (int i = 0; i < list.getLength(); i++) {
       Element nextElement = (Element) list.item(i);
       String paramName = nextElement.getAttribute(nameAttribute);
-      for (Parameter<?> param : parameters) {
-        if (param.getName().equals(paramName)) {
-          try {
-            param.loadValueFromXML(nextElement);
-          } catch (Exception e) {
-            logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
-                e);
-          }
+      Parameter<?> param = nameParameterMap.get(paramName);
+      if (param != null) {
+        try {
+          param.loadValueFromXML(nextElement);
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
+              e);
         }
+      } else {
+        logger.warning(
+            "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
+                paramName, getClass().getName()));
       }
     }
   }
