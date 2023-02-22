@@ -58,7 +58,12 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       0.005, 15, false);
 
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
-      "Minimum detected scans", "Minimum number of signals (data points) to form an image", 50);
+      "Minimum detected scans", "Minimum number of signals (data points) to form an image", 50,
+      true, 1, null);
+
+  public static final IntegerParameter minConsecutiveSignals = new IntegerParameter(
+      "Minimum consecutive scans",
+      "Minimum number of consecutive signals (data points) to form an image", 1, true, 1, null);
 
   public static final DoubleParameter minHighest = new DoubleParameter("Minimum absolute height",
       "Minimum intensity of an m/z to be considered as an image.",
@@ -69,7 +74,8 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       "This string is added to filename as suffix", "images");
 
   public ImageBuilderParameters() {
-    super(rawDataFiles, scanSelection, mzTolerance, minHighest, minTotalSignals, suffix);
+    super(rawDataFiles, scanSelection, mzTolerance, minHighest, minTotalSignals,
+        minConsecutiveSignals, suffix);
   }
 
   @Override
@@ -77,7 +83,7 @@ public class ImageBuilderParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Min group size in # of scans", minTotalSignals);
+    nameParameterMap.put("Min group size in # of scans", minConsecutiveSignals);
     nameParameterMap.put("Min highest intensity", minHighest);
     return nameParameterMap;
   }

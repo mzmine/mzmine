@@ -58,7 +58,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
 
-  public static final IntegerParameter minimumScanSpan = new IntegerParameter(
+  public static final IntegerParameter minimumConsecutiveScans = new IntegerParameter(
       "Minimum consecutive scans", """
       Minimum number of consecutive scans (data points) where a signal has to be detected to build a valid chromatogram (EIC).
       At least this number of scans need to be above the specified intensity threshold and one needs to reach the minimum 
@@ -93,7 +93,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
               + "feature table generation if MALDI point measurements."));
 
   public ADAPChromatogramBuilderParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, minGroupIntensity,
+    super(new Parameter[]{dataFiles, scanSelection, minimumConsecutiveScans, minGroupIntensity,
             minHighestPoint, mzTolerance, suffix, allowSingleScans},
         "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_adap_chromatogram_builder/adap-chromatogram-builder.html");
   }
@@ -136,7 +136,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     final Boolean singleScansOkOptOut = getParameter(allowSingleScans).getValue()
         .get("optoutsinglescancheck");
 
-    if (getParameter(minimumScanSpan).getValue() <= 1 && (singleScansOkOptOut == null
+    if (getParameter(minimumConsecutiveScans).getValue() <= 1 && (singleScansOkOptOut == null
         || !singleScansOkOptOut)) {
       ButtonType buttonType = MZmineCore.getDesktop()
           .createAlertWithOptOut("Confirmation", "Single consecutive scan selected.",
@@ -154,7 +154,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Min group size in # of scans", minimumScanSpan);
+    nameParameterMap.put("Min group size in # of scans", minimumConsecutiveScans);
     nameParameterMap.put("Group intensity threshold", minGroupIntensity);
     nameParameterMap.put("Min highest intensity", minHighestPoint);
     return nameParameterMap;
