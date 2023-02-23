@@ -84,7 +84,7 @@ import org.jetbrains.annotations.Nullable;
 public class TDFImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
-
+  private static final double NOISE_THRESHOLD = 9E0;
   private final MZmineProject project;
   @Nullable
   private final MassDetector ms1Detector;
@@ -94,10 +94,9 @@ public class TDFImportTask extends AbstractTask {
   private final ParameterSet ms1DetectorParam;
   @Nullable
   private final ParameterSet ms2DetectorParam;
-
   private final boolean denoising = false;
-  private static final double NOISE_THRESHOLD = 9E0;
-
+  private final Class<? extends MZmineModule> module;
+  private final ParameterSet parameters;
   private File fileNameToOpen;
   private File tdf, tdfBin;
   private String rawDataFileName;
@@ -111,8 +110,6 @@ public class TDFImportTask extends AbstractTask {
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private IMSRawDataFile newMZmineFile;
-  private final Class<? extends MZmineModule> module;
-  private final ParameterSet parameters;
   private boolean isMaldi;
   private String description;
   private double finishedPercentage;
@@ -339,7 +336,14 @@ public class TDFImportTask extends AbstractTask {
     }
 
     // extract mobility scans
-    appendScansFromTimsSegment(tdfUtils, frameTable, frames);
+    try {
+      appendScansFromTimsSegment(tdfUtils, frameTable, frames);
+    } catch (IndexOutOfBoundsException e) {
+      // happens on corrupt data
+      logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
