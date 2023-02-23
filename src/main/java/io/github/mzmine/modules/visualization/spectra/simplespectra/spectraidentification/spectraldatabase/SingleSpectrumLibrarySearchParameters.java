@@ -99,4 +99,9 @@ public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
 
     return this.showSetupDialog(valueCheckRequired);
   }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
