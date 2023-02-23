@@ -74,10 +74,10 @@ public class TDFUtils {
   public static final int SCAN_PACKAGE_SIZE = 50;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
-
+  private static int DEFAULT_NUMTHREADS = (int) Math.max(
+      MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.numOfThreads)
+          .getValue() * 0.8f, 1);
   private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-  private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
-      .getParameter(MZminePreferences.numOfThreads).getValue();
   private final int numThreads;
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
