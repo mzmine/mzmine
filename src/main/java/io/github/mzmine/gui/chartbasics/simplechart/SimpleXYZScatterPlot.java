@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -80,6 +81,7 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.Range;
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetUtils;
@@ -511,7 +513,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (!(dataset instanceof ColoredXYZDataset xyz)
         || ((ColoredXYZDataset) dataset).getPaintScale() == null
         || ((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
-      org.jfree.data.Range range = DatasetUtils.findZBounds(dataset);
+      org.jfree.data.Range range = Objects.requireNonNullElse(DatasetUtils.findZBounds(dataset),
+          new Range(0d, 1d));
       return new LookupPaintScale(range.getLowerBound(), range.getUpperBound(), Color.BLACK);
     } else {
       return xyz.getPaintScale();
