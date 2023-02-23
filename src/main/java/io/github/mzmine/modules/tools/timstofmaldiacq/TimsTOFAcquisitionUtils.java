@@ -49,24 +49,33 @@ public class TimsTOFAcquisitionUtils {
 
   private static final Logger logger = Logger.getLogger(TimsTOFAcquisitionUtils.class.getName());
 
+  /**
+   * Adjusts the mobility range to a valid range inside the boundaries. The range may be shorter
+   * than requested by the minMobilityWidth if it would lie outside the bounds of mobilityBounds.
+   *
+   * @return A valid mobility range.
+   */
   public static Range<Float> adjustMobilityRange(Float mobility, Range<Float> initial,
-      Double minMobilityWidth, Double maxMobilityWidth) {
+      Double minMobilityWidth, Double maxMobilityWidth, Range<Float> mobilityBounds) {
 
     final Float initialLength = RangeUtils.rangeLength(initial);
 
     if (initialLength <= maxMobilityWidth && initialLength >= minMobilityWidth) {
       return initial;
     } else if (initialLength < minMobilityWidth) {
-      return Range.closed((float) (mobility - minMobilityWidth / 2),
-          (float) (mobility + minMobilityWidth / 2));
+      final float toBeLowerBound = (float) (mobility - minMobilityWidth / 2);
+      final float toBeUpperBound = (float) (mobility + minMobilityWidth / 2);
+      return Range.closed(Math.max(toBeLowerBound, mobilityBounds.lowerEndpoint()),
+          Math.min(toBeUpperBound, mobilityBounds.upperEndpoint()));
     } else if (initialLength > maxMobilityWidth) {
-      return Range.closed((float) (mobility - maxMobilityWidth / 2),
-          (float) (mobility + maxMobilityWidth / 2));
+      final float toBeLowerBound = (float) (mobility - maxMobilityWidth / 2);
+      final float toBeUpperBound = (float) (mobility + maxMobilityWidth / 2);
+      return Range.closed(Math.max(toBeLowerBound, mobilityBounds.lowerEndpoint()),
+          Math.min(toBeUpperBound, mobilityBounds.upperEndpoint()));
     }
 
-    logger.fine(
-        () -> String.format("Unexpected mobility range length: %.3f. Min = %.3f, Max = %.3f",
-            initialLength, minMobilityWidth, maxMobilityWidth));
+    logger.fine(() -> String.format("Unexpected mobility range length: %.3f. Min = %.3f, Max = %.3f",
+        initialLength, minMobilityWidth, maxMobilityWidth));
     return initial;
   }
 

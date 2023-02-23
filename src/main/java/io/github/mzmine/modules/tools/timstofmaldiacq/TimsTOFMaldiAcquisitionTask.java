@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.timstofmaldiacq;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
@@ -39,6 +40,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -67,11 +69,10 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
   private final CeSteppingTables ceSteppingTables;
   private final Double isolationWidth;
   private final List<Double> collisionEnergies;
-
+  private final int maxXIncrement;
   private String desc = "Running MAlDI acquisition";
   private double progress = 0d;
   private File currentCeFile = null;
-  private final int maxXIncrement;
 
   protected TimsTOFMaldiAcquisitionTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project) {
@@ -145,6 +146,8 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
       if (flist.getNumberOfRows() == 0) {
         continue;
       }
+      final IMSRawDataFile file = (IMSRawDataFile) flist.getRawDataFile(0);
+      final Range<Float> dataMobilityRange = RangeUtils.toFloatRange(file.getDataMobilityRange());
 
       final List<MaldiTimsPrecursor> precursors = flist.getRows().stream().filter(
           row -> row.getBestFeature() != null
@@ -153,7 +156,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
               && row.getBestFeature().getMobilityRange() != null).map(row -> {
         final Feature f = row.getBestFeature();
         Range<Float> mobilityRange = TimsTOFAcquisitionUtils.adjustMobilityRange(f.getMobility(),
-            f.getMobilityRange(), minMobilityWidth, maxMobilityWidth);
+            f.getMobilityRange(), minMobilityWidth, maxMobilityWidth, dataMobilityRange);
 
         return new MaldiTimsPrecursor(f, f.getMZ(), mobilityRange, collisionEnergies);
       }).toList();

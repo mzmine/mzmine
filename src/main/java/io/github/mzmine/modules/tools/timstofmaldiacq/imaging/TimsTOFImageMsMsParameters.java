@@ -100,6 +100,7 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
       This parameter applies to individual pixels in the MS1 image.
       If that intensity is greater than the threshold, an MS2 may be acquired adjacent to that pixel.""",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E4);
+
   public static final BooleanParameter exportOnly = new BooleanParameter("Export MS/MS lists only",
       "Will only export MS/MS lists and not start an acquisition.", false);
 

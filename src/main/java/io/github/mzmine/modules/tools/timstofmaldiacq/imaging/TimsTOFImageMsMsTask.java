@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
@@ -36,6 +37,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
@@ -51,6 +53,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -192,15 +195,18 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
         continue;
       }
 
+      final Range<Float> mobilityBounds = RangeUtils.toFloatRange(file.getDataMobilityRange());
       final MaldiTimsPrecursor precursor = new MaldiTimsPrecursor(f, f.getMZ(),
           TimsTOFAcquisitionUtils.adjustMobilityRange(f.getMobility(), f.getMobilityRange(),
-              minMobilityWidth, maxMobilityWidth), collisionEnergies);
+              minMobilityWidth, maxMobilityWidth, mobilityBounds), collisionEnergies);
 
       final IonTimeSeries<? extends Scan> data = f.getFeatureData();
       final IonTimeSeries<? extends ImagingFrame> imagingData = (IonTimeSeries<? extends ImagingFrame>) data;
 
+      final var minFeatureIntensity = Math.max(minMsMsIntensity, f.getHeight() * 0.01);
+
       // check existing msms spots first
-      addEntriesToExistingSpots(access, minMsMsIntensity, frameSpotMap, precursor, imagingData,
+      addEntriesToExistingSpots(access, minFeatureIntensity, frameSpotMap, precursor, imagingData,
           numMsMs, featureSpotMap, minDistance, minChimerityScore);
 
       // we have all needed entries
@@ -228,6 +234,9 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
               j, (spotsFeatureCounter[j] / (double) rows.size() * 100)));
     }
 
+    flist.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(TimsTOFImageMsMsModule.class, parameters,
+            getModuleCallDate()));
     if (scheduleOnly) {
       setStatus(TaskStatus.FINISHED);
       return;

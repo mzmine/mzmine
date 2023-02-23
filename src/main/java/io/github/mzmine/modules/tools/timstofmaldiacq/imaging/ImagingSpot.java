@@ -34,7 +34,7 @@ import java.util.Objects;
 
 public final class ImagingSpot {
 
-  private static final int MAX_PRECURSORS = 15;
+  private static final int MAX_PRECURSORS = 25;
 
   private final MaldiSpotInfo spotInfo;
   private final List<MaldiTimsPrecursor>[][] precursorLists;
@@ -118,7 +118,7 @@ public final class ImagingSpot {
    */
   public boolean addPrecursorToList(MaldiTimsPrecursor precursor, int xOffset, int yOffset) {
     var list = getPrecursorList(xOffset, yOffset);
-    if (list.size() == 25) {
+    if (list.size() == MAX_PRECURSORS) {
       return false;
     }
     for (MaldiTimsPrecursor p : list) {
