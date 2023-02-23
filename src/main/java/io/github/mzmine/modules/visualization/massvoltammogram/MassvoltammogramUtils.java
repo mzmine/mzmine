@@ -1,26 +1,18 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * This file is part of MZmine.
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package io.github.mzmine.modules.visualization.massvoltammogram;
@@ -70,7 +62,7 @@ public class MassvoltammogramUtils {
     double potential = /*potentialRange.lowerEndpoint()*/startPotential;
 
     //Adding scans with the given step size until the maximal potential is reached.
-    for (int i = 0; Math.abs(potential) <= Math.abs(endPotential); i++) {
+    while (Math.abs(potential) <= Math.abs(endPotential)) {
       final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialSpeedRamp, potential);
       final Scan scan = scanSelection.getScanAtRt(rawDataFile, rt);
 
@@ -173,8 +165,8 @@ public class MassvoltammogramUtils {
 
     //Getting for the next smallest power of ten to use as the divisor.
     double power = Math.log10(maxIntensity);
-    double divisor = Math.pow(10, Math.floor(power));
-    return divisor;
+
+    return Math.pow(10, Math.floor(power));
   }
 
 
@@ -216,7 +208,7 @@ public class MassvoltammogramUtils {
   }
 
   /**
-   * Removes datapoints with low intensity values.
+   * Removes datapoints with low intensity values. Keeps datapoints with intensity of 0.
    *
    * @param scans        Dataset the datapoints will be removed from.
    * @param maxIntensity Max intensity of all datapoints in the dataset.
@@ -318,25 +310,25 @@ public class MassvoltammogramUtils {
     //Exchanging every numeric character of the string to superscript.
     for (int i = 0; i < input.length(); i++) {
       if (Character.getNumericValue(input.charAt(i)) == 0) {
-        output.append("\u2070");
+        output.append("⁰");
       } else if (Character.getNumericValue(input.charAt(i)) == 1) {
-        output.append("\u00B9");
+        output.append("¹");
       } else if (Character.getNumericValue(input.charAt(i)) == 2) {
-        output.append("\u00B2");
+        output.append("²");
       } else if (Character.getNumericValue(input.charAt(i)) == 3) {
-        output.append("\u00B3");
+        output.append("³");
       } else if (Character.getNumericValue(input.charAt(i)) == 4) {
-        output.append("\u2074");
+        output.append("⁴");
       } else if (Character.getNumericValue(input.charAt(i)) == 5) {
-        output.append("\u2075");
+        output.append("⁵");
       } else if (Character.getNumericValue(input.charAt(i)) == 6) {
-        output.append("\u2076");
+        output.append("⁶");
       } else if (Character.getNumericValue(input.charAt(i)) == 7) {
-        output.append("\u2077");
+        output.append("⁷");
       } else if (Character.getNumericValue(input.charAt(i)) == 8) {
-        output.append("\u2078");
+        output.append("⁸");
       } else if (Character.getNumericValue(input.charAt(i)) == 9) {
-        output.append("\u2079");
+        output.append("⁹");
       }
     }
     return output.toString();
@@ -384,6 +376,56 @@ public class MassvoltammogramUtils {
       }
     }
     return maxIntensity;
+  }
+
+  /**
+   * Adds datapoints with an intensity of 0 around each datapoint if the mass spectra are centroid.
+   * Empty datapoints are added 0.0001 m/z before and after each datapoint, so the data gets
+   * visualized correctly by the plot.
+   *
+   * @param scans The list of scans as arrays to be processed.
+   * @return Returns a list of scans as arrays the plot can interpret correctly.
+   */
+  public static List<double[][]> addZerosToCentroidData(List<double[][]> scans) {
+
+    final List<double[][]> processedScans = new ArrayList<>();
+    final double deltaMZ = 0.0001;
+
+    for (double[][] scan : scans) {
+
+      final List<Double> mzs = new ArrayList<>();
+      final List<Double> intensities = new ArrayList<>();
+
+      final double potential = scan[0][2];
+
+      for (double[] datapoint : scan) {
+
+        final double mz = datapoint[0];
+        final double intensity = datapoint[1];
+
+        mzs.add(mz - deltaMZ);
+        intensities.add(0d);
+
+        mzs.add(mz);
+        intensities.add(intensity);
+
+        mzs.add(mz + deltaMZ);
+        intensities.add(0d);
+      }
+
+      double[][] processedScan = new double[mzs.size()][3];
+
+      for (int i = 0; i < mzs.size(); i++) {
+
+        processedScan[i][0] = mzs.get(i);
+        processedScan[i][1] = intensities.get(i);
+        processedScan[i][2] = potential;
+      }
+
+      processedScans.add(processedScan);
+    }
+
+    return processedScans;
   }
 }
 
