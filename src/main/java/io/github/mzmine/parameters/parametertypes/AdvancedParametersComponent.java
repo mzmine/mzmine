@@ -50,6 +50,9 @@ public class AdvancedParametersComponent extends Accordion {
       paramPane.getParametersAndComponents().values()
           .forEach(node -> node.setDisable(!checkBox.isSelected()));
     });
+    
+    paramPane.getParametersAndComponents().values()
+        .forEach(node -> node.setDisable(!checkBox.isSelected()));
 
     getPanes().add(titledPane);
   }
