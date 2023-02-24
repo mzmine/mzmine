@@ -23,63 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.parameters;
 
 /**
- * Represents the polarity of ionization.
+ * Basis for parameter components
+ *
+ * @param <ValueType> value of this parameter
  */
-public enum PolarityType {
-
-  POSITIVE(+1, "+"), //
-  NEGATIVE(-1, "-"), //
-  NEUTRAL(0, "n"), //
-  /**
-   * Any is used in filters
-   */
-  ANY(0, "Any"), //
-  UNKNOWN(0, "?");
-
-  private final int sign;
-  private final String charValue;
-
-  PolarityType(int sign, String charValue) {
-    this.sign = sign;
-    this.charValue = charValue;
-  }
-
-  public static PolarityType fromSingleChar(String s) {
-    for (PolarityType p : values()) {
-      if (p.charValue.equals(s)) {
-        return p;
-      }
-    }
-    return UNKNOWN;
-  }
-
-  public static PolarityType fromInt(int i) {
-    if (i == 0) {
-      return UNKNOWN;
-    } else if (i < 0) {
-      return NEGATIVE;
-    } else {
-      return POSITIVE;
-    }
-  }
-
-  public String asSingleChar() {
-    return charValue;
-  }
+public interface ParameterComponent<ValueType> {
 
   /**
-   * @return +1 for positive polarity, -1 for negative polarity, and 0 for neutral or unknown
-   * polarity.
+   * @return value from component
    */
-  public int getSign() {
-    return sign;
-  }
+  ValueType getValue();
 
-  @Override
-  public String toString() {
-    return asSingleChar();
-  }
+  /**
+   * set value to component
+   *
+   * @param value new value
+   */
+  void setValue(ValueType value);
+
 }

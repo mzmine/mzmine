@@ -36,7 +36,6 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
@@ -55,29 +54,31 @@ public class MZRangeComponent extends DoubleRangeComponent {
     setAutoButton.setMinWidth(100.0);
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     setAutoButton.setOnAction(e -> {
-      RawDataFile currentFiles[] = project.getDataFiles();
+      RawDataFile[] currentFiles = project.getDataFiles();
       ScanSelection scanSelection = new ScanSelection();
 
       try {
         ParameterSetupDialog setupDialog = (ParameterSetupDialog) this.getScene().getWindow();
-        RawDataFilesComponent rdc =
-            setupDialog.getComponentForParameter(new RawDataFilesParameter());
+        RawDataFilesComponent rdc = setupDialog.getComponentForParameter(
+            new RawDataFilesParameter());
         if (rdc != null) {
-          RawDataFile matchingFiles[] = rdc.getValue().getMatchingRawDataFiles();
-          if (matchingFiles.length > 0)
+          RawDataFile[] matchingFiles = rdc.getValue().getMatchingRawDataFiles();
+          if (matchingFiles.length > 0) {
             currentFiles = matchingFiles;
+          }
         }
-        ScanSelectionComponent ssc =
-            setupDialog.getComponentForParameter(new ScanSelectionParameter());
-        if (ssc != null)
+        ScanSelectionComponent ssc = setupDialog.getComponentForParameter(
+            new ScanSelectionParameter());
+        if (ssc != null) {
           scanSelection = ssc.getValue();
+        }
       } catch (Exception ex) {
         ex.printStackTrace();
       }
 
       Range<Double> mzRange = null;
       for (RawDataFile file : currentFiles) {
-        Scan scans[] = scanSelection.getMatchingScans(file);
+        Scan[] scans = scanSelection.getMatchingScans(file);
         for (Scan s : scans) {
           Range<Double> scanRange = s.getDataPointMZRange();
           if (scanRange == null) {
@@ -115,8 +116,9 @@ public class MZRangeComponent extends DoubleRangeComponent {
     fromFormulaButton.setMinWidth(100.0);
     fromFormulaButton.setOnAction(e -> {
       Range<Double> mzRange = MzRangeFormulaCalculatorModule.showRangeCalculationDialog();
-      if (mzRange != null)
+      if (mzRange != null) {
         setValue(mzRange);
+      }
     });
 
     // fromFormulaButton.setMinWidth(fromFormulaButton.getPrefWidth());

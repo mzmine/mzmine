@@ -41,19 +41,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.annotation.concurrent.Immutable;
 
-@Immutable
-public class ScanSelection {
+public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
+                            Range<Float> scanRTRange, Range<Double> scanMobilityRange,
+                            PolarityType polarity, MassSpectrumType spectrumType,
+                            MsLevelFilter msLevel, String scanDefinition) {
 
-  private final Range<Integer> scanNumberRange;
-  private final Range<Double> scanMobilityRange;
-  private final Range<Float> scanRTRange;
-  private final PolarityType polarity;
-  private final MassSpectrumType spectrumType;
-  private final Integer msLevel;
-  private final Integer baseFilteringInteger;
-  private final String scanDefinition;
+  /**
+   * Includes all scans
+   */
+  public static final ScanSelection ALL_SCANS = new ScanSelection(null);
+  public static final ScanSelection MS1 = new ScanSelection(1);
 
   /**
    * Uses MS level 1 only
@@ -63,24 +61,11 @@ public class ScanSelection {
   }
 
   public ScanSelection(Integer msLevel) {
-    this(null, null, null, null, null, null, msLevel, null);
+    this(null, null, null, null, null, null, MsLevelFilter.of(msLevel), null);
   }
 
   public ScanSelection(Range<Float> scanRTRange, Integer msLevel) {
-    this(null, null, scanRTRange, null, null, null, msLevel, null);
-  }
-
-  public ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
-      Range<Float> scanRTRange, Range<Double> scanMobilityRange, PolarityType polarity,
-      MassSpectrumType spectrumType, Integer msLevel, String scanDefinition) {
-    this.scanNumberRange = scanNumberRange;
-    this.baseFilteringInteger = baseFilteringInteger;
-    this.scanRTRange = scanRTRange;
-    this.scanMobilityRange = scanMobilityRange;
-    this.polarity = polarity;
-    this.spectrumType = spectrumType;
-    this.msLevel = msLevel;
-    this.scanDefinition = scanDefinition;
+    this(null, null, scanRTRange, null, null, null, MsLevelFilter.of(msLevel), null);
   }
 
   public Range<Integer> getScanNumberRange() {
@@ -107,7 +92,7 @@ public class ScanSelection {
     return spectrumType;
   }
 
-  public Integer getMsLevel() {
+  public MsLevelFilter getMsLevelFilter() {
     return msLevel;
   }
 
@@ -195,7 +180,7 @@ public class ScanSelection {
    * @return
    */
   public boolean matches(Scan scan, int scanNumberOffset) {
-    if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel()))) {
+    if (msLevel != null && !msLevel.accept(scan)) {
       return false;
     }
 
@@ -270,7 +255,7 @@ public class ScanSelection {
    * @return
    */
   public boolean matches(MobilityScan scan, int scanNumberOffset) {
-    if ((msLevel != null) && (!msLevel.equals(scan.getFrame().getMSLevel()))) {
+    if (msLevel != null && !msLevel.accept(scan)) {
       return false;
     }
 
@@ -326,8 +311,8 @@ public class ScanSelection {
     return Objects.equals(getScanNumberRange(), that.getScanNumberRange()) && Objects.equals(
         getScanMobilityRange(), that.getScanMobilityRange()) && Objects.equals(getScanRTRange(),
         that.getScanRTRange()) && getPolarity() == that.getPolarity()
-        && getSpectrumType() == that.getSpectrumType() && Objects.equals(getMsLevel(),
-        that.getMsLevel()) && Objects.equals(getBaseFilteringInteger(),
+        && getSpectrumType() == that.getSpectrumType() && Objects.equals(getMsLevelFilter(),
+        that.getMsLevelFilter()) && Objects.equals(getBaseFilteringInteger(),
         that.getBaseFilteringInteger()) && Objects.equals(getScanDefinition(),
         that.getScanDefinition());
   }
@@ -335,7 +320,7 @@ public class ScanSelection {
   @Override
   public int hashCode() {
     return Objects.hash(getScanNumberRange(), getScanMobilityRange(), getScanRTRange(),
-        getPolarity(), getSpectrumType(), getMsLevel(), getBaseFilteringInteger(),
+        getPolarity(), getSpectrumType(), getMsLevelFilter(), getBaseFilteringInteger(),
         getScanDefinition());
   }
 
@@ -345,7 +330,7 @@ public class ScanSelection {
     DecimalFormat threeDecimals = new DecimalFormat("0.000");
 
     if (msLevel != null) {
-      b.append("MS level (").append(msLevel).append("), ");
+      b.append(msLevel).append(", ");
     }
     if (scanNumberRange != null) {
       b.append("Scan (#").append(scanNumberRange.lowerEndpoint()).append(" - ")
@@ -377,7 +362,7 @@ public class ScanSelection {
 
   public ScanSelection cloneWithNewRtRange(Range<Float> rtRange) {
     return new ScanSelection(getScanNumberRange(), getBaseFilteringInteger(), rtRange,
-        getScanMobilityRange(), getPolarity(), getSpectrumType(), getMsLevel(),
+        getScanMobilityRange(), getPolarity(), getSpectrumType(), getMsLevelFilter(),
         getScanDefinition());
   }
 }

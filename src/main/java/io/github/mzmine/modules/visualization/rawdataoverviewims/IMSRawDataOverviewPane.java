@@ -135,7 +135,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
   private FontIcon massDetectionScanIcon;
   private FontIcon massDetectionFrameIcon;
-  private GridPane massDetectionPane;
+  private final GridPane massDetectionPane;
 
   /**
    * Creates a BorderPane layout.
@@ -233,16 +233,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-    massDetectionFrameIcon =
-        selectedFrame.get().getMassList() != null ?
-            FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? FxIconUtil.getCheckedIcon()
+        : FxIconUtil.getUncheckedIcon();
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
     massDetectionPane.getChildren().remove(massDetectionScanIcon);
     massDetectionScanIcon =
         selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
-            ? FxIconUtil.getCheckedIcon()
-            : FxIconUtil.getUncheckedIcon();
+            ? FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
     massDetectionPane.add(massDetectionScanIcon, 1, 1);
 
     mzRangeTicDatasetIndices.clear();

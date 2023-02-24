@@ -26,45 +26,64 @@
 package io.github.mzmine.parameters.parametertypes.submodules;
 
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
 /**
  *
  */
-public class OptionalModuleComponent extends FlowPane {
+public class OptionalModuleComponent extends BorderPane {
 
-  private final CheckBox checkBox;
-  private Button setButton;
+  protected final ParameterSetupPane paramPane;
+  protected final CheckBox checkBox;
+  private final Button setButton;
+  private boolean hidden = true;
+
 
   public OptionalModuleComponent(ParameterSet embeddedParameters) {
+    this(embeddedParameters, "", false);
+  }
 
-    checkBox = new CheckBox();
-    checkBox.setOnAction(e -> {
-      boolean checkBoxSelected = checkBox.isSelected();
-      setButton.setDisable(!checkBoxSelected);
-    });
+  public OptionalModuleComponent(ParameterSet embeddedParameters, String title, boolean active) {
+    super();
+    paramPane = new ParameterSetupPane(true, embeddedParameters, false, false, null, true, false);
 
-    setButton = new Button("Setup");
+    checkBox = new CheckBox(title);
+    setSelected(active);
+
+    checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
+    applyCheckBoxState();
+
+    setButton = new Button("Show");
     setButton.setOnAction(e -> {
-      embeddedParameters.showSetupDialog(false);
+      hidden = !hidden;
+      // change text
+      setButton.setText(hidden ? "Show" : "Hide");
+      setTop(hidden ? null : paramPane);
     });
-    setButton.setDisable(true);
+    setButton.setDisable(!active);
 
-    super.setHgap(7d);
-    super.getChildren().addAll(checkBox, setButton);
+    var pane = new FlowPane();
+    pane.setHgap(7d);
+    pane.getChildren().addAll(checkBox, setButton);
 
+    setTop(pane);
+  }
+
+  public ParameterSetupPane getEmbeddedParameterPane() {
+    return paramPane;
   }
 
   public boolean isSelected() {
     return checkBox.isSelected();
   }
 
-  public void setSelected(boolean selected) {
-    checkBox.setSelected(selected);
-    setButton.setDisable(!selected);
+  public void setSelected(boolean state) {
+    checkBox.setSelected(state);
   }
 
   public void setToolTipText(String toolTip) {
@@ -75,5 +94,17 @@ public class OptionalModuleComponent extends FlowPane {
     return checkBox;
   }
 
+  protected void applyCheckBoxState() {
+    setButton.setDisable(!checkBox.isSelected());
+    paramPane.getParametersAndComponents().values()
+        .forEach(node -> node.setDisable(!checkBox.isSelected()));
+  }
 
+  public void setParameterValuesToComponents() {
+    paramPane.setParameterValuesToComponents();
+  }
+
+  public void updateParameterSetFromComponents() {
+    paramPane.updateParameterSetFromComponents();
+  }
 }

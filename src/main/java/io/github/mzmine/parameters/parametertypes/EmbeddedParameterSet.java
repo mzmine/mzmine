@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 
 /**
@@ -35,8 +36,14 @@ import io.github.mzmine.parameters.ParameterSet;
  * be set. With this interface, it can be done via
  * {@link io.github.mzmine.modules.batchmode.BatchTask}
  */
-public interface EmbeddedParameterSet<T extends ParameterSet, V> extends Parameter<V> {
+public interface EmbeddedParameterSet<T extends ParameterSet, V> extends Parameter<V>,
+    ParameterContainer {
 
   T getEmbeddedParameters();
+
+  @Override
+  default void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
+    getEmbeddedParameters().setSkipSensitiveParameters(skipSensitiveParameters);
+  }
 
 }
