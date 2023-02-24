@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.BlankSubtractionOptions;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.RatioType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -67,27 +68,31 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
               + " filtered increases more than the given percentage to the blank, it will not be deleted from "
               + "the feature list.", 3.0, 1.0, 1E5));
 
-  public static final BooleanParameter keepBackgroundFeatures = new BooleanParameter(
-      "Keep background samples/features", """
-      When this option is activated, the rational of the blank subtraction is changed slightly. Background
-      features are not removed, but aligned features are sorted into those that have
-      features distinguishable from the background and
-      features indistinguishable from the background in all non-blank samples.
-      Furthermore, if the option is activated, abundances for the blank samples will be retained.""",
-      false);
+  public static final ComboParameter<BlankSubtractionOptions> keepBackgroundFeatures = new ComboParameter<BlankSubtractionOptions>(
+      "Keep or remove features (of rows) below fold change", """
+      For parameter optimization it might be of help to know which features were classified as background in
+      the samples and which features are more abundant than the background. This option allows doing that.
+      Option REMOVE (default): all features below the set fold-change are removed from the rows as are rows
+      that only contain background features.
+      Option KEEP: any feature that is indistinguishable from the background (i.e, below the required fold-change)
+      is kept, if any feature of a particular row is more abundant than the background. Any rows with only features
+      representing the background will still be completely removed though.
+      The option KEEP is only meant to be used for optimizing the fold-change and other parameters of this module
+      or if the background is of interest in subsequent data processing steps (i.e., statistical analysis).
+      """, BlankSubtractionOptions.values(), BlankSubtractionOptions.REMOVE);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "subtracted");
 
   public static final BooleanParameter createDeleted = new BooleanParameter(
-      "Create deleted feature list", """
+      "Create secondary list of subtracted features", """
       Indicates whether an additional feature list containing all non-used (deleted) background-features should be saved.
       All features removed by this step will then be saved to a new feature list with the suffix 'subtractedBackground'.""",
       false);
 
   public FeatureListBlankSubtractionParameters() {
     super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, quantType, ratioType,
-            foldChange, keepBackgroundFeatures, suffix, createDeleted},
+            foldChange, keepBackgroundFeatures, createDeleted, suffix},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }
 

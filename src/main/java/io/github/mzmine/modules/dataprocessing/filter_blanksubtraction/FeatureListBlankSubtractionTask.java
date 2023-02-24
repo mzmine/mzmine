@@ -63,7 +63,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private final boolean createDeletedFeatureList;
   private final boolean checkFoldChange;
   private final double foldChange;
-  private final boolean keepBackgroundFeatures;
+  private final BlankSubtractionOptions keepBackgroundFeatures;
   private final RatioType ratioType;
   private final FeatureMeasurementType quantType;
 
@@ -145,13 +145,14 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     // create the feature list for the blank subtraction
     final ModularFeatureList notBackgroundAlignedFeaturesList = new ModularFeatureList(
         originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(),
-        keepBackgroundFeatures ? originalFeatureList.getRawDataFiles() : nonBlankRaws);
+        keepBackgroundFeatures == BlankSubtractionOptions.KEEP
+            ? originalFeatureList.getRawDataFiles() : nonBlankRaws);
     originalFeatureList.getRowTypes().values()
         .forEach(notBackgroundAlignedFeaturesList::addRowType);
 
     // use all samples that are not defined as blanks
     // if keepBackgroundFeatures is true, also include blank samples (i.e., all samples)
-    if (keepBackgroundFeatures) {
+    if (keepBackgroundFeatures == BlankSubtractionOptions.KEEP) {
       originalFeatureList.getRawDataFiles().forEach(
           f -> notBackgroundAlignedFeaturesList.setSelectedScans(f,
               originalFeatureList.getSeletedScans(f)));
@@ -218,7 +219,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
         // if the user wants to:
         // add background features also (e.g. for parameter optimization, statistics, visualization, etc.)
-        if (keepBackgroundFeatures) {
+        if (keepBackgroundFeatures == BlankSubtractionOptions.KEEP) {
           backgroundFeaturesOfCurrentRow.forEach(f -> featureListRow.addFeature(f.getRawDataFile(),
               new ModularFeature(notBackgroundAlignedFeaturesList, f)));
         }
@@ -332,5 +333,21 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
   enum RatioType {
     AVERAGE, MAXIMUM
+  }
+
+  enum BlankSubtractionOptions {
+    KEEP("KEEP - Keep all features in that row"), REMOVE(
+        "REMOVE - Only keep features above fold change");
+
+    private String description;
+
+    BlankSubtractionOptions(String description) {
+      this.description = description;
+    }
+
+    @Override
+    public String toString() {
+      return this.description;
+    }
   }
 }
