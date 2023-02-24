@@ -23,21 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.parameters.parametertypes;
 
-public enum FeatureMeasurementType {
-  // needs to be named Peak for GNPS (for now)
-  HEIGHT("Peak height"), //
-  AREA("Peak area");
+import io.github.mzmine.parameters.Parameter;
 
-  private final String name;
+/**
+ * In case a parameter embeds a parameter set, this interface shall be implemented. This is required
+ * because embedded parameter sets might have a
+ * {@link io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter} which needs to
+ * be set. With this interface, it can be done via
+ * {@link io.github.mzmine.modules.batchmode.BatchTask}
+ */
+public interface EmbeddedParameter<T extends Parameter<?>> {
 
-  FeatureMeasurementType(String name) {
-    this.name = name;
-  }
-
-  public String toString() {
-    return this.name;
-  }
+  T getEmbeddedParameter();
 
 }

@@ -181,4 +181,5 @@ public class WizardSequence extends AbstractList<WizardStepParameters> {
                 wizardPreset.getUniquePresetId())).map(IonInterfaceWizardParameterFactory::isImaging)
         .orElse(false);
   }
+
 }

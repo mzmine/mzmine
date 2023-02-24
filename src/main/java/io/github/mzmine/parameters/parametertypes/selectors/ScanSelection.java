@@ -52,18 +52,21 @@ public class ScanSelection {
   private final PolarityType polarity;
   private final MassSpectrumType spectrumType;
   private final Integer msLevel;
-  private Integer baseFilteringInteger;
-  private String scanDefinition;
+  private final Integer baseFilteringInteger;
+  private final String scanDefinition;
 
+  /**
+   * Uses MS level 1 only
+   */
   public ScanSelection() {
     this(1);
   }
 
-  public ScanSelection(int msLevel) {
+  public ScanSelection(Integer msLevel) {
     this(null, null, null, null, null, null, msLevel, null);
   }
 
-  public ScanSelection(Range<Float> scanRTRange, int msLevel) {
+  public ScanSelection(Range<Float> scanRTRange, Integer msLevel) {
     this(null, null, scanRTRange, null, null, null, msLevel, null);
   }
 
@@ -238,9 +241,7 @@ public class ScanSelection {
 
       final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
 
-      if (!actualScanDefinition.matches(regex)) {
-        return false;
-      }
+      return actualScanDefinition.matches(regex);
     }
     return true;
   }
@@ -308,9 +309,7 @@ public class ScanSelection {
 
       final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
 
-      if (!actualScanDefinition.matches(regex)) {
-        return false;
-      }
+      return actualScanDefinition.matches(regex);
     }
     return true;
   }

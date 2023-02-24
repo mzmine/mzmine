@@ -56,12 +56,16 @@ import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-
+/**
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
+ */
+@Deprecated
 public class SingleRowIdentificationTask extends AbstractTask {
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-  private static final Logger logger = Logger
-      .getLogger(SingleRowIdentificationTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      SingleRowIdentificationTask.class.getName());
   private final Double minIsotopeScore;
   private final Double isotopeNoiseLevel;
   private final MZTolerance isotopeMZTolerance;
@@ -108,8 +112,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     final ParameterSet isoParam = parameters.getParameter(ISOTOPE_FILTER).getEmbeddedParameters();
 
     if (isotopeFilter) {
-      minIsotopeScore = isoParam
-          .getValue(IsotopePatternScoreParameters.isotopePatternScoreThreshold);
+      minIsotopeScore = isoParam.getValue(
+          IsotopePatternScoreParameters.isotopePatternScoreThreshold);
       isotopeNoiseLevel = isoParam.getValue(IsotopePatternScoreParameters.isotopeNoiseLevel);
       isotopeMZTolerance = isoParam.getValue(IsotopePatternScoreParameters.mzTolerance);
     } else {
@@ -150,13 +154,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
     IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
     if ((isotopeFilter) && (detectedPattern == null)) {
       final String msg = "Cannot calculate isotope pattern scores, because selected"
-                         + " peak does not have any isotopes. Have you run the isotope peak grouper?";
+          + " peak does not have any isotopes. Have you run the isotope peak grouper?";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
     try {
-      String[] compoundIDs = gateway
-          .findCompounds(searchedMass, mzTolerance, numOfResults, db.getParameterSet());
+      String[] compoundIDs = gateway.findCompounds(searchedMass, mzTolerance, numOfResults,
+          db.getParameterSet());
 
       // Get the number of results
       numItems = compoundIDs.length;
@@ -190,11 +194,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
           logger.finest(
               "Calculating isotope pattern for compound formula " + formula + " adjusted to "
-              + MolecularFormulaManipulator.getString(ionizedFormula));
+                  + MolecularFormulaManipulator.getString(ionizedFormula));
 
           // Generate IsotopePattern for this compound
-          IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-              .calculateIsotopePattern(ionizedFormula, 0.001, charge, ionType.getPolarity());
+          IsotopePattern compoundIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
+              ionizedFormula, 0.001, charge, ionType.getPolarity());
 
           compound.put(IsotopePatternType.class, compoundIsotopePattern);
 
@@ -202,12 +206,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
           // If required, check isotope score
           if (isotopeFilter && (rawDataIsotopePattern != null) && (compoundIsotopePattern
-                                                                   != null)) {
+              != null)) {
 
-            double score = IsotopePatternScoreCalculator
-                .getSimilarityScore(rawDataIsotopePattern, compoundIsotopePattern,
-                    isotopeMZTolerance, isotopeNoiseLevel);
-            compound.put(IsotopePatternScoreType.class, (float)score);
+            double score = IsotopePatternScoreCalculator.getSimilarityScore(rawDataIsotopePattern,
+                compoundIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel);
+            compound.put(IsotopePatternScoreType.class, (float) score);
 
             if (score < minIsotopeScore) {
               finishedItems++;
@@ -227,7 +230,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
           resultWindowFX.setTitle(
               "Searching for " + massFormatter.format(searchedMass) + " amu (" + (finalI + 1) + "/"
-              + numItems + ")");
+                  + numItems + ")");
         });
 
         finishedItems++;

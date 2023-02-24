@@ -31,6 +31,13 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 
 public class MinimumSamplesParameter extends AbsoluteAndRelativeIntParameter {
 
+  public static final String DEFAULT_NAME = "Minimum aligned features (samples)";
+  public static final String DEFAULT_DESCRIPTION = "Minimum number of feature detections required per row. The value will be rounded down to the nearest whole number.";
+
+  public MinimumSamplesParameter() {
+    this(DEFAULT_NAME, DEFAULT_DESCRIPTION, new AbsoluteAndRelativeInt(1, 0f, Mode.ROUND_DOWN));
+  }
+
   public MinimumSamplesParameter(final String name, final String description) {
     this(name, description, new AbsoluteAndRelativeInt(1, 0f, Mode.ROUND_DOWN));
   }

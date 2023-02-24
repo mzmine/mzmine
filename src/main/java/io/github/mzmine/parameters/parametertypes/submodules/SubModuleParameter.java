@@ -37,7 +37,7 @@ import org.w3c.dom.Element;
  * Parameter represented by check box with additional sub-parameters
  */
 public class SubModuleParameter<SUB extends ParameterSet> implements
-    UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet {
+    UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet<SUB, Boolean> {
 
   private final String name;
   private final String description;
