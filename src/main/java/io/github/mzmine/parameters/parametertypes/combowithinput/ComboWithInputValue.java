@@ -23,17 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_groupms2;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.parameters.parametertypes.ComboWithInputParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+/**
+ * @param <EnumType>     used in combo box of {@link ComboWithInputParameter}
+ * @param <EmbeddedType> the embedded type in {@link ComboWithInputParameter}
+ */
+public interface ComboWithInputValue<EnumType, EmbeddedType> {
 
-public class RtLimitOptionsParameter extends
-    ComboWithInputParameter<FeatureLimitOptions, RTToleranceParameter> {
+  EnumType getSelectedOption();
 
-  public RtLimitOptionsParameter(final RTToleranceParameter embeddedParameter) {
-    super(embeddedParameter, FeatureLimitOptions.values(), FeatureLimitOptions.USE_FEATURE_EDGES,
-        FeatureLimitOptions.USE_TOLERANCE);
-
-  }
+  EmbeddedType getEmbeddedValue();
 }

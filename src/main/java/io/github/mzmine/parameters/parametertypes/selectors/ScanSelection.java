@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.TextUtils;
 import java.text.DecimalFormat;
@@ -43,7 +44,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
-                            Range<Float> scanRTRange, Range<Double> scanMobilityRange,
+                            Range<Double> scanRTRange, Range<Double> scanMobilityRange,
                             PolarityType polarity, MassSpectrumType spectrumType,
                             MsLevelFilter msLevel, String scanDefinition) {
 
@@ -64,7 +65,7 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     this(null, null, null, null, null, null, MsLevelFilter.of(msLevel), null);
   }
 
-  public ScanSelection(Range<Float> scanRTRange, Integer msLevel) {
+  public ScanSelection(Range<Double> scanRTRange, Integer msLevel) {
     this(null, null, scanRTRange, null, null, null, MsLevelFilter.of(msLevel), null);
   }
 
@@ -76,8 +77,12 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     return baseFilteringInteger;
   }
 
-  public Range<Float> getScanRTRange() {
+  public Range<Double> getScanRTRange() {
     return scanRTRange;
+  }
+
+  public Range<Float> getScanRTRangeFloat() {
+    return RangeUtils.toFloatRange(scanRTRange);
   }
 
   public Range<Double> getScanMobilityRange() {
@@ -201,7 +206,7 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
       return false;
     }
 
-    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime()))) {
+    if ((scanRTRange != null) && (!scanRTRange.contains((double) scan.getRetentionTime()))) {
       return false;
     }
 
@@ -276,7 +281,7 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
       return false;
     }
 
-    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime()))) {
+    if ((scanRTRange != null) && (!scanRTRange.contains((double) scan.getRetentionTime()))) {
       return false;
     }
 
@@ -360,7 +365,7 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     return b.toString();
   }
 
-  public ScanSelection cloneWithNewRtRange(Range<Float> rtRange) {
+  public ScanSelection cloneWithNewRtRange(Range<Double> rtRange) {
     return new ScanSelection(getScanNumberRange(), getBaseFilteringInteger(), rtRange,
         getScanMobilityRange(), getPolarity(), getSpectrumType(), getMsLevelFilter(),
         getScanDefinition());

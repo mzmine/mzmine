@@ -23,16 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_groupms2;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-public enum FeatureLimitOptions {
-  USE_FEATURE_EDGES, USE_TOLERANCE;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+
+public class MsLevelFilterParameter extends
+    ComboWithInputParameter<Options, MsLevelFilter, IntegerParameter> {
+
+  public MsLevelFilterParameter() {
+    this(Options.values(), MsLevelFilter.ALL_LEVELS);
+  }
+
+  public MsLevelFilterParameter(Options[] options, MsLevelFilter defaultValue) {
+    super(new IntegerParameter("MS level filter",
+            "Only select MS of defined levels. MS1, MS2, MSn (all >1), or specific levels entered as number.",
+            3, true, 1, 100000), //
+        options, Options.SPECIFIC_LEVEL, defaultValue);
+  }
 
   @Override
-  public String toString() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
+  public MsLevelFilter createValue(final Options option, final IntegerParameter embeddedParameter) {
+    return new MsLevelFilter(option, embeddedParameter.getValue());
   }
+
+
+  @Override
+  public MsLevelFilterParameter cloneParameter() {
+    return new MsLevelFilterParameter(choices.toArray(Options[]::new), value);
+  }
+
 }

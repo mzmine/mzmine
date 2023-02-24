@@ -23,10 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import java.util.Collection;
 import java.util.Objects;
 import javafx.collections.FXCollections;
@@ -39,75 +40,58 @@ import org.w3c.dom.Element;
  * value is selected in the combo box
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class ComboWithInputParameter<EnumType, EmbeddedParameterType extends UserParameter<?, ?>> implements
-    UserParameter<EnumType, ComboWIthInputComponent<EnumType>>,
-    EmbeddedParameter<EmbeddedParameterType> {
+public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboWithInputValue<EnumType, ?>, EmbeddedParameterType extends UserParameter<?, ?>> extends
+    EmbeddedParameter<ValueType, EmbeddedParameterType, ComboWithInputComponent<EnumType>> {
 
-  private final EmbeddedParameterType embeddedParameter;
-  private final ObservableList<EnumType> choices;
-  private final EnumType inputTrigger;
-  private EnumType value;
+  protected final ObservableList<EnumType> choices;
+  protected final EnumType inputTrigger;
+  protected ValueType value;
 
   public ComboWithInputParameter(EmbeddedParameterType embeddedParameter, final EnumType[] values,
-      final EnumType selected, final EnumType inputTrigger) {
-    this(embeddedParameter, FXCollections.observableArrayList(values), selected, inputTrigger);
+      final EnumType inputTrigger, ValueType defaultValue) {
+    this(embeddedParameter, FXCollections.observableArrayList(values), inputTrigger, defaultValue);
   }
 
   public ComboWithInputParameter(EmbeddedParameterType embeddedParameter,
-      final ObservableList<EnumType> values, final EnumType selected, final EnumType inputTrigger) {
-    this.embeddedParameter = embeddedParameter;
+      final ObservableList<EnumType> values, final EnumType inputTrigger, ValueType defaultValue) {
+    super(defaultValue, embeddedParameter);
     choices = FXCollections.observableArrayList(values);
-    value = selected;
     this.inputTrigger = inputTrigger;
+    setValue(defaultValue);
+  }
+
+  /**
+   * Create a new value
+   */
+  public abstract ValueType createValue(final EnumType option,
+      final EmbeddedParameterType embeddedParameter);
+
+
+  @Override
+  public ComboWithInputComponent createEditingComponent() {
+    return new ComboWithInputComponent(embeddedParameter, choices, inputTrigger, value);
   }
 
   @Override
-  public EmbeddedParameterType getEmbeddedParameter() {
-    return embeddedParameter;
-  }
-
-  public Object getEmbeddedValue() {
-    return embeddedParameter.getValue();
-  }
-
-  @Override
-  public String getName() {
-    return embeddedParameter.getName();
-  }
-
-  @Override
-  public String getDescription() {
-    return embeddedParameter.getDescription();
-  }
-
-  @Override
-  public ComboWIthInputComponent createEditingComponent() {
-    return new ComboWIthInputComponent(embeddedParameter, choices, value, inputTrigger);
-  }
-
-  @Override
-  public EnumType getValue() {
+  public ValueType getValue() {
     return value;
   }
 
   @Override
-  public void setValue(EnumType value) {
-    this.value = value;
+  public void setValue(final ValueType newValue) {
+    value = newValue;
+    ((Parameter) embeddedParameter).setValue(value == null ? null : value.getEmbeddedValue());
   }
 
-  @Override
-  public ComboWithInputParameter cloneParameter() {
-    final UserParameter<?, ?> embeddedParameterClone = embeddedParameter.cloneParameter();
-    return new ComboWithInputParameter(embeddedParameterClone, choices, value, inputTrigger);
-  }
 
   @Override
-  public void setValueFromComponent(ComboWIthInputComponent<EnumType> component) {
-    this.value = component.getValue();
+  public void setValueFromComponent(ComboWithInputComponent<EnumType> component) {
+    var option = component.getSelectedOption();
     if (useEmbeddedParameter()) {
       Node embeddedComponent = component.getEmbeddedComponent();
       ((UserParameter) this.embeddedParameter).setValueFromComponent(embeddedComponent);
     }
+    setValue(createValue(option, embeddedParameter));
   }
 
   /**
@@ -116,16 +100,12 @@ public class ComboWithInputParameter<EnumType, EmbeddedParameterType extends Use
    * @return true if trigger is selected
    */
   public boolean useEmbeddedParameter() {
-    return Objects.equals(value, inputTrigger);
+    return value != null && Objects.equals(value.getSelectedOption(), inputTrigger);
   }
 
   @Override
-  public void setValueToComponent(ComboWIthInputComponent<EnumType> component, EnumType newValue) {
+  public void setValueToComponent(ComboWithInputComponent<EnumType> component, ValueType newValue) {
     component.setValue(newValue);
-    if (embeddedParameter.getValue() != null) {
-      ((UserParameter) this.embeddedParameter).setValueToComponent(component.getEmbeddedComponent(),
-          embeddedParameter.getValue());
-    }
   }
 
   @Override
@@ -138,7 +118,7 @@ public class ComboWithInputParameter<EnumType, EmbeddedParameterType extends Use
     }
     for (EnumType option : choices) {
       if (option.toString().equals(selectedAttr)) {
-        value = option;
+        setValue(createValue(option, embeddedParameter));
         break;
       }
     }
@@ -149,7 +129,7 @@ public class ComboWithInputParameter<EnumType, EmbeddedParameterType extends Use
     if (value == null) {
       return;
     }
-    xmlElement.setAttribute("selected", value.toString());
+    xmlElement.setAttribute("selected", value.getSelectedOption().toString());
     embeddedParameter.saveValueToXML(xmlElement);
   }
 
