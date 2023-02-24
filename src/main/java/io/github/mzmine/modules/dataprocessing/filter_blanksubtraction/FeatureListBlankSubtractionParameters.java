@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.BlankSubtractionOptions;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.RatioType;
 import io.github.mzmine.parameters.Parameter;
@@ -38,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import io.github.mzmine.util.FeatureMeasurementType;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
@@ -53,9 +53,9 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "Minimum # of detection in blanks",
       "Specifies in how many of the blank files a peak has to be detected.");
 
-  public static final ComboParameter<FeatureMeasurementType> quantType = new ComboParameter<FeatureMeasurementType>(
+  public static final ComboParameter<AbundanceMeasure> quantType = new ComboParameter<AbundanceMeasure>(
       "Quantification", "Use either the features' height or area for the subtraction. ",
-      FeatureMeasurementType.values(), FeatureMeasurementType.HEIGHT);
+      AbundanceMeasure.values(), AbundanceMeasure.Height);
 
   public static final ComboParameter<RatioType> ratioType = new ComboParameter<RatioType>(
       "Ratio type",

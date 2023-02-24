@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -39,7 +40,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private final double foldChange;
   private final BlankSubtractionOptions keepBackgroundFeatures;
   private final RatioType ratioType;
-  private final FeatureMeasurementType quantType;
+  private final AbundanceMeasure quantType;
 
   private AtomicInteger processedRows = new AtomicInteger(0);
   private MZmineProject project;
@@ -273,17 +273,17 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private double getFeatureQuantifier(Feature f, FeatureMeasurementType quantType) {
-    if (quantType == FeatureMeasurementType.HEIGHT) {
+  private double getFeatureQuantifier(Feature f, AbundanceMeasure quantType) {
+    if (quantType == AbundanceMeasure.Height) {
       return f.getHeight();
-    } else if (quantType == FeatureMeasurementType.AREA) {
+    } else if (quantType == AbundanceMeasure.Area) {
       return f.getArea();
     }
     throw new RuntimeException("Unknown parameter");
   }
 
   private double getBlankIntensity(FeatureListRow row, Collection<RawDataFile> blankRaws,
-      FeatureMeasurementType quantType, RatioType ratioType) {
+      AbundanceMeasure quantType, RatioType ratioType) {
     double intensity = 0d;
     int numDetections = 0;
 
