@@ -185,6 +185,7 @@ public class MassvoltammogramTab extends MZmineTab {
     //Adding zeros around the datapoints if the spectra are centroid, so they will be visualized correctly.
     final List<double[][]> processedSpectra;
 
+    //Adding intensity values of 0 around centroid datapoints, so that the massvoltammogram will be visualized correclty.
     if (plot.getMassSpectrumType() == MassSpectrumType.CENTROIDED) {
 
       processedSpectra = MassvoltammogramUtils.addZerosToCentroidData(spectra);

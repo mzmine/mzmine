@@ -21,25 +21,35 @@ import com.google.common.collect.Range;
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntToDoubleFunction;
 import org.math.plot.Plot3DPanel;
 
 public class MassvoltammogramUtils {
 
 
   /**
-   * Extracts all scans needed to draw the massvoltammogram.
+   * Extracts all scans needed to draw the massvoltammogram from a raw data file.
    *
    * @param rawDataFile        Raw data file the scans will be drawn from.
    * @param scanSelection      The scan selection filter.
-   * @param delayTime          Delay time between EC-cell and MS in min.
+   * @param delayTime          Delay time between EC-cell and MS in s.
    * @param startPotential     The potential the ramp starts at in mV.
    * @param endPotential       The potential the ramp ends at in mV.
    * @param potentialSpeedRamp Speed of the potential ramp in mV/s.
@@ -50,16 +60,16 @@ public class MassvoltammogramUtils {
    * is stored at index 0, the corresponding intensity-value at index 1 and the voltage-value at
    * index 2.
    */
-  public static List<double[][]> getScans(RawDataFile rawDataFile, ScanSelection scanSelection,
-      double delayTime, double startPotential, double endPotential, double potentialSpeedRamp,
-      double stepSize) {
+  public static List<double[][]> getScansFromRawDataFile(RawDataFile rawDataFile,
+      ScanSelection scanSelection, double delayTime, double startPotential, double endPotential,
+      double potentialSpeedRamp, double stepSize) {
 
     final List<double[][]> scans = new ArrayList<>();
 
     final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
     //Setting the starting potential
-    double potential = /*potentialRange.lowerEndpoint()*/startPotential;
+    double potential = startPotential;
 
     //Adding scans with the given step size until the maximal potential is reached.
     while (Math.abs(potential) <= Math.abs(endPotential)) {
@@ -86,6 +96,79 @@ public class MassvoltammogramUtils {
     return scans;
   }
 
+
+  public static List<double[][]> getScansFromFeatureList(ModularFeatureList featureList,
+      double delayTime, double startPotential, double endPotential, double potentialSpeedRamp,
+      double stepSize) {
+
+    //Setting the number format for the mz-values.
+    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+
+    //Getting the rows from the feature list and sorting them to ascending mz-values.
+    List<FeatureListRow> rows = featureList.getRows();
+    rows.sort(FeatureListRowSorter.MZ_ASCENDING);
+
+    //Initializing a list to add the created scans to.
+    final List<double[][]> scans = new ArrayList<>();
+
+    //Calculating the +- rt tolerance for a feature around the potential.
+    final float timeBetweenScansInS = (float) (stepSize / potentialSpeedRamp);
+    final double rtToleranceInMin = (timeBetweenScansInS / 2) / 60;
+
+    //Setting the potential to the start potential
+    double potential = startPotential;
+
+    //Creating a scan for every potential value until the end potential is reached.
+    while (Math.abs(potential) <= Math.abs(endPotential)) {
+
+      //Calculating the rt fot the given applied potential.
+      final float rt = (EcmsUtils.getRtAtPotential(delayTime, potentialSpeedRamp, potential));
+
+      //Initializing lists to add the mz-values and the intensity-values to.
+      final List<Double> mzs = new ArrayList<>();
+      final List<Double> intensities = new ArrayList<>();
+
+      //Going over all the rows in the feature list and adding the intensity if the rt matches.
+      for (FeatureListRow row : rows) {
+
+        //Getting the feature data from the row.
+        final Feature feature = row.getBestFeature();
+        final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+
+        //Searching for the index of the features closest rt to the potential rt.
+        final int index = BinarySearch.binarySearch(rt, true, featureData.getNumberOfValues(),
+            value -> featureData.getRetentionTime(value));
+
+        //Calculating the rt value for the found index.
+        final float foundRt = featureData.getRetentionTime(index);
+
+        //Adding the features mz and intensity if the difference between features rt and potential rt is within the tolerance.
+        if (Math.abs(rt - foundRt) < rtToleranceInMin) {
+
+          mzs.add(Double.parseDouble(mzFormat.format(feature.getMZ())));
+          intensities.add(featureData.getIntensity(index));
+        }
+      }
+
+      //Writing the scans data to a double array.
+      double[][] scan = new double[mzs.size()][3];
+
+      for (int i = 0; i < scan.length; i++) {
+
+        scan[i][0] = mzs.get(i);
+        scan[i][1] = intensities.get(i);
+        scan[i][2] = potential;
+      }
+
+      //Adding the scan to the list of scans.
+      scans.add(scan);
+
+      //Increasing the potential by the potential step size.
+      potential = potential + stepSize;
+    }
+
+    return scans;
+  }
 
   /**
    * @param scans   List of scans the spectra will be generated from.

@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import java.text.DecimalFormat;
 
-public class MassvoltammogramParameters extends SimpleParameterSet {
+public class MassvoltammogramFromFileParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
 
@@ -56,7 +56,7 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       "Reaction Mode", "Reaction mode of the experiment.", ReactionMode.values(),
       ReactionMode.OXIDATIVE);
 
-  public MassvoltammogramParameters() {
+  public MassvoltammogramFromFileParameters() {
     super(new Parameter[]{files, scanSelection, reactionMode, delayTime, potentialRampSpeed,
         potentialRange, stepSize, mzRange});
   }
