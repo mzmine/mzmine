@@ -25,9 +25,6 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -41,6 +38,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 2D visualizer using JFreeChart library
@@ -60,63 +60,66 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
     return MODULE_DESCRIPTION;
   }
 
-  @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    RawDataFile dataFiles[] = parameters.getParameter(TwoDVisualizerParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
-    ScanSelection scanSel =
-        parameters.getParameter(TwoDVisualizerParameters.scanSelection).getValue();
-    Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
-    Range<Float> rtRange = ScanUtils.findRtRange(scans);
+  public static void show2DVisualizerSetupDialog(RawDataFile dataFile, Range<Double> mzRange,
+      Range<Float> rtRange) {
 
-    Range<Double> mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
-    TwoDVisualizerTab newTab =
-        new TwoDVisualizerTab(dataFiles[0], scans, rtRange, mzRange, parameters);
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(TwoDVisualizerModule.class);
+
+    parameters.getParameter(TwoDVisualizerParameters.dataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{dataFile});
+
+    if (rtRange != null) {
+      parameters.getParameter(TwoDVisualizerParameters.scanSelection)
+          .setValue(new ScanSelection(1, rtRange));
+    }
+    if (mzRange != null) {
+      parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(mzRange);
+    }
+
+    ExitCode exitCode = parameters.showSetupDialog(true);
+
+    if (exitCode != ExitCode.OK) {
+      return;
+    }
+
+    ScanSelection scanSel = parameters.getParameter(TwoDVisualizerParameters.scanSelection)
+        .getValue();
+    Scan[] scans = scanSel.getMatchingScans(dataFile);
+    rtRange = ScanUtils.findRtRange(scans);
+
+    mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
+
+    TwoDVisualizerTab newWindow = new TwoDVisualizerTab(dataFile, scans, rtRange, mzRange,
+        parameters);
 
     //newWindow.show();
-    MZmineCore.getDesktop().addTab(newTab);
-
-    return ExitCode.OK;
+    MZmineCore.getDesktop().addTab(newWindow);
   }
 
   public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
     show2DVisualizerSetupDialog(dataFile, null, null);
   }
 
-  public static void show2DVisualizerSetupDialog(RawDataFile dataFile, Range<Double> mzRange,
-      Range<Float> rtRange) {
+  @Override
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+    RawDataFile[] dataFiles = parameters.getParameter(TwoDVisualizerParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
+    ScanSelection scanSel = parameters.getParameter(TwoDVisualizerParameters.scanSelection)
+        .getValue();
+    Scan[] scans = scanSel.getMatchingScans(dataFiles[0]);
+    Range<Float> rtRange = ScanUtils.findRtRange(scans);
 
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
-
-    parameters.getParameter(TwoDVisualizerParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[] {dataFile});
-
-    if (rtRange != null)
-      parameters.getParameter(TwoDVisualizerParameters.scanSelection)
-          .setValue(new ScanSelection(rtRange, 1));
-    if (mzRange != null)
-      parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(mzRange);
-
-    ExitCode exitCode = parameters.showSetupDialog(true);
-
-    if (exitCode != ExitCode.OK)
-      return;
-
-    ScanSelection scanSel =
-        parameters.getParameter(TwoDVisualizerParameters.scanSelection).getValue();
-    Scan scans[] = scanSel.getMatchingScans(dataFile);
-    rtRange = ScanUtils.findRtRange(scans);
-
-    mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
-
-    TwoDVisualizerTab newWindow =
-        new TwoDVisualizerTab(dataFile, scans, rtRange, mzRange, parameters);
+    Range<Double> mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
+    TwoDVisualizerTab newTab = new TwoDVisualizerTab(dataFiles[0], scans, rtRange, mzRange,
+        parameters);
 
     //newWindow.show();
-    MZmineCore.getDesktop().addTab(newWindow);
+    MZmineCore.getDesktop().addTab(newTab);
+
+    return ExitCode.OK;
   }
 
   @Override

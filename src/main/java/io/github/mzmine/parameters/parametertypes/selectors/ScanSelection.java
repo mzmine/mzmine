@@ -42,11 +42,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
                             Range<Double> scanRTRange, Range<Double> scanMobilityRange,
-                            PolarityType polarity, MassSpectrumType spectrumType,
-                            MsLevelFilter msLevel, String scanDefinition) {
+                            @NotNull PolarityType polarity, @NotNull MassSpectrumType spectrumType,
+                            @NotNull MsLevelFilter msLevel, String scanDefinition) {
 
   /**
    * Includes all scans
@@ -62,11 +63,18 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
   }
 
   public ScanSelection(Integer msLevel) {
-    this(null, null, null, null, null, null, MsLevelFilter.of(msLevel), null);
+    this(null, null, null, null, PolarityType.ANY, MassSpectrumType.ANY, MsLevelFilter.of(msLevel),
+        null);
   }
 
   public ScanSelection(Range<Double> scanRTRange, Integer msLevel) {
-    this(null, null, scanRTRange, null, null, null, MsLevelFilter.of(msLevel), null);
+    this(null, null, scanRTRange, null, PolarityType.ANY, MassSpectrumType.ANY,
+        MsLevelFilter.of(msLevel), null);
+  }
+
+  public ScanSelection(final int msLevel, final Range<Float> scanRTRange) {
+    this(null, null, scanRTRange == null ? null : RangeUtils.toDoubleRange(scanRTRange), null,
+        PolarityType.ANY, MassSpectrumType.ANY, MsLevelFilter.of(msLevel), null);
   }
 
   public Range<Integer> getScanNumberRange() {
@@ -185,15 +193,15 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
    * @return
    */
   public boolean matches(Scan scan, int scanNumberOffset) {
-    if (msLevel != null && !msLevel.accept(scan)) {
+    if (!msLevel.accept(scan)) {
       return false;
     }
 
-    if ((polarity != null) && (!polarity.equals(scan.getPolarity()))) {
+    if (polarity != PolarityType.ANY && polarity != scan.getPolarity()) {
       return false;
     }
 
-    if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType()))) {
+    if (spectrumType != MassSpectrumType.ANY && spectrumType != scan.getSpectrumType()) {
       return false;
     }
 

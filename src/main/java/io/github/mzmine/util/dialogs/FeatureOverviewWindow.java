@@ -57,8 +57,8 @@ public class FeatureOverviewWindow extends Stage {
   private final Scene mainScene;
   private final BorderPane mainPane;
 
-  private Feature feature;
-  private RawDataFile[] rawFiles;
+  private final Feature feature;
+  private final RawDataFile[] rawFiles;
 
   public FeatureOverviewWindow(FeatureListRow row) {
 
@@ -124,7 +124,7 @@ public class FeatureOverviewWindow extends Stage {
     Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
 
     // scan selection
-    ScanSelection scanSelection = new ScanSelection(rawFiles[0].getDataRTRange(1), 1);
+    ScanSelection scanSelection = new ScanSelection(1, rawFiles[0].getDataRTRange(1));
 
     // mz range
     Range<Double> mzRange = null;
@@ -156,13 +156,16 @@ public class FeatureOverviewWindow extends Stage {
     // featureDataSummary.setBackground(Color.WHITE);
     var featureDataSummary = featureDataNode.getChildren();
     featureDataSummary.add(new Label("Feature: " + row.getID()));
-    if (row.getPreferredFeatureIdentity() != null)
+    if (row.getPreferredFeatureIdentity() != null) {
       featureDataSummary.add(new Label("Identity: " + row.getPreferredFeatureIdentity().getName()));
-    if (row.getComment() != null)
+    }
+    if (row.getComment() != null) {
       featureDataSummary.add(new Label("Comment: " + row.getComment()));
+    }
     featureDataSummary.add(new Label("Raw File: " + rawFiles[0].getName()));
-    featureDataSummary.add(new Label("Intensity: "
-        + MZmineCore.getConfiguration().getIntensityFormat().format(feature.getHeight())));
+    featureDataSummary.add(new Label(
+        "Intensity: " + MZmineCore.getConfiguration().getIntensityFormat()
+            .format(feature.getHeight())));
     featureDataSummary.add(new Label(
         "Area: " + MZmineCore.getConfiguration().getIntensityFormat().format(feature.getArea())));
     featureDataSummary.add(new Label("Charge: " + feature.getCharge()));
@@ -170,10 +173,12 @@ public class FeatureOverviewWindow extends Stage {
         new Label("m/z: " + MZmineCore.getConfiguration().getMZFormat().format(feature.getMZ())));
     featureDataSummary.add(new Label(
         "Retention time: " + MZmineCore.getConfiguration().getRTFormat().format(feature.getRT())));
-    featureDataSummary.add(new Label("Asymmetry factor "
-        + MZmineCore.getConfiguration().getRTFormat().format(feature.getAsymmetryFactor())));
-    featureDataSummary.add(new Label("Tailing Factor factor "
-        + MZmineCore.getConfiguration().getRTFormat().format(feature.getTailingFactor())));
+    featureDataSummary.add(new Label(
+        "Asymmetry factor " + MZmineCore.getConfiguration().getRTFormat()
+            .format(feature.getAsymmetryFactor())));
+    featureDataSummary.add(new Label(
+        "Tailing Factor factor " + MZmineCore.getConfiguration().getRTFormat()
+            .format(feature.getTailingFactor())));
     featureDataSummary.add(new Label("Status: " + feature.getFeatureStatus()));
     return featureDataNode;
   }

@@ -26,14 +26,20 @@
 package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
+import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
@@ -61,6 +67,9 @@ public class EmptyParameterSetupDialogBase extends Stage {
   protected BorderPane centerPane;
   protected Map<String, Node> parametersAndComponents;
   protected ParameterSet parameterSet;
+  // this value is incremented after a sub parmaeterset was expanded
+  protected int widthExpandedBySubParameters;
+  protected DoubleProperty maxExtraWidthExpanded = new SimpleDoubleProperty(0);
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
@@ -107,15 +116,14 @@ public class EmptyParameterSetupDialogBase extends Stage {
     parameterSet = paramPane.getParameterSet();
 
     mainPane = new BorderPane(paramPane);
-    mainPane.setMaxHeight(MZmineCore.getDesktop().getMainWindow().getScene().getHeight()*0.95);
-    mainPane.setMaxHeight(MZmineCore.getDesktop().getMainWindow().getScene().getHeight()*0.95);
+    mainPane.setMaxHeight(calcMaxHeight());
     Scene scene = new Scene(mainPane);
 
     // Use main CSS
     scene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(scene);
-    
+
     setTitle(parameterSet.getModuleNameAttribute());
 
     setMinWidth(500.0);
@@ -123,6 +131,62 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
     centerOnScreen();
   }
+
+  private static double calcMaxHeight() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getHeight() * 0.95;
+  }
+
+  private static double calcMaxWidth() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getWidth() * 0.95;
+  }
+
+  private void addSizeChangeListeners(final Map<String, Node> parametersAndComponents) {
+    parametersAndComponents.values().forEach(node -> {
+      if (node instanceof EstimatedComponentHeightProvider sizePropertyProvider) {
+        sizePropertyProvider.estimatedHeightProperty()
+            .addListener((observable, oldHeight, newHeight) -> {
+              double heightDiff = newHeight.doubleValue() - oldHeight.doubleValue();
+              // just an estimate to increase height of dialog
+              setHeight(Math.min(calcMaxHeight(), getHeight() + heightDiff));
+            });
+      }
+    });
+
+    // bind extra width to MAX of all widths
+    var widthProperties = parametersAndComponents.values().stream()
+        .filter(n -> n instanceof EstimatedComponentWidthProvider)
+        .map(n -> ((EstimatedComponentWidthProvider) n).estimatedWidthProperty())
+        .toArray(DoubleProperty[]::new);
+    maxExtraWidthExpanded.bind(Bindings.createDoubleBinding(
+        (() -> Arrays.stream(widthProperties).mapToDouble(DoubleProperty::get).max().orElse(0d)),
+        widthProperties));
+    maxExtraWidthExpanded.addListener((observable, oldValue, newValue) -> {
+      double widthDiff = newValue.doubleValue() - oldValue.doubleValue();
+      setWidth(Math.min(calcMaxWidth(), getWidth() + widthDiff));
+    });
+  }
+
+//  private void applyEstimatedWidthExpand() {
+//    parametersAndComponents.values().forEach(node -> {
+//
+//      {
+//        double widthDiff = newHeight.doubleValue() - oldHeight.doubleValue();
+//        // just an estimate to increase height of dialog
+//        setHeight(Math.min(calcMaxHeight(), getHeight() + widthDiff));
+//
+//        // only apply width change once
+//        if (widthDiff > maxExtraWidthExpanded) {
+//          setWidth(Math.min(calcMaxWidth(), getWidth() - maxExtraWidthExpanded + widthDiff));
+//          maxExtraWidthExpanded = widthDiff;
+//        }
+//        int factor = widthDiff < 0 ? -1 : 1;
+//        widthExpandedBySubParameters += factor;
+//
+//        if (widthExpandedBySubParameters == 0) {
+//          setWidth(Math.min(calcMaxWidth(), getWidth() - 400));
+//        }
+//      });
+//    }
 
   @Override
   public void showAndWait() {
@@ -153,7 +217,10 @@ public class EmptyParameterSetupDialogBase extends Stage {
    */
   @NotNull
   public GridPane createParameterPane(@NotNull Parameter<?>[] parameters) {
-    return paramPane.createParameterPane(parameters);
+    var pane = paramPane.createParameterPane(parameters);
+    // see if sizes change within components
+    addSizeChangeListeners(parametersAndComponents);
+    return pane;
   }
 
   public <ComponentType extends Node> ComponentType getComponentForParameter(
@@ -172,7 +239,6 @@ public class EmptyParameterSetupDialogBase extends Stage {
   protected int getNumberOfParameters() {
     return paramPane.getNumberOfParameters();
   }
-
 
   public ButtonBar getButtonBar() {
     return paramPane.getButtonBar();

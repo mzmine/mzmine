@@ -90,8 +90,9 @@ public class SpectraDataSetCalc extends AbstractTask {
       double rt = pos.getRetentionTime();
       rawDataFiles.forEach(rawDataFile -> {
         Scan scan = null;
-        if (scanSelection.getMsLevel() != null) {
-          scan = rawDataFile.binarySearchClosestScan((float) rt, scanSelection.getMsLevel());
+        var singleMsLevelOrNull = scanSelection.getMsLevelFilter().getSingleMsLevelOrNull();
+        if (singleMsLevelOrNull != null) {
+          scan = rawDataFile.binarySearchClosestScan((float) rt, singleMsLevelOrNull);
         } else {
           scan = rawDataFile.binarySearchClosestScan((float) rt);
         }

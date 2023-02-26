@@ -95,13 +95,25 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
     };
   }
 
+  /**
+   * Only true if this is a single MS level
+   */
+  public boolean isSingleMsLevel(final int msLevel) {
+    return switch (filter) {
+      case ALL, MSn -> false;
+      case MS1 -> 1 == msLevel;
+      case MS2 -> 2 == msLevel;
+      case SPECIFIC_LEVEL -> specificLevel == msLevel;
+    };
+  }
+
   enum Options {
     ALL, MS1, MSn, MS2, SPECIFIC_LEVEL;
 
     @Override
     public String toString() {
       return switch (this) {
-        case MS2, MS1, MSn -> toString();
+        case MS2, MS1, MSn -> super.toString();
         case ALL -> "All MS levels";
         case SPECIFIC_LEVEL -> "Specific MS level";
       };

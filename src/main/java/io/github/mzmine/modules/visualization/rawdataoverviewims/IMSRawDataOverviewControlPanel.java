@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -91,6 +92,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
   private DoubleRangeComponent mobilogramRangeComp;
+  private ScanSelectionParameter scanSelectionParameter;
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
       double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection,
@@ -119,8 +121,9 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     MZToleranceComponent mzToleranceComponent = new MZToleranceComponent();
     mzToleranceComponent.setValue(mzTolerance);
     DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat, 2d);
-    ScanSelectionComponent scanSelectionComponent = new ScanSelectionComponent();
-    scanSelectionComponent.setValue(scanSelection);
+
+    scanSelectionParameter = new ScanSelectionParameter(scanSelection);
+    var scanSelectionComponent = scanSelectionParameter.createEditingComponent();
     IntegerComponent binWidthComponent = new IntegerComponent(100, 1, 10);
     binWidthComponent.setText(binWidth.toString());
 
@@ -197,7 +200,8 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
         rtWidth = Float.parseFloat(rtWidthComponent.getText());
         rtWidthComponent.setText(rtFormat.format(rtWidth));
-        scanSelection = scanSelectionComponent.getValue();
+        scanSelectionParameter.setValueFromComponent(scanSelectionComponent);
+        scanSelection = scanSelectionParameter.getValue();
         mzTolerance = mzToleranceComponent.getValue();
         binWidth = Integer.parseInt(binWidthComponent.getText());
 

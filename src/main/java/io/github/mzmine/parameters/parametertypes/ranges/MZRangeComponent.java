@@ -67,10 +67,11 @@ public class MZRangeComponent extends DoubleRangeComponent {
             currentFiles = matchingFiles;
           }
         }
-        ScanSelectionComponent ssc = setupDialog.getComponentForParameter(
-            new ScanSelectionParameter());
+        var scanSelectionParameter = new ScanSelectionParameter();
+        var ssc = setupDialog.getComponentForParameter(scanSelectionParameter);
         if (ssc != null) {
-          scanSelection = ssc.getValue();
+          scanSelectionParameter.setValueFromComponent(ssc);
+          scanSelection = scanSelectionParameter.getValue();
         }
       } catch (Exception ex) {
         ex.printStackTrace();

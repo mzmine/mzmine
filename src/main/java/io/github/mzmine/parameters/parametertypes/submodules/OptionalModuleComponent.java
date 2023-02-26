@@ -25,8 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
+import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
@@ -36,12 +42,15 @@ import javafx.scene.layout.FlowPane;
 /**
  *
  */
-public class OptionalModuleComponent extends BorderPane {
+public class OptionalModuleComponent extends BorderPane implements EstimatedComponentHeightProvider,
+    EstimatedComponentWidthProvider {
 
   protected final ParameterSetupPane paramPane;
   protected final CheckBox checkBox;
   private final Button setButton;
-  private boolean hidden = true;
+  private final BooleanProperty hidden = new SimpleBooleanProperty(true);
+  private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
+  private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
 
 
   public OptionalModuleComponent(ParameterSet embeddedParameters) {
@@ -55,15 +64,21 @@ public class OptionalModuleComponent extends BorderPane {
     checkBox = new CheckBox(title);
     setSelected(active);
 
-    checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
-    applyCheckBoxState();
-
     setButton = new Button("Show");
     setButton.setOnAction(e -> {
-      hidden = !hidden;
+      boolean toggledHidden = !hidden.get();
       // change text
-      setButton.setText(hidden ? "Show" : "Hide");
-      setTop(hidden ? null : paramPane);
+      setButton.setText(toggledHidden ? "Show" : "Hide");
+      setBottom(toggledHidden ? null : paramPane);
+      // events
+      hidden.set(toggledHidden);
+
+      // estimate new height
+      var params =
+          toggledHidden ? 0 : getEmbeddedParameterPane().getParametersAndComponents().size();
+      setEstimatedHeight(params);
+
+      setEstimatedDefaultWidth(params == 0);
     });
     setButton.setDisable(!active);
 
@@ -72,6 +87,9 @@ public class OptionalModuleComponent extends BorderPane {
     pane.getChildren().addAll(checkBox, setButton);
 
     setTop(pane);
+
+    checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
+    applyCheckBoxState();
   }
 
   public ParameterSetupPane getEmbeddedParameterPane() {
@@ -107,4 +125,15 @@ public class OptionalModuleComponent extends BorderPane {
   public void updateParameterSetFromComponents() {
     paramPane.updateParameterSetFromComponents();
   }
+
+  @Override
+  public DoubleProperty estimatedHeightProperty() {
+    return estimatedHeightProperty;
+  }
+
+  @Override
+  public DoubleProperty estimatedWidthProperty() {
+    return estimatedWidthProperty;
+  }
+
 }

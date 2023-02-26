@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterPa
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MobilityRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
-import io.github.mzmine.util.RangeUtils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,12 +91,12 @@ public class ScanSelectionFiltersParameters extends SimpleParameterSet {
       setParameter(mobilityParameter, null);
       setParameter(msLevelParameter, null);
       setParameter(scanDefinitionParameter, null);
-      setParameter(polarityParameter, null);
-      setParameter(spectrumTypeParameter, null);
+      setParameter(polarityParameter, PolarityType.ANY);
+      setParameter(spectrumTypeParameter, MassSpectrumType.ANY);
     } else {
       setParameter(scanNumParameter, selection.scanNumberRange());
       setParameter(baseFilteringIntegerParameter, selection.getBaseFilteringInteger());
-      setParameter(rtParameter, RangeUtils.toDoubleRange(selection.scanRTRange()));
+      setParameter(rtParameter, selection.scanRTRange());
       setParameter(mobilityParameter, selection.scanMobilityRange());
       setParameter(msLevelParameter, selection.msLevel());
       setParameter(scanDefinitionParameter, selection.scanDefinition());
