@@ -23,29 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.io;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.util.files.FileAndPathUtil;
-import java.io.File;
+import io.github.mzmine.parameters.Parameter;
 
 /**
- * Loaded from file, the presets for each part in the sequence
- *
- * @param file  the file loaded
- * @param parts the presets in sequential order
+ * In case a parameter embeds a parameter set, this interface shall be implemented. This is required
+ * because embedded parameter sets might have a
+ * {@link io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter} which needs to
+ * be set. With this interface, it can be done via
+ * {@link io.github.mzmine.modules.batchmode.BatchTask}
  */
-public record LocalWizardWorkflowFile(File file, WizardSequence parts) {
+public interface EmbeddedParameter<T extends Parameter<?>> {
 
-  /**
-   * File name without extension is used as name for presets
-   */
-  public String getName() {
-    return FileAndPathUtil.eraseFormat(file.getName());
-  }
+  T getEmbeddedParameter();
 
-  @Override
-  public String toString() {
-    return getName();
-  }
 }

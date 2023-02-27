@@ -72,10 +72,10 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
     this.project = project;
     this.dataFile = dataFile;
 
-    scanSelection = parameters.getParameter(MsnTreeFeatureDetectionParameters.scanSelection)
-        .getValue();
-    mzTol = parameters.getParameter(MsnTreeFeatureDetectionParameters.mzTol).getValue();
-    newFeatureList = new ModularFeatureList(dataFile.getName() + " MSn trees",
+    scanSelection = parameters.getValue(MsnTreeFeatureDetectionParameters.scanSelection);
+    mzTol = parameters.getValue(MsnTreeFeatureDetectionParameters.mzTol);
+    String suffix = parameters.getValue(MsnTreeFeatureDetectionParameters.suffix);
+    newFeatureList = new ModularFeatureList(dataFile.getName() + " " + suffix,
         getMemoryMapStorage(), dataFile);
     this.parameterSet = parameters;
   }

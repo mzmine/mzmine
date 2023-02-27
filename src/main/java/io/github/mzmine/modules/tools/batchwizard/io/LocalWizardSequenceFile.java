@@ -23,29 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
+package io.github.mzmine.modules.tools.batchwizard.io;
 
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.io.IOException;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 
 /**
- * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
- * is only here as reference point
+ * Loaded from file, the presets for each part in the sequence
+ *
+ * @param file  the file loaded
+ * @param parts the presets in sequential order
  */
-@Deprecated
-public interface DBGateway {
+public record LocalWizardSequenceFile(File file, WizardSequence parts) {
 
   /**
-   * Retrieves candidate compounds
+   * File name without extension is used as name for presets
    */
-  String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
-      ParameterSet parameters) throws IOException;
+  public String getName() {
+    return FileAndPathUtil.eraseFormat(file.getName());
+  }
 
-  /**
-   * This method retrieves the details about a compound
-   */
-  CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException;
-
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

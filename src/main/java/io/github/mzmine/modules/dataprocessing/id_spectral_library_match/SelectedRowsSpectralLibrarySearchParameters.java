@@ -31,8 +31,7 @@ public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrary
 
   public SelectedRowsSpectralLibrarySearchParameters() {
     super(new Parameter[]{libraries, msLevel, allMS2Spectra, mzTolerancePrecursor, removePrecursor,
-        ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
-        mzTolerance, rtTolerance, minMatch, similarityFunction});
+        mzTolerance, minMatch, similarityFunction});
   }
 
 }

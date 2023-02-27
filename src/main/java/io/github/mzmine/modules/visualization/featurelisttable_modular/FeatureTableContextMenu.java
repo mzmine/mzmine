@@ -59,7 +59,6 @@ import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerM
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
@@ -299,12 +298,6 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void initSearchMenu() {
-    final MenuItem onlineDbSearchItem = new ConditionalMenuItem("Online compound database search",
-        () -> selectedRows.size() == 1);
-    onlineDbSearchItem.setOnAction(
-        e -> OnlineDBSearchModule.showSingleRowIdentificationDialog(selectedRows.get(0),
-            Instant.now()));
-
     final MenuItem spectralDbSearchItem = new ConditionalMenuItem("Spectral library search",
         () -> selectedRows.size() >= 1);
     spectralDbSearchItem.setOnAction(
@@ -327,9 +320,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
-    searchMenu.getItems()
-        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
-            formulaPredictionItem, new SeparatorMenuItem(), masstSearch);
+    searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
+        formulaPredictionItem, new SeparatorMenuItem(), masstSearch);
   }
 
   private void initShowMenu() {

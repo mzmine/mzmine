@@ -45,13 +45,15 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,7 +77,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   public static final String XML_ATTR = "simple_compound_db_annotation";
 
   private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
-  protected final Map<DataType<?>, Object> data = new HashMap<>();
+  /**
+   * sort map by order in {@link DBEntryField} then natural order of data types
+   */
+  protected final Map<DataType, Object> data = new TreeMap<>(
+      Comparator.comparing(DBEntryField::fromDataType).thenComparing(DataType::compareTo));
 
   public SimpleCompoundDBAnnotation() {
   }
@@ -144,11 +150,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         continue;
       }
 
-      final DataType<?> typeForId = DataTypes.getTypeForId(
+      final DataType typeForId = DataTypes.getTypeForId(
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
         Object o = typeForId.loadFromXML(reader, project, flist, row, null, null);
-        id.put((DataType) typeForId, o);
+        id.put(typeForId, o);
       }
       i++;
 
@@ -204,7 +210,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   }
 
   @Override
-  public Set<DataType<?>> getTypes() {
+  public Set<DataType> getTypes() {
     return data.keySet();
   }
 
@@ -220,8 +226,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     writeOpeningTag(writer);
     writer.writeAttribute(CompoundDBAnnotation.XML_NUM_ENTRIES_ATTR, String.valueOf(data.size()));
 
-    for (Entry<DataType<?>, Object> entry : data.entrySet()) {
-      final DataType<?> key = entry.getKey();
+    for (Entry<DataType, Object> entry : data.entrySet()) {
+      final DataType key = entry.getKey();
       final Object value = entry.getValue();
 
       try {
@@ -271,14 +277,14 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   }
 
   @Override
-  public Map<DataType<?>, Object> getReadOnlyMap() {
+  public Map<DataType, Object> getReadOnlyMap() {
     return Collections.unmodifiableMap(data);
   }
 
   @Override
   public CompoundDBAnnotation clone() {
     SimpleCompoundDBAnnotation clone = new SimpleCompoundDBAnnotation();
-    data.forEach((key, value) -> clone.put((DataType) key, value));
+    data.forEach((key, value) -> clone.put(key, value));
     return clone;
   }
 

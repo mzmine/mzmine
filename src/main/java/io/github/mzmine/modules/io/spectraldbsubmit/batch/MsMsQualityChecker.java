@@ -34,12 +34,14 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -91,10 +93,11 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
 
     final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
 
+    int precursorCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
     if (minExplainedIntensity != null) {
       MSMSScore intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(
           msmsFormulaTolerance, molecularFormula, dataPoints, msmsScan.getPrecursorMz(),
-          msmsScan.getPrecursorCharge(), dataPoints.length);
+          precursorCharge, dataPoints.length);
       if (intensityFormulaScore == null
           || intensityFormulaScore.getScore() < minExplainedIntensity.floatValue()) {
         return null;
@@ -104,7 +107,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
 
     if (minExplainedSignals != null) {
       MSMSScore peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance,
-          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(),
+          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), precursorCharge,
           dataPoints.length);
       if (peakFormulaScore == null
           || peakFormulaScore.getScore() < minExplainedSignals.floatValue()) {
@@ -120,6 +123,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
       return null;
     }
 
+    explainedSignals.sort(DataPointSorter.DEFAULT_MZ_ASCENDING);
     return explainedSignals;
   }
 }

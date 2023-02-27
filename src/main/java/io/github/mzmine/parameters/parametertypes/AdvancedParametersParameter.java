@@ -42,7 +42,8 @@ import org.w3c.dom.Element;
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class AdvancedParametersParameter<T extends ParameterSet> implements
-    UserParameter<Boolean, AdvancedParametersComponent>, ParameterContainer, EmbeddedParameterSet {
+    UserParameter<Boolean, AdvancedParametersComponent>, ParameterContainer,
+    EmbeddedParameterSet<T, Boolean> {
 
   private final String name;
   private final String description;

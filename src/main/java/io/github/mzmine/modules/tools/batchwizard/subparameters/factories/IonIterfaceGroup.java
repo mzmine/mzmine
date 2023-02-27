@@ -23,29 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.io.IOException;
-
-/**
- * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
- * is only here as reference point
- */
-@Deprecated
-public interface DBGateway {
-
-  /**
-   * Retrieves candidate compounds
-   */
-  String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
-      ParameterSet parameters) throws IOException;
-
-  /**
-   * This method retrieves the details about a compound
-   */
-  CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException;
-
+public enum IonIterfaceGroup {
+  CHROMATOGRAPHY_SOFT, CHROMATOGRAPHY_HARD, SPATIAL_IMAGING, DIRECT_AND_FLOW
 }

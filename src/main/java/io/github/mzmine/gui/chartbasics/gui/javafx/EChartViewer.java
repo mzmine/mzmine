@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -168,10 +169,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     // Add chart and configure
     if (chart != null) {
       setChart(chart);
-
-      getChart().getXYPlot().getDomainAxis().setUpperMargin(0.05);
-      getChart().getXYPlot().getRangeAxis().setUpperMargin(0.05);
-      getChart().getXYPlot().getRangeAxis().setLowerMargin(0.05);
+      ChartLogicsFX.setAxesMargins(getChart(), 0.05);
     }
 
     exportMenu = (Menu) getContextMenu().getItems().get(0);

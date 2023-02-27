@@ -33,11 +33,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardWorkflowSaveParameters extends SimpleParameterSet {
+public class WizardSequenceSaveParameters extends SimpleParameterSet {
 
   public static final DirectoryParameter directory = new DirectoryParameter("Directory",
       "The default preset directory is the user folder/.mzmine/wizard/",
-      Optional.ofNullable(WizardWorkflowIOUtils.getWizardSettingsPath()).map(File::getAbsolutePath)
+      Optional.ofNullable(WizardSequenceIOUtils.getWizardSettingsPath()).map(File::getAbsolutePath)
           .orElse(""));
 
   public static final StringParameter fileName = new StringParameter("Filename", "", "");
@@ -49,7 +49,7 @@ public class WizardWorkflowSaveParameters extends SimpleParameterSet {
       the rest of the workflow is kept at the current definitions in the UI.""",
       WizardPart.values(), WizardPart.values());
 
-  public WizardWorkflowSaveParameters() {
+  public WizardSequenceSaveParameters() {
     super(directory, fileName, exportParts);
   }
 
