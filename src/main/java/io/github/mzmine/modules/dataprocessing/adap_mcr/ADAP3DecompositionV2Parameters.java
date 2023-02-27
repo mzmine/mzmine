@@ -101,10 +101,15 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     CHROMATOGRAM_LISTS.setValue(FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS);
     PEAK_LISTS.setValue(FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS);
 
-    final ADAP3DecompositionV2SetupDialog dialog =
-        new ADAP3DecompositionV2SetupDialog(valueCheckRequired, this);
+    final ADAP3DecompositionV2SetupDialog dialog = new ADAP3DecompositionV2SetupDialog(
+        valueCheckRequired, this);
 
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }
