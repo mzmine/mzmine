@@ -203,6 +203,7 @@ public class SimpleParameterSet implements ParameterSet {
 
       return newSet;
     } catch (Throwable e) {
+      logger.log(Level.WARNING, "While cloning parameters: " + e.getMessage(), e);
       e.printStackTrace();
       return null;
     }

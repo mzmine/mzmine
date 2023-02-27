@@ -26,9 +26,9 @@
 package io.github.mzmine.parameters;
 
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
@@ -97,8 +97,8 @@ public interface ParameterSet extends ParameterContainer {
   }
 
 
-  default <T extends ParameterSet> ParameterSet getEmbeddedParameterValue(
-      OptionalModuleParameter<T> parameter) {
+  default <T extends ParameterSet, V> ParameterSet getEmbeddedParameterValue(
+      EmbeddedParameterSet<T, V> parameter) {
     return getParameter(parameter).getEmbeddedParameters();
   }
 

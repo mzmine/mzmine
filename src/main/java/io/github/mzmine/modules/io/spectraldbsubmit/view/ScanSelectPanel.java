@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -40,6 +39,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
+import io.github.mzmine.util.swing.IconUtil;
 import java.awt.Dimension;
 import java.text.MessageFormat;
 import java.util.List;
@@ -55,7 +55,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
@@ -82,6 +81,8 @@ public class ScanSelectPanel extends BorderPane {
   static final Image iconPrev = FxIconUtil.loadImageFromResources("icons/btnPrev.png");
   static final Image iconNextGrey = FxIconUtil.loadImageFromResources("icons/btnNext_grey.png");
   static final Image iconPrevGrey = FxIconUtil.loadImageFromResources("icons/btnPrev_grey.png");
+
+
   private static final int SIZE = 40;
   public final Color colorRemovedData;
   public final Color colorUsedData;
@@ -105,7 +106,7 @@ public class ScanSelectPanel extends BorderPane {
   private ToggleButton btnMaxTic;
   private SpectraPlot spectrumPlot;
 
-  private Consumer<EChartPanel> listener;
+  private Consumer<SpectraPlot> listener;
   private Label lblTic;
   private Label lblSignals;
   private Label lbTIC;
@@ -177,37 +178,29 @@ public class ScanSelectPanel extends BorderPane {
 //    pnButtons.setLayout(new MigLayout("", "[40px]", "[grow][40px][40px][40px][40px][40px][grow]"));
 
     // TODO: uncomment all and change to JavaFX
-    btnToggleUse = new ToggleButton(null, new ImageView(iconCross));
+    btnToggleUse = new ToggleButton(null, IconUtil.scaledImageView(iconCross, SIZE));
     //btnToggleUse.setSelectedIcon(iconAccept);
     btnToggleUse.setTooltip(new Tooltip(
         "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once."));
-    btnToggleUse.setPrefSize(SIZE, SIZE);
-    btnToggleUse.setMaxSize(SIZE, SIZE);
     pnButtons.add(btnToggleUse, 0, 1);
     btnToggleUse.setSelected(true);
     btnToggleUse.selectedProperty().addListener((o, ol, ne) -> applySelectionState());
 
-    btnNext = new Button(null, new ImageView(iconNext));
+    btnNext = new Button(null, IconUtil.scaledImageView(iconNext, SIZE));
     //btnNext.setDisabledIcon(iconNextGrey);
     btnNext.setTooltip(new Tooltip("Next spectrum (in respect to sorting)"));
-    btnNext.setPrefSize(SIZE, SIZE);
-    btnNext.setMaxSize(SIZE, SIZE);
     btnNext.setOnAction(e -> nextScan());
     pnButtons.add(btnNext, 0, 2);
 
-    btnPrev = new Button(null, new ImageView(iconPrev));
+    btnPrev = new Button(null, IconUtil.scaledImageView(iconPrev, SIZE));
     //btnPrev.setDisabledIcon(iconPrevGrey);
     btnPrev.setTooltip(new Tooltip("Previous spectrum (in respect to sorting)"));
-    btnPrev.setPrefSize(SIZE, SIZE);
-    btnPrev.setMaxSize(SIZE, SIZE);
     btnPrev.setOnAction(a -> prevScan());
     pnButtons.add(btnPrev, 0, 3);
 
-    btnMaxTic = new ToggleButton(null, new ImageView(iconTICFalse));
+    btnMaxTic = new ToggleButton(null, IconUtil.scaledImageView(iconTICFalse, SIZE));
     btnMaxTic.setTooltip(new Tooltip("Change sorting to max TIC"));
     //btnMaxTic.setSelectedIcon(iconTIC);
-    btnMaxTic.setPrefSize(SIZE, SIZE);
-    btnMaxTic.setMaxSize(SIZE, SIZE);
     btnMaxTic.selectedProperty().addListener((o, ol, ne) -> {
       if (ne) {
         setSortMode(ScanSortMode.MAX_TIC);
@@ -215,11 +208,9 @@ public class ScanSelectPanel extends BorderPane {
     });
     pnButtons.add(btnMaxTic, 0, 4);
 
-    btnSignals = new ToggleButton(null, new ImageView(iconSignalsFalse));
+    btnSignals = new ToggleButton(null, IconUtil.scaledImageView(iconSignalsFalse, SIZE));
     btnSignals.setTooltip(new Tooltip("Change sorting to max number of signals"));
 //    btnSignals.setSelectedIcon(iconSignals);
-    btnSignals.setPrefSize(SIZE, SIZE);
-    btnSignals.setMaxSize(SIZE, SIZE);
     btnSignals.selectedProperty().addListener((o, ol, ne) -> {
       if (ne) {
         setSortMode(ScanSortMode.NUMBER_OF_SIGNALS);
@@ -492,14 +483,10 @@ public class ScanSelectPanel extends BorderPane {
 
       // no error
       lbMassListError.setVisible(false);
-//      revalidate();
-//      repaint();
     } catch (MissingMassListException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
       // create error label
       lbMassListError.setVisible(true);
-//      revalidate();
-//      repaint();
     }
     // create chart
     createChart();
@@ -547,7 +534,7 @@ public class ScanSelectPanel extends BorderPane {
 //        spectrumPlot.setMinSize(400, 400);
         if (listener != null) {
           // chart has changed
-          // listener.accept(spectrumPlot);
+           listener.accept(spectrumPlot);
         }
       }
       spectrumPlot.removeAllDataSets();
@@ -654,7 +641,7 @@ public class ScanSelectPanel extends BorderPane {
     return spectrumPlot;
   }
 
-  public void addChartChangedListener(Consumer<EChartPanel> listener) {
+  public void addChartChangedListener(Consumer<SpectraPlot> listener) {
     this.listener = listener;
   }
 

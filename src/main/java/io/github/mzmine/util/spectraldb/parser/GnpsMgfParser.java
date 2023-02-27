@@ -112,7 +112,8 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                     // wait for next entry
                     break;
                   case DATA:
-                    String[] data = l.split("[\\p{Zs}]");
+                    // split for any white space (tab or space ...)
+                    String[] data = l.split("\\s+");
                     dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
                         Double.parseDouble(data[1])));
                     break;
