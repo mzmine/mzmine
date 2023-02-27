@@ -166,28 +166,6 @@ public class EmptyParameterSetupDialogBase extends Stage {
     });
   }
 
-//  private void applyEstimatedWidthExpand() {
-//    parametersAndComponents.values().forEach(node -> {
-//
-//      {
-//        double widthDiff = newHeight.doubleValue() - oldHeight.doubleValue();
-//        // just an estimate to increase height of dialog
-//        setHeight(Math.min(calcMaxHeight(), getHeight() + widthDiff));
-//
-//        // only apply width change once
-//        if (widthDiff > maxExtraWidthExpanded) {
-//          setWidth(Math.min(calcMaxWidth(), getWidth() - maxExtraWidthExpanded + widthDiff));
-//          maxExtraWidthExpanded = widthDiff;
-//        }
-//        int factor = widthDiff < 0 ? -1 : 1;
-//        widthExpandedBySubParameters += factor;
-//
-//        if (widthExpandedBySubParameters == 0) {
-//          setWidth(Math.min(calcMaxWidth(), getWidth() - 400));
-//        }
-//      });
-//    }
-
   @Override
   public void showAndWait() {
     if (MZmineCore.getDesktop() != null) {

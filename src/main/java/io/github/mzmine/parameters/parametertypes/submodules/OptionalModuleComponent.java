@@ -38,6 +38,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -45,50 +47,65 @@ import javafx.scene.layout.FlowPane;
 public class OptionalModuleComponent extends BorderPane implements EstimatedComponentHeightProvider,
     EstimatedComponentWidthProvider {
 
-  protected final ParameterSetupPane paramPane;
-  protected final CheckBox checkBox;
+  // null if shown in dialog
+  protected final @Nullable ParameterSetupPane paramPane;
+  protected final @NotNull CheckBox checkBox;
+  private final EmbeddedComponentOptions viewOption;
   private final Button setButton;
   private final BooleanProperty hidden = new SimpleBooleanProperty(true);
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
   private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
 
 
-  public OptionalModuleComponent(ParameterSet embeddedParameters) {
-    this(embeddedParameters, "", false);
+  public OptionalModuleComponent(ParameterSet embeddedParameters,
+      EmbeddedComponentOptions viewOption, boolean alwaysActive) {
+    this(embeddedParameters, viewOption, "", alwaysActive, alwaysActive);
   }
 
-  public OptionalModuleComponent(ParameterSet embeddedParameters, String title, boolean active) {
+  public OptionalModuleComponent(ParameterSet embeddedParameters,
+      EmbeddedComponentOptions viewOption, String title, boolean alwaysActive, boolean active) {
     super();
-    paramPane = new ParameterSetupPane(true, embeddedParameters, false, false, null, true, false);
-
+    this.viewOption = viewOption;
     checkBox = new CheckBox(title);
     setSelected(active);
+    checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
+    if (viewOption == EmbeddedComponentOptions.VIEW_IN_WINDOW) {
+      paramPane = null;
+      setButton = new Button("Setup...");
+      setButton.setOnAction(e -> embeddedParameters.showSetupDialog(false));
+    } else {
+      // use internal parameter pane
+      paramPane = new ParameterSetupPane(true, embeddedParameters, false, false, null, true, false);
 
-    setButton = new Button("Show");
-    setButton.setOnAction(e -> {
-      boolean toggledHidden = !hidden.get();
-      // change text
-      setButton.setText(toggledHidden ? "Show" : "Hide");
-      setBottom(toggledHidden ? null : paramPane);
-      // events
-      hidden.set(toggledHidden);
+      setButton = new Button("Show");
+      setButton.setOnAction(e -> {
+        boolean toggledHidden = !hidden.get();
+        // change text
+        setButton.setText(toggledHidden ? "Show" : "Hide");
+        setBottom(toggledHidden ? null : paramPane);
+        // events
+        hidden.set(toggledHidden);
 
-      // estimate new height
-      var params =
-          toggledHidden ? 0 : getEmbeddedParameterPane().getParametersAndComponents().size();
-      setEstimatedHeight(params);
+        // estimate new height
+        var params =
+            toggledHidden ? 0 : getEmbeddedParameterPane().getParametersAndComponents().size();
+        setEstimatedHeight(params);
 
-      setEstimatedDefaultWidth(params == 0);
-    });
-    setButton.setDisable(!active);
-
+        setEstimatedDefaultWidth(params == 0);
+      });
+      setButton.setDisable(!active);
+    }
     var pane = new FlowPane();
     pane.setHgap(7d);
-    pane.getChildren().addAll(checkBox, setButton);
+
+    // just leave out checkbox if always active
+    if (alwaysActive) {
+      pane.getChildren().addAll(setButton);
+    } else {
+      pane.getChildren().addAll(checkBox, setButton);
+    }
 
     setTop(pane);
-
-    checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
     applyCheckBoxState();
   }
 
@@ -114,16 +131,22 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
 
   protected void applyCheckBoxState() {
     setButton.setDisable(!checkBox.isSelected());
-    paramPane.getParametersAndComponents().values()
-        .forEach(node -> node.setDisable(!checkBox.isSelected()));
+    if (paramPane != null) {
+      paramPane.getParametersAndComponents().values()
+          .forEach(node -> node.setDisable(!checkBox.isSelected()));
+    }
   }
 
   public void setParameterValuesToComponents() {
-    paramPane.setParameterValuesToComponents();
+    if (paramPane != null) {
+      paramPane.setParameterValuesToComponents();
+    }
   }
 
   public void updateParameterSetFromComponents() {
-    paramPane.updateParameterSetFromComponents();
+    if (paramPane != null) {
+      paramPane.updateParameterSetFromComponents();
+    }
   }
 
   @Override

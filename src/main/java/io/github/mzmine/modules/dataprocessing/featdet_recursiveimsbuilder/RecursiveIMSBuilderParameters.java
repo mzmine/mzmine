@@ -29,10 +29,10 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ public class RecursiveIMSBuilderParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
       "The m/z tolerance to build ion traces. The tolerance is specified as a +- tolerance. "
-          + "m/z 500.000 with a tolerance of 0.01 will allow m/z 499.99 to 501.01.",0.005, 15);
+          + "m/z 500.000 with a tolerance of 0.01 will allow m/z 499.99 to 501.01.", 0.005, 15);
 
   public static final IntegerParameter minNumConsecutive = new IntegerParameter(
       "Minimum consecutive retention time data points",
@@ -55,14 +55,13 @@ public class RecursiveIMSBuilderParameters extends SimpleParameterSet {
       "Minimum number of data points",
       "The minimum number of consecutive detections in frames (retention time dimension).", 100);
 
-  public static final ParameterSetParameter advancedParameters =
-      new ParameterSetParameter("Advanced parameters",
-          "Allows adjustment of internal binning parameters for mobilograms",
-          new RecursiveIMSBuilderAdvancedParameters());
+  public static final ParameterSetParameter advancedParameters = new ParameterSetParameter(
+      "Advanced parameters", "Allows adjustment of internal binning parameters for mobilograms",
+      new RecursiveIMSBuilderAdvancedParameters());
 
   public RecursiveIMSBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minNumConsecutive,
-        minNumDatapoints, advancedParameters},
+            minNumDatapoints, advancedParameters},
         "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ims-ms_featdet/recursive_ims_builder/recursive-ims-builder.html");
   }
 

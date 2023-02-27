@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import java.util.Collection;
 import java.util.Objects;
@@ -88,7 +89,8 @@ public class ScanSelectionParameter extends
 
   @Override
   public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(getEmbeddedParameters(), "", active);
+    return new OptionalModuleComponent(getEmbeddedParameters(),
+        EmbeddedComponentOptions.VIEW_IN_PANEL, "", false, active);
   }
 
   @Override

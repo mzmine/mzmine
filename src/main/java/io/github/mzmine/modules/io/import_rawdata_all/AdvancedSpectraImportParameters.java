@@ -27,11 +27,10 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 
 public class AdvancedSpectraImportParameters extends SimpleParameterSet {
 
@@ -53,7 +52,7 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
       and reverts to "raw" intensities.""", false);
 
   public AdvancedSpectraImportParameters() {
-    super(new Parameter[]{msMassDetection, ms2MassDetection, denormalizeMSnScans});
+    super(msMassDetection, ms2MassDetection, denormalizeMSnScans);
   }
 
 }
