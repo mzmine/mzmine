@@ -92,4 +92,8 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_multivariate_curve_res/featdet_multivar_curve_res.html");
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
