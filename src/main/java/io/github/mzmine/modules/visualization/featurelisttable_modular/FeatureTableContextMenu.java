@@ -43,7 +43,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ImageType;
@@ -225,7 +225,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         "Compute transformation products (BioTransformer 3)",
         () -> getAnnotationForBioTransformerPrediction() != null);
     bioTransformerItem.setOnAction(e -> {
-      final CompoundAnnotation annotation = getAnnotationForBioTransformerPrediction();
+      final FeatureAnnotation annotation = getAnnotationForBioTransformerPrediction();
       if (annotation != null) {
         BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getSmiles(),
             Objects.requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
@@ -241,8 +241,8 @@ public class FeatureTableContextMenu extends ContextMenu {
    * @return A feature annotation to use for the bio transformer prediction.
    */
   @Nullable
-  private CompoundAnnotation getAnnotationForBioTransformerPrediction() {
-    List<? extends CompoundAnnotation> annotations = selectedRow.getSpectralLibraryMatches();
+  private FeatureAnnotation getAnnotationForBioTransformerPrediction() {
+    List<? extends FeatureAnnotation> annotations = selectedRow.getSpectralLibraryMatches();
     if (annotations.isEmpty()) {
       annotations = selectedRow.getCompoundAnnotations();
     }

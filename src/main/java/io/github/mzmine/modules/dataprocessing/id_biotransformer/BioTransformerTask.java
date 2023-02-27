@@ -29,8 +29,8 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
@@ -130,7 +130,7 @@ public class BioTransformerTask extends AbstractTask {
         continue;
       }
 
-      final CompoundAnnotation bestAnnotation = getBestAnnotation(row);
+      final FeatureAnnotation bestAnnotation = getBestAnnotation(row);
       if (bestAnnotation == null) {
         continue;
       }
@@ -147,7 +147,7 @@ public class BioTransformerTask extends AbstractTask {
 
         final String bestSmiles = entry.getKey();
         final FeatureListRow row = entry.getValue();
-        final CompoundAnnotation bestAnnotation = getBestAnnotation(row);
+        final FeatureAnnotation bestAnnotation = getBestAnnotation(row);
 
         if (bestAnnotation == null || !bestSmiles.equals(bestAnnotation.getSmiles())) {
           throw new ConcurrentModificationException(
@@ -256,7 +256,7 @@ public class BioTransformerTask extends AbstractTask {
    * @return The smiles of the first spectral library match or compound db match. (may be null)
    */
   @Nullable
-  private CompoundAnnotation getBestAnnotation(@NotNull FeatureListRow row) {
+  private FeatureAnnotation getBestAnnotation(@NotNull FeatureListRow row) {
 
     final List<SpectralDBAnnotation> spectralLibraryMatches = row.getSpectralLibraryMatches();
     if (!spectralLibraryMatches.isEmpty() && (smilesSource == SmilesSource.ALL

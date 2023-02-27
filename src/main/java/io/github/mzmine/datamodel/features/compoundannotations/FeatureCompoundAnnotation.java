@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Contains additional matches to RT, CCS and mobility, all optional
  */
-public interface FeatureCompoundAnnotation extends CompoundAnnotation {
+public interface FeatureCompoundAnnotation extends FeatureAnnotation {
 
   @Nullable Float getMobility();
 

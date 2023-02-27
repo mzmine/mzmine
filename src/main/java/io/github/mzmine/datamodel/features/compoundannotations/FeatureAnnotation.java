@@ -42,12 +42,12 @@ import org.jetbrains.annotations.Nullable;
  * Describes a common feature annotation. Future implementations should also extend the
  * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)} method.
  */
-public interface CompoundAnnotation {
+public interface FeatureAnnotation {
 
   String XML_ELEMENT = "feature_annotation";
   String XML_TYPE_ATTR = "annotation_type";
 
-  static CompoundAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
+  static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
       ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
@@ -109,23 +109,23 @@ public interface CompoundAnnotation {
 
   /**
    * Writes an opening tag that conforms with the
-   * {@link CompoundAnnotation#loadFromXML(XMLStreamReader, MZmineProject, ModularFeatureList,
+   * {@link FeatureAnnotation#loadFromXML(XMLStreamReader, MZmineProject, ModularFeatureList,
    * ModularFeatureListRow)}  method, so the type can be recognised and delegated to the correct
-   * subclass. This allows combination of multiple different {@link CompoundAnnotation}
+   * subclass. This allows combination of multiple different {@link FeatureAnnotation}
    * implementations in a single list.
    * <p></p>
-   * Uses {@link CompoundAnnotation#getXmlAttributeKey()} to write the correct tags.
+   * Uses {@link FeatureAnnotation#getXmlAttributeKey()} to write the correct tags.
    *
    * @param writer The writer
    */
   default void writeOpeningTag(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(CompoundAnnotation.XML_ELEMENT);
-    writer.writeAttribute(CompoundAnnotation.XML_TYPE_ATTR, getXmlAttributeKey());
+    writer.writeStartElement(FeatureAnnotation.XML_ELEMENT);
+    writer.writeAttribute(FeatureAnnotation.XML_TYPE_ATTR, getXmlAttributeKey());
   }
 
   /**
    * Convenience method to supply developers with a closing method for
-   * {@link CompoundAnnotation#writeOpeningTag(XMLStreamWriter)}.
+   * {@link FeatureAnnotation#writeOpeningTag(XMLStreamWriter)}.
    */
   default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();

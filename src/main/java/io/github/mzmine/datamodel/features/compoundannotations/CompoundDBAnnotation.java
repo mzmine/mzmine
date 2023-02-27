@@ -77,7 +77,7 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public interface CompoundDBAnnotation extends Cloneable, CompoundAnnotation {
+public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 

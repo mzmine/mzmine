@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointSorter;
@@ -48,7 +48,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SpectralDBAnnotation implements CompoundAnnotation {
+public class SpectralDBAnnotation implements FeatureAnnotation {
 
   public static final String XML_ATTR = "spectral_library_annotation";
   private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
@@ -73,7 +73,7 @@ public class SpectralDBAnnotation implements CompoundAnnotation {
     this(id.getEntry(), id.getSimilarity(), id.getQueryScan(), id.getCCSError());
   }
 
-  public static CompoundAnnotation loadFromXML(XMLStreamReader reader,
+  public static FeatureAnnotation loadFromXML(XMLStreamReader reader,
       Collection<RawDataFile> possibleFiles) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))
         || !reader.getAttributeValue(null, XML_TYPE_ATTR).equals(XML_ATTR)) {
@@ -86,7 +86,7 @@ public class SpectralDBAnnotation implements CompoundAnnotation {
     Float ccsError = null;
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(CompoundAnnotation.XML_ELEMENT))) {
+        .equals(FeatureAnnotation.XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;

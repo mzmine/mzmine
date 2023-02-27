@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 
 import org.jetbrains.annotations.NotNull;
 
-public class AbstractCompountAnnotation implements CompoundAnnotation {
+public class AbstractCompountAnnotation implements FeatureAnnotation {
 
 
   @Override

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * This interface represents an identification result.
  * <p>
- * To be replaced by {@link CompoundAnnotation}.
+ * To be replaced by {@link FeatureAnnotation}.
  */
 @Deprecated
 @ScheduledForRemoval

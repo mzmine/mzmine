@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
@@ -147,7 +147,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       throw new IllegalStateException("Wrong element");
     }
 
-    List<CompoundAnnotation> ids = new ArrayList<>();
+    List<FeatureAnnotation> ids = new ArrayList<>();
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
@@ -162,8 +162,8 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
           .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
         FeatureIdentity id = FeatureIdentity.loadFromXML(reader, project.getCurrentRawDataFiles());
         ids.add(new SpectralDBAnnotation((SpectralDBFeatureIdentity) id));
-      } else if (reader.getLocalName().equals(CompoundAnnotation.XML_ELEMENT)
-          && reader.getAttributeValue(null, CompoundAnnotation.XML_TYPE_ATTR)
+      } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
+          && reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)
           .equals(SpectralDBAnnotation.XML_ATTR)) {
         ids.add(SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles()));
       }

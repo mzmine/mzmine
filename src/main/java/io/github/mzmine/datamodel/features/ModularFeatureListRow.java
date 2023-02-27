@@ -32,8 +32,8 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
@@ -758,7 +758,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   public String getPreferredAnnotationName() {
     Object annotation = getPreferredAnnotation();
     return switch (annotation) {
-      case CompoundAnnotation ann -> ann.getCompoundName();
+      case FeatureAnnotation ann -> ann.getCompoundName();
       case ManualAnnotation ann -> ann.getCompoundName();
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
       case MatchedLipid lipid -> lipid.getLipidAnnotation().getAnnotation();
