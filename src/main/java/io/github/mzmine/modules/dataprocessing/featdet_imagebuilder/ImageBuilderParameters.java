@@ -58,12 +58,12 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       0.005, 15, false);
 
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
-      "Minimum detected scans", "Minimum number of signals (data points) to form an image", 50,
-      true, 1, null);
+      "Minimum total signals", "Minimum number of signals (data points) to form an image", 50, true,
+      1, null);
 
   public static final IntegerParameter minConsecutiveSignals = new IntegerParameter(
       "Minimum consecutive scans",
-      "Minimum number of consecutive signals (data points) to form an image", 1, true, 1, null);
+      "Minimum number of consecutive signals (data points) to form an image", 5, true, 1, null);
 
   public static final DoubleParameter minHighest = new DoubleParameter("Minimum absolute height",
       "Minimum intensity of an m/z to be considered as an image.",
