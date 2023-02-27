@@ -22,6 +22,11 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExport;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramMzRangeParameter;
+import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
+import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlotToolBar;
+import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramUtils;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.Collection;
@@ -80,6 +85,15 @@ public class MassvoltammogramTab extends MZmineTab {
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
+
+  /**
+   * Todo
+   * <p>
+   * rotateButton, moveButtton, resetPlotButton in ExtendedPlot3DPanel überarbeiten
+   * <p>
+   * evt. alles refactorn.
+   */
+
 
   private ExtendedPlot3DPanel plot;
 
@@ -174,25 +188,26 @@ public class MassvoltammogramTab extends MZmineTab {
         MassvoltammogramMzRangeParameter.mzRange);
 
     //Getting the raw data from the plot.
-    final List<double[][]> scans = plot.getRawScans();
+    final List<double[][]> scans = plot.getPlotData().getRawScans();
 
     //Extracting the new mz range from the raw scans
     List<double[][]> spectra = MassvoltammogramUtils.extractMZRangeFromScan(scans, newMzRange);
-
-    //Adding the new list of unprocessed scans to the plot for later export.
-    plot.addRawScansInMzRange(spectra);
+;
 
     //Adding zeros around the datapoints if the spectra are centroid, so they will be visualized correctly.
     final List<double[][]> processedSpectra;
 
     //Adding intensity values of 0 around centroid datapoints, so that the massvoltammogram will be visualized correclty.
-    if (plot.getMassSpectrumType() == MassSpectrumType.CENTROIDED) {
+    if (plot.getPlotData().getMassSpectrumType().isCentroided()) {
 
       processedSpectra = MassvoltammogramUtils.addZerosToCentroidData(spectra);
     } else {
 
       processedSpectra = spectra;
     }
+
+    //Adding the new list of unprocessed scans to the plot for later export.
+    plot.getPlotData().setRawScansInMzRange(processedSpectra);
 
     //Processing the raw data.
     final double maxIntensity = MassvoltammogramUtils.getMaxIntensity(processedSpectra);
@@ -202,7 +217,6 @@ public class MassvoltammogramTab extends MZmineTab {
         spectraWithoutNoise);
 
     //Getting the divisor and the min and max potential to set up the axis correctly.
-    final double divisor = MassvoltammogramUtils.getDivisor(maxIntensity);
     final double[][] firstScan = scans.get(0);
     final double[][] lastScan = scans.get(scans.size() - 1);
     final double maxPotential = Math.max(firstScan[0][2], lastScan[0][2]);
@@ -212,10 +226,8 @@ public class MassvoltammogramTab extends MZmineTab {
     plot.removeAllPlots();
 
     //Adding the new plots and setting the axis up correctly.
-    MassvoltammogramUtils.addSpectraToPlot(spectraWithoutZeros, divisor, plot);
+    MassvoltammogramUtils.addSpectraToPlot(spectraWithoutZeros, maxIntensity, plot);
     plot.setFixedBounds(0, newMzRange.lowerEndpoint(), newMzRange.upperEndpoint());
     plot.setFixedBounds(1, minPotential, maxPotential);
-
-    this.plot = plot;
   }
 }

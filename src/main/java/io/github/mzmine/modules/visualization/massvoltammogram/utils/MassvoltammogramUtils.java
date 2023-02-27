@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.modules.visualization.massvoltammogram.utils;
 
 import com.google.common.collect.Range;
 import gnu.trove.list.array.TDoubleArrayList;
@@ -354,13 +354,17 @@ public class MassvoltammogramUtils {
 
 
   /**
-   * @param spectra List containing the spectra that will be drawn as multidimensional arrays.
-   * @param divisor Power of 10 used for scaling the z-axis.
-   * @param plot    3D plot the spectra should be added to.
+   * @param scans        List containing the scans that will be drawn as multidimensional arrays.
+   * @param maxIntensity The maximal intensity in all scans
+   * @param plot         3D plot the spectra should be added to.
    */
-  public static void addSpectraToPlot(List<double[][]> spectra, double divisor, Plot3DPanel plot) {
+  public static void addSpectraToPlot(List<double[][]> scans, double maxIntensity,
+      Plot3DPanel plot) {
 
-    for (double[][] spectrum : spectra) {
+    //Calculating the divisor needed to scale the z-axis.
+    final double divisor = MassvoltammogramUtils.getDivisor(maxIntensity);
+
+    for (double[][] spectrum : scans) {
 
       //Initializing a double array for every of the three parameters.
       final double[] mzs = new double[spectrum.length];

@@ -15,9 +15,10 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 
+import io.github.mzmine.modules.visualization.massvoltammogram.utils.ReactionMode;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -25,7 +26,6 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import java.text.DecimalFormat;
@@ -33,9 +33,6 @@ import java.text.DecimalFormat;
 public class MassvoltammogramFromFeatureListParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
-
-  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-      "Scan Selection", "Filter to choose the scans to be used.", new ScanSelection());
 
   public static final DoubleParameter delayTime = new DoubleParameter("Delay Time / s",
       "Delay time before analytes from the EC cell reach the mass spectrometer",
@@ -58,8 +55,8 @@ public class MassvoltammogramFromFeatureListParameters extends SimpleParameterSe
       ReactionMode.OXIDATIVE);
 
   public MassvoltammogramFromFeatureListParameters() {
-    super(new Parameter[]{featureList, scanSelection, reactionMode, delayTime, potentialRampSpeed,
-        potentialRange, stepSize, mzRange});
+    super(new Parameter[]{featureList, reactionMode, delayTime, potentialRampSpeed, potentialRange,
+        stepSize, mzRange});
   }
 }
 
