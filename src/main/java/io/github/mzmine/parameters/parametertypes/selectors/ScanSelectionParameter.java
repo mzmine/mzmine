@@ -69,7 +69,8 @@ public class ScanSelectionParameter extends
 
   @Override
   public @NotNull ScanSelection getValue() {
-    return value;
+    // a new filter and not set value, createFIlter will return ScanSelection.ALL_SCANS if deselected
+    return createFilter();
   }
 
   @Override
