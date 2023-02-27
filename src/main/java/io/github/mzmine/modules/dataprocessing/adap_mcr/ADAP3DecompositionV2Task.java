@@ -50,6 +50,8 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsPlaceholder;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
@@ -116,27 +118,37 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       logger.info("Started ADAP Peak Decomposition on " + originalLists);
 
       //=====================================================
-      String derivedName;
-      boolean found = false;
+//      String derivedName;
+//      boolean found = false;
+//      ObservableList<FeatureListAppliedMethod> appliedMethodsList = originalLists.peaks.getAppliedMethods();
+//
+//      outerloop:
+//      for(int i = appliedMethodsList.size() -1 ; i >=0 ; i--){
+//       var parameters = appliedMethodsList.get(i).getParameters();
+//       for(Parameter p : parameters.getParameters()){
+//         var value = p.getValue().toString();
+//         String str[] = value.split(" ");
+//         for(int j = str.length-1; j>=0; j--){
+//           if(str[j].equals("chromatograms")){
+//             derivedName = String.join(" ",Arrays.copyOfRange(str,0, j+1));
+//             break outerloop;
+//           }
+//
+//         }
+//
+//       }
+//     }
       ObservableList<FeatureListAppliedMethod> appliedMethodsList = originalLists.peaks.getAppliedMethods();
+      for (int i = appliedMethodsList.size()-1; i >= 0; i--) {
+        ParameterSet parameters = appliedMethodsList.get(i).getParameters();
+        for (final Parameter<?> param : parameters.getParameters()) {
+          if (param instanceof FeatureListsParameter flistParam) {
+            FeatureListsPlaceholder[] placeholders = flistParam.getValue().getEvaluationResult();
+            flistParam.getValue().
 
-      outerloop:
-      for(int i = appliedMethodsList.size() -1 ; i >=0 ; i--){
-       var parameters = appliedMethodsList.get(i).getParameters();
-       for(Parameter p : parameters.getParameters()){
-         var value = p.getValue().toString();
-         String str[] = value.split(" ");
-         for(int j = str.length-1; j>=0; j--){
-           if(str[j].equals("chromatograms")){
-             derivedName = String.join(" ",Arrays.copyOfRange(str,0, j+1));
-             break outerloop;
-           }
-
-         }
-
-       }
-     }
-      //do something with dereived name
+          }
+        }
+      }
       // Check raw data files.
       if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
           && originalLists.peaks.getNumberOfRawDataFiles() > 1) {

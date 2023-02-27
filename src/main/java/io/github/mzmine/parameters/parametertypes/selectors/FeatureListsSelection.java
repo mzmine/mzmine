@@ -26,11 +26,13 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.TextUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 public class FeatureListsSelection implements Cloneable {
@@ -40,6 +42,7 @@ public class FeatureListsSelection implements Cloneable {
   private String namePattern;
   private ModularFeatureList[] batchLastFeatureLists;
 
+  private FeatureListsPlaceholder[] evaluatedSelection = null;
 
   /**
    * Uses specific feature lists
@@ -57,6 +60,12 @@ public class FeatureListsSelection implements Cloneable {
   public FeatureListsSelection() {
   }
 
+  public FeatureListsPlaceholder[] getEvaluationResult() {
+    if (evaluatedSelection != null) {
+      return Arrays.copyOf(evaluatedSelection, evaluatedSelection.length);
+    }
+    throw new IllegalStateException("Feature list selection has not been evaluated.");
+  }
   public ModularFeatureList[] getMatchingFeatureLists() {
 
     switch (selectionType) {
@@ -102,7 +111,13 @@ public class FeatureListsSelection implements Cloneable {
         }
         return batchLastFeatureLists;
     }
-
+    evaluatedSelection = new RawDataFilePlaceholder[matchingFiles.length];
+    for (int i = 0; i < matchingFiles.length; i++) {
+      RawDataFile matchingFile = matchingFiles[i];
+      evaluatedSelection[i] = new RawDataFilePlaceholder(matchingFile);
+    }
+    logger.finest(
+        () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
     throw new IllegalStateException("This code should be unreachable");
 
   }
