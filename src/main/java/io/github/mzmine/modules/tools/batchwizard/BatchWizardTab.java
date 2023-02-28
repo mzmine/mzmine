@@ -442,6 +442,7 @@ public class BatchWizardTab extends SimpleTab {
         MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
       }
     } catch (Exception e) {
+      logger.log(Level.WARNING, "Cannot create batch" + e.getMessage(), e);
       DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
     }
   }

@@ -162,23 +162,21 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private void makeMultiCurveResolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAPMultivariateCurveResolutionModule.class).cloneParameterSet();
-    // TODO maybe use intra sample rt tolerance for this?
+
     param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, rtFwhm * 4);
     param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
         (double) intraSampleRtTol.getToleranceInMinutes());
     param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE, 1);
 
-    // TODO chromatograms need to be picked by name pattern
-    // TODO do not remove chromatograms then!
-    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // TODO chromatograms need to be picked by name pattern
+    // chromatograms are optional parameter
+    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS, false,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+
     param.setParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME, false);
-
-    // TODO replace with last OriginalFeatureListHandlingParameter
-    param.setParameter(ADAP3DecompositionV2Parameters.AUTO_REMOVE, true);
-
+    param.setParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL, handleOriginalFeatureLists);
     param.setParameter(ADAP3DecompositionV2Parameters.SUFFIX, "spec_deconv");
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ADAPMultivariateCurveResolutionModule.class), param));

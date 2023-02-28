@@ -25,18 +25,26 @@
 
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-
-import java.util.*;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsPlaceholder;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Du-Lab Team dulab.binf@gmail.com
  */
 public class ChromatogramPeakPair {
+
   public final FeatureList chromatograms;
   public final FeatureList peaks;
 
@@ -50,31 +58,63 @@ public class ChromatogramPeakPair {
     return chromatograms.getName() + " / " + peaks.getName();
   }
 
-  public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
+  public static Map<RawDataFile, ChromatogramPeakPair>   fromParameterSet(
       @NotNull ParameterSet parameterSet) {
     Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
 
+    var optionalChromatograms = parameterSet.getParameter(
+        ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS);
+    var useChromatograms = optionalChromatograms.getValue();
     FeatureList[] chromatograms =
-        parameterSet.getParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS).getValue()
-            .getMatchingFeatureLists();
+        useChromatograms ? optionalChromatograms.getEmbeddedParameter().getValue()
+            .getMatchingFeatureLists() : null;
     FeatureList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
-    if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0)
+    if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0) {
       return pairs;
+    }
+    //if only chromatogram is unavailable find it from peak list.
+    if((chromatograms == null || chromatograms.length ==0) && (peaks != null || peaks.length >0)){
+
+        ObservableList<FeatureListAppliedMethod> appliedMethodsList = peaks[0].getAppliedMethods();
+
+        for (int j = appliedMethodsList.size() - 1; j >= 0; j--) {
+          ParameterSet parameters = appliedMethodsList.get(j).getParameters();
+          for (final Parameter<?> param : parameters.getParameters()) {
+            if (param instanceof FeatureListsParameter flistParam) {
+              FeatureListsPlaceholder[] placeholders = flistParam.getValue().getEvaluationResult();
+              for (final FeatureListsPlaceholder placeholder : placeholders) {
+              FeatureList candidateList = placeholder.getFeatureList();
+//
+//              // feature list is still in memory and was not deleted and already collected by GC
+//              if(candidateList!=null) {
+//                // find candidate list where parentName.startsWith(candidateName)
+//                parentFeatureList.getName()
+//                candidateList.getName()
+//              }
+              }
+            }
+          }
+
+        }
+
 
     Set<RawDataFile> dataFiles = new HashSet<>();
-    for (FeatureList peakList : chromatograms)
+    for (FeatureList peakList : chromatograms) {
       dataFiles.add(peakList.getRawDataFile(0));
-    for (FeatureList peakList : peaks)
+    }
+    for (FeatureList peakList : peaks) {
       dataFiles.add(peakList.getRawDataFile(0));
+    }
 
     for (RawDataFile dataFile : dataFiles) {
       FeatureList chromatogram = Arrays.stream(chromatograms)
           .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
-      FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile).findFirst()
-          .orElse(null);
-      if (chromatogram != null && peak != null)
+      FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile)
+          .findFirst().orElse(null);
+      if (chromatogram != null && peak != null) {
         pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
+      }
     }
 
     return pairs;

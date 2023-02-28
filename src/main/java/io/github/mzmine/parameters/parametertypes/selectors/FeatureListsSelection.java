@@ -33,15 +33,18 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.TextUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FeatureListsSelection implements Cloneable {
+  private static final Logger logger = Logger.getLogger(FeatureListsSelection.class.getName());
 
   private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
   private ModularFeatureList[] specificFeatureLists;
   private String namePattern;
   private ModularFeatureList[] batchLastFeatureLists;
-
   private FeatureListsPlaceholder[] evaluatedSelection = null;
 
   /**
@@ -67,58 +70,65 @@ public class FeatureListsSelection implements Cloneable {
     throw new IllegalStateException("Feature list selection has not been evaluated.");
   }
   public ModularFeatureList[] getMatchingFeatureLists() {
+    if (evaluatedSelection != null) {
+      var value = Arrays.stream(evaluatedSelection).map(FeatureListsPlaceholder::getMatchingFeatureList)
+          .toArray(ModularFeatureList[]::new);
+      for (var raw : value) {
+        if (raw == null) {
+          throw new IllegalStateException(
+              "Feature list selection points to a missing file (maybe it was removed after first evaluation).");
+        }
+      }
+      return value;
+    }
 
+    ModularFeatureList[] matchingFeatureLists;
     switch (selectionType) {
 
-      case GUI_SELECTED_FEATURELISTS:
-        return Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
+      case GUI_SELECTED_FEATURELISTS ->
+          matchingFeatureLists = Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
             .map(ModularFeatureList.class::cast).toArray(ModularFeatureList[]::new);
-      case ALL_FEATURELISTS:
-        return MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+      case ALL_FEATURELISTS ->
+          matchingFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
             .toArray(ModularFeatureList[]::new);
-      case SPECIFIC_FEATURELISTS:
-        if (specificFeatureLists == null) {
-          return new ModularFeatureList[0];
-        }
-        return specificFeatureLists;
-      case NAME_PATTERN:
+      case SPECIFIC_FEATURELISTS ->
+          matchingFeatureLists = (specificFeatureLists == null) ? new ModularFeatureList[0] : specificFeatureLists;
+      case NAME_PATTERN -> {
         if (Strings.isNullOrEmpty(namePattern)) {
-          return new ModularFeatureList[0];
-        }
-        ArrayList<ModularFeatureList> matchingFeatureLists = new ArrayList<>();
-        ModularFeatureList allFeatureLists[] = MZmineCore.getProjectManager().getCurrentProject()
-            .getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
+          matchingFeatureLists = new ModularFeatureList[0];
+        } else {
+          ArrayList<ModularFeatureList> featureLists = new ArrayList<>();
+          ModularFeatureList allFeatureLists[] = MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
 
-        plCheck:
-        for (ModularFeatureList pl : allFeatureLists) {
+          for (ModularFeatureList pl : allFeatureLists) {
 
-          final String plName = pl.getName();
+            final String plName = pl.getName();
 
-          final String regex = TextUtils.createRegexFromWildcards(namePattern);
+            final String regex = TextUtils.createRegexFromWildcards(namePattern);
 
-          if (plName.matches(regex)) {
-            if (matchingFeatureLists.contains(pl)) {
-              continue;
+            if (plName.matches(regex)) {
+              if (featureLists.contains(pl)) {
+                continue;
+              }
+              featureLists.add(pl);
             }
-            matchingFeatureLists.add(pl);
-            continue plCheck;
           }
+          matchingFeatureLists = featureLists.toArray(new ModularFeatureList[0]);
         }
-        return matchingFeatureLists.toArray(new ModularFeatureList[0]);
-      case BATCH_LAST_FEATURELISTS:
-        if (batchLastFeatureLists == null) {
-          return new ModularFeatureList[0];
-        }
-        return batchLastFeatureLists;
+      }
+      case BATCH_LAST_FEATURELISTS ->
+        matchingFeatureLists =  (batchLastFeatureLists == null) ?new ModularFeatureList[0] : batchLastFeatureLists;
+      default -> throw new IllegalStateException("Unexpected value: " + selectionType);
     }
-    evaluatedSelection = new RawDataFilePlaceholder[matchingFiles.length];
-    for (int i = 0; i < matchingFiles.length; i++) {
-      RawDataFile matchingFile = matchingFiles[i];
-      evaluatedSelection[i] = new RawDataFilePlaceholder(matchingFile);
+    evaluatedSelection = new FeatureListsPlaceholder[matchingFeatureLists.length];
+    for (int i = 0; i < matchingFeatureLists.length; i++) {
+      ModularFeatureList modularFeatureList = matchingFeatureLists[i];
+      evaluatedSelection[i] = new FeatureListsPlaceholder(modularFeatureList);
     }
     logger.finest(
         () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
-    throw new IllegalStateException("This code should be unreachable");
+
+    return matchingFeatureLists;
 
   }
 

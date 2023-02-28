@@ -1,6 +1,7 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.DataTypeValueChangeListener;
@@ -14,9 +15,11 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -51,6 +54,20 @@ public class FeatureListsPlaceholder implements FeatureList {
     this.fileHashCode = fileHashCode;
   }
 
+  @Nullable
+  public FeatureList getMatchingFeatureList() {
+    final MZmineProject proj = MZmineCore.getProjectManager().getCurrentProject();
+    if (proj == null) {
+      return null;
+    }
+
+    return proj.getCurrentFeatureLists().stream().filter(this::matches).findFirst().orElse(null);
+  }
+
+  public boolean matches(@Nullable final FeatureList featureList) {
+    return featureList != null && featureList.getName().equals(name) &&  Objects.equals(fileHashCode,
+        featureList.hashCode());
+  }
   @Override
   public @NotNull String getName() {
     return name;

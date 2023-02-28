@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -47,11 +46,8 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsPlaceholder;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
@@ -63,7 +59,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,38 +112,6 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Started ADAP Peak Decomposition on " + originalLists);
 
-      //=====================================================
-//      String derivedName;
-//      boolean found = false;
-//      ObservableList<FeatureListAppliedMethod> appliedMethodsList = originalLists.peaks.getAppliedMethods();
-//
-//      outerloop:
-//      for(int i = appliedMethodsList.size() -1 ; i >=0 ; i--){
-//       var parameters = appliedMethodsList.get(i).getParameters();
-//       for(Parameter p : parameters.getParameters()){
-//         var value = p.getValue().toString();
-//         String str[] = value.split(" ");
-//         for(int j = str.length-1; j>=0; j--){
-//           if(str[j].equals("chromatograms")){
-//             derivedName = String.join(" ",Arrays.copyOfRange(str,0, j+1));
-//             break outerloop;
-//           }
-//
-//         }
-//
-//       }
-//     }
-      ObservableList<FeatureListAppliedMethod> appliedMethodsList = originalLists.peaks.getAppliedMethods();
-      for (int i = appliedMethodsList.size()-1; i >= 0; i--) {
-        ParameterSet parameters = appliedMethodsList.get(i).getParameters();
-        for (final Parameter<?> param : parameters.getParameters()) {
-          if (param instanceof FeatureListsParameter flistParam) {
-            FeatureListsPlaceholder[] placeholders = flistParam.getValue().getEvaluationResult();
-            flistParam.getValue().
-
-          }
-        }
-      }
       // Check raw data files.
       if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
           && originalLists.peaks.getNumberOfRawDataFiles() > 1) {
@@ -165,9 +128,8 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
             // Add new peaklist to the project.
             project.addFeatureList(newPeakList);
-
             // Remove the original peaklist if requested.
-            if (parameters.getParameter(ADAP3DecompositionV2Parameters.AUTO_REMOVE).getValue()) {
+            if (parameters.getParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL).getValue() == OriginalFeatureListOption.REMOVE) {
               project.removeFeatureList(originalLists.chromatograms);
               project.removeFeatureList(originalLists.peaks);
             }
