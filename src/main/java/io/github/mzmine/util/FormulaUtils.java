@@ -381,26 +381,63 @@ public class FormulaUtils {
   }
 
   /**
+   * Changes the absolute charge of the input formula
+   *
+   * @param formula   is changed
+   * @param absCharge
+   * @return the input formula but with changed charge
+   */
+  public static IMolecularFormula resetAbsCharge(IMolecularFormula formula, int absCharge) {
+    var charge = formula.getCharge();
+    formula.setCharge(charge < 0 ? -absCharge : absCharge);
+    return formula;
+  }
+
+  /**
    * Get all sub formulas + the original formula
    *
    * @param f original formula
    * @return list of original formula followed by sub formulas, sorted by ascending mz
    */
   public static FormulaWithExactMz[] getAllFormulas(IMolecularFormula f) {
-    return getAllFormulas(f, 0);
+    return getAllFormulas(f, null, 0);
   }
 
   /**
-   * Get all sub formulas + the original formula
+   * Get all sub formulas + the original formula. See
+   * {@link #getAllFormulas(IMolecularFormula, Integer, double)} Resetting charge to single charge
+   * is useful for fragmentation spectra where charges are often lost to become single charged. Or
+   * to 0 for neutral losses.
    *
-   * @param f          original formula
-   * @param minMzValue the minimum mz value to consider
+   * @param inputFormula original formula
+   * @param minMzValue   the minimum mz value to consider
    * @return list of original formula followed by sub formulas, sorted by ascending mz
    */
-  public static FormulaWithExactMz[] getAllFormulas(IMolecularFormula f, double minMzValue) {
+  public static FormulaWithExactMz[] getAllFormulas(IMolecularFormula inputFormula,
+      double minMzValue) {
+    return getAllFormulas(inputFormula, null, minMzValue);
+  }
+
+  /**
+   * Get all sub formulas + the original formula. Resetting charge to single charge is useful for
+   * fragmentation spectra where charges are often lost to become single charged. Or to 0 for
+   * neutral losses.
+   *
+   * @param inputFormula   original formula
+   * @param resetAbsCharge the new absolute charge. use current charge if null or set the charge to
+   *                       +-resetAbsCharge.
+   * @param minMzValue     the minimum mz value to consider
+   * @return list of original formula followed by sub formulas, sorted by ascending mz
+   */
+  public static FormulaWithExactMz[] getAllFormulas(IMolecularFormula inputFormula,
+      @Nullable Integer resetAbsCharge, double minMzValue) {
+    if (resetAbsCharge != null) {
+      inputFormula = resetAbsCharge(inputFormula, resetAbsCharge);
+    }
+
     List<IMolecularFormula> result = new ArrayList<>();
-    result.add(f);
-    getAllFormulas(result, f);
+    result.add(inputFormula);
+    getAllFormulas(result, inputFormula);
     //
     FormulaWithExactMz[] formulas = new FormulaWithExactMz[result.size()];
     for (int i = 0; i < result.size(); i++) {
@@ -424,9 +461,15 @@ public class FormulaUtils {
     return formulas;
   }
 
+  /**
+   * Remove one isotope at a time. Keep charge state
+   *
+   * @param result       list that is expanded by all sub formulas
+   * @param inputFormula input formula
+   */
   private static void getAllFormulas(List<IMolecularFormula> result,
-      IMolecularFormula firstFormula) {
-    for (IIsotope iso : firstFormula.isotopes()) {
+      IMolecularFormula inputFormula) {
+    for (IIsotope iso : inputFormula.isotopes()) {
       // do not use enhanced loop - adding new elements to the end of the list
       int size = result.size();
       for (int i = 0; i < size; i++) {
@@ -445,49 +488,49 @@ public class FormulaUtils {
 
 
   /**
-   * @param mz             search for mz
-   * @param sortedFormulas formulas sorted by mz {@link #getAllFormulas(IMolecularFormula)}
+   * @param mz               search for mz
+   * @param formulasMzSorted formulas sorted by mz {@link #getAllFormulas(IMolecularFormula)}
    * @return the formula with the closest mz
    */
   @Nullable
   public static FormulaWithExactMz getClosestFormula(double mz,
-      FormulaWithExactMz[] sortedFormulas) {
-    int index = getClosestIndexOfFormula(mz, sortedFormulas);
-    return index >= 0 ? sortedFormulas[index] : null;
+      FormulaWithExactMz[] formulasMzSorted) {
+    int index = getClosestIndexOfFormula(mz, formulasMzSorted);
+    return index >= 0 ? formulasMzSorted[index] : null;
   }
 
   /**
-   * @param mz             search for mz
-   * @param sortedFormulas formulas sorted by mz {@link #getAllFormulas(IMolecularFormula)}
+   * @param mz               search for mz
+   * @param formulasMzSorted formulas sorted by mz {@link #getAllFormulas(IMolecularFormula)}
    * @return the index of the formula with the closest mz or -1 if the list is empty
    */
-  public static int getClosestIndexOfFormula(double mz, FormulaWithExactMz[] sortedFormulas) {
-    if (sortedFormulas == null || sortedFormulas.length == 0) {
+  public static int getClosestIndexOfFormula(double mz, FormulaWithExactMz[] formulasMzSorted) {
+    if (formulasMzSorted == null || formulasMzSorted.length == 0) {
       return -1;
     }
-    if (mz < sortedFormulas[0].mz()) {
+    if (mz < formulasMzSorted[0].mz()) {
       return 0;
     }
-    if (mz > sortedFormulas[sortedFormulas.length - 1].mz()) {
-      return sortedFormulas.length - 1;
+    if (mz > formulasMzSorted[formulasMzSorted.length - 1].mz()) {
+      return formulasMzSorted.length - 1;
     }
 
     int lo = 0;
-    int hi = sortedFormulas.length - 1;
+    int hi = formulasMzSorted.length - 1;
 
     while (lo <= hi) {
       int mid = (hi + lo) / 2;
 
-      if (mz < sortedFormulas[mid].mz()) {
+      if (mz < formulasMzSorted[mid].mz()) {
         hi = mid - 1;
-      } else if (mz > sortedFormulas[mid].mz()) {
+      } else if (mz > formulasMzSorted[mid].mz()) {
         lo = mid + 1;
       } else {
         return mid;
       }
     }
     // lo == hi + 1
-    return (sortedFormulas[lo].mz() - mz) < (mz - sortedFormulas[hi].mz()) ? lo : hi;
+    return (formulasMzSorted[lo].mz() - mz) < (mz - formulasMzSorted[hi].mz()) ? lo : hi;
   }
 
 

@@ -188,6 +188,7 @@ public class MZmineJsonLibraryEntry {
       case SIRIUS_MERGED_STATS -> null;
       case FEATURE_ID -> null;
       case SCAN_NUMBER -> scanNumber;
+      case UNSPECIFIED -> null;
     };
   }
 

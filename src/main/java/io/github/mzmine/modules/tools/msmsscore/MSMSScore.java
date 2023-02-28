@@ -37,6 +37,9 @@ public record MSMSScore(float explainedIntensity, float explainedSignals,
                         @NotNull Map<DataPoint, String> annotation) {
 
   public static final MSMSScore FAILED_FILTERS = new MSMSScore(-10, -10, Map.of());
+  /**
+   * Success although without formula means that minimum number of signals matched
+   */
   public static final MSMSScore SUCCESS_WITHOUT_FORMULA = new MSMSScore(-2, -2, Map.of());
   public static final MSMSScore SUCCESS_WITHOUT_PRECURSOR_MZ = new MSMSScore(-3, -3, Map.of());
 

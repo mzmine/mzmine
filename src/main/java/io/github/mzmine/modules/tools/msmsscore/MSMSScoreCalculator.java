@@ -32,9 +32,11 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -54,8 +56,7 @@ public class MSMSScoreCalculator {
     MassList massList = msmsScan.getMassList();
 
     if (massList == null) {
-      throw new IllegalArgumentException(
-          "Scan #" + msmsScan.getScanNumber() + " does not have a mass list");
+      throw new MissingMassListException(msmsScan);
     }
 
     DataPoint[] msmsIons = massList.getDataPoints();
@@ -66,7 +67,7 @@ public class MSMSScoreCalculator {
     }
 
     double precursorMZ = msmsScan.getPrecursorMz() != null ? msmsScan.getPrecursorMz() : 0d;
-    int precursorCharge = msmsScan.getPrecursorCharge() != null ? msmsScan.getPrecursorCharge() : 0;
+    int precursorCharge = msmsScan.getPrecursorCharge() != null ? msmsScan.getPrecursorCharge() : 1;
     return evaluateMSMS(msmsTolerance, parentFormula, msmsIons, precursorMZ, precursorCharge,
         topNSignals);
   }
@@ -98,7 +99,7 @@ public class MSMSScoreCalculator {
 
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
     float totalIntensity = 0, explainedIntensity = 0;
-    Map<DataPoint, String> msmsAnnotations = new Hashtable<>();
+    Map<DataPoint, String> msmsAnnotations = new HashMap<>();
 
     // If getPrecursorCharge() returns 0, it means charge is unknown. In
     // that case let's assume charge 1
@@ -158,28 +159,56 @@ public class MSMSScoreCalculator {
   }
 
 
-  public static MSMSScore evaluateMSMS(final MZTolerance mzTol,
-      final FormulaWithExactMz[] sortedFormulas, final DataPoint[] msmsIons,
-      final double precursorMZ, int precursorCharge) {
+  /**
+   * There are less parameters needed to match mz signals directly
+   *
+   * @param mzTol            tolerance to match signals
+   * @param formulasMzSorted either neutral loss formulas or single charge formulas. Needs to match
+   *                         the matchType {@link SignalSelection}
+   * @param msmsIons         filtered list of signals
+   * @return
+   */
+  public static MSMSScore evaluateMsMsMzSignalsFast(final MZTolerance mzTol,
+      final FormulaWithExactMz[] formulasMzSorted, final DataPoint[] msmsIons) {
+    return evaluateMsMsFast(mzTol, formulasMzSorted, msmsIons, 0, 1, SignalSelection.MZ_SIGNALS);
+  }
+
+  /**
+   * @param mzTol            tolerance to match signals
+   * @param formulasMzSorted either neutral loss formulas or single charge formulas. Needs to match
+   *                         the matchType {@link SignalSelection}
+   * @param msmsIons         filtered list of signals
+   * @param precursorMZ      only used when matching neutral losses
+   * @param precursorCharge  only used when matching neutral losses
+   * @param matchType        either match mz signals or neutral losses
+   * @return
+   */
+  public static MSMSScore evaluateMsMsFast(final MZTolerance mzTol,
+      final FormulaWithExactMz[] formulasMzSorted, final DataPoint[] msmsIons,
+      final double precursorMZ, int precursorCharge, @NotNull SignalSelection matchType) {
+    if (formulasMzSorted.length == 0) {
+      return MSMSScore.SUCCESS_WITHOUT_FORMULA;
+    }
+
+    precursorCharge = ensureAbsChargeDefault1(precursorCharge);
+
+    matchType.matchesChargeStateOrElseThrow(formulasMzSorted[0].formula().getCharge());
+
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
     float totalIntensity = 0, explainedIntensity = 0;
-    Map<DataPoint, String> msmsAnnotations = new Hashtable<>();
-
-    // If getPrecursorCharge() returns 0, it means charge is unknown. In
-    // that case let's assume charge 1
-    if (precursorCharge == 0) {
-      precursorCharge = 1;
-    }
+    Map<DataPoint, String> msmsAnnotations = new HashMap<>();
 
     for (DataPoint dp : msmsIons) {
       // formulas are actually charged so search for a match with mz
-      double mass = dp.getMZ();
-//      double mass = precursorMZ * precursorCharge - dp.getMZ();
-      FormulaWithExactMz closestFormula = FormulaUtils.getClosestFormula(mass, sortedFormulas);
+      double mass = matchType == SignalSelection.MZ_SIGNALS ? dp.getMZ()
+          : precursorMZ * precursorCharge - dp.getMZ();
+      FormulaWithExactMz closestFormula = FormulaUtils.getClosestFormula(mass, formulasMzSorted);
       if (closestFormula != null && mzTol.checkWithinTolerance(closestFormula.mz(), mass)) {
         // match
         String formulaString = MolecularFormulaManipulator.getString(closestFormula.formula());
-        msmsAnnotations.put(dp, String.format("[%s]", formulaString));
+        String annotation = matchType == SignalSelection.MZ_SIGNALS ? "[%s]" : "[M-%s]";
+        annotation = annotation.formatted(formulaString);
+        msmsAnnotations.put(dp, annotation);
         interpretedMSMSpeaks++;
         explainedIntensity += dp.getIntensity();
       }
@@ -196,4 +225,15 @@ public class MSMSScoreCalculator {
     explainedIntensity = explainedIntensity / totalIntensity;
     return new MSMSScore(explainedIntensity, msmsScore, msmsAnnotations);
   }
+
+  private static int ensureAbsChargeDefault1(int precursorCharge) {
+    if (precursorCharge < 0) {
+      return Math.abs(precursorCharge);
+    }
+    if (precursorCharge == 0) {
+      return 1;
+    }
+    return precursorCharge;
+  }
+
 }

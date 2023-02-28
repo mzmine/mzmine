@@ -117,6 +117,13 @@ public class FormulaUtilsTest {
   }
 
   @Test
+  void testGetAllSubformulasDoubleCharge() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+2");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 1, 10);
+    assert all.length == 287;
+  }
+
+  @Test
   void testGetAllSubformulasGreater200() {
     IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H3O+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 200);

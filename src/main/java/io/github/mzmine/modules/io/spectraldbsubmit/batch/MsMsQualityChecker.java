@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
+import io.github.mzmine.modules.tools.msmsscore.SignalSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
@@ -69,13 +70,13 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
    */
   public @NotNull MSMSScore match(final Scan msmsScan, final FeatureAnnotation annotation) {
     IMolecularFormula formula = FormulaUtils.getIonizedFormula(annotation);
-    FormulaWithExactMz[] sortedFormulas =
-        formula == null ? null : FormulaUtils.getAllFormulas(formula, 15);
-    return match(msmsScan, annotation, sortedFormulas);
+    FormulaWithExactMz[] formulasMzSorted =
+        formula == null ? null : FormulaUtils.getAllFormulas(formula, 1, 15);
+    return match(msmsScan, annotation, formulasMzSorted);
   }
 
   public @NotNull MSMSScore match(final Scan msmsScan, final FeatureAnnotation annotation,
-      final FormulaWithExactMz[] sortedFormulas) {
+      final FormulaWithExactMz[] formulasMzSorted) {
 
     MassList massList = msmsScan.getMassList();
     if (massList == null) {
@@ -86,7 +87,7 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
       return MSMSScore.FAILED_FILTERS;
     }
 
-    if (sortedFormulas == null) {
+    if (formulasMzSorted == null || formulasMzSorted.length == 0) {
       return MSMSScore.SUCCESS_WITHOUT_FORMULA;
     }
 
@@ -101,8 +102,8 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
     }
 
     int precursorCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
-    MSMSScore score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, sortedFormulas,
-        dataPoints, precursorMz, precursorCharge);
+    MSMSScore score = MSMSScoreCalculator.evaluateMsMsFast(msmsFormulaTolerance, formulasMzSorted,
+        dataPoints, precursorMz, precursorCharge, SignalSelection.MZ_SIGNALS);
 
     if (score == null) {
       return MSMSScore.FAILED_FILTERS;

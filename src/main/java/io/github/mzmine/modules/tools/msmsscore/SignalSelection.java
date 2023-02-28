@@ -23,45 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
-
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+package io.github.mzmine.modules.tools.msmsscore;
 
 /**
- * Used to cache the formula + mz results
- *
- * @param mz exact mz
+ * Defines what signals should be matched
  */
-public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
-
-  @Override
-  public String toString() {
-    return MolecularFormulaManipulator.getString(formula) + ", mz=" + mz;
-  }
-
-  public int getCharge() {
-    return Objects.requireNonNullElse(formula.getCharge(), 0);
-  }
+public enum SignalSelection {
+  NEUTRAL_LOSSES, MZ_SIGNALS;
 
   /**
-   * Charge string as
+   * throws RuntimeException exception if NEUTRAL_LOSS is selected and charge is >0 or if MZ_SIGNALS
+   * is selected and charge is 0
    *
-   * @return +1
+   * @param charge charge of a formula or similar
    */
-  @NotNull
-  public String getChargeString() {
-    int charge = getCharge();
-    String chargeStr = charge > 1 ? "" + charge : "";
-    if (charge > 0) {
-      return "+" + chargeStr;
+  public void matchesChargeStateOrElseThrow(final int charge) {
+    if (this == SignalSelection.MZ_SIGNALS && charge == 0) {
+      throw new IllegalStateException(
+          "Cannot use SignalSelection.NEUTRAL_LOSS with charge state=" + charge);
     }
-    if (charge < 0) {
-      return "-" + chargeStr;
-    } else {
-      return "";
+    if (this == SignalSelection.NEUTRAL_LOSSES && Math.abs(charge) > 0) {
+      throw new IllegalStateException(
+          "Cannot use SignalSelection.NEUTRAL_LOSS with charge state>0: " + charge);
     }
   }
 }

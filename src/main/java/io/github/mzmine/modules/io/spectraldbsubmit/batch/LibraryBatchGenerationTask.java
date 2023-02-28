@@ -222,7 +222,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     // cache all formulas
     IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
-    FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 15);
+    FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
 
     // filter matches
     for (int i = 0; i < scans.size(); i++) {
