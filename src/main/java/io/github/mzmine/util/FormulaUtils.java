@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -388,7 +389,7 @@ public class FormulaUtils {
    * @return the input formula but with changed charge
    */
   public static IMolecularFormula resetAbsCharge(IMolecularFormula formula, int absCharge) {
-    var charge = formula.getCharge();
+    int charge = Objects.requireNonNullElse(formula.getCharge(), 0);
     formula.setCharge(charge < 0 ? -absCharge : absCharge);
     return formula;
   }

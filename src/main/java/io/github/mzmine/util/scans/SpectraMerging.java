@@ -487,8 +487,7 @@ public class SpectraMerging {
       @Nullable final MemoryMapStorage storage) {
 
     // if we have mass lists, use them to merge.
-    final List<? extends MassSpectrum> spectra = source.stream()
-        .map(s -> s instanceof Scan scan ? scan.getMassList() : s).toList();
+    final var spectra = source.stream().map(ScanUtils::getMassListOrThrow).toList();
 
     final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
         intensityMergingType, centerFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks);

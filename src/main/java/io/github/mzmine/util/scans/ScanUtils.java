@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -184,6 +185,12 @@ public class ScanUtils {
     return buf.toString();
   }
 
+  /**
+   * DataPoint usage is discouraged when used to stare data. It can be used when sorting of data
+   * points is needed etc.
+   *
+   * @return array of data points
+   */
   @Deprecated
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
     int size = spectrum.getNumberOfDataPoints();
@@ -1887,19 +1894,33 @@ public class ScanUtils {
   /**
    * Use scan or mass list
    *
-   * @return the input scan or the corresponding mass list
-   * @throws MissingMassListException
+   * @return the input scan or the corresponding mass list.
+   * @throws MissingMassListException if mass list was demanded and is missing. user needs to apply
+   *                                  mass detection
    */
-  public static @NotNull MassSpectrum getMassSpectrum(final Scan scan, final boolean useMassList)
+  public static @NotNull MassSpectrum getMassListOrThrow(final MassSpectrum s)
       throws MissingMassListException {
-    if (useMassList) {
-      MassList masses = scan.getMassList();
-      if (masses == null) {
-        throw new MissingMassListException(scan);
-      }
-      return masses;
+    return getMassSpectrum(s, true);
+  }
+
+  /**
+   * Use scan or mass list
+   *
+   * @return the input scan or the corresponding mass list.
+   * @throws MissingMassListException if mass list was demanded and is missing. user needs to apply
+   *                                  mass detection
+   */
+  public static @NotNull MassSpectrum getMassSpectrum(final MassSpectrum s,
+      final boolean useMassList) throws MissingMassListException {
+    if (!useMassList || !(s instanceof Scan scan)) {
+      return s;
     }
-    return scan;
+
+    MassList masses = scan.getMassList();
+    if (masses == null) {
+      throw new MissingMassListException(scan);
+    }
+    return masses;
   }
 
   public static double[] getIntensityValues(final Scan scan, final boolean useMassList)
@@ -1912,6 +1933,16 @@ public class ScanUtils {
     return getMassSpectrum(scan, useMassList).getMzValues(new double[0]);
   }
 
+  /**
+   * Usage of datapoints is sometimes required so this method can be used when data needs to be
+   * sorted etc. Otherwise use the double arrays for mz and intensity instead. Also look at
+   * {@link EfficientDataAccess} for single threaded access to scans from one dataset.
+   *
+   * @param scan        the target scan
+   * @param useMassList extract data from mass list
+   * @return
+   * @throws MissingMassListException users need to run mass detection before on this scan
+   */
   @Deprecated
   public static DataPoint[] extractDataPoints(final Scan scan, final boolean useMassList)
       throws MissingMassListException {

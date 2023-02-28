@@ -178,7 +178,15 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not open file " + outFile + " for writing.");
       logger.log(Level.WARNING,
-          String.format("Error writing libary file: %s. Message: %s", outFile.getAbsolutePath(),
+          String.format("Error writing library file: %s. Message: %s", outFile.getAbsolutePath(),
+              e.getMessage()), e);
+      return;
+    } catch (Exception e) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Could not export library to " + outFile + " because of internal exception:"
+          + e.getMessage());
+      logger.log(Level.WARNING,
+          String.format("Error writing library file: %s. Message: %s", outFile.getAbsolutePath(),
               e.getMessage()), e);
       return;
     }
