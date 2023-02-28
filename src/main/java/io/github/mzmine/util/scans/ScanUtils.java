@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -1923,12 +1924,34 @@ public class ScanUtils {
     return masses;
   }
 
-  public static double[] getIntensityValues(final Scan scan, final boolean useMassList)
+  /**
+   * Only use the array when needed. Best way to iterate scan data in a single thread is
+   * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
+   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   *
+   * @param scan        target scan
+   * @param useMassList either use mass list or return the input scan
+   * @return scan.getMasstList if input is a scan
+   * @throws MissingMassListException if useMassList is true and no mass detection was applied,
+   *                                  users need to apply mass detection to all scans
+   */
+  public static double[] getIntensityValues(final MassSpectrum scan, final boolean useMassList)
       throws MissingMassListException {
     return getMassSpectrum(scan, useMassList).getIntensityValues(new double[0]);
   }
 
-  public static double[] getMzValues(final Scan scan, final boolean useMassList)
+  /**
+   * Only use the array when needed. Best way to iterate scan data in a single thread is
+   * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
+   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   *
+   * @param scan        target scan
+   * @param useMassList either use mass list or return the input scan
+   * @return scan.getMasstList if input is a scan
+   * @throws MissingMassListException if useMassList is true and no mass detection was applied,
+   *                                  users need to apply mass detection to all scans
+   */
+  public static double[] getMzValues(final MassSpectrum scan, final boolean useMassList)
       throws MissingMassListException {
     return getMassSpectrum(scan, useMassList).getMzValues(new double[0]);
   }
