@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.filter_maldigroupms2;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
@@ -42,16 +41,17 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,11 +72,11 @@ public class MaldiGroupMS2Task extends AbstractTask {
   private final boolean combineTimsMS2;
   private final List<IMSImagingRawDataFile> files;
   private final Double minMs2IntensityRel;
+  private final boolean lockToFeatureMobilityRange;
   // Processed rows counter
   private int processedRows, totalRows;
   private ModularFeatureList list;
   private MZTolerance mzTol;
-  private final boolean lockToFeatureMobilityRange;
 
   /**
    * Create the task.
@@ -112,9 +112,27 @@ public class MaldiGroupMS2Task extends AbstractTask {
     totalRows = 0;
   }
 
+  public static List<PasefMsMsInfo> getMsMsInfos(List<PasefMsMsInfo> infos, Range<Double> mzRange) {
+    int lowerSearchPoint = BinarySearch.binarySearch(mzRange.lowerEndpoint(), false, infos.size(),
+        i -> infos.get(i).getIsolationMz());
+    if (lowerSearchPoint < 0) {
+      lowerSearchPoint = -(lowerSearchPoint + 1);
+    }
+
+    int upperSearchPoint = BinarySearch.binarySearch(mzRange.upperEndpoint(), false, infos.size(),
+        i -> infos.get(i).getIsolationMz());
+    if (upperSearchPoint < 0) {
+      upperSearchPoint = -(upperSearchPoint + 1);
+    }
+
+    if (upperSearchPoint <= lowerSearchPoint) {
+      return List.of();
+    }
+    return infos.subList(lowerSearchPoint, upperSearchPoint);
+  }
+
   @Override
   public double getFinishedPercentage() {
-
     return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
   }
 
@@ -144,13 +162,21 @@ public class MaldiGroupMS2Task extends AbstractTask {
 //          allFiles.stream().toList(), false);
 //      files.forEach(file -> newFlist.setSelectedScans(file, file.getScans()));
 
+      // collect all frames with mslevel=2 with the same spot from all files
+      final List<PasefMsMsInfo> msmsInfos = files.stream()
+          .flatMap(file -> file.getScanNumbers(2).stream()).filter(
+              scan -> (scan instanceof ImagingFrame imgFrame)
+                  && imgFrame.getMaldiSpotInfo() != null)
+          .flatMap(f -> ((ImagingFrame) f).getImsMsMsInfos().stream())
+          .sorted(Comparator.comparingDouble(info -> info.getIsolationMz())).toList();
+
       // for all features
       for (FeatureListRow row : newFlist.getRows()) {
         if (isCanceled()) {
           return;
         }
 
-        processRow(row);
+        processRow(row, msmsInfos);
         processedRows++;
       }
 
@@ -177,63 +203,40 @@ public class MaldiGroupMS2Task extends AbstractTask {
    *
    * @param row
    */
-  public void processRow(FeatureListRow row) {
+  public void processRow(FeatureListRow row, List<PasefMsMsInfo> allInfos) {
     for (ModularFeature f : row.getFeatures()) {
       if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN && (
           f.getMobilityUnit() == MobilityType.TIMS || (
               f.getRawDataFile() instanceof IMSRawDataFile imsfile
                   && imsfile.getMobilityType() == MobilityType.TIMS))) {
-        processTimsFeature(f);
+        processTimsFeature(f, allInfos);
       }
     }
   }
 
-  private void processTimsFeature(ModularFeature feature) {
+  private void processTimsFeature(ModularFeature feature, List<PasefMsMsInfo> allInfos) {
 
     double fmz = feature.getMZ();
     Float mobility = feature.getMobility();
 
-    // collect all frames with mslevel=2 with the same spot from all files
-    final List<ImagingFrame> frames = files.stream()
-        .flatMap(file -> file.getScanNumbers(2).stream().<ImagingFrame>mapMulti((scan, c) -> {
-          if (!(scan instanceof ImagingFrame imgFrame) || imgFrame.getMaldiSpotInfo() == null) {
-            return;
-          }
-          final MaldiSpotInfo maldiSpotInfo = imgFrame.getMaldiSpotInfo();
-          final String spotName = maldiSpotInfo.spotName();
-
-          if (feature.getFeatureData().getSpectra().stream().anyMatch(
-              (frame -> ((ImagingFrame) frame).getMaldiSpotInfo().spotName().equals(spotName)))) {
-            c.accept(imgFrame);
-          }
-        })).toList();
-
-    if (frames.isEmpty()) {
-      return;
-    }
-
     final List<MsMsInfo> eligibleMsMsInfos = new ArrayList<>();
-    for (Frame frame : frames) {
-      frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
-        if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {
-          // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
-          if (mobility != null) {
-            // todo: maybe revisit this for a more sophisticated range check
-            int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScanNumber();
-            float mobility1 = (float) frame.getMobilityForMobilityScanNumber(
-                imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
-            float mobility2 = (float) frame.getMobilityForMobilityScanNumber(
-                imsMsMsInfo.getSpectrumNumberRange().upperEndpoint() - mobilityScannumberOffset);
-            if (Range.singleton(mobility1).span(Range.singleton(mobility2)).contains(mobility)) {
-              eligibleMsMsInfos.add(imsMsMsInfo);
-            }
-          } else {
-            // if we don't have a mobility, we can simply add the msms info.
+    final List<PasefMsMsInfo> msMsInfos = getMsMsInfos(allInfos,
+        mzTol.getToleranceRange(feature.getMZ()));
+
+    msMsInfos.forEach(imsMsMsInfo -> {
+      if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {
+        // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
+        if (mobility != null) {
+          // todo: maybe revisit this for a more sophisticated range check
+          if (imsMsMsInfo.getMobilityRange().contains(mobility)) {
             eligibleMsMsInfos.add(imsMsMsInfo);
           }
+        } else {
+          // if we don't have a mobility, we can simply add the msms info.
+          eligibleMsMsInfos.add(imsMsMsInfo);
         }
-      });
-    }
+      }
+    });
 
     if (eligibleMsMsInfos.isEmpty()) {
       return;
