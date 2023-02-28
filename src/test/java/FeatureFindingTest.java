@@ -234,7 +234,7 @@ public class FeatureFindingTest {
     paramChrom.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
         .setValue(RawDataFilesSelectionType.ALL_FILES);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, 4);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, 4);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
         new MZTolerance(0.002, 10));
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 3E5);

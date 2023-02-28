@@ -125,7 +125,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     adapFiles.setSpecificFiles(flist.getRawDataFiles().toArray(new RawDataFile[0]));
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.dataFiles, adapFiles);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.scanSelection, ms2ScanSelection);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minCorrPoints);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans,
+        minCorrPoints);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolerance);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity,
@@ -355,8 +356,10 @@ public class DiaMs2CorrTask extends AbstractTask {
   }
 
   private ModularFeatureList buildChromatograms(MZmineProject dummyProject, RawDataFile file) {
+    // TODO decide if a parameter should be provided for the min total number of scans
+    // currently the consecutive scans are used
     adapTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
-        getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class);
+        getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class, null);
     adapTask.run();
     adapTask = new FinishedTask(adapTask);
     currentTaksIndex++;

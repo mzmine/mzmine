@@ -32,6 +32,8 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
@@ -103,6 +105,26 @@ public interface ParameterSet extends ParameterContainer {
   void loadValuesFromXML(Element element);
 
   void saveValuesToXML(Element element);
+
+
+  /**
+   * Maps the names of parameters to the parameter for {@link #loadValuesFromXML(Element)}.
+   * <p>
+   * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
+   * Only works if the old and new parameter are of the same type (save and load the parameter
+   * values the same way).
+   *
+   * @return map of name to parameter
+   */
+  default Map<String, Parameter<?>> getNameParameterMap() {
+    var parameters = getParameters();
+    Map<String, Parameter<?>> nameParameterMap = new HashMap<>(parameters.length);
+    for (final Parameter<?> p : parameters) {
+      nameParameterMap.put(p.getName(), p);
+    }
+    return nameParameterMap;
+  }
+
 
   boolean checkParameterValues(Collection<String> errorMessages);
 
