@@ -64,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public abstract class DataType<T> {
+public abstract class DataType<T> implements Comparable<DataType> {
 
   private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
@@ -295,12 +295,17 @@ public abstract class DataType<T> {
   // TODO dirty hack to make this a "singleton"
   @Override
   public boolean equals(Object obj) {
-    return obj != null && obj.getClass().equals(this.getClass());
+    return obj instanceof DataType dt && dt.getUniqueID().equals(this.getUniqueID());
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return getUniqueID().hashCode();
+  }
+
+  @Override
+  public int compareTo(@NotNull final DataType o) {
+    return getUniqueID().compareTo(o.getUniqueID());
   }
 
   /**

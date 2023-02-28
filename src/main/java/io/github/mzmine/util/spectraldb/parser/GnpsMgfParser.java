@@ -112,7 +112,8 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                     // wait for next entry
                     break;
                   case DATA:
-                    String[] data = l.split("[\\p{Zs}]");
+                    // split for any white space (tab or space ...)
+                    String[] data = l.split("\\s+");
                     dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
                         Double.parseDouble(data[1])));
                     break;
@@ -141,6 +142,10 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                                   fields.put(DBEntryField.ION_TYPE, adduct);
                                 }
                               }
+                            }
+                            // retention time is in seconds, mzmine uses minutes
+                            if (field.equals(DBEntryField.RT)) {
+                              value = ((Float) value) / 60.f;
                             }
 
                             fields.put(field, value);

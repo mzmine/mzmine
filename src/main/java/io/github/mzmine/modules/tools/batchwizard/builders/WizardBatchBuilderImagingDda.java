@@ -46,7 +46,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderImagingDda extends WizardBatchBuilder {
+public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
   private final Integer minDataPoints;
   private final Boolean isExportActive;

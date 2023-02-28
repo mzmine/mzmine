@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -39,15 +40,14 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Describes a common feature annotation. Future implementations should also extend the
- * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)}
- * method.
+ * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)} method.
  */
 public interface FeatureAnnotation {
 
-  public static final String XML_ELEMENT = "feature_annotation";
-  public static final String XML_TYPE_ATTR = "annotation_type";
+  String XML_ELEMENT = "feature_annotation";
+  String XML_TYPE_ATTR = "annotation_type";
 
-  public static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
+  static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
       ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
@@ -62,7 +62,7 @@ public interface FeatureAnnotation {
     };
   }
 
-  public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
+  void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable Double getPrecursorMZ();
@@ -83,6 +83,15 @@ public interface FeatureAnnotation {
 
   @Nullable Float getScore();
 
+  @Nullable
+  default String getScoreString() {
+    var score = getScore();
+    if (score == null) {
+      return null;
+    }
+    return MZmineCore.getConfiguration().getScoreFormat().format(score);
+  }
+
   @Nullable String getDatabase();
 
   /**
@@ -101,7 +110,7 @@ public interface FeatureAnnotation {
    *
    * @param writer The writer
    */
-  public default void writeOpeningTag(XMLStreamWriter writer) throws XMLStreamException {
+  default void writeOpeningTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(FeatureAnnotation.XML_ELEMENT);
     writer.writeAttribute(FeatureAnnotation.XML_TYPE_ATTR, getXmlAttributeKey());
   }
@@ -110,7 +119,7 @@ public interface FeatureAnnotation {
    * Convenience method to supply developers with a closing method for
    * {@link FeatureAnnotation#writeOpeningTag(XMLStreamWriter)}.
    */
-  public default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
+  default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();
   }
 }

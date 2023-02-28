@@ -30,6 +30,9 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -47,8 +50,8 @@ public class ManualAnnotation {
   public ManualAnnotation() {
   }
 
-  public ManualAnnotation(List<FeatureIdentity> identities, String comment,
-      String compoundName, String ion, String formula, String smiles, String inchi) {
+  public ManualAnnotation(List<FeatureIdentity> identities, String comment, String compoundName,
+      String ion, String formula, String smiles, String inchi) {
     this.identities = identities;
     this.comment = comment;
     this.compoundName = compoundName;
@@ -56,6 +59,12 @@ public class ManualAnnotation {
     this.formula = formula;
     this.smiles = smiles;
     this.inchi = inchi;
+  }
+
+  @Override
+  public String toString() {
+    return Stream.of(compoundName, ion, formula, smiles, inchi).filter(Objects::nonNull)
+        .collect(Collectors.joining(": "));
   }
 
   public List<FeatureIdentity> getIdentities() {

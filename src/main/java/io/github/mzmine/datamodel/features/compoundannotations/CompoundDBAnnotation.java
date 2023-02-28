@@ -115,11 +115,10 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   static boolean isBaseAnnotationValid(CompoundDBAnnotation baseAnnotation, boolean useIonLibrary) {
     if (baseAnnotation.getPrecursorMZ() != null && !useIonLibrary) {
       return true;
-    } else if (useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
-        || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null)) {
-      return true;
+    } else {
+      return useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
+          || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null);
     }
-    return false;
   }
 
   /**
@@ -153,7 +152,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
    *
    * @return The neutral mass or null.
    */
-  public static Double calcNeutralMass(CompoundDBAnnotation annotation) {
+  static Double calcNeutralMass(CompoundDBAnnotation annotation) {
     final IonType currentAdduct = annotation.get(IonTypeType.class);
     if (currentAdduct != null && annotation.getPrecursorMZ() != null) {
       return currentAdduct.getMass(annotation.getPrecursorMZ());
@@ -229,7 +228,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(key);
   }
 
-  Set<DataType<?>> getTypes();
+  Set<DataType> getTypes();
 
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
@@ -426,12 +425,36 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(IsotopePatternType.class);
   }
 
-  Map<DataType<?>, Object> getReadOnlyMap();
+  Map<DataType, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
 
-  default String toStringComplete() {
-    return getReadOnlyMap().entrySet().stream()
-        .map(e -> e.getKey().getUniqueID() + ": " + e.getValue()).collect(Collectors.joining(", "));
+  default String toFullString() {
+    return getReadOnlyMap().keySet().stream()
+        .map(key -> key.getUniqueID() + ": " + getFormattedString(key))
+        .collect(Collectors.joining("; "));
   }
+
+  /**
+   * A formatted string representation of the value - internally in MZmine GUI
+   *
+   * @return the formatted representation of the value (or an empty String)
+   */
+  @NotNull
+  default String getFormattedString(DataType key) {
+    return key.getFormattedString(get(key));
+  }
+
+  /**
+   * A formatted string representation of the value either for export or internally in MZmine GUI
+   *
+   * @return the formatted representation of the value, or the {@link DataType#getDefaultValue()}
+   * for null values, (or an empty String if default is also null)
+   */
+  @NotNull
+  default String getFormattedString(DataType key, boolean export) {
+    return key.getFormattedString(get(key), export);
+  }
+
+
 }

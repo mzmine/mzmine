@@ -40,6 +40,11 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
+ */
+@Deprecated
 public enum OnlineDatabases implements MZmineModule {
 
   KEGG("KEGG", KEGGGateway.class), //

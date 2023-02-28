@@ -104,14 +104,18 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
     MSMSScore score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, sortedFormulas,
         dataPoints, precursorMz, precursorCharge);
 
+    if (score == null) {
+      return MSMSScore.FAILED_FILTERS;
+    }
+
     if (minExplainedIntensity != null) {
-      if (score == null || score.explainedIntensity() < minExplainedIntensity) {
+      if (score.explainedIntensity() < minExplainedIntensity) {
         return MSMSScore.FAILED_FILTERS;
       }
     }
 
     if (minExplainedSignals != null) {
-      if (score == null || score.explainedSignals() < minExplainedSignals) {
+      if (score.explainedSignals() < minExplainedSignals) {
         return MSMSScore.FAILED_FILTERS;
       }
     }
