@@ -79,7 +79,8 @@ public class ImageBuilderModule implements MZmineProcessingModule {
         continue;
       }
       Task task = new ModularADAPChromatogramBuilderTask(project, file, parametersFromImageBuilder,
-          storage, moduleCallDate, ImageBuilderModule.class);
+          storage, moduleCallDate, ImageBuilderModule.class,
+          parameters.getValue(ImageBuilderParameters.minTotalSignals));
       tasks.add(task);
     }
 
@@ -91,8 +92,8 @@ public class ImageBuilderModule implements MZmineProcessingModule {
         .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
         parameters.getParameter(ImageBuilderParameters.scanSelection).getValue());
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan,
-        parameters.getParameter(ImageBuilderParameters.minTotalSignals).getValue());
+    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans,
+        parameters.getParameter(ImageBuilderParameters.minConsecutiveSignals).getValue());
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
         parameters.getParameter(ImageBuilderParameters.mzTolerance).getValue());
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.suffix,
