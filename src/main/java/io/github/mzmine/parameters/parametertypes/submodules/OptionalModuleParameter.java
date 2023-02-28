@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -46,7 +45,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   private final String name;
   private final String description;
   private T embeddedParameters;
-  private Boolean value;
+  private boolean value;
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters,
       boolean defaultVal) {
@@ -85,23 +84,11 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public Boolean getValue() {
-    // If the option is selected, first check that the module has all
-    // parameters set
-    if ((value != null) && (value)) {
-      for (Parameter<?> p : embeddedParameters.getParameters()) {
-        if (p instanceof UserParameter<?, ?> up) {
-          Object upValue = up.getValue();
-          if (upValue == null) {
-            return null;
-          }
-        }
-      }
-    }
     return value;
   }
 
   @Override
-  public void setValue(@NotNull Boolean value) {
+  public void setValue(Boolean value) {
     this.value = Objects.requireNonNullElse(value, false);
   }
 
@@ -133,18 +120,12 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null) {
-      xmlElement.setAttribute("selected", value.toString());
-    }
+    xmlElement.setAttribute("selected", String.valueOf(value));
     embeddedParameters.saveValuesToXML(xmlElement);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(name + " is not set properly");
-      return false;
-    }
     if (value) {
       return embeddedParameters.checkParameterValues(errorMessages);
     }

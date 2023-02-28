@@ -313,7 +313,7 @@
         userData="io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule"/>
       <MenuItem text="MGF file (ADAP)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule"/>
-      <MenuItem text="GNPS - feature based molecular networking" onAction="#runModule"
+      <MenuItem text="Molecular networking files (e.g., GNPS, FBMN, IIMN, MetGem)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
@@ -455,9 +455,6 @@
         <MenuItem text="Local compound database (CSV) search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
-        <MenuItem text="Online compound database search"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule"/>
         <MenuItem
           text="Precursor search in spectral libraries"
           onAction="#runModule"

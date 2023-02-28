@@ -73,19 +73,21 @@ if (OperatingSystem.current().isMacOsX()) {
 
     getLogger().lifecycle('Checking macOS system variables...')
 
+    project.ext.macSigning = true
     project.ext.developerID = System.getenv("MACOS_APP_IDENTITY_ID")
     if (developerID == null || developerID.isBlank()) {
         getLogger().warn('System variable MACOS_APP_IDENTITY_ID is not set for signing.')
-//        needs a developerID as its passed in to the build
-        project.ext.developerID = 'MZmine'
+        project.ext.macSigning = false
     }
     project.ext.appleIDPassword = System.getenv("MACOS_APPLE_ID_PWD")
     if (appleIDPassword == null || appleIDPassword.isBlank()) {
         getLogger().warn('System variable MACOS_APPLE_ID_PWD is not set for signing.')
+        project.ext.macSigning = false
     }
     project.ext.appleTeamID = System.getenv("MACOS_APP_IDENTITY_TEAM_ID")
     if (appleTeamID == null || appleTeamID.isBlank()) {
         getLogger().warn('System variable MACOS_APP_IDENTITY_TEAM_ID is not set for signing.')
+        project.ext.macSigning = false
     }
 
     project.ext.imageDir = buildDir.toPath().resolve('jpackage').resolve('MZmine.app').toFile()
@@ -285,7 +287,10 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "19"
+// currently there is an issue with the jfx>16 and the feature table on windows
+// scrolling lets the table jump
+// jfx19 fixes remote connection issues though
+    version = OperatingSystem.current().isMacOsX() ? "19" : "16"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
@@ -360,7 +365,7 @@ runtime {
             installerType = "dmg"
             // additional options for jpackage
             // only sign if all needed information is present
-            if ((appleIDPassword == null || appleIDPassword.isBlank())) {
+            if (!macSigning) {
                 imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns"]
                 installerOptions = ["--license-file", "LICENSE.txt"]
             } else {
@@ -406,7 +411,7 @@ runtime {
 
 task signApp(dependsOn: jpackage) {
 
-    if (OperatingSystem.current().isMacOsX() && !(appleIDPassword == null || appleIDPassword.isBlank())) {
+    if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
 
@@ -510,7 +515,7 @@ task signApp(dependsOn: jpackage) {
 
 task notarizeApp(dependsOn: signApp) {
 
-    if (OperatingSystem.current().isMacOsX() && !(appleIDPassword == null || appleIDPassword.isBlank())) {
+    if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
 

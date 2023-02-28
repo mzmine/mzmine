@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Priority;
 import org.w3c.dom.Element;
 
 /**
@@ -77,6 +78,11 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
     }
 
     return new AnchorPane();
+  }
+
+  @Override
+  public Priority getComponentVgrowPriority() {
+    return Priority.ALWAYS;
   }
 
   @Override

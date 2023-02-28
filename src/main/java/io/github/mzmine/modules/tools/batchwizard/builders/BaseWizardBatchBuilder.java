@@ -81,6 +81,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -957,15 +958,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(SpectralLibrarySearchParameters.libraries, new SpectralLibrarySelection());
     param.setParameter(SpectralLibrarySearchParameters.msLevel, 2);
     param.setParameter(SpectralLibrarySearchParameters.allMS2Spectra, false);
-    param.setParameter(SpectralLibrarySearchParameters.cropSpectraToOverlap, false);
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
         new MZTolerance(0.01, 20));
     param.setParameter(SpectralLibrarySearchParameters.mzTolerance, new MZTolerance(0.01, 20));
     param.setParameter(SpectralLibrarySearchParameters.removePrecursor, true);
-    param.setParameter(SpectralLibrarySearchParameters.deisotoping, false);
-    param.setParameter(SpectralLibrarySearchParameters.noiseLevel, 0d);
-    param.setParameter(SpectralLibrarySearchParameters.needsIsotopePattern, false);
-    param.setParameter(SpectralLibrarySearchParameters.rtTolerance, false);
     param.setParameter(SpectralLibrarySearchParameters.minMatch, 4);
     // similarity
     ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
@@ -986,10 +982,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     // finally set the libmatch module plus parameters as step
     simFunction.setValue(libMatchStep);
-    // IMS
-    param.setParameter(SpectralLibrarySearchParameters.ccsTolerance, false);
-    param.getParameter(SpectralLibrarySearchParameters.ccsTolerance).getEmbeddedParameter()
-        .setValue(0.05);
+    // advanced off
+    param.setParameter(SpectralLibrarySearchParameters.advanced, false);
+    var advanced = param.getEmbeddedParameterValue(SpectralLibrarySearchParameters.advanced);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.cropSpectraToOverlap, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.deisotoping, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.noiseLevel, false, 0d);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.needsIsotopePattern, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.rtTolerance, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.ccsTolerance, false, 0.05);
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralLibrarySearchModule.class), param);
