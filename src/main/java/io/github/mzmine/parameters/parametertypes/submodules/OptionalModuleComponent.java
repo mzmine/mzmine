@@ -97,7 +97,8 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
       setButton.setDisable(!active);
     }
     topPane = new FlowPane();
-    topPane.setHgap(7d);
+    topPane.setHgap(5d);
+    topPane.setVgap(5d);
 
     // just leave out checkbox if always active
     if (alwaysActive) {
