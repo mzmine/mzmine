@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParamete
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -214,6 +215,15 @@ public class MassDetectionParameters extends SimpleParameterSet {
     }
 
     return superCheck;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Scans", scanSelection);
+    return nameParameterMap;
   }
 
   @NotNull

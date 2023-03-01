@@ -62,7 +62,7 @@ import org.w3c.dom.NodeList;
  */
 public class SimpleParameterSet implements ParameterSet {
 
-  private static final String parameterElement = "parameter";
+  public static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
 
   private String moduleNameAttribute;

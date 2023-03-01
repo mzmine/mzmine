@@ -25,14 +25,22 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import static java.util.Objects.requireNonNullElse;
+
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.AbstractParameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
+import io.github.mzmine.util.XMLUtils;
 import java.util.Collection;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class ScanSelectionParameter extends
     AbstractParameter<ScanSelection, OptionalModuleComponent> implements
@@ -54,8 +62,10 @@ public class ScanSelectionParameter extends
   public ScanSelectionParameter(String name, String description,
       @NotNull ScanSelection defaultValue) {
     super(name, description, defaultValue);
-    embeddedParameters = new ScanSelectionFiltersParameters(defaultValue);
-    value = defaultValue;
+    // need to clone to decouple from static vars
+    embeddedParameters = (ScanSelectionFiltersParameters) new ScanSelectionFiltersParameters(
+        defaultValue).cloneParameterSet();
+    setValue(defaultValue);
     active = !value.equals(ScanSelection.ALL_SCANS);
   }
 
@@ -75,7 +85,10 @@ public class ScanSelectionParameter extends
 
   @Override
   public void setValue(ScanSelection newValue) {
-    this.value = Objects.requireNonNullElse(newValue, ScanSelection.ALL_SCANS);
+    this.value = requireNonNullElse(newValue, ScanSelection.ALL_SCANS);
+    if (embeddedParameters != null) {
+      embeddedParameters.setFilter(value);
+    }
   }
 
   @Override
@@ -115,10 +128,17 @@ public class ScanSelectionParameter extends
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    embeddedParameters.loadValuesFromXML(xmlElement);
-    String selectedAttr = xmlElement.getAttribute("selected");
-    this.active = Objects.requireNonNullElse(Boolean.valueOf(selectedAttr), false);
+    boolean isNewFormat =
+        xmlElement.getElementsByTagName(SimpleParameterSet.parameterElement).getLength() > 0;
+    if (isNewFormat) {
+      embeddedParameters.loadValuesFromXML(xmlElement);
+      String selectedAttr = xmlElement.getAttribute("selected");
+      this.active = requireNonNullElse(Boolean.valueOf(selectedAttr), false);
+    } else {
+      legacyLoadValueFromXML(xmlElement);
+    }
   }
+
 
   @Override
   public void saveValueToXML(Element xmlElement) {
@@ -133,4 +153,79 @@ public class ScanSelectionParameter extends
     }
     return embeddedParameters.checkParameterValues(errorMessages);
   }
+
+  /**
+   * Legacy import for old versions of parameter files. Old format below. scan_definition seemed to
+   * have been there always. everything else only on demand. This was changed in mzmine 3.4.0
+   * <pre>
+   * {@code
+   * <parameter name="Scans">
+   *    <ms_level>2</ms_level>
+   *    <scan_definition/>
+   * </parameter>
+   * }
+   * </pre>
+   * ```
+   */
+  public void legacyLoadValueFromXML(Element xmlElement) {
+    Range<Integer> scanNumberRange = null;
+    Integer baseFilteringInteger = null;
+    Range<Double> scanMobilityRange = null;
+    Range<Double> scanRTRange = null;
+    PolarityType polarity = null;
+    MassSpectrumType spectrumType = null;
+    Integer msLevel = null;
+    String scanDefinition = null;
+
+    scanNumberRange = XMLUtils.parseIntegerRange(xmlElement, "scan_numbers");
+    scanMobilityRange = XMLUtils.parseDoubleRange(xmlElement, "mobility");
+    scanRTRange = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
+
+    NodeList items = xmlElement.getElementsByTagName("ms_level");
+    for (int i = 0; i < items.getLength(); i++) {
+      msLevel = Integer.valueOf(items.item(i).getTextContent());
+    }
+
+    items = xmlElement.getElementsByTagName("polarity");
+    for (int i = 0; i < items.getLength(); i++) {
+      try {
+        polarity = PolarityType.valueOf(items.item(i).getTextContent());
+      } catch (Exception e) {
+        polarity = PolarityType.fromSingleChar(items.item(i).getTextContent());
+      }
+    }
+
+    items = xmlElement.getElementsByTagName("spectrum_type");
+    for (int i = 0; i < items.getLength(); i++) {
+      spectrumType = MassSpectrumType.valueOf(items.item(i).getTextContent());
+    }
+
+    items = xmlElement.getElementsByTagName("baseFilteringInteger");
+    for (int i = 0; i < items.getLength(); i++) {
+      baseFilteringInteger = Integer.parseInt(items.item(i).getTextContent());
+    }
+
+    items = xmlElement.getElementsByTagName("scan_definition");
+    for (int i = 0; i < items.getLength(); i++) {
+      scanDefinition = items.item(i).getTextContent();
+    }
+    if (scanDefinition != null && scanDefinition.isBlank()) {
+      scanDefinition = null;
+    }
+
+    boolean noFilter = (scanNumberRange == null && baseFilteringInteger == null
+        && scanMobilityRange == null && scanRTRange == null && polarity == null
+        && spectrumType == null && msLevel == null && scanDefinition == null);
+
+    if (noFilter) {
+      setValue(false, ScanSelection.ALL_SCANS);
+    } else {
+      this.value = new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange,
+          scanMobilityRange, requireNonNullElse(polarity, PolarityType.ANY),
+          requireNonNullElse(spectrumType, MassSpectrumType.ANY), MsLevelFilter.of(msLevel),
+          scanDefinition);
+      setValue(true, value);
+    }
+  }
+
 }
