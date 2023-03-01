@@ -17,10 +17,8 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
-import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
-import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramUtils;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
 import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.io.File;
@@ -28,7 +26,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.stage.FileChooser;
@@ -37,6 +34,11 @@ import org.apache.commons.io.FilenameUtils;
 
 public class MassvoltammogramExport {
 
+  /**
+   * Method to export the massvoltammogram to different file formats.
+   *
+   * @param massvoltammogram The massvoltammogram to be exported.
+   */
   public static void exportPlot(Massvoltammogram massvoltammogram) {
 
     //Initializing a file chooser and a file to save the selected path to.
@@ -62,6 +64,12 @@ public class MassvoltammogramExport {
     }
   }
 
+  /**
+   * Method to export the massvoltammogram to a png-file.
+   *
+   * @param massvoltammogram The massvoltammogram to be exported.
+   * @param file             The path the massvoltammogram will be exported to.
+   */
   public static void toPNG(Massvoltammogram massvoltammogram, File file) {
 
     ExtendedPlot3DPanel plot = massvoltammogram.getPlot();
@@ -74,6 +82,12 @@ public class MassvoltammogramExport {
     }
   }
 
+  /**
+   * Method to export the massvoltammograms scan sto single csv-files.
+   *
+   * @param massvoltammogram The massvoltammogram to be exported.
+   * @param file             the pht the massvoltammogram will be exported to.
+   */
   public static void toCSV(Massvoltammogram massvoltammogram, File file) {
 
     //Getting the file name and path.
@@ -90,25 +104,18 @@ public class MassvoltammogramExport {
     //Getting the data to export from the PlotPanel.
     List<MassvoltammogramScan> scans = massvoltammogram.getRawScansInMzRange();
 
-    List<double[][]> scansAsArrays = new ArrayList<>();
-
-    for (MassvoltammogramScan scan : scans) {
-
-      scansAsArrays.add(scan.toArray());
-    }
-
     //Exporting the data to csv files.
-    for (double[][] scan : scansAsArrays) {
+    for (MassvoltammogramScan scan : scans) {
 
       //Initializing a file writer to export the csv file and naming the file.
       try (FileWriter writer = new FileWriter(
-          folderPath + File.separator + fileName + "_" + scan[0][2] + "_mV.csv")) {
+          folderPath + File.separator + fileName + "_" + scan.getPotential() + "_mV.csv")) {
 
         //Filling the csv file with all data from the scan.
-        for (double[] dataPoint : scan) {
-          writer.append(String.valueOf(dataPoint[0])); //m/z-value
+        for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
+          writer.append(String.valueOf(scan.getMz(i))); //m/z-value
           writer.append(" ");
-          writer.append(String.valueOf(dataPoint[1])); //intensity-value
+          writer.append(String.valueOf(scan.getIntensity(i))); //intensity-value
           writer.append("\n");
         }
         writer.flush();

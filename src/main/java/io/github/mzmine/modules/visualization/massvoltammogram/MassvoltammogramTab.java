@@ -82,15 +82,6 @@ public class MassvoltammogramTab extends MZmineTab {
 
   }
 
-  /**
-   * Todo
-   * <p>
-   * rotateButton, moveButton, resetPlotButton in ExtendedPlot3DPanel überarbeiten
-   * <p>
-   * evt. alles refactorn.
-   */
-
-
   private final ExtendedPlot3DPanel plot;
 
   private final Massvoltammogram massvoltammogram;
