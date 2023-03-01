@@ -524,6 +524,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
             param));
   }
 
+  /**
+   * Ion identity networking
+   */
   protected void makeAndAddIinStep(final BatchQueue q) {
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class).cloneParameterSet();
@@ -559,17 +562,22 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 2);
     IonModification[] adducts;
+    IonModification[] adductChoices;
     if (polarity == Polarity.Positive) {
       adducts = new IonModification[]{IonModification.H, IonModification.NA,
           IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus};
+      adductChoices = IonModification.getDefaultValuesPos();
     } else {
       adducts = new IonModification[]{IonModification.H_NEG, IonModification.FA,
           IonModification.NA_2H, IonModification.CL};
+      adductChoices = IonModification.getDefaultValuesNeg();
     }
     IonModification[] modifications = new IonModification[]{IonModification.H2O,
         IonModification.H2O_2};
-    ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
-        new IonModification[][]{adducts, modifications});
+    var ionLib = ionLibraryParam.getParameter(IonLibraryParameterSet.ADDUCTS);
+    // set choices first then values
+    ionLib.setChoices(adductChoices, IonModification.getDefaultModifications());
+    ionLib.setValue(new IonModification[][]{adducts, modifications});
   }
 
   /**
