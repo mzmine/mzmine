@@ -92,8 +92,9 @@ public class DoubleRangeComponent extends HBox {
       Number minValue = format.parse(minString.trim());
       Number maxValue = format.parse(maxString.trim());
 
-      if ((minValue == null) || (maxValue == null))
+      if ((minValue == null) || (maxValue == null)) {
         return null;
+      }
       return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
 
     } catch (Exception e) {
@@ -103,8 +104,11 @@ public class DoubleRangeComponent extends HBox {
   }
 
   public void setValue(Range<Double> value) {
-    if (value == null)
+    if (value == null) {
+      minTxtField.setText("");
+      maxTxtField.setText("");
       return;
+    }
     NumberFormat floorFormat = (NumberFormat) format.clone();
     floorFormat.setRoundingMode(RoundingMode.FLOOR);
     NumberFormat ceilFormat = (NumberFormat) format.clone();
