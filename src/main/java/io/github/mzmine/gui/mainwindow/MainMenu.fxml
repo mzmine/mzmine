@@ -530,9 +530,9 @@
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
     <Menu text="Massvoltammogram">
-      <MenuItem text="from Raw Data File" onAction="#runModule"
+      <MenuItem text="From Raw Data File" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltommogramFromFileModule"/>
-      <MenuItem text="from Ferature List" onAction="#runModule"
+      <MenuItem text="From Ferature List" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltommogramFromFeatureListModule"/>
     </Menu>
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"

@@ -51,7 +51,7 @@ public class Massvoltammogram {
   private double potentialRampSpeed; //In mV/s.
   private final Range<Double> potentialRange;
   private double stepSize; //In mV.
-  private Range<Double> mzRange;
+  private Range<Double> userInputMzRange;
 
   //Potentials in mV.
   private double startPotential;
@@ -78,7 +78,7 @@ public class Massvoltammogram {
     this.potentialRampSpeed = potentialRampSpeed;
     this.potentialRange = potentialRange;
     this.stepSize = stepSize;
-    this.mzRange = mzRange;
+    this.userInputMzRange = mzRange;
 
     //Setting unused variables to null.
     this.featureList = null;
@@ -102,7 +102,7 @@ public class Massvoltammogram {
     this.potentialRampSpeed = potentialRampSpeed;
     this.potentialRange = potentialRange;
     this.stepSize = stepSize;
-    this.mzRange = mzRange;
+    this.userInputMzRange = mzRange;
 
     //Setting unused variables to null.
     this.file = null;
@@ -255,13 +255,15 @@ public class Massvoltammogram {
 
     //Extracting the mz-range from the scans.
     List<MassvoltammogramScan> scansInMzRange = MassvoltammogramUtils.extractMZRangeFromScan(
-        rawScans, mzRange);
+        rawScans, userInputMzRange);
 
     //Adding datapoints with an intensity of zero around centroid datapoints to visualize them correctly.
     MassvoltammogramUtils.addZerosToCentroidData(scansInMzRange);
 
     //Aligning the scans to all start and end at the same mz-value.
-    MassvoltammogramUtils.aligneScans(scansInMzRange);
+    MassvoltammogramUtils.aligneScans(scansInMzRange,
+        MassvoltammogramUtils.getMzRange(scansInMzRange), userInputMzRange,
+        MassvoltammogramUtils.getMzRange(rawScans));
 
     this.rawScansInMzRange = scansInMzRange;
   }
@@ -319,29 +321,7 @@ public class Massvoltammogram {
         "Intensity / 10" + MassvoltammogramUtils.toSuperscript((int) Math.log10(divisor))
             + " a.u.");
     plot.setFixedBounds(1, potentialRange.lowerEndpoint(), potentialRange.upperEndpoint());
-    plot.setFixedBounds(0, mzRange.lowerEndpoint(), mzRange.upperEndpoint());
-  }
-
-  /**
-   * Finds the maximal intensity in a set of MassvoltammogramScans.
-   *
-   * @param scans The list of MassvoltammogramScans the maximal intensity will be extracted from.
-   * @return Returns the maximal intensity over all MassvoltammogramScans.
-   */
-  private double getMaxIntensity(List<MassvoltammogramScan> scans) {
-
-    //Setting the initial max intensity to 0.
-    double maxIntensity = 0;
-
-    //Going over every datapoint in all the scans and comparing the intensity to the current max intensity.
-    for (MassvoltammogramScan scan : scans) {
-      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
-        if (scan.getIntensity(i) > maxIntensity) {
-          maxIntensity = scan.getIntensity(i);
-        }
-      }
-    }
-    return maxIntensity;
+    plot.setFixedBounds(0, userInputMzRange.lowerEndpoint(), userInputMzRange.upperEndpoint());
   }
 
   /**
@@ -375,6 +355,28 @@ public class Massvoltammogram {
   }
 
   /**
+   * Finds the maximal intensity in a set of MassvoltammogramScans.
+   *
+   * @param scans The list of MassvoltammogramScans the maximal intensity will be extracted from.
+   * @return Returns the maximal intensity over all MassvoltammogramScans.
+   */
+  public double getMaxIntensity(List<MassvoltammogramScan> scans) {
+
+    //Setting the initial max intensity to 0.
+    double maxIntensity = 0;
+
+    //Going over every datapoint in all the scans and comparing the intensity to the current max intensity.
+    for (MassvoltammogramScan scan : scans) {
+      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
+        if (scan.getIntensity(i) > maxIntensity) {
+          maxIntensity = scan.getIntensity(i);
+        }
+      }
+    }
+    return maxIntensity;
+  }
+
+  /**
    * Asks the user for a new m/z-range, extracts this new m/z- range from the raw scans and plots
    * the scans in the new m/z-range.
    */
@@ -385,7 +387,7 @@ public class Massvoltammogram {
     if (mzRangeParameter.showSetupDialog(true) != ExitCode.OK) {
       return;
     }
-    this.mzRange = mzRangeParameter.getValue(MassvoltammogramMzRangeParameter.mzRange);
+    this.userInputMzRange = mzRangeParameter.getValue(MassvoltammogramMzRangeParameter.mzRange);
 
     plot.removeAllPlots();
 

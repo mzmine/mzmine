@@ -111,27 +111,41 @@ public class MassvoltammogramUtils {
    *
    * @param scans The scans to be aligned.
    */
-  public static void aligneScans(List<MassvoltammogramScan> scans) {
-
-    //The min and max mz-values of the whole massvoltammogram the scans will be aligned to.
-    final double minMz = getMinMZ(scans);
-    final double maxMz = getMaxMZ(scans);
+  public static void aligneScans(List<MassvoltammogramScan> scans,
+      Range<Double> extractedScansMzRange, Range<Double> userInputMzRange,
+      Range<Double> rawDataMzRange) {
 
     //Going over all MassvoltammogramScans in the massvoltammogram.
     for (MassvoltammogramScan scan : scans) {
 
-      //Adding a datapoint with intensity 0 at the beginning if the scans min mz is
-      // bigger than the min mz in the massvoltammogram.
-      if (scan.getMinMz() > minMz) {
-        scan.setMzs(ArrayUtils.addAll(new double[]{minMz}, scan.getMzs()));
+      //The user min mz is within the raw data mz range.
+      if (extractedScansMzRange.lowerEndpoint() > userInputMzRange.lowerEndpoint()
+          && userInputMzRange.lowerEndpoint() > rawDataMzRange.lowerEndpoint()) {
+
+        scan.setMzs(
+            ArrayUtils.addAll(new double[]{userInputMzRange.lowerEndpoint()}, scan.getMzs()));
+        scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
+
+        //The user min mz is below the raw data mz range.
+      } else if (extractedScansMzRange.lowerEndpoint() > userInputMzRange.lowerEndpoint()
+          && userInputMzRange.lowerEndpoint() < rawDataMzRange.lowerEndpoint()) {
+
+        scan.setMzs(ArrayUtils.addAll(new double[]{rawDataMzRange.lowerEndpoint()}, scan.getMzs()));
         scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
       }
 
-      //Adding a datapoint with intensity 0 at the end if the scans max mz is smaller than
-      //the max mz in the massvoltammogram.
-      if (scan.getMaxMz() < maxMz) {
+      //The user max mz is within the raw data mz range.
+      if (extractedScansMzRange.upperEndpoint() < userInputMzRange.upperEndpoint()
+          && userInputMzRange.upperEndpoint() < rawDataMzRange.upperEndpoint()) {
 
-        scan.setMzs(ArrayUtils.add(scan.getMzs(), maxMz));
+        scan.setMzs(ArrayUtils.add(scan.getMzs(), userInputMzRange.upperEndpoint()));
+        scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
+
+        //The user max mz is above the raw data mz range.
+      } else if (extractedScansMzRange.upperEndpoint() < userInputMzRange.upperEndpoint()
+          && userInputMzRange.upperEndpoint() > rawDataMzRange.upperEndpoint()) {
+
+        scan.setMzs(ArrayUtils.add(scan.getMzs(), rawDataMzRange.upperEndpoint()));
         scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
       }
     }
@@ -196,7 +210,7 @@ public class MassvoltammogramUtils {
    *
    * @param scans The list of scans the excess zeros will be removed from.
    */
-  private static void removeExcessZeros(List<MassvoltammogramScan> scans) {
+  public static void removeExcessZeros(List<MassvoltammogramScan> scans) {
 
     for (MassvoltammogramScan scan : scans) {
 
@@ -222,6 +236,65 @@ public class MassvoltammogramUtils {
 
     return Math.pow(10, Math.floor(power));
   }
+
+  /**
+   * Method to get the min m/z-value from a list of scans.
+   *
+   * @param scans The scans.
+   * @return Returns the minimal m/z-value.
+   */
+  public static double getMinMZ(List<MassvoltammogramScan> scans) {
+
+    //Setting the absolute minimal m/z-value equal to the first scans minimal m/z-value.
+    double absoluteMinMz = scans.get(0).getMinMz();
+
+    //Checking all the other scans in the list weather there is an even smaller m/z-value.
+    for (int i = 1; i < scans.size(); i++) {
+
+      if (scans.get(i).getMinMz() < absoluteMinMz) {
+        absoluteMinMz = scans.get(i).getMinMz();
+      }
+    }
+
+    return absoluteMinMz;
+  }
+
+  /**
+   * Method to get the max m/z-value from a list of scans.
+   *
+   * @param scans The scans.
+   * @return Returns the maximal m/z-value.
+   */
+  public static double getMaxMZ(List<MassvoltammogramScan> scans) {
+
+    //Setting the absolute maximal m/z-value equal to the first scans maximal m/z-value.
+    double absoluteMaxMz = scans.get(0).getMaxMz();
+
+    //Checking all the other scans in the list weather there is a bigger m/z-value.
+    for (int i = 1; i < scans.size(); i++) {
+
+      if (scans.get(i).getMaxMz() > absoluteMaxMz) {
+        absoluteMaxMz = scans.get(i).getMaxMz();
+      }
+    }
+
+    return absoluteMaxMz;
+  }
+
+  /**
+   * Method to get the m/z-range of a list of MassvoltammogramScans.
+   *
+   * @param scans The list of MassvoltammogramScans whose m/z-range will be determined.
+   * @return Returns the m/z-range of the list of MassvoltammogramScans.
+   */
+  public static Range<Double> getMzRange(List<MassvoltammogramScan> scans) {
+
+    double minMz = MassvoltammogramUtils.getMinMZ(scans);
+    double maxMz = MassvoltammogramUtils.getMaxMZ(scans);
+
+    return Range.closed(minMz, maxMz);
+  }
+
 
   /**
    * @param superscript Integer that will be converted to superscript.
@@ -258,51 +331,6 @@ public class MassvoltammogramUtils {
       }
     }
     return output.toString();
-  }
-
-  /**
-   * Method to get the min m/z-value from a list of scans.
-   *
-   * @param scans The scans.
-   * @return Returns the minimal m/z-value.
-   */
-  private static double getMinMZ(List<MassvoltammogramScan> scans) {
-
-    //Setting the absolute minimal m/z-value equal to the first scans minimal m/z-value.
-    double absoluteMinMz = scans.get(0).getMinMz();
-
-    //Checking all the other scans in the list weather there is an even smaller m/z-value.
-    for (int i = 1; i < scans.size(); i++) {
-
-      if (scans.get(i).getMinMz() < absoluteMinMz) {
-        absoluteMinMz = scans.get(i).getMinMz();
-      }
-    }
-
-    return absoluteMinMz;
-  }
-
-
-  /**
-   * Method to get the max m/z-value from a list of scans.
-   *
-   * @param scans The scans.
-   * @return Returns the maximal m/z-value.
-   */
-  private static double getMaxMZ(List<MassvoltammogramScan> scans) {
-
-    //Setting the absolute maximal m/z-value equal to the first scans maximal m/z-value.
-    double absoluteMaxMz = scans.get(0).getMaxMz();
-
-    //Checking all the other scans in the list weather there is a bigger m/z-value.
-    for (int i = 1; i < scans.size(); i++) {
-
-      if (scans.get(i).getMaxMz() > absoluteMaxMz) {
-        absoluteMaxMz = scans.get(i).getMaxMz();
-      }
-    }
-
-    return absoluteMaxMz;
   }
 }
 

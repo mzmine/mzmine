@@ -24,7 +24,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramFromFeatureListParameters;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramFromFileParameters;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
-import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.ReactionMode;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -91,7 +90,6 @@ public class MassvoltammogramTask extends AbstractTask {
    * Todo
    * MassvoltammogramTab todo
    * mzParameter Übernahme korrigieren
-   * mz Bereich richtig anpassen
    * remove excessZeros kontrollieren
    */
 
