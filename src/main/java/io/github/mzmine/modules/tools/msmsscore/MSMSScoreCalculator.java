@@ -98,7 +98,7 @@ public class MSMSScoreCalculator {
     }
 
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
-    float totalIntensity = 0, explainedIntensity = 0;
+    double totalIntensity = 0, explainedIntensity = 0;
     Map<DataPoint, String> msmsAnnotations = new HashMap<>();
 
     // If getPrecursorCharge() returns 0, it means charge is unknown. In
@@ -155,7 +155,7 @@ public class MSMSScoreCalculator {
 
     float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
     explainedIntensity = explainedIntensity / totalIntensity;
-    return new MSMSScore(explainedIntensity, msmsScore, msmsAnnotations);
+    return new MSMSScore((float) explainedIntensity, msmsScore, msmsAnnotations);
   }
 
 
@@ -195,7 +195,7 @@ public class MSMSScoreCalculator {
     matchType.matchesChargeStateOrElseThrow(formulasMzSorted[0].formula().getCharge());
 
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
-    float totalIntensity = 0, explainedIntensity = 0;
+    double totalIntensity = 0, explainedIntensity = 0;
     Map<DataPoint, String> msmsAnnotations = new HashMap<>();
 
     for (DataPoint dp : msmsIons) {
@@ -223,7 +223,7 @@ public class MSMSScoreCalculator {
 
     float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
     explainedIntensity = explainedIntensity / totalIntensity;
-    return new MSMSScore(explainedIntensity, msmsScore, msmsAnnotations);
+    return new MSMSScore((float) explainedIntensity, msmsScore, msmsAnnotations);
   }
 
   private static int ensureAbsChargeDefault1(int precursorCharge) {
