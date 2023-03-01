@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramUtils;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
 import io.github.mzmine.util.javafx.FxThreadUtil;
@@ -26,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.stage.FileChooser;
@@ -83,10 +85,17 @@ public class MassvoltammogramExport {
     }
 
     //Getting the data to export from the PlotPanel.
-    List<double[][]> scans = plot.getPlotData().getRawScansInMzRange();
+    List<MassvoltammogramScan> scans = plot.getPlotData().getRawScansInMzRange();
+
+    List<double[][]> scansAsArrays = new ArrayList<>();
+
+    for (MassvoltammogramScan scan : scans) {
+
+      scansAsArrays.add(scan.toArray());
+    }
 
     //Exporting the data to csv files.
-    for (double[][] scan : scans) {
+    for (double[][] scan : scansAsArrays) {
 
       //Initializing a file writer to export the csv file and naming the file.
       try (FileWriter writer = new FileWriter(

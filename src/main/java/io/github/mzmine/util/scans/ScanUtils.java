@@ -1,26 +1,18 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * This file is part of MZmine.
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package io.github.mzmine.util.scans;
@@ -1662,32 +1654,31 @@ public class ScanUtils {
   /**
    * Filters the raw mz + intensity data of a scan to remove neighbouring zeros.
    *
-   * @param scan The scan, [][0] are mzs, [][1] are intensities
-   * @return A multidimensional array with the filtered values. [][0] are mzs, [][1] are
-   * intensities.
+   * @param scan The scan, [0] are mzs, [1] are intensities
+   * @return A multidimensional array with the filtered values. [0] are mzs, [1] are intensities.
    */
   public static double[][] removeExtraZeros(double[][] scan) {
     // remove all extra zeros
-    final int numDp = scan.length;
+    final int numDp = scan[0].length;
     final TDoubleArrayList filteredMzs = new TDoubleArrayList();
     final TDoubleArrayList filteredIntensities = new TDoubleArrayList();
     filteredMzs.add(scan[0][0]);
-    filteredIntensities.add(scan[0][1]);
+    filteredIntensities.add(scan[1][0]);
     for (int i = 1; i < numDp - 1;
         i++) { // previous , this and next are zero --> do not add this data point
-      if (scan[i - 1][1] != 0 || scan[i][1] != 0 || scan[i + 1][1] != 0) {
-        filteredMzs.add(scan[i][0]);
-        filteredIntensities.add(scan[i][1]);
+      if (scan[1][i - 1] != 0 || scan[1][i] != 0 || scan[1][i + 1] != 0) {
+        filteredMzs.add(scan[0][i]);
+        filteredIntensities.add(scan[1][i]);
       }
     }
-    filteredMzs.add(scan[numDp - 1][0]);
-    filteredIntensities.add(scan[numDp - 1][1]);
+    filteredMzs.add(scan[0][numDp - 1]);
+    filteredIntensities.add(scan[1][numDp - 1]);
 
     //Convert the ArrayList to an array.
-    double[][] filteredScan = new double[filteredMzs.size()][2];
+    double[][] filteredScan = new double[2][filteredMzs.size()];
     for (int i = 0; i < filteredMzs.size(); i++) {
-      filteredScan[i][0] = filteredMzs.get(i);
-      filteredScan[i][1] = filteredIntensities.get(i);
+      filteredScan[0][i] = filteredMzs.get(i);
+      filteredScan[1][i] = filteredIntensities.get(i);
     }
 
     return filteredScan;

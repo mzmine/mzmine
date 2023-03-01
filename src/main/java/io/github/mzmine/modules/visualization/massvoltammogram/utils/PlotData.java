@@ -24,12 +24,12 @@ public class PlotData {
 
   private MassSpectrumType massSpectrumType;
 
-  private List<double[][]> rawScans;
+  private List<MassvoltammogramScan> rawScans;
 
-  private List<double[][]> rawScansInMzRange;
+  private List<MassvoltammogramScan> rawScansInMzRange;
 
-  public PlotData(MassSpectrumType massSpectrumType, List<double[][]> rawScans,
-      List<double[][]> rawScansInMzRange) {
+  public PlotData(MassSpectrumType massSpectrumType, List<MassvoltammogramScan> rawScans,
+      List<MassvoltammogramScan> rawScansInMzRange) {
 
     this.massSpectrumType = massSpectrumType;
     this.rawScans = rawScans;
@@ -44,19 +44,19 @@ public class PlotData {
     return massSpectrumType;
   }
 
-  public void setRawScans(List<double[][]> rawScans) {
+  public void setRawScans(List<MassvoltammogramScan> rawScans) {
     this.rawScans = rawScans;
   }
 
-  public List<double[][]> getRawScans() {
+  public List<MassvoltammogramScan> getRawScans() {
     return rawScans;
   }
 
-  public void setRawScansInMzRange(List<double[][]> rawScansInMzRange) {
+  public void setRawScansInMzRange(List<MassvoltammogramScan> rawScansInMzRange) {
     this.rawScansInMzRange = rawScansInMzRange;
   }
 
-  public List<double[][]> getRawScansInMzRange() {
+  public List<MassvoltammogramScan> getRawScansInMzRange() {
     return rawScansInMzRange;
   }
 }
