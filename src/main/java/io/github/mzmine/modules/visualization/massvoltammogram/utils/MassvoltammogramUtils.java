@@ -18,164 +18,15 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.utils;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
-import org.math.plot.Plot3DPanel;
 
 public class MassvoltammogramUtils {
 
-
-  /**
-   * Extracts all scans needed to draw the massvoltammogram from a raw data file.
-   *
-   * @param rawDataFile        Raw data file the scans will be drawn from.
-   * @param scanSelection      The scan selection filter.
-   * @param delayTime          Delay time between EC-cell and MS in s.
-   * @param startPotential     The potential the ramp starts at in mV.
-   * @param endPotential       The potential the ramp ends at in mV.
-   * @param potentialSpeedRamp Speed of the potential ramp in mV/s.
-   * @param stepSize           Potential step size between the individual scans in mV.
-   * @return Returns a list of all needed MassvoltammogramScans.
-   */
-  public static List<MassvoltammogramScan> getScansFromRawDataFile(RawDataFile rawDataFile,
-      ScanSelection scanSelection, double delayTime, double startPotential, double endPotential,
-      double potentialSpeedRamp, double stepSize) {
-
-    //Initializing a list to add the scans to.
-    final List<MassvoltammogramScan> scans = new ArrayList<>();
-
-    //Initializing a number formatter for the mz-values.
-    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
-    //Setting the starting potential
-    double potential = startPotential;
-
-    //Adding scans with the given step size until the maximal potential is reached.
-    while (Math.abs(potential) <= Math.abs(endPotential)) {
-
-      //Getting the scan for the given potential
-      final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialSpeedRamp, potential);
-      final Scan scan = scanSelection.getScanAtRt(rawDataFile, rt);
-
-      //Breaking the loop if the calculated rt exceeds the max rt of the data file.
-      if (scan == null) {
-        break;
-      }
-
-      //Writing the mz and intensity values to arrays.
-      final double[] mzs = new double[scan.getNumberOfDataPoints()];
-      final double[] intensities = new double[scan.getNumberOfDataPoints()];
-
-      for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
-        mzs[i] = Double.parseDouble(mzFormat.format(scan.getMzValue(i)));
-        intensities[i] = scan.getIntensityValue(i);
-      }
-
-      //Adding a MassvoltammogramScan to the list.
-      scans.add(new MassvoltammogramScan(mzs, intensities, potential));
-
-      //Incrementing the potential.
-      potential = potential + stepSize;
-    }
-
-    return scans;
-  }
-
-  /**
-   * Extracts all scans needed to draw the massvoltammogram from a feature list.
-   *
-   * @param featureList        The feature list the scans will be created from.
-   * @param delayTime          Delay time between EC-cell and MS in s.
-   * @param startPotential     The potential the ramp starts at in mV.
-   * @param endPotential       The potential the ramp ends at in mV.
-   * @param potentialSpeedRamp Speed of the potential ramp in mV/s.
-   * @param stepSize           Potential step size between the individual scans in mV.
-   * @return Returns a list of all needed MassvoltammogramScans.
-   */
-  public static List<MassvoltammogramScan> getScansFromFeatureList(ModularFeatureList featureList,
-      double delayTime, double startPotential, double endPotential, double potentialSpeedRamp,
-      double stepSize) {
-
-    //Initializing a list to add the scans to.
-    final List<MassvoltammogramScan> scans = new ArrayList<>();
-
-    //Setting the number format for the mz-values.
-    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
-    //Setting the potential to the start potential
-    double potential = startPotential;
-
-    //Getting the rows from the feature list and sorting them to ascending mz-values.
-    final List<FeatureListRow> rows = featureList.getRows();
-    rows.sort(FeatureListRowSorter.MZ_ASCENDING);
-
-    //Calculating the rt tolerance for a feature around the potential.
-    final float timeBetweenScansInS = (float) (stepSize / potentialSpeedRamp);
-    final double rtToleranceInMin = (timeBetweenScansInS / 2) / 60;
-
-    //Creating a scan for every potential value until the end potential is reached.
-    while (Math.abs(potential) <= Math.abs(endPotential)) {
-
-      //Calculating the rt fot the given applied potential.
-      final float rt = (EcmsUtils.getRtAtPotential(delayTime, potentialSpeedRamp, potential));
-
-      //Initializing lists to add the mz-values and the intensity-values to.
-      final List<Double> mzs = new ArrayList<>();
-      final List<Double> intensities = new ArrayList<>();
-
-      //Going over all the rows in the feature list and adding the mz and intensity values if the rt matches.
-      for (FeatureListRow row : rows) {
-
-        //Getting the feature data from the row.
-        final Feature feature = row.getBestFeature();
-        final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
-
-        //Searching for the index of the features closest rt to the potential rt.
-        final int index = BinarySearch.binarySearch(rt, true, featureData.getNumberOfValues(),
-            featureData::getRetentionTime);
-
-        //Calculating the rt value for the found index.
-        final float foundRt = featureData.getRetentionTime(index);
-
-        //Adding the features mz and intensity if the difference between features rt and potential rt is within the tolerance
-        //and the intensity is not 0.
-        if (Math.abs(rt - foundRt) < rtToleranceInMin && featureData.getIntensity(index) != 0) {
-
-          mzs.add(Double.parseDouble(mzFormat.format(feature.getMZ())));
-          intensities.add(featureData.getIntensity(index));
-        }
-      }
-
-      //Adding the scan to the list of scans.
-      scans.add(new MassvoltammogramScan(mzs, intensities, potential));
-
-      //Increasing the potential by the potential step size.
-      potential = potential + stepSize;
-    }
-
-    return scans;
-  }
-
-  /**
-   * @param scans   List of scans the m/z-range will be extracted form.
-   * @param mzRange Range of m/z-values the new scans will contain.
-   * @return Returns the list of all MassvoltammogramScans in the given m/z-range.
-   */
   public static List<MassvoltammogramScan> extractMZRangeFromScan(List<MassvoltammogramScan> scans,
       Range<Double> mzRange) {
 
@@ -199,7 +50,8 @@ public class MassvoltammogramUtils {
       }
 
       //Adding the extracted scan to the list of scans
-      scansInMzRange.add(new MassvoltammogramScan(mzs, intensities, scan.getPotential()));
+      scansInMzRange.add(new MassvoltammogramScan(mzs, intensities, scan.getPotential(),
+          scan.getMassSpectrumType()));
     }
 
     return scansInMzRange;
@@ -222,6 +74,11 @@ public class MassvoltammogramUtils {
 
     //Going over all scans in the massvoltammogram.
     for (MassvoltammogramScan scan : scans) {
+
+      //Continuing if the current scan is not centroid.
+      if (!scan.getMassSpectrumType().isCentroided()) {
+        continue;
+      }
 
       //Initializing lists to add the mz and intensity values to.
       final List<Double> mzs = new ArrayList<>();
@@ -324,8 +181,12 @@ public class MassvoltammogramUtils {
 
       //Adding a new MassvoltammogramScan to the list of filtered scans.
       filteredScans.add(
-          new MassvoltammogramScan(filteredMZ, filteredIntensities, scan.getPotential()));
+          new MassvoltammogramScan(filteredMZ, filteredIntensities, scan.getPotential(),
+              scan.getMassSpectrumType()));
     }
+
+    //Removing excess zeros.
+    removeExcessZeros(filteredScans);
 
     return filteredScans;
   }
@@ -335,7 +196,7 @@ public class MassvoltammogramUtils {
    *
    * @param scans The list of scans the excess zeros will be removed from.
    */
-  public static void removeExcessZeros(List<MassvoltammogramScan> scans) {
+  private static void removeExcessZeros(List<MassvoltammogramScan> scans) {
 
     for (MassvoltammogramScan scan : scans) {
 
@@ -345,36 +206,6 @@ public class MassvoltammogramUtils {
 
       scan.setMzs(filteredScan[0]);
       scan.setIntensities(filteredScan[1]);
-    }
-  }
-
-
-  /**
-   * @param scans        List containing the scans that will be drawn.
-   * @param maxIntensity The maximal intensity in all scans
-   * @param plot         3D plot the spectra should be added to.
-   */
-  public static void addScansToPlot(List<MassvoltammogramScan> scans, double maxIntensity,
-      Plot3DPanel plot) {
-
-    //Calculating the divisor needed to scale the z-axis.
-    final double divisor = MassvoltammogramUtils.getDivisor(maxIntensity);
-
-    for (MassvoltammogramScan scan : scans) {
-
-      //Initializing a double array for every of the three parameters.
-      final double[] intensities = new double[scan.getNumberOfDatapoints()];
-      final double[] potential = new double[scan.getNumberOfDatapoints()];
-
-      //writing the divided intensities and the potential to arrays.
-      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
-        intensities[i] = scan.getIntensity(i) / divisor;
-        potential[i] = scan.getPotential();
-      }
-
-      //Adding the arrays to the plot.
-      plot.addLinePlot("Spectrum at " + scan.getPotential() + " mV.", Color.black, scan.getMzs(),
-          potential, intensities);
     }
   }
 
@@ -391,27 +222,6 @@ public class MassvoltammogramUtils {
 
     return Math.pow(10, Math.floor(power));
   }
-
-  /**
-   * Scans a list of scans to find the max intensity value.
-   *
-   * @param scans The list of scans.
-   * @return The max intensity.
-   */
-  public static double getMaxIntensity(List<MassvoltammogramScan> scans) {
-
-    //Getting the maximal intensity from the list of spectra.
-    double maxIntensity = 0;
-    for (MassvoltammogramScan scan : scans) {
-      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
-        if (scan.getIntensity(i) > maxIntensity) {
-          maxIntensity = scan.getIntensity(i);
-        }
-      }
-    }
-    return maxIntensity;
-  }
-
 
   /**
    * @param superscript Integer that will be converted to superscript.

@@ -17,7 +17,6 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
-import io.github.mzmine.modules.visualization.massvoltammogram.utils.PlotData;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -34,7 +33,6 @@ import org.math.plot.Plot3DPanel;
  */
 public class ExtendedPlot3DPanel extends Plot3DPanel {
 
-  private PlotData plotData;
   private final ExtendedPlotToolBar extendedPlotToolBar;
 
   //Exchanging the plots toolbar fot the new toolbar on initialization.
@@ -45,14 +43,6 @@ public class ExtendedPlot3DPanel extends Plot3DPanel {
 
   public ExtendedPlotToolBar getExtendedPlotToolBar() {
     return extendedPlotToolBar;
-  }
-
-  public void addPlotData(PlotData plotData) {
-    this.plotData = plotData;
-  }
-
-  public PlotData getPlotData() {
-    return plotData;
   }
 
   //Extending the png export function to work with the extended plot toolbar.

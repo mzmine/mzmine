@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramUtils;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
@@ -36,7 +37,7 @@ import org.apache.commons.io.FilenameUtils;
 
 public class MassvoltammogramExport {
 
-  public static void exportPlot(ExtendedPlot3DPanel plot) {
+  public static void exportPlot(Massvoltammogram massvoltammogram) {
 
     //Initializing a file chooser and a file to save the selected path to.
     final FileChooser fileChooser = new FileChooser();
@@ -55,13 +56,15 @@ public class MassvoltammogramExport {
     final String selectedFormat = FilenameUtils.getExtension(file.get().getName());
 
     if (selectedFormat.equals("csv")) {
-      MassvoltammogramExport.toCSV(plot, file.get());
+      MassvoltammogramExport.toCSV(massvoltammogram, file.get());
     } else if (selectedFormat.equals("png")) {
-      MassvoltammogramExport.toPNG(plot, file.get());
+      MassvoltammogramExport.toPNG(massvoltammogram, file.get());
     }
   }
 
-  public static void toPNG(ExtendedPlot3DPanel plot, File file) {
+  public static void toPNG(Massvoltammogram massvoltammogram, File file) {
+
+    ExtendedPlot3DPanel plot = massvoltammogram.getPlot();
 
     //Saving the rendered picture to a png file.
     try {
@@ -71,7 +74,7 @@ public class MassvoltammogramExport {
     }
   }
 
-  public static void toCSV(ExtendedPlot3DPanel plot, File file) {
+  public static void toCSV(Massvoltammogram massvoltammogram, File file) {
 
     //Getting the file name and path.
     final String fileName = FilenameUtils.removeExtension(file.getName());
@@ -85,7 +88,7 @@ public class MassvoltammogramExport {
     }
 
     //Getting the data to export from the PlotPanel.
-    List<MassvoltammogramScan> scans = plot.getPlotData().getRawScansInMzRange();
+    List<MassvoltammogramScan> scans = massvoltammogram.getRawScansInMzRange();
 
     List<double[][]> scansAsArrays = new ArrayList<>();
 

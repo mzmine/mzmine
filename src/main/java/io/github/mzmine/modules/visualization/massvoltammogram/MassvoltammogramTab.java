@@ -17,19 +17,14 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExport;
-import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramMzRangeParameter;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlotToolBar;
-import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
-import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramUtils;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javafx.embed.swing.SwingNode;
@@ -96,12 +91,15 @@ public class MassvoltammogramTab extends MZmineTab {
    */
 
 
-  private ExtendedPlot3DPanel plot;
+  private final ExtendedPlot3DPanel plot;
 
-  public MassvoltammogramTab(String title, ExtendedPlot3DPanel plot, String filename) {
+  private final Massvoltammogram massvoltammogram;
+
+  public MassvoltammogramTab(String title, Massvoltammogram massvoltammogram) {
     super(title);
 
-    this.plot = plot;
+    this.massvoltammogram = massvoltammogram;
+    this.plot = massvoltammogram.getPlot();
 
     final ExtendedPlotToolBar plotToolBar = plot.getExtendedPlotToolBar();
     final BorderPane mainPane = new BorderPane();
@@ -137,7 +135,7 @@ public class MassvoltammogramTab extends MZmineTab {
     //Creating a button to export the plot.
     final Button exportButton = new Button(null, new ImageView(EXPORT_PLOT_ICON));
     exportButton.setTooltip(new Tooltip("Export the massvoltammogram."));
-    exportButton.setOnAction(e -> MassvoltammogramExport.exportPlot(this.plot));
+    exportButton.setOnAction(e -> MassvoltammogramExport.exportPlot(this.massvoltammogram));
     exportButton.setMinSize(35, 35);
 
     //Creating a button to edit the m/z-range.
@@ -145,9 +143,7 @@ public class MassvoltammogramTab extends MZmineTab {
     editMzRangeButton.setTooltip(new Tooltip("Edit the massvoltammogram's m/z-range."));
     editMzRangeButton.setOnAction(e -> {
       //Extracting the new m/z range from the list of raw scans.
-      editMzRange(plot);
-      //Exchanging the old plot for the new one.
-      swingNodePlot.setContent(this.plot);
+      massvoltammogram.editMzRange();
     });
     editMzRangeButton.setMinSize(35, 35);
 
@@ -158,8 +154,8 @@ public class MassvoltammogramTab extends MZmineTab {
         .addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
     toolbar.setStyle("-fx-background-color: white;");
 
-    //Adding lable to identify the different massvoltammogram's
-    Label fileNameLable = new Label(filename);
+    //Adding lable to identify the different massvoltammograms
+    Label fileNameLable = new Label(massvoltammogram.getFileName());
     fileNameLable.setStyle("-fx-background-color: white;");
     fileNameLable.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
@@ -170,81 +166,5 @@ public class MassvoltammogramTab extends MZmineTab {
 
     //Setting the pane as the MassvoltammogramTabs content.
     setContent(mainPane);
-  }
-
-  /**
-   * Opens up a dialog to enter a new m/z-range and exchanges the plots data with the new spectra
-   * within the given range.
-   *
-   * @param plot The plot to be updated.
-   */
-  public void editMzRange(ExtendedPlot3DPanel plot) {
-
-    //Getting user input for the new m/z-Range.
-    final MassvoltammogramMzRangeParameter mzRangeParameter = new MassvoltammogramMzRangeParameter();
-    if (mzRangeParameter.showSetupDialog(true) != ExitCode.OK) {
-      return;
-    }
-    final Range<Double> newMzRange = mzRangeParameter.getValue(
-        MassvoltammogramMzRangeParameter.mzRange);
-
-    //Getting the raw data from the plot.
-    final List<MassvoltammogramScan> scans = plot.getPlotData().getRawScans();
-
-    //Extracting the new mz range from the raw scans
-    List<MassvoltammogramScan> scansInMzRange = MassvoltammogramUtils.extractMZRangeFromScan(scans,
-        newMzRange);
-
-    //Adding zeros around the datapoints if the spectra are centroid, so they will be visualized correctly.
-    List<MassvoltammogramScan> alignedScansInMzRange;
-
-    //Adding intensity values of 0 around centroid datapoints, so that the massvoltammogram will be visualized correctly.
-    if (plot.getPlotData().getMassSpectrumType().isCentroided()) {
-
-      MassvoltammogramUtils.addZerosToCentroidData(scansInMzRange);
-      MassvoltammogramUtils.aligneScans(scansInMzRange);
-      alignedScansInMzRange = scansInMzRange;
-    } else {
-
-      MassvoltammogramUtils.aligneScans(scansInMzRange);
-      alignedScansInMzRange = scansInMzRange;
-    }
-
-    List<double[][]> alignedScansInMzRangeAsArrays = new ArrayList<>();
-
-    for (MassvoltammogramScan scan : alignedScansInMzRange) {
-
-      alignedScansInMzRangeAsArrays.add(scan.toArray());
-    }
-
-    //Adding the new list of unprocessed scans to the plot for later export.
-    plot.getPlotData().setRawScansInMzRange(alignedScansInMzRange);
-
-    //Processing the raw data.
-    final double maxIntensity = MassvoltammogramUtils.getMaxIntensity(alignedScansInMzRange);
-    final List<MassvoltammogramScan> processedScans = MassvoltammogramUtils.removeNoise(
-        alignedScansInMzRange, maxIntensity);
-    MassvoltammogramUtils.removeExcessZeros(processedScans);
-
-    List<double[][]> processedScansAsArrays = new ArrayList<>();
-
-    for (MassvoltammogramScan scan : processedScans) {
-
-      processedScansAsArrays.add(scan.toArray());
-    }
-
-    //Getting the divisor and the min and max potential to set up the axis correctly.
-    final MassvoltammogramScan firstScan = scans.get(0);
-    final MassvoltammogramScan lastScan = scans.get(scans.size() - 1);
-    final double maxPotential = Math.max(firstScan.getPotential(), lastScan.getPotential());
-    final double minPotential = Math.min(firstScan.getPotential(), lastScan.getPotential());
-
-    //Removing the old line plots from the plot panel
-    plot.removeAllPlots();
-
-    //Adding the new plots and setting the axis up correctly.
-    MassvoltammogramUtils.addScansToPlot(processedScans, maxIntensity, plot);
-    plot.setFixedBounds(0, newMzRange.lowerEndpoint(), newMzRange.upperEndpoint());
-    plot.setFixedBounds(1, minPotential, maxPotential);
   }
 }

@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.utils;
 
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import java.util.List;
 
 public final class MassvoltammogramScan {
@@ -26,17 +27,23 @@ public final class MassvoltammogramScan {
   private double[] intensities;
   private final double potential;
 
-  public MassvoltammogramScan(double[] mzs, double[] intensities, double potential) {
+  private final MassSpectrumType massSpectrumType;
+
+  public MassvoltammogramScan(double[] mzs, double[] intensities, double potential,
+      MassSpectrumType massSpectrumType) {
     this.mzs = mzs;
     this.intensities = intensities;
     this.potential = potential;
+    this.massSpectrumType = massSpectrumType;
   }
 
-  public MassvoltammogramScan(List<Double> mzs, List<Double> intensities, double potential) {
+  public MassvoltammogramScan(List<Double> mzs, List<Double> intensities, double potential,
+      MassSpectrumType massSpectrumType) {
 
     setMzsFromList(mzs);
     setIntensitiesFromList(intensities);
     this.potential = potential;
+    this.massSpectrumType = massSpectrumType;
   }
 
   public void setMzs(double[] mzs) {
@@ -81,6 +88,10 @@ public final class MassvoltammogramScan {
 
   public double getPotential() {
     return potential;
+  }
+
+  public MassSpectrumType getMassSpectrumType() {
+    return massSpectrumType;
   }
 
   public int getNumberOfDatapoints() {
