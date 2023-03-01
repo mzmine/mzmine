@@ -339,7 +339,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // crop rt range
     param.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
         new ScanSelection(cropRtRange, 1));
-    param.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minRtDataPoints);
+    param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
     param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
     param.setParameter(ADAPChromatogramBuilderParameters.suffix, "eics");
     param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, noiseLevelMs1);

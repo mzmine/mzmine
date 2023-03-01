@@ -63,9 +63,11 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
         .getValue().getMatchingRawDataFiles();
 
     for (int i = 0; i < dataFiles.length; i++) {
+      // only the image builder supplies a minimum number of total scans
+      // chrom builder uses min consecutive scans
       Task newTask = new ModularADAPChromatogramBuilderTask(project, dataFiles[i],
           parameters.cloneParameterSet(true), storage, moduleCallDate,
-          ModularADAPChromatogramBuilderModule.class);
+          ModularADAPChromatogramBuilderModule.class, null);
       tasks.add(newTask);
     }
 
