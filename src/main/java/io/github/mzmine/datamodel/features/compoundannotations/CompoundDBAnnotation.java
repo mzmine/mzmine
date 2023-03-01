@@ -371,13 +371,18 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     clone.put(MzPpmDifferenceType.class,
         (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
             row.getAverageMZ()));
-    if (get(CCSType.class) != null && row.getAverageCCS() != null) {
+
+    // if the compound entry contained <=0 for RT or mobility
+    // do not check. This is defined as wildcard in the documentation and outside valid values
+    var compCcs = get(CCSType.class);
+    if (compCcs != null && compCcs > 0 && row.getAverageCCS() != null) {
       clone.put(CCSRelativeErrorType.class,
-          PercentTolerance.getPercentError(get(CCSType.class), row.getAverageCCS()));
+          PercentTolerance.getPercentError(compCcs, row.getAverageCCS()));
     }
-    if (get(RTType.class) != null && row.getAverageRT() != null) {
+    var compRt = get(RTType.class);
+    if (compRt != null && compRt > 0 && row.getAverageRT() != null) {
       clone.put(RtRelativeErrorType.class,
-          PercentTolerance.getPercentError(get(RTType.class), row.getAverageRT()));
+          PercentTolerance.getPercentError(compRt, row.getAverageRT()));
     }
 
     return clone;

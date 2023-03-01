@@ -259,21 +259,25 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float rt = getRT();
-    if (rtTolerance != null && rt != null && (row.getAverageRT() == null
+    if (rtTolerance != null && rt != null && rt > 0 && (row.getAverageRT() == null
         || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float mobility = getMobility();
-    if (mobilityTolerance != null && mobility != null && (row.getAverageMobility() == null
-        || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
+    if (mobilityTolerance != null && mobility != null && mobility > 0 && (
+        row.getAverageMobility() == null || !mobilityTolerance.checkWithinTolerance(mobility,
+            row.getAverageMobility()))) {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float ccs = getCCS();
-    return percentCCSTolerance == null || ccs == null || (row.getAverageCCS() != null && !(
-        Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
+    return percentCCSTolerance == null || ccs == null || ccs <= 0 || (row.getAverageCCS() != null
+        && !(Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
   @Override
