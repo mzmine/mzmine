@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
+import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 
 public class ScanSelectionComponent extends OptionalModuleComponent {
@@ -38,10 +39,38 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
       final EmbeddedComponentOptions viewOption, final String title, final boolean active) {
     super(embeddedParameters, viewOption, title, false, active);
     this.parameters = embeddedParameters;
+
+    var clearbtn = new Button("Clear");
+    topPane.getChildren().add(clearbtn);
+    clearbtn.setOnAction(event -> setSelection(ScanSelection.ALL_SCANS));
+
     var selection = createSelection();
     textDescription = new Text(selection.toShortDescription());
     textDescription.setWrappingWidth(350);
-    topPane.getChildren().add(textDescription);
+    if (active) {
+      topPane.getChildren().add(textDescription);
+    }
+  }
+
+  private void setSelection(final ScanSelection selection) {
+    parameters.setFilter(selection);
+    setParameterValuesToComponents();
+  }
+
+  public ScanSelection createSelection() {
+    return parameters.createFilter();
+  }
+
+  @Override
+  protected void applyCheckBoxState() {
+    super.applyCheckBoxState();
+    if (textDescription == null || topPane == null) {
+      return;
+    }
+    topPane.getChildren().remove(textDescription);
+    if (getCheckbox().isSelected()) {
+      topPane.getChildren().add(textDescription);
+    }
   }
 
   @Override
@@ -62,10 +91,6 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
     super.setParameterValuesToComponents();
     var selection = createSelection();
     textDescription.setText(selection.toShortDescription());
-  }
-
-  public ScanSelection createSelection() {
-    return parameters.createFilter();
   }
 
 }
