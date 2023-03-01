@@ -87,6 +87,9 @@ public class DoubleRangeComponent extends HBox {
   public Range<Double> getValue() {
     String minString = minTxtField.getText();
     String maxString = maxTxtField.getText();
+    if (minString.isBlank() && maxString.isBlank()) {
+      return null;
+    }
 
     try {
       Number minValue = format.parse(minString.trim());

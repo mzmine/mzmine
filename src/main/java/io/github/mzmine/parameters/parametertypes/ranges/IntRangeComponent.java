@@ -55,6 +55,9 @@ public class IntRangeComponent extends GridPane {
   public Range<Integer> getValue() {
     String minString = minTxtField.getText();
     String maxString = maxTxtField.getText();
+    if (minString.isBlank() && maxString.isBlank()) {
+      return null;
+    }
 
     try {
       if (!minString.isEmpty() && !maxString.isEmpty()) {
