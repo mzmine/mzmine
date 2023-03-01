@@ -58,7 +58,7 @@ public class ChromatogramPeakPair {
     return chromatograms.getName() + " / " + peaks.getName();
   }
 
-  public static Map<RawDataFile, ChromatogramPeakPair>   fromParameterSet(
+  public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
       @NotNull ParameterSet parameterSet) {
     Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
 
@@ -70,53 +70,60 @@ public class ChromatogramPeakPair {
             .getMatchingFeatureLists() : null;
     FeatureList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
-    if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0) {
-      return pairs;
-    }
+
     //if only chromatogram is unavailable find it from peak list.
-    if((chromatograms == null || chromatograms.length ==0) && (peaks != null || peaks.length >0)){
+    if ((chromatograms == null || chromatograms.length == 0) && (peaks != null
+        || peaks.length > 0)) {
 
-        ObservableList<FeatureListAppliedMethod> appliedMethodsList = peaks[0].getAppliedMethods();
-
-        for (int j = appliedMethodsList.size() - 1; j >= 0; j--) {
-          ParameterSet parameters = appliedMethodsList.get(j).getParameters();
-          for (final Parameter<?> param : parameters.getParameters()) {
-            if (param instanceof FeatureListsParameter flistParam) {
-              FeatureListsPlaceholder[] placeholders = flistParam.getValue().getEvaluationResult();
-              for (final FeatureListsPlaceholder placeholder : placeholders) {
-              FeatureList candidateList = placeholder.getFeatureList();
-//
+      ObservableList<FeatureListAppliedMethod> appliedMethodsList = peaks[0].getAppliedMethods();
+      FeatureList chromatogram = null;
+      for (int j = appliedMethodsList.size() - 1; j >= 0; j--) {
+        ParameterSet parameters = appliedMethodsList.get(j).getParameters();
+        for (final Parameter<?> param : parameters.getParameters()) {
+          if (param instanceof FeatureListsParameter flistParam) {
+            FeatureListsPlaceholder[] placeholders = flistParam.getValue().getEvaluationResult();
+            for (int k = placeholders.length - 1; k >= 0; k--) {
+              FeatureList candidateList = placeholders[k].getMatchingFeatureList();
 //              // feature list is still in memory and was not deleted and already collected by GC
-//              if(candidateList!=null) {
-//                // find candidate list where parentName.startsWith(candidateName)
-//                parentFeatureList.getName()
-//                candidateList.getName()
-//              }
+              if (candidateList != null) {
+                String parentName = peaks[0].getName();
+                if (parentName.contains(candidateList.getName())) {
+                  chromatogram = candidateList;
+                  continue;
+                }
+
               }
             }
           }
-
         }
-
-
-    Set<RawDataFile> dataFiles = new HashSet<>();
-    for (FeatureList peakList : chromatograms) {
-      dataFiles.add(peakList.getRawDataFile(0));
-    }
-    for (FeatureList peakList : peaks) {
-      dataFiles.add(peakList.getRawDataFile(0));
-    }
-
-    for (RawDataFile dataFile : dataFiles) {
-      FeatureList chromatogram = Arrays.stream(chromatograms)
-          .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
-      FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile)
-          .findFirst().orElse(null);
-      if (chromatogram != null && peak != null) {
-        pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
       }
-    }
+      if (chromatogram != null) {
+        pairs.put(peaks[0].getRawDataFile(0), new ChromatogramPeakPair(chromatogram, peaks[0]));
+      }
+      return pairs;
+    } else if (chromatograms == null || chromatograms.length == 0 || peaks == null
+        || peaks.length == 0) {
+      return pairs;
+    } else {
+      Set<RawDataFile> dataFiles = new HashSet<>();
+      for (FeatureList peakList : chromatograms) {
+        dataFiles.add(peakList.getRawDataFile(0));
+      }
+      for (FeatureList peakList : peaks) {
+        dataFiles.add(peakList.getRawDataFile(0));
+      }
 
-    return pairs;
+      for (RawDataFile dataFile : dataFiles) {
+        FeatureList chromatogram = Arrays.stream(chromatograms)
+            .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
+        FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile)
+            .findFirst().orElse(null);
+        if (chromatogram != null && peak != null) {
+          pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
+        }
+      }
+
+      return pairs;
+    }
   }
 }

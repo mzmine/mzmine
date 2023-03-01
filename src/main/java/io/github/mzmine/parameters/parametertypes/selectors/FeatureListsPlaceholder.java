@@ -16,6 +16,7 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +28,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListsPlaceholder implements FeatureList {
+
   private final String name;
+
+  WeakReference<FeatureList> featureList;
   @Nullable
   private final Integer fileHashCode;
 
   public FeatureListsPlaceholder(@NotNull final FeatureList featureList) {
     name = featureList.getName();
+    this.featureList = new WeakReference<>(featureList);
     if (featureList instanceof FeatureListsPlaceholder flp) {
       if (flp.fileHashCode == null) {
         fileHashCode = null;
@@ -48,8 +53,7 @@ public class FeatureListsPlaceholder implements FeatureList {
     this(name, null);
   }
 
-  public FeatureListsPlaceholder(@NotNull String name,
-      @Nullable Integer fileHashCode) {
+  public FeatureListsPlaceholder(@NotNull String name, @Nullable Integer fileHashCode) {
     this.name = name;
     this.fileHashCode = fileHashCode;
   }
@@ -65,9 +69,10 @@ public class FeatureListsPlaceholder implements FeatureList {
   }
 
   public boolean matches(@Nullable final FeatureList featureList) {
-    return featureList != null && featureList.getName().equals(name) &&  Objects.equals(fileHashCode,
+    return featureList != null && featureList.getName().equals(name) && Objects.equals(fileHashCode,
         featureList.hashCode());
   }
+
   @Override
   public @NotNull String getName() {
     return name;
