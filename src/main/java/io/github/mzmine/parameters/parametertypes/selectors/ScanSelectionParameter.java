@@ -35,7 +35,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.util.XMLUtils;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class ScanSelectionParameter extends
-    AbstractParameter<ScanSelection, OptionalModuleComponent> implements
+    AbstractParameter<ScanSelection, ScanSelectionComponent> implements
     EmbeddedParameterSet<ScanSelectionFiltersParameters, ScanSelection> {
 
 
@@ -102,20 +101,20 @@ public class ScanSelectionParameter extends
   }
 
   @Override
-  public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(getEmbeddedParameters(),
-        EmbeddedComponentOptions.VIEW_IN_PANEL, "", false, active);
+  public ScanSelectionComponent createEditingComponent() {
+    return new ScanSelectionComponent(getEmbeddedParameters(),
+        EmbeddedComponentOptions.VIEW_IN_PANEL, "", active);
   }
 
   @Override
-  public void setValueFromComponent(OptionalModuleComponent component) {
+  public void setValueFromComponent(ScanSelectionComponent component) {
     component.updateParameterSetFromComponents();
     value = embeddedParameters.createFilter();
     active = component.isSelected();
   }
 
   @Override
-  public void setValueToComponent(OptionalModuleComponent component, ScanSelection newValue) {
+  public void setValueToComponent(ScanSelectionComponent component, ScanSelection newValue) {
     embeddedParameters.setFilter(newValue);
     component.setParameterValuesToComponents();
   }

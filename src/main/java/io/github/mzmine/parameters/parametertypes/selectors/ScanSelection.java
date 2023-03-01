@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -371,6 +372,40 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     }
 
     return b.toString();
+  }
+
+
+  /**
+   * @return short version of filter string used in interfaces
+   */
+  public String toShortDescription() {
+    DecimalFormat threeDecimals = new DecimalFormat("0.000");
+
+    List<String> parts = new ArrayList<>();
+    parts.add(msLevel.getFilterString());
+    if (scanNumberRange != null) {
+      parts.add("Scan numbers " + scanNumberRange);
+    }
+    if (scanRTRange != null) {
+      parts.add("RT " + RangeUtils.formatRange(scanRTRange, threeDecimals, true, true));
+    }
+    if (scanMobilityRange != null) {
+      parts.add("Mobility " + RangeUtils.formatRange(scanMobilityRange, threeDecimals, true, true));
+    }
+    if (polarity != PolarityType.ANY) {
+      parts.add("Polarity=" + polarity.asSingleChar());
+    }
+    if (spectrumType != MassSpectrumType.ANY) {
+      parts.add("Scan type=" + spectrumType);
+    }
+    if (baseFilteringInteger != null) {
+      parts.add("Base filter=" + baseFilteringInteger);
+    }
+    if (scanDefinition != null && !scanDefinition.isBlank()) {
+      parts.add("Definition contains '" + scanDefinition + "'");
+    }
+
+    return parts.stream().filter(s -> !s.isBlank()).collect(Collectors.joining(", "));
   }
 
   public ScanSelection cloneWithNewRtRange(Range<Double> rtRange) {

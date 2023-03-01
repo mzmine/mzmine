@@ -50,11 +50,11 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   // null if shown in dialog
   protected final @Nullable ParameterSetupPane paramPane;
   protected final @NotNull CheckBox checkBox;
-  private final EmbeddedComponentOptions viewOption;
   private final Button setButton;
   private final BooleanProperty hidden = new SimpleBooleanProperty(true);
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
   private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
+  protected final FlowPane topPane;
 
 
   public OptionalModuleComponent(ParameterSet embeddedParameters,
@@ -65,7 +65,6 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   public OptionalModuleComponent(ParameterSet embeddedParameters,
       EmbeddedComponentOptions viewOption, String title, boolean alwaysActive, boolean active) {
     super();
-    this.viewOption = viewOption;
     checkBox = new CheckBox(title);
     setSelected(active);
     checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
@@ -92,21 +91,27 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
         setEstimatedHeight(params);
 
         setEstimatedDefaultWidth(params == 0);
+
+        onViewStateChange(toggledHidden);
       });
       setButton.setDisable(!active);
     }
-    var pane = new FlowPane();
-    pane.setHgap(7d);
+    topPane = new FlowPane();
+    topPane.setHgap(7d);
 
     // just leave out checkbox if always active
     if (alwaysActive) {
-      pane.getChildren().addAll(setButton);
+      topPane.getChildren().addAll(setButton);
     } else {
-      pane.getChildren().addAll(checkBox, setButton);
+      topPane.getChildren().addAll(checkBox, setButton);
     }
 
-    setTop(pane);
+    setTop(topPane);
     applyCheckBoxState();
+  }
+
+  public void onViewStateChange(final boolean hidden) {
+
   }
 
   public ParameterSetupPane getEmbeddedParameterPane() {

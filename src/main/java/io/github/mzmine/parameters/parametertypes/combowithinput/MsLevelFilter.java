@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -54,6 +55,17 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
     return switch (filter) {
       case ALL -> "All MS levels";
       case MS2, MSn, MS1 -> filter.toString();
+      case SPECIFIC_LEVEL -> "MS level=" + specificLevel;
+    };
+  }
+
+  @NotNull
+  public String getFilterString() {
+    return switch (filter) {
+      case ALL -> "";
+      case MS1 -> "MS level=" + 1;
+      case MS2 -> "MS level=" + 2;
+      case MSn -> "MS level≥" + 2;
       case SPECIFIC_LEVEL -> "MS level=" + specificLevel;
     };
   }
