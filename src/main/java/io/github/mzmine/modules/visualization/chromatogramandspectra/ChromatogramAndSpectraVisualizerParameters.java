@@ -26,18 +26,20 @@
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 
 public class ChromatogramAndSpectraVisualizerParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter chromMzTolerance = new MZToleranceParameter(
-      "XIC tolerance",
-      "m/z tolerance of the chromatogram builder for extracted ion chromatograms (XICs)", 0.001,
-      10);
+      ToleranceType.SCAN_TO_SCAN,
+      "m/z tolerance of the chromatogram builder for extracted ion chromatograms (XICs)", 0.001, 10);
 
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       "Chromatogram scan selection",
@@ -48,5 +50,14 @@ public class ChromatogramAndSpectraVisualizerParameters extends SimpleParameterS
 
   public ChromatogramAndSpectraVisualizerParameters() {
     super(chromMzTolerance, scanSelection, plotType);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("XIC tolerance", chromMzTolerance);
+    return nameParameterMap;
   }
 }
