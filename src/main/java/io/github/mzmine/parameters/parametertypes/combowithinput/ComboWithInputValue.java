@@ -23,16 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_groupms2;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-public enum FeatureLimitOptions {
-  USE_FEATURE_EDGES, USE_TOLERANCE;
+/**
+ * @param <EnumType>     used in combo box of {@link ComboWithInputParameter}
+ * @param <EmbeddedType> the embedded type in {@link ComboWithInputParameter}
+ */
+public interface ComboWithInputValue<EnumType, EmbeddedType> {
 
-  @Override
-  public String toString() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
-  }
+  EnumType getSelectedOption();
+
+  EmbeddedType getEmbeddedValue();
 }

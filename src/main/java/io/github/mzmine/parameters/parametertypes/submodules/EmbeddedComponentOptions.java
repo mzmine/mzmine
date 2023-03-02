@@ -23,17 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_groupms2;
+package io.github.mzmine.parameters.parametertypes.submodules;
 
-import io.github.mzmine.parameters.parametertypes.ComboWithInputParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-
-public class RtLimitOptionsParameter extends
-    ComboWithInputParameter<FeatureLimitOptions, RTToleranceParameter> {
-
-  public RtLimitOptionsParameter(final RTToleranceParameter embeddedParameter) {
-    super(embeddedParameter, FeatureLimitOptions.values(), FeatureLimitOptions.USE_FEATURE_EDGES,
-        FeatureLimitOptions.USE_TOLERANCE);
-
-  }
+public enum EmbeddedComponentOptions {
+  VIEW_IN_WINDOW, VIEW_IN_PANEL
 }

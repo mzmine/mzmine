@@ -98,8 +98,8 @@ public class SiriusExportTask extends AbstractTask {
   private final int totalRows;
   private final NumberFormats format = MZmineCore.getConfiguration().getExportFormats();
   private final MergeMode mergeMode;
-  private AtomicInteger exportedRows = new AtomicInteger(0);
-  private AtomicInteger processedRows = new AtomicInteger(0);
+  private final AtomicInteger exportedRows = new AtomicInteger(0);
+  private final AtomicInteger processedRows = new AtomicInteger(0);
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -148,8 +148,11 @@ public class SiriusExportTask extends AbstractTask {
     charge = Math.max(charge, 1); // no zero charge
 
     entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
+    // replicate what GNPS does - some tools rely on the scan number to be there
+    // GNPS just uses the FEATURE_ID for this
+    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, f.getRow().getID());
     entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
-    entry.putIfNotNull(DBEntryField.RT, f.getRT() * 60);
+    entry.putIfNotNull(DBEntryField.RT, f.getRT());
     entry.setCharge(charge, polarity);
   }
 
@@ -394,11 +397,7 @@ public class SiriusExportTask extends AbstractTask {
       return false;
     }
 
-    if (excludeMultimers && adduct != null && adduct.getIonType().getMolecules() > 1) {
-      return false;
-    }
-
-    return true;
+    return !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
   }
 
 

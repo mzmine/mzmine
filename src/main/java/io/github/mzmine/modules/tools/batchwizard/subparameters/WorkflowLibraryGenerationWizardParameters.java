@@ -30,7 +30,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import java.io.File;
 
 public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWizardParameters {
@@ -47,7 +47,7 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
       FileSelectionType.SAVE, false);
 
 
-  public static final SubModuleParameter<LibraryBatchMetadataParameters> metadata = new SubModuleParameter<>(
+  public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
 

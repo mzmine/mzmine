@@ -37,7 +37,6 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -45,7 +44,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
@@ -58,11 +57,6 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public LibraryBatchGenerationParameters() {
-    super(new Parameter[]{flists, file, exportFormat, scanFilter, metadata, mergeMzTolerance,
-        handleChimerics, quality});
-  }
-
   public static final FileNameParameter file = new FileNameParameter("Export file",
       "Local library file", FileSelectionType.SAVE);
 
@@ -70,7 +64,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
       SpectralLibraryExportFormats.json);
 
-  public static final SubModuleParameter<LibraryBatchMetadataParameters> metadata = new SubModuleParameter<>(
+  public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
   public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
@@ -83,12 +77,15 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       "Options to identify and handle chimeric spectra with multiple MS1 signals in the precusor ion selection",
       new HandleChimericMsMsParameters(), true);
 
-  public static final SubModuleParameter<LibraryExportQualityParameters> quality = new SubModuleParameter<>(
+  public static final ParameterSetParameter<LibraryExportQualityParameters> quality = new ParameterSetParameter<>(
       "Quality parameters", "Quality parameters for MS/MS spectra to be exported to the library.",
       new LibraryExportQualityParameters());
+
+  public LibraryBatchGenerationParameters() {
+    super(flists, file, exportFormat, scanFilter, metadata, mergeMzTolerance, handleChimerics, quality);
+  }
 
   public enum ScanType {
     MS2, MSn
   }
-
 }

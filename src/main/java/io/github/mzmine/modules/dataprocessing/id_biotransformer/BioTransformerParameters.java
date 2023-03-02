@@ -30,12 +30,12 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
@@ -74,10 +74,8 @@ public class BioTransformerParameters extends SimpleParameterSet {
       """, SmilesSource.values(), SmilesSource.ALL);
 
   public BioTransformerParameters() {
-    super(
-        new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam,
-            smilesSource
-            /*, cmdOptions*/});
+    super(flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam, smilesSource
+        /*, cmdOptions*/);
   }
 
   public BioTransformerParameters(boolean singleRow) {
