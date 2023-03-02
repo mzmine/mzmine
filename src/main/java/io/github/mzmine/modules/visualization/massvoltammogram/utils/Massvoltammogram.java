@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramMzRangeParameter;
-import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
+import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureListRowSorter;
@@ -63,7 +63,7 @@ public class Massvoltammogram {
   private List<MassvoltammogramScan> processedScans;
 
   //Plot
-  private final ExtendedPlot3DPanel plot = new ExtendedPlot3DPanel(this);
+  private final MassvoltammogramPlotPanel plot = new MassvoltammogramPlotPanel(this);
 
 
   public Massvoltammogram(RawDataFile file, ScanSelection scanSelection, ReactionMode reactionMode,
@@ -334,7 +334,7 @@ public class Massvoltammogram {
   /**
    * @return Returns the processed MassvoltammogramScans as a plot.
    */
-  public ExtendedPlot3DPanel getPlot() {
+  public MassvoltammogramPlotPanel getPlot() {
     return plot;
   }
 

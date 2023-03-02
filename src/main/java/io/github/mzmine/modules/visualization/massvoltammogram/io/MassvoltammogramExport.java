@@ -19,8 +19,12 @@ package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
-import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
+import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.util.javafx.FxThreadUtil;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -30,9 +34,15 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import org.apache.commons.io.FilenameUtils;
 
 public class MassvoltammogramExport {
+
+  private MassvoltammogramExport() {
+    throw new IllegalStateException("Utility class");
+  }
 
   /**
    * Method to export the massvoltammogram to different file formats.
@@ -72,13 +82,24 @@ public class MassvoltammogramExport {
    */
   public static void toPNG(Massvoltammogram massvoltammogram, File file) {
 
-    ExtendedPlot3DPanel plot = massvoltammogram.getPlot();
+    MassvoltammogramPlotPanel plot = massvoltammogram.getPlot();
 
-    //Saving the rendered picture to a png file.
+    //Extracting the buffered frame as an image.
+    Image image = plot.createImage(plot.getWidth(), plot.getHeight());
+    plot.paint(image.getGraphics());
+    image = new ImageIcon(image).getImage();
+
+    BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null),
+        BufferedImage.TYPE_INT_RGB);
+    Graphics graphics = bufferedImage.createGraphics();
+    graphics.drawImage(image, 0, 0, Color.WHITE, null);
+    graphics.dispose();
+
+    //Saving the buffered image to a png file.
     try {
-      plot.toGraphicFile(file);
-    } catch (IOException ioException) {
-      ioException.printStackTrace();
+      ImageIO.write(bufferedImage, "PNG", file);
+    } catch (IllegalArgumentException | IOException ex) {
+      ex.printStackTrace();
     }
   }
 

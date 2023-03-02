@@ -18,58 +18,30 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import org.math.plot.Plot3DPanel;
 
 /**
  * Class used to extend the existing Plot3DPanel by functions to export the massvoltammograms data
  * and to implement the new toolbar.
  */
-public class ExtendedPlot3DPanel extends Plot3DPanel {
+public class MassvoltammogramPlotPanel extends Plot3DPanel {
 
-  private MassvoltammogramToolBar massvoltammogramToolBar;
-
-  private Massvoltammogram massvoltammogram;
+  //The toolbar.
+  private final MassvoltammogramToolBar massvoltammogramToolBar;
 
   //Exchanging the plots toolbar fot the new toolbar on initialization.
-  public ExtendedPlot3DPanel(Massvoltammogram massvoltammogram) {
-    removePlotToolBar();
+  public MassvoltammogramPlotPanel(Massvoltammogram massvoltammogram) {
 
+    //Removing the original plot toolbar and exchanging it for the MassvoltammogramToolBar.
+    removePlotToolBar();
     massvoltammogramToolBar = new MassvoltammogramToolBar(this, massvoltammogram);
   }
 
+  /**
+   * @return Returns the plots MassvoltammogramToolBar.
+   */
   public MassvoltammogramToolBar getMassvoltammogramToolBar() {
     return massvoltammogramToolBar;
   }
 
-  //Extending the png export function to work with the extended plot toolbar.
-  @Override
-  public void toGraphicFile(File file) throws IOException {
-    super.toGraphicFile(file);
-
-    //Extracting the buffered frame as an image.
-    Image image = createImage(getWidth(), getHeight());
-    paint(image.getGraphics());
-    image = new ImageIcon(image).getImage();
-
-    BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null),
-        BufferedImage.TYPE_INT_RGB);
-    Graphics g = bufferedImage.createGraphics();
-    g.drawImage(image, 0, 0, Color.WHITE, null);
-    g.dispose();
-
-    //saving the buffered image to a png file.
-    try {
-      ImageIO.write(bufferedImage, "PNG", file);
-    } catch (IllegalArgumentException ex) {
-      ex.printStackTrace();
-    }
-  }
 }

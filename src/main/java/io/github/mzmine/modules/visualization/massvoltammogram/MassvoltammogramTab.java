@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.massvoltammogram;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
+import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramToolBar;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import java.util.Collection;
@@ -69,7 +69,7 @@ public class MassvoltammogramTab extends MZmineTab {
     final BorderPane mainPane = new BorderPane();
 
     //Converting the plot from a swing panel to a javafx node.
-    final ExtendedPlot3DPanel plot = massvoltammogram.getPlot();
+    final MassvoltammogramPlotPanel plot = massvoltammogram.getPlot();
     final SwingNode swingNodePlot = new SwingNode();
     swingNodePlot.setContent(plot);
 

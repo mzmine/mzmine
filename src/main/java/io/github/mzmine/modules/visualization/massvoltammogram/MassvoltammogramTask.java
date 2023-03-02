@@ -90,7 +90,6 @@ public class MassvoltammogramTask extends AbstractTask {
    * Todo
    * remove excessZeros kontrollieren
    * mzParameter Übernahme korrigieren
-   * ExtendedPlot3DPanel documentation.
    */
 
   @Override
