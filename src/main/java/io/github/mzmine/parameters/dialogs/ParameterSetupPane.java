@@ -231,6 +231,12 @@ public class ParameterSetupPane extends BorderPane {
   }
 
   /**
+   * check parameters button was clicked
+   */
+  protected void callCheckParametersButton() {
+  }
+
+  /**
    * cancel button was clicked
    */
   protected void callCancelButton() {
@@ -440,4 +446,14 @@ public class ParameterSetupPane extends BorderPane {
     }
   }
 
+  /**
+   * Adds a button to check the parameter
+   */
+  public void addCheckParametersButton() {
+    Button btnCheck = new Button("Check");
+    btnCheck.setOnAction(e -> callCheckParametersButton());
+    pnlButtons.getButtons().addAll(btnCheck);
+    // this way its always right next to OK button
+    ButtonBar.setButtonData(btnCheck, ButtonData.OK_DONE);
+  }
 }

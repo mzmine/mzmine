@@ -233,9 +233,16 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
     boolean allParametersOK = true;
     for (Parameter<?> p : parameters) {
+      // this is done in batch mode where no data is loaded when the parameters are checked
+      if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
+          || p instanceof FeatureListsParameter)) {
+        continue;
+      }
+
       boolean pOK = p.checkValue(errorMessages);
       if (!pOK) {
         allParametersOK = false;

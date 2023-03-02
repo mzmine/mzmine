@@ -144,7 +144,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
     if (value) {
-      return embeddedParameters.checkParameterValues(errorMessages);
+      return checkEmbeddedValues(errorMessages);
     }
     return true;
   }
