@@ -294,6 +294,9 @@ public class IonModificationParameter implements
 
   private void ensureAllChoices(final MultiChoiceParameter<IonModification> param,
       final IonModification[] selected) {
+    if (selected == null) {
+      return;
+    }
     var choices = param.getChoices();
     if (choices == null) {
       choices = selected;
