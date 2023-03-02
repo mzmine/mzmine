@@ -86,12 +86,6 @@ public class MassvoltammogramTask extends AbstractTask {
     return 0;
   }
 
-  /**
-   * Todo
-   * remove excessZeros kontrollieren
-   * mzParameter Übernahme korrigieren
-   */
-
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);

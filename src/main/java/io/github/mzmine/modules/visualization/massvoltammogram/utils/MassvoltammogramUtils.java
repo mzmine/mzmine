@@ -27,6 +27,10 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class MassvoltammogramUtils {
 
+  private MassvoltammogramUtils() {
+    throw new IllegalStateException("Utility class");
+  }
+
   public static List<MassvoltammogramScan> extractMZRangeFromScan(List<MassvoltammogramScan> scans,
       Range<Double> mzRange) {
 
@@ -183,9 +187,16 @@ public class MassvoltammogramUtils {
 
       //Adding all other datapoints if the intensity is 0 or bigger than the intensity threshold.
       for (int i = 1; i < scan.getNumberOfDatapoints() - 1; i++) {
-        if (scan.getIntensity(i) > intensityThreshold || scan.getIntensity(i) == 0) {
-          filteredMZ.add(scan.getMz(i));           //Adding the m/z-value.
-          filteredIntensities.add(scan.getIntensity(i));  //Adding the intensity-value.
+
+        //Adding the datapoint if its intensity exceeds the threshold.
+        if (scan.getIntensity(i) >= intensityThreshold) {
+          filteredMZ.add(scan.getMz(i));
+          filteredIntensities.add(scan.getIntensity(i));
+
+          //Setting the datapoints intensity to 0 if it's below the threshold.
+        } else if (scan.getIntensity(i) < intensityThreshold) {
+          filteredMZ.add(scan.getMz(i));
+          filteredIntensities.add(0d);
         }
       }
 

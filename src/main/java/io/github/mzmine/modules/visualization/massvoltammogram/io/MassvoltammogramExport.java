@@ -80,7 +80,7 @@ public class MassvoltammogramExport {
    * @param massvoltammogram The massvoltammogram to be exported.
    * @param file             The path the massvoltammogram will be exported to.
    */
-  public static void toPNG(Massvoltammogram massvoltammogram, File file) {
+  private static void toPNG(Massvoltammogram massvoltammogram, File file) {
 
     MassvoltammogramPlotPanel plot = massvoltammogram.getPlot();
 
@@ -109,7 +109,7 @@ public class MassvoltammogramExport {
    * @param massvoltammogram The massvoltammogram to be exported.
    * @param file             the pht the massvoltammogram will be exported to.
    */
-  public static void toCSV(Massvoltammogram massvoltammogram, File file) {
+  private static void toCSV(Massvoltammogram massvoltammogram, File file) {
 
     //Getting the file name and path.
     final String fileName = FilenameUtils.removeExtension(file.getName());

@@ -376,6 +376,11 @@ public class Massvoltammogram {
     return maxIntensity;
   }
 
+
+  public List<MassvoltammogramScan> getProcessedScans() {
+    return processedScans;
+  }
+
   /**
    * Asks the user for a new m/z-range, extracts this new m/z- range from the raw scans and plots
    * the scans in the new m/z-range.
