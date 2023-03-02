@@ -55,7 +55,8 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final IntegerParameter minDataPoints = new IntegerParameter("Minimum data points",
+  public static final IntegerParameter minDataPoints = new IntegerParameter(
+      "Minimum scans (data points)",
       "Only fill gaps with features with minimum number of data points. \n Usually lower number of data points are used.",
       1, 1, Integer.MAX_VALUE);
 
@@ -79,6 +80,7 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("m/z tolerance", MZTolerance);
+    nameParameterMap.put("Minimum data points", minDataPoints);
     return nameParameterMap;
   }
 }
