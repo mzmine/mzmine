@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+
 import com.google.common.base.Strings;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -43,9 +43,9 @@ public class FeatureListsSelection implements Cloneable {
   private static final Logger logger = Logger.getLogger(FeatureListsSelection.class.getName());
 
   private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
-  private ModularFeatureList[] specificFeatureLists;
+  private FeatureListsPlaceholder[] specificFeatureLists=null;
   private String namePattern;
-  private ModularFeatureList[] batchLastFeatureLists;
+  private FeatureListsPlaceholder[] batchLastFeatureLists=null;
   private FeatureListsPlaceholder[] evaluatedSelection = null;
 
   /**
@@ -55,7 +55,12 @@ public class FeatureListsSelection implements Cloneable {
    */
   public FeatureListsSelection(ModularFeatureList... flists) {
     this();
-    specificFeatureLists = flists;
+    FeatureListsPlaceholder[] placeholders = new FeatureListsPlaceholder[flists.length];
+    for(int i = 0 ; i < flists.length; i++){
+      var placeholder = new FeatureListsPlaceholder(flists[i]);
+      placeholders[i] = placeholder;
+    }
+    specificFeatureLists = placeholders;
     selectionType = FeatureListsSelectionType.SPECIFIC_FEATURELISTS;
   }
 
@@ -67,8 +72,15 @@ public class FeatureListsSelection implements Cloneable {
   public FeatureListsSelection() {
   }
 
-  //get current featureLists in the project
   public FeatureListsPlaceholder[] getEvaluationResult() {
+    if (evaluatedSelection != null) {
+      return Arrays.copyOf(evaluatedSelection, evaluatedSelection.length);
+    }
+    throw new IllegalStateException("Feature List selection has not been evaluated.");
+  }
+
+  //get current featureLists in the project
+  public FeatureListsPlaceholder[] getCurrentFeatureListsPlaceholders() {
     List<FeatureListsPlaceholder> featureListsPlaceholders = new ArrayList<>();
     var currentFeatureLists = MZmineCore.getProject().getCurrentFeatureLists();
     for (FeatureList featureList : currentFeatureLists) {
@@ -78,7 +90,6 @@ public class FeatureListsSelection implements Cloneable {
     return featureListsPlaceholders.toArray(
         new FeatureListsPlaceholder[featureListsPlaceholders.size()]);
   }
-
   public ModularFeatureList[] getMatchingFeatureLists() {
     if (evaluatedSelection != null) {
       var value = Arrays.stream(evaluatedSelection)
@@ -102,7 +113,7 @@ public class FeatureListsSelection implements Cloneable {
           matchingFeatureLists = MZmineCore.getProjectManager().getCurrentProject()
               .getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
       case SPECIFIC_FEATURELISTS -> matchingFeatureLists =
-          (specificFeatureLists == null) ? new ModularFeatureList[0] : specificFeatureLists;
+          (specificFeatureLists == null) ? new ModularFeatureList[0] : this.toModular(getSpecificFeatureLists());
       case NAME_PATTERN -> {
         if (Strings.isNullOrEmpty(namePattern)) {
           matchingFeatureLists = new ModularFeatureList[0];
@@ -128,7 +139,7 @@ public class FeatureListsSelection implements Cloneable {
         }
       }
       case BATCH_LAST_FEATURELISTS -> matchingFeatureLists =
-          (batchLastFeatureLists == null) ? new ModularFeatureList[0] : batchLastFeatureLists;
+          (batchLastFeatureLists == null) ? new ModularFeatureList[0] : this.toModular(getBatchLastFeatureLists());
       default -> throw new IllegalStateException("Unexpected value: " + selectionType);
     }
     evaluatedSelection = new FeatureListsPlaceholder[matchingFeatureLists.length];
@@ -152,11 +163,24 @@ public class FeatureListsSelection implements Cloneable {
   }
 
   public FeatureList[] getSpecificFeatureLists() {
-    return specificFeatureLists;
+
+    if(specificFeatureLists != null){
+      FeatureList[] featureLists = new FeatureList[specificFeatureLists.length];
+      for(int i = 0 ; i < specificFeatureLists.length; i++){
+        featureLists[i] = specificFeatureLists[i].getFeatureList().get();
+      }
+      return featureLists;
+    }
+    return null;
   }
 
   public void setSpecificFeatureLists(FeatureList[] specificFeatureLists) {
-    this.specificFeatureLists = toModular(specificFeatureLists);
+    FeatureListsPlaceholder[] placeholders = new FeatureListsPlaceholder[specificFeatureLists.length];
+    for(int i = 0 ;i < specificFeatureLists.length; i++){
+      placeholders[i] = new FeatureListsPlaceholder(specificFeatureLists[i]);
+
+    }
+    this.specificFeatureLists = placeholders;
   }
 
   public String getNamePattern() {
@@ -167,8 +191,24 @@ public class FeatureListsSelection implements Cloneable {
     this.namePattern = namePattern;
   }
 
+  public FeatureList[] getBatchLastFeatureLists() {
+    if(batchLastFeatureLists != null){
+      FeatureList[] featureLists = new FeatureList[batchLastFeatureLists.length];
+      for(int i = 0 ; i < batchLastFeatureLists.length; i++){
+        featureLists[i] = batchLastFeatureLists[i].getFeatureList().get();
+      }
+      return featureLists;
+    }
+    return null;
+  }
+
   public void setBatchLastFeatureLists(FeatureList[] batchLastFeatureLists) {
-    this.batchLastFeatureLists = toModular(batchLastFeatureLists);
+    FeatureListsPlaceholder[] placeholders = new FeatureListsPlaceholder[batchLastFeatureLists.length];
+    for(int i = 0 ;i < batchLastFeatureLists.length; i++){
+      placeholders[i] = new FeatureListsPlaceholder(batchLastFeatureLists[i]);
+
+    }
+    this.batchLastFeatureLists = placeholders;
   }
 
   public ModularFeatureList[] toModular(FeatureList[] flist) {

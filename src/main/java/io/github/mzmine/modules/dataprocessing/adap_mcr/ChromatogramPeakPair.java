@@ -81,7 +81,7 @@ public class ChromatogramPeakPair {
         ParameterSet parameters = appliedMethodsList.get(j).getParameters();
         for (final Parameter<?> param : parameters.getParameters()) {
           if (param instanceof FeatureListsParameter flistParam) {
-            FeatureListsPlaceholder[] placeholders = flistParam.getValue().getEvaluationResult();
+            FeatureListsPlaceholder[] placeholders = flistParam.getValue().getCurrentFeatureListsPlaceholders();
             for (int k = placeholders.length - 1; k >= 0; k--) {
               FeatureList candidateList = placeholders[k].getMatchingFeatureList();
 //              // feature list is still in memory and was not deleted and already collected by GC
