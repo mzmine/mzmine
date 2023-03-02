@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.massvoltammogram;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramFromFileParameters;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramFromFeatureListParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -29,16 +29,16 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MassvoltommogramFromFileModule implements MZmineRunnableModule {
+public class MassvoltammogramFromFeatureListModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull String getName() {
-    return "Massvoltammogram from Raw Data File";
+    return "Massvoltammogram from Feature List";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return MassvoltammogramFromFileParameters.class;
+    return MassvoltammogramFromFeatureListParameters.class;
   }
 
   @Override
@@ -47,8 +47,7 @@ public class MassvoltommogramFromFileModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
     tasks.add(new MassvoltammogramTask(parameters, moduleCallDate));

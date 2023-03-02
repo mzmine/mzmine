@@ -88,10 +88,9 @@ public class MassvoltammogramTask extends AbstractTask {
 
   /**
    * Todo
-   * Extended3DPlot buttons überarbeiten
-   * MassvoltammogramToolbar erstellen.
    * remove excessZeros kontrollieren
    * mzParameter Übernahme korrigieren
+   * ExtendedPlot3DPanel documentation.
    */
 
   @Override

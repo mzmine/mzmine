@@ -63,7 +63,7 @@ public class Massvoltammogram {
   private List<MassvoltammogramScan> processedScans;
 
   //Plot
-  private final ExtendedPlot3DPanel plot = new ExtendedPlot3DPanel();
+  private final ExtendedPlot3DPanel plot = new ExtendedPlot3DPanel(this);
 
 
   public Massvoltammogram(RawDataFile file, ScanSelection scanSelection, ReactionMode reactionMode,
@@ -389,10 +389,10 @@ public class Massvoltammogram {
     }
     this.userInputMzRange = mzRangeParameter.getValue(MassvoltammogramMzRangeParameter.mzRange);
 
-    plot.removeAllPlots();
-
     setScansInMzRange();
     setProcessedScans();
+
+    plot.removeAllPlots();
     plotMassvoltammogram();
   }
 }

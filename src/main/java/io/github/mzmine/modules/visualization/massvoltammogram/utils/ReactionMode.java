@@ -22,7 +22,7 @@ public enum ReactionMode {
 
   final String name;
 
-  private ReactionMode(String name) {
+  ReactionMode(String name) {
     this.name = name;
   }
 

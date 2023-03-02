@@ -20,37 +20,17 @@ package io.github.mzmine.modules.visualization.massvoltammogram;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExport;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlot3DPanel;
-import io.github.mzmine.modules.visualization.massvoltammogram.plot.ExtendedPlotToolBar;
+import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramToolBar;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
-import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.Collection;
 import java.util.List;
 import javafx.embed.swing.SwingNode;
-import javafx.geometry.Orientation;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
 public class MassvoltammogramTab extends MZmineTab {
-
-  private final Image MOVE_PLOT_ICON = FxIconUtil.loadImageFromResources(
-      "icons/massvoltammogram/btnMove.png");
-  private final Image RESET_PLOT_ICON = FxIconUtil.loadImageFromResources(
-      "icons/massvoltammogram/btnReset.png");
-  private final Image ROTATE_PLOT_ICON = FxIconUtil.loadImageFromResources(
-      "icons/massvoltammogram/btnRotate.png");
-  private final Image EXPORT_PLOT_ICON = FxIconUtil.loadImageFromResources("icons/exporticon.png");
-  private final Image EDIT_MZ_RANGE_ICON = FxIconUtil.loadImageFromResources(
-      "icons/massvoltammogram/btnEditMzRange.png");
 
   @Override
   public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
@@ -82,77 +62,28 @@ public class MassvoltammogramTab extends MZmineTab {
 
   }
 
-  private final ExtendedPlot3DPanel plot;
-
-  private final Massvoltammogram massvoltammogram;
-
   public MassvoltammogramTab(String title, Massvoltammogram massvoltammogram) {
     super(title);
 
-    this.massvoltammogram = massvoltammogram;
-    this.plot = massvoltammogram.getPlot();
-
-    final ExtendedPlotToolBar plotToolBar = plot.getExtendedPlotToolBar();
+    //Creating a pane to add the nodes to.
     final BorderPane mainPane = new BorderPane();
 
-    //Converting the swing object to JavaFX.
+    //Converting the plot from a swing panel to a javafx node.
+    final ExtendedPlot3DPanel plot = massvoltammogram.getPlot();
     final SwingNode swingNodePlot = new SwingNode();
-    swingNodePlot.setContent(this.plot);
+    swingNodePlot.setContent(plot);
 
-    //Creating a button to move the plot.
-    final ToggleButton moveButton = new ToggleButton(null, new ImageView(MOVE_PLOT_ICON));
-    moveButton.setTooltip(new Tooltip("Move the massvoltammogram."));
-    moveButton.setOnAction(e -> plotToolBar.moveButton.doClick());
-    moveButton.setMinSize(35, 35);
-
-    //Creating a Button to rotate the plot.
-    final ToggleButton rotateButton = new ToggleButton(null, new ImageView(ROTATE_PLOT_ICON));
-    rotateButton.setSelected(true);
-    rotateButton.setTooltip(new Tooltip("Rotate the massvoltammogram."));
-    rotateButton.setOnAction(e -> plotToolBar.rotateButton.doClick());
-    rotateButton.setMinSize(35, 35);
-
-    //Connecting the move and rotate buttons in a toggle group
-    final ToggleGroup toggleGroup = new ToggleGroup();
-    moveButton.setToggleGroup(toggleGroup);
-    rotateButton.setToggleGroup(toggleGroup);
-
-    //Creating a button to reset the zoom.
-    final Button resetButton = new Button(null, new ImageView(RESET_PLOT_ICON));
-    resetButton.setTooltip(new Tooltip("Reset the view."));
-    resetButton.setOnAction(e -> plotToolBar.resetPlotButton.doClick());
-    resetButton.setMinSize(35, 35);
-
-    //Creating a button to export the plot.
-    final Button exportButton = new Button(null, new ImageView(EXPORT_PLOT_ICON));
-    exportButton.setTooltip(new Tooltip("Export the massvoltammogram."));
-    exportButton.setOnAction(e -> MassvoltammogramExport.exportPlot(this.massvoltammogram));
-    exportButton.setMinSize(35, 35);
-
-    //Creating a button to edit the m/z-range.
-    Button editMzRangeButton = new Button(null, new ImageView(EDIT_MZ_RANGE_ICON));
-    editMzRangeButton.setTooltip(new Tooltip("Edit the massvoltammogram's m/z-range."));
-    editMzRangeButton.setOnAction(e -> {
-      //Extracting the new m/z range from the list of raw scans.
-      massvoltammogram.editMzRange();
-    });
-    editMzRangeButton.setMinSize(35, 35);
-
-    //Creating a new toolbar and adding the buttons.
-    final ToolBar toolbar = new ToolBar();
-    toolbar.setOrientation(Orientation.VERTICAL);
-    toolbar.getItems()
-        .addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
-    toolbar.setStyle("-fx-background-color: white;");
-
-    //Adding lable to identify the different massvoltammograms
+    //Creating a label from the filename to identify the massvoltammogram.
     Label fileNameLable = new Label(massvoltammogram.getFileName());
     fileNameLable.setStyle("-fx-background-color: white;");
     fileNameLable.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-    //Adding the toolbar and the plot to the pane.
+    //Getting the toolbar for the plot.
+    final MassvoltammogramToolBar toolBar = plot.getMassvoltammogramToolBar();
+
+    //Adding the toolbar, plot and label to the main pane.
     mainPane.setCenter(swingNodePlot);
-    mainPane.setRight(toolbar);
+    mainPane.setRight(toolBar);
     mainPane.setBottom(fileNameLable);
 
     //Setting the pane as the MassvoltammogramTabs content.
