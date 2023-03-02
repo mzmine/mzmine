@@ -29,6 +29,8 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
@@ -126,7 +128,28 @@ public interface ParameterSet extends ParameterContainer {
   }
 
 
-  boolean checkParameterValues(Collection<String> errorMessages);
+  /**
+   * check all parameters. Also {@link FeatureListsParameter} and {@link RawDataFilesParameter}.
+   * Those parameters cannot be checked in batch mode. Then use
+   * {@link #checkParameterValues(Collection, boolean)}
+   *
+   * @param errorMessages will add error messages for each parameter here
+   * @return true if all parameters are set correctly
+   */
+  default boolean checkParameterValues(Collection<String> errorMessages) {
+    return checkParameterValues(errorMessages, false);
+  }
+
+  /**
+   * check all parameters with the option to skip {@link FeatureListsParameter} and
+   * {@link RawDataFilesParameter}. Those parameters cannot be checked in batch mode.
+   *
+   * @param errorMessages                       will add error messages for each parameter here
+   * @param skipRawDataAndFeatureListParameters skip RawDataFile and FeatureList selections if true
+   * @return true if all parameters are set correctly
+   */
+  boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters);
 
   ParameterSet cloneParameterSet();
 

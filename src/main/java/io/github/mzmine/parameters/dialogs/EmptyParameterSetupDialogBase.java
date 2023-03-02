@@ -100,6 +100,11 @@ public class EmptyParameterSetupDialogBase extends Stage {
       }
 
       @Override
+      protected void callCheckParametersButton() {
+        checkParameterValues(true);
+      }
+
+      @Override
       protected void callCancelButton() {
         closeDialog(ExitCode.CANCEL);
       }
@@ -130,6 +135,16 @@ public class EmptyParameterSetupDialogBase extends Stage {
     setMinHeight(400.0);
 
     centerOnScreen();
+  }
+
+  /**
+   * Adds a button to check the parameter
+   */
+  public void addCheckParametersButton() {
+    if (paramPane == null) {
+      return;
+    }
+    paramPane.addCheckParametersButton();
   }
 
   private static double calcMaxHeight() {
@@ -227,27 +242,43 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * double-click by user
    */
   public void closeDialog(ExitCode exitCode) {
+    boolean closeWindow = true;
     if (exitCode == ExitCode.OK) {
       // commit the changes to the parameter set
       updateParameterSetFromComponents();
 
-      if (isValueCheckRequired()) {
-        ArrayList<String> messages = new ArrayList<>();
-        boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+      // ok? only close if value check not required or successful
+      closeWindow = !isValueCheckRequired() || checkParameterValues(false);
+    }
+    if (closeWindow) {
+      this.exitCode = exitCode;
+      hide();
+    }
+  }
 
-        if (!allParametersOK) {
-          StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-          for (String m : messages) {
-            message.append(m);
-            message.append("\n");
-          }
-          MZmineCore.getDesktop().displayMessage(null, message.toString());
-          return;
+  /**
+   * @return false if parameters are set incorrectly
+   */
+  public boolean checkParameterValues(boolean updateParametersFirst) {
+    // commit the changes to the parameter set
+    if (updateParametersFirst) {
+      updateParameterSetFromComponents();
+    }
+
+    if (isValueCheckRequired()) {
+      ArrayList<String> messages = new ArrayList<>();
+      boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+
+      if (!allParametersOK) {
+        StringBuilder message = new StringBuilder("Please check the parameter settings:\n");
+        for (String m : messages) {
+          message.append(m).append("\n");
         }
+        MZmineCore.getDesktop().displayMessage(null, message.toString());
+        return false;
       }
     }
-    this.exitCode = exitCode;
-    hide();
+    return true;
   }
 
   /**
