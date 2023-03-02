@@ -156,6 +156,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     nameParameterMap.put("Min group size in # of scans", minimumConsecutiveScans);
     nameParameterMap.put("Group intensity threshold", minGroupIntensity);
     nameParameterMap.put("Min highest intensity", minHighestPoint);
+    nameParameterMap.put("Scans", scanSelection);
     return nameParameterMap;
   }
 }

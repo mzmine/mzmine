@@ -25,9 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.w3c.dom.Element;
-import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Integer parameter. Note that we prefer to use JTextField rather than JFormattedTextField, because
@@ -133,7 +133,7 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   @Override
   public void setValueToComponent(final IntegerComponent component, final Integer newValue) {
 
-    component.setText(String.valueOf(newValue));
+    component.setText(newValue == null ? "" : String.valueOf(newValue));
   }
 
   @Override

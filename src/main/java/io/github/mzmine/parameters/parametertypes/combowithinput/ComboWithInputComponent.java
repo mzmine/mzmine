@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Objects;
@@ -34,14 +34,16 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 
-public class ComboWIthInputComponent<EnumValue> extends HBox {
+public class ComboWithInputComponent<EnumValue> extends HBox {
 
   private final ComboBox<EnumValue> comboBox;
   private final Node embeddedComponent;
+  private final UserParameter<?, ? extends Node> embeddedParameter;
 
-  public ComboWIthInputComponent(final UserParameter<?, Node> embeddedParameter,
-      final ObservableList<EnumValue> choices, final EnumValue selected,
-      final EnumValue inputTrigger) {
+  public ComboWithInputComponent(final UserParameter<?, ? extends Node> embeddedParameter,
+      final ObservableList<EnumValue> choices, final EnumValue inputTrigger,
+      ComboWithInputValue<EnumValue, ?> defaultValue) {
+    this.embeddedParameter = embeddedParameter;
     setSpacing(5);
     setAlignment(Pos.CENTER_LEFT);
 
@@ -51,10 +53,10 @@ public class ComboWIthInputComponent<EnumValue> extends HBox {
     comboBox = new ComboBox<>();
     comboBox.getSelectionModel().selectedItemProperty()
         .addListener((observable, oldValue, newValue) -> {
-          embeddedComponent.setDisable(!Objects.equals(getValue(), inputTrigger));
+          embeddedComponent.setDisable(!Objects.equals(getSelectedOption(), inputTrigger));
         });
     comboBox.setItems(choices);
-    setValue(selected);
+    setValue(defaultValue);
 
     super.getChildren().addAll(comboBox, embeddedComponent);
   }
@@ -71,11 +73,16 @@ public class ComboWIthInputComponent<EnumValue> extends HBox {
     comboBox.setTooltip(new Tooltip(toolTip));
   }
 
-  public EnumValue getValue() {
+  public EnumValue getSelectedOption() {
     return comboBox.getValue();
   }
 
-  public void setValue(final EnumValue newValue) {
-    comboBox.getSelectionModel().select(newValue);
+  public void setValue(final ComboWithInputValue<EnumValue, ?> newValue) {
+    comboBox.getSelectionModel().select(newValue.getSelectedOption());
+
+    if (embeddedParameter.getValue() != null) {
+      ((UserParameter) this.embeddedParameter).setValueToComponent(embeddedComponent,
+          newValue.getEmbeddedValue());
+    }
   }
 }

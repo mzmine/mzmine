@@ -165,8 +165,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromMzTolerance = new SimpleObjectProperty<>(new MZTolerance(0, 10));
     chromPosition = new SimpleObjectProperty<>();
     spectrumPosition = new SimpleObjectProperty<>();
-    scanSelection = new SimpleObjectProperty<>(
-        new ScanSelection(null, null, null, null, null, null, 1, null));
+    scanSelection = new SimpleObjectProperty<>(new ScanSelection(1));
     mzRange = new SimpleObjectProperty<>();
 
     // initialise controls
@@ -709,10 +708,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ChromatogramAndSpectraVisualizer)) {
+    if (!(o instanceof ChromatogramAndSpectraVisualizer that)) {
       return false;
     }
-    ChromatogramAndSpectraVisualizer that = (ChromatogramAndSpectraVisualizer) o;
     return showSpectraOfEveryRawFile == that.showSpectraOfEveryRawFile && chromPlot.equals(
         that.chromPlot) && spectrumPlot.equals(that.spectrumPlot) && Objects.equals(
         scanSelection.get(), that.scanSelection.get()) && Objects.equals(mzRange.get(),

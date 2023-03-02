@@ -23,54 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.parameters;
 
-import io.github.mzmine.parameters.ParameterContainer;
-import io.github.mzmine.parameters.UserParameter;
-import java.util.Collection;
 import javafx.scene.Node;
 
-/**
- * embedds another parameter and uses the name and description
- */
-public abstract class EmbeddedParameter<ValueType, PARAMETER extends UserParameter<?, ?>, EditorComponent extends Node> implements
-    UserParameter<ValueType, EditorComponent>, ParameterContainer {
+public abstract class AbstractParameter<ValueType, EditorComponent extends Node> implements
+    UserParameter<ValueType, EditorComponent> {
 
-  protected PARAMETER embeddedParameter;
+  protected final String name;
+  protected final String description;
 
-  public EmbeddedParameter(ValueType defaultVal, PARAMETER embeddedParameter) {
-    this.embeddedParameter = embeddedParameter;
+  public AbstractParameter(String name, String description, ValueType defaultVal) {
+    this.name = name;
+    this.description = description;
+    // delegate to sub classes
     setValue(defaultVal);
-  }
-
-  public PARAMETER getEmbeddedParameter() {
-    return embeddedParameter;
-  }
-
-  public void setEmbeddedParameter(PARAMETER embeddedParameter) {
-    this.embeddedParameter = embeddedParameter;
   }
 
   @Override
   public String getName() {
-    return embeddedParameter.getName();
+    return name;
   }
 
   @Override
   public String getDescription() {
-    return embeddedParameter.getDescription();
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return embeddedParameter.checkValue(errorMessages);
-  }
-
-  @Override
-  public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
-    if (embeddedParameter instanceof ParameterContainer pc) {
-      pc.setSkipSensitiveParameters(skipSensitiveParameters);
-    }
+    return description;
   }
 
 }

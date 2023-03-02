@@ -22,49 +22,48 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.parameters.parametertypes.submodules;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
- * @author aleksandrsmirnov
+ * This parameter has an embedded parameterset that is displayed as a sub panel in the dialog with
+ * button to show and hide. also see {@link OptionalModuleParameter} and {@link SubModuleParameter}
  */
-public class ParameterSetParameter implements UserParameter<ParameterSet, ParameterSetComponent>,
-    ParameterContainer, EmbeddedParameterSet<ParameterSet, ParameterSet> {
+public class ParameterSetParameter<SUB extends ParameterSet> implements
+    UserParameter<SUB, OptionalModuleComponent>, ParameterContainer,
+    EmbeddedParameterSet<SUB, SUB> {
 
   private static final Logger logger = Logger.getLogger(ParameterSetParameter.class.getName());
   private final String name;
   private final String description;
-  private ParameterSet value;
+  private SUB value;
 
-  private static final String parameterElement = "parameter";
-  private static final String nameAttribute = "name";
-
-  public ParameterSetParameter() {
-    this("", "", null);
-  }
-
-  public ParameterSetParameter(String name, String description, ParameterSet parameters) {
+  public ParameterSetParameter(String name, String description, SUB parameters) {
     this.name = name;
     this.description = description;
     this.value = parameters;
   }
 
-  public ParameterSet getValue() {
+  public SUB getValue() {
     return value;
   }
 
-  public void setValue(final ParameterSet parameters) {
-    this.value = parameters;
+  public void setValue(final SUB parameters) {
+    if (value == null) {
+      this.value = parameters;
+    } else {
+      // copy parameters over. Just in case if there is already a component showing those parameters
+      ParameterUtils.copyParameters(parameters, value);
+    }
   }
 
   @Override
@@ -78,24 +77,24 @@ public class ParameterSetParameter implements UserParameter<ParameterSet, Parame
   }
 
   @Override
-  public ParameterSetParameter cloneParameter() {
-    return new ParameterSetParameter(this.name, this.description, value);
+  public ParameterSetParameter<SUB> cloneParameter() {
+    return new ParameterSetParameter<>(this.name, this.description,
+        (SUB) value.cloneParameterSet());
   }
 
   @Override
-  public void setValueToComponent(final ParameterSetComponent component,
-      final ParameterSet parameters) {
-    component.setValue(parameters);
+  public void setValueToComponent(final OptionalModuleComponent component, final SUB parameters) {
+    component.setParameterValuesToComponents();
   }
 
   @Override
-  public void setValueFromComponent(final ParameterSetComponent component) {
-    value = component.getValue();
+  public void setValueFromComponent(final OptionalModuleComponent component) {
+    component.updateParameterSetFromComponents();
   }
 
   @Override
-  public ParameterSetComponent createEditingComponent() {
-    return new ParameterSetComponent(this.value);
+  public OptionalModuleComponent createEditingComponent() {
+    return new OptionalModuleComponent(this.value, EmbeddedComponentOptions.VIEW_IN_PANEL, true);
   }
 
   @Override
@@ -104,44 +103,17 @@ public class ParameterSetParameter implements UserParameter<ParameterSet, Parame
       return;
     }
 
-    xmlElement.setAttribute("type", this.name);
-    Document parent = xmlElement.getOwnerDocument();
-
-    for (Parameter p : this.value.getParameters()) {
-      Element newElement = parent.createElement(parameterElement);
-      newElement.setAttribute(nameAttribute, p.getName());
-      xmlElement.appendChild(newElement);
-      p.saveValueToXML(newElement);
-    }
+    value.saveValuesToXML(xmlElement);
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    NodeList list = xmlElement.getElementsByTagName(parameterElement);
-    for (int i = 0; i < list.getLength(); ++i) {
-      Element nextElement = (Element) list.item(i);
-      String paramName = nextElement.getAttribute(nameAttribute);
-      for (Parameter p : this.value.getParameters()) {
-        if (p.getName().equals(paramName)) {
-          try {
-            p.loadValueFromXML(nextElement);
-          } catch (Exception e) {
-            logger.log(Level.WARNING, "Error while loading parameter values for " + p.getName(), e);
-          }
-        }
-      }
-    }
+    value.loadValuesFromXML(xmlElement);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-
-    boolean result = true;
-    for (final Parameter p : this.value.getParameters()) {
-      result &= p.checkValue(errorMessages);
-    }
-
-    return result;
+    return value.checkParameterValues(errorMessages);
   }
 
   @Override
@@ -151,7 +123,21 @@ public class ParameterSetParameter implements UserParameter<ParameterSet, Parame
   }
 
   @Override
-  public ParameterSet getEmbeddedParameters() {
+  public SUB getEmbeddedParameters() {
     return getValue();
+  }
+
+  public void setEmbeddedParameters(final SUB embeddedParameters) {
+    setValue(embeddedParameters);
+  }
+
+  @Override
+  public boolean valueEquals(Parameter<?> that) {
+    if (!(that instanceof ParameterSetParameter<?> thatOpt)) {
+      return false;
+    }
+
+    return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
+        false, false);
   }
 }

@@ -23,63 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-/**
- * Represents the polarity of ionization.
- */
-public enum PolarityType {
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 
-  POSITIVE(+1, "+"), //
-  NEGATIVE(-1, "-"), //
-  NEUTRAL(0, "n"), //
-  /**
-   * Any is used in filters
-   */
-  ANY(0, "Any"), //
-  UNKNOWN(0, "?");
+public class MsLevelFilterParameter extends
+    ComboWithInputParameter<Options, MsLevelFilter, IntegerParameter> {
 
-  private final int sign;
-  private final String charValue;
-
-  PolarityType(int sign, String charValue) {
-    this.sign = sign;
-    this.charValue = charValue;
+  public MsLevelFilterParameter() {
+    this(Options.values(), MsLevelFilter.ALL_LEVELS);
   }
 
-  public static PolarityType fromSingleChar(String s) {
-    for (PolarityType p : values()) {
-      if (p.charValue.equals(s)) {
-        return p;
-      }
-    }
-    return UNKNOWN;
-  }
-
-  public static PolarityType fromInt(int i) {
-    if (i == 0) {
-      return UNKNOWN;
-    } else if (i < 0) {
-      return NEGATIVE;
-    } else {
-      return POSITIVE;
-    }
-  }
-
-  public String asSingleChar() {
-    return charValue;
-  }
-
-  /**
-   * @return +1 for positive polarity, -1 for negative polarity, and 0 for neutral or unknown
-   * polarity.
-   */
-  public int getSign() {
-    return sign;
+  public MsLevelFilterParameter(Options[] options, MsLevelFilter defaultValue) {
+    super(new IntegerParameter("MS level filter",
+            "Only select MS of defined levels. MS1, MS2, MSn (all >1), or specific levels entered as number.",
+            3, true, 1, 100000), //
+        options, Options.SPECIFIC_LEVEL, defaultValue);
   }
 
   @Override
-  public String toString() {
-    return asSingleChar();
+  public MsLevelFilter createValue(final Options option, final IntegerParameter embeddedParameter) {
+    return new MsLevelFilter(option, embeddedParameter.getValue());
   }
+
+
+  @Override
+  public MsLevelFilterParameter cloneParameter() {
+    return new MsLevelFilterParameter(choices.toArray(Options[]::new), value);
+  }
+
 }
