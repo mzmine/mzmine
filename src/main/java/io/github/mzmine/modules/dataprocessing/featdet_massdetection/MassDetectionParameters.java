@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
@@ -127,7 +128,12 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public boolean checkParameterValues(Collection<String> errorMessages) {
     final boolean superCheck = super.checkParameterValues(errorMessages);
     // Check the selected mass detector
-    String massDetectorName = getParameter(massDetector).getValue().toString();
+    MZmineProcessingStep<MassDetector> detector = getValue(massDetector);
+    if (detector == null) {
+      errorMessages.add("No mass detector selected");
+      return false;
+    }
+    String massDetectorName = detector.toString();
 
     // check if denormalize was selected that it matches to the mass detection algorithm
     boolean denorm = getValue(denormalizeMSnScans);
