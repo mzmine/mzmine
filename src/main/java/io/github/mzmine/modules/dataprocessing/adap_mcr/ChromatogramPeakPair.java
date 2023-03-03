@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsPlaceholder;
 import java.util.Arrays;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +50,7 @@ public class ChromatogramPeakPair {
   public final FeatureList chromatograms;
   public final FeatureList peaks;
 
+  private static final Logger logger = Logger.getLogger(ChromatogramPeakPair.class.getName());
   private ChromatogramPeakPair(@NotNull FeatureList chromatograms, @NotNull FeatureList peaks) {
     this.chromatograms = chromatograms;
     this.peaks = peaks;
@@ -75,36 +78,46 @@ public class ChromatogramPeakPair {
     if ((chromatograms == null || chromatograms.length == 0) && (peaks != null
         || peaks.length > 0)) {
 
-      ObservableList<FeatureListAppliedMethod> appliedMethodsList = peaks[0].getAppliedMethods();
-      FeatureList chromatogram = null;
-      for (int j = appliedMethodsList.size() - 1; j >= 0; j--) {
-        ParameterSet parameters = appliedMethodsList.get(j).getParameters();
-        for (final Parameter<?> param : parameters.getParameters()) {
-          if (param instanceof FeatureListsParameter flistParam) {
-            FeatureListsPlaceholder[] placeholders = flistParam.getValue().getCurrentFeatureListsPlaceholders();
-            for (int k = placeholders.length - 1; k >= 0; k--) {
-              FeatureList candidateList = placeholders[k].getMatchingFeatureList();
-//              // feature list is still in memory and was not deleted and already collected by GC
-              if (candidateList != null) {
-                String parentName = peaks[0].getName();
-                if (parentName.contains(candidateList.getName())) {
-                  chromatogram = candidateList;
-                  continue;
-                }
+      for(var peak : peaks) {
+        ObservableList<FeatureListAppliedMethod> appliedMethodsList = peak.getAppliedMethods();
+        FeatureList chromatogram = null;
 
+        String chromatogramSuffix = getChromatogramSuffixFromAppliedMethods(appliedMethodsList);
+        //TODO: get candidate chromatogram based on the suffix
+        for (int j = appliedMethodsList.size() - 1; j >= 0; j--) {
+          ParameterSet parameters = appliedMethodsList.get(j).getParameters();
+          for (final Parameter<?> param : parameters.getParameters()) {
+            if (param instanceof FeatureListsParameter flistParam) {
+              FeatureListsPlaceholder[] placeholders = flistParam.getValue().getCurrentFeatureListsPlaceholders();
+              for (int k = placeholders.length - 1; k >= 0; k--) {
+                FeatureList candidateList = placeholders[k].getMatchingFeatureList();
+//              // feature list is still in memory and was not deleted and already collected by GC
+                if (candidateList != null) {
+                  String parentName = peak.getName();
+                  if (parentName.contains(candidateList.getName())) {
+                    chromatogram = candidateList;
+                    continue;
+                  }
+
+                }
               }
             }
           }
         }
-      }
-      if (chromatogram != null) {
-        pairs.put(peaks[0].getRawDataFile(0), new ChromatogramPeakPair(chromatogram, peaks[0]));
+        if (chromatogram != null) {
+          pairs.put(peak.getRawDataFile(0), new ChromatogramPeakPair(chromatogram, peak));
+        } else {
+          pairs.put(peak.getRawDataFile(0), new ChromatogramPeakPair(peak, peak));
+          logger.warning("Chromatogram list not found");
+        }
       }
       return pairs;
-    } else if (chromatograms == null || chromatograms.length == 0 || peaks == null
+    }
+    else if (chromatograms == null || chromatograms.length == 0 || peaks == null
         || peaks.length == 0) {
       return pairs;
-    } else {
+    }
+    else {
       Set<RawDataFile> dataFiles = new HashSet<>();
       for (FeatureList peakList : chromatograms) {
         dataFiles.add(peakList.getRawDataFile(0));
@@ -125,5 +138,19 @@ public class ChromatogramPeakPair {
 
       return pairs;
     }
+  }
+
+  private static String getChromatogramSuffixFromAppliedMethods (ObservableList<FeatureListAppliedMethod> appliedMethodsList){
+    for (var appliedMethod : appliedMethodsList) {
+      if(appliedMethod.getDescription().equals("ADAP Chromatogram Builder")){
+        ParameterSet parameters = appliedMethod.getParameters();
+        for(var parameter : parameters.getParameters()){
+          if(parameter instanceof StringParameter sp && sp.getName().equals("Suffix")){
+            return sp.getValue();
+          }
+        }
+      }
+    }
+    return null;
   }
 }
