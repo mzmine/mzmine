@@ -78,23 +78,19 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 public class MsMsQualityExportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(MsMsQualityExportTask.class.getName());
-
+  final int numRows;
+  final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
   private final FeatureList[] featureLists;
   private final File exportFile;
   private final String separator = ";";
-  final int numRows;
-
   private final Map<IMSRawDataFile, MobilityScanDataAccess> mobScanAccessMap = new HashMap<>();
   private final MZTolerance msmsFormulaTolerance;
   private final boolean annotatedOnly = true;
   private final ParameterSet parameterSet;
   private final ParameterSet folParams;
-  private int processedRows;
-
   private final MassDetector factorOfLowest = MassDetectionParameters.factorOfLowest;
-
-  final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
   private final boolean matchCompoundToFlist;
+  private int processedRows;
 
   protected MsMsQualityExportTask(@NotNull Instant moduleCallDate, ParameterSet parameterSet) {
     super(null, moduleCallDate);
@@ -201,10 +197,10 @@ public class MsMsQualityExportTask extends AbstractTask {
     final Double window = RangeUtils.rangeLength(mergedMsMs.getMsMsInfo().getIsolationWindow());
 
     mobScanAccess.jumpToFrame((Frame) feature.getRepresentativeScan());
-    final double isolationChimerityScore = IonMobilityUtils.getIsolationChimerity(
+    final double isolationChimerityScore = IonMobilityUtils.getIsolationPurity(
         mergedMsMs.getPrecursorMz(), mobScanAccess,
         RangeUtils.rangeAround(mergedMsMs.getPrecursorMz().doubleValue(), window * 2),
-        info.getMobilityRange());
+        info.getMobilityRange(), true);
 
     MSMSScore peakFormulaScore = new MSMSScore(0f, null);
     MSMSScore intensityFormulaScore = new MSMSScore(0f, null);

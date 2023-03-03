@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -40,5 +41,13 @@ public class SingleSpotMs2Parameters extends SimpleParameterSet {
 
   public SingleSpotMs2Parameters() {
     super(new Parameter[]{laserOffsetX, laserOffsetY});
+  }
+
+  public SingleSpotMs2Parameters(boolean xEnabled, int xOffset, boolean yEnabled, int yOffset) {
+    this();
+    this.setParameter(laserOffsetX, xEnabled);
+    this.getParameter(laserOffsetX).getEmbeddedParameter().setValue(xOffset);
+    this.setParameter(laserOffsetY, yEnabled);
+    this.getParameter(laserOffsetY).getEmbeddedParameter().setValue(xOffset);
   }
 }

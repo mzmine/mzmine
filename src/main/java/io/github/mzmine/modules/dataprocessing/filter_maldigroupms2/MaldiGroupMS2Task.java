@@ -30,10 +30,12 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -53,8 +55,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -150,19 +154,9 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
       totalRows = list.getNumberOfRows();
 
-      // we need to create a new feature list, because the raw data files cannot be altered.
-      // however, we need to set the raw data files so a project can be loaded/saved
-      // LinkedHashSet to keep the current files at the front
-//      final Set<RawDataFile> allFiles = new LinkedHashSet<>();
-//      allFiles.addAll(list.getRawDataFiles());
-//      allFiles.addAll(files);
-
       final ModularFeatureList newFlist = list;
-//          list.createCopy(list.getName(), getMemoryMapStorage(),
-//          allFiles.stream().toList(), false);
-//      files.forEach(file -> newFlist.setSelectedScans(file, file.getScans()));
 
-      // collect all frames with mslevel=2 with the same spot from all files
+      // collect all MS2 infos from all files for fast access
       final List<PasefMsMsInfo> msmsInfos = files.stream()
           .flatMap(file -> file.getScanNumbers(2).stream()).filter(
               scan -> (scan instanceof ImagingFrame imgFrame)
@@ -220,8 +214,13 @@ public class MaldiGroupMS2Task extends AbstractTask {
     Float mobility = feature.getMobility();
 
     final List<MsMsInfo> eligibleMsMsInfos = new ArrayList<>();
+    final IonTimeSeries<ImagingScan> featureData = (IonTimeSeries<ImagingScan>) feature.getFeatureData();
+    final Set<String> spots = featureData.getSpectra().stream()
+        .map(f -> f.getMaldiSpotInfo().spotName()).collect(Collectors.toSet());
     final List<PasefMsMsInfo> msMsInfos = getMsMsInfos(allInfos,
-        mzTol.getToleranceRange(feature.getMZ()));
+        mzTol.getToleranceRange(feature.getMZ())).stream().filter(
+            info -> spots.contains(((ImagingFrame) info.getMsMsFrame()).getMaldiSpotInfo().spotName()))
+        .toList();
 
     msMsInfos.forEach(imsMsMsInfo -> {
       if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {

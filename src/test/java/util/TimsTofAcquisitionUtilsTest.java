@@ -106,8 +106,8 @@ public class TimsTofAcquisitionUtilsTest {
     final MaldiTimsPrecursor precursor = new MaldiTimsPrecursor(null, 500d,
         Range.closed(0.85f, 0.88f), energies);
 
-    spot50_0.addPrecursor(precursor);
-    spot0_50.addPrecursor(precursor);
+    spot50_0.addPrecursor(precursor, 0.01);
+    spot0_50.addPrecursor(precursor, 0.01);
     precursor.incrementSpotCounterForCollisionEnergy(30);
     precursor.incrementSpotCounterForCollisionEnergy(50);
     precursor.incrementSpotCounterForCollisionEnergy(50);
@@ -156,8 +156,8 @@ public class TimsTofAcquisitionUtilsTest {
     final MaldiTimsPrecursor precursor = new MaldiTimsPrecursor(null, 500d,
         Range.closed(0.85f, 0.88f), energies);
 
-    spot50_0.addPrecursor(precursor);
-    spot0_50.addPrecursor(precursor);
+    spot50_0.addPrecursor(precursor, 0.01);
+    spot0_50.addPrecursor(precursor, 0.01);
     precursor.incrementSpotCounterForCollisionEnergy(30);
     precursor.incrementSpotCounterForCollisionEnergy(50);
     precursor.incrementSpotCounterForCollisionEnergy(50);

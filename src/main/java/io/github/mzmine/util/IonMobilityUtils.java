@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -58,6 +59,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityUtils {
+
+  private static final double isotopeDistance = 1.0033;
+  private static final MZTolerance isotopeTol = new MZTolerance(0.003, 10);
 
   public static double getSmallestMobilityDelta(Frame frame) {
     double minDelta = Double.MAX_VALUE;
@@ -361,16 +365,17 @@ public class IonMobilityUtils {
    * be set to the first using {@link MobilityScanDataAccess#resetMobilityScan()}. If no data points
    * are found in the isolation window a score of 0 will be returned.
    *
-   * @param precursorMz   The precursor to isolate.
-   * @param access        A data access.
-   * @param mzRange       The mzRange to isolate.
-   * @param mobilityRange The mobility range to isolate.
+   * @param precursorMz          The precursor to isolate.
+   * @param access               A data access.
+   * @param mzRange              The mzRange to isolate.
+   * @param mobilityRange        The mobility range to isolate.
+   * @param sumPrecursorIsotopes If true, isotope intensities are summed to the precursor
    * @return Accumulated precursor intensity divided by intensity of all ions in the isolation
    * window. 0 if no intensities are found.
    */
-  public static double getIsolationChimerity(final double precursorMz,
+  public static double getIsolationPurity(final double precursorMz,
       @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
-      @NotNull final Range<Float> mobilityRange) {
+      @NotNull final Range<Float> mobilityRange, boolean sumPrecursorIsotopes) {
 
     double precursorIntensity = 0d;
     double isolationWindowTIC = 0d;
@@ -385,7 +390,8 @@ public class IonMobilityUtils {
       }
 
       final int closestIndex = access.binarySearch(precursorMz, true);
-      if (mzRange.contains(access.getMzValue(closestIndex))) {
+      final double precursorMzInScan = access.getMzValue(closestIndex);
+      if (mzRange.contains(precursorMzInScan)) {
         precursorIntensity += access.getIntensityValue(closestIndex);
         isolationWindowTIC += access.getIntensityValue(closestIndex);
       }
@@ -393,6 +399,10 @@ public class IonMobilityUtils {
       for (int i = closestIndex - 1; i > 0; i--) {
         if (mzRange.contains(access.getMzValue(i))) {
           isolationWindowTIC += access.getIntensityValue(i);
+          if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+              isotopeTol)) {
+            precursorIntensity += access.getIntensityValue(i);
+          }
         } else {
           break;
         }
@@ -401,6 +411,10 @@ public class IonMobilityUtils {
       for (int i = closestIndex + 1; i < access.getNumberOfDataPoints(); i++) {
         if (mzRange.contains(access.getMzValue(i))) {
           isolationWindowTIC += access.getIntensityValue(i);
+          if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+              isotopeTol)) {
+            precursorIntensity += access.getIntensityValue(i);
+          }
         } else {
           break;
         }
@@ -426,6 +440,13 @@ public class IonMobilityUtils {
     return new SummedIntensityMobilitySeries(null, newMobilities, newIntensities);
   }
 
+  public static boolean isPotentialIsotope(final double monoisotopicMz, final double mzToCheck,
+      final MZTolerance tolerance) {
+    final int num13c = (int) Math.round(mzToCheck - monoisotopicMz);
+    return tolerance.checkWithinTolerance(monoisotopicMz + num13c * isotopeDistance, mzToCheck);
+  }
+
+
   public enum MobilogramType {
     BASE_PEAK, TIC;
 
@@ -436,5 +457,4 @@ public class IonMobilityUtils {
       };
     }
   }
-
 }

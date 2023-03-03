@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.gui.mainwindow.FeatureListSummaryController;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
@@ -47,7 +48,9 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionTas
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcqusitionWriter;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.SingleSpotMs2Writer;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeDouble;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -85,7 +88,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final Double isolationWidth;
   private final MZTolerance isolationWindow;
   private final int numMsMs;
-  private final double minMsMsIntensity;
+  private final AbsoluteAndRelativeDouble minMsMsIntensity;
   private final int minDistance;
 
   private final double minChimerityScore;
@@ -100,7 +103,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final int totalMsMsPerFeature;
   private final Map<Feature, List<ImagingSpot>> featureSpotMap = new HashMap<>();
   private final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
-  private String desc = "Running MAlDI acquisition";
+  private final double minMobilityDistance;
+  private String desc = "Scheduling precursors MALDI acquisition";
   private double progress = 0d;
   private File currentCeFile = null;
 
@@ -110,24 +114,39 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     super(storage, moduleCallDate);
     this.parameters = parameters;
 
+    var advancedParam = parameters.getParameter(TimsTOFImageMsMsParameters.advancedParameters);
+
     flists = parameters.getValue(TimsTOFImageMsMsParameters.flists).getMatchingFeatureLists();
-    maxMobilityWidth = parameters.getValue(TimsTOFImageMsMsParameters.maxMobilityWidth);
-    minMobilityWidth = parameters.getValue(TimsTOFImageMsMsParameters.minMobilityWidth);
+    maxMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.maxMobilityWidth,
+        AdvancedImageMsMsParameters.MAX_MOBILITY_WIDTH);
+    minMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.minMobilityWidth,
+        AdvancedImageMsMsParameters.MIN_MOBILITY_DISTANCE);
     acqControl = parameters.getValue(TimsTOFImageMsMsParameters.acquisitionControl);
     savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
-    isolationWidth = parameters.getValue(TimsTOFImageMsMsParameters.isolationWidth);
+    isolationWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.isolationWidth,
+        AdvancedImageMsMsParameters.MIN_ISOLATION_WIDTH);
+    minMobilityDistance = advancedParam.getValueOrDefault(
+        AdvancedImageMsMsParameters.minMobiltiyDistance,
+        AdvancedImageMsMsParameters.MIN_ISOLATION_WIDTH);
     numMsMs = parameters.getValue(TimsTOFImageMsMsParameters.numMsMs);
     collisionEnergies = parameters.getValue(TimsTOFImageMsMsParameters.collisionEnergies);
     minMsMsIntensity = parameters.getValue(TimsTOFImageMsMsParameters.minimumIntensity);
     minDistance = parameters.getValue(TimsTOFImageMsMsParameters.minimumDistance);
-    minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.maximumChimerity);
+    minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.minimumPurity);
     this.scheduleOnly = scheduleOnly;
-    isolationWindow = new MZTolerance((isolationWidth / 1.7) / 2,
+    isolationWindow = new MZTolerance((isolationWidth * 1.3) / 2,
         0d); // isolation window typically wider than set
-    ms2Module = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode).getModule();
-    ms2ModuleParameters = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode)
-        .getParameterSet();
+//    ms2Module = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode).getModule();
+    if (advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.ms2ImagingMode, false)) {
+      ms2Module = advancedParam.getEmbeddedParameters()
+          .getEmbeddedParameterValue(AdvancedImageMsMsParameters.ms2ImagingMode).getModule();
+      ms2ModuleParameters = advancedParam.getEmbeddedParameters()
+          .getEmbeddedParameterValue(AdvancedImageMsMsParameters.ms2ImagingMode).getParameterSet();
+    } else {
+      ms2Module = AdvancedImageMsMsParameters.single;
+      ms2ModuleParameters = AdvancedImageMsMsParameters.defaultSpotWriterParam;
+    }
     ms2ImagingMode = ms2Module.equals(MZmineCore.getModuleInstance(SingleSpotMs2Writer.class))
         ? Ms2ImagingMode.SINGLE : Ms2ImagingMode.TRIPLE;
 
@@ -183,7 +202,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     // those. should be easier to find spots for high area features
     rows.sort(Comparator.comparingDouble(FeatureListRow::getAverageArea));
     for (int i = 0; i < rows.size(); i++) {
-      progress = 0.1 * i / (double) rows.size();
+      progress = i / (double) rows.size();
 
       final FeatureListRow row = rows.get(i);
       if (isCanceled()) {
@@ -191,7 +210,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
 
       final Feature f = row.getBestFeature();
-      if (f.getHeight() < minMsMsIntensity) {
+      if (f.getHeight() < minMsMsIntensity.getMaximumValue(f.getHeight())) {
         continue;
       }
 
@@ -203,7 +222,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       final IonTimeSeries<? extends Scan> data = f.getFeatureData();
       final IonTimeSeries<? extends ImagingFrame> imagingData = (IonTimeSeries<? extends ImagingFrame>) data;
 
-      final var minFeatureIntensity = Math.max(minMsMsIntensity, f.getHeight() * 0.01);
+      final var minFeatureIntensity = minMsMsIntensity.getMaximumValue(
+          f.getHeight());//Math.max(minMsMsIntensity, f.getHeight() * 0.01);
 
       // check existing msms spots first
       addEntriesToExistingSpots(access, minFeatureIntensity, frameSpotMap, precursor, imagingData,
@@ -221,7 +241,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
 
       // find new entries
-      createNewMsMsSpots(access, frameSpotMap, minMsMsIntensity, imagingData, precursor, numMsMs,
+      createNewMsMsSpots(access, frameSpotMap, minFeatureIntensity, imagingData, precursor, numMsMs,
           featureSpotMap, minDistance, minChimerityScore);
 
       spotsFeatureCounter[precursor.getTotalMsMs()]++;
@@ -266,6 +286,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     }
 
     if (!isCanceled()) {
+      desc = "Running MALDI Acquisition.";
       TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);
     }
 
@@ -316,7 +337,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
       final ImagingSpot spot = spotMap.computeIfAbsent(frame,
           a -> new ImagingSpot(a.getMaldiSpotInfo(), ms2ImagingMode, collisionEnergy));
-      if (spot.addPrecursor(precursor)) {
+      if (spot.addPrecursor(precursor, minMobilityDistance)) {
         spots.add(spot);
 //        logger.finest(
 //            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to new spot "
@@ -351,7 +372,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       }
 
       // check if the entry fits into the precursor ramp at that spot
-      if (imagingSpot.addPrecursor(precursor)) {
+      if (imagingSpot.addPrecursor(precursor, minMobilityDistance)) {
 //        logger.finest(
 //            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to existing spot "
 //                + imagingSpot.spotInfo().spotName());
@@ -369,8 +390,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     access.jumpToFrame(usedFrame);
 
     // check the chimerity of the current spot.
-    final double chimerityScore = IonMobilityUtils.getIsolationChimerity(precursor.mz(), access,
-        isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0());
+    final double chimerityScore = IonMobilityUtils.getIsolationPurity(precursor.mz(), access,
+        isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0(), true);
     if (chimerityScore < minChimerityScore) {
       return false;
     }
@@ -460,6 +481,15 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(precursorFile))) {
       writer.write(precursorBuilder.toString());
     }
+
+    final File parametersFile = new File(savePathDir, "parameters.txt");
+    parametersFile.createNewFile();
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(parametersFile))) {
+      for (Parameter<?> parameter : parameters.getParameters()) {
+        writer.write(FeatureListSummaryController.parameterToString(parameter));
+        writer.newLine();
+      }
+    }
   }
 
   private int getSpotsAboveThreshold(MaldiTimsPrecursor p) {
@@ -467,7 +497,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
     int counter = 0;
     for (int i = 0; i < data.getNumberOfValues(); i++) {
-      if (data.getIntensity(i) > minMsMsIntensity) {
+      if (data.getIntensity(i) > minMsMsIntensity.getMaximumValue(p.feature().getHeight())) {
         counter++;
       }
     }

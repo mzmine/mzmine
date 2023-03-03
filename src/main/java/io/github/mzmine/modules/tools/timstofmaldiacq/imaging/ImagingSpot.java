@@ -86,7 +86,7 @@ public final class ImagingSpot {
    * @return True if the precursor was added successfully somewhere adjacent to this spot. Increases
    * the CE counter in the feature for this spot's collision energy if the precursor was added.
    */
-  public boolean addPrecursor(MaldiTimsPrecursor precursor) {
+  public boolean addPrecursor(MaldiTimsPrecursor precursor, double minMobilityDistance) {
     switch (imagingMode) {
       case TRIPLE -> {
         for (int x = 0; x < 2; x++) {
@@ -94,7 +94,7 @@ public final class ImagingSpot {
             if (x == 0 && y == 0) {
               continue;
             }
-            if (addPrecursorToList(precursor, x, y)) {
+            if (addPrecursorToList(precursor, x, y, minMobilityDistance)) {
               return true;
             }
           }
@@ -102,7 +102,7 @@ public final class ImagingSpot {
         return false;
       }
       case SINGLE -> {
-        return addPrecursorToList(precursor, 0, 0);
+        return addPrecursorToList(precursor, 0, 0, minMobilityDistance);
       }
     }
     return false;
@@ -116,13 +116,14 @@ public final class ImagingSpot {
    * @param yOffset integer offset in y direction from this spot
    * @return True if the precursor was added successfully, false if it would overlap
    */
-  public boolean addPrecursorToList(MaldiTimsPrecursor precursor, int xOffset, int yOffset) {
+  public boolean addPrecursorToList(MaldiTimsPrecursor precursor, int xOffset, int yOffset,
+      double minMobilityDistance) {
     var list = getPrecursorList(xOffset, yOffset);
     if (list.size() == MAX_PRECURSORS) {
       return false;
     }
     for (MaldiTimsPrecursor p : list) {
-      if (TopNSelectionModule.overlaps(p, precursor)) {
+      if (TopNSelectionModule.overlaps(p, precursor, minMobilityDistance)) {
         return false;
       }
     }
