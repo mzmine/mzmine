@@ -201,8 +201,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     if (scans.isEmpty() || matches.isEmpty()) {
       return;
     }
-    // filter scans if selection is only MS2
-    getApplyScansFilter(scans);
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
     var match = matches.get(0);
@@ -227,6 +225,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       // merge spectra, find best spectrum for each MSn node in the tree and each energy
       scans = selection.getAllFragmentSpectra(scans);
     }
+    // filter scans if selection is only MS2
+    // filter after merging scans to also generate PSEUDO MS2 from MSn spectra
+    getApplyScansFilter(scans);
 
     // cache all formulas
     IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
