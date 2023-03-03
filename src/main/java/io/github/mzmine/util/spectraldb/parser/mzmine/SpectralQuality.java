@@ -22,41 +22,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+package io.github.mzmine.util.spectraldb.parser.mzmine;
 
-/**
- *
- */
-public class MobilityToleranceComponent extends BorderPane {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
-  private final TextField toleranceField;
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record SpectralQuality(Float explainedIntensity, Float explainedSignals, String chimeric,
+                              Float spectralEntropy, Float normalizedSpectralEntropy) {
 
-  public MobilityToleranceComponent() {
-    toleranceField = new TextField();
-    toleranceField.setPrefColumnCount(6);
-    setCenter(toleranceField);
-  }
-
-  public MobilityTolerance getValue() {
-    try {
-      final String valueString = toleranceField.getText();
-      return new MobilityTolerance(Float.parseFloat(valueString));
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
-  public void setValue(MobilityTolerance value) {
-    float tolerance = value.getTolerance();
-    String valueString = String.valueOf(tolerance);
-    toleranceField.setText(valueString);
-  }
-
-  public void setToolTipText(String toolTip) {
-    toleranceField.setTooltip(new Tooltip(toolTip));
-  }
 }

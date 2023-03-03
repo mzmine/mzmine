@@ -22,41 +22,46 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+package io.github.mzmine.util;
+
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
+ * Used to cache the formula + mz results
  *
+ * @param mz exact mz
  */
-public class MobilityToleranceComponent extends BorderPane {
+public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
 
-  private final TextField toleranceField;
-
-  public MobilityToleranceComponent() {
-    toleranceField = new TextField();
-    toleranceField.setPrefColumnCount(6);
-    setCenter(toleranceField);
+  @Override
+  public String toString() {
+    return MolecularFormulaManipulator.getString(formula) + ", mz=" + mz;
   }
 
-  public MobilityTolerance getValue() {
-    try {
-      final String valueString = toleranceField.getText();
-      return new MobilityTolerance(Float.parseFloat(valueString));
-    } catch (Exception e) {
-      return null;
+  public int getCharge() {
+    return Objects.requireNonNullElse(formula.getCharge(), 0);
+  }
+
+  /**
+   * Charge string as
+   *
+   * @return +1
+   */
+  @NotNull
+  public String getChargeString() {
+    int charge = getCharge();
+    String chargeStr = charge > 1 ? "" + charge : "";
+    if (charge > 0) {
+      return "+" + chargeStr;
     }
-  }
-
-  public void setValue(MobilityTolerance value) {
-    float tolerance = value.getTolerance();
-    String valueString = String.valueOf(tolerance);
-    toleranceField.setText(valueString);
-  }
-
-  public void setToolTipText(String toolTip) {
-    toleranceField.setTooltip(new Tooltip(toolTip));
+    if (charge < 0) {
+      return "-" + chargeStr;
+    } else {
+      return "";
+    }
   }
 }

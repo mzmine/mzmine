@@ -22,41 +22,35 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+package io.github.mzmine.util.spectraldb.parser.mzmine;
 
-/**
- *
- */
-public class MobilityToleranceComponent extends BorderPane {
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.io.IOException;
 
-  private final TextField toleranceField;
+class SpectrumDeserializer extends JsonDeserializer<double[][]> {
 
-  public MobilityToleranceComponent() {
-    toleranceField = new TextField();
-    toleranceField.setPrefColumnCount(6);
-    setCenter(toleranceField);
-  }
-
-  public MobilityTolerance getValue() {
-    try {
-      final String valueString = toleranceField.getText();
-      return new MobilityTolerance(Float.parseFloat(valueString));
-    } catch (Exception e) {
-      return null;
+  @Override
+  public double[][] deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+    DoubleArrayList mzs = new DoubleArrayList();
+    DoubleArrayList intensities = new DoubleArrayList();
+    while (true) {
+      JsonToken token = p.nextToken();
+      if (token == null) {
+        break;
+      }
+      if (token == JsonToken.START_ARRAY) {
+        // read xy
+        p.nextToken();
+        mzs.add(p.getDoubleValue());
+        p.nextToken();
+        intensities.add(p.getDoubleValue());
+      }
     }
-  }
-
-  public void setValue(MobilityTolerance value) {
-    float tolerance = value.getTolerance();
-    String valueString = String.valueOf(tolerance);
-    toleranceField.setText(valueString);
-  }
-
-  public void setToolTipText(String toolTip) {
-    toleranceField.setTooltip(new Tooltip(toolTip));
+    return new double[][]{mzs.toDoubleArray(), intensities.toDoubleArray()};
   }
 }

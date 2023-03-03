@@ -22,41 +22,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+package io.github.mzmine.modules.tools.msmsscore;
 
 /**
- *
+ * Defines what signals should be matched
  */
-public class MobilityToleranceComponent extends BorderPane {
+public enum SignalSelection {
+  NEUTRAL_LOSSES, MZ_SIGNALS;
 
-  private final TextField toleranceField;
-
-  public MobilityToleranceComponent() {
-    toleranceField = new TextField();
-    toleranceField.setPrefColumnCount(6);
-    setCenter(toleranceField);
-  }
-
-  public MobilityTolerance getValue() {
-    try {
-      final String valueString = toleranceField.getText();
-      return new MobilityTolerance(Float.parseFloat(valueString));
-    } catch (Exception e) {
-      return null;
+  /**
+   * throws RuntimeException exception if NEUTRAL_LOSS is selected and charge is >0 or if MZ_SIGNALS
+   * is selected and charge is 0
+   *
+   * @param charge charge of a formula or similar
+   */
+  public void matchesChargeStateOrElseThrow(final int charge) {
+    if (this == SignalSelection.MZ_SIGNALS && charge == 0) {
+      throw new IllegalStateException(
+          "Cannot use SignalSelection.NEUTRAL_LOSS with charge state=" + charge);
     }
-  }
-
-  public void setValue(MobilityTolerance value) {
-    float tolerance = value.getTolerance();
-    String valueString = String.valueOf(tolerance);
-    toleranceField.setText(valueString);
-  }
-
-  public void setToolTipText(String toolTip) {
-    toleranceField.setTooltip(new Tooltip(toolTip));
+    if (this == SignalSelection.NEUTRAL_LOSSES && Math.abs(charge) > 0) {
+      throw new IllegalStateException(
+          "Cannot use SignalSelection.NEUTRAL_LOSS with charge state>0: " + charge);
+    }
   }
 }
