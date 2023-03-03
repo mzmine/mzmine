@@ -995,7 +995,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     var advanced = param.getEmbeddedParameterValue(SpectralLibrarySearchParameters.advanced);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.cropSpectraToOverlap, false);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.deisotoping, false);
-    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.noiseLevel, false, 0d);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.needsIsotopePattern, false);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.rtTolerance, false);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.ccsTolerance, false, 0.05);

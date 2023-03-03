@@ -51,7 +51,6 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanAlignment;
-import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
@@ -100,7 +99,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final AtomicInteger errorCounter = new AtomicInteger(0);
   private boolean useRT;
   private final int totalRows;
-  private double noiseLevel;
   private final int minMatch;
   private final boolean removePrecursor;
   private boolean cropSpectraToOverlap;
@@ -151,8 +149,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     if (useAdvanced) {
       AdvancedSpectralLibrarySearchParameters advanced = parameters.getParameter(
           SpectralLibrarySearchParameters.advanced).getEmbeddedParameters();
-      noiseLevel = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectralLibrarySearchParameters.noiseLevel, 0d);
 
       needsIsotopePattern = advanced.getValue(
           AdvancedSpectralLibrarySearchParameters.needsIsotopePattern);
@@ -211,8 +207,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     if (useAdvanced) {
       AdvancedSpectralLibrarySearchParameters advanced = parameters.getParameter(
           SpectralLibrarySearchParameters.advanced).getEmbeddedParameters();
-      noiseLevel = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectralLibrarySearchParameters.noiseLevel, 0d);
       useRT = advanced.getValue(AdvancedSpectralLibrarySearchParameters.rtTolerance);
       rtTolerance = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.rtTolerance)
           .getEmbeddedParameter().getValue();
@@ -339,7 +333,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   public void matchScan(List<SpectralLibraryEntry> entries, Scan scan) {
     try {
       // get mass list and perform deisotoping if active
-      DataPoint[] masses = getDataPoints(scan, true, scan.getPrecursorMz());
+      DataPoint[] masses = getDataPoints(scan, scan.getPrecursorMz());
 
       // get a ccs for the precursor of this scan
       final Float precursorCCS = getPrecursorCCSFromMsMs(scan);
@@ -409,7 +403,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       List<DataPoint[]> rowMassLists = new ArrayList<>();
       for (Scan scan : scans) {
         // get mass list and perform deisotoping if active
-        DataPoint[] rowMassList = getDataPoints(scan, true, row.getAverageMZ());
+        DataPoint[] rowMassList = getDataPoints(scan, row.getAverageMZ());
         rowMassLists.add(rowMassList);
       }
 
@@ -559,7 +553,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @return the mass list data points from scan
    * @throws MissingMassListException if no mass list available
    */
-  protected DataPoint[] getDataPoints(Scan scan, boolean noiseFilter, Double precursorMz)
+  protected DataPoint[] getDataPoints(Scan scan, Double precursorMz)
       throws MissingMassListException {
     if (scan == null || scan.getMassList() == null) {
       return new DataPoint[0];
@@ -567,9 +561,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
     MassList masses = scan.getMassList();
     DataPoint[] dps = masses.getDataPoints();
-    if (noiseFilter) {
-      dps = ScanUtils.getFiltered(dps, noiseLevel);
-    }
     if (removeIsotopes) {
       dps = removeIsotopes(dps);
     }
