@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
+import java.awt.Font;
 import org.math.plot.Plot3DPanel;
 
 /**
@@ -35,6 +36,18 @@ public class MassvoltammogramPlotPanel extends Plot3DPanel {
     //Removing the original plot toolbar and exchanging it for the MassvoltammogramToolBar.
     removePlotToolBar();
     massvoltammogramToolBar = new MassvoltammogramToolBar(this, massvoltammogram);
+
+    //Setting the font of the axis labels.
+    Font axisLabelFont = new Font("Arial", Font.PLAIN, 14);
+    getAxis(0).setLabelFont(axisLabelFont);
+    getAxis(1).setLabelFont(axisLabelFont);
+    getAxis(2).setLabelFont(axisLabelFont);
+
+    //Setting the font of the axis tick marks.
+    Font tickmarkFont = new Font("Arial", Font.PLAIN, 12);
+    getAxis(0).setLightLabelFont(tickmarkFont);
+    getAxis(1).setLightLabelFont(tickmarkFont);
+    getAxis(2).setLightLabelFont(tickmarkFont);
   }
 
   /**
