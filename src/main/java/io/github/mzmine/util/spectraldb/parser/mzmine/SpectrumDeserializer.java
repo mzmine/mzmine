@@ -23,29 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.scores;
+package io.github.mzmine.util.spectraldb.parser.mzmine;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.io.IOException;
 
-/**
- * The MS/MS score is used during molecular formula prediction to score how many signals are
- * described by the molecular formula candidate. The score is calculated in
- * {@link MSMSScoreCalculator#evaluateMsMsFast}
- */
-public class MsMsScoreType extends ScoreType {
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "msms_score";
-  }
+class SpectrumDeserializer extends JsonDeserializer<double[][]> {
 
   @Override
-  public @NotNull String getHeaderString() {
-    return "MS/MS score";
+  public double[][] deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+    DoubleArrayList mzs = new DoubleArrayList();
+    DoubleArrayList intensities = new DoubleArrayList();
+    while (true) {
+      JsonToken token = p.nextToken();
+      if (token == null) {
+        break;
+      }
+      if (token == JsonToken.START_ARRAY) {
+        // read xy
+        p.nextToken();
+        mzs.add(p.getDoubleValue());
+        p.nextToken();
+        intensities.add(p.getDoubleValue());
+      }
+    }
+    return new double[][]{mzs.toDoubleArray(), intensities.toDoubleArray()};
   }
-
 }

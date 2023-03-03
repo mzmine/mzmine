@@ -23,29 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.scores;
-
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
-import org.jetbrains.annotations.NotNull;
+package io.github.mzmine.modules.tools.msmsscore;
 
 /**
- * The MS/MS score is used during molecular formula prediction to score how many signals are
- * described by the molecular formula candidate. The score is calculated in
- * {@link MSMSScoreCalculator#evaluateMsMsFast}
+ * Defines what signals should be matched
  */
-public class MsMsScoreType extends ScoreType {
+public enum SignalSelection {
+  NEUTRAL_LOSSES, MZ_SIGNALS;
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "msms_score";
+  /**
+   * throws RuntimeException exception if NEUTRAL_LOSS is selected and charge is >0 or if MZ_SIGNALS
+   * is selected and charge is 0
+   *
+   * @param charge charge of a formula or similar
+   */
+  public void matchesChargeStateOrElseThrow(final int charge) {
+    if (this == SignalSelection.MZ_SIGNALS && charge == 0) {
+      throw new IllegalStateException(
+          "Cannot use SignalSelection.NEUTRAL_LOSS with charge state=" + charge);
+    }
+    if (this == SignalSelection.NEUTRAL_LOSSES && Math.abs(charge) > 0) {
+      throw new IllegalStateException(
+          "Cannot use SignalSelection.NEUTRAL_LOSS with charge state>0: " + charge);
+    }
   }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "MS/MS score";
-  }
-
 }

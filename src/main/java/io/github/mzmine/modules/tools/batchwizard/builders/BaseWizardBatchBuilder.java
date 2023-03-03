@@ -630,7 +630,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     importParams.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[]{fileName});
 
     q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(SpectralLibraryImportModule.class), param));
+        MZmineCore.getModuleInstance(SpectralLibraryImportModule.class), importParams));
   }
 
   protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
@@ -1018,7 +1018,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(LocalCSVDatabaseSearchParameters.dataBaseFile, csvLibraryFile);
     param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator,
-        csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\t");
+        csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\\t");
     param.setParameter(LocalCSVDatabaseSearchParameters.columns, csvColumns);
     param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LocalCSVDatabaseSearchParameters.rtTolerance,
