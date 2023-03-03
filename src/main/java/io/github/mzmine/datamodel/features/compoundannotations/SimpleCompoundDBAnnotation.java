@@ -97,7 +97,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    */
   public SimpleCompoundDBAnnotation(final OnlineDatabases db, final String id, final String name,
       final String formula, final URL urlDb, final URL url2d, final URL url3d) {
-
+    this(formula);
     putIfNotNull(DatabaseNameType.class, db != null ? db.name() : null);
     putIfNotNull(CompoundNameType.class, name);
 
@@ -113,6 +113,18 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       put(Structure3dUrlType.class, new UrlShortName(url3d.toString(), "3D Structure"));
     }
 
+  }
+
+  public SimpleCompoundDBAnnotation(final String formula) {
+    setFormula(formula);
+  }
+
+  /**
+   * Calculate neutral mass if not already present. then keep the original.
+   *
+   * @param formula molecular formula
+   */
+  public void setFormula(final String formula) {
     putIfNotNull(FormulaType.class, formula);
 
     final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
@@ -121,6 +133,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
           MolecularFormulaManipulator.MonoIsotopic));
     }
   }
+
 
   public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader,
       @NotNull final MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row)

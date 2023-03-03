@@ -183,6 +183,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     final double mz = clone.calcMzForAdduct(adduct);
     clone.put(PrecursorMZType.class, mz);
     clone.put(IonTypeType.class, adduct);
+    // TODO add ion formula
     return clone;
   }
 
