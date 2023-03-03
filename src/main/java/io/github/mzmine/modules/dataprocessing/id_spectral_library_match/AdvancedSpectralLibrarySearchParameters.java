@@ -43,7 +43,7 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
       new PercentParameter("CCS tolerance [%]",
           "CCS tolerance for spectral library entries to be matched against a feature.\n"
               + "If the row or the library entry does not have a CCS value, no spectrum will be matched.",
-          0.05), true);
+          0.05), false);
 
   public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
       new RTToleranceParameter());
@@ -51,16 +51,17 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
   public static final OptionalParameter<DoubleParameter> noiseLevel = new OptionalParameter<>(
       new DoubleParameter("Minimum ion intensity",
           "Signals below this level will be filtered away from mass lists",
-          MZmineCore.getConfiguration().getIntensityFormat(), 0d));
+          MZmineCore.getConfiguration().getIntensityFormat(), 0d), false);
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping = new OptionalModuleParameter<>(
-      "13C deisotoping", "Removes 13C isotope signals from mass lists",
-      new MassListDeisotoperParameters(), true);
+      "13C deisotoping",
+      "Removes 13C isotope signals from the query and library spectrum before matching",
+      new MassListDeisotoperParameters(), false);
 
   public static final BooleanParameter cropSpectraToOverlap = new BooleanParameter(
       "Crop spectra to m/z overlap",
       "Crop query and library spectra to overlapping m/z range (+- spectra m/z tolerance). This is helptful if spectra were acquired with different fragmentation energies / methods.",
-      true);
+      false);
 
   public static final OptionalParameter<IntegerParameter> needsIsotopePattern = new OptionalParameter<>(
       new IntegerParameter("Min matched isotope signals",

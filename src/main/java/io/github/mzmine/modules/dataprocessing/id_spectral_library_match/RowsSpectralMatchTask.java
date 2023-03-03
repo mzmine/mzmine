@@ -41,6 +41,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -83,12 +84,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
   protected final AtomicInteger matches = new AtomicInteger(0);
   protected final MZTolerance mzToleranceSpectra;
   protected final MZTolerance mzTolerancePrecursor;
+  private final MsLevelFilter msLevel;
   protected RTTolerance rtTolerance;
   protected PercentTolerance ccsTolerance;
   private final AtomicInteger errorCounter = new AtomicInteger(0);
   private boolean useRT;
   private final int totalRows;
-  private final int msLevel;
   private double noiseLevel;
   private final int minMatch;
   private final boolean removePrecursor;
@@ -119,7 +120,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         scan, libraries.size(), librariesJoined);
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
-    msLevel = scan.getMSLevel();
+    msLevel = MsLevelFilter.of(scan.getMSLevel());
 
     // use precursor mz provided by user
     boolean useScanPrecursorMZ = parameters.getValue(
@@ -133,7 +134,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
     simFunction = parameters.getValue(SpectralLibrarySearchParameters.similarityFunction);
     removePrecursor = parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
-    mzTolerancePrecursor = msLevel <= 1 ? null
+    mzTolerancePrecursor = msLevel.isMs1Only() ? null
         : parameters.getValue(SpectralLibrarySearchParameters.mzTolerancePrecursor);
 
     var useAdvanced = parameters.getValue(SpectralLibrarySearchParameters.advanced);
@@ -185,7 +186,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     removePrecursor = parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
     allMS2Scans = parameters.getValue(SpectralLibrarySearchParameters.allMS2Spectra);
 
-    if (msLevel > 1) {
+    if (!msLevel.isMs1Only()) {
       mzTolerancePrecursor = parameters.getValue(
           SpectralLibrarySearchParameters.mzTolerancePrecursor);
     } else {
@@ -455,8 +456,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
       DataPoint[] rowMassList, SpectralLibraryEntry ident) {
     // retention time
     // MS level 1 or check precursorMZ
-    if (checkRT(rowRT, ident) && (msLevel == 1 || checkPrecursorMZ(rowMZ, ident)) && checkCCS(
-        rowCCS, ident)) {
+    if (checkRT(rowRT, ident) && (msLevel.isMs1Only() || checkPrecursorMZ(rowMZ, ident))
+        && checkCCS(rowCCS, ident)) {
       DataPoint[] library = ident.getDataPoints();
       if (removeIsotopes) {
         library = removeIsotopes(library);
@@ -473,7 +474,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       }
 
       // remove precursor signals
-      if (msLevel > 1 && removePrecursor && ident.getPrecursorMZ() != null) {
+      if (!msLevel.isMs1Only() && removePrecursor && ident.getPrecursorMZ() != null) {
         // precursor mz from library entry for signal filtering
         double precursorMZ = ident.getPrecursorMZ();
         // remove from both spectra
@@ -555,22 +556,23 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
-    if (msLevel == 1) {
+    if (msLevel.isMs1Only()) {
       List<Scan> scans = new ArrayList<>();
       scans.add(row.getBestFeature().getRepresentativeScan());
       return scans;
     } else {
       // first entry is the best scan
       List<Scan> scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minMatch,
-          ScanSortMode.MAX_TIC);
+          ScanSortMode.MAX_TIC).stream().filter(msLevel::accept).toList();
       if (allMS2Scans) {
         return scans;
       } else {
-        // only keep first (with highest TIC)
-        while (scans.size() > 1) {
-          scans.remove(1);
+        // only keep first (with max TIC)
+        if (scans.isEmpty()) {
+          return List.of();
         }
-        return scans;
+
+        return List.of(scans.get(0));
       }
     }
   }

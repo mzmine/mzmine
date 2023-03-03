@@ -31,14 +31,17 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import org.jetbrains.annotations.NotNull;
@@ -53,14 +56,13 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
 
-  public static final IntegerParameter msLevel = new IntegerParameter("MS level",
-      "Choose the MS level of the scans that should be compared with the database. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
-      2, 1, 1000);
+  public static final MsLevelFilterParameter msLevel = new MsLevelFilterParameter(
+      new Options[]{Options.MS1, Options.MS2, Options.MSn, Options.SPECIFIC_LEVEL},
+      new MsLevelFilter(Options.MS2, 2));
 
   public static final BooleanParameter allMS2Spectra = new BooleanParameter(
-      "Check all scans (only for MS2)",
+      "Check all scan (fragmentation scans only)",
       "Check all (or only most intense) MS2 scan. This option does not apply to MS1 scans.", false);
-
 
   public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
       "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries", 0.001,
@@ -84,6 +86,7 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       "Similarity", "Algorithm to calculate similarity and filter matches",
       SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
+
   /**
    * for SelectedRowsParameters
    */
@@ -97,6 +100,17 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html");
   }
 
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("MS level", msLevel);
+    nameParameterMap.put("Check all scans (only for MS2)", allMS2Spectra);
+    return nameParameterMap;
+  }
+
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0)) {
@@ -104,20 +118,24 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
     }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
-    int level = getParameter(msLevel).getValue() == null ? 2 : getParameter(msLevel).getValue();
+    var msLevelFilter = getValue(msLevel);
+    boolean isMs1 = msLevelFilter.isMs1Only();
 
-    IntegerComponent msLevelComp = dialog.getComponentForParameter(msLevel);
+    var msLevelComp = dialog.getComponentForParameter(msLevel);
     CheckBox cRemovePrec = dialog.getComponentForParameter(removePrecursor);
     CheckBox cAllMS2 = dialog.getComponentForParameter(allMS2Spectra);
     Node mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
 
-    mzTolPrecursor.setDisable(level < 2);
-    cRemovePrec.setDisable(level < 2);
-    cAllMS2.setDisable(level < 2);
-    msLevelComp.getTextField().setOnKeyTyped(e -> {
+    mzTolPrecursor.setDisable(isMs1);
+    cRemovePrec.setDisable(isMs1);
+    cAllMS2.setDisable(isMs1);
+
+    msLevelComp.addValueChangedListener(() -> {
       try {
-        int level2 = Integer.parseInt(msLevelComp.getText());
-        boolean isMS1 = level2 == 1;
+        var tmpParam = getParameter(msLevel).cloneParameter();
+        tmpParam.setValueFromComponent(msLevelComp);
+        var msFilter = tmpParam.getValue();
+        boolean isMS1 = msFilter.isMs1Only();
         mzTolPrecursor.setDisable(isMS1);
         cRemovePrec.setDisable(isMS1);
         cAllMS2.setDisable(isMS1);
