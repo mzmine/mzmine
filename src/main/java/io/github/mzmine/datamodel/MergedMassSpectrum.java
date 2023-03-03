@@ -62,19 +62,19 @@ public interface MergedMassSpectrum extends Scan {
    */
   enum MergingType {
     /**
-     * ALL merged all spectra of the same precursor into one spectrum. Usually after merging the
-     * individual energies first.
+     * SAME_ENERGY merged all spectra from the same energy
      */
-    ALL,
+    SAME_ENERGY,
+    /**
+     * SAME_PRECURSOR_IN_MSLEVEL merged all spectra of the same precursor into one spectrum. Usually
+     * after merging the individual energies first.
+     */
+    ALL_ENERGIES,
     /**
      * ALL_MSN merged all MSn spectra for a precursor into a pseudo MS2 spectrum. The order of
      * merging is usually: 1. merge individual energies 2. merge for each precursor on all MSn
      * levels 3. merge all into one
      */
-    ALL_MSN,
-    /**
-     * SAME_ENERGY merged all spectra from the same energy
-     */
-    SAME_ENERGY
+    ALL_MSN_TO_PSEUDO_MS2
   }
 }

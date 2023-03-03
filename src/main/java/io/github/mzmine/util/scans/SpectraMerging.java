@@ -352,7 +352,7 @@ public class SpectraMerging {
     final MsMsInfo copy = info.createCopy();
     copy.setMsMsScan(frame);
     return new SimpleMergedMsMsSpectrum(storage, merged[0], merged[1], copy, frame.getMSLevel(),
-        mobilityScans, intensityMergingType, cf, MergingType.ALL);
+        mobilityScans, intensityMergingType, cf, MergingType.ALL_ENERGIES);
   }
 
   /**
@@ -395,7 +395,7 @@ public class SpectraMerging {
 
       final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
           mzIntensities[0], mzIntensities[1], spectrum.getMsMsInfo(), spectrum.getMSLevel(),
-          sourceSpectra, intensityMergingType, cf, MergingType.ALL);
+          sourceSpectra, intensityMergingType, cf, MergingType.ALL_ENERGIES);
       mergedSpectra.add(mergedMsMsSpectrum);
     }
 
@@ -449,7 +449,7 @@ public class SpectraMerging {
         IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null, null);
 
     return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
-        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL);
+        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL_ENERGIES);
   }
 
   /**
