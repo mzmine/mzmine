@@ -31,16 +31,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore.Result;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
-import io.github.mzmine.modules.tools.msmsscore.SignalSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -84,48 +81,39 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
     }
 
     if (minNumSignals != null && massList.getNumberOfDataPoints() < minNumSignals) {
-      return MSMSScore.FAILED_FILTERS;
+      return new MSMSScore(Result.FAILED_MIN_SIGNALS);
     }
 
     if (formulasMzSorted == null || formulasMzSorted.length == 0) {
-      return MSMSScore.SUCCESS_WITHOUT_FORMULA;
+      return new MSMSScore(Result.SUCCESS_WITHOUT_FORMULA);
     }
 
+    // precursor mz is not really needed here as we are matching signals directly now. not neutral losses
     final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan, true);
-
-    Double precursorMz = msmsScan.getPrecursorMz();
-    if (precursorMz == null) {
-      precursorMz = annotation.getPrecursorMZ();
-    }
-    if (precursorMz == null) {
-      return MSMSScore.SUCCESS_WITHOUT_PRECURSOR_MZ;
-    }
-
-    int precursorCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
-    MSMSScore score = MSMSScoreCalculator.evaluateMsMsFast(msmsFormulaTolerance, formulasMzSorted,
-        dataPoints, precursorMz, precursorCharge, SignalSelection.MZ_SIGNALS);
+    MSMSScore score = MSMSScoreCalculator.evaluateMsMsMzSignalsFast(msmsFormulaTolerance,
+        formulasMzSorted, dataPoints);
 
     if (score == null) {
-      return MSMSScore.FAILED_FILTERS;
+      return new MSMSScore(Result.FAILED);
     }
 
     if (minExplainedIntensity != null) {
       if (score.explainedIntensity() < minExplainedIntensity) {
-        return MSMSScore.FAILED_FILTERS;
+        return new MSMSScore(Result.FAILED_MIN_EXPLAINED_INTENSITY);
       }
     }
 
     if (minExplainedSignals != null) {
       if (score.explainedSignals() < minExplainedSignals) {
-        return MSMSScore.FAILED_FILTERS;
+        return new MSMSScore(Result.FAILED_MIN_EXPLAINED_SIGNALS);
       }
     }
 
     // double check if we still match the minimum peaks if we export explained only
     if (exportExplainedSignalsOnly) {
-      List<Set<DataPoint>> explainedSignals = List.of(score.annotation().keySet());
-      if (minNumSignals != null && explainedSignals.size() < minNumSignals) {
-        return MSMSScore.FAILED_FILTERS;
+      int explainedSignals = score.annotation().keySet().size();
+      if (minNumSignals != null && explainedSignals < minNumSignals) {
+        return new MSMSScore(Result.FAILED_MIN_EXPLAINED_SIGNALS);
       } else {
         return score;
       }

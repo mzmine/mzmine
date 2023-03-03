@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore.Result;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
@@ -155,7 +156,7 @@ public class MSMSScoreCalculator {
 
     float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
     explainedIntensity = explainedIntensity / totalIntensity;
-    return new MSMSScore((float) explainedIntensity, msmsScore, msmsAnnotations);
+    return new MSMSScore(Result.SUCCESS, (float) explainedIntensity, msmsScore, msmsAnnotations);
   }
 
 
@@ -187,7 +188,7 @@ public class MSMSScoreCalculator {
       final FormulaWithExactMz[] formulasMzSorted, final DataPoint[] msmsIons,
       final double precursorMZ, int precursorCharge, @NotNull SignalSelection matchType) {
     if (formulasMzSorted.length == 0) {
-      return MSMSScore.SUCCESS_WITHOUT_FORMULA;
+      return new MSMSScore(Result.SUCCESS_WITHOUT_FORMULA);
     }
 
     precursorCharge = ensureAbsChargeDefault1(precursorCharge);
@@ -223,7 +224,7 @@ public class MSMSScoreCalculator {
 
     float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
     explainedIntensity = explainedIntensity / totalIntensity;
-    return new MSMSScore((float) explainedIntensity, msmsScore, msmsAnnotations);
+    return new MSMSScore(Result.SUCCESS, (float) explainedIntensity, msmsScore, msmsAnnotations);
   }
 
   private static int ensureAbsChargeDefault1(int precursorCharge) {

@@ -46,6 +46,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore.Result;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -226,7 +227,7 @@ public class MsMsQualityExportTask extends AbstractTask {
       score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula, dataPoints,
           msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(), dataPoints.length);
     } else {
-      score = MSMSScore.SUCCESS_WITHOUT_FORMULA;
+      score = new MSMSScore(Result.SUCCESS_WITHOUT_FORMULA);
     }
 
     return new SpectrumMsMsQuality((float) isolationChimerityScore, score,
