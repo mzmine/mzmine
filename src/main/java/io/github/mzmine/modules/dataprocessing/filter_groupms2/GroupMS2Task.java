@@ -50,6 +50,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
@@ -326,8 +328,10 @@ public class GroupMS2Task extends AbstractTask {
     }
 
     if (!msmsSpectra.isEmpty() && combineTimsMS2) {
-      return SpectraMerging.mergeMsMsSpectra(msmsSpectra, SpectraMerging.pasefMS2MergeTol,
-          IntensityMergingType.SUMMED, ((ModularFeatureList) list).getMemoryMapStorage());
+      final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
+          SpectraMerging.pasefMS2MergeTol, combineTimsMS2, IncludeInputSpectra.NONE,
+          IntensityMergingType.SUMMED);
+      return fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
     }
     return msmsSpectra;
   }

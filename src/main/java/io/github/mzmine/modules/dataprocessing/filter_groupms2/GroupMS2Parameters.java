@@ -79,9 +79,10 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       false);
 
   public static final BooleanParameter combineTimsMsMs = new BooleanParameter(
-      "Merge MS/MS spectra (TIMS)",
-      "If checked, all assigned MS/MS spectra with the same collision energy will be merged into a single MS/MS spectrum.",
-      false);
+      "Merge MS/MS spectra (TIMS)", """
+      If checked, all assigned MS/MS spectra with the same collision energy will be merged into a single MS/MS spectrum.
+       These merged spectra will also be merged to a consensus spectrum across all collision energies.
+      """, false);
 
   public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
       new DoubleParameter("Minimum signal intensity (absolute, TIMS)",
