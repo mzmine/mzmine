@@ -26,6 +26,9 @@
 package util;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
@@ -139,4 +142,15 @@ public class FormulaUtilsTest {
     assert FormulaUtils.getClosestIndexOfFormula(250, all) == all.length - 1;
   }
 
+  @Test
+  void ionizeFormulaTest() {
+    var adduct = new IonType(IonModification.M_PLUS);
+    var annotation = new SimpleCompoundDBAnnotation("C");
+    var annotationPlus = new SimpleCompoundDBAnnotation("CH+");
+    var ion1 = annotation.ionize(adduct);
+    // will remove one H+ to neutralize
+    var ion2 = annotationPlus.ionize(adduct);
+
+    Assertions.assertEquals(ion1.getPrecursorMZ(), ion2.getPrecursorMZ());
+  }
 }

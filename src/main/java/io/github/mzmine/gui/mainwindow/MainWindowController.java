@@ -274,6 +274,9 @@ public class MainWindowController {
     initMiniTaskView();
     selectTab(MZmineIntroductionTab.TITLE);
 
+    memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
+    memoryBar.setTooltip(new Tooltip("Free memory (is done automatically)"));
+
     // Setup the Timeline to update the memory indicator periodically
     final Timeline memoryUpdater = new Timeline();
     int UPDATE_FREQUENCY = 500; // ms

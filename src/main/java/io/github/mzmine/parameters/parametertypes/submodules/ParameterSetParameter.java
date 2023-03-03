@@ -113,7 +113,7 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return value.checkParameterValues(errorMessages);
+    return checkEmbeddedValues(errorMessages);
   }
 
   @Override

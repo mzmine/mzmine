@@ -28,6 +28,9 @@ package io.github.mzmine.parameters.parametertypes;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * In case a parameter embeds a parameter set, this interface shall be implemented. This is required
@@ -44,6 +47,24 @@ public interface EmbeddedParameterSet<T extends ParameterSet, V> extends Paramet
   @Override
   default void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     getEmbeddedParameters().setSkipSensitiveParameters(skipSensitiveParameters);
+  }
+
+  /**
+   * Checks all embedded parameter values. If errors occur, a new line is added for the parent
+   * parameter and all parameters
+   *
+   * @param errorMessages all errors as lines, headed by the parent parameter
+   * @return true if all values are set correctly
+   */
+  default boolean checkEmbeddedValues(final Collection<String> errorMessages) {
+    List<String> newMessages = new ArrayList<>();
+    boolean success = getEmbeddedParameters().checkParameterValues(newMessages);
+    if (!newMessages.isEmpty()) {
+      String name = (this instanceof Parameter<?> p) ? p.getName() : "";
+      errorMessages.add(name + ":");
+      errorMessages.addAll(newMessages);
+    }
+    return success;
   }
 
 }
