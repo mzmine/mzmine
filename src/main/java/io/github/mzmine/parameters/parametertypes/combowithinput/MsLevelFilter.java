@@ -69,8 +69,7 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
   public String toString() {
     return switch (filter) {
       case ALL -> "All MS levels";
-      case MS2, MSn, MS1 -> filter.toString();
-      case SPECIFIC_LEVEL -> "MS level=" + specificLevel;
+      case MS2, MSn, MS1, SPECIFIC_LEVEL -> getFilterString();
     };
   }
 
