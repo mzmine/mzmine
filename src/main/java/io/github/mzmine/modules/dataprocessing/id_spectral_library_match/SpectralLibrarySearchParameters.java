@@ -136,30 +136,23 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   public enum ScanMatchingSelection {
     MS1, MERGED_MS2, MERGED_MSN, ALL_MS2, ALL_MSN;
 
-    private final MsLevelFilter msLevelFilter;
-
-    ScanMatchingSelection() {
-      msLevelFilter = switch (this) {
-        case MS1 -> new MsLevelFilter(Options.MS1);
-        case MERGED_MS2, ALL_MS2 -> new MsLevelFilter(Options.MS2);
-        case MERGED_MSN, ALL_MSN -> new MsLevelFilter(Options.MSn);
-      };
-    }
-
-
     @Override
     public String toString() {
       return switch (this) {
         case MS1 -> "MS1";
         case MERGED_MS2 -> "MS2 (merged)";
-        case MERGED_MSN -> "MS level≥2 (merged)";
+        case MERGED_MSN -> "MS level ≥ 2 (merged)";
         case ALL_MS2 -> "MS2 (all scans)";
-        case ALL_MSN -> "MS level≥2 (all scans)";
+        case ALL_MSN -> "MS level ≥ 2 (all scans)";
       };
     }
 
     public MsLevelFilter getMsLevelFilter() {
-      return msLevelFilter;
+      return switch (this) {
+        case MS1 -> new MsLevelFilter(Options.MS1);
+        case MERGED_MS2, ALL_MS2 -> new MsLevelFilter(Options.MS2);
+        case MERGED_MSN, ALL_MSN -> new MsLevelFilter(Options.MSn);
+      };
     }
 
     public boolean isAll() {
