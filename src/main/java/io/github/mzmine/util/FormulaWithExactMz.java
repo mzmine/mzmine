@@ -23,29 +23,45 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.scores;
+package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
- * The MS/MS score is used during molecular formula prediction to score how many signals are
- * described by the molecular formula candidate. The score is calculated in
- * {@link MSMSScoreCalculator#evaluateMsMsFast}
+ * Used to cache the formula + mz results
+ *
+ * @param mz exact mz
  */
-public class MsMsScoreType extends ScoreType {
+public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
 
+  @Override
+  public String toString() {
+    return MolecularFormulaManipulator.getString(formula) + ", mz=" + mz;
+  }
+
+  public int getCharge() {
+    return Objects.requireNonNullElse(formula.getCharge(), 0);
+  }
+
+  /**
+   * Charge string as
+   *
+   * @return +1
+   */
   @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "msms_score";
+  public String getChargeString() {
+    int charge = getCharge();
+    String chargeStr = charge > 1 ? "" + charge : "";
+    if (charge > 0) {
+      return "+" + chargeStr;
+    }
+    if (charge < 0) {
+      return "-" + chargeStr;
+    } else {
+      return "";
+    }
   }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "MS/MS score";
-  }
-
 }

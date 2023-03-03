@@ -104,7 +104,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     // merge by energies separately and then all together
     List<Scan> mergedByEnergy = mergeByFragmentationEnergy(byFragmentationEnergy);
     // first entry should be the mergeAll
-    allScans.add(mergeSpectra(mergedByEnergy, MergingType.ALL));
+    allScans.add(mergeSpectra(mergedByEnergy, MergingType.ALL_ENERGIES));
     addIf(mergeSeparateEnergies, allScans, mergedByEnergy);
 
     // filter out duplicates from the original scans list, same energy
@@ -151,7 +151,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     List<Scan> representativeMergedScans = mergedPerTreeNode.stream().map(list -> list.get(0))
         .toList();
 
-    Scan allMerged = mergeSpectra(representativeMergedScans, MergingType.ALL_MSN);
+    Scan allMerged = mergeSpectra(representativeMergedScans, MergingType.ALL_MSN_TO_PSEUDO_MS2);
 
     List<Scan> allScans = new ArrayList<>();
     allScans.add(allMerged);

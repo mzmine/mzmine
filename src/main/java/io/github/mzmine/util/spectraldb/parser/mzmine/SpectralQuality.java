@@ -23,29 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.scores;
+package io.github.mzmine.util.spectraldb.parser.mzmine;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
-/**
- * The MS/MS score is used during molecular formula prediction to score how many signals are
- * described by the molecular formula candidate. The score is calculated in
- * {@link MSMSScoreCalculator#evaluateMsMsFast}
- */
-public class MsMsScoreType extends ScoreType {
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "msms_score";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "MS/MS score";
-  }
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record SpectralQuality(Float explainedIntensity, Float explainedSignals, String chimeric,
+                              Float spectralEntropy, Float normalizedSpectralEntropy) {
 
 }
