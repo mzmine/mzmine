@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.ArrayList;
@@ -101,7 +102,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
       @Override
       protected void callCheckParametersButton() {
-        checkParameterValues(true);
+        checkParameterValues(true, true);
       }
 
       @Override
@@ -248,7 +249,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
       updateParameterSetFromComponents();
 
       // ok? only close if value check not required or successful
-      closeWindow = !isValueCheckRequired() || checkParameterValues(false);
+      closeWindow = !isValueCheckRequired() || checkParameterValues(false, false);
     }
     if (closeWindow) {
       this.exitCode = exitCode;
@@ -259,7 +260,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
   /**
    * @return false if parameters are set incorrectly
    */
-  public boolean checkParameterValues(boolean updateParametersFirst) {
+  public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog) {
     // commit the changes to the parameter set
     if (updateParametersFirst) {
       updateParameterSetFromComponents();
@@ -276,6 +277,10 @@ public class EmptyParameterSetupDialogBase extends Stage {
         }
         MZmineCore.getDesktop().displayMessage(null, message.toString());
         return false;
+      }
+      if (showSuccessDialog) {
+        DialogLoggerUtil.showMessageDialogForTime("All parameter checks succeed.",
+            "All parameters are set correctly", 3500);
       }
     }
     return true;
