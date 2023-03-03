@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class DuplicateFilterParameters extends SimpleParameterSet {
 
@@ -67,6 +69,11 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_duplicate_features/duplicate_feature_filter.html");
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
+
   public enum FilterMode {
     OLD_AVERAGE, NEW_AVERAGE, SINGLE_FEATURE;
 
@@ -75,5 +82,4 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
       return super.toString().replaceAll("_", " ");
     }
   }
-
 }
