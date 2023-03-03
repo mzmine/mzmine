@@ -72,7 +72,6 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -356,53 +355,6 @@ public class SpectraMerging {
   }
 
   /**
-   * Merges Multiple MS/MS spectra with the same collision energy into a single MS/MS spectrum.
-   *
-   * @param spectra              The source spectra, may be of multiple collision energies.
-   * @param tolerance            The mz tolerance to merch peaks in a spectrum
-   * @param intensityMergingType Specifies the way to treat intensities (sum, avg, max)
-   * @param storage              The storage to use.
-   * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
-   */
-  public static List<Scan> mergeMsMsSpectra(@NotNull final Collection<Scan> spectra,
-      @NotNull final MZTolerance tolerance,
-      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
-      @Nullable final MemoryMapStorage storage) {
-
-    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
-
-    final List<Scan> mergedSpectra = new ArrayList<>();
-    // group spectra with the same CE into the same list
-    final Map<Float, List<Scan>> grouped = spectra.stream()
-        .collect(Collectors.groupingBy(SpectraMerging::getCollisionEnergy));
-
-    for (final Entry<Float, List<Scan>> entry : grouped.entrySet()) {
-      final Scan spectrum = entry.getValue().get(0);
-      final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
-          tolerance, intensityMergingType, cf, null, null, null);
-
-      if (mzIntensities[0].length == 0) {
-        continue;
-      }
-
-      final List<MassSpectrum> sourceSpectra = entry.getValue().stream().flatMap(s -> {
-        if (s instanceof MergedMassSpectrum spec) {
-          return spec.getSourceSpectra().stream();
-        } else {
-          return Stream.of(s);
-        }
-      }).collect(Collectors.toList());
-
-      final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
-          mzIntensities[0], mzIntensities[1], spectrum.getMsMsInfo(), spectrum.getMSLevel(),
-          sourceSpectra, intensityMergingType, cf, MergingType.ALL_ENERGIES);
-      mergedSpectra.add(mergedMsMsSpectrum);
-    }
-
-    return mergedSpectra;
-  }
-
-  /**
    * Cannot return null as it's used for grouping
    *
    * @return the collision energy or -1 if null
@@ -617,13 +569,13 @@ public class SpectraMerging {
 
     private final String label;
 
+    IntensityMergingType(String label) {
+      this.label = label;
+    }
+
     @Override
     public String toString() {
       return this.label;
-    }
-
-    IntensityMergingType(String label) {
-      this.label = label;
     }
   }
 }

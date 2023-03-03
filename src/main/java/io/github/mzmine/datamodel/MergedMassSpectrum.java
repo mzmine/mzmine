@@ -34,7 +34,8 @@ public interface MergedMassSpectrum extends Scan {
   MergingType getMergingType();
 
   /**
-   * @return A list of spectra used to create this merged spectrum
+   * @return A list of spectra used to create this merged spectrum. Never a merged spectra, which
+   * are unpacked to their source spectra in case merged spectra are merged.
    */
   List<MassSpectrum> getSourceSpectra();
 
