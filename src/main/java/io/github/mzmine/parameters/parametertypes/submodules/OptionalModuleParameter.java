@@ -96,7 +96,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(embeddedParameters, componentViewOption, false);
+    return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value);
   }
 
   @Override

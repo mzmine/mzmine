@@ -45,11 +45,22 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
     this(filter, 3);
   }
 
+  @NotNull
   public static MsLevelFilter of(@Nullable final Integer msLevel) {
+    return of(msLevel, false);
+  }
+
+  /**
+   * @param msLevel         the MS level
+   * @param useMSnForLevel2 use MSn instead of MS2 for msLevel == 2
+   */
+  @NotNull
+  public static MsLevelFilter of(@Nullable final Integer msLevel, boolean useMSnForLevel2) {
     return switch (msLevel) {
       case null, -1 -> ALL_LEVELS;
       case 1 -> new MsLevelFilter(Options.MS1, 1);
-      case 2 -> new MsLevelFilter(Options.MS2, 2);
+      case 2 ->
+          useMSnForLevel2 ? new MsLevelFilter(Options.MSn) : new MsLevelFilter(Options.MS2, 2);
       default -> new MsLevelFilter(Options.SPECIFIC_LEVEL, msLevel);
     };
   }
@@ -67,9 +78,9 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
   public String getFilterString() {
     return switch (filter) {
       case ALL -> "";
-      case MS1 -> "MS level=1";
-      case MS2 -> "MS level=2";
-      case MSn -> "MS level≥2";
+      case MS1 -> "MS level = 1";
+      case MS2 -> "MS level = 2";
+      case MSn -> "MS level ≥ 2";
       case SPECIFIC_LEVEL -> "MS level=" + specificLevel;
     };
   }

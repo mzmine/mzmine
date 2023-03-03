@@ -120,6 +120,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -231,7 +232,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // mass spectrometer
     params = steps.get(WizardPart.MS);
     polarity = getValue(params, MassSpectrometerWizardParameters.polarity);
-    noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.ms2NoiseLevel);
+    noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.msnNoiseLevel);
     noiseLevelMs1 = getValue(params, MassSpectrometerWizardParameters.ms1NoiseLevel);
     minFeatureHeight = getValue(params, MassSpectrometerWizardParameters.minimumFeatureHeight);
     mzTolScans = getValue(params, MassSpectrometerWizardParameters.scanToScanMzTolerance);
@@ -771,7 +772,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // if MS level 0 then apply to all scans
     param.setParameter(MassDetectionParameters.scanSelection,
-        new ScanSelection(msLevel < 1 ? null : msLevel));
+        new ScanSelection(MsLevelFilter.of(msLevel, true)));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),

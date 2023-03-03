@@ -40,6 +40,9 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -52,8 +55,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  */
 public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<ScanType> scanFilter = new ComboParameter<>("Scan selection",
-      "Export MS2 or MSn spectra", ScanType.values(), ScanType.MSn);
+  public static final MsLevelFilterParameter postMergingMsLevelFilter = new MsLevelFilterParameter(
+      new Options[]{Options.MS2, Options.MSn}, new MsLevelFilter(Options.MSn));
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
@@ -82,10 +85,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new LibraryExportQualityParameters());
 
   public LibraryBatchGenerationParameters() {
-    super(flists, file, exportFormat, scanFilter, metadata, mergeMzTolerance, handleChimerics, quality);
+    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, mergeMzTolerance,
+        handleChimerics, quality);
   }
 
-  public enum ScanType {
-    MS2, MSn
-  }
 }
