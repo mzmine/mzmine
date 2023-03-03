@@ -32,10 +32,13 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class ImagingUtils {
@@ -46,18 +49,15 @@ public class ImagingUtils {
    * MS2 was merged from several events.
    */
   @NotNull
-  public static List<MaldiSpotInfo> getMsMsSpotInfosFromScan(Scan scan) {
+  public static Map<MaldiSpotInfo, MsMsInfo> getMsMsSpotInfosFromScan(Scan scan) {
     if (scan instanceof MergedMsMsSpectrum merged) {
       final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
-      final List<MaldiSpotInfo> infos = sourceSpectra.stream()
-          .filter(s -> s instanceof MobilityScan).map(s -> ((MobilityScan) s).getFrame()).distinct()
-          .filter(f -> f instanceof ImagingFrame).map(f -> ((ImagingFrame) f).getMaldiSpotInfo())
-          .toList();
-      return infos;
-    } else if (scan instanceof ImagingScan imgScan) {
-      return imgScan.getMaldiSpotInfo() != null ? List.of(imgScan.getMaldiSpotInfo()) : List.of();
+      return sourceSpectra.stream().filter(s -> s instanceof MobilityScan)
+          .map(s -> ((MobilityScan) s)).collect(
+              Collectors.toMap(s -> ((ImagingFrame) (s.getFrame())).getMaldiSpotInfo(),
+                  s -> s.getMsMsInfo()));
     }
-    return List.of();
+    return Map.of();
   }
 
   public static double[] transformCoordinates(MaldiSpotInfo info, ImagingRawDataFile rawDataFile) {

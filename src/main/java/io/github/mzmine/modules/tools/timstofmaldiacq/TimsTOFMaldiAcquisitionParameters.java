@@ -36,13 +36,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.NumberListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -58,13 +58,10 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
 
   public static final MZmineProcessingStep<PrecursorSelectionModule>[] precursorSelectionModules = new MZmineProcessingStep[]{
       topNModuleStep};
-
-  public static final FeatureListsParameter flists = new FeatureListsParameter();
-
   public static final ModuleComboParameter<PrecursorSelectionModule> precursorSelectionModule = new ModuleComboParameter<PrecursorSelectionModule>(
       "Precursor selection", "Module to handle the precursor ion selection",
       precursorSelectionModules, topNModuleStep);
-
+  public static final FeatureListsParameter flists = new FeatureListsParameter();
   public static final DoubleParameter minMobilityWidth = new DoubleParameter(
       "Minimum mobility window", "Minimum width of the mobility isolation window.",
       new DecimalFormat("0.000"), 0.005);
@@ -88,27 +85,22 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
       Offset that is added after every acquisition of a precursor list. 
       Recommended = laser spot size
       """, 50);
-
-  static final IntegerParameter maxIncrementSteps = new IntegerParameter(
-      "Maximum X increment steps", """
-      Maximum steps in x direction before a new line is started.
-      """, 50);
-
   public static final FileNameParameter acquisitionControl = new FileNameParameter(
       "Path to msmsmaldi.exe", "", List.of(new ExtensionFilter("executable", "*.exe")),
       FileSelectionType.OPEN);
-
   public static final OptionalParameter<NumberListParameter> ceStepping = new OptionalParameter<>(
       new NumberListParameter("CE stepping",
           "Acquire MS2 spectra with multiple collision energies.\n"
               + "Collision energies may be decimals '.' separated by ','.",
           List.of(20.0, 35.0, 45.0), new DecimalFormat("0.0")));
-
   public static final DoubleParameter isolationWidth = new DoubleParameter("Isolation width",
       "The isolation width for precursors", new DecimalFormat("0.0"), 1.5d);
-
   public static final BooleanParameter exportOnly = new BooleanParameter("Export MS/MS lists only",
       "Will only export MS/MS lists and not start an acquisition.", false);
+  static final IntegerParameter maxIncrementSteps = new IntegerParameter(
+      "Maximum X increment steps", """
+      Maximum steps in x direction before a new line is started.
+      """, 50);
 
   public TimsTOFMaldiAcquisitionParameters() {
     super(new Parameter[]{flists, precursorSelectionModule, minMobilityWidth, maxMobilityWidth,

@@ -33,8 +33,8 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.TripleSpotMs2Writer;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import java.text.DecimalFormat;
 
 public class AdvancedImageMsMsParameters extends SimpleParameterSet {

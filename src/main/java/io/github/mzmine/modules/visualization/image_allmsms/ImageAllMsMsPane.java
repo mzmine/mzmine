@@ -173,17 +173,17 @@ public class ImageAllMsMsPane extends BorderPane {
           .clone();
 
       for (Scan scan : feature.getAllMS2FragmentScans()) {
-        final List<MaldiSpotInfo> infos = ImagingUtils.getMsMsSpotInfosFromScan(scan);
-        if (infos.isEmpty()) {
+        Map<MaldiSpotInfo, MsMsInfo> infoMap = ImagingUtils.getMsMsSpotInfosFromScan(scan);
+        if (infoMap.isEmpty()) {
           continue;
         }
 
-        for (MaldiSpotInfo info : infos) {
+        for (var entry : infoMap.entrySet()) {
           // transform the coordinates back to the original file coordinates
-          final double[] ms2Coord = ImagingUtils.transformCoordinates(info,
+          final double[] ms2Coord = ImagingUtils.transformCoordinates(entry.getKey(),
               (ImagingRawDataFile) feature.getRawDataFile());
           if (ms2Coord != null) {
-            final Float ce = scan.getMsMsInfo().getActivationEnergy();
+            final Float ce = entry.getValue().getActivationEnergy();
             final Color clr = ceColor.computeIfAbsent(ce, energy -> palette.getNextColorAWT());
 
             XYPointerAnnotation msMsMarker = new XYPointerAnnotation(String.format("%.0f eV", ce),
@@ -228,10 +228,11 @@ public class ImageAllMsMsPane extends BorderPane {
       domainAxis.setDefaultAutoRange(new org.jfree.data.Range(minMz, maxMz));
 
       ms2Tab.loadRawData(msms);
-      final List<MaldiSpotInfo> info = ImagingUtils.getMsMsSpotInfosFromScan(msms);
-      if (!info.isEmpty()) {
+      var infoMap = ImagingUtils.getMsMsSpotInfosFromScan(msms);
+      if (!infoMap.isEmpty()) {
         final String spotstr =
-            info.size() == 1 ? info.get(0).spotName() : "%d spots".formatted(info.size());
+            infoMap.size() == 1 ? infoMap.keySet().stream().findFirst().get().spotName()
+                : "%d spots".formatted(infoMap.size());
 
         spectrumPlot.setTitle(
             "MS2 of " + format.mz(msms.getPrecursorMz()) + " at " + spotstr + ", CE: "
