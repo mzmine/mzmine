@@ -48,6 +48,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.time.Instant;
@@ -255,10 +257,11 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
     if (!msmsSpectra.isEmpty()) {
       if (combineTimsMS2) {
-        List<Scan> sameCEMerged = SpectraMerging.mergeMsMsSpectra(msmsSpectra,
-            SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-            ((ModularFeatureList) list).getMemoryMapStorage());
-        feature.setAllMS2FragmentScans(sameCEMerged, true);
+        final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
+            SpectraMerging.pasefMS2MergeTol, combineTimsMS2, IncludeInputSpectra.ALL,
+            IntensityMergingType.SUMMED);
+        var spectra = fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
+        feature.setAllMS2FragmentScans(spectra, false);
       } else {
         feature.setAllMS2FragmentScans(msmsSpectra, true);
       }
