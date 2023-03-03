@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement;
 
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -158,10 +159,11 @@ public class ImsMsMsRefinementTask extends AbstractTask {
 
       Double minIntensity = ScanUtils.getLowestIntensity(msms);
 
-      final MergedMsMsSpectrum refined = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
-          SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED, null,
-          info.getMobilityRange(), minIntensity, null, minNumPoints);
-      if (refined != null) {
+      final MergedMsMsSpectrum refined = (MergedMsMsSpectrum) SpectraMerging.mergeSpectra(
+          merged.getSourceSpectra(), SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
+          MergingType.ALL, null, minIntensity, minNumPoints, merged.getCenterFunction(),
+          getMemoryMapStorage());
+      if (refined.getNumberOfDataPoints() > 0) {
         refinedMsMs.add(refined);
       }
     }

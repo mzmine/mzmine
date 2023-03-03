@@ -170,9 +170,11 @@ public class ScanUtils {
       buf.append(" merged ");
       buf.append(((MergedMassSpectrum) scan).getSourceSpectra().size());
       buf.append(" spectra");
-      if (scan instanceof MergedMsMsSpectrum) {
+      if (scan instanceof MergedMsMsSpectrum merged) {
         buf.append(", CE: ");
-        buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
+        buf.append(merged.getSourceSpectra().stream()
+            .map(spectrum -> "%.1f".formatted(extractCollisionEnergy(spectrum))).distinct()
+            .filter(Objects::nonNull).collect(Collectors.joining(", ")));
       }
     }
 
@@ -182,6 +184,14 @@ public class ScanUtils {
      */
 
     return buf.toString();
+  }
+
+  private static Float extractCollisionEnergy(MassSpectrum spectrum) {
+    return switch (spectrum) {
+      case MobilityScan mob -> mob.getMsMsInfo().getActivationEnergy();
+      case Scan scan -> scan.getMsMsInfo().getActivationEnergy();
+      default -> null;
+    };
   }
 
   @Deprecated
