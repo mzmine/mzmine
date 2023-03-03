@@ -62,7 +62,7 @@ import org.w3c.dom.NodeList;
  */
 public class SimpleParameterSet implements ParameterSet {
 
-  private static final String parameterElement = "parameter";
+  public static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
 
   private String moduleNameAttribute;
@@ -102,19 +102,23 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   public void loadValuesFromXML(Element xmlElement) {
+    var nameParameterMap = getNameParameterMap();
     NodeList list = xmlElement.getElementsByTagName(parameterElement);
     for (int i = 0; i < list.getLength(); i++) {
       Element nextElement = (Element) list.item(i);
       String paramName = nextElement.getAttribute(nameAttribute);
-      for (Parameter<?> param : parameters) {
-        if (param.getName().equals(paramName)) {
-          try {
-            param.loadValueFromXML(nextElement);
-          } catch (Exception e) {
-            logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
-                e);
-          }
+      Parameter<?> param = nameParameterMap.get(paramName);
+      if (param != null) {
+        try {
+          param.loadValueFromXML(nextElement);
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
+              e);
         }
+      } else {
+        logger.warning(
+            "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
+                paramName, getClass().getName()));
       }
     }
   }
@@ -229,9 +233,16 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
     boolean allParametersOK = true;
     for (Parameter<?> p : parameters) {
+      // this is done in batch mode where no data is loaded when the parameters are checked
+      if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
+          || p instanceof FeatureListsParameter)) {
+        continue;
+      }
+
       boolean pOK = p.checkValue(errorMessages);
       if (!pOK) {
         allParametersOK = false;

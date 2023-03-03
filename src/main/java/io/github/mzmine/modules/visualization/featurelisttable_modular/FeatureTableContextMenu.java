@@ -625,8 +625,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     final Scan msms = selectedFeature.getMostIntenseFragmentScan();
     final RawDataFile file = selectedFeature.getRawDataFile();
     ScanSelection selection = new ScanSelection(
-        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 1,
-            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 1), 2);
+        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 1d,
+            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 1d), 2);
     final List<Scan> matchingScans = selection.getMatchingScans(file.getScans());
     MZTolerance tol = new MZTolerance(0.005, 15);
 
@@ -660,7 +660,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
 
     final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(ims.getSummedMobilogram());
-    ScanSelection scanSelection = new ScanSelection(selectedFeature.getRawDataPointsRTRange(), 2);
+    ScanSelection scanSelection = new ScanSelection(2, selectedFeature.getRawDataPointsRTRange());
     List<Scan> ms2Scans = scanSelection.getMatchingScans(imsFile.getScans());
 
     final List<MobilityScan> mobilityScans = ms2Scans.stream().<MobilityScan>mapMulti((f, c) -> {

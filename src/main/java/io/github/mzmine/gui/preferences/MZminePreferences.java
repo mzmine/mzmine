@@ -35,7 +35,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptOutParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
@@ -43,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -173,7 +173,7 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
-  private boolean isDarkMode = false;
+  private final boolean isDarkMode = false;
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
@@ -182,8 +182,7 @@ public class MZminePreferences extends SimpleParameterSet {
   private NumberFormats guiFormat = exportFormat; // default value
 
   public MZminePreferences() {
-    super(new Parameter[]{
-        // start with performance
+    super(// start with performance
         numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
         applyTimsPressureCompensation,
         // visuals
@@ -196,7 +195,7 @@ public class MZminePreferences extends SimpleParameterSet {
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
         imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
         // silent parameters without controls
-        showTempFolderAlert});
+        showTempFolderAlert);
   }
 
   @Override

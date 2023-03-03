@@ -280,6 +280,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
   }
 
+  @Nullable
+  private static Float replaceWildcardLowerEq0WithNull(final DataType<Float> type,
+      final Map<DataType<?>, String> map) {
+    float value = Float.parseFloat(map.getOrDefault(type, "-1"));
+    return value > 0 ? value : null;
+  }
+
   @NotNull
   private CompoundDBAnnotation getCompoundFromLine(@NotNull String[] values,
       @NotNull List<ImportType> linesWithIndices, @NotNull final List<ImportType> commentFields) {
@@ -312,11 +319,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String lineAdduct = entry.get(adductType);
     final Double lineMZ =
         (entry.get(precursorMz) != null) ? Double.parseDouble(entry.get(precursorMz)) : null;
-    final Float lineRT = (entry.get(rtType) != null) ? Float.parseFloat(entry.get(rtType)) : null;
-    final Float lineMob =
-        (entry.get(mobType) != null) ? Float.parseFloat(entry.get(mobType)) : null;
-    final Float lineCCS =
-        (entry.get(ccsType) != null) ? Float.parseFloat(entry.get(ccsType)) : null;
+
+    // make sure to replace <=0 with null as this is defined as wildcards that match every value
+    Float lineRT = replaceWildcardLowerEq0WithNull(rtType, entry);
+    Float lineMob = replaceWildcardLowerEq0WithNull(mobType, entry);
+    Float lineCCS = replaceWildcardLowerEq0WithNull(ccsType, entry);
     final Double neutralMass =
         entry.get(neutralMassType) != null ? Double.parseDouble(entry.get(neutralMassType)) : null;
     final String smiles = entry.get(smilesType);

@@ -63,6 +63,10 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
+    if (parser != null) {
+      return "Import spectral library from %s (%d)".formatted(dataBaseFile,
+          parser.getProcessedEntries());
+    }
     return "Import spectral library from " + dataBaseFile;
   }
 

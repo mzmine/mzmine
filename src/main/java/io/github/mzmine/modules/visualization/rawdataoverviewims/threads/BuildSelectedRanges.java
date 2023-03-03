@@ -109,10 +109,10 @@ public class BuildSelectedRanges implements Runnable {
     if (chromatogramConsumer != null) {
       ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
           scanSelection.getBaseFilteringInteger(),
-          Range.closed(frame.getRetentionTime() - rtWidth / 2,
-              frame.getRetentionTime() + rtWidth / 2), scanSelection.getScanMobilityRange(),
-          scanSelection.getPolarity(), scanSelection.getSpectrumType(), scanSelection.getMsLevel(),
-          scanSelection.getScanDefinition());
+          Range.closed(frame.getRetentionTime() - rtWidth / 2d,
+              frame.getRetentionTime() + rtWidth / 2d), scanSelection.getScanMobilityRange(),
+          scanSelection.getPolarity(), scanSelection.getSpectrumType(),
+          scanSelection.getMsLevelFilter(), scanSelection.getScanDefinition());
       TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file), mzRange, null);
       ticDataSet.setCustomSeriesKey(seriesKey);
       chromatogramConsumer.accept(ticDataSet);

@@ -159,7 +159,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
       return false;
     }
     if (value) {
-      return embeddedParameters.checkParameterValues(errorMessages);
+      return checkEmbeddedValues(errorMessages);
     }
     return true;
   }

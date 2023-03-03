@@ -135,7 +135,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private int selectedChromatogramDatasetIndex;
   private FontIcon massDetectionScanIcon;
   private FontIcon massDetectionFrameIcon;
-  private GridPane massDetectionPane;
+  private final GridPane massDetectionPane;
 
   /**
    * Creates a BorderPane layout.
@@ -425,7 +425,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
     ticChart.getMouseAdapter().addGestureHandler(new SimpleDataDragGestureHandler((start, end) -> {
-      Range<Float> rtRange = Range.closed((float) start.getX(), (float) end.getX());
+      Range<Double> rtRange = Range.closed(start.getX(), end.getX());
       final ScanSelection selection = scanSelection.cloneWithNewRtRange(rtRange);
       MZmineCore.getTaskController().addTask(
           new MergeFrameThread(rawDataFile, selection, binWidth, mobilityScanNoiseLevel,

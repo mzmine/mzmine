@@ -62,6 +62,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +79,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   // User parameters
   private final String suffix;
   private final MZTolerance mzTolerance;
-  private final int minimumScanSpan;
+  // image builder supplies a min number of total scans as well as min consecutive scans
+  // ADAPChromatogramBuilder only uses min consecutive scans
+  private final int minimumTotalScans;
+  private final int minimumConsecutiveScans;
   // Owen added User parameers;
   private final double minGroupIntensity;
   private final double minHighestPoint;
@@ -92,7 +96,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
    */
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      Class<? extends MZmineModule> callingModule) {
+      Class<? extends MZmineModule> callingModule, @Nullable Integer minimumTotalScans) {
     super(storage, moduleCallDate);
     this.project = project;
     this.dataFile = dataFile;
@@ -101,8 +105,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     this.mzTolerance = parameters.getParameter(ADAPChromatogramBuilderParameters.mzTolerance)
         .getValue();
-    this.minimumScanSpan = parameters.getParameter(
-        ADAPChromatogramBuilderParameters.minimumScanSpan).getValue();
+    this.minimumConsecutiveScans = parameters.getParameter(
+        ADAPChromatogramBuilderParameters.minimumConsecutiveScans).getValue();
 
     this.suffix = parameters.getParameter(ADAPChromatogramBuilderParameters.suffix).getValue();
 
@@ -113,6 +117,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         ADAPChromatogramBuilderParameters.minHighestPoint).getValue();
     this.parameters = parameters;
     this.callingModule = callingModule;
+    // image builder supplies a min number of total scans as well as min consecutive scans
+    // ADAPChromatogramBuilder only uses min consecutive scans
+    this.minimumTotalScans = Objects.requireNonNullElse(minimumTotalScans,
+        parameters.getValue(ADAPChromatogramBuilderParameters.minimumConsecutiveScans));
   }
 
   @Override
@@ -258,6 +266,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     logger.finest(() -> "Sorted %d data points from %d scans in %d ms".formatted(allMzValues.length,
         scanData.getNumberOfScans(), Duration.between(dpSortStart, dpSortEnd).toMillis()));
 
+    // count starts at 1 since we already have added one with a single point.
     progress = 0.1;
     progressStep = (allMzValues.length > 0) ? 0.45 / allMzValues.length : 0.0;
 
@@ -312,8 +321,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
       // And remove chromatograms who dont have a certian number of continous points above the
       // IntensityThresh2 level.
-      if (chromatogram.matchesMinContinuousDataPoints(scans, minGroupIntensity, minimumScanSpan,
-          minHighestPoint)) {
+      var dps = chromatogram.getNumberOfDataPoints();
+      if (dps >= minimumTotalScans && chromatogram.matchesMinContinuousDataPoints(scans,
+          minGroupIntensity, minimumConsecutiveScans, minHighestPoint)) {
         // add zeros to edges
         chromatogram.addNZeros(scans, 1, 1);
 

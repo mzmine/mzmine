@@ -32,22 +32,21 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.E
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import javafx.scene.paint.Color;
 
 public class DPPMassDetectionParameters extends SimpleParameterSet {
 
-  public static final MassDetector massDetectors[] =
-      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
-          new RecursiveMassDetector(), new WaveletMassDetector()};
+  public static final MassDetector[] massDetectors = {new CentroidMassDetector(),
+      new ExactMassDetector(), new LocalMaxMassDetector(), new RecursiveMassDetector(),
+      new WaveletMassDetector()};
 
-  public static final ModuleComboParameter<MassDetector> massDetector =
-      new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors, massDetectors[0]);
+  public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
+      "Mass detector", "Algorithm to use for mass detection and its parameters", massDetectors,
+      massDetectors[0]);
 
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",
@@ -57,7 +56,7 @@ public class DPPMassDetectionParameters extends SimpleParameterSet {
       "Set the color you want the detected isotope patterns to be displayed with.", Color.CYAN);
 
   public DPPMassDetectionParameters() {
-    super(new Parameter[] {massDetector, displayResults, datasetColor});
+    super(massDetector, displayResults, datasetColor);
   }
 
 }

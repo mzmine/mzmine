@@ -118,6 +118,9 @@ public class MultiChoiceParameter<ValueType> implements
 
   @Override
   public void setValue(ValueType[] values) {
+    if (choices == null) {
+      choices = values;
+    }
     this.values = values;
   }
 

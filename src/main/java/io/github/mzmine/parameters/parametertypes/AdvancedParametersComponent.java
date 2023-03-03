@@ -24,8 +24,11 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TitledPane;
@@ -33,10 +36,12 @@ import javafx.scene.control.TitledPane;
 /**
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class AdvancedParametersComponent extends Accordion {
+public class AdvancedParametersComponent extends Accordion implements
+    EstimatedComponentHeightProvider {
 
   private final ParameterSetupPane paramPane;
   private final CheckBox checkBox;
+  private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
 
   public AdvancedParametersComponent(final ParameterSet parameters, String title, boolean state) {
     paramPane = new ParameterSetupPane(false, parameters, false, false, null, true, false);
@@ -45,18 +50,30 @@ public class AdvancedParametersComponent extends Accordion {
 
     TitledPane titledPane = new TitledPane("", paramPane.getParamsPane());
     titledPane.setGraphic(checkBox);
+    expandedPaneProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        setEstimatedHeight(0);
+      } else {
+        setEstimatedHeight(paramPane.getParametersAndComponents().size());
+      }
+    });
+    titledPane.setAnimated(false);
 
     checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
       paramPane.getParametersAndComponents().values()
           .forEach(node -> node.setDisable(!checkBox.isSelected()));
     });
-    
+
     paramPane.getParametersAndComponents().values()
         .forEach(node -> node.setDisable(!checkBox.isSelected()));
 
     getPanes().add(titledPane);
   }
 
+  @Override
+  public DoubleProperty estimatedHeightProperty() {
+    return estimatedHeightProperty;
+  }
 
   public ParameterSet getValue() {
     return paramPane.updateParameterSetFromComponents();
