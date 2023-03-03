@@ -41,9 +41,13 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
 
   public static final MsLevelFilter ALL_LEVELS = new MsLevelFilter(Options.ALL, 1);
 
+  public MsLevelFilter(Options filter) {
+    this(filter, 3);
+  }
+
   public static MsLevelFilter of(@Nullable final Integer msLevel) {
     return switch (msLevel) {
-      case null -> ALL_LEVELS;
+      case null, -1 -> ALL_LEVELS;
       case 1 -> new MsLevelFilter(Options.MS1, 1);
       case 2 -> new MsLevelFilter(Options.MS2, 2);
       default -> new MsLevelFilter(Options.SPECIFIC_LEVEL, msLevel);
@@ -63,9 +67,9 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
   public String getFilterString() {
     return switch (filter) {
       case ALL -> "";
-      case MS1 -> "MS level=" + 1;
-      case MS2 -> "MS level=" + 2;
-      case MSn -> "MS level≥" + 2;
+      case MS1 -> "MS level=1";
+      case MS2 -> "MS level=2";
+      case MSn -> "MS level≥2";
       case SPECIFIC_LEVEL -> "MS level=" + specificLevel;
     };
   }
@@ -95,6 +99,14 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
   }
 
   /**
+   * @param scan the tested scan
+   * @return true if scan does not match filter
+   */
+  public boolean notMatch(Scan scan) {
+    return !accept(scan);
+  }
+
+  /**
    * @return a single MS level if not MSn or ALL option - then null
    */
   @Nullable
@@ -119,7 +131,19 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
     };
   }
 
-  enum Options {
+  public boolean isMs1Only() {
+    return isSingleMsLevel(1);
+  }
+
+  public boolean isMs2Only() {
+    return isSingleMsLevel(2);
+  }
+
+  public boolean isFilter() {
+    return this.filter() != Options.ALL;
+  }
+
+  public enum Options {
     ALL, MS1, MSn, MS2, SPECIFIC_LEVEL;
 
     @Override

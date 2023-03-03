@@ -83,6 +83,7 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
@@ -963,8 +964,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(SpectralLibrarySearchParameters.peakLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(SpectralLibrarySearchParameters.libraries, new SpectralLibrarySelection());
-    param.setParameter(SpectralLibrarySearchParameters.msLevel, 2);
-    param.setParameter(SpectralLibrarySearchParameters.allMS2Spectra, false);
+    param.setParameter(SpectralLibrarySearchParameters.scanMatchingSelection,
+        ScanMatchingSelection.MERGED_MSN);
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
         new MZTolerance(0.01, 20));
     param.setParameter(SpectralLibrarySearchParameters.mzTolerance, new MZTolerance(0.01, 20));
