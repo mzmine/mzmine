@@ -151,10 +151,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
 
-    // TODO set correct filter
+    // used to extract and merge spectra
     selection = new FragmentScanSelection(mzTolMerging, true,
         IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM,
-        MsLevelFilter.ALL_LEVELS);
+        postMergingMsLevelFilter);
   }
 
   @Override

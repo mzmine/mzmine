@@ -121,6 +121,7 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -600,6 +601,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LibraryBatchGenerationParameters.mergeMzTolerance, true, mzTolScans);
     param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
     param.setParameter(LibraryBatchGenerationParameters.file, fileName);
+    param.setParameter(LibraryBatchGenerationParameters.postMergingMsLevelFilter,
+        new MsLevelFilter(Options.MSn));
     // chimerics
     param.setParameter(LibraryBatchGenerationParameters.handleChimerics, true);
     var chimerics = param.getParameter(LibraryBatchGenerationParameters.handleChimerics)
@@ -954,8 +957,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         param));
   }
 
-  protected void makeAndAddLibrarySearchStep(final BatchQueue q) {
-    if (!checkLibraryFiles()) {
+  protected void makeAndAddLibrarySearchStep(final BatchQueue q,
+      boolean libraryGenerationWorkflow) {
+    if (!libraryGenerationWorkflow && !checkLibraryFiles()) {
       return;
     }
 

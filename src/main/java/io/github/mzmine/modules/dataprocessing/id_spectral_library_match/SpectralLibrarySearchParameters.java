@@ -63,13 +63,6 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       ALL: will use all available raw scans + the ones from merging.
           """, ScanMatchingSelection.values(), ScanMatchingSelection.MERGED_MSN);
 
-  public SpectralLibrarySearchParameters() {
-    super(new Parameter[]{peakLists, libraries, scanMatchingSelection, mzTolerancePrecursor,
-            mzTolerance, removePrecursor, minMatch, similarityFunction, advanced},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html");
-  }
-
-
   public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
       "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries", 0.001,
       5);
@@ -91,6 +84,12 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
       "Similarity", "Algorithm to calculate similarity and filter matches",
       SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
+
+  public SpectralLibrarySearchParameters() {
+    super(new Parameter[]{peakLists, libraries, scanMatchingSelection, mzTolerancePrecursor,
+            mzTolerance, removePrecursor, minMatch, similarityFunction, advanced},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html");
+  }
 
   /**
    * for SelectedRowsParameters
