@@ -51,4 +51,12 @@ public record MSMSScore(float explainedIntensity, float explainedSignals,
     return FAILED_FILTERS.equals(this) || (requireFormulaMatch && SUCCESS_WITHOUT_FORMULA.equals(
         this));
   }
+
+  /**
+   * All explained signals
+   */
+  @NotNull
+  public DataPoint[] getAnnotatedDataPoints() {
+    return annotation().keySet().toArray(DataPoint[]::new);
+  }
 }

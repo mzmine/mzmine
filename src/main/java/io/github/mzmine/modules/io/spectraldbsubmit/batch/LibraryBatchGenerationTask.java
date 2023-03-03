@@ -36,6 +36,8 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
@@ -83,6 +85,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
@@ -210,16 +213,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
 
     // handle chimerics
-    final Map<Scan, ChimericPrecursorResult> chimericMap;
-    if (handleChimerics) {
-      chimericMap = checkChimericPrecursorIsolation(row, scans);
-      if (ChimericMsOption.SKIP.equals(handleChimericsOption)) {
-        scans = scans.stream()
-            .filter(scan -> ChimericPrecursorResult.PASSED == chimericMap.get(scan)).toList();
-      }
-    } else {
-      chimericMap = Map.of();
-    }
+    final var chimericMap = handleChimericsAndFilterScansIfSelected(row, scans);
 
     if (enableMsnMerge) {
       // merge spectra, find best spectrum for each MSn node in the tree and each energy
@@ -233,63 +227,67 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
     FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
 
+    boolean explainedSignalsOnly = msMsQualityChecker.exportExplainedSignalsOnly();
     // filter matches
-    for (int i = 0; i < scans.size(); i++) {
-//      final DataPoint[] dataPoints = spectra.get(i);
-
-      final Scan msmsScan = scans.get(i);
+    for (final Scan msmsScan : scans) {
       final MSMSScore score = msMsQualityChecker.match(msmsScan, match, sortedFormulas);
       if (score.isFailed(false)) {
         continue;
       }
 
       DataPoint[] dps =
-          msMsQualityChecker.exportExplainedSignalsOnly() ? score.annotation().keySet()
-              .toArray(DataPoint[]::new) : ScanUtils.extractDataPoints(msmsScan, true);
+          explainedSignalsOnly ? score.getAnnotatedDataPoints() : extractDataPoints(msmsScan, true);
 
-      // add instrument type etc by parameter
-      SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan,
-          match, dps);
-      entry.putAll(metadataMap);
-
-      // score might be successful without having a formula - so check if we actually have scores
-      if (score.explainedSignals() > 0) {
-        entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_INTENSITY, score.explainedIntensity());
-        entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_SIGNALS, score.explainedSignals());
-      }
-      if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
-        // default is passed
-        ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
-            ChimericPrecursorResult.PASSED);
-        entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
-        if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
-          entry.putIfNotNull(DBEntryField.NAME,
-              entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
-        }
-      }
-      // add file info
-      int scanNumber = msmsScan.getScanNumber();
-      final String fileUSI = Path.of(
-          Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
-              msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
-
-      entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scanNumber);
-      entry.getField(DBEntryField.DATASET_ID).ifPresent(
-          dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
-
-      // add experimental data
-      if (entry.getField(DBEntryField.RT).isEmpty()) {
-        entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
-      }
-      if (entry.getField(DBEntryField.CCS).isEmpty()) {
-        entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
-      }
-
-      // export to file
+      SpectralLibraryEntry entry = createEntry(row, match, chimericMap, msmsScan, score, dps);
       exportEntry(writer, entry);
       exported.incrementAndGet();
     }
   }
+
+  @NotNull
+  private SpectralLibraryEntry createEntry(final FeatureListRow row,
+      final CompoundDBAnnotation match, final Map<Scan, ChimericPrecursorResult> chimericMap,
+      final Scan msmsScan, final MSMSScore score, final DataPoint[] dps) {
+    // add instrument type etc by parameter
+    SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan, match,
+        dps);
+    entry.putAll(metadataMap);
+
+    // score might be successful without having a formula - so check if we actually have scores
+    if (score.explainedSignals() > 0) {
+      entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_INTENSITY, score.explainedIntensity());
+      entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_SIGNALS, score.explainedSignals());
+    }
+    if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
+      // default is passed
+      ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
+          ChimericPrecursorResult.PASSED);
+      entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
+      if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
+        entry.putIfNotNull(DBEntryField.NAME,
+            entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
+      }
+    }
+    // add file info
+    int scanNumber = msmsScan.getScanNumber();
+    final String fileUSI = Path.of(
+        Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
+            msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
+
+    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scanNumber);
+    entry.getField(DBEntryField.DATASET_ID).ifPresent(
+        dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
+
+    // add experimental data
+    if (entry.getField(DBEntryField.RT).isEmpty()) {
+      entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+    }
+    if (entry.getField(DBEntryField.CCS).isEmpty()) {
+      entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+    }
+    return entry;
+  }
+
 
   /**
    * Filters the scans
@@ -312,6 +310,23 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap.computeIfAbsent(scan, key -> scoreChimericIsolation(row, scan));
     }
     return chimericMap;
+  }
+
+  /**
+   * @param scans might be filtered if the chimeric handling is set to SKIP
+   * @return a map that flags spectra as chimeric or passed - or an empty map if handeChimerics is
+   * off
+   */
+  private Map<Scan, ChimericPrecursorResult> handleChimericsAndFilterScansIfSelected(
+      final FeatureListRow row, final List<Scan> scans) {
+    if (handleChimerics) {
+      var chimericMap = checkChimericPrecursorIsolation(row, scans);
+      if (ChimericMsOption.SKIP.equals(handleChimericsOption)) {
+        scans.removeIf(scan -> ChimericPrecursorResult.PASSED != chimericMap.get(scan));
+      }
+      return chimericMap;
+    }
+    return Map.of();
   }
 
   private ChimericPrecursorResult scoreChimericIsolation(final FeatureListRow row,
