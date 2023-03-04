@@ -77,9 +77,9 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
   public String getFilterString() {
     return switch (filter) {
       case ALL -> "";
-      case MS1 -> "MS level = 1";
-      case MS2 -> "MS level = 2";
-      case MSn -> "MS level ≥ 2";
+      case MS1 -> "MS1, level = 1";
+      case MS2 -> "MS2, level = 2";
+      case MSn -> "MSn, level ≥ 2";
       case SPECIFIC_LEVEL -> "MS level=" + specificLevel;
     };
   }
@@ -159,7 +159,9 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
     @Override
     public String toString() {
       return switch (this) {
-        case MS2, MS1, MSn -> super.toString();
+        case MS1 -> "MS1, level = 1";
+        case MS2 -> "MS2, level = 2";
+        case MSn -> "MSn, level ≥ 2";
         case ALL -> "All MS levels";
         case SPECIFIC_LEVEL -> "Specific MS level";
       };

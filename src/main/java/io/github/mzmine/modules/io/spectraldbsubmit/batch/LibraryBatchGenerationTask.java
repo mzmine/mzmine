@@ -219,12 +219,14 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     if (enableMsnMerge) {
       // merge spectra, find best spectrum for each MSn node in the tree and each energy
+      // filter after merging scans to also generate PSEUDO MS2 from MSn spectra
       scans = selection.getAllFragmentSpectra(scans);
+    } else {
+      // filter scans if selection is only MS2
+      if (postMergingMsLevelFilter.isFilter()) {
+        scans.removeIf(postMergingMsLevelFilter::notMatch);
+      }
     }
-    // filter scans if selection is only MS2
-    // filter after merging scans to also generate PSEUDO MS2 from MSn spectra
-    scans.removeIf(postMergingMsLevelFilter::notMatch);
-
     // cache all formulas
     IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
     FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
