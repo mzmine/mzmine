@@ -132,7 +132,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected ChromatogramPlotControlPane pnChromControls;
   protected BooleanProperty showMassListProperty;
   protected ValueMarker rtMarker;
-  protected ParameterSet parameterSet;
   protected boolean showSpectraOfEveryRawFile;
   /**
    * Stores the raw data files ands tic data sets currently displayed. Could be observed by a
@@ -141,6 +140,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected ObservableMap<RawDataFile, TICDataSet> filesAndDataSets;
   protected SpectraDataSetCalc currentSpectraDataSetCalc;
   protected FeatureDataSetCalc currentFeatureDataSetCalc;
+  // ChromatogramAndSpectraVisualizerParameters
+  protected ParameterSet parameters;
 
   public ChromatogramAndSpectraVisualizer() {
     this(Orientation.HORIZONTAL);
@@ -150,6 +151,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     super();
 
     getStyleClass().add("region-match-chart-bg");
+
+    parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(ChromatogramAndSpectraVisualizerModule.class);
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -181,7 +185,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     getItems().addAll(pnWrapChrom, pnWrapSpectrum);
 
     // chrom plot settings bottom
-    pnChromControls = new ChromatogramPlotControlPane();
+    pnChromControls = new ChromatogramPlotControlPane(parameters);
     pnWrapChrom.setBottom(pnChromControls);
     pnChromControls.setParameterListener(this::handleParametersChange);
 
@@ -275,22 +279,35 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   private void handleParametersChange(ParameterSet params) {
-    parameterSet = params;
-    MZTolerance tol = parameterSet.getParameter(
-        ChromatogramAndSpectraVisualizerParameters.chromMzTolerance).getValue();
-    ScanSelection sel = parameterSet.getParameter(
-        ChromatogramAndSpectraVisualizerParameters.scanSelection).getValue();
+    parameters = params;
+    MZTolerance tol = parameters.getValue(
+        ChromatogramAndSpectraVisualizerParameters.chromMzTolerance);
+    ScanSelection sel = parameters.getValue(
+        ChromatogramAndSpectraVisualizerParameters.scanSelection);
     if (sel != null) {
       scanSelection.set(sel);
     }
     if (tol != null) {
       chromMzTolerance.set(tol);
     }
-    TICPlotType pt = parameterSet.getParameter(ChromatogramAndSpectraVisualizerParameters.plotType)
-        .getValue();
+    TICPlotType pt = parameters.getValue(ChromatogramAndSpectraVisualizerParameters.plotType);
     if (pt != null) {
       plotType.set(pt);
     }
+
+    handleLegendVisibilityOption();
+  }
+
+  private void handleLegendVisibilityOption() {
+    var legendOp = parameters.getValue(ChromatogramAndSpectraVisualizerParameters.legendOptions);
+    boolean legendVisible = switch (legendOp) {
+      case AUTO -> getRawDataFiles().size()<=10; // only on if small number
+      case ON -> true;
+      case OFF -> false;
+    };
+
+    chromPlot.setLegendVisible(legendVisible);
+    spectrumPlot.setLegendVisible(legendVisible);
   }
 
   private Scan getScan(RawDataFile dataFile, Scan scan, int shift) {
@@ -340,6 +357,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     spectrumPlot.applyWithNotifyChanges(false, true, () -> {
       chromPlot.applyWithNotifyChanges(false, true, () -> {
 
+        logger.info("Change data files in visualizer");
         // remove files first
         for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
           if (!rawDataFiles.contains(rawDataFile)) {
@@ -355,6 +373,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         }
       });
     });
+
+    // handle legend option
+    handleLegendVisibilityOption();
   }
 
   /**
@@ -525,8 +546,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param mz
    */
   private void updateFeatureDataSets(final double mz) {
-    chromDelay.setOnFinished((event) -> delayedFeatureDataUpdate(mz));
-    chromDelay.playFromStart();
+    // only do this with smaller sample set size
+    var maxSamples = parameters.getValue(
+        ChromatogramAndSpectraVisualizerParameters.maxSamplesFeaturePick);
+    if(getRawDataFiles().size()<=maxSamples) {
+      chromDelay.setOnFinished((event) -> delayedFeatureDataUpdate(mz));
+      chromDelay.playFromStart();
+    }
   }
 
   /**
@@ -546,7 +572,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     thread.addTaskStatusListener((task, newStatus, oldStatus) -> {
       logger.finest("FeatureUpdate status changed from " + oldStatus.toString() + " to "
-          + newStatus.toString());
+                    + newStatus.toString());
       currentFeatureDataSetCalc = null;
     });
     if (currentFeatureDataSetCalc != null) {
@@ -622,7 +648,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     return chromPosition;
   }
 
-  @NotNull
   public ChromatogramCursorPosition getChromPosition() {
     return chromPosition.get();
   }
@@ -715,8 +740,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         that.chromPlot) && spectrumPlot.equals(that.spectrumPlot) && Objects.equals(
         scanSelection.get(), that.scanSelection.get()) && Objects.equals(mzRange.get(),
         that.mzRange.get()) && Objects.equals(chromPosition.get(), that.chromPosition.get())
-        && Objects.equals(rtMarker, that.rtMarker) && chromMzTolerance.get()
-        .equals(that.chromMzTolerance.get()) && Objects.equals(filesAndDataSets,
+           && Objects.equals(rtMarker, that.rtMarker) && chromMzTolerance.get()
+               .equals(that.chromMzTolerance.get()) && Objects.equals(filesAndDataSets,
         that.filesAndDataSets);
   }
 

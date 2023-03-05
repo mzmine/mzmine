@@ -226,10 +226,19 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     }
   }
 
-  public void switchLegendVisible() {
-    // Toggle legend visibility.
+
+  public void setLegendVisible(boolean state) {
+    if (theme == null) {
+      return;
+    }
+    theme.setShowLegend(state);
     final LegendTitle legend = getChart().getLegend();
-    legend.setVisible(!legend.isVisible());
+    legend.setVisible(state);
+    //theme.apply paints first series in white/black which is wrong
+  }
+
+  public void switchLegendVisible() {
+    setLegendVisible(!theme.isShowLegend());
   }
 
   public void switchItemLabelsVisible() {

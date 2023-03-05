@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -46,7 +47,16 @@ public class ChromatogramAndSpectraVisualizerParameters extends SimpleParameterS
   public static final ComboParameter<TICPlotType> plotType = new ComboParameter<>("Plot type",
       "Type of the chromatogram plot.", TICPlotType.values(), TICPlotType.BASEPEAK);
 
+  public static final ComboParameter<ShowLegendOptions> legendOptions = new ComboParameter<>(
+      "Show legend", "AUTO means that legend is deactivated for large number of samples",
+      ShowLegendOptions.values(), ShowLegendOptions.AUTO);
+
+
+  public static final IntegerParameter maxSamplesFeaturePick = new IntegerParameter(
+      "Maximum data files feature detection",
+      "Only perform auto feature detection on sample set sizes smaller equal this value", 10, true);
+
   public ChromatogramAndSpectraVisualizerParameters() {
-    super(chromMzTolerance, scanSelection, plotType);
+    super(chromMzTolerance, scanSelection, plotType, legendOptions, maxSamplesFeaturePick);
   }
 }
