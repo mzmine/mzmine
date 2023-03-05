@@ -59,7 +59,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -169,8 +168,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromMzTolerance = new SimpleObjectProperty<>(new MZTolerance(0, 10));
     chromPosition = new SimpleObjectProperty<>();
     spectrumPosition = new SimpleObjectProperty<>();
-    scanSelection = new SimpleObjectProperty<>(new ScanSelection(1));
     mzRange = new SimpleObjectProperty<>();
+    scanSelection = new SimpleObjectProperty<>(new ScanSelection(1));
 
     // initialise controls
     pnSpectrumControls = new FlowPane();
@@ -260,22 +259,42 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getXYPlot().setDomainCrosshairVisible(false);
     chromPlot.getXYPlot().setRangeCrosshairVisible(false);
 
-    setOnMouseClicked(e -> requestFocus());
-    setOnKeyPressed(e -> {
-      if (e.getCode() == KeyCode.LEFT && e.isControlDown() && getChromPosition() != null) {
-        logger.finest("Loading previous scan");
-        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), -1);
+    chromPlot.setFocusTraversable(true);
+    chromPlot.requestFocus();
+    chromPlot.setOnMouseClicked(e -> chromPlot.requestFocus());
+    chromPlot.setOnKeyPressed(e -> {
+      if (e.getCode() == KeyCode.LEFT && getChromPosition() != null) {
+        logger.finest("Loading previous MS scan in XIC");
+        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), -1,
+            true);
         setFocusedScan(getChromPosition().getDataFile(), scan);
-        requestFocus();
+        chromPlot.requestFocus();
         e.consume();
-      } else if (e.getCode() == KeyCode.RIGHT && e.isControlDown() && getChromPosition() != null) {
-        logger.finest("Loading next scan");
-        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), +1);
+      } else if (e.getCode() == KeyCode.RIGHT && getChromPosition() != null) {
+        logger.finest("Loading next MS scan in XIC");
+        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), +1,
+            true);
         setFocusedScan(getChromPosition().getDataFile(), scan);
-        requestFocus();
+        chromPlot.requestFocus();
+        e.consume();
+      } else if (e.getCode() == KeyCode.UP && getChromPosition() != null) {
+        logger.finest("Loading previous scan");
+        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), -1,
+            false);
+        setFocusedScan(getChromPosition().getDataFile(), scan);
+        chromPlot.requestFocus();
+        e.consume();
+      } else if (e.getCode() == KeyCode.DOWN && getChromPosition() != null) {
+        logger.finest("Loading next scan");
+        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), +1,
+            false);
+        setFocusedScan(getChromPosition().getDataFile(), scan);
+        chromPlot.requestFocus();
         e.consume();
       }
     });
+
+    handleParametersChange(parameters);
   }
 
   private void handleParametersChange(ParameterSet params) {
@@ -301,7 +320,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private void handleLegendVisibilityOption() {
     var legendOp = parameters.getValue(ChromatogramAndSpectraVisualizerParameters.legendOptions);
     boolean legendVisible = switch (legendOp) {
-      case AUTO -> getRawDataFiles().size()<=10; // only on if small number
+      case AUTO -> getRawDataFiles().size() <= 10; // only on if small number
       case ON -> true;
       case OFF -> false;
     };
@@ -310,19 +329,22 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     spectrumPlot.setLegendVisible(legendVisible);
   }
 
-  private Scan getScan(RawDataFile dataFile, Scan scan, int shift) {
+  private Scan getScan(RawDataFile dataFile, Scan scan, int shift, boolean useScanSelection) {
     if (!Objects.equals(scan.getDataFile(), dataFile)) {
       throw new IllegalArgumentException("data file and the scan data file need to be the same");
     }
-    ObservableList<Scan> scans = dataFile.getScans();
+
+    final List<Scan> scans = dataFile.getScans();
+
     int index = scans.indexOf(scan);
-    if (index == -1) {
-      return null;
-    } else if (shift > 0) {
-      return scans.get(Math.min(index + shift, scans.size() - 1));
-    } else {
-      return scans.get(Math.max(index + shift, 0));
+    for(int i=index+shift; i>=0 && i<scans.size(); i +=shift) {
+      var testScan = scans.get(i);
+      if(!useScanSelection || scanSelection.get().matches(testScan)) {
+        return testScan;
+      }
     }
+
+    return scan;
   }
 
   private void updateAllChromatogramDataSets() {
@@ -549,7 +571,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // only do this with smaller sample set size
     var maxSamples = parameters.getValue(
         ChromatogramAndSpectraVisualizerParameters.maxSamplesFeaturePick);
-    if(getRawDataFiles().size()<=maxSamples) {
+    if (getRawDataFiles().size() <= maxSamples) {
       chromDelay.setOnFinished((event) -> delayedFeatureDataUpdate(mz));
       chromDelay.playFromStart();
     }
