@@ -40,13 +40,15 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkingParameters extends SimpleParameterSet {
 
   // different depth of settings
   public enum Setup {
-    FULL, SUB, SIMPLE;
+    FULL, SUB, SIMPLE
   }
 
   // NOT INCLUDED in sub
@@ -55,8 +57,8 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
   // INCLUDED in sub
   // MZ-tolerance: deisotoping, adducts
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter("m/z tolerance",
-      "Tolerance value of the m/z difference between peaks");
+  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
+      ToleranceType.INTRA_SAMPLE);
 
   public static final ComboParameter<CheckMode> CHECK_MODE =
       new ComboParameter<CheckMode>("Check",
@@ -86,7 +88,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
           new IonNetworkRefinementParameters(true), true);
 
   // setup
-  private Setup setup;
+  private final Setup setup;
 
   // Constructor
   public IonNetworkingParameters() {
@@ -151,5 +153,14 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZ_TOLERANCE);
+    return nameParameterMap;
   }
 }
