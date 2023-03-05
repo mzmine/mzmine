@@ -66,7 +66,7 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
    * @return list of merged and single scans
    */
   public @NotNull List<Scan> getAllFragmentSpectra(final List<Scan> scans) {
-    if (scans.size() == 1) {
+    if (scans.size() <= 1) {
       return scans;
     }
 
