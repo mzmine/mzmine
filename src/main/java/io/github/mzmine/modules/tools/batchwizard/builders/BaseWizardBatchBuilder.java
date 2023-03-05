@@ -977,10 +977,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
         .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
-        Weights.MASSBANK);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
-        Weights.MASSBANK);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.65);
+        Weights.SQRT);
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.7);
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
