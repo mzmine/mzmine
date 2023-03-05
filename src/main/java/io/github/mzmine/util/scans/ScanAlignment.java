@@ -164,15 +164,11 @@ public class ScanAlignment {
 
   /**
    * get overlapping MZ range (lowerBound - mzTol and upperbound+ mzTol)
-   *
-   * @param mzTol
-   * @param a
-   * @param b
-   * @return
    */
-  public static Range<Double> getOverlapMZ(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
-    Range<Double> ra = getMZRange(a);
-    Range<Double> rb = getMZRange(b);
+  public static Range<Double> getOverlapMZ(MZTolerance mzTol, DataPoint[] a, DataPoint[] b,
+      final Double aMz, final double bMz) {
+    Range<Double> ra = getMZRange(a).span(Range.singleton(aMz));
+    Range<Double> rb = getMZRange(b).span(Range.singleton(bMz));
 
     // no overlap
     if (!ra.isConnected(rb)) {
@@ -192,17 +188,15 @@ public class ScanAlignment {
   /**
    * crop to overlapping MZ range (lowerBound - mzTol and upperbound+ mzTol)
    *
-   * @param mzTol
-   * @param a
-   * @param b
    * @return DataPoint[a, b][cropped datapoints]
    */
-  public static DataPoint[][] cropToOverlap(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
-    Range<Double> overlap = getOverlapMZ(mzTol, a, b);
-    DataPoint[] newa =
-        Arrays.stream(a).filter(d -> overlap.contains(d.getMZ())).toArray(DataPoint[]::new);
-    DataPoint[] newb =
-        Arrays.stream(b).filter(d -> overlap.contains(d.getMZ())).toArray(DataPoint[]::new);
+  public static DataPoint[][] cropToOverlap(MZTolerance mzTol, DataPoint[] a, DataPoint[] b,
+      final Double aMz, final double bMz) {
+    Range<Double> overlap = getOverlapMZ(mzTol, a, b, aMz, bMz);
+    DataPoint[] newa = Arrays.stream(a).filter(d -> overlap.contains(d.getMZ()))
+        .toArray(DataPoint[]::new);
+    DataPoint[] newb = Arrays.stream(b).filter(d -> overlap.contains(d.getMZ()))
+        .toArray(DataPoint[]::new);
     return new DataPoint[][]{newa, newb};
   }
 
@@ -322,6 +316,7 @@ public class ScanAlignment {
       for (int i = 0; i < list.length && noneNull; i++) {
         if (list[i][d] == null) {
           noneNull = false;
+          break;
         }
       }
       if (noneNull) {

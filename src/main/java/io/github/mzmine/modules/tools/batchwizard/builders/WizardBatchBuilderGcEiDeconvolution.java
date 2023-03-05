@@ -129,7 +129,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeMultiCurveResolutionStep(q);
     makeAndAddAlignmentStep(q);
 
-    makeAndAddLibrarySearchStep(q);
+    makeAndAddLibrarySearchStep(q, false);
 
     if (isExportActive) {
       if (exportGnps) {
