@@ -102,7 +102,7 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
   @Override
   public void addValueChangedListener(final Runnable onChange) {
     if (changeListeners == null) {
-      changeListeners = new ArrayList();
+      changeListeners = new ArrayList<>();
     }
     changeListeners.add(onChange);
     comboBox.getSelectionModel().selectedItemProperty()
@@ -110,6 +110,9 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
   }
 
   public void onValueChanged() {
+    if (changeListeners == null) {
+      return;
+    }
     for (final Runnable onChange : changeListeners) {
       onChange.run();
     }
