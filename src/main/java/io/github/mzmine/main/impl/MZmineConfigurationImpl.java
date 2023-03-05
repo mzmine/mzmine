@@ -34,7 +34,6 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
@@ -268,7 +267,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           // already contain encrypted data
           // that needs this key for encryption
           if (file.equals(MZmineConfiguration.CONFIG_FILE)) {
-            new SimpleParameterSet(new Parameter[]{globalEncrypter}).loadValuesFromXML(
+            new SimpleParameterSet(globalEncrypter).loadValuesFromXML(
                 preferencesElement);
           }
           preferences.loadValuesFromXML(preferencesElement);
@@ -296,7 +295,13 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
               moduleClassName);
 
           ParameterSet moduleParameters = getModuleParameters(moduleClass);
-          moduleParameters.loadValuesFromXML(moduleElement);
+          if(moduleParameters==null) {
+            logger.info(
+                "Module %s was in the config file but was not found in the current version of MZmine".formatted(
+                    moduleClass.getName()));
+          }
+          var parameterElement = (Element) moduleElement.getElementsByTagName("parameters").item(0);
+          moduleParameters.loadValuesFromXML(parameterElement);
         } catch (Exception | NoClassDefFoundError e) {
           logger.log(Level.WARNING, "Failed to load configuration for module " + moduleClassName,
               e);
@@ -355,7 +360,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
       // save encryption key to local config only
       // ATTENTION: this should to be written after all other configs
-      final SimpleParameterSet encSet = new SimpleParameterSet(new Parameter[]{globalEncrypter});
+      final SimpleParameterSet encSet = new SimpleParameterSet(globalEncrypter);
       encSet.setSkipSensitiveParameters(skipSensitive);
       encSet.saveValuesToXML(prefElement);
 
