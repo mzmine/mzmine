@@ -228,12 +228,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
 
   public void setLegendVisible(boolean state) {
-    if (theme == null) {
-      return;
-    }
-    theme.setShowLegend(state);
     final LegendTitle legend = getChart().getLegend();
     legend.setVisible(state);
+    theme.setShowLegend(state);
     //theme.apply paints first series in white/black which is wrong
   }
 
