@@ -80,6 +80,7 @@ import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListPara
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -386,7 +387,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
 
     final ColumnID mainColumn = columnEntry.getValue();
-    final boolean toggledState = Objects.requireNonNullElse(masterState, !rowTypesParameter.isDataTypeVisible(mainColumn));
+    final boolean toggledState = Objects.requireNonNullElse(masterState,
+        !rowTypesParameter.isDataTypeVisible(mainColumn));
     // first all invisible
     setColumnVisibilityAndSubColumns(mainColumn, false, false);
 
@@ -494,6 +496,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // add row types
     featureList.getRowTypes().values().stream().filter(t -> !(t instanceof FeaturesType))
         .forEach(dataType -> addColumn(rowCol, dataType));
+
+    sortColumn(rowCol);
+
     // finally add row column to table
     this.getColumns().add(rowCol);
 
@@ -503,6 +508,19 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
 
   }
+
+  private void sortColumn(final TreeTableColumn<ModularFeatureListRow, String> parentColumn) {
+    // list order of most important columns
+    Map<DataType, Integer> prioMap = DataTypes.getDataTypeOrderFeatureTable();
+    parentColumn.getColumns().sort(
+        Comparator.comparingInt(col -> Math.min(((TreeTableColumn) col).getColumns().size(), 1))
+            .thenComparingInt(col -> {
+              var dataType = newColumnMap.get(col).getDataType();
+              // only the important columns are listed. put rest at end
+              return prioMap.getOrDefault(dataType, 99999999);
+            }));
+  }
+
 
   /**
    * Add a new column to the table
@@ -737,6 +755,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       }
       // Add sample column
       // NOTE: sample column is not added to the columnMap
+      sortColumn(sampleCol);
       this.getColumns().add(sampleCol);
     }
   }
