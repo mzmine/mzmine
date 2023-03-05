@@ -77,8 +77,17 @@ public class ChromatogramPlotControlPane extends VBox {
     mzRangeNode = new MZRangeComponent();
 
     // disable mz range and button if xic is not selected
-    btnUpdateXIC.disableProperty().bind(cbXIC.selectedProperty().not());
-    mzRangeNode.disableProperty().bind(cbXIC.selectedProperty().not());
+    cbXIC.selectedProperty().addListener((observable, oldValue, newValue) -> {
+      // only works if button is active
+      if (!btnUpdateXIC.isDisable()) {
+        btnUpdateXIC.fire();
+      }
+      btnUpdateXIC.setDisable(!newValue);
+      mzRangeNode.setDisable(!newValue);
+      if (!btnUpdateXIC.isDisable()) {
+        btnUpdateXIC.fire();
+      }
+    });
 
     HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam);
     controlsWrap.setAlignment(Pos.CENTER);
