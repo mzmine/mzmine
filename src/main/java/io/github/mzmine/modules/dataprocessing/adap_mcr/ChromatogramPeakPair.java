@@ -44,7 +44,7 @@ public record ChromatogramPeakPair(@NotNull FeatureList peaks, @Nullable Feature
 
   @Override
   public String toString() {
-    return chromatograms.getName() + " / " + peaks.getName();
+    return chromatograms==null? peaks.getName() : chromatograms.getName() + " / " + peaks.getName();
   }
 
   public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
