@@ -134,6 +134,7 @@ public class ScanSelectionParameter extends
       embeddedParameters.loadValuesFromXML(xmlElement);
       String selectedAttr = xmlElement.getAttribute("selected");
       this.active = requireNonNullElse(Boolean.valueOf(selectedAttr), false);
+      setValue(active, createFilter());
     } else {
       legacyLoadValueFromXML(xmlElement);
     }
