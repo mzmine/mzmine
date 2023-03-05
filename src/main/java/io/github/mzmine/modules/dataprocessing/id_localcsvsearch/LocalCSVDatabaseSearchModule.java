@@ -25,18 +25,16 @@
 
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
 
@@ -59,13 +57,13 @@ public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList peakLists[] = parameters.getParameter(LocalCSVDatabaseSearchParameters.peakLists)
+    // run only one task so that database import errors only appear once
+    // the matching is fast to run on multiple feature lists at once
+    FeatureList[] featureLists = parameters.getParameter(LocalCSVDatabaseSearchParameters.peakLists)
         .getValue().getMatchingFeatureLists();
 
-    for (FeatureList peakList : peakLists) {
-      Task newTask = new LocalCSVDatabaseSearchTask(peakList, parameters, moduleCallDate);
-      tasks.add(newTask);
-    }
+    Task newTask = new LocalCSVDatabaseSearchTask(featureLists, parameters, moduleCallDate);
+    tasks.add(newTask);
 
     return ExitCode.OK;
 
