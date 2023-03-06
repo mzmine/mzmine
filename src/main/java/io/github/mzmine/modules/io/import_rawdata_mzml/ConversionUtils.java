@@ -122,7 +122,7 @@ public class ConversionUtils {
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan) {
     DoubleBuffer mzs = scan.getDoubleBufferMzValues();
-    DoubleBuffer intensities = scan.getDoubleBufferMzValues();
+    DoubleBuffer intensities = scan.getDoubleBufferIntensityValues();
     // we are sorting at this point to make sure mz are sorted, as not all mzML files are sorted
     // latest converters should also ensure sorting of data points
     // the other method uses sorted arrays

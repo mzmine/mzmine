@@ -253,7 +253,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       Scan newScan = null;
       if (applyMassDetection) {
         // wrap scan
-        MsdkScanWrapper wrapper = new MsdkScanWrapper(scan);
+        MsdkScanWrapper wrapper = new MsdkScanWrapper(mzMLScan);
         double[][] mzIntensities = null;
 
         // apply mass detection

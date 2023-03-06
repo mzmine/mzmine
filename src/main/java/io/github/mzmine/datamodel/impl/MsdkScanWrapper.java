@@ -26,8 +26,6 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Floats;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
@@ -42,6 +40,7 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -55,21 +54,16 @@ public class MsdkScanWrapper implements Scan {
   // wrap this scan
   private final MsScan scan;
   private final MsMsInfo msMsInfo;
-  private final double[] mzs;
-  private final float[] intensities;
 
-  public MsdkScanWrapper(MsScan scan) {
+  private final DoubleBuffer mzs;
+  private final DoubleBuffer intensities;
+
+  public MsdkScanWrapper(BuildingMzMLMsScan scan) {
     this.scan = scan;
 
     // preload as getMzValue(i) is inefficient in MSDK scans
-    if (scan instanceof BuildingMzMLMsScan) {
-      //todo the tests were failing because of getMzValues() and getIntensityValues here - fix
-      mzs = ((BuildingMzMLMsScan) scan).getDoubleBufferMzValues().array();
-      intensities = Floats.toArray(Doubles.asList(((BuildingMzMLMsScan) scan).getDoubleBufferIntensityValues().array()));
-    } else {
-      mzs = scan.getMzValues();
-      intensities = scan.getIntensityValues();
-    }
+    mzs = scan.getDoubleBufferMzValues();
+    intensities = scan.getDoubleBufferIntensityValues();
 
     scan.getIsolations();
     if (!scan.getIsolations().isEmpty()) {
@@ -90,7 +84,7 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public int getNumberOfDataPoints() {
-    return mzs.length;
+    return mzs.array().length;
   }
 
   @Override
@@ -112,12 +106,12 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public double getMzValue(int index) {
-    return mzs[index];
+    return mzs.array()[index];
   }
 
   @Override
   public double getIntensityValue(int index) {
-    return intensities[index];
+    return intensities.array()[index];
   }
 
   @Nullable
