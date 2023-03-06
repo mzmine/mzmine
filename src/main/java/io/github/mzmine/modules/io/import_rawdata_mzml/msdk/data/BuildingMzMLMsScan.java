@@ -317,7 +317,8 @@ public class BuildingMzMLMsScan implements MsScan {
       Optional<String> cvv1 = getCVValue(MzMLCV.cvHighestMz);
       if (cvv.isEmpty() || cvv1.isEmpty()) {
         mzRange = MsSpectrumUtil.getMzRange(
-            DataPointUtils.getDoubleBufferAsArray(getDoubleBufferMzValues()),
+//            DataPointUtils.getDoubleBufferAsArray(getDoubleBufferMzValues()),
+            DataPointUtils.getDoubleBufferAsArray(mzValues),
             getMzBinaryDataInfo().getArrayLength());
         return mzRange;
       }
