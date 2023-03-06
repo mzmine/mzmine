@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
@@ -46,20 +47,27 @@ import org.jetbrains.annotations.Nullable;
  * Drives the selection of fragmentation spectra. Based on input spectra (MS2 or MSn) merged spectra
  * are generated.
  *
- * @param mzTol
- * @param mergeSeparateEnergies
- * @param inputSpectra
+ * @param mzTol                 tolerance to merge signals
+ * @param mergeSeparateEnergies the final list will contain one representative spectrum for each
+ *                              energy
+ * @param inputSpectra          keep input spectra in the final list or only use representative
+ *                              spectra
+ * @param msLevelFilter         is applied last after all merging is done. for MSn data this would
+ *                              mean that either all MSn levels are used or only the pseudo MS2 scan
+ *                              merged from all is kept when using MS2 only
  */
-public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEnergies,
-                                    IncludeInputSpectra inputSpectra,
-                                    IntensityMergingType intensityMergeType,
+public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
+                                    @NotNull IncludeInputSpectra inputSpectra,
+                                    @NotNull IntensityMergingType intensityMergeType,
+                                    @NotNull MsLevelFilter msLevelFilter,
                                     @Nullable MemoryMapStorage storage) {
 
   private static final Logger logger = Logger.getLogger(FragmentScanSelection.class.getName());
 
-  public FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEnergies,
-      IncludeInputSpectra inputSpectra, IntensityMergingType intensityMergeType) {
-    this(mzTol, mergeSeparateEnergies, inputSpectra, intensityMergeType, null);
+  public FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
+      @NotNull IncludeInputSpectra inputSpectra, @NotNull IntensityMergingType intensityMergeType,
+      @NotNull MsLevelFilter msLevelFilter) {
+    this(mzTol, mergeSeparateEnergies, inputSpectra, intensityMergeType, msLevelFilter, null);
   }
 
   public List<Scan> getAllFragmentSpectra(final FeatureListRow row) {
@@ -79,7 +87,13 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     }
 
     boolean hasMSn = scans.stream().anyMatch(s -> s.getMSLevel() > 2);
-    return hasMSn ? getAllFromMSn(scans) : computeAllScans(scans);
+    // make sure its mutable
+    var allScans = new ArrayList<>(hasMSn ? getAllFromMSn(scans) : computeAllScans(scans));
+
+    if (msLevelFilter.isFilter()) {
+      allScans.removeIf(msLevelFilter::notMatch);
+    }
+    return allScans;
   }
 
   /**
@@ -151,6 +165,10 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     List<Scan> allScans = new ArrayList<>();
     allScans.add(allMerged);
     mergedPerTreeNode.forEach(allScans::addAll);
+
+    if (msLevelFilter.isFilter()) {
+      allScans.removeIf(msLevelFilter::notMatch);
+    }
     return allScans;
   }
 
