@@ -53,7 +53,7 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
   /**
    * Includes all scans
    */
-  public static final ScanSelection ALL_SCANS = new ScanSelection(null);
+  public static final ScanSelection ALL_SCANS = new ScanSelection(MsLevelFilter.ALL_LEVELS);
   public static final ScanSelection MS1 = new ScanSelection(1);
 
   /**
@@ -63,9 +63,12 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     this(1);
   }
 
+  public ScanSelection(MsLevelFilter msLevelFilter) {
+    this(null, null, null, null, PolarityType.ANY, MassSpectrumType.ANY, msLevelFilter, null);
+  }
+
   public ScanSelection(Integer msLevel) {
-    this(null, null, null, null, PolarityType.ANY, MassSpectrumType.ANY, MsLevelFilter.of(msLevel),
-        null);
+    this(MsLevelFilter.of(msLevel));
   }
 
   public ScanSelection(Range<Double> scanRTRange, Integer msLevel) {

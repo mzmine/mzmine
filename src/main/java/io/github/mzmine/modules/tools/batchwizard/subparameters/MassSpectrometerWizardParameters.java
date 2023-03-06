@@ -44,8 +44,8 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
       "Noise level for peaks in MS1 spectra. Should remove noise but keep analyte signals.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleParameter ms2NoiseLevel = new DoubleParameter("MS2 noise level",
-      "Noise level for peaks in MS2 spectra. Should remove noise but keep analyte signals.",
+  public static final DoubleParameter msnNoiseLevel = new DoubleParameter("MS2..MSn noise level",
+      "Noise level for signals in MS2 to MSn spectra. Should remove noise but keep analyte signals.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final DoubleParameter minimumFeatureHeight = new DoubleParameter(
@@ -71,7 +71,7 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
   public MassSpectrometerWizardParameters(MassSpectrometerWizardParameterFactory preset) {
     super(WizardPart.MS, preset,
         // parameters
-        polarity, ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight, scanToScanMzTolerance,
+        polarity, ms1NoiseLevel, msnNoiseLevel, minimumFeatureHeight, scanToScanMzTolerance,
         featureToFeatureMzTolerance, sampleToSampleMzTolerance);
   }
 
@@ -81,7 +81,7 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
       final MZTolerance sample2sampleMzTolerance) {
     this(preset);
     setParameter(ms1NoiseLevel, ms1noise);
-    setParameter(ms2NoiseLevel, ms2noise);
+    setParameter(msnNoiseLevel, ms2noise);
     setParameter(minimumFeatureHeight, minHeight);
     setParameter(scanToScanMzTolerance, scan2scanMzTolerance);
     setParameter(featureToFeatureMzTolerance, f2fMzTolerance);

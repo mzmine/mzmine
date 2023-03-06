@@ -91,7 +91,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddRowFilterStep(q);
 
     // annotation
-    makeAndAddLibrarySearchStep(q);
+    makeAndAddLibrarySearchStep(q, false);
     return q;
   }
 

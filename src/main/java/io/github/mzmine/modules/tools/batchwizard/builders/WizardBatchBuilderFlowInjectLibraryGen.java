@@ -100,7 +100,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     makeAndAddIinStep(q);
 
     // match against own library
-    makeAndAddLibrarySearchStep(q);
+    makeAndAddLibrarySearchStep(q, true);
 
     // export
     makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius);

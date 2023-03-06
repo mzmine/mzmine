@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -82,6 +83,7 @@ public class GroupMS2Task extends AbstractTask {
   private final Double minimumRelativeFeatureHeight;
   private final int totalRows;
   private final RtLimitsFilter rtFilter;
+  private final FragmentScanSelection timsFragmentScanSelection;
   private int processedRows;
   private GroupedMs2RefinementTask refineTask;
 
@@ -114,6 +116,10 @@ public class GroupMS2Task extends AbstractTask {
     // 0 is deactivated
     minimumSignals = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMS2Parameters.minRequiredSignals, 0);
+
+    // only used for tims
+    timsFragmentScanSelection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
+        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS);
 
     this.list = list;
     processedRows = 0;
@@ -328,10 +334,7 @@ public class GroupMS2Task extends AbstractTask {
     }
 
     if (!msmsSpectra.isEmpty() && combineTimsMS2) {
-      final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
-          SpectraMerging.pasefMS2MergeTol, combineTimsMS2, IncludeInputSpectra.NONE,
-          IntensityMergingType.SUMMED);
-      return fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
+      return timsFragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
     }
     return msmsSpectra;
   }
