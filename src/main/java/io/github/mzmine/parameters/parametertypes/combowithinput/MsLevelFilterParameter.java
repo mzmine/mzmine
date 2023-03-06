@@ -43,6 +43,11 @@ public class MsLevelFilterParameter extends
         options, Options.SPECIFIC_LEVEL, defaultValue);
   }
 
+  public MsLevelFilterParameter(String desc, Options[] options, MsLevelFilter defaultValue) {
+    super(new IntegerParameter("MS level filter", desc, 3, true, 1, 100000), //
+        options, Options.SPECIFIC_LEVEL, defaultValue);
+  }
+
   @Override
   public MsLevelFilter createValue(final Options option, final IntegerParameter embeddedParameter) {
     return new MsLevelFilter(option, embeddedParameter.getValue());
