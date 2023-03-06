@@ -95,7 +95,8 @@ public class GroupMS2Task extends AbstractTask {
    */
   public GroupMS2Task(final FeatureList list, final ParameterSet parameterSet,
       @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // no new data stored -> null
+    super(((ModularFeatureList) list).getMemoryMapStorage(),
+        moduleCallDate); // use storage from feature list to store merged ms2 spectra.
 
     parameters = parameterSet;
     // RT has two options / tolerance is only provided for second option
@@ -119,7 +120,8 @@ public class GroupMS2Task extends AbstractTask {
 
     // only used for tims
     timsFragmentScanSelection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
-        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS);
+        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS,
+        getMemoryMapStorage());
 
     this.list = list;
     processedRows = 0;
@@ -326,8 +328,7 @@ public class GroupMS2Task extends AbstractTask {
           ? feature.getMobilityRange() : null;
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
           (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          ((ModularFeatureList) list).getMemoryMapStorage(), mobilityLimits, minMs2IntensityAbs,
-          minMs2IntensityRel, null);
+          getMemoryMapStorage(), mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
