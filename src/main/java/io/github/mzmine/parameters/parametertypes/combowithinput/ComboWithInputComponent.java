@@ -26,6 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.ValueChangeDecorator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -34,11 +37,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 
-public class ComboWithInputComponent<EnumValue> extends HBox {
+public class ComboWithInputComponent<EnumValue> extends HBox implements ValueChangeDecorator {
 
   private final ComboBox<EnumValue> comboBox;
   private final Node embeddedComponent;
   private final UserParameter<?, ? extends Node> embeddedParameter;
+  private List<Runnable> changeListeners;
 
   public ComboWithInputComponent(final UserParameter<?, ? extends Node> embeddedParameter,
       final ObservableList<EnumValue> choices, final EnumValue inputTrigger,
@@ -50,10 +54,15 @@ public class ComboWithInputComponent<EnumValue> extends HBox {
     embeddedComponent = embeddedParameter.createEditingComponent();
     embeddedComponent.setDisable(true);
 
+    if (embeddedComponent instanceof ValueChangeDecorator valueChangeDecorator) {
+      valueChangeDecorator.addValueChangedListener(this::onValueChanged);
+    }
+
     comboBox = new ComboBox<>();
     comboBox.getSelectionModel().selectedItemProperty()
         .addListener((observable, oldValue, newValue) -> {
           embeddedComponent.setDisable(!Objects.equals(getSelectedOption(), inputTrigger));
+          onValueChanged();
         });
     comboBox.setItems(choices);
     setValue(defaultValue);
@@ -89,4 +98,21 @@ public class ComboWithInputComponent<EnumValue> extends HBox {
           newValue.getEmbeddedValue());
     }
   }
+
+  @Override
+  public void addValueChangedListener(final Runnable onChange) {
+    if (changeListeners == null) {
+      changeListeners = new ArrayList();
+    }
+    changeListeners.add(onChange);
+    comboBox.getSelectionModel().selectedItemProperty()
+        .addListener((observable, oldValue, newValue) -> onValueChanged());
+  }
+
+  public void onValueChanged() {
+    for (final Runnable onChange : changeListeners) {
+      onChange.run();
+    }
+  }
+
 }

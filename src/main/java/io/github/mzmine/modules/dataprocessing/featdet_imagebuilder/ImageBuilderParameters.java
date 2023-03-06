@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,8 +55,7 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       new ScanSelection(1));
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-      "Scan to scan accuracy (m/z)", "m/z tolerance between scans to be placed in the same image.",
-      0.005, 15, false);
+      ToleranceType.SCAN_TO_SCAN, 0.005, 15, false);
 
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
       "Minimum total signals", "Minimum number of signals (data points) to form an image", 50, true,
@@ -85,6 +85,7 @@ public class ImageBuilderParameters extends SimpleParameterSet {
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("Min group size in # of scans", minConsecutiveSignals);
     nameParameterMap.put("Min highest intensity", minHighest);
+    nameParameterMap.put("Scan to scan accuracy (m/z)", mzTolerance);
     return nameParameterMap;
   }
 

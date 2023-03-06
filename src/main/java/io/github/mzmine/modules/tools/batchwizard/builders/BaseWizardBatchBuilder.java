@@ -487,7 +487,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
-    param.setParameter(CorrelateGroupingParameters.GROUPSPARAMETER, false);
     param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);
     param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, noiseLevelMs1);
 
@@ -983,10 +982,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
         .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
-        Weights.MASSBANK);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
-        Weights.MASSBANK);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.65);
+        Weights.SQRT);
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.7);
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 

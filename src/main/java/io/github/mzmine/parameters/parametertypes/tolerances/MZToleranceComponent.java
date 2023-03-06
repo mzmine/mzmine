@@ -67,8 +67,13 @@ public class MZToleranceComponent extends FlowPane {
   }
 
   public void setValue(MZTolerance value) {
-    mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
-    ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+    if (value == null) {
+      mzToleranceField.setText("");
+      ppmToleranceField.setText("");
+    } else {
+      mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
+      ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+    }
   }
 
   public void setToolTipText(String toolTip) {

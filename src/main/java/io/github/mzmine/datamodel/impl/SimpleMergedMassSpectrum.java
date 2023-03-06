@@ -91,6 +91,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     super(storage, mzValues, intensityValues);
     assert !sourceSpectra.isEmpty();
 
+    this.sourceSpectra = sourceSpectra.stream().flatMap(this::unpackSourceSpectra).toList();
     this.mergingType = mergingType;
     RawDataFile file = null;
     PolarityType tempPolarity = null;
@@ -104,9 +105,6 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
           tempPolarity = scan.getPolarity();
           tempScanningMzRange = scan.getScanningMZRange();
         }
-        if (file != scan.getDataFile()) {
-          logger.warning("Merging spectra with different raw data files");
-        }
         numScans++;
         tempRt += scan.getRetentionTime();
       }
@@ -116,7 +114,6 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     retentionTime = tempRt / numScans;
     this.polarity = tempPolarity;
     this.scanningMzRange = tempScanningMzRange;
-    this.sourceSpectra = sourceSpectra.stream().flatMap(this::unpackSourceSpectra).toList();
     this.intensityMergingType = intensityMergingType;
     this.centerFunction = centerFunction;
     this.msLevel = msLevel;
