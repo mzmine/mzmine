@@ -41,6 +41,10 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
 
   public static final MsLevelFilter ALL_LEVELS = new MsLevelFilter(Options.ALL, 1);
 
+  public MsLevelFilter(Options filter) {
+    this(filter, 3);
+  }
+
   public static MsLevelFilter of(@Nullable final Integer msLevel) {
     return switch (msLevel) {
       case null -> ALL_LEVELS;
@@ -119,7 +123,21 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
     };
   }
 
-  enum Options {
+  /**
+   * Only true if this is a single MS level
+   */
+  public boolean isMs1Only() {
+    return isSingleMsLevel(1);
+  }
+
+  /**
+   * Only true if this is a single MS level
+   */
+  public boolean isMs2Only() {
+    return isSingleMsLevel(2);
+  }
+
+  public enum Options {
     ALL, MS1, MSn, MS2, SPECIFIC_LEVEL;
 
     @Override

@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
+import java.util.Map;
 import javafx.application.Platform;
 
 public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
@@ -84,7 +85,7 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
    * do not accept estimated features
    */
   public static final BooleanParameter EXCLUDE_ESTIMATED = new BooleanParameter(
-      "Exclude estimated features (gap-filled)",
+      "Exclude gap-filled features",
       "Gap-filled features might have a limited and different shape than detected features", true);
 
   /**
@@ -105,6 +106,16 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
         : new Parameter[]{GROUPSPARAMETER, RT_TOLERANCE, MIN_HEIGHT, MIN_SAMPLES_ALL,
             MIN_SAMPLES_GROUP, MIN_INTENSITY_OVERLAP, EXCLUDE_ESTIMATED});
     this.isSub = isSub;
+  }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Exclude estimated features (gap-filled)", EXCLUDE_ESTIMATED);
+    return nameParameterMap;
   }
 
   /**

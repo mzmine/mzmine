@@ -35,11 +35,13 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class LcImageAlignerParameters extends SimpleParameterSet {
@@ -48,8 +50,8 @@ public class LcImageAlignerParameters extends SimpleParameterSet {
       "Select at least two feature lists. The image feature list(s) are aligned to a single (pre-aligned) LC feature list.",
       2, Integer.MAX_VALUE);
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "The file-to-file tolerance for two features.", 0.005, 10);
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE, 0.005, 10);
 
   public static final DoubleParameter mzWeight = new DoubleParameter("m/z weight",
       "Maximum score for a perfectly matching m/z", new DecimalFormat("0.0"), 1d);
@@ -95,5 +97,14 @@ public class LcImageAlignerParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", mzTolerance);
+    return nameParameterMap;
   }
 }
