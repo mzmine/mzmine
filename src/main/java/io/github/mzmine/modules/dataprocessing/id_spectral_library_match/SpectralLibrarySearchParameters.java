@@ -58,9 +58,12 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   public static final ComboParameter<ScanMatchingSelection> scanMatchingSelection = new ComboParameter<>(
       "Scans for matching", """
       Choose the MS level and experimental scans to match against the library. MS1 for GC-EI-MS data,
-      MERGED: will merge all scans, creating one merged spectrum for each fragmentation energy,
-             and one consensus spectrum merged from those different energies.
-      ALL: will use all available raw scans + the ones from merging.
+      MERGED: will merge all fragment scans, creating one merged spectrum for each fragmentation energy,
+              and one consensus spectrum merged from those different energies.
+      ALL: will use all available raw fragment scans + the ones from merging.
+      MS2: limits the final list to MS2 scans
+      MS2 (merged): and a scan were all MSn scans are merged into one 'pseudo' MS2 scan
+      MSn: defines all fragment scans of MS level 2 and higher
           """, ScanMatchingSelection.values(), ScanMatchingSelection.MERGED_MSN);
 
   public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
