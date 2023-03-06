@@ -57,6 +57,8 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMu
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleTICRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSelectedRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.MergeFrameThread;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
@@ -120,11 +122,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final Stroke markerStroke = new BasicStroke(1.0f);
   private final Color markerColor;
   private final Set<Integer> mzRangeTicDatasetIndices;
+  private final GridPane massDetectionPane;
   // not thread safe, so we need one for building the selected and one for building all the others
   private BinningMobilogramDataAccess selectedBinningMobilogramDataAccess;
   private BinningMobilogramDataAccess rangesBinningMobilogramDataAccess;
   private MZTolerance mzTolerance;
-  private ScanSelection scanSelection;
+  private MsLevelFilter msLevelFilter;
   private Frame cachedFrame;
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
@@ -135,17 +138,16 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private int selectedChromatogramDatasetIndex;
   private FontIcon massDetectionScanIcon;
   private FontIcon massDetectionFrameIcon;
-  private final GridPane massDetectionPane;
 
   /**
    * Creates a BorderPane layout.
    */
   public IMSRawDataOverviewPane() {
-    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f, 1);
+    this(0, 0, new MZTolerance(0.008, 10), new MsLevelFilter(Options.MS1), 2f, 1);
   }
 
   public IMSRawDataOverviewPane(final double frameNoiseLevel, final double mobilityScanNoiseLevel,
-      final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth,
+      final MZTolerance mzTolerance, final MsLevelFilter msLevelFilter, final Float rtWidth,
       final Integer binWidth) {
     super();
     super.getStyleClass().add("region-match-chart-bg");
@@ -157,14 +159,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedMz = new SimpleObjectProperty<>();
     selectedMobilityScan = new SimpleObjectProperty<>();
     this.mzTolerance = mzTolerance;
-    this.scanSelection = scanSelection;
+    this.msLevelFilter = msLevelFilter;
     this.rtWidth = rtWidth;
     this.frameNoiseLevel = frameNoiseLevel;
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
     this.binWidth = binWidth;
 
     controlsPanel = new IMSRawDataOverviewControlPanel(this, frameNoiseLevel,
-        mobilityScanNoiseLevel, mzTolerance, scanSelection, rtWidth, binWidth);
+        mobilityScanNoiseLevel, mzTolerance, msLevelFilter, rtWidth, binWidth);
     controlsPanel.addSelectedRangeListener((obs, old, newVal) -> selectedMz.set(newVal));
     initChartPanel();
 
@@ -426,7 +428,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
     ticChart.getMouseAdapter().addGestureHandler(new SimpleDataDragGestureHandler((start, end) -> {
       Range<Double> rtRange = Range.closed(start.getX(), end.getX());
-      final ScanSelection selection = scanSelection.cloneWithNewRtRange(rtRange);
+      final ScanSelection selection = new ScanSelection(
+          msLevelFilter.specificLevel()).cloneWithNewRtRange(rtRange);
       MZmineCore.getTaskController().addTask(
           new MergeFrameThread(rawDataFile, selection, binWidth, mobilityScanNoiseLevel,
               f -> MZmineCore.runLater(() -> setSelectedFrame(f))));
@@ -458,10 +461,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
       }
       controlsPanel.setRangeToMobilogramRangeComp(newValue);
       Thread mobilogramCalc = new Thread(
-          new BuildSelectedRanges(selectedMz.get(), Set.of(cachedFrame), rawDataFile, scanSelection,
-              rtWidth, selectedBinningMobilogramDataAccess, this::setSelectedMobilogram,
-              c -> this.setSelectedChromatogram(c,
-                  MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT())));
+          new BuildSelectedRanges(selectedMz.get(), Set.of(cachedFrame), rawDataFile,
+              new ScanSelection(msLevelFilter), rtWidth, selectedBinningMobilogramDataAccess,
+              this::setSelectedMobilogram, c -> this.setSelectedChromatogram(c,
+              MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT())));
       mobilogramCalc.start();
       float rt = selectedFrame.get().getRetentionTime();
       ionTraceChart.setDataset(new IMSIonTraceHeatmapProvider(rawDataFile, selectedMz.get(),
@@ -565,11 +568,16 @@ public class IMSRawDataOverviewPane extends BorderPane {
   protected void updateTicPlot() {
     ticChart.removeAllDataSets();
     mzRangeTicDatasetIndices.clear();
+    final ScanSelection scanSel = new ScanSelection(msLevelFilter).cloneWithNewRtRange(
+        RangeUtils.rangeAround(
+            (double) (selectedFrame.get() != null ? selectedFrame.get().getRetentionTime()
+                : rtWidth / 2), rtWidth));
     Thread thread = new Thread(
-        new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile,
-            scanSelection, this));
+        new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile, scanSel,
+            this));
     thread.start();
-    TICDataSet dataSet = new TICDataSet(rawDataFile, scanSelection.getMatchingScans(rawDataFile),
+    TICDataSet dataSet = new TICDataSet(rawDataFile,
+        new ScanSelection(msLevelFilter).getMatchingScans(rawDataFile),
         rawDataFile.getDataMZRange(), null);
     ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
     ticChart.getXYPlot().getDomainAxis().setRange(
@@ -635,8 +643,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     this.mzTolerance = mzTolerance;
   }
 
-  public void setScanSelection(ScanSelection scanSelection) {
-    this.scanSelection = scanSelection;
+  public void setMsLevelFilter(MsLevelFilter msLevelFilter) {
+    this.msLevelFilter = msLevelFilter;
   }
 
   public void setFrameNoiseLevel(double frameNoiseLevel) {

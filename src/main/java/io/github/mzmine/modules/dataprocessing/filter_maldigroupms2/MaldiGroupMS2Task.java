@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -92,7 +93,8 @@ public class MaldiGroupMS2Task extends AbstractTask {
    */
   public MaldiGroupMS2Task(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // no new data stored -> null
+    super(((ModularFeatureList) list).getMemoryMapStorage(),
+        moduleCallDate); // no new data stored -> null
 
     // Initialize.
     this.project = project;
@@ -247,8 +249,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
     for (MsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
           (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          ((ModularFeatureList) list).getMemoryMapStorage(),
-          lockToFeatureMobilityRange && feature.getMobilityRange() != null
+          getMemoryMapStorage(), lockToFeatureMobilityRange && feature.getMobilityRange() != null
               ? feature.getMobilityRange() : null, minMs2Intensity, minMs2IntensityRel, null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
@@ -259,7 +260,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
       if (combineTimsMS2) {
         final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
             SpectraMerging.pasefMS2MergeTol, combineTimsMS2, IncludeInputSpectra.ALL,
-            IntensityMergingType.SUMMED);
+            IntensityMergingType.SUMMED, MsLevelFilter.ALL_LEVELS, getMemoryMapStorage());
         var spectra = fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
         feature.setAllMS2FragmentScans(spectra, false);
       } else {
