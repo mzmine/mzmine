@@ -157,7 +157,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!parametersClass.isInstance(parameters)) {
       throw new IllegalArgumentException(
           "Given parameter set is an instance of " + parameters.getClass() + " instead of "
-              + parametersClass);
+          + parametersClass);
     }
     moduleParameters.put(moduleClass, parameters);
 
@@ -267,8 +267,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           // already contain encrypted data
           // that needs this key for encryption
           if (file.equals(MZmineConfiguration.CONFIG_FILE)) {
-            new SimpleParameterSet(globalEncrypter).loadValuesFromXML(
-                preferencesElement);
+            new SimpleParameterSet(globalEncrypter).loadValuesFromXML(preferencesElement);
           }
           preferences.loadValuesFromXML(preferencesElement);
         }
@@ -295,12 +294,17 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
               moduleClassName);
 
           ParameterSet moduleParameters = getModuleParameters(moduleClass);
-          if(moduleParameters==null) {
+          if (moduleParameters == null) {
             logger.info(
                 "Module %s was in the config file but was not found in the current version of MZmine".formatted(
                     moduleClass.getName()));
           }
-          var parameterElement = (Element) moduleElement.getElementsByTagName("parameters").item(0);
+          var nodeList = moduleElement.getElementsByTagName("parameters");
+          MZmineModule moduleInstance = MZmineCore.getModuleInstance(moduleClass);
+          if (moduleInstance.getParameterSetClass() == null) {
+            continue;
+          }
+          var parameterElement = (Element) nodeList.item(0);
           moduleParameters.loadValuesFromXML(parameterElement);
         } catch (Exception | NoClassDefFoundError e) {
           logger.log(Level.WARNING, "Failed to load configuration for module " + moduleClassName,
@@ -420,7 +424,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
-              + "colors.");
+          + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -433,7 +437,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default paint scale set in preferences is invalid. Returning standard "
-              + "colors.");
+          + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
