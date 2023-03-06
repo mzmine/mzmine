@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Drives the selection of fragmentation spectra. Based on input spectra (MS2 or MSn) merged spectra
@@ -57,9 +59,16 @@ import org.jetbrains.annotations.NotNull;
 public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
                                     @NotNull IncludeInputSpectra inputSpectra,
                                     @NotNull IntensityMergingType intensityMergeType,
-                                    @NotNull MsLevelFilter msLevelFilter) {
+                                    @NotNull MsLevelFilter msLevelFilter,
+                                    @Nullable MemoryMapStorage storage) {
 
   private static final Logger logger = Logger.getLogger(FragmentScanSelection.class.getName());
+
+  public FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
+      @NotNull IncludeInputSpectra inputSpectra, @NotNull IntensityMergingType intensityMergeType,
+      @NotNull MsLevelFilter msLevelFilter) {
+    this(mzTol, mergeSeparateEnergies, inputSpectra, intensityMergeType, msLevelFilter, null);
+  }
 
   public List<Scan> getAllFragmentSpectra(final FeatureListRow row) {
     return getAllFragmentSpectra(row.getAllFragmentScans());
@@ -227,7 +236,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     if (scans.size() == 1) {
       return scans.get(0);
     }
-    return SpectraMerging.mergeSpectra(scans, mzTol, mergeType, intensityMergeType, null);
+    return SpectraMerging.mergeSpectra(scans, mzTol, mergeType, intensityMergeType, storage);
   }
 
   private void addIf(boolean condition, final List<Scan> targetList, final Object scans) {

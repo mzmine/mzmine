@@ -30,29 +30,28 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
-import java.io.File;
 import java.util.Optional;
 
 public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
   private final Integer minDataPoints;
-  private final Boolean isExportActive;
-  private final Boolean exportGnps;
-  private final Boolean exportSirius;
-  private final File exportPath;
 
   public WizardBatchBuilderImagingDda(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -62,13 +61,13 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     // special workflow parameter are extracted here
     minDataPoints = getValue(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
 
-    // DDA workflow parameters
-    params = steps.get(WizardPart.WORKFLOW);
-    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
-    isExportActive = optional.active();
-    exportPath = optional.value();
-    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
-    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+//    // DDA workflow parameters
+//    params = steps.get(WizardPart.WORKFLOW);
+//    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
+//    isExportActive = optional.active();
+//    exportPath = optional.value();
+//    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
+//    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
   }
 
   @Override
@@ -78,6 +77,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddMassDetectorSteps(q);
 
     // TODO make image builder
+    makeAndImageBuilderStep(q);
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
@@ -92,9 +92,26 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
     // annotation
     makeAndAddLibrarySearchStep(q, false);
-    // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
     return q;
+  }
+
+
+  protected void makeAndImageBuilderStep(final BatchQueue q) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(ImageBuilderModule.class).cloneParameterSet();
+    param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
+        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
+    // crop rt range
+    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
+        new ScanSelection( 1));
+    param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
+    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minFeatureHeight);
+    param.setParameter(ImageBuilderParameters.minimumConsecutiveScans, 5);
+    param.setParameter(ImageBuilderParameters.minTotalSignals, minDataPoints);
+    param.setParameter(ImageBuilderParameters.suffix, "images");
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(ImageBuilderModule.class), param));
   }
 
 
