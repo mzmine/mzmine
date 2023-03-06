@@ -67,7 +67,11 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
     comboBox.setItems(choices);
     setValue(defaultValue);
 
-    super.getChildren().addAll(comboBox, embeddedComponent);
+    if (choices.contains(inputTrigger)) {
+      super.getChildren().addAll(comboBox, embeddedComponent);
+    } else {
+      super.getChildren().add(comboBox);
+    }
   }
 
   public Node getEmbeddedComponent() {
