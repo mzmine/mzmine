@@ -26,12 +26,16 @@
 package io.github.mzmine.parameters;
 
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
@@ -95,8 +99,8 @@ public interface ParameterSet extends ParameterContainer {
   }
 
 
-  default <T extends ParameterSet> ParameterSet getEmbeddedParameterValue(
-      OptionalModuleParameter<T> parameter) {
+  default <T extends ParameterSet, V> ParameterSet getEmbeddedParameterValue(
+      EmbeddedParameterSet<T, V> parameter) {
     return getParameter(parameter).getEmbeddedParameters();
   }
 
@@ -104,7 +108,48 @@ public interface ParameterSet extends ParameterContainer {
 
   void saveValuesToXML(Element element);
 
-  boolean checkParameterValues(Collection<String> errorMessages);
+
+  /**
+   * Maps the names of parameters to the parameter for {@link #loadValuesFromXML(Element)}.
+   * <p>
+   * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
+   * Only works if the old and new parameter are of the same type (save and load the parameter
+   * values the same way).
+   *
+   * @return map of name to parameter
+   */
+  default Map<String, Parameter<?>> getNameParameterMap() {
+    var parameters = getParameters();
+    Map<String, Parameter<?>> nameParameterMap = new HashMap<>(parameters.length);
+    for (final Parameter<?> p : parameters) {
+      nameParameterMap.put(p.getName(), p);
+    }
+    return nameParameterMap;
+  }
+
+
+  /**
+   * check all parameters. Also {@link FeatureListsParameter} and {@link RawDataFilesParameter}.
+   * Those parameters cannot be checked in batch mode. Then use
+   * {@link #checkParameterValues(Collection, boolean)}
+   *
+   * @param errorMessages will add error messages for each parameter here
+   * @return true if all parameters are set correctly
+   */
+  default boolean checkParameterValues(Collection<String> errorMessages) {
+    return checkParameterValues(errorMessages, false);
+  }
+
+  /**
+   * check all parameters with the option to skip {@link FeatureListsParameter} and
+   * {@link RawDataFilesParameter}. Those parameters cannot be checked in batch mode.
+   *
+   * @param errorMessages                       will add error messages for each parameter here
+   * @param skipRawDataAndFeatureListParameters skip RawDataFile and FeatureList selections if true
+   * @return true if all parameters are set correctly
+   */
+  boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters);
 
   ParameterSet cloneParameterSet();
 

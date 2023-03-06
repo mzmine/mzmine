@@ -115,6 +115,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -255,6 +256,15 @@ public class MainWindowController {
   @FXML
   public void initialize() {
 
+    // do not switch panes by arrows
+    mainTabPane.addEventFilter(
+        KeyEvent.ANY,
+        event -> {
+          if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
+            event.consume();
+          }
+        });
+
     rawDataList.setEditable(false);
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -273,6 +283,9 @@ public class MainWindowController {
     initTasksViewToTab();
     initMiniTaskView();
     selectTab(MZmineIntroductionTab.TITLE);
+
+    memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
+    memoryBar.setTooltip(new Tooltip("Free memory (is done automatically)"));
 
     // Setup the Timeline to update the memory indicator periodically
     final Timeline memoryUpdater = new Timeline();

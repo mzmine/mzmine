@@ -26,29 +26,37 @@
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class ChromatogramAndSpectraVisualizerParameters extends SimpleParameterSet {
 
-  public static final MZToleranceParameter chromMzTolerance =
-      new MZToleranceParameter("XIC tolerance",
-          "m/z tolerance of the chromatogram builder for extracted ion chromatograms (XICs)", 0.001,
-          10);
+  public static final MZToleranceParameter chromMzTolerance = new MZToleranceParameter(
+      "XIC tolerance",
+      "m/z tolerance of the chromatogram builder for extracted ion chromatograms (XICs)", 0.001,
+      10);
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter("Chromatogram scan selection",
-          "Parameters for scan selection the chromatogram will be build on.",
-          new ScanSelection(null, null, null, null, null, null, 1, null));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      "Chromatogram scan selection",
+      "Parameters for scan selection the chromatogram will be build on.", new ScanSelection(1));
 
   public static final ComboParameter<TICPlotType> plotType = new ComboParameter<>("Plot type",
       "Type of the chromatogram plot.", TICPlotType.values(), TICPlotType.BASEPEAK);
 
+  public static final ComboParameter<ShowLegendOptions> legendOptions = new ComboParameter<>(
+      "Show legend", "AUTO means that legend is deactivated for large number of samples",
+      ShowLegendOptions.values(), ShowLegendOptions.AUTO);
+
+
+  public static final IntegerParameter maxSamplesFeaturePick = new IntegerParameter(
+      "Maximum data files feature detection",
+      "Only perform auto feature detection on sample set sizes smaller equal this value", 10, true);
+
   public ChromatogramAndSpectraVisualizerParameters() {
-    super(new Parameter[] {chromMzTolerance, scanSelection, plotType});
+    super(chromMzTolerance, scanSelection, plotType, legendOptions, maxSamplesFeaturePick);
   }
 }

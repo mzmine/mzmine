@@ -56,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Molecular networking files (e.g., GNPS, FBMN, IIMN, MetGem)";
+  private static final String MODULE_NAME = "Export molecular networking files (e.g., GNPS, FBMN, IIMN, MetGem)";
   private static final String MODULE_DESCRIPTION = "GNPS feature-based molecular networking export and submit module. Exports the MGF file for GNPS (only for MS/MS), the quant table (CSV export) and additional edges (ion identity networks and correlation)";
 
   @Override

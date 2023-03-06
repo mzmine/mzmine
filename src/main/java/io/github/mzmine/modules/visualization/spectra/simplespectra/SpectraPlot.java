@@ -80,6 +80,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.Layer;
 import org.jfree.data.xy.XYDataset;
@@ -216,6 +217,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // If the plot is changed then clear the map containing coordinates of labels. New values will be
     // added by the SpectraItemLabelGenerator
     getChart().getXYPlot().addChangeListener(event -> datasetToLabelsCoords.clear());
+  }
+
+  public void setLegendVisible(boolean state) {
+    final LegendTitle legend = getChart().getLegend();
+    legend.setVisible(state);
+    theme.setShowLegend(state);
+    //theme.apply paints first series in white/black which is wrong
   }
 
   public MZTolerance getMzTolerance() {

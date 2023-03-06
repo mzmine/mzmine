@@ -56,8 +56,6 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.DateTimeUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -268,10 +266,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
 
         if (mzIntensities != null) {
-          // sort arrays because some files are unsorted. Latest versions of msconvert should fix that
-          mzIntensities = DataPointUtils.sort(mzIntensities[0], mzIntensities[1],
-              DataPointSorter.DEFAULT_MZ_ASCENDING);
-
+          // scans sorting is enforced in {@link AbstractStorableSpectrum#setDataPoints}
           // create mass list and scan. Override data points and spectrum type
           newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
               mzIntensities[1], MassSpectrumType.CENTROIDED);

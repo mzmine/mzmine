@@ -71,8 +71,8 @@ public class ParameterUtils {
           && sourceParam instanceof EmbeddedParameterSet<?, ?> sourceEm) {
         copyParameters(sourceEm.getEmbeddedParameters(), targetEm.getEmbeddedParameters());
       }
-      if (targetParam instanceof EmbeddedParameter<?> targetEm
-          && sourceParam instanceof EmbeddedParameter<?> sourceEm) {
+      if (targetParam instanceof EmbeddedParameter<?, ?, ?> targetEm
+          && sourceParam instanceof EmbeddedParameter<?, ?, ?> sourceEm) {
         copyParameterValue(sourceEm.getEmbeddedParameter(), targetEm.getEmbeddedParameter());
       }
     } catch (Exception e) {

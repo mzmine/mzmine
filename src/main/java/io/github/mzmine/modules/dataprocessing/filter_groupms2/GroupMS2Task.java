@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
-import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RtMs2ApexDistanceType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -46,11 +45,13 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
@@ -75,13 +76,12 @@ public class GroupMS2Task extends AbstractTask {
   private final boolean combineTimsMS2;
   private final Double minMs2IntensityRel;
   private final FeatureList list;
-  private final RTTolerance rtTol;
   private final MZTolerance mzTol;
   private final boolean lockToFeatureMobilityRange;
   private final int minimumSignals;
-  private final FeatureLimitOptions rtFilter;
   private final Double minimumRelativeFeatureHeight;
   private final int totalRows;
+  private final RtLimitsFilter rtFilter;
   private int processedRows;
   private GroupedMs2RefinementTask refineTask;
 
@@ -97,10 +97,7 @@ public class GroupMS2Task extends AbstractTask {
 
     parameters = parameterSet;
     // RT has two options / tolerance is only provided for second option
-    var rtFilterParam = parameters.getParameter(GroupMS2Parameters.rtFilter);
-    rtFilter = rtFilterParam.getValue();
-    rtTol = rtFilterParam.useEmbeddedParameter() ? rtFilterParam.getEmbeddedParameter().getValue()
-        : null;
+    rtFilter = parameters.getValue(GroupMS2Parameters.rtFilter);
 
     mzTol = parameters.getValue(GroupMS2Parameters.mzTol);
     combineTimsMS2 = parameterSet.getValue(GroupMS2Parameters.combineTimsMsMs);
@@ -263,30 +260,10 @@ public class GroupMS2Task extends AbstractTask {
     } else {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
-    return matchesRtFilter(scan, feature) && precursorMZ != 0 && mzTol.checkWithinTolerance(
-        feature.getMZ(), precursorMZ);
+    return rtFilter.accept(feature, scan.getRetentionTime()) && precursorMZ != 0
+        && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
   }
 
-  /**
-   * @return true if feature contains no retention time or if all filters match
-   */
-  private boolean matchesRtFilter(final Scan scan, ModularFeature feature) {
-//    (!limitRTByFeature || )
-//      && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
-    return switch (rtFilter) {
-      case USE_FEATURE_EDGES -> {
-        // dont use shorcut as this returns a non null singleton range
-//        Range<Float> rtRange = feature.getRawDataPointsRTRange();
-        // true if no range means that there was no retention time like in IMS-MS data without time component
-        Range<Float> rtRange = feature.get(RTRangeType.class);
-        yield rtRange == null || rtRange.contains(scan.getRetentionTime());
-      }
-      case USE_TOLERANCE -> {
-        Float rt = feature.getRT();
-        yield rt == null || rtTol.checkWithinTolerance(rt, scan.getRetentionTime());
-      }
-    };
-  }
 
   /**
    * Process tims features. Merge within Frames and optionally merge across frames
@@ -301,7 +278,8 @@ public class GroupMS2Task extends AbstractTask {
     Float mobility = feature.getMobility();
 
     final List<? extends Scan> scans = feature.getRawDataFile().getScanNumbers(2).stream()
-        .filter(scan -> matchesRtFilter(scan, feature)).collect(Collectors.toList());
+        .filter(scan -> rtFilter.accept(feature, scan.getRetentionTime()))
+        .collect(Collectors.toList());
 
     if (scans.isEmpty() || !(scans.get(0) instanceof Frame)) {
       return List.of();
@@ -350,8 +328,10 @@ public class GroupMS2Task extends AbstractTask {
     }
 
     if (!msmsSpectra.isEmpty() && combineTimsMS2) {
-      return SpectraMerging.mergeMsMsSpectra(msmsSpectra, SpectraMerging.pasefMS2MergeTol,
-          IntensityMergingType.SUMMED, ((ModularFeatureList) list).getMemoryMapStorage());
+      final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
+          SpectraMerging.pasefMS2MergeTol, combineTimsMS2, IncludeInputSpectra.NONE,
+          IntensityMergingType.SUMMED);
+      return fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
     }
     return msmsSpectra;
   }

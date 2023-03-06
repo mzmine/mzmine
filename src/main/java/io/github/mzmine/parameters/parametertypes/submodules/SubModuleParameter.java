@@ -34,7 +34,9 @@ import java.util.Collection;
 import org.w3c.dom.Element;
 
 /**
- * Parameter represented by check box with additional sub-parameters
+ * Parameter that opens a separate dialog to set complex sub parameters. Also see
+ * {@link ParameterSetParameter} and {@link OptionalModuleParameter} for parameters that open the
+ * embedded parameterset in a sub panel
  */
 public class SubModuleParameter<SUB extends ParameterSet> implements
     UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet<SUB, Boolean> {
@@ -108,10 +110,12 @@ public class SubModuleParameter<SUB extends ParameterSet> implements
 
   @Override
   public void setValueFromComponent(SubModuleComponent component) {
+    // uses a dialog on demand
   }
 
   @Override
   public void setValueToComponent(SubModuleComponent component, Boolean newValue) {
+    // uses a dialog on demand
   }
 
   @Override

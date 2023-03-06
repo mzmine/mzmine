@@ -42,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.Map;
+import javafx.application.Platform;
 import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,13 +58,18 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
 
-  public static final IntegerParameter minimumScanSpan = new IntegerParameter(
-      "Min group size in # of scans", """
-      Minimum scan span over which some feature in the chromatogram must have (continuous) points above the noise level
-      to be recognized as a chromatogram.
+  public static final IntegerParameter minimumConsecutiveScans = new IntegerParameter(
+      "Minimum consecutive scans", """
+      This number of scans needs to be above the specified 'Minimum intensity for consecutive scans' to detect EICs.
       The optimal value depends on the chromatography system setup. The best way to set this parameter
-      is by studying the raw data and determining what is the typical time span of chromatographic features.""",
+      is by studying the raw data and determining what is the typical time span (number of data points) of chromatographic features.""",
       5, true, 1, null);
+
+  public static final DoubleParameter minGroupIntensity = new DoubleParameter(
+      "Minimum intensity for consecutive scans", """
+      This threshold is only used to find consecutive scans (data points) above a certain intensity.
+      All data points, even below this level can be added to a chromatogram but at least N consecutive scans need to be above.
+      """, MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "Scan to scan accuracy (m/z)", """
@@ -74,16 +80,11 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "chromatograms");
 
-  // Owen Edit
-  public static final DoubleParameter minGroupIntensity = new DoubleParameter(
-      "Group intensity threshold",
-      "This parameter is the intensity value for which intensities greater than this value can contribute to the minimumScanSpan count.",
-      MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleParameter minHighestPoint = new DoubleParameter("Min highest intensity",
+  public static final DoubleParameter minHighestPoint = new DoubleParameter(
+      "Minimum absolute height",
       "Points below this intensity will not be considered in starting a new chromatogram",
       MZmineCore.getConfiguration().getIntensityFormat());
-  // End Owen Edit
 
   public static final HiddenParameter<Map<String, Boolean>> allowSingleScans = new HiddenParameter<>(
       new OptOutParameter("Allow single scan chromatograms",
@@ -91,13 +92,14 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
               + "feature table generation if MALDI point measurements."));
 
   public ADAPChromatogramBuilderParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, minGroupIntensity,
+    super(new Parameter[]{dataFiles, scanSelection, minimumConsecutiveScans, minGroupIntensity,
             minHighestPoint, mzTolerance, suffix, allowSingleScans},
         "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_adap_chromatogram_builder/adap-chromatogram-builder.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
     String message = "<html>ADAP Module Disclaimer:"
         + "<br> If you use the ADAP Chromatogram Builder Module, please cite the "
         + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
@@ -133,7 +135,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     final Boolean singleScansOkOptOut = getParameter(allowSingleScans).getValue()
         .get("optoutsinglescancheck");
 
-    if (getParameter(minimumScanSpan).getValue() <= 1 && (singleScansOkOptOut == null
+    if (getParameter(minimumConsecutiveScans).getValue() <= 1 && (singleScansOkOptOut == null
         || !singleScansOkOptOut)) {
       ButtonType buttonType = MZmineCore.getDesktop()
           .createAlertWithOptOut("Confirmation", "Single consecutive scan selected.",
@@ -143,5 +145,18 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       return buttonType.equals(ButtonType.YES);
     }
     return true;
+  }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Min group size in # of scans", minimumConsecutiveScans);
+    nameParameterMap.put("Group intensity threshold", minGroupIntensity);
+    nameParameterMap.put("Min highest intensity", minHighestPoint);
+    nameParameterMap.put("Scans", scanSelection);
+    return nameParameterMap;
   }
 }

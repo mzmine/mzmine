@@ -57,7 +57,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.S
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.FeatureLimitOptions;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -81,6 +80,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -115,10 +115,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
+import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
@@ -126,6 +127,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -336,8 +338,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
     param.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
-        new ScanSelection(cropRtRange == null ? null : RangeUtils.toFloatRange(cropRtRange), 1));
-    param.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minRtDataPoints);
+        new ScanSelection(cropRtRange, 1));
+    param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
     param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
     param.setParameter(ADAPChromatogramBuilderParameters.suffix, "eics");
     param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, noiseLevelMs1);
@@ -485,7 +487,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(CorrelateGroupingParameters.GROUPSPARAMETER, false);
     param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);
     param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, noiseLevelMs1);
-    param.setParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER, true);
 
     // min samples
     var minSampleP = param.getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER)
@@ -523,6 +524,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
             param));
   }
 
+  /**
+   * Ion identity networking
+   */
   protected void makeAndAddIinStep(final BatchQueue q) {
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class).cloneParameterSet();
@@ -558,17 +562,22 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 2);
     IonModification[] adducts;
+    IonModification[] adductChoices;
     if (polarity == Polarity.Positive) {
       adducts = new IonModification[]{IonModification.H, IonModification.NA,
           IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus};
+      adductChoices = IonModification.getDefaultValuesPos();
     } else {
       adducts = new IonModification[]{IonModification.H_NEG, IonModification.FA,
           IonModification.NA_2H, IonModification.CL};
+      adductChoices = IonModification.getDefaultValuesNeg();
     }
     IonModification[] modifications = new IonModification[]{IonModification.H2O,
         IonModification.H2O_2};
-    ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
-        new IonModification[][]{adducts, modifications});
+    var ionLib = ionLibraryParam.getParameter(IonLibraryParameterSet.ADDUCTS);
+    // set choices first then values
+    ionLib.setChoices(adductChoices, IonModification.getDefaultModifications());
+    ionLib.setValue(new IonModification[][]{adducts, modifications});
   }
 
   /**
@@ -621,7 +630,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     importParams.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[]{fileName});
 
     q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(SpectralLibraryImportModule.class), param));
+        MZmineCore.getModuleInstance(SpectralLibraryImportModule.class), importParams));
   }
 
   protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
@@ -870,12 +879,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // retention time
     // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early
     // change rt tol depending on number of data points
-    boolean realLimitByRtEdges = minRtDataPoints >= 4 && limitRtEdges;
+    var rtLimitOption = minRtDataPoints >= 4 && limitRtEdges ? FeatureLimitOptions.USE_FEATURE_EDGES
+        : FeatureLimitOptions.USE_TOLERANCE;
+    var realRTTol = Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES));
     groupMs2Params.setParameter(GroupMS2Parameters.rtFilter,
-        realLimitByRtEdges ? FeatureLimitOptions.USE_FEATURE_EDGES
-            : FeatureLimitOptions.USE_TOLERANCE);
-    groupMs2Params.getParameter(GroupMS2Parameters.rtFilter).getEmbeddedParameter()
-        .setValue(Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
+        new RtLimitsFilter(rtLimitOption, realRTTol));
     return groupMs2Params;
   }
 
@@ -957,15 +965,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(SpectralLibrarySearchParameters.libraries, new SpectralLibrarySelection());
     param.setParameter(SpectralLibrarySearchParameters.msLevel, 2);
     param.setParameter(SpectralLibrarySearchParameters.allMS2Spectra, false);
-    param.setParameter(SpectralLibrarySearchParameters.cropSpectraToOverlap, false);
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
         new MZTolerance(0.01, 20));
     param.setParameter(SpectralLibrarySearchParameters.mzTolerance, new MZTolerance(0.01, 20));
     param.setParameter(SpectralLibrarySearchParameters.removePrecursor, true);
-    param.setParameter(SpectralLibrarySearchParameters.deisotoping, false);
-    param.setParameter(SpectralLibrarySearchParameters.noiseLevel, 0d);
-    param.setParameter(SpectralLibrarySearchParameters.needsIsotopePattern, false);
-    param.setParameter(SpectralLibrarySearchParameters.rtTolerance, false);
     param.setParameter(SpectralLibrarySearchParameters.minMatch, 4);
     // similarity
     ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
@@ -974,10 +977,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
         .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
-        Weights.MASSBANK);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
-        Weights.MASSBANK);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.65);
+        Weights.SQRT);
+    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.7);
     weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
@@ -986,10 +987,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     // finally set the libmatch module plus parameters as step
     simFunction.setValue(libMatchStep);
-    // IMS
-    param.setParameter(SpectralLibrarySearchParameters.ccsTolerance, false);
-    param.getParameter(SpectralLibrarySearchParameters.ccsTolerance).getEmbeddedParameter()
-        .setValue(0.05);
+    // advanced off
+    param.setParameter(SpectralLibrarySearchParameters.advanced, false);
+    var advanced = param.getEmbeddedParameterValue(SpectralLibrarySearchParameters.advanced);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.cropSpectraToOverlap, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.deisotoping, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.noiseLevel, false, 0d);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.needsIsotopePattern, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.rtTolerance, false);
+    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.ccsTolerance, false, 0.05);
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralLibrarySearchModule.class), param);
@@ -1010,7 +1016,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(LocalCSVDatabaseSearchParameters.dataBaseFile, csvLibraryFile);
     param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator,
-        csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\t");
+        csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\\t");
     param.setParameter(LocalCSVDatabaseSearchParameters.columns, csvColumns);
     param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LocalCSVDatabaseSearchParameters.rtTolerance,

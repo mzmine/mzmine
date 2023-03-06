@@ -25,18 +25,21 @@
 
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.ParameterSet;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Du-Lab Team dulab.binf@gmail.com
  */
 public class ChromatogramPeakPair {
+
   public final FeatureList chromatograms;
   public final FeatureList peaks;
 
@@ -54,27 +57,34 @@ public class ChromatogramPeakPair {
       @NotNull ParameterSet parameterSet) {
     Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
 
+    var optionalChromatograms = parameterSet.getParameter(
+        ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS);
+    var useChromatograms = optionalChromatograms.getValue();
     FeatureList[] chromatograms =
-        parameterSet.getParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS).getValue()
-            .getMatchingFeatureLists();
+        useChromatograms ? optionalChromatograms.getEmbeddedParameter().getValue()
+            .getMatchingFeatureLists() : null;
     FeatureList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
-    if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0)
+    if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0) {
       return pairs;
+    }
 
     Set<RawDataFile> dataFiles = new HashSet<>();
-    for (FeatureList peakList : chromatograms)
+    for (FeatureList peakList : chromatograms) {
       dataFiles.add(peakList.getRawDataFile(0));
-    for (FeatureList peakList : peaks)
+    }
+    for (FeatureList peakList : peaks) {
       dataFiles.add(peakList.getRawDataFile(0));
+    }
 
     for (RawDataFile dataFile : dataFiles) {
       FeatureList chromatogram = Arrays.stream(chromatograms)
           .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
-      FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile).findFirst()
-          .orElse(null);
-      if (chromatogram != null && peak != null)
+      FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile)
+          .findFirst().orElse(null);
+      if (chromatogram != null && peak != null) {
         pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
+      }
     }
 
     return pairs;

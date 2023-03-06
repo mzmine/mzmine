@@ -37,10 +37,10 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
@@ -48,7 +48,6 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -147,10 +146,10 @@ public class ConversionUtils {
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
-   * @param scan              the scan
-   * @param sortedMzs         use these mz values instead of the scan data
-   * @param sortedIntensities use these intensity values instead of the scan data
-   * @param spectrumType      override spectrum type
+   * @param scan         the scan
+   * @param mzs          use these mz values instead of the scan data
+   * @param intensities  use these intensity values instead of the scan data
+   * @param spectrumType override spectrum type
    * @return a {@link SimpleScan}
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
@@ -197,7 +196,7 @@ public class ConversionUtils {
    * @param currentFrameNumber the IMS frame
    * @param currentScanNumber  the IMS scan number
    */
-  public static void extractImsMsMsInfo(final BuildingMzMLMsScan scan,
+  public static void extractImsMsMsInfo(final MzMLMsScan scan,
       @NotNull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
       final int currentScanNumber) {
     Double lowerWindow = null;

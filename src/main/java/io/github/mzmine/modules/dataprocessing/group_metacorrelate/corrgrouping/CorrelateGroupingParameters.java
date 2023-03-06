@@ -40,7 +40,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
@@ -81,7 +81,7 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
    * Filter out by minimum number of features in all samples and/or in at least one sample group
    * features with height>=minHeight
    */
-  public static final SubModuleParameter<MinimumFeaturesFilterParameters> MIN_SAMPLES_FILTER = new SubModuleParameter<>(
+  public static final ParameterSetParameter<MinimumFeaturesFilterParameters> MIN_SAMPLES_FILTER = new ParameterSetParameter<>(
       "Min samples filter",
       "Filter out by min number of features in all samples and in sample groups",
       new MinimumFeaturesFilterParameters(true));

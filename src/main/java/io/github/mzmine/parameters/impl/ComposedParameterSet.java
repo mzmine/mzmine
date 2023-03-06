@@ -79,6 +79,12 @@ public abstract class ComposedParameterSet implements ParameterSet {
   }
 
   @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    return getParamSet().checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+  }
+
+  @Override
   public ParameterSet cloneParameterSet() {
     setParamSet(getParamSet().cloneParameterSet());
     return getParamSet();

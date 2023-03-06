@@ -67,14 +67,14 @@ public class SpectralLibraryFormatChecker {
       final LibraryEntryProcessor processor) throws IOException {
     try (FileReader reader = new FileReader(
         dataBaseFile); BufferedReader bufferedReader = new BufferedReader((reader))) {
-      char[] chars = new char[512];
+      char[] chars = new char[4048];
       int read = bufferedReader.read(chars);
 
       String content = new String(chars, 0, read);
       if (content.contains("peaks_json") || content.contains("library_membership")) {
         return new GNPSJsonParser(bufferEntries, processor);
-      } else if (content.contains("\"compound\"") && content.contains("\"metaData\"")
-          && content.contains("\"category\"")) {
+      } else if (content.contains("\"compound\"") && content.contains("\"computed\"")
+          && content.contains("\"tags\"")) {
         return new MonaJsonParser(bufferEntries, processor);
       } else {
         return new MZmineJsonParser(bufferEntries, processor);
