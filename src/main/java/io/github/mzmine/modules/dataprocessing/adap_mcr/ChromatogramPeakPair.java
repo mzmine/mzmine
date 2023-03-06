@@ -84,6 +84,7 @@ public class ChromatogramPeakPair {
 
         String chromatogramSuffix = getChromatogramSuffixFromAppliedMethods(appliedMethodsList);
         //TODO: get candidate chromatogram based on the suffix
+        outer:
         for (int j = appliedMethodsList.size() - 1; j >= 0; j--) {
           ParameterSet parameters = appliedMethodsList.get(j).getParameters();
           for (final Parameter<?> param : parameters.getParameters()) {
@@ -94,11 +95,11 @@ public class ChromatogramPeakPair {
 //              // feature list is still in memory and was not deleted and already collected by GC
                 if (candidateList != null) {
                   String parentName = peak.getName();
-                  if (parentName.contains(candidateList.getName())) {
+                  String candidateName = candidateList.getName();
+                  if (parentName.contains(candidateName) && candidateName.endsWith(chromatogramSuffix)) {
                     chromatogram = candidateList;
-                    continue;
+                    break outer;
                   }
-
                 }
               }
             }
@@ -106,9 +107,10 @@ public class ChromatogramPeakPair {
         }
         if (chromatogram != null) {
           pairs.put(peak.getRawDataFile(0), new ChromatogramPeakPair(chromatogram, peak));
-        } else {
+        }
+        else {
           pairs.put(peak.getRawDataFile(0), new ChromatogramPeakPair(peak, peak));
-          logger.warning("Chromatogram list not found");
+          logger.warning("Chromatogram list not found for corresponding peak list");
         }
       }
       return pairs;
