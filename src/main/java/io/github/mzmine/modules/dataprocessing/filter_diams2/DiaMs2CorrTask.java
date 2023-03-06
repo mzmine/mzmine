@@ -143,7 +143,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return (adapTask != null ? adapTask.getFinishedPercentage() * 0.5 : 0)
-        + (currentRow / (double) numRows) * 0.5d;
+           + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -356,10 +356,10 @@ public class DiaMs2CorrTask extends AbstractTask {
   }
 
   private ModularFeatureList buildChromatograms(MZmineProject dummyProject, RawDataFile file) {
-    // TODO decide if a parameter should be provided for the min total number of scans
     // currently the consecutive scans are used
-    adapTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
-        getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class, null);
+    adapTask = ModularADAPChromatogramBuilderTask.forChromatography(dummyProject, file,adapParameters,
+        getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class);
+
     adapTask.run();
     adapTask = new FinishedTask(adapTask);
     currentTaksIndex++;

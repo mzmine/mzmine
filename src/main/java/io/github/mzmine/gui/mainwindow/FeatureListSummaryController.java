@@ -90,7 +90,9 @@ public class FeatureListSummaryController {
     Object value = parameter.getValue();
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
-    if (value.getClass().isArray()) {
+    if (value == null) {
+      sb.append("<not set>");
+    } else if (value.getClass().isArray()) {
       sb.append(Arrays.toString((Object[]) value));
     } else {
       sb.append(value.toString());
@@ -213,7 +215,7 @@ public class FeatureListSummaryController {
   }
 
   @FXML
-  //Export Record
+    //Export Record
   void exportRecord() throws IOException {
     ButtonType btn = MZmineCore.getDesktop()
         .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",

@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -82,6 +83,7 @@ public class GroupMS2Task extends AbstractTask {
   private final Double minimumRelativeFeatureHeight;
   private final int totalRows;
   private final RtLimitsFilter rtFilter;
+  private final FragmentScanSelection timsFragmentScanSelection;
   private int processedRows;
   private GroupedMs2RefinementTask refineTask;
 
@@ -93,7 +95,8 @@ public class GroupMS2Task extends AbstractTask {
    */
   public GroupMS2Task(final FeatureList list, final ParameterSet parameterSet,
       @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // no new data stored -> null
+    super(((ModularFeatureList) list).getMemoryMapStorage(),
+        moduleCallDate); // use storage from feature list to store merged ms2 spectra.
 
     parameters = parameterSet;
     // RT has two options / tolerance is only provided for second option
@@ -114,6 +117,11 @@ public class GroupMS2Task extends AbstractTask {
     // 0 is deactivated
     minimumSignals = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMS2Parameters.minRequiredSignals, 0);
+
+    // only used for tims
+    timsFragmentScanSelection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
+        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS,
+        getMemoryMapStorage());
 
     this.list = list;
     processedRows = 0;
@@ -320,18 +328,14 @@ public class GroupMS2Task extends AbstractTask {
           ? feature.getMobilityRange() : null;
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
           (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          ((ModularFeatureList) list).getMemoryMapStorage(), mobilityLimits, minMs2IntensityAbs,
-          minMs2IntensityRel, null);
+          getMemoryMapStorage(), mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
     }
 
     if (!msmsSpectra.isEmpty() && combineTimsMS2) {
-      final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
-          SpectraMerging.pasefMS2MergeTol, combineTimsMS2, IncludeInputSpectra.NONE,
-          IntensityMergingType.SUMMED);
-      return fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
+      return timsFragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
     }
     return msmsSpectra;
   }

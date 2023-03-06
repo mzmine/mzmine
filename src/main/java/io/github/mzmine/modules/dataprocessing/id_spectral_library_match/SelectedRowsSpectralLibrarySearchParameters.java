@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.Parameter;
 public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
 
   public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, msLevel, allMS2Spectra, mzTolerancePrecursor, removePrecursor,
+    super(new Parameter[]{libraries, scanMatchingSelection, mzTolerancePrecursor, removePrecursor,
         mzTolerance, minMatch, similarityFunction});
   }
 
