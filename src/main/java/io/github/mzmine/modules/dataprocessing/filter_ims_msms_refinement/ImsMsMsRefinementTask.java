@@ -161,7 +161,7 @@ public class ImsMsMsRefinementTask extends AbstractTask {
 
       final MergedMsMsSpectrum refined = (MergedMsMsSpectrum) SpectraMerging.mergeSpectra(
           merged.getSourceSpectra(), SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          MergingType.ALL, null, minIntensity, minNumPoints, merged.getCenterFunction(),
+          MergingType.ALL_ENERGIES, null, minIntensity, minNumPoints, merged.getCenterFunction(),
           getMemoryMapStorage());
       if (refined.getNumberOfDataPoints() > 0) {
         refinedMsMs.add(refined);
