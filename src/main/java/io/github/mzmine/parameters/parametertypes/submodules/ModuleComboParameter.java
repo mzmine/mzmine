@@ -67,7 +67,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
       try {
         Class<? extends ParameterSet> parameterSetClass = modules[i].getParameterSetClass();
         if (parameterSetClass != null) {
-          moduleParams = parameterSetClass.newInstance();
+          moduleParams = parameterSetClass.newInstance().cloneParameterSet();
         } else {
           moduleParams = null;
         }
