@@ -154,8 +154,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
     return switch (this) {
       case DIRECT_INFUSION, FLOW_INJECT, HPLC, UHPLC, HILIC, GC_CI ->
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
-              WorkflowWizardParameterFactory.LIBRARY_GENERATION,
-              WorkflowWizardParameterFactory.MS1_ONLY};
+              WorkflowWizardParameterFactory.LIBRARY_GENERATION};
       case GC_EI ->
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
       case MALDI, LDI, DESI, SIMS ->

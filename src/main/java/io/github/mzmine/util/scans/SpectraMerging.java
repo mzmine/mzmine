@@ -351,7 +351,7 @@ public class SpectraMerging {
     final MsMsInfo copy = info.createCopy();
     copy.setMsMsScan(frame);
     return new SimpleMergedMsMsSpectrum(storage, merged[0], merged[1], copy, frame.getMSLevel(),
-        mobilityScans, intensityMergingType, cf, MergingType.ALL);
+        mobilityScans, intensityMergingType, cf, MergingType.ALL_ENERGIES);
   }
 
   /**
@@ -401,7 +401,7 @@ public class SpectraMerging {
         IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null, null);
 
     return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
-        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL);
+        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL_ENERGIES);
   }
 
   /**
@@ -439,8 +439,7 @@ public class SpectraMerging {
       @Nullable final MemoryMapStorage storage) {
 
     // if we have mass lists, use them to merge.
-    final List<? extends MassSpectrum> spectra = source.stream()
-        .map(s -> s instanceof Scan scan ? scan.getMassList() : s).toList();
+    final var spectra = source.stream().map(ScanUtils::getMassListOrThrow).toList();
 
     final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
         intensityMergingType, centerFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks);

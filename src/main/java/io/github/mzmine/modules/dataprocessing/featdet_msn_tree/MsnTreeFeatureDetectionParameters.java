@@ -24,12 +24,15 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_msn_tree;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 
 public class MsnTreeFeatureDetectionParameters extends SimpleParameterSet {
 
@@ -40,12 +43,22 @@ public class MsnTreeFeatureDetectionParameters extends SimpleParameterSet {
   /**
    * MZ tolerance for precursor chromatogram building.
    */
-  public static final MZToleranceParameter mzTol = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTol = new MZToleranceParameter(
+      ToleranceType.SCAN_TO_SCAN);
   public static final StringParameter suffix = new StringParameter("Suffix",
       "Suffix added to the raw file name to create feature list name", "msn trees");
 
   public MsnTreeFeatureDetectionParameters() {
     super(dataFiles, scanSelection, mzTol, suffix);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", mzTol);
+    return nameParameterMap;
   }
 
 }

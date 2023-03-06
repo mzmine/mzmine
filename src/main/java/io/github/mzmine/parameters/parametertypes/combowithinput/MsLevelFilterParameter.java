@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import org.w3c.dom.Element;
 
 public class MsLevelFilterParameter extends
     ComboWithInputParameter<Options, MsLevelFilter, IntegerParameter> {
@@ -51,6 +52,28 @@ public class MsLevelFilterParameter extends
   @Override
   public MsLevelFilterParameter cloneParameter() {
     return new MsLevelFilterParameter(choices.toArray(Options[]::new), value);
+  }
+
+  @Override
+  public void saveValueToXML(Element xmlElement) {
+    if (value == null) {
+      return;
+    }
+    // used to be an IntegerParameter - also support a simple integer
+    try {
+      final String numString = xmlElement.getTextContent();
+      if (numString != null && numString.length() > 0) {
+        int oldParameterValue = Integer.parseInt(numString);
+        setValue(MsLevelFilter.of(oldParameterValue));
+        return;
+      }
+    } catch (Exception e) {
+      // silent as this is only for compatibility to old parameter
+    }
+
+    // otherwise load the new parameter
+    xmlElement.setAttribute("selected", value.getSelectedOption().toString());
+    embeddedParameter.saveValueToXML(xmlElement);
   }
 
 }
