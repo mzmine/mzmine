@@ -301,7 +301,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           }
           var nodeList = moduleElement.getElementsByTagName("parameters");
           MZmineModule moduleInstance = MZmineCore.getModuleInstance(moduleClass);
-          if (moduleInstance.getParameterSetClass() == null) {
+          if (moduleInstance!=null && moduleInstance.getParameterSetClass() == null) {
+            // some modules do not have a parameterset class
             continue;
           }
           var parameterElement = (Element) nodeList.item(0);
