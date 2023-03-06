@@ -299,13 +299,13 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
                 "Module %s was in the config file but was not found in the current version of MZmine".formatted(
                     moduleClass.getName()));
           }
-          var nodeList = moduleElement.getElementsByTagName("parameters");
+
           MZmineModule moduleInstance = MZmineCore.getModuleInstance(moduleClass);
-          if (moduleInstance!=null && moduleInstance.getParameterSetClass() == null) {
+          if (moduleInstance != null && moduleInstance.getParameterSetClass() == null) {
             // some modules do not have a parameterset class
             continue;
           }
-          var parameterElement = (Element) nodeList.item(0);
+          var parameterElement = (Element) moduleElement.getElementsByTagName("parameters").item(0);
           moduleParameters.loadValuesFromXML(parameterElement);
         } catch (Exception | NoClassDefFoundError e) {
           logger.log(Level.WARNING, "Failed to load configuration for module " + moduleClassName,
