@@ -8,7 +8,7 @@ covering the entire MS data analysis workflow.
 
 More information about the software can be found on the [MZmine](http://mzmine.github.io) website.
 
-Getting started with the [Documentation](https://mzmine.github.io/mzmine_documentation/index.html)
+Getting started with the [Documentation](https://mzmine.github.io/mzmine_documentation/index.html) and our [YouTube channel](https://www.youtube.com/@mzmineproject/playlists?view=1&sort=lad&flow=grid)
 
 ## License
 
