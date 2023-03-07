@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -25,7 +26,7 @@ public class CompoundAnnotationsCSVExportParameters extends SimpleParameterSet {
                     + "If the file already exists, it will be overwritten.", extensions,
             FileSelectionType.SAVE);
     public CompoundAnnotationsCSVExportParameters() {
-        super(featureLists, filename);
+        super(new Parameter[]{featureLists, filename});
     }
 
 }
