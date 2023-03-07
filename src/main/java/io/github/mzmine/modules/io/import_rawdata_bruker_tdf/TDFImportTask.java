@@ -81,8 +81,8 @@ import org.jetbrains.annotations.Nullable;
 public class TDFImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
-  private static final double NOISE_THRESHOLD = 9E0;
   private final MZmineProject project;
+
   @Nullable
   private final MassDetector ms1Detector;
   @Nullable
@@ -91,9 +91,7 @@ public class TDFImportTask extends AbstractTask {
   private final ParameterSet ms1DetectorParam;
   @Nullable
   private final ParameterSet ms2DetectorParam;
-  private final boolean denoising = false;
-  private final Class<? extends MZmineModule> module;
-  private final ParameterSet parameters;
+
   private File fileNameToOpen;
   private File tdf, tdfBin;
   private String rawDataFileName;
@@ -107,6 +105,8 @@ public class TDFImportTask extends AbstractTask {
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private IMSRawDataFile newMZmineFile;
+  private final Class<? extends MZmineModule> module;
+  private final ParameterSet parameters;
   private boolean isMaldi;
   private String description;
   private double finishedPercentage;
