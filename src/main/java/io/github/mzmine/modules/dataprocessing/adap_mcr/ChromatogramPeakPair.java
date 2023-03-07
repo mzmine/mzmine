@@ -78,25 +78,27 @@ public class ChromatogramPeakPair {
     if ((chromatograms == null || chromatograms.length == 0) && (peaks != null
         || peaks.length > 0)) {
 
-      for(var peak : peaks) {
+      for (var peak : peaks) {
         ObservableList<FeatureListAppliedMethod> appliedMethodsList = peak.getAppliedMethods();
         FeatureList chromatogram = null;
 
         String chromatogramSuffix = getChromatogramSuffixFromAppliedMethods(appliedMethodsList);
-        //TODO: get candidate chromatogram based on the suffix
+        //Get candidate chromatogram based on the suffix, if none is found use the peak list.
         outer:
         for (int j = appliedMethodsList.size() - 1; j >= 0; j--) {
           ParameterSet parameters = appliedMethodsList.get(j).getParameters();
           for (final Parameter<?> param : parameters.getParameters()) {
             if (param instanceof FeatureListsParameter flistParam) {
-              FeatureListsPlaceholder[] placeholders = flistParam.getValue().getCurrentFeatureListsPlaceholders();
+              FeatureListsPlaceholder[] placeholders = flistParam.getValue()
+                  .getCurrentFeatureListsPlaceholders();
               for (int k = placeholders.length - 1; k >= 0; k--) {
                 FeatureList candidateList = placeholders[k].getMatchingFeatureList();
 //              // feature list is still in memory and was not deleted and already collected by GC
                 if (candidateList != null) {
                   String parentName = peak.getName();
                   String candidateName = candidateList.getName();
-                  if (parentName.contains(candidateName) && candidateName.endsWith(chromatogramSuffix)) {
+                  if (parentName.contains(candidateName) && candidateName.endsWith(
+                      chromatogramSuffix)) {
                     chromatogram = candidateList;
                     break outer;
                   }
@@ -107,19 +109,16 @@ public class ChromatogramPeakPair {
         }
         if (chromatogram != null) {
           pairs.put(peak.getRawDataFile(0), new ChromatogramPeakPair(chromatogram, peak));
-        }
-        else {
+        } else {
           pairs.put(peak.getRawDataFile(0), new ChromatogramPeakPair(peak, peak));
           logger.warning("Chromatogram list not found for corresponding peak list");
         }
       }
       return pairs;
-    }
-    else if (chromatograms == null || chromatograms.length == 0 || peaks == null
+    } else if (chromatograms == null || chromatograms.length == 0 || peaks == null
         || peaks.length == 0) {
       return pairs;
-    }
-    else {
+    } else {
       Set<RawDataFile> dataFiles = new HashSet<>();
       for (FeatureList peakList : chromatograms) {
         dataFiles.add(peakList.getRawDataFile(0));
