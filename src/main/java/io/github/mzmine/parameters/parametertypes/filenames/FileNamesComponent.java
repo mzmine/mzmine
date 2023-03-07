@@ -28,7 +28,9 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -54,10 +56,11 @@ public class FileNamesComponent extends BorderPane {
   private final CheckBox useSubFolders;
 
   private final List<ExtensionFilter> filters;
+  private final Path defaultDir;
 
-  public FileNamesComponent(List<ExtensionFilter> filters) {
-
+  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir) {
     this.filters = ImmutableList.copyOf(filters);
+    this.defaultDir = defaultDir;
 
     txtFilename = new TextArea();
     txtFilename.setPrefColumnCount(65);
@@ -70,6 +73,9 @@ public class FileNamesComponent extends BorderPane {
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
+      if (defaultDir != null) {
+        fileChooser.setInitialDirectory(defaultDir.toFile());
+      }
       fileChooser.setTitle("Select files");
 
       fileChooser.getExtensionFilters().addAll(this.filters);
@@ -128,37 +134,48 @@ public class FileNamesComponent extends BorderPane {
   }
 
   private List<Button> createFromDirectoryBtns(List<ExtensionFilter> filters) {
+    List<String> allExtensions = filters.stream().map(ExtensionFilter::getExtensions)
+        .flatMap(Collection::stream).filter(ext -> !"*.*".equals(ext)).toList();
+    ExtensionFilter allFilters = new ExtensionFilter("All", allExtensions);
+
     List<Button> btns = new ArrayList<>();
+    // create from folder button
+    createButton(btns, allFilters, true);
+
     for (ExtensionFilter filter : filters) {
-      if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
-        continue;
-      }
-      String name = filter.getExtensions().size() > 3 ? "From folder"
-          : "All " + filter.getExtensions().get(0);
-
-      Button btnFromDirectory = new Button(name);
-      btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
-      btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
-      btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-      btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
-      btns.add(btnFromDirectory);
-      btnFromDirectory.setOnAction(e -> {
-        // Create chooser.
-        DirectoryChooser fileChooser = new DirectoryChooser();
-        fileChooser.setTitle("Select a folder");
-        setInitialDirectory(fileChooser);
-
-        // Open chooser.
-        File dir = fileChooser.showDialog(null);
-        if (dir == null) {
-          return;
-        }
-
-        // list all files in sub directories
-        setValue(FileAndPathUtil.findFilesInDirFlat(dir, filter, useSubFolders.isSelected()));
-      });
+      createButton(btns, filter, false);
     }
     return btns;
+  }
+
+  private void createButton(final List<Button> btns, final ExtensionFilter filter,
+      final boolean isAllFilter) {
+    if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
+      return;
+    }
+    String name = isAllFilter ? "From folder" : "All " + filter.getExtensions().get(0);
+
+    Button btnFromDirectory = new Button(name);
+    btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
+    btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
+    btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+    btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
+    btns.add(btnFromDirectory);
+    btnFromDirectory.setOnAction(e -> {
+      // Create chooser.
+      DirectoryChooser fileChooser = new DirectoryChooser();
+      fileChooser.setTitle("Select a folder");
+      setInitialDirectory(fileChooser);
+
+      // Open chooser.
+      File dir = fileChooser.showDialog(null);
+      if (dir == null) {
+        return;
+      }
+
+      // list all files in sub directories
+      setValue(FileAndPathUtil.findFilesInDirFlat(dir, filter, useSubFolders.isSelected()));
+    });
   }
 
   /**

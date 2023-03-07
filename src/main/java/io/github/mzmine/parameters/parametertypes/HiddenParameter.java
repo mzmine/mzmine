@@ -25,27 +25,21 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.w3c.dom.Element;
-
-import io.github.mzmine.parameters.Parameter;
 
 /**
  * This is a container for any user parameter, that is not shown in the parameter setup dialog.
  * HiddenParameter can be used to store additional variables, that are not shown in the parameter
- * setup dialog. E.g.: spectraProcessing in
- * {@link io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters#spectraProcessing
- * this} is a HiddenParameter, so it can be toggled by a checkbox in a different window.
- * 
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ * setup dialog.
  *
- * @param <ParameterType> The type of the contained UserParameter
  * @param <ValueType> The value type of the contained UserParameter
- * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  * @see UserParameter
  */
-public class HiddenParameter<ParameterType extends Parameter<?>, ValueType>
-    implements Parameter<ValueType> {
+public class HiddenParameter<ValueType> implements Parameter<ValueType> {
 
   private Parameter<ValueType> embeddedParameter;
 
@@ -69,7 +63,7 @@ public class HiddenParameter<ParameterType extends Parameter<?>, ValueType>
   }
 
   @Override
-  public boolean checkValue(Collection errorMessages) {
+  public boolean checkValue(Collection<String> errorMessages) {
     return getEmbeddedParameter().checkValue(errorMessages);
   }
 
@@ -84,9 +78,8 @@ public class HiddenParameter<ParameterType extends Parameter<?>, ValueType>
   }
 
   @Override
-  public HiddenParameter<ParameterType, ValueType> cloneParameter() {
-    Parameter<ValueType> param = getEmbeddedParameter().cloneParameter();
-    return new HiddenParameter<ParameterType, ValueType>(param);
+  public HiddenParameter<ValueType> cloneParameter() {
+    return new HiddenParameter<>(embeddedParameter.cloneParameter());
   }
 
   public Parameter<ValueType> getEmbeddedParameter() {
@@ -95,5 +88,18 @@ public class HiddenParameter<ParameterType extends Parameter<?>, ValueType>
 
   private void setEmbeddedParameter(Parameter<ValueType> param) {
     this.embeddedParameter = param;
+  }
+
+  @Override
+  public boolean valueEquals(final Parameter<?> that) {
+    if (that instanceof HiddenParameter<?> hidden) {
+      return embeddedParameter.valueEquals(hidden.embeddedParameter);
+    }
+    return embeddedParameter.valueEquals(that);
+  }
+
+  @Override
+  public boolean isSensitive() {
+    return embeddedParameter.isSensitive();
   }
 }

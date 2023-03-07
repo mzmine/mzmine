@@ -49,10 +49,16 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final IonModification M_MINUS =
       new IonModification(IonModificationType.ADDUCT, "e", +0.00054858, -1);
+  // NR4+ is already charged, mass might also be charged already
+  public static final IonModification M_MINUS_ALREADY_CHARGED =
+      new IonModification(IonModificationType.ADDUCT, "e", 0, -1);
   public static final IonModification H_NEG =
       new IonModification(IonModificationType.ADDUCT, "H", "H", -1.007276, -1);
   public static final IonModification M_PLUS =
       new IonModification(IonModificationType.ADDUCT, "e", -0.00054858, 1);
+  // NR4+ is already charged, mass might also be charged already
+  public static final IonModification M_PLUS_ALREADY_CHARGED =
+      new IonModification(IonModificationType.ADDUCT, "e", 0, 1);
   public static final IonModification H =
       new IonModification(IonModificationType.ADDUCT, "H", "H", 1.007276, 1);
   //
@@ -71,6 +77,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   // combined
   public static final IonModification H2plus =
       CombinedIonModification.create(H, H);
+  public static final IonModification M2plus =
+      CombinedIonModification.create(M_PLUS, M_PLUS);
   public static final IonModification NA_H =
       CombinedIonModification.create(NA, H);
   public static final IonModification K_H =
@@ -139,9 +147,9 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   // default values
   public static final IonModification[] DEFAULT_VALUES_POSITIVE = {H_NEG, M_PLUS, H, NA, K, NH4,
-      H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2, Hneg_CA, Hneg_FE, Hneg_MG};
+      M2plus, H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2, Hneg_CA, Hneg_FE, M_PLUS_ALREADY_CHARGED, Hneg_MG};
   public static final IonModification[] DEFAULT_VALUES_NEGATIVE =
-      {M_MINUS, H_NEG, NA_2H, NA, CL, BR, FA};
+      {M_MINUS, H_NEG, NA_2H, NA, CL, BR, FA, M_MINUS_ALREADY_CHARGED};
   // default modifications
   public static final IonModification[] DEFAULT_VALUES_MODIFICATIONS =
       {H2O, H2O_2, H2O_3, H2O_4, H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
@@ -252,6 +260,9 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   @Override
   public String parseName() {
+    if("e".equals(name)){
+      return "";
+    }
     String sign = this.getMass() < 0 ? "-" : "+";
     // always +?
     if (type.equals(IonModificationType.UNDEFINED_ADDUCT)) {
@@ -304,6 +315,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     if (charge == 0) {
       z = "";
     }
+
     // molecules
     if (showMass) {
       return MessageFormat.format("[M{0}]{1} ({2})", parsedName, z,
@@ -423,10 +435,9 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     if (!obj.getClass().equals(getClass())) {
       return false;
     }
-    if (!(obj instanceof IonModification)) {
+    if (!(obj instanceof IonModification other)) {
       return false;
     }
-    IonModification other = (IonModification) obj;
     if (charge != other.charge) {
       return false;
     }

@@ -25,54 +25,47 @@
 
 package io.github.mzmine.modules.dataanalysis.clustering;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
-import java.util.Arrays;
-
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataanalysis.clustering.em.EMClusterer;
 import io.github.mzmine.modules.dataanalysis.clustering.farthestfirst.FarthestFirstClusterer;
 import io.github.mzmine.modules.dataanalysis.clustering.hierarchical.HierarClusterer;
 import io.github.mzmine.modules.dataanalysis.clustering.simplekmeans.SimpleKMeansClusterer;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import java.util.List;
 
 public class ClusteringParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType =
-      new ComboParameter<FeatureMeasurementType>("Peak measurement type", "Measure features using",
-          FeatureMeasurementType.values());
+  public static final ComboParameter<AbundanceMeasure> featureMeasurementType = new ComboParameter<AbundanceMeasure>(
+      "Peak measurement type", "Measure features using", AbundanceMeasure.values());
 
-  public static final RawDataFilesParameter dataFiles =
-      new RawDataFilesParameter(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
+      new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
-  public static final FeatureSelectionParameter rows =
-      new FeatureSelectionParameter("Feature list rows", "Feature list rows to include in calculation",
-          Arrays.asList(new FeatureSelection[] {new FeatureSelection(null, null, null, null)}));
-
-  private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[] {new EMClusterer(),
-      new FarthestFirstClusterer(), new SimpleKMeansClusterer(), new HierarClusterer()};
-
-  public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm =
-      new ModuleComboParameter<ClusteringAlgorithm>("Clustering algorithm",
-          "Select the algorithm you want to use for clustering", algorithms, algorithms[0]);
-
-  public static final ComboParameter<ClusteringDataType> typeOfData =
-      new ComboParameter<ClusteringDataType>("Type of data",
-          "Specify the type of data used for the clustering: samples or variables",
-          ClusteringDataType.values());
+  public static final FeatureSelectionParameter rows = new FeatureSelectionParameter(
+      "Feature list rows", "Feature list rows to include in calculation",
+      List.of(new FeatureSelection(null, null, null, null)));
+  public static final ComboParameter<ClusteringDataType> typeOfData = new ComboParameter<ClusteringDataType>(
+      "Type of data", "Specify the type of data used for the clustering: samples or variables",
+      ClusteringDataType.values());
+  private static final ClusteringAlgorithm[] algorithms = new ClusteringAlgorithm[]{
+      new EMClusterer(), new FarthestFirstClusterer(), new SimpleKMeansClusterer(),
+      new HierarClusterer()};
+  public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm = new ModuleComboParameter<ClusteringAlgorithm>(
+      "Clustering algorithm", "Select the algorithm you want to use for clustering", algorithms,
+      algorithms[0]);
 
   public ClusteringParameters() {
-    super(new Parameter[] {featureLists, featureMeasurementType, dataFiles, rows, clusteringAlgorithm,
-        typeOfData});
+    super(featureLists, featureMeasurementType, dataFiles, rows, clusteringAlgorithm, typeOfData);
   }
 
 }

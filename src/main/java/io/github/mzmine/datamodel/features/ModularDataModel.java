@@ -45,7 +45,7 @@ public interface ModularDataModel {
    *
    * @return
    */
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes();
+  ObservableMap<Class<? extends DataType>, DataType> getTypes();
 
   /**
    * The map containing all mappings to the types defined in getTypes
@@ -53,7 +53,7 @@ public interface ModularDataModel {
    * @param
    * @return
    */
-  public ObservableMap<DataType, Object> getMap();
+  ObservableMap<DataType, Object> getMap();
 
   /**
    * Get DataType column of this DataModel
@@ -134,6 +134,15 @@ public interface ModularDataModel {
   @Nullable
   default <T extends Object> boolean hasValueFor(DataType<T> type) {
     return getMap().get(type) != null;
+  }
+
+  /**
+   * @param typeClass the type class
+   * @return true if value is not null
+   */
+  @Nullable
+  default <T> boolean hasValueFor(Class<? extends DataType<T>> typeClass) {
+    return get(typeClass) != null;
   }
 
   /**

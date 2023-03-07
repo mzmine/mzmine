@@ -36,6 +36,7 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationTask;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
@@ -48,7 +49,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.awt.Desktop;
 import java.io.File;
@@ -68,7 +68,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(
       GnpsFbmnExportAndSubmitTask.class.getName());
   private final ParameterSet parameters;
-  private final FeatureMeasurementType featureMeasure;
+  private final AbundanceMeasure featureMeasure;
   private final File baseFile;
   private final ModularFeatureList[] featureLists;
   private final int totalSteps = 4;
@@ -288,8 +288,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
     // per raw data file
     LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]{
-        featureMeasure.equals(FeatureMeasurementType.AREA)
-            ? LegacyExportRowDataFileElement.FEATURE_AREA
+        featureMeasure.equals(AbundanceMeasure.Area) ? LegacyExportRowDataFileElement.FEATURE_AREA
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
     FeatureListRowsFilter filter = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILTER);

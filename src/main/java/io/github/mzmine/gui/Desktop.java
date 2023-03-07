@@ -40,11 +40,14 @@ import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface represents the application GUI
  */
 public interface Desktop extends MZmineModule {
+
+  void handleShowTaskView();
 
   /**
    * Returns a reference to main application window. May return null if MZmine is running in
@@ -59,7 +62,10 @@ public interface Desktop extends MZmineModule {
    *
    * @param text Text to show
    */
-  void setStatusBarText(String text);
+  default void setStatusBarText(@Nullable String text) {
+    setStatusBarText(text, null);
+  }
+
 
   /**
    * Displays a given text on the application status bar in a given color
@@ -67,7 +73,19 @@ public interface Desktop extends MZmineModule {
    * @param text      Text to show
    * @param textColor Text color
    */
-  void setStatusBarText(String text, Color textColor);
+  default void setStatusBarText(@Nullable String text, @Nullable Color textColor) {
+    setStatusBarText(text, textColor, null);
+  }
+
+  /**
+   * Displays a given text on the application status bar in a given color
+   *
+   * @param text      Text to show
+   * @param textColor Text color
+   * @param url       to open on click
+   */
+  void setStatusBarText(@Nullable String text, @Nullable Color textColor, @Nullable String url);
+
 
   /**
    * Displays a message box with a given text
@@ -84,6 +102,15 @@ public interface Desktop extends MZmineModule {
    * @param msg   Text to show
    */
   void displayMessage(String title, String msg);
+
+  /**
+   * Displays a message box with a given text
+   *
+   * @param title Message box title
+   * @param msg   Text to show
+   * @[param url url to open
+   */
+  void displayMessage(String title, String msg, String url);
 
   /**
    * Displays an error message box with a given text

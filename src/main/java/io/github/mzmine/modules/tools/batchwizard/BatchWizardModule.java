@@ -25,19 +25,13 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
-import java.time.Instant;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BatchWizardModule implements MZmineRunnableModule {
+public class BatchWizardModule implements MZmineModule {
 
   @Override
   public @NotNull String getName() {
@@ -46,32 +40,11 @@ public class BatchWizardModule implements MZmineRunnableModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return BatchWizardParameters.class;
-  }
-
-  @Override
-  public @NotNull String getDescription() {
-    return "Creates processing batches with a reduced set of parameters.";
-  }
-
-  @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-    if (MZmineCore.isHeadLessMode()) {
-      return ExitCode.OK;
-    }
-
-    showTab();
-    return ExitCode.OK;
+    return null;
   }
 
   public void showTab() {
     MZmineCore.runLater(() -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
   }
 
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.TOOLS;
-  }
 }

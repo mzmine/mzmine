@@ -29,9 +29,11 @@ import com.google.common.collect.ImmutableList;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -42,21 +44,31 @@ import org.w3c.dom.NodeList;
  */
 public class FileNamesParameter implements UserParameter<File[], FileNamesComponent> {
 
-  private String name, description;
-  private File value[];
-  private List<ExtensionFilter> filters;
+  private final String name;
+  private final String description;
+  private final Path defaultDir;
+  private File[] value;
+  private final List<ExtensionFilter> filters;
 
   public FileNamesParameter(String name) {
     this(name, "", List.of());
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters) {
+    this(name, description, filters, null, null);
+  }
+
+  public FileNamesParameter(String name, String description, List<ExtensionFilter> filters,
+      Path defaultDir, File[] defaultFiles) {
     this.name = name;
     this.description = description;
     this.filters = ImmutableList.copyOf(filters);
+    this.defaultDir = defaultDir;
+    value = defaultFiles;
   }
 
   /**
+   *
    */
   @Override
   public String getName() {
@@ -64,6 +76,7 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   /**
+   *
    */
   @Override
   public String getDescription() {
@@ -72,7 +85,7 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   @Override
   public FileNamesComponent createEditingComponent() {
-    return new FileNamesComponent(filters);
+    return new FileNamesComponent(filters, defaultDir);
   }
 
   @Override
@@ -105,7 +118,7 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   @Override
   public void loadValueFromXML(Element xmlElement) {
     NodeList list = xmlElement.getElementsByTagName("file");
-    File newFiles[] = new File[list.getLength()];
+    File[] newFiles = new File[list.getLength()];
     for (int i = 0; i < list.getLength(); i++) {
       Element nextElement = (Element) list.item(i);
       newFiles[i] = new File(nextElement.getTextContent());
@@ -115,8 +128,9 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     for (File f : value) {
       Element newElement = parentDocument.createElement("file");
@@ -136,14 +150,19 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   @Override
   public boolean valueEquals(Parameter<?> that) {
-    if(that == null) {
+    if (that == null) {
       return false;
     }
-    if(!(that instanceof FileNamesParameter thatParam)) {
+    if (!(that instanceof FileNamesParameter thatParam)) {
       return false;
     }
 
     File[] thatValue = thatParam.getValue();
     return Arrays.equals(value, thatValue);
+  }
+
+  @Override
+  public Priority getComponentVgrowPriority() {
+    return Priority.SOMETIMES;
   }
 }

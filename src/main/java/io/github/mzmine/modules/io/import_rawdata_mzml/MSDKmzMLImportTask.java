@@ -56,12 +56,11 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.DateTimeUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +103,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private String description;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
+  private boolean denormalizeMSnScans;
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -133,6 +133,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
         this.ms2Detector = advancedParam.getParameter(
             AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
       }
+      denormalizeMSnScans = advancedParam.getValue(
+          AdvancedSpectraImportParameters.denormalizeMSnScans);
     }
 
     this.applyMassDetection = ms1Detector != null || ms2Detector != null;
@@ -257,13 +259,14 @@ public class MSDKmzMLImportTask extends AbstractTask {
           mzIntensities = applyMassDetection(ms1Detector, wrapper);
         } else if (ms2Detector != null && wrapper.getMSLevel() >= 2) {
           mzIntensities = applyMassDetection(ms2Detector, wrapper);
+          if (denormalizeMSnScans) {
+            ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
+                wrapper.getInjectionTime());
+          }
         }
 
         if (mzIntensities != null) {
-          // sort arrays because some files are unsorted. Latest versions of msconvert should fix that
-          mzIntensities = DataPointUtils.sort(mzIntensities[0], mzIntensities[1],
-              DataPointSorter.DEFAULT_MZ_ASCENDING);
-
+          // scans sorting is enforced in {@link AbstractStorableSpectrum#setDataPoints}
           // create mass list and scan. Override data points and spectrum type
           newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
               mzIntensities[1], MassSpectrumType.CENTROIDED);

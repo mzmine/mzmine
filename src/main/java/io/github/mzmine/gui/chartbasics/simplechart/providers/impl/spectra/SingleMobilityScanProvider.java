@@ -32,10 +32,11 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 
 /**
- * Used to plot a single {@link MobilityScan} in a {@link  io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart}.
+ * Used to plot a single {@link MobilityScan} in a
+ * {@link  io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart}.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -85,14 +86,14 @@ public class SingleMobilityScanProvider implements PlotXYDataProvider {
   public String getToolTipText(int itemIndex) {
     return "Frame #" + scan.getFrame().getFrameId() + "\nMobility scan #"
         + scan.getMobilityScanNumber() + "\nMobility: " + mobilityFormat.format(scan.getMobility())
-        + " " + scan.getMobilityType().getUnit() + "\nm/z: "
-        + mzFormat.format(scan.getMzValue(itemIndex)) + "\nIntensity: "
-        + intensityFormat.format(scan.getIntensityValue(itemIndex));
+        + " " + scan.getMobilityType().getUnit() + "\nm/z: " + mzFormat.format(
+        scan.getMzValue(itemIndex)) + "\nIntensity: " + intensityFormat.format(
+        scan.getIntensityValue(itemIndex));
 
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     finishedPercentage = 1.d;
   }
 

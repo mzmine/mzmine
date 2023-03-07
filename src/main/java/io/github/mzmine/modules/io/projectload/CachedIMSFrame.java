@@ -41,18 +41,18 @@ import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class is used during project import to cache {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s.
- * Since mobility scans are created on demand of every call to {@link Frame#getMobilityScans()},
- * multiple duplicate instances would be created during project import, for every loaded {@link
- * io.github.mzmine.datamodel.featuredata.IonSpectrumSeries}, every {@link
- * io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType}, and so on. This class
- * contains {@link CachedIMSFrame}s over regular frames. These cached frames will once create and
- * retain instances of {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s so the same
+ * This class is used during project import to cache
+ * {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s. Since mobility scans are created on
+ * demand of every call to {@link Frame#getMobilityScans()}, multiple duplicate instances would be
+ * created during project import, for every loaded
+ * {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries}, every
+ * {@link io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType}, and so on. This
+ * class contains {@link CachedIMSFrame}s over regular frames. These cached frames will once create
+ * and retain instances of {@link io.github.mzmine.datamodel.impl.StoredMobilityScan}s so the same
  * instance can be used throughout the loading process.
  *
  * @author SteffenHeu https://github.com/SteffenHeu
@@ -88,7 +88,7 @@ public class CachedIMSFrame implements Frame {
 
   @Override
   public @Nullable MobilityScan getMobilityScan(int num) {
-    if(cachedScans == null) {
+    if (cachedScans == null) {
       cachedScans = originalFrame.getMobilityScans();
     }
     return cachedScans.get(num);
@@ -96,7 +96,7 @@ public class CachedIMSFrame implements Frame {
 
   @Override
   public @NotNull List<MobilityScan> getMobilityScans() {
-    if(cachedScans == null) {
+    if (cachedScans == null) {
       cachedScans = originalFrame.getMobilityScans();
     }
     return cachedScans;
@@ -204,11 +204,6 @@ public class CachedIMSFrame implements Frame {
 
   @Override
   public @Nullable Double getTIC() {
-    throw new UnsupportedOperationException("Unsupported during project load.");
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
     throw new UnsupportedOperationException("Unsupported during project load.");
   }
 

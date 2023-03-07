@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
@@ -40,17 +41,19 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.Wav
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -106,17 +109,43 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public static final OptionalParameter<FileNameParameter> outFilenameOption = new OptionalParameter<>(
       outFilename);
 
+  public static final BooleanParameter denormalizeMSnScans = new BooleanParameter(
+      "Denormalize fragment scans (traps)", """
+      Denormalize MS2 (MSn) scans by multiplying with the injection time. Encouraged before spectral merging.
+      (only available in trap-based systems, like Orbitraps, trapped ion mobility spectrometry (tims), etc)
+      This reduces the intensity differences between spectra acquired with different injection times
+      and reverts to "raw" intensities.""", false);
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, outFilenameOption},
+    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, denormalizeMSnScans,
+            outFilenameOption},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
   }
 
   @Override
   public boolean checkParameterValues(Collection<String> errorMessages) {
     final boolean superCheck = super.checkParameterValues(errorMessages);
+    // Check the selected mass detector
+    MZmineProcessingStep<MassDetector> detector = getValue(massDetector);
+    if (detector == null) {
+      errorMessages.add("No mass detector selected");
+      return false;
+    }
+    String massDetectorName = detector.toString();
 
+    // check if denormalize was selected that it matches to the mass detection algorithm
+    boolean denorm = getValue(denormalizeMSnScans);
+    boolean illegalDenormalizeMassDetectorCombo =
+        denorm && !(massDetectorName.startsWith("Factor"));
+    if (illegalDenormalizeMassDetectorCombo) {
+      errorMessages.add("Spectral denormalization is currently only supported by the "
+          + "Factor of the lowest mass detector; selected:" + massDetectorName);
+      return false;
+    }
+
+    // check files
     RawDataFile[] selectedFiles = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
     getParameter(dataFiles).getValue().resetSelection(); // reset selection after evaluation.
 
@@ -152,7 +181,6 @@ public class MassDetectionParameters extends SimpleParameterSet {
     logger.finest("Proportion of scans estimated to be centroided: " + proportionCentroided);
 
     // Check the selected mass detector
-    String massDetectorName = getParameter(massDetector).getValue().toString();
     if (!massDetectorName.contains("Auto")) {
       if (mostlyCentroided && !(massDetectorName.startsWith("Centroid")
           || massDetectorName.startsWith("Factor"))) {
@@ -193,6 +221,15 @@ public class MassDetectionParameters extends SimpleParameterSet {
     }
 
     return superCheck;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Scans", scanSelection);
+    return nameParameterMap;
   }
 
   @NotNull

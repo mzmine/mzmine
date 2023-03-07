@@ -36,6 +36,8 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
@@ -46,18 +48,28 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -73,6 +85,8 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Exports all files needed for GNPS
@@ -82,18 +96,21 @@ import java.util.logging.Logger;
 public class LibraryBatchGenerationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LibraryBatchGenerationTask.class.getName());
+  private final SpectralLibrary library;
   private final ModularFeatureList[] flists;
-  private final int minSignals;
-  private final ScanSelector scanExport;
   private final File outFile;
   private final SpectralLibraryExportFormats format;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
+  private final FragmentScanSelection selection;
+  private final MsMsQualityChecker msMsQualityChecker;
+  private final MZTolerance mzTolMerging;
+  private final boolean enableMsnMerge;
+  private final MsLevelFilter postMergingMsLevelFilter;
   private double allowedOtherSignalSum = 0d;
   private MZTolerance mzTolChimericsMainIon;
   private MZTolerance mzTolChimericsIsolation;
   private ChimericMsOption handleChimericsOption;
-
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);
@@ -102,18 +119,27 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
-    minSignals = parameters.getValue(LibraryBatchGenerationParameters.minSignals);
-    scanExport = parameters.getValue(LibraryBatchGenerationParameters.scanExport);
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
     String exportFormat = format.getExtension();
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);
     outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
 
+    library = new SpectralLibrary(MemoryMapStorage.forMassList(), outFile.getName() + "_batch",
+        outFile);
     // metadata as a map
     LibraryBatchMetadataParameters meta = parameters.getParameter(
         LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
 
+    msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters().toQualityChecker();
+
+    postMergingMsLevelFilter = parameters.getValue(
+        LibraryBatchGenerationParameters.postMergingMsLevelFilter);
+
+    enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
+    mzTolMerging = parameters.getEmbeddedParameterValue(
+        LibraryBatchGenerationParameters.mergeMzTolerance);
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
@@ -124,6 +150,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       mzTolChimericsMainIon = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
+
+    // used to extract and merge spectra
+    selection = new FragmentScanSelection(mzTolMerging, true,
+        IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM,
+        postMergingMsLevelFilter);
   }
 
   @Override
@@ -142,9 +173,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         description = "Exporting entries for feature list " + flist.getName();
         for (var row : flist.getRows()) {
           processRow(writer, row);
+          finishedRows.incrementAndGet();
         }
-
-        finishedRows.incrementAndGet();
       }
       //
       logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
@@ -153,7 +183,15 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not open file " + outFile + " for writing.");
       logger.log(Level.WARNING,
-          String.format("Error writing libary file: %s. Message: %s", outFile.getAbsolutePath(),
+          String.format("Error writing library file: %s. Message: %s", outFile.getAbsolutePath(),
+              e.getMessage()), e);
+      return;
+    } catch (Exception e) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Could not export library to " + outFile + " because of internal exception:"
+          + e.getMessage());
+      logger.log(Level.WARNING,
+          String.format("Error writing library file: %s. Message: %s", outFile.getAbsolutePath(),
               e.getMessage()), e);
       return;
     }
@@ -169,75 +207,91 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       return;
     }
 
-    // handle chimerics
-    final Map<Scan, ChimericPrecursorResult> chimericMap;
-    if (handleChimerics) {
-      chimericMap = checkChimericPrecursorIsolation(row, scans);
-      if (ChimericMsOption.SKIP.equals(handleChimericsOption)) {
-        scans = scans.stream()
-            .filter(scan -> ChimericPrecursorResult.PASSED == chimericMap.get(scan)).toList();
-      }
-    } else {
-      chimericMap = Map.of();
+    // first entry for the same molecule reflect the most common ion type, usually M+H
+    var match = matches.get(0);
+
+    if (!msMsQualityChecker.matchesName(match, row.getFeatureList())) {
+      return;
     }
 
-    String lastName = null;
+    // handle chimerics
+    final var chimericMap = handleChimericsAndFilterScansIfSelected(row, scans);
 
-    List<DataPoint[]> spectra = scans.stream().map(Scan::getMassList)
-        .map(ScanUtils::extractDataPoints).toList();
+    if (enableMsnMerge) {
+      // merge spectra, find best spectrum for each MSn node in the tree and each energy
+      // filter after merging scans to also generate PSEUDO MS2 from MSn spectra
+      scans = selection.getAllFragmentSpectra(scans);
+    } else {
+      // filter scans if selection is only MS2
+      if (postMergingMsLevelFilter.isFilter()) {
+        scans.removeIf(postMergingMsLevelFilter::notMatch);
+      }
+    }
+    // cache all formulas
+    IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
+    FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
 
-    for (var match : matches) {
-      // first entry for the same molecule reflect the most common ion type, usually M+H
-      if (Objects.equals(match.getCompoundName(), lastName)) {
+    boolean explainedSignalsOnly = msMsQualityChecker.exportExplainedSignalsOnly();
+    // filter matches
+    for (final Scan msmsScan : scans) {
+      final MSMSScore score = msMsQualityChecker.match(msmsScan, match, sortedFormulas);
+      if (score.isFailed(false)) {
         continue;
       }
 
-      lastName = match.getCompoundName();
+      DataPoint[] dps =
+          explainedSignalsOnly ? score.getAnnotatedDataPoints() : extractDataPoints(msmsScan, true);
 
-      // filter matches
-      for (int i = 0; i < spectra.size(); i++) {
-        final DataPoint[] dataPoints = spectra.get(i);
-        if (dataPoints.length < minSignals) {
-          continue;
-        }
-
-        // add instrument type etc by parameter
-        Scan scan = scans.get(i);
-        SpectralDBEntry entry = new SpectralDBEntry(scan, match, dataPoints);
-        entry.putAll(metadataMap);
-        if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
-          // default is passed
-          ChimericPrecursorResult chimeric = chimericMap.getOrDefault(scan,
-              ChimericPrecursorResult.PASSED);
-          entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
-          if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
-            entry.putIfNotNull(DBEntryField.NAME,
-                entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
-          }
-        }
-        // add file info
-        final String fileUSI = Path.of(
-            Objects.requireNonNullElse(scan.getDataFile().getAbsolutePath(),
-                scan.getDataFile().getName())).getFileName().toString() + ":"
-            + scan.getScanNumber();
-        entry.putIfNotNull(DBEntryField.DATAFILE_COLON_SCAN_NUMBER, fileUSI);
-        entry.getField(DBEntryField.DATASET_ID).ifPresent(
-            dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
-
-        // add experimental data
-        if (entry.getField(DBEntryField.RT).isEmpty()) {
-          entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
-        }
-        if (entry.getField(DBEntryField.CCS).isEmpty()) {
-          entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
-        }
-
-        // export to file
-        exportEntry(writer, entry);
-        exported.incrementAndGet();
-      }
+      SpectralLibraryEntry entry = createEntry(row, match, chimericMap, msmsScan, score, dps);
+      exportEntry(writer, entry);
+      exported.incrementAndGet();
     }
   }
+
+  @NotNull
+  private SpectralLibraryEntry createEntry(final FeatureListRow row,
+      final CompoundDBAnnotation match, final Map<Scan, ChimericPrecursorResult> chimericMap,
+      final Scan msmsScan, final MSMSScore score, final DataPoint[] dps) {
+    // add instrument type etc by parameter
+    SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan, match,
+        dps);
+    entry.putAll(metadataMap);
+
+    // score might be successful without having a formula - so check if we actually have scores
+    if (score.explainedSignals() > 0) {
+      entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_INTENSITY, score.explainedIntensity());
+      entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_SIGNALS, score.explainedSignals());
+    }
+    if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
+      // default is passed
+      ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
+          ChimericPrecursorResult.PASSED);
+      entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
+      if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
+        entry.putIfNotNull(DBEntryField.NAME,
+            entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
+      }
+    }
+    // add file info
+    int scanNumber = msmsScan.getScanNumber();
+    final String fileUSI = Path.of(
+        Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
+            msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
+
+    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scanNumber);
+    entry.getField(DBEntryField.DATASET_ID).ifPresent(
+        dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
+
+    // add experimental data
+    if (entry.getField(DBEntryField.RT).isEmpty()) {
+      entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+    }
+    if (entry.getField(DBEntryField.CCS).isEmpty()) {
+      entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+    }
+    return entry;
+  }
+
 
   private Map<Scan, ChimericPrecursorResult> checkChimericPrecursorIsolation(
       final FeatureListRow row, final List<Scan> scans) {
@@ -247,6 +301,23 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericMap.computeIfAbsent(scan, key -> scoreChimericIsolation(row, scan));
     }
     return chimericMap;
+  }
+
+  /**
+   * @param scans might be filtered if the chimeric handling is set to SKIP
+   * @return a map that flags spectra as chimeric or passed - or an empty map if handeChimerics is
+   * off
+   */
+  private Map<Scan, ChimericPrecursorResult> handleChimericsAndFilterScansIfSelected(
+      final FeatureListRow row, final List<Scan> scans) {
+    if (handleChimerics) {
+      var chimericMap = checkChimericPrecursorIsolation(row, scans);
+      if (ChimericMsOption.SKIP.equals(handleChimericsOption)) {
+        scans.removeIf(scan -> ChimericPrecursorResult.PASSED != chimericMap.get(scan));
+      }
+      return chimericMap;
+    }
+    return Map.of();
   }
 
   private ChimericPrecursorResult scoreChimericIsolation(final FeatureListRow row,
@@ -281,24 +352,14 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         mzTolChimericsIsolation, allowedOtherSignalSum);
   }
 
-  private void exportEntry(final BufferedWriter writer, final SpectralDBEntry entry)
+  private void exportEntry(final BufferedWriter writer, final SpectralLibraryEntry entry)
       throws IOException {
-    switch (format) {
-      case msp -> exportMsp(writer, entry);
-      case json -> exportGnpsJson(writer, entry);
-    }
-  }
-
-  private void exportGnpsJson(final BufferedWriter writer, final SpectralDBEntry entry)
-      throws IOException {
-    String json = MZmineJsonGenerator.generateJSON(entry);
-    writer.append(json).append("\n");
-  }
-
-  private void exportMsp(final BufferedWriter writer, final SpectralDBEntry entry)
-      throws IOException {
-    String msp = MSPEntryGenerator.createMSPEntry(entry);
-    writer.append(msp);
+    String stringEntry = switch (format) {
+      case msp -> MSPEntryGenerator.createMSPEntry(entry);
+      case json -> MZmineJsonGenerator.generateJSON(entry);
+      case mgf -> MGFEntryGenerator.createMGFEntry(entry);
+    };
+    writer.append(stringEntry).append("\n");
   }
 
   @Override

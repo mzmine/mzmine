@@ -213,13 +213,25 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
 
   @Override
   public String toString() {
-    final String mz = MZmineCore.getConfiguration().getMZFormat().format(precursorMZ);
-    final String scans = " (" + countSpectra() + ")";
     if (parent == null) {
-      return "m/z " + mz + scans;
+      return "m/z " + getFormatted();
     } else {
-      return parent + " ↦ " + mz + scans;
+      return parent + " ↦ " + getFormatted();
     }
+  }
+
+  public String getFormatted() {
+    return MZmineCore.getConfiguration().getMZFormat().format(precursorMZ) + " (" + countSpectra()
+        + ")";
+  }
+
+  /**
+   * Formatted fragment path form start to this precursor
+   *
+   * @return formatted stings for each precursor mz and the number of scans
+   */
+  public String[] getFragmentPath() {
+    return streamParents().map(PrecursorIonTreeNode::getFormatted).toArray(String[]::new);
   }
 
   public int countPrecursors() {

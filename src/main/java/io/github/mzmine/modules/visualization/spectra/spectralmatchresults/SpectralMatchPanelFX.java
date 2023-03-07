@@ -40,7 +40,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -94,16 +94,16 @@ public class SpectralMatchPanelFX extends GridPane {
   public static final int STRUCTURE_HEIGHT = 150;
   public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
-  protected static final Image iconAll = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_all.png");
-  protected static final Image iconPdf = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_pdf.png");
-  protected static final Image iconEps = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_eps.png");
-  protected static final Image iconEmf = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_emf.png");
-  protected static final Image iconSvg = FxIconUtil
-      .loadImageFromResources("icons/exp_graph_svg.png");
+  protected static final Image iconAll = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_all.png");
+  protected static final Image iconPdf = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_pdf.png");
+  protected static final Image iconEps = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_eps.png");
+  protected static final Image iconEmf = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_emf.png");
+  protected static final Image iconSvg = FxIconUtil.loadImageFromResources(
+      "icons/exp_graph_svg.png");
   private static final int ICON_WIDTH = 50;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   // min color is a darker red
@@ -121,10 +121,10 @@ public class SpectralMatchPanelFX extends GridPane {
   private ScrollPane metaDataScroll;
   private GridPane pnTitle;
   private GridPane pnExport;
-  private BorderPane mirrorChartWrapper;
+  private final BorderPane mirrorChartWrapper;
   private Label lblScore;
   private Label lblHit;
-  private EStandardChartTheme theme;
+  private final EStandardChartTheme theme;
   private SpectralMatchPanel swingPanel;
 
   public SpectralMatchPanelFX(SpectralDBAnnotation hit) {
@@ -174,9 +174,10 @@ public class SpectralMatchPanelFX extends GridPane {
 
     // create Top panel
     double simScore = hit.getSimilarity().getScore();
-    Color gradientCol = FxColorUtil.awtColorToFX(ColorScaleUtil
-        .getColor(FxColorUtil.fxColorToAWT(MIN_COS_COLOR), FxColorUtil.fxColorToAWT(MAX_COS_COLOR),
-            MIN_COS_COLOR_VALUE, MAX_COS_COLOR_VALUE, simScore));
+    Color gradientCol = FxColorUtil.awtColorToFX(
+        ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_COS_COLOR),
+            FxColorUtil.fxColorToAWT(MAX_COS_COLOR), MIN_COS_COLOR_VALUE, MAX_COS_COLOR_VALUE,
+            simScore));
     pnTitle.setBackground(
         new Background(new BackgroundFill(gradientCol, CornerRadii.EMPTY, Insets.EMPTY)));
 
@@ -186,8 +187,8 @@ public class SpectralMatchPanelFX extends GridPane {
     lblScore = new Label(COS_FORM.format(simScore));
     lblScore.getStyleClass().add("white-score-label");
     lblScore.setTooltip(new Tooltip(
-        "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM
-            .format(simScore)));
+        "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM.format(
+            simScore)));
 
     pnTitle.add(lblHit, 0, 0);
     pnTitle.add(lblScore, 1, 0);
@@ -352,8 +353,8 @@ public class SpectralMatchPanelFX extends GridPane {
       try {
         factory = InChIGeneratorFactory.getInstance();
         // Get InChIToStructure
-        InChIToStructure inchiToStructure = factory
-            .getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
+        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
+            DefaultChemObjectBuilder.getInstance());
         molecule = inchiToStructure.getAtomContainer();
         return molecule;
       } catch (CDKException e) {
@@ -385,7 +386,8 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
 
-  private BorderPane extractMetaData(String title, SpectralDBEntry entry, DBEntryField[] other) {
+  private BorderPane extractMetaData(String title, SpectralLibraryEntry entry,
+      DBEntryField[] other) {
     VBox panelOther = new VBox();
     panelOther.getStyleClass().add("region");
     panelOther.setAlignment(Pos.TOP_LEFT);
@@ -395,7 +397,7 @@ public class SpectralMatchPanelFX extends GridPane {
       if (!o.equals("N/A")) {
         Label text = new Label();
         text.getStyleClass().add("text-label");
-        text.setText(db.toString() + ": " + o.toString());
+        text.setText(db.toString() + ": " + o);
         panelOther.getChildren().add(text);
       }
     }

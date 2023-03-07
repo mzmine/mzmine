@@ -28,8 +28,7 @@ package io.github.mzmine.modules.io.export_msmsquality;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 
-public record SpectrumMsMsQuality(float chimerity, MSMSScore explainedIntensityScore,
-                                  MSMSScore explainedPeaksScore, int numPeaks,
+public record SpectrumMsMsQuality(float chimerity, MSMSScore score, int numPeaks,
                                   float spectralEntropy, float normalizedEntropy,
                                   float weightedEntropy, float normalizedWeightedEntropy,
                                   FeatureAnnotation annotation) {
@@ -38,9 +37,8 @@ public record SpectrumMsMsQuality(float chimerity, MSMSScore explainedIntensityS
     return String.join(separator, annotation != null ? annotation.getCompoundName() : "",
         annotation.getAdductType() != null ? annotation.getAdductType().toString(false) : "",
         Float.toString(chimerity),
-        (explainedIntensityScore != null ? Float.toString(explainedIntensityScore.getScore())
-            : "0"),
-        (explainedPeaksScore != null ? Float.toString(explainedPeaksScore.getScore()) : "0"),
+        (score.explainedIntensity() >= 0 ? String.valueOf(score.explainedIntensity()) : "0"),
+        (score.explainedSignals() >= 0 ? String.valueOf(score.explainedSignals()) : "0"),
         Integer.toString(numPeaks), Float.toString(spectralEntropy),
         Float.toString(normalizedEntropy), Float.toString(weightedEntropy),
         Float.toString(normalizedWeightedEntropy));

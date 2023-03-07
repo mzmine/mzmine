@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
+import io.github.mzmine.util.DialogLoggerUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,8 +80,6 @@ public class RawDataOverviewWindowController {
 
   public void initialize() {
 
-    // this.rawDataFile = rawDataFile;
-
     addChromatogramSelectedScanListener();
 
     initialized = true;
@@ -96,6 +95,17 @@ public class RawDataOverviewWindowController {
    * @param rawDataFiles
    */
   public void setRawDataFiles(Collection<RawDataFile> rawDataFiles) {
+    if(rawDataFiles.size()>25) {
+      boolean result = DialogLoggerUtil.showDialogYesNo("Raw data overview",
+          "Visualizing %d data files at once might slow down MZmine, continue?".formatted(
+              rawDataFiles.size()));
+
+      if(!result) {
+        // just visualize the first file if user selected false
+        rawDataFiles = rawDataFiles.stream().findFirst().map(List::of).orElse(List.of());
+      }
+    }
+
     // remove files first
     List<RawDataFile> filesToProcess = new ArrayList<>();
     for (RawDataFile rawDataFile : rawDataFilesAndTabs.keySet()) {
@@ -206,6 +216,7 @@ public class RawDataOverviewWindowController {
           rawDataTableView.getItems().stream().filter(item -> item.equals(scan)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
+                rawDataTableView.getSelectionModel().focus(rawDataTableView.getItems().indexOf(item));
                 if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
                   rawDataTableView.scrollTo(item);
                 }

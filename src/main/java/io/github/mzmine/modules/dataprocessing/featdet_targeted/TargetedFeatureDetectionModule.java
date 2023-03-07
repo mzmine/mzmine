@@ -56,11 +56,12 @@ public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    RawDataFile[] dataFiles = parameters.getParameter(TargetedPeakDetectionParameters.rawDataFile)
-        .getValue().getMatchingRawDataFiles();
+    RawDataFile[] dataFiles = parameters.getParameter(
+        TargetedFeatureDetectionParameters.rawDataFile).getValue().getMatchingRawDataFiles();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new TargetedPeakDetectionModuleTask(project, parameters, dataFile, storage, moduleCallDate);
+      Task newTask = new TargetedFeatureDetectionModuleTask(project, parameters, dataFile, storage,
+          moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;
@@ -73,6 +74,6 @@ public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return TargetedPeakDetectionParameters.class;
+    return TargetedFeatureDetectionParameters.class;
   }
 }

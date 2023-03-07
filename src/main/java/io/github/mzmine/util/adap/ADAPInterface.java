@@ -35,11 +35,12 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.datamodel.features.*;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -82,29 +83,32 @@ public class ADAPInterface {
     }
 
     return new Component(null,
-        new Peak(chromatogram, new PeakInfo().mzValue(peak.getMZ()).peakID(row.getID())), spectrum,
-        null);
+            new Peak(chromatogram, new PeakInfo().mzValue(peak.getMZ()).peakID(row.getID())), spectrum,
+            null);
   }
 
   @NotNull
-  public static ModularFeature peakToFeature(@NotNull ModularFeatureList featureList,
-      @NotNull RawDataFile file, @NotNull BetterPeak peak) {
+  public static ModularFeature peakToFeature(@NotNull ModularFeatureList alignedFeatureList, FeatureList originalFeatureList,
+                                             @NotNull RawDataFile file, @NotNull BetterPeak peak) {
 
     Chromatogram chromatogram = peak.chromatogram;
 
-    // Retrieve scan numbers
-    Scan representativeScan = null;
-    Scan[] scanNumbers = new Scan[chromatogram.length];
+    List<Scan> scanNumbers = new ArrayList<>();
     int count = 0;
-    for (Scan num : file.getScans()) {
-      double retTime = num.getRetentionTime();
-      Double intensity = chromatogram.getIntensity(retTime, false);
-      if (intensity != null) {
-        scanNumbers[count++] = num;
-      }
-      if (retTime == peak.getRetTime()) {
-        representativeScan = num;
-      }
+    double startRetTime = chromatogram.getFirstRetTime();
+    double endRetTime = chromatogram.getLastRetTimes();
+
+    List<? extends Scan> scans = originalFeatureList.getSeletedScans(file);
+
+    for (Scan scan : scans) {
+      double retTime = scan.getRetentionTime();
+      if (Math.floor(retTime*1000) < Math.floor(startRetTime*1000)) continue;
+      else if (Math.floor(retTime*1000) > Math.floor(endRetTime*1000)) break;
+
+      scanNumbers.add(scan);
+
+      if (scanNumbers.size() == chromatogram.length)
+        break;
     }
 
     // Calculate peak area
@@ -115,24 +119,23 @@ public class ADAPInterface {
       area += base * height;
     }
 
-    // Create array of DataPoints
-    DataPoint[] dataPoints = new DataPoint[chromatogram.length];
-    count = 0;
-    for (double intensity : chromatogram.ys) {
-      dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
+    //Get mzs values from peak and intensities from chromatogram
+    final double[] newMzs = new double[scanNumbers.size()];
+    final double[] newIntensities = new double[scanNumbers.size()];
+    for (int i = 0; i < newMzs.length; i++) {
+      newMzs[i] = peak.getMZ();
+      newIntensities[i] = chromatogram.ys[i];
     }
 
-    return new ModularFeature(featureList, file, peak.getMZ(), (float) peak.getRetTime(),
-        (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.ESTIMATED,
-        representativeScan, List.of(),
-        Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
-        Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
-        Range.closed(0.f, (float) peak.getIntensity()));
+    SimpleIonTimeSeries simpleIonTimeSeries = new SimpleIonTimeSeries(null, newMzs, newIntensities, scanNumbers);
+
+    return new ModularFeature(alignedFeatureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED);
+
   }
 
   @NotNull
-  public static Feature peakToFeature(@NotNull ModularFeatureList featureList,
-      @NotNull RawDataFile file, @NotNull Peak peak) {
+  public static Feature peakToFeature(@NotNull ModularFeatureList featureList,FeatureList originalFeatureList,
+                                      @NotNull RawDataFile file, @NotNull Peak peak) {
 
     NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
 
@@ -146,8 +149,8 @@ public class ADAPInterface {
     }
 
     BetterPeak betterPeak = new BetterPeak(peak.getInfo().peakID,
-        new Chromatogram(retTimes, intensities), peak.getInfo());
+            new Chromatogram(retTimes, intensities), peak.getInfo());
 
-    return peakToFeature(featureList, file, betterPeak);
+    return peakToFeature(featureList, originalFeatureList,file, betterPeak);
   }
 }

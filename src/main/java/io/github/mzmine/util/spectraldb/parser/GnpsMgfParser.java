@@ -30,7 +30,8 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -55,13 +56,10 @@ public class GnpsMgfParser extends SpectralDBTextParser {
 
   private final static Logger logger = Logger.getLogger(GnpsMgfParser.class.getName());
 
-  private enum State {
-    WAIT_FOR_META, META, DATA;
-  }
-
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
-    super.parse(mainTask, dataBaseFile);
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
+      throws IOException {
+    super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing mgf spectral library " + dataBaseFile.getAbsolutePath());
 
     // BEGIN IONS
@@ -78,7 +76,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     int sep = -1;
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
+      for (String l; (l = br.readLine()) != null; ) {
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
           return false;
@@ -96,35 +94,34 @@ public class GnpsMgfParser extends SpectralDBTextParser {
               if (l.equalsIgnoreCase("END IONS")) {
                 // add entry and reset
                 if (fields.size() > 1 && dps.size() > 1) {
-                  SpectralDBEntry entry =
-                      new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
+                  SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(),
+                      fields, dps.toArray(new DataPoint[dps.size()]));
                   // add and push
                   addLibraryEntry(entry);
                   correct++;
                 }
                 state = State.WAIT_FOR_META;
-              } else if (l.toLowerCase().startsWith("scans")) {
-                // belongs to the previously created entry and
-                // is another spectrum
-
-                // data starts
-                state = State.DATA;
               } else {
+                sep = l.indexOf('=');
+                if (sep == -1) {
+                  // data starts
+                  state = State.DATA;
+                }
                 switch (state) {
                   case WAIT_FOR_META:
                     // wait for next entry
                     break;
                   case DATA:
-                    String[] data = l.split("\t");
+                    // split for any white space (tab or space ...)
+                    String[] data = l.split("\\s+");
                     dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
                         Double.parseDouble(data[1])));
                     break;
                   case META:
-                    sep = l.indexOf('=');
                     if (sep != -1 && sep < l.length() - 1) {
                       DBEntryField field = DBEntryField.forMgfID(l.substring(0, sep));
                       if (field != null) {
-                        String content = l.substring(sep + 1, l.length());
+                        String content = l.substring(sep + 1);
                         if (!content.isEmpty()) {
                           try {
                             Object value = field.convertValue(content);
@@ -141,15 +138,21 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                                 // from export
                                 // use as adduct
                                 String adduct = AdductParser.parse(adductCandidate);
-                                if (adduct != null && !adduct.isEmpty())
+                                if (adduct != null && !adduct.isEmpty()) {
                                   fields.put(DBEntryField.ION_TYPE, adduct);
+                                }
                               }
+                            }
+                            // retention time is in seconds, mzmine uses minutes
+                            if (field.equals(DBEntryField.RT)) {
+                              value = ((Float) value) / 60.f;
                             }
 
                             fields.put(field, value);
                           } catch (Exception e) {
-                            logger.log(Level.WARNING, "Cannot convert value type of " + content
-                                + " to " + field.getObjectClass().toString(), e);
+                            logger.log(Level.WARNING,
+                                "Cannot convert value type of " + content + " to "
+                                    + field.getObjectClass().toString(), e);
                           }
                         }
                       }
@@ -169,6 +172,10 @@ public class GnpsMgfParser extends SpectralDBTextParser {
       finish();
       return true;
     }
+  }
+
+  private enum State {
+    WAIT_FOR_META, META, DATA
   }
 
 }

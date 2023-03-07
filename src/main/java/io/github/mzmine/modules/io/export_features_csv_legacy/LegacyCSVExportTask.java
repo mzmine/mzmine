@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import com.google.common.collect.Lists;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -35,6 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -78,6 +78,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private final FeatureListRowsFilter filter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
+
+  private final NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
 
@@ -158,7 +160,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(featureLists)
-           + " to CSV file(s) (legacy MZmine 2 format)";
+        + " to CSV file(s) (legacy MZmine 2 format)";
   }
 
   @Override
@@ -202,10 +204,10 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
 
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Error during mgf export to " + curFile);
+        setErrorMessage("Error during legacy csv export to " + curFile);
         logger.log(Level.WARNING,
             "Error during MZmine 2 legacy csv export of feature list: " + featureList.getName()
-            + ": " + e.getMessage(), e);
+                + ": " + e.getMessage(), e);
         return;
       }
 
@@ -222,8 +224,9 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
 
   }
 
-  private void exportFeatureList(FeatureList featureList, BufferedWriter writer) throws IOException {
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+  private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
+      throws IOException {
+    final NumberFormat mzForm = formats.mzFormat();
     RawDataFile[] rawDataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Buffer for writing
@@ -356,8 +359,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         if (feature != null) {
           switch (dataFileElements[i]) {
             case FEATURE_STATUS -> line.append(feature.getFeatureStatus()).append(fieldSeparator);
-            case FEATURE_NAME -> line.append(FeatureUtils.featureToString(feature))
-                .append(fieldSeparator);
+            case FEATURE_NAME ->
+                line.append(FeatureUtils.featureToString(feature)).append(fieldSeparator);
             case FEATURE_MZ -> line.append(feature.getMZ()).append(fieldSeparator);
             case FEATURE_RT -> append(line, feature.getRT());
             case FEATURE_ION_MOBILITY -> append(line, feature.getMobility());
@@ -367,27 +370,30 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
                 .append(fieldSeparator);
             case FEATURE_RT_END -> line.append(feature.getRawDataPointsRTRange().upperEndpoint())
                 .append(fieldSeparator);
-            case FEATURE_DURATION -> line.append(
-                RangeUtils.rangeLength(feature.getRawDataPointsRTRange())).append(fieldSeparator);
+            case FEATURE_DURATION ->
+                line.append(RangeUtils.rangeLength(feature.getRawDataPointsRTRange()))
+                    .append(fieldSeparator);
             case FEATURE_HEIGHT -> line.append(feature.getHeight()).append(fieldSeparator);
             case FEATURE_AREA -> line.append(feature.getArea()).append(fieldSeparator);
             case FEATURE_CHARGE -> line.append(feature.getCharge()).append(fieldSeparator);
-            case FEATURE_DATAPOINTS -> line.append(feature.getScanNumbers().size())
-                .append(fieldSeparator);
+            case FEATURE_DATAPOINTS ->
+                line.append(feature.getScanNumbers().size()).append(fieldSeparator);
             case FEATURE_FWHM -> line.append(feature.getFWHM()).append(fieldSeparator);
-            case FEATURE_TAILINGFACTOR -> line.append(feature.getTailingFactor())
-                .append(fieldSeparator);
-            case FEATURE_ASYMMETRYFACTOR -> line.append(feature.getAsymmetryFactor())
-                .append(fieldSeparator);
+            case FEATURE_TAILINGFACTOR ->
+                line.append(feature.getTailingFactor()).append(fieldSeparator);
+            case FEATURE_ASYMMETRYFACTOR ->
+                line.append(feature.getAsymmetryFactor()).append(fieldSeparator);
             case FEATURE_MZMIN -> line.append(feature.getRawDataPointsMZRange().lowerEndpoint())
                 .append(fieldSeparator);
             case FEATURE_MZMAX -> line.append(feature.getRawDataPointsMZRange().upperEndpoint())
                 .append(fieldSeparator);
           }
         } else {
-          switch (dataFileElements[i]) {
-            case FEATURE_STATUS -> line.append(FeatureStatus.UNKNOWN).append(fieldSeparator);
-            default -> line.append("0").append(fieldSeparator);
+          if (Objects.requireNonNull(dataFileElements[i])
+              == LegacyExportRowDataFileElement.FEATURE_STATUS) {
+            line.append(FeatureStatus.UNKNOWN).append(fieldSeparator);
+          } else {
+            line.append("0").append(fieldSeparator);
           }
         }
       }
@@ -430,24 +436,24 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           break;
         case ROW_IDENTITY:
           // Identity elements
-          FeatureIdentity featureId = featureListRow.getPreferredFeatureIdentity();
-          if (featureId == null) {
+          var preferredAnnotation = featureListRow.getPreferredAnnotation();
+          if (preferredAnnotation == null) {
             line.append(fieldSeparator);
             break;
           }
-          String propertyValue = featureId.toString();
+          String propertyValue = preferredAnnotation.toString();
           propertyValue = escapeStringForCSV(propertyValue);
           line.append(propertyValue).append(fieldSeparator);
           break;
         case ROW_IDENTITY_ALL:
           // Identity elements
-          propertyValue = featureListRow.getPeakIdentities().stream().filter(Objects::nonNull)
+          propertyValue = featureListRow.streamAllFeatureAnnotations().filter(Objects::nonNull)
               .map(Object::toString).collect(Collectors.joining(idSeparator));
           propertyValue = escapeStringForCSV(propertyValue);
           line.append(propertyValue).append(fieldSeparator);
           break;
         case ROW_IDENTITY_DETAILS:
-          featureId = featureListRow.getPreferredFeatureIdentity();
+          var featureId = featureListRow.getPreferredFeatureIdentity();
           if (featureId == null) {
             line.append(fieldSeparator);
             break;

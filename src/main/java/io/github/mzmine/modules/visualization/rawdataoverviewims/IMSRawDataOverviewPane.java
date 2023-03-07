@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -54,9 +55,13 @@ import io.github.mzmine.modules.visualization.frames.CanvasPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleMobilogramRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleTICRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSelectedRanges;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.MergeFrameThread;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
@@ -65,10 +70,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -79,8 +88,11 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.Layer;
 import org.jfree.chart.ui.RectangleEdge;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class IMSRawDataOverviewPane extends BorderPane {
+
+  private static final Logger logger = Logger.getLogger(IMSRawDataOverviewPane.class.getName());
 
   private static final int HEATMAP_LEGEND_HEIGHT = 50;
 
@@ -106,32 +118,36 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final ObjectProperty<Range<Double>> selectedMz;
   private final Stroke markerStroke = new BasicStroke(1.0f);
 
+  private final Color markerColor;
+  private final Set<Integer> mzRangeTicDatasetIndices;
+  private final GridPane massDetectionPane;
   // not thread safe, so we need one for building the selected and one for building all the others
   private BinningMobilogramDataAccess selectedBinningMobilogramDataAccess;
   private BinningMobilogramDataAccess rangesBinningMobilogramDataAccess;
   private MZTolerance mzTolerance;
-  private ScanSelection scanSelection;
+  private MsLevelFilter msLevelFilter;
   private Frame cachedFrame;
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
   private int binWidth;
   private Float rtWidth;
 
-  private final Color markerColor;
   private IMSRawDataFile rawDataFile;
   private int selectedMobilogramDatasetIndex;
   private int selectedChromatogramDatasetIndex;
-  private final Set<Integer> mzRangeTicDatasetIndices;
+
+  private FontIcon massDetectionScanIcon;
+  private FontIcon massDetectionFrameIcon;
 
   /**
    * Creates a BorderPane layout.
    */
   public IMSRawDataOverviewPane() {
-    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f, 1);
+    this(0, 0, new MZTolerance(0.008, 10), new MsLevelFilter(Options.MS1), 2f, 1);
   }
 
   public IMSRawDataOverviewPane(final double frameNoiseLevel, final double mobilityScanNoiseLevel,
-      final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth,
+      final MZTolerance mzTolerance, final MsLevelFilter msLevelFilter, final Float rtWidth,
       final Integer binWidth) {
     super();
     super.getStyleClass().add("region-match-chart-bg");
@@ -143,14 +159,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedMz = new SimpleObjectProperty<>();
     selectedMobilityScan = new SimpleObjectProperty<>();
     this.mzTolerance = mzTolerance;
-    this.scanSelection = scanSelection;
+    this.msLevelFilter = msLevelFilter;
     this.rtWidth = rtWidth;
     this.frameNoiseLevel = frameNoiseLevel;
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
     this.binWidth = binWidth;
 
     controlsPanel = new IMSRawDataOverviewControlPanel(this, frameNoiseLevel,
-        mobilityScanNoiseLevel, mzTolerance, scanSelection, rtWidth, binWidth);
+        mobilityScanNoiseLevel, mzTolerance, msLevelFilter, rtWidth, binWidth);
     controlsPanel.addSelectedRangeListener((obs, old, newVal) -> selectedMz.set(newVal));
     initChartPanel();
 
@@ -160,6 +176,23 @@ public class IMSRawDataOverviewPane extends BorderPane {
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     setCenter(chartPanel);
+
+    massDetectionPane = new GridPane();
+    massDetectionPane.setPadding(new Insets(5, 5, 5, 5));
+    massDetectionScanIcon = new FontIcon();
+    Label massDetectionScanLabel = new Label("Masses detected in all mobility scans");
+    massDetectionScanLabel.setTooltip(new Tooltip(
+        "Indication if the mass detection was " + "performed successfully in all mobility scans"));
+    massDetectionPane.add(massDetectionScanIcon, 1, 1);
+    massDetectionPane.add(massDetectionScanLabel, 0, 1);
+
+    massDetectionFrameIcon = new FontIcon();
+    Label massDetectionFrameLabel = new Label("Masses detected in selected frame");
+    massDetectionFrameLabel.setTooltip(new Tooltip(
+        "Indication if the mass detection was " + "performed successfully in the selected frame"));
+    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+    massDetectionPane.add(massDetectionFrameLabel, 0, 2);
+    chartPanel.getChildren().add(massDetectionPane);
 
     selectedFrame = new SimpleObjectProperty<>();
     selectedFrame.addListener((observable, oldValue, newValue) -> onSelectedFrameChanged());
@@ -200,6 +233,18 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
+
+    massDetectionPane.getChildren().remove(massDetectionFrameIcon);
+    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? FxIconUtil.getCheckedIcon()
+        : FxIconUtil.getUncheckedIcon();
+    massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+
+    massDetectionPane.getChildren().remove(massDetectionScanIcon);
+    massDetectionScanIcon =
+        selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
+            ? FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+    massDetectionPane.add(massDetectionScanIcon, 1, 1);
+
     mzRangeTicDatasetIndices.clear();
     cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
         mobilityScanNoiseLevel);//selectedFrame.get();//
@@ -366,6 +411,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }));
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
+    ticChart.getMouseAdapter().addGestureHandler(new SimpleDataDragGestureHandler((start, end) -> {
+      final Range<Double> rtRange = Range.closed(start.getX(), end.getX());
+      final ScanSelection selection = new ScanSelection(msLevelFilter).cloneWithNewRtRange(rtRange);
+      MZmineCore.getTaskController().addTask(
+          new MergeFrameThread(rawDataFile, selection, binWidth, mobilityScanNoiseLevel,
+              f -> MZmineCore.runLater(() -> setSelectedFrame(f))));
+    }));
+
     ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue.getDataset() == null || newValue.getValueIndex() == -1) {
         return;
@@ -392,10 +445,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
       }
       controlsPanel.setRangeToMobilogramRangeComp(newValue);
       Thread mobilogramCalc = new Thread(
-          new BuildSelectedRanges(selectedMz.get(), Set.of(cachedFrame), rawDataFile, scanSelection,
-              rtWidth, selectedBinningMobilogramDataAccess, this::setSelectedMobilogram,
-              c -> this.setSelectedChromatogram(c,
-                  MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT())));
+          new BuildSelectedRanges(selectedMz.get(), Set.of(cachedFrame), rawDataFile,
+              new ScanSelection(msLevelFilter), rtWidth, selectedBinningMobilogramDataAccess,
+              this::setSelectedMobilogram, c -> this.setSelectedChromatogram(c,
+              MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT())));
       mobilogramCalc.start();
       float rt = selectedFrame.get().getRetentionTime();
       ionTraceChart.setDataset(new IMSIonTraceHeatmapProvider(rawDataFile, selectedMz.get(),
@@ -499,11 +552,16 @@ public class IMSRawDataOverviewPane extends BorderPane {
   protected void updateTicPlot() {
     ticChart.removeAllDataSets();
     mzRangeTicDatasetIndices.clear();
+    final double selectedRt =
+        selectedFrame.get() != null ? selectedFrame.get().getRetentionTime() : rtWidth / 2;
+    final ScanSelection scanSel = new ScanSelection(msLevelFilter).cloneWithNewRtRange(
+        RangeUtils.rangeAround(selectedRt, rtWidth));
     Thread thread = new Thread(
-        new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile,
-            scanSelection, this));
+        new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile, scanSel,
+            this));
     thread.start();
-    TICDataSet dataSet = new TICDataSet(rawDataFile, scanSelection.getMatchingScans(rawDataFile),
+    TICDataSet dataSet = new TICDataSet(rawDataFile,
+        new ScanSelection(msLevelFilter).getMatchingScans(rawDataFile),
         rawDataFile.getDataMZRange(), null);
     ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
     ticChart.getXYPlot().getDomainAxis().setRange(
@@ -525,6 +583,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     mobilogramChart.removeAllDatasets();
     summedSpectrumChart.removeAllDatasets();
     heatmapChart.removeAllDatasets();
+    heatmapChart.getXYPlot().clearAnnotations();
     singleSpectrumChart.removeAllDatasets();
   }
 
@@ -568,8 +627,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     this.mzTolerance = mzTolerance;
   }
 
-  public void setScanSelection(ScanSelection scanSelection) {
-    this.scanSelection = scanSelection;
+  public void setMsLevelFilter(MsLevelFilter msLevelFilter) {
+    this.msLevelFilter = msLevelFilter;
   }
 
   public void setFrameNoiseLevel(double frameNoiseLevel) {

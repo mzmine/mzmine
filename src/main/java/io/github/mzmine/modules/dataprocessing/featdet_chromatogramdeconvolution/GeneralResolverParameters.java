@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.R.REngineType;
+import java.util.Map;
 import javafx.collections.FXCollections;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       "This string is added to feature list name as suffix", "resolved");
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
-      new OriginalFeatureListHandlingParameter(true);
+      new OriginalFeatureListHandlingParameter(false);
 
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
       "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters(),
@@ -68,7 +69,7 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       REngineType.RCALLER);
 
   public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
-      "Min # of data points", "Minimum number of data points on a feature", 3, true);
+      "Minimum scans (data points)", "Minimum number of data points on a feature", 3, true);
 
   public GeneralResolverParameters(Parameter[] parameters) {
     this(parameters, null);
@@ -78,11 +79,25 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
     super(parameters, url);
   }
 
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Min # of data points", MIN_NUMBER_OF_DATAPOINTS);
+    return nameParameterMap;
+  }
+
   @Deprecated
   public abstract FeatureResolver getResolver();
 
   @Nullable
   public Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return null;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }

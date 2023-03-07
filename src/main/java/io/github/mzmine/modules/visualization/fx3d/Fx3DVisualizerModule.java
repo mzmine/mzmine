@@ -68,25 +68,55 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     return MODULE_DESCRIPTION;
   }
 
+  public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
+      final Range<Float> rtRange, final Feature featureToShow) {
+
+    final ParameterSet myParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(Fx3DVisualizerModule.class);
+    final Fx3DVisualizerModule myInstance = MZmineCore.getModuleInstance(
+        Fx3DVisualizerModule.class);
+    myParameters.getParameter(Fx3DVisualizerParameters.dataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{dataFile});
+    myParameters.getParameter(Fx3DVisualizerParameters.scanSelection)
+        .setValue(new ScanSelection(1, rtRange));
+    myParameters.getParameter(Fx3DVisualizerParameters.mzRange).setValue(mzRange);
+    myParameters.getParameter(Fx3DVisualizerParameters.features)
+        .setValue(Collections.singletonList(featureToShow));
+
+    if (myParameters.showSetupDialog(true) == ExitCode.OK) {
+      myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
+          myParameters.cloneParameterSet(), new ArrayList<Task>(), Instant.now());
+    }
+  }
+
+  public static void setupNew3DVisualizer(final RawDataFile dataFile) {
+    setupNew3DVisualizer(dataFile, null, null, null);
+  }
+
+  public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
+      final Range<Double> rtRange) {
+    setupNew3DVisualizer(dataFile, null, null, null);
+  }
+
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    final RawDataFile[] currentDataFiles = parameters
-        .getParameter(Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles();
+    final RawDataFile[] currentDataFiles = parameters.getParameter(
+        Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles();
 
-    final ScanSelection scanSel =
-        parameters.getParameter(Fx3DVisualizerParameters.scanSelection).getValue();
-    final List<Feature> featureSelList =
-        parameters.getParameter(Fx3DVisualizerParameters.features).getValue();
+    final ScanSelection scanSel = parameters.getParameter(Fx3DVisualizerParameters.scanSelection)
+        .getValue();
+    final List<Feature> featureSelList = parameters.getParameter(Fx3DVisualizerParameters.features)
+        .getValue();
     logger.finest("Feature selection is:" + featureSelList.toString());
 
-    Range<Float> rtRange = ScanUtils.findRtRange(scanSel
-        .getMatchingScans(MZmineCore.getProjectManager().getCurrentProject().getDataFiles()[0]));
+    Range<Float> rtRange = ScanUtils.findRtRange(scanSel.getMatchingScans(
+        MZmineCore.getProjectManager().getCurrentProject().getDataFiles()[0]));
 
-    ParameterSet myParameters =
-        MZmineCore.getConfiguration().getModuleParameters(Fx3DVisualizerModule.class);
+    ParameterSet myParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(Fx3DVisualizerModule.class);
     Range<Double> mzRange = myParameters.getParameter(Fx3DVisualizerParameters.mzRange).getValue();
 
     int rtRes = myParameters.getParameter(Fx3DVisualizerParameters.rtResolution).getValue();
@@ -104,36 +134,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     return ExitCode.OK;
 
-  }
-
-  public static void setupNew3DVisualizer(final RawDataFile dataFile) {
-    setupNew3DVisualizer(dataFile, null, null, null);
-  }
-
-  public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
-      final Range<Double> rtRange) {
-    setupNew3DVisualizer(dataFile, null, null, null);
-  }
-
-  public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
-      final Range<Float> rtRange, final Feature featureToShow) {
-
-    final ParameterSet myParameters =
-        MZmineCore.getConfiguration().getModuleParameters(Fx3DVisualizerModule.class);
-    final Fx3DVisualizerModule myInstance =
-        MZmineCore.getModuleInstance(Fx3DVisualizerModule.class);
-    myParameters.getParameter(Fx3DVisualizerParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[] {dataFile});
-    myParameters.getParameter(Fx3DVisualizerParameters.scanSelection)
-        .setValue(new ScanSelection(rtRange, 1));
-    myParameters.getParameter(Fx3DVisualizerParameters.mzRange).setValue(mzRange);
-    myParameters.getParameter(Fx3DVisualizerParameters.features)
-        .setValue(Collections.singletonList(featureToShow));
-
-    if (myParameters.showSetupDialog(true) == ExitCode.OK) {
-      myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
-          myParameters.cloneParameterSet(), new ArrayList<Task>(), Instant.now());
-    }
   }
 
   @Override

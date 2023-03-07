@@ -26,20 +26,29 @@
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.HtmlLinkOpenExternalBrowserListener;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 public class MZmineIntroductionTab extends SimpleTab {
 
+  public static final String TITLE = "Welcome to MZmine 3";
+
   public MZmineIntroductionTab() {
-    super("Welcome to MZmine 3");
+    super(TITLE);
 
     final WebView browser = new WebView();
     final WebEngine engine = browser.getEngine();
-    engine.load(getClass().getResource("MZmineIntroduction.html").toString());
+
+    if (MZmineCore.getConfiguration().isDarkMode()) {
+      engine.load(getClass().getResource("MZmineIntroduction_darkmode.html").toString());
+    } else {
+      engine.load(getClass().getResource("MZmineIntroduction.html").toString());
+    }
     engine.getLoadWorker().stateProperty()
         .addListener(new HtmlLinkOpenExternalBrowserListener(browser));
+
     super.setContent(browser);
   }
 }

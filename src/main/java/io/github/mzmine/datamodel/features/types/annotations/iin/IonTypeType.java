@@ -98,14 +98,6 @@ public class IonTypeType extends DataType<IonType> {
   }
 
   @Override
-  public @NotNull String getFormattedString(IonType value) {
-    if (value == null) {
-      return "";
-    }
-    return value.toString(false);
-  }
-
-  @Override
   public boolean getDefaultVisibility() {
     return true;
   }

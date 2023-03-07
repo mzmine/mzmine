@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -60,12 +61,14 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -338,6 +341,11 @@ public class AnnotationTypeTests {
 
     Assertions.assertNotEquals(newIdentity, newIdentity2);
     Assertions.assertNotEquals(newIdentity, null);
+
+    // test FeatureUtils.extractSubValueFromAllAnnotations
+    final Map<? extends ListWithSubsType<?>, String> formulas = FeatureUtils.extractSubValueFromAllAnnotations(
+        row, FormulaType.class);
+    Assertions.assertEquals(formulas.get(new CompoundDatabaseMatchesType()), "C6H6O6");
   }
 
   @Test
@@ -352,7 +360,8 @@ public class AnnotationTypeTests {
 
     ResultFormula formula1 = new ResultFormula(form1,
         IsotopePatternCalculator.calculateIsotopePattern(form1, 0.01, 1, PolarityType.POSITIVE),
-        0.5f, 0.1f, Map.of(513.25, "C132", 200.26, "COF"),
+        0.5f, 0.1f,
+        Map.of(new SimpleDataPoint(513.25, 1d), "C132", new SimpleDataPoint(200.26, 1d), "COF"),
         MolecularFormulaManipulator.getMass(form1, 3));
     ResultFormula formula2 = new ResultFormula(form2,
         IsotopePatternCalculator.calculateIsotopePattern(form2, 0.01, 1, PolarityType.POSITIVE),

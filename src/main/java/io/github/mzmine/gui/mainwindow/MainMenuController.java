@@ -32,22 +32,18 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -158,31 +154,8 @@ public class MainMenuController {
       MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
       return;
     }
-
-    MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
-
-    if (module == null) {
-      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
-      return;
-    }
-
-    ParameterSet moduleParameters = MZmineCore.getConfiguration()
-        .getModuleParameters(moduleJavaClass);
-
-    logger.info("Setting parameters for module " + module.getName());
-
-    try {
-      ExitCode exitCode = moduleParameters.showSetupDialog(true);
-      if (exitCode != ExitCode.OK) {
-        return;
-      }
-    } catch (Exception e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-    }
-
-    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
-    MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+    // show setup dialog and run
+    MZmineCore.setupAndRunModule(moduleJavaClass);
   }
 
   public void fillRecentProjects(Event event) {

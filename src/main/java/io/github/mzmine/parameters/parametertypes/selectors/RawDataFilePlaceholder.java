@@ -157,13 +157,25 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt, int mslevel) {
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt) {
+  public Scan binarySearchClosestScan(float rt) {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(final float rt) {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(final float rt, final int mslevel) {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }

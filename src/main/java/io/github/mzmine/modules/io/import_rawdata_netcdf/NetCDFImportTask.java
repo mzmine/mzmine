@@ -41,7 +41,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,7 +57,7 @@ import ucar.nc2.Variable;
  */
 public class NetCDFImportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private NetcdfFile inputFile;
 
@@ -68,9 +67,9 @@ public class NetCDFImportTask extends AbstractTask {
   private Hashtable<Integer, Integer[]> scansIndex;
   private Hashtable<Integer, Double> scansRetentionTimes;
 
-  private File file;
-  private MZmineProject project;
-  private RawDataFile newMZmineFile;
+  private final File file;
+  private final MZmineProject project;
+  private final RawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
 
@@ -81,7 +80,8 @@ public class NetCDFImportTask extends AbstractTask {
   private double intensityValueScaleFactor = 1;
 
   public NetCDFImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
@@ -129,7 +129,8 @@ public class NetCDFImportTask extends AbstractTask {
 
       // Close file
       this.finishReading();
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -301,7 +302,7 @@ public class NetCDFImportTask extends AbstractTask {
         if (scanStartPositions[i] < 0) {
           // Yes, find nearest present scan
           int nearestI = Integer.MAX_VALUE;
-          for (int j = 1; 1 < 2; j++) {
+          for (int j = 1; (i + j) < totalScans || (i - j) >= 0; j++) {
             if ((i + j) < totalScans) {
               if (scanStartPositions[i + j] >= 0) {
                 nearestI = i + j;
@@ -310,14 +311,9 @@ public class NetCDFImportTask extends AbstractTask {
             }
             if ((i - j) >= 0) {
               if (scanStartPositions[i - j] >= 0) {
-                nearestI = i + j;
+                nearestI = i - j;
                 break;
               }
-            }
-
-            // Out of bounds?
-            if (((i + j) >= totalScans) && ((i - j) < 0)) {
-              break;
             }
           }
 
@@ -430,8 +426,8 @@ public class NetCDFImportTask extends AbstractTask {
 
     int arrayLength = massValueArray.getShape()[0];
 
-    double mzValues[] = new double[arrayLength];
-    double intensityValues[] = new double[arrayLength];
+    double[] mzValues = new double[arrayLength];
+    double[] intensityValues = new double[arrayLength];
 
     for (int j = 0; j < arrayLength; j++) {
       Index massIndex0 = massValuesIndex.set0(j);

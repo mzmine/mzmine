@@ -51,8 +51,8 @@ enum TwoDPaletteType {
     // logScale.add(0, Color.cyan.darker());
     // logScale.add(0.5, Color.white);
     // logScale.add(1, Color.magenta.darker());
-    logScale.add(0, Color.cyan.darker());
-    logScale.add(0.333, Color.white);
+    logScale.add(0, Color.white);
+    logScale.add(0.333, Color.cyan.darker());
     logScale.add(0.666, Color.magenta.darker());
     logScale.add(1, Color.blue);
   }

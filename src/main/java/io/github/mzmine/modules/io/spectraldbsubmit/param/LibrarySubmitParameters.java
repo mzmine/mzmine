@@ -26,12 +26,12 @@
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
@@ -51,9 +51,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 
 /**
- * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class LibrarySubmitParameters extends SimpleParameterSet {
 
@@ -72,18 +70,20 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
       new FileNameParameter("Local file", "Local library file", FileSelectionType.SAVE), false);
   public static final BooleanParameter EXPORT_GNPS_JSON = new BooleanParameter(
       "Export GNPS json file", "The GNPS library submission json format", true);
-  public static final BooleanParameter EXPORT_MSP =
-      new BooleanParameter("Export NIST msp file", "The NIST msp library format", true);
+  public static final BooleanParameter EXPORT_MSP = new BooleanParameter("Export NIST msp file",
+      "The NIST msp library format", true);
+  public static final BooleanParameter EXPORT_MGF = new BooleanParameter("Export mgf file",
+      "The mgf library format", true);
   // user and password
-  public static final OptionalModuleParameter<GnpsLibrarySubmitParameters> SUBMIT_GNPS =
-      new OptionalModuleParameter<>("Submit to GNPS (MS2)",
-          "Submit new entry to GNPS library (Only for fragmentation data of MS level >1)",
-          new GnpsLibrarySubmitParameters(), true);
+  public static final OptionalModuleParameter<GnpsLibrarySubmitParameters> SUBMIT_GNPS = new OptionalModuleParameter<>(
+      "Submit to GNPS (MS2)",
+      "Submit new entry to GNPS library (Only for fragmentation data of MS level >1)",
+      new GnpsLibrarySubmitParameters(), true);
 
   public LibrarySubmitParameters() {
-    super(new Parameter[] {noiseLevel, minSignals, sorting,
+    super(new Parameter[]{noiseLevel, minSignals, sorting,
         // save to local file
-        LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
+        LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP, EXPORT_MGF,
         // submit to online library
         SUBMIT_GNPS});
   }

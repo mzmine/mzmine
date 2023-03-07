@@ -42,7 +42,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -144,12 +143,6 @@ public class MsdkScanWrapper implements Scan {
   @Override
   public Double getTIC() {
     return Double.valueOf(scan.getTIC());
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    throw new UnsupportedOperationException(
-        "Unsupported operation. MSDK scan is not supposed to be used here.");
   }
 
   @NotNull

@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.util.FeatureMeasurementType;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
 
@@ -43,17 +43,17 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
   public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
       "Normalization type", "Normalize intensities by...", NormalizationType.values());
 
-  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType = new ComboParameter<FeatureMeasurementType>(
-      "Feature measurement type", "Measure features using", FeatureMeasurementType.values());
+  public static final ComboParameter<AbundanceMeasure> featureMeasurementType = new ComboParameter<AbundanceMeasure>(
+      "Feature measurement type", "Measure features using", AbundanceMeasure.values());
 
-  public static final OriginalFeatureListHandlingParameter handleOriginal =
-      new OriginalFeatureListHandlingParameter("Original feature list",
-          "Defines the processing.\nKEEP is to keep the original feature list and create a new"
-              + "processed list.\nREMOVE saves memory.", false);
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      "Original feature list",
+      "Defines the processing.\nKEEP is to keep the original feature list and create a new"
+          + "processed list.\nREMOVE saves memory.", false);
 
   public LinearNormalizerParameters() {
     super(new Parameter[]{featureLists, suffix, normalizationType, featureMeasurementType,
-        handleOriginal},
+            handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_linear/norm_linear.html");
   }
 

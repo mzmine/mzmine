@@ -25,20 +25,16 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
-import java.util.Collection;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Tab-wrapper for a ProjectMetadata table.
  */
-public class ProjectMetadataTab extends MZmineTab {
+public class ProjectMetadataTab extends SimpleTab {
 
   private static final Logger logger = Logger.getLogger(ProjectMetadataTab.class.getName());
 
@@ -47,9 +43,9 @@ public class ProjectMetadataTab extends MZmineTab {
 
     try {
       // try to load the markdown object from the FXML file
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectParametersSetupPane.fxml"));
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectMetadataPane.fxml"));
       BorderPane borderPane = loader.load();
-      ProjectParametersSetupPaneController controller = loader.getController();
+      ProjectMetadataPaneController controller = loader.getController();
       // set stage for a controller of the loaded object
       controller.setStage(MZmineCore.getDesktop().getMainWindow());
 
@@ -59,38 +55,4 @@ public class ProjectMetadataTab extends MZmineTab {
     }
   }
 
-  public ProjectMetadataTab(String title) {
-    super(title);
-  }
-
-  @Override
-  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
-    return null;
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return null;
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return null;
-  }
-
-  // probably it will be necessary to implement an update on each new RawDataFile import
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
-
-  @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
 }

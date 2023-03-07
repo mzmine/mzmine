@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -42,6 +44,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -77,39 +82,67 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   // User parameters
   private final String suffix;
   private final MZTolerance mzTolerance;
-  private final int minimumScanSpan;
+  // image builder supplies a min number of total scans as well as min consecutive scans
+  // ADAPChromatogramBuilder only uses min consecutive scans
+  private final int minimumTotalScans;
+  private final int minimumConsecutiveScans;
   // Owen added User parameers;
   private final double minGroupIntensity;
   private final double minHighestPoint;
   private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> callingModule;
+  private final boolean isImaging;
   private double progress = 0.0;
   private ModularFeatureList newFeatureList;
 
+  public static ModularADAPChromatogramBuilderTask forImaging(MZmineProject project,
+      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
+    var total = parameters.getValue(ImageBuilderParameters.minTotalSignals);
+    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
+        moduleCallDate, callingModule, total, null);
+  }
+
+  public static ModularADAPChromatogramBuilderTask forChromatography(MZmineProject project,
+      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
+    var minGroupIntensity = parameters.getValue(ADAPChromatogramBuilderParameters.minGroupIntensity);
+    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
+        moduleCallDate, callingModule, null, minGroupIntensity);
+  }
+
   /**
-   *
+   * @param callingModule     {@link ImageBuilderModule} or
+   *                          {@link ModularADAPChromatogramBuilderModule}
+   * @param minimumTotalScans min total scans is only used in imaging
+   * @param minGroupIntensity min group intensity is only used in chromatography
    */
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      Class<? extends MZmineModule> callingModule, @Nullable Integer minimumTotalScans,
+      @Nullable Double minGroupIntensity) {
     super(storage, moduleCallDate);
     this.project = project;
     this.dataFile = dataFile;
-    this.scanSelection = parameters.getParameter(ADAPChromatogramBuilderParameters.scanSelection)
-        .getValue();
+    this.scanSelection = parameters.getValue(ADAPChromatogramBuilderParameters.scanSelection);
 
-    this.mzTolerance = parameters.getParameter(ADAPChromatogramBuilderParameters.mzTolerance)
-        .getValue();
-    this.minimumScanSpan = parameters.getParameter(
-        ADAPChromatogramBuilderParameters.minimumScanSpan).getValue();
+    this.mzTolerance = parameters.getValue(ADAPChromatogramBuilderParameters.mzTolerance);
+    this.minimumConsecutiveScans = parameters.getValue(
+        ADAPChromatogramBuilderParameters.minimumConsecutiveScans);
 
-    this.suffix = parameters.getParameter(ADAPChromatogramBuilderParameters.suffix).getValue();
+    this.suffix = parameters.getValue(ADAPChromatogramBuilderParameters.suffix);
 
     // Owen added parameters
-    this.minGroupIntensity = parameters.getParameter(
-        ADAPChromatogramBuilderParameters.minGroupIntensity).getValue();
-    this.minHighestPoint = parameters.getParameter(
-        ADAPChromatogramBuilderParameters.minHighestPoint).getValue();
+    this.minGroupIntensity = requireNonNullElse(minGroupIntensity, 0d);
+
+    this.minHighestPoint = parameters.getValue(ADAPChromatogramBuilderParameters.minHighestPoint);
     this.parameters = parameters;
+    this.callingModule = callingModule;
+    // image builder supplies a min number of total scans as well as min consecutive scans
+    // ADAPChromatogramBuilder only uses min consecutive scans
+    this.minimumTotalScans = requireNonNullElse(minimumTotalScans, minimumConsecutiveScans);
+
+    isImaging = callingModule.equals(ImageBuilderModule.class);
   }
 
   @Override
@@ -139,7 +172,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
-          + "with \"Set filters\" in the \"Scans\" parameter.");
+                      + "with \"Set filters\" in the \"Scans\" parameter.");
       return;
     }
 
@@ -158,9 +191,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
         final String msg = "Retention time of scan #" + s.getScanNumber()
-            + " is smaller then the retention time of the previous scan."
-            + " Please make sure you only use scans with increasing retention times."
-            + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+                           + " is smaller then the retention time of the previous scan."
+                           + " Please make sure you only use scans with increasing retention times."
+                           + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
         setErrorMessage(msg);
         return;
       }
@@ -168,7 +201,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     }
 
     if (emptyScanNumber > 0) {
-      logger.info( emptyScanNumber + " scans were found to be empty.");
+      logger.info(emptyScanNumber + " scans were found to be empty.");
     }
 
     // Check if the scans are MS1-only or MS2-only.
@@ -177,8 +210,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (level != scans[i].getMSLevel()) {
         MZmineCore.getDesktop().displayMessage(null,
             "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-                + "This will likely produce wrong results. "
-                + "Please, set the scan filter parameter to a specific MS level");
+            + "This will likely produce wrong results. "
+            + "Please, set the scan filter parameter to a specific MS level");
         break;
       }
     }
@@ -287,10 +320,11 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
       progress += progressStep;
 
-      // And remove chromatograms who dont have a certian number of continous points above the
+      // And remove chromatograms who dont have a certain number of continous points above the
       // IntensityThresh2 level.
-      if (chromatogram.matchesMinContinuousDataPoints(scans, minGroupIntensity, minimumScanSpan,
-          minHighestPoint)) {
+      var dps = chromatogram.getNumberOfDataPoints();
+      if (dps >= minimumTotalScans && chromatogram.matchesMinContinuousDataPoints(scans,
+          minGroupIntensity, minimumConsecutiveScans, minHighestPoint)) {
         // add zeros to edges
         chromatogram.addNZeros(scans, 1, 1);
 
@@ -301,7 +335,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
             modular);
         newFeatureList.addRow(newRow);
         // activate shape for this row
-        newRow.set(FeatureShapeType.class, true);
+        newRow.set(FeatureShapeType.class, !isImaging);
         newFeatureID++;
       }
     }
@@ -313,9 +347,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
     // Add new feature list to the project
-    newFeatureList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class, parameters,
-            getModuleCallDate()));
+    newFeatureList.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(callingModule, parameters, getModuleCallDate()));
     project.addFeatureList(newFeatureList);
 
     progress = 1.0;

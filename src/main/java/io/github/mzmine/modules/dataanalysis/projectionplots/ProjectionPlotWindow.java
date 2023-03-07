@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotParameters;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
@@ -48,8 +48,8 @@ import javafx.stage.Stage;
 public class ProjectionPlotWindow extends Stage {
 
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
-  private static final Image labelsIcon =
-      FxIconUtil.loadImageFromResources("icons/annotationsicon.png");
+  private static final Image labelsIcon = FxIconUtil.loadImageFromResources(
+      "icons/annotationsicon.png");
 
   private final Scene mainScene;
   private final BorderPane mainPane;
@@ -90,23 +90,23 @@ public class ProjectionPlotWindow extends Stage {
     String title = featureList.getName();
     title = title.concat(" : ");
     title = title.concat(dataset.toString());
-    if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
-        .getValue() == FeatureMeasurementType.HEIGHT)
+    if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType).getValue()
+        == AbundanceMeasure.Height) {
       title = title.concat(" (using feature heights)");
-    else
+    } else {
       title = title.concat(" (using feature areas)");
+    }
 
     this.setTitle(title);
 
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);
 
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(ScatterPlotVisualizerModule.class);
+    ParameterSet paramSet = MZmineCore.getConfiguration()
+        .getModuleParameters(ScatterPlotVisualizerModule.class);
     WindowSettingsParameter settings = paramSet.getParameter(ScatterPlotParameters.windowSettings);
 
   }
-
 
 
 }
