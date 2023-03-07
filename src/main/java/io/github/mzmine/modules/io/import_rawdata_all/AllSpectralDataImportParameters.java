@@ -25,11 +25,18 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
@@ -73,4 +80,29 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         SpectralLibraryImportParameters.dataBaseFiles);
   }
 
+  /**
+   * @return true if parameterset is of this class or contains at least the parameters
+   */
+  public static boolean isParameterSetClass(final ParameterSet parameters) {
+    return parameters != null && (
+        parameters.getClass().equals(AllSpectralDataImportParameters.class) || (
+            parameters.hasParameter(advancedImport) && parameters.hasParameter(fileNames)));
+  }
+
+  /**
+   * Get all files in the project that match the file path
+   * @param project
+   * @param parameters
+   * @return
+   */
+  public static List<RawDataFile> getLoadedRawDataFiles(MZmineProject project,
+      final ParameterSet parameters) {
+    // all files that should be loaded
+    Set<File> loadFileSet = Arrays.stream(parameters.getValue(fileNames)).map(File::getAbsoluteFile).collect(
+        Collectors.toSet());
+
+    // the actual files in the list
+    return project.getCurrentRawDataFiles().stream()
+        .filter(raw -> loadFileSet.contains(raw.getAbsoluteFilePath())).toList();
+  }
 }

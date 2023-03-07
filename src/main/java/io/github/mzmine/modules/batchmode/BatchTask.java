@@ -198,7 +198,7 @@ public class BatchTask extends AbstractTask {
       // only change for export modules
       if (currentStep.getModule() instanceof MZmineRunnableModule mod && (
           mod.getModuleCategory() == MZmineModuleCategory.FEATURELISTEXPORT
-              || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
+          || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
         ParameterSet params = currentStep.getParameterSet();
         for (final Parameter<?> p : params.getParameters()) {
           if (p instanceof FileNameParameter fnp) {
@@ -274,7 +274,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -381,6 +381,26 @@ public class BatchTask extends AbstractTask {
     createdFeatureLists = new ArrayList<>(project.getCurrentFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
+
+    // special option to skip already imported files in the AllSpectralDataImportParameters
+    // add skipped files
+    if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
+      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
+          MZmineCore.getProject(), batchStepParameters);
+
+      // loaded should always be >= created as we are at most skipping files
+      if (loadedRawDataFiles.size() >= createdDataFiles.size()) {
+        createdDataFiles = loadedRawDataFiles;
+      } else {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(
+            "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
+            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
+                createdDataFiles.size()));
+        return;
+      }
+    }
+
     // Clear the saved data files and feature lists. Save them to the
     // "previous" lists, in case the next step does not produce any new data
     if (!createdDataFiles.isEmpty()) {
@@ -408,7 +428,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
