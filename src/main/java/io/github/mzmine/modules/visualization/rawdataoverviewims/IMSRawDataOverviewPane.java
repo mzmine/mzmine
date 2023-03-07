@@ -133,9 +133,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private double mobilityScanNoiseLevel;
   private int binWidth;
   private Float rtWidth;
+
   private IMSRawDataFile rawDataFile;
   private int selectedMobilogramDatasetIndex;
   private int selectedChromatogramDatasetIndex;
+
   private FontIcon massDetectionScanIcon;
   private FontIcon massDetectionFrameIcon;
 
@@ -427,9 +429,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
     ticChart.getMouseAdapter().addGestureHandler(new SimpleDataDragGestureHandler((start, end) -> {
-      Range<Double> rtRange = Range.closed(start.getX(), end.getX());
-      final ScanSelection selection = new ScanSelection(
-          msLevelFilter.specificLevel()).cloneWithNewRtRange(rtRange);
+      final Range<Double> rtRange = Range.closed(start.getX(), end.getX());
+      final ScanSelection selection = new ScanSelection(msLevelFilter).cloneWithNewRtRange(rtRange);
       MZmineCore.getTaskController().addTask(
           new MergeFrameThread(rawDataFile, selection, binWidth, mobilityScanNoiseLevel,
               f -> MZmineCore.runLater(() -> setSelectedFrame(f))));
@@ -568,10 +569,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
   protected void updateTicPlot() {
     ticChart.removeAllDataSets();
     mzRangeTicDatasetIndices.clear();
+    final double selectedRt =
+        selectedFrame.get() != null ? selectedFrame.get().getRetentionTime() : rtWidth / 2;
     final ScanSelection scanSel = new ScanSelection(msLevelFilter).cloneWithNewRtRange(
-        RangeUtils.rangeAround(
-            (double) (selectedFrame.get() != null ? selectedFrame.get().getRetentionTime()
-                : rtWidth / 2), rtWidth));
+        RangeUtils.rangeAround(selectedRt, rtWidth));
     Thread thread = new Thread(
         new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile, scanSel,
             this));
