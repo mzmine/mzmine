@@ -312,6 +312,13 @@ public class BatchTask extends AbstractTask {
 
     // If current step didn't produce any tasks, continue with next step
     if (currentStepTasks.isEmpty()) {
+      // this might be the case for AllSpectralDataImportModule if all files are already loaded
+      // special option to skip already imported files in the AllSpectralDataImportParameters
+      // add skipped files
+      setLastFilesIfAllDataImportStep(batchStepParameters);
+      if (getStatus() == TaskStatus.ERROR) {
+        return;
+      }
       return;
     }
 
@@ -384,21 +391,9 @@ public class BatchTask extends AbstractTask {
 
     // special option to skip already imported files in the AllSpectralDataImportParameters
     // add skipped files
-    if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
-      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-          MZmineCore.getProject(), batchStepParameters);
-
-      // loaded should always be >= created as we are at most skipping files
-      if (loadedRawDataFiles.size() >= createdDataFiles.size()) {
-        createdDataFiles = loadedRawDataFiles;
-      } else {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage(
-            "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
-            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
-                createdDataFiles.size()));
-        return;
-      }
+    setLastFilesIfAllDataImportStep(batchStepParameters);
+    if (getStatus() == TaskStatus.ERROR) {
+      return;
     }
 
     // Clear the saved data files and feature lists. Save them to the
@@ -408,6 +403,25 @@ public class BatchTask extends AbstractTask {
     }
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
+    }
+  }
+
+  private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
+    if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
+      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
+          MZmineCore.getProject(), batchStepParameters);
+
+      // loaded should always be >= created as we are at most skipping files
+      if (loadedRawDataFiles.size() >= createdDataFiles.size()) {
+        createdDataFiles = loadedRawDataFiles;
+        previousCreatedDataFiles = createdDataFiles;
+      } else {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(
+            "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
+            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
+                createdDataFiles.size()));
+      }
     }
   }
 

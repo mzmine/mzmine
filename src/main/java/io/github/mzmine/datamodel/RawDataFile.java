@@ -69,12 +69,12 @@ public interface RawDataFile {
    */
   @Nullable String getAbsolutePath();
   /**
+   *
    * @return The absolute path this file was loaded from. or an empty File if none was provided
    */
   default @NotNull File getAbsoluteFilePath() {
     return new File(requireNonNullElse(getAbsolutePath(), ""));
   }
-
 
   /**
    * Uses the absolute file path first, if null then use the name which might have been changed by

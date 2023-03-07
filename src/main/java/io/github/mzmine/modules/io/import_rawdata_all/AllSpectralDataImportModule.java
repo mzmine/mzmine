@@ -122,14 +122,24 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
+    // precheck first
     File[] selectedFiles = parameters.getValue(AllSpectralDataImportParameters.fileNames);
+    // check for duplicates in the input files
+    if (containsDuplicateFiles(selectedFiles, "raw data file names in the import list.")) {
+      return ExitCode.ERROR;
+    }
+    if (Arrays.stream(selectedFiles).anyMatch(Objects::isNull)) {
+      logger.warning("List of filenames contains null");
+      return ExitCode.ERROR;
+    }
 
     // for bruker files path might point to D:\datafile.d\datafile.d  where the first is a folder
     // change to the folder
-    final File[] fileNames = Arrays.stream(selectedFiles).map(this::validateBrukerPath)
-        .toArray(File[]::new);
+    // skip files that are already loaded
+    final File[] fileNames = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(project, parameters);
 
-    if (checkDuplicateFilesInImportAndCurrentList(project, fileNames)) {
+    // after skipping already loaded
+    if (checkDuplicateFilesInImportListAndProject(project, fileNames)) {
       return ExitCode.ERROR;
     }
 
@@ -138,7 +148,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     AdvancedSpectraImportParameters advancedParam =
         useAdvancedOptions ? parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
             .getEmbeddedParameters() : null;
-
 
     // start importing spectral libraries first
     final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
@@ -234,18 +243,18 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         // add task to list
         if (newTask != null) {
           tasks.add(newTask);
-        }
 
-        if (i == fileName.length() - 1) {
-          newTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
-            if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
-                || newStatus == TaskStatus.ERROR) {
-              final Integer threads = MZmineCore.getConfiguration().getPreferences()
-                  .getParameter(MZminePreferences.numOfThreads).getValue();
-              TDFUtils.setDefaultNumThreads(threads);
-              TSFUtils.setDefaultNumThreads(threads);
-            }
-          });
+          if (i == fileName.length() - 1) {
+            newTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+              if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
+                  || newStatus == TaskStatus.ERROR) {
+                final Integer threads = MZmineCore.getConfiguration().getPreferences()
+                    .getParameter(MZminePreferences.numOfThreads).getValue();
+                TDFUtils.setDefaultNumThreads(threads);
+                TSFUtils.setDefaultNumThreads(threads);
+              }
+            });
+          }
         }
 
       } catch (IOException e) {
@@ -260,29 +269,17 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   }
 
   /**
-   *
-   * @return true if duplciates found
+   * @return true if duplciates found in import list and already loaded files
    */
   @Nullable
-  private static boolean checkDuplicateFilesInImportAndCurrentList(final @NotNull MZmineProject project,
-      final File[] fileNames) {
-    // check for duplicates in the input files
-    if (containsDuplicateFiles(fileNames, "raw data file names in the import list.")) {
-      return true;
-    }
+  private static boolean checkDuplicateFilesInImportListAndProject(
+      final @NotNull MZmineProject project, final File[] fileNames) {
     // check that files were not loaded before
     File[] currentAndLoadFiles = Stream.concat(
         project.getCurrentRawDataFiles().stream().map(RawDataFile::getFileName).map(File::new),
         Arrays.stream(fileNames)).toArray(File[]::new);
-    if (containsDuplicateFiles(currentAndLoadFiles,
-        "raw data file names in the import list that collide with already loaded data")) {
-      return true;
-    }
-    if (Arrays.stream(fileNames).anyMatch(Objects::isNull)) {
-      logger.warning("List of filenames contains null");
-      return true;
-    }
-    return false;
+    return containsDuplicateFiles(currentAndLoadFiles,
+        "raw data file names in the import list that collide with already loaded data");
   }
 
   /**
@@ -297,7 +294,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       String msg = """
           Stopped import as there were duplicate %s.
           Make sure to use unique names as MZmine and many downstream tools depend on this. Duplicates are:
-          %s""".formatted(context, String.join("; ", duplicates));
+          %s""".formatted(context, String.join("\n", duplicates));
       logger.warning(msg);
       MZmineCore.getDesktop().displayErrorMessage(msg);
       return true;
@@ -311,7 +308,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @param f file to validate
    * @return the valid bruker file path for bruker .d files or the input file
    */
-  private File validateBrukerPath(File f) {
+  public static File validateBrukerPath(File f) {
     if (f.getName().endsWith(".d") && f.getParent().endsWith(".d")) {
       return f.getParentFile();
     } else {
