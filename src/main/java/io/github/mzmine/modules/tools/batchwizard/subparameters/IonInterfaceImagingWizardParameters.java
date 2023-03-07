@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 public final class IonInterfaceImagingWizardParameters extends IonInterfaceWizardParameters {
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Min # of data points", "Minimum number of data points as used in image building", 25, 1,
+      "Minimum consecutive scans", "Minimum number of consecutive scans with detected data points as used in image building", 25, 1,
       Integer.MAX_VALUE);
 
   public IonInterfaceImagingWizardParameters(final IonInterfaceWizardParameterFactory preset) {

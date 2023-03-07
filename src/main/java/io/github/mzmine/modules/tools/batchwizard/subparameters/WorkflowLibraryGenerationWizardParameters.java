@@ -38,7 +38,7 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
-      "Export for GNPS FBMN/IIMN",
+      "Export for molecular networking (e.g., GNPS, FBMN, IIMN, MetGem)",
       "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
       true);
 
