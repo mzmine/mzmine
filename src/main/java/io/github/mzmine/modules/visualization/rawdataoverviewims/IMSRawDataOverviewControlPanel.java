@@ -43,6 +43,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -155,6 +156,9 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     add(lblBinWidth, 0, 5);
     add(binWidthComponent, 1, 5);
 
+    final CheckBox cbUseBinningRenderer = new CheckBox("Bin values in frame heatmap");
+    add(cbUseBinningRenderer, 0,6, 2, 1);
+
     mobilogramRangeComp = createMobilogramRangeComp(mzToleranceComponent);
 
     mobilogramRangesList = new ListView<>(FXCollections.observableArrayList());
@@ -214,6 +218,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
         pane.updateTicPlot();
         pane.onSelectedFrameChanged();
+        pane.setUseBinningRenderer(cbUseBinningRenderer.isSelected());
       } catch (NullPointerException | NumberFormatException ex) {
         ex.printStackTrace();
       }

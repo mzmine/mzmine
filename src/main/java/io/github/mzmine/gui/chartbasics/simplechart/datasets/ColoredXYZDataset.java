@@ -179,7 +179,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
       if (yA == null) {
         yA = y;
       } else if (!(yA).equals(y)) {
-        deltas.add(yA - y);
+        deltas.add(Math.abs(yA - y));
         yA = y;
       }
     }

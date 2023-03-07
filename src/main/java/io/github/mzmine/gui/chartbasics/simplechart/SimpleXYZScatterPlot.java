@@ -238,14 +238,21 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param dataset the main dataset. null to clear the plot. Removes all other datasets.
    */
   public synchronized void setDataset(@Nullable ColoredXYZDataset dataset) {
+    setDataset(dataset, defaultRenderer.get());
+  }
+
+  public synchronized void setDataset(@Nullable ColoredXYZDataset dataset,
+      XYItemRenderer renderer) {
 
     removeAllDatasets();
     if (dataset == null) {
       return;
     }
 
+    setNotifyChange(false);
     plot.setDataset(dataset);
-    plot.setRenderer(defaultRenderer.get());
+    plot.setRenderer(renderer);
+    setNotifyChange(true);
     if (dataset.getStatus() == TaskStatus.FINISHED) {
       datasetChanged(new DatasetChangeEvent(this, dataset));
     }
@@ -266,6 +273,11 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   public void setDataset(T dataProvider) {
     ColoredXYZDataset dataset = new ColoredXYZDataset(dataProvider);
     setDataset(dataset);
+  }
+
+  public void setDataset(T dataProvider, XYItemRenderer renderer) {
+    ColoredXYZDataset dataset = new ColoredXYZDataset(dataProvider);
+    setDataset(dataset, renderer);
   }
 
   /**

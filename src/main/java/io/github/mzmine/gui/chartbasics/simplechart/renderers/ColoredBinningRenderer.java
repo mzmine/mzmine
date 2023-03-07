@@ -1,43 +1,37 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ *  This file is part of MZmine.
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
@@ -54,117 +48,104 @@ import org.jfree.chart.util.PublicCloneable;
 import org.jfree.data.Range;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYZDataset;
 
-public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
+/*
+ * =========================================================== JFreeChart : a free chart library for
+ * the Java(tm) platform ===========================================================
+ *
+ * (C) Copyright 2000-2017, by Object Refinery Limited and Contributors.
+ *
+ * Project Info: http://www.jfree.org/jfreechart/index.html
+ *
+ * This library is free software; you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free Software Foundation; either version
+ * 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with this library;
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
+ *
+ * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be
+ * trademarks of their respective owners.]
+ *
+ * -------------------- XYBlockRenderer.java -------------------- (C) Copyright 2006-2017, by Object
+ * Refinery Limited.
+ *
+ * Original Author: David Gilbert (for Object Refinery Limited); Contributor(s): -;
+ *
+ */
+
+public class ColoredBinningRenderer extends AbstractXYItemRenderer
     implements XYItemRenderer, Cloneable, PublicCloneable, Serializable {
 
-  private static Logger logger = Logger.getLogger(ColoredXYSmallBlockRenderer.class.getName());
+  private static final double NO_VALUE = -1d;
+  private static Logger logger = Logger.getLogger(ColoredBinningRenderer.class.getName());
 
+  private final ColoredXYZDataset binnedDataset;
+  int prevItem = 1;
   /**
    * The block width (defaults to 1.0).
    */
   private double blockWidth = 1.0;
-
   /**
    * The block height (defaults to 1.0).
    */
   private double blockHeight = 1.0;
-
   /**
    * The anchor point used to align each block to its (x, y) location. The default value is {@code
    * RectangleAnchor.CENTER}.
    */
   private RectangleAnchor blockAnchor = RectangleAnchor.CENTER;
-
   /**
    * Temporary storage for the x-offset used to align the block anchor.
    */
   private double xOffset;
-
   /**
    * Temporary storage for the y-offset used to align the block anchor.
    */
   private double yOffset;
-
   /**
    * The paint scale.
    */
   private PaintScale paintScale;
-
   /**
    * In some case a single paint scall shall be used for multiple datasets.
    */
   private boolean useDatasetPaintScale = true;
+  private double[][] binnedData;
 
   /**
    * Creates a new {@code XYBlockRenderer} instance with default attributes. Item labels are
    * disabled by default.
    */
-  public ColoredXYSmallBlockRenderer() {
+  public ColoredBinningRenderer(@Nonnull final ColoredXYZDataset dataset) {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
-
-    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
     setDefaultItemLabelsVisible(false);
+    binnedDataset = dataset;
+    blockAnchor = RectangleAnchor.CENTER;
   }
 
   /**
    * Returns the block width, in data/axis units.
    *
    * @return The block width.
-   * @see #setBlockWidth(double)
    */
   public double getBlockWidth() {
     return this.blockWidth;
   }
 
   /**
-   * Sets the width of the blocks used to represent each data item and sends a {@link
-   * RendererChangeEvent} to all registered listeners.
-   *
-   * @param width the new width, in data/axis units (must be &gt; 0.0).
-   * @see #getBlockWidth()
-   */
-  public void setBlockWidth(double width) {
-    setBlockWidth(width, true);
-  }
-
-  public void setBlockWidth(double width, boolean notify) {
-    this.blockWidth = width;
-    updateOffsets();
-    if (notify) {
-      fireChangeEvent();
-    }
-  }
-
-  /**
    * Returns the block height, in data/axis units.
    *
    * @return The block height.
-   * @see #setBlockHeight(double)
    */
   public double getBlockHeight() {
     return this.blockHeight;
-  }
-
-  /**
-   * Sets the height of the blocks used to represent each data item and sends a {@link
-   * RendererChangeEvent} to all registered listeners.
-   *
-   * @param height the new height, in data/axis units (must be &gt; 0.0).
-   * @see #getBlockHeight()
-   */
-  public void setBlockHeight(double height) {
-    setBlockHeight(height, true);
-  }
-
-  public void setBlockHeight(double height, boolean notify) {
-    this.blockHeight = height;
-    updateOffsets();
-    if (notify) {
-      fireChangeEvent();
-    }
   }
 
   /**
@@ -250,8 +231,8 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     }
     if (dataset instanceof ColoredXYDataset ds
         && ds.getStatus() == TaskStatus.FINISHED) {
-      return new Range(ds.getDomainValueRange().lowerEndpoint() + this.xOffset,
-          ds.getDomainValueRange().upperEndpoint() + this.blockWidth + this.xOffset);
+      return new Range(ds.getDomainValueRange().lowerEndpoint(),
+          ds.getDomainValueRange().upperEndpoint());
     }
     Range r = DatasetUtils.findDomainBounds(dataset, false);
     if (r == null) {
@@ -274,8 +255,8 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     if (dataset != null) {
       if (dataset instanceof ColoredXYZDataset ds
           && ds.getStatus() == TaskStatus.FINISHED) {
-        return new Range(ds.getRangeValueRange().lowerEndpoint() + this.yOffset,
-            ds.getRangeValueRange().upperEndpoint() + this.blockHeight + this.yOffset);
+        return new Range(ds.getRangeValueRange().lowerEndpoint(),
+            ds.getRangeValueRange().upperEndpoint());
       }
       Range r = DatasetUtils.findRangeBounds(dataset, false);
       if (r == null) {
@@ -310,57 +291,57 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
       PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
       XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
 
+    if (dataset != this.binnedDataset) {
+      throw new IllegalArgumentException("Illegal dataset.");
+    }
+
+    boolean isNewDrawCall = false;
+    if (item < prevItem) {
+      binDataset(dataArea, plot, domainAxis, rangeAxis);
+      isNewDrawCall = true;
+    }
+
+    prevItem = item;
+
+    PlotOrientation orientation = plot.getOrientation();
+
+    if (isNewDrawCall) {
+      PaintScale paintScale;
+      if (binnedDataset instanceof PaintScaleProvider && isUseDatasetPaintScale()
+          && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
+        paintScale = ((PaintScaleProvider) binnedDataset).getPaintScale();
+      } else {
+        paintScale = this.paintScale;
+      }
+
+      for (int x = 0; x < binnedData.length; x++) {
+        for (int y = 0; y < binnedData[x].length; y++) {
+          final double z = binnedData[x][y];
+          if (Double.compare(z, -1d) == 0) {
+            continue;
+          }
+
+          Rectangle2D block = new Rectangle2D.Double(x, y, 1, 1);
+          Paint p = paintScale.getPaint(z);
+          g2.setPaint(p);
+          g2.fill(block);
+          g2.setStroke(new BasicStroke(1.0f));
+          g2.draw(block);
+        }
+      }
+    }
+
     double x = dataset.getXValue(series, item);
     double y = dataset.getYValue(series, item);
-    double z = 0.0;
-    if (dataset instanceof XYZDataset) {
-      z = ((XYZDataset) dataset).getZValue(series, item);
-    }
-
-    Paint p = this.paintScale.getPaint(z);
-    if (dataset instanceof ColoredXYZDataset && isUseDatasetPaintScale()
-        && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
-      p = ((ColoredXYZDataset) dataset).getPaintScale().getPaint(z);
-      setBlockWidth(((ColoredXYZDataset) dataset).getBoxWidth(), false);
-      setBlockHeight(((ColoredXYZDataset) dataset).getBoxHeight(), false);
-    }
-
-    double xx0 = domainAxis.valueToJava2D(x + this.xOffset, dataArea, plot.getDomainAxisEdge());
-    double yy0 = rangeAxis.valueToJava2D(y + this.yOffset, dataArea, plot.getRangeAxisEdge());
-    double xx1 = domainAxis.valueToJava2D(x + this.blockWidth + this.xOffset, dataArea,
-        plot.getDomainAxisEdge());
-    double yy1 = rangeAxis.valueToJava2D(y + this.blockHeight + this.yOffset, dataArea,
-        plot.getRangeAxisEdge());
-    Rectangle2D block;
-    PlotOrientation orientation = plot.getOrientation();
-    if (orientation.equals(PlotOrientation.HORIZONTAL)) {
-      block = new Rectangle2D.Double(Math.min(yy0, yy1), Math.min(xx0, xx1),
-          Math.abs(yy1 - yy0),
-          Math.abs(xx0 - xx1));
-    } else {
-      block = new Rectangle2D.Double(Math.min(xx0, xx1), Math.min(yy0, yy1),
-          Math.abs(xx1 - xx0),
-          Math.abs(yy1 - yy0));
-    }
-    g2.setPaint(p);
-    g2.fill(block);
-    g2.setStroke(new BasicStroke(1.0f));
-    g2.draw(block);
-
-    if (isItemLabelVisible(series, item)) {
-      drawItemLabel(g2, orientation, dataset, series, item, block.getCenterX(), block.getCenterY(),
-          y < 0.0);
-    }
-
     int datasetIndex = plot.indexOf(dataset);
     double transX = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge());
     double transY = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge());
     updateCrosshairValues(crosshairState, x, y, datasetIndex, transX, transY, orientation);
 
-    EntityCollection entities = state.getEntityCollection();
-    if (entities != null) {
-      addEntity(entities, block, dataset, series, item, block.getCenterX(), block.getCenterY());
-    }
+//    EntityCollection entities = state.getEntityCollection();
+//    if (entities != null) {
+//      addEntity(entities, block, dataset, series, item, block.getCenterX(), block.getCenterY());
+//    }
 
   }
 
@@ -380,14 +361,7 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     if (obj == this) {
       return true;
     }
-    if (!(obj instanceof ColoredXYSmallBlockRenderer)) {
-      return false;
-    }
-    ColoredXYSmallBlockRenderer that = (ColoredXYSmallBlockRenderer) obj;
-    if (this.blockHeight != that.blockHeight) {
-      return false;
-    }
-    if (this.blockWidth != that.blockWidth) {
+    if (!(obj instanceof ColoredBinningRenderer that)) {
       return false;
     }
     if (!this.blockAnchor.equals(that.blockAnchor)) {
@@ -415,9 +389,7 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    */
   @Override
   public Object clone() throws CloneNotSupportedException {
-    ColoredXYSmallBlockRenderer clone = (ColoredXYSmallBlockRenderer) super.clone();
-    clone.setBlockHeight(this.blockHeight);
-    clone.setBlockWidth(this.blockWidth);
+    ColoredBinningRenderer clone = (ColoredBinningRenderer) super.clone();
     if (this.paintScale instanceof PublicCloneable) {
       PublicCloneable pc = (PublicCloneable) this.paintScale;
       clone.paintScale = (PaintScale) pc.clone();
@@ -430,4 +402,62 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     return null;
 //    return super.getLegendItem(datasetIndex, series);
   }
+
+  private void binDataset(final Rectangle2D dataArea, XYPlot plot, ValueAxis domainAxis,
+      ValueAxis rangeAxis) {
+
+    final int numPixelsX = (int) Math.ceil(dataArea.getWidth() + dataArea.getX());
+    final int numPixelsY = (int) Math.ceil(dataArea.getHeight() + dataArea.getY());
+
+    if (binnedData == null || numPixelsX != binnedData.length
+        || numPixelsY != binnedData[0].length) {
+      binnedData = new double[numPixelsX][numPixelsY];
+    }
+    for (double[] array : binnedData) {
+      Arrays.fill(array, NO_VALUE);
+    }
+
+    final double w = binnedDataset.getBoxHeight();
+    final double h = binnedDataset.getBoxWidth();
+
+    blockWidth = w;
+    blockHeight = h;
+    updateOffsets();
+
+    for (int i = 0; i < binnedDataset.getItemCount(0); i++) {
+      final double cx = binnedDataset.getXValue(0, i);
+      final double cy = binnedDataset.getYValue(0, i);
+      final double z = binnedDataset.getZValue(0, i);
+
+      // transform from dataset xy to java 2d
+      final int transformedDomain0 = (int) Math.round(domainAxis
+          .valueToJava2D(cx + xOffset, dataArea, plot.getDomainAxisEdge()));
+      final int transformedRange0 = (int) Math.round(rangeAxis
+          .valueToJava2D(cy + yOffset, dataArea, plot.getRangeAxisEdge()));
+
+      final int transformedDomain1 = (int) Math.round(domainAxis
+          .valueToJava2D(cx + xOffset + w, dataArea, plot.getDomainAxisEdge()));
+      final int transformedRange1 = (int) Math.round(rangeAxis
+          .valueToJava2D(cy + yOffset + h, dataArea, plot.getRangeAxisEdge()));
+
+      final int minX = Math.min(transformedDomain0, transformedDomain1);
+      final int maxX = Math.max(transformedDomain0, transformedDomain1);
+      final int minY = Math.min(transformedRange0, transformedRange1);
+      final int maxY = Math.max(transformedRange0, transformedRange1);
+
+      // paint the pixels
+      if (minX < numPixelsX && minY < numPixelsY
+          && minX >= 0 && minY >= 0
+          && maxX < numPixelsX && maxY < numPixelsY
+          && maxX >= 0 && maxY >= 0) {
+        // only keep the highest values per pixel
+        for (int x = minX; x <= maxX; x++) {
+          for (int y = minY; y <= maxY; y++) {
+            binnedData[x][y] = Math.max(binnedData[x][y], z);
+          }
+        }
+      }
+    }
+  }
 }
+
