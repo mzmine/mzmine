@@ -75,6 +75,18 @@ public interface RawDataFile {
     return new File(requireNonNullElse(getAbsolutePath(), ""));
   }
 
+
+  /**
+   * Uses the absolute file path first, if null then use the name which might have been changed by
+   * the user
+   *
+   * @return usually the file.extension as in File.getName()
+   */
+  default String getFileName() {
+    var path = getAbsolutePath();
+    return path != null ? new File(path).getName() : getName();
+  }
+
   int getNumOfScans();
 
   int getNumOfScans(int msLevel);
@@ -281,4 +293,5 @@ public interface RawDataFile {
    */
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
+
 }
