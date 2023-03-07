@@ -254,7 +254,6 @@ public class BatchWizardTab extends SimpleTab {
       String formatPath = "icons/wizard/{0}wizard_icons_{1}.png";
       // load aprils fools day resources
       String specialSet = (now.getMonthValue() == 4 && now.getDayOfMonth() == 1) ? "april/" : "";
-      specialSet = "april/";
       final Image icon = FxIconUtil.loadImageFromResources(
           MessageFormat.format(formatPath, specialSet, parent));
       ImageView view = new ImageView(icon);
