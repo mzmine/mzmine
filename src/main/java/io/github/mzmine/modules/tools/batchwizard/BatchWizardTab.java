@@ -254,11 +254,12 @@ public class BatchWizardTab extends SimpleTab {
       String formatPath = "icons/wizard/{0}wizard_icons_{1}.png";
       // load aprils fools day resources
       String specialSet = (now.getMonthValue() == 4 && now.getDayOfMonth() == 1) ? "april/" : "";
+      specialSet = "april/";
       final Image icon = FxIconUtil.loadImageFromResources(
           MessageFormat.format(formatPath, specialSet, parent));
       ImageView view = new ImageView(icon);
       view.setPreserveRatio(true);
-      view.setFitHeight(125);
+      view.setFitHeight(150);
 
       if (MZmineCore.getConfiguration().isDarkMode()) {
         ColorAdjust whiteEffect = new ColorAdjust();
