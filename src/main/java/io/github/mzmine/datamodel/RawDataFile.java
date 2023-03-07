@@ -68,12 +68,13 @@ public interface RawDataFile {
    * file space or was created as a dummy file by mzTab-m import.
    */
   @Nullable String getAbsolutePath();
+
   /**
-   *
-   * @return The absolute path this file was loaded from. or an empty File if none was provided
+   * @return The absolute path this file was loaded from. or a file of getName() if no path was
+   * provided
    */
   default @NotNull File getAbsoluteFilePath() {
-    return new File(requireNonNullElse(getAbsolutePath(), ""));
+    return new File(requireNonNullElse(getAbsolutePath(), getName()));
   }
 
   /**
