@@ -122,6 +122,7 @@ public class FeatureListsComponent extends HBox {
   }
 
   private void updateNumPeakLists() {
+    currentValue.resetSelection();
     if (currentValue.getSelectionType() == FeatureListsSelectionType.BATCH_LAST_FEATURELISTS) {
       numPeakListsLabel.setText("");
       numPeakListsLabel.setTooltip(null);

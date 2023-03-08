@@ -43,9 +43,6 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter("Features", 1,
       Integer.MAX_VALUE);
 
-  public static final OptionalParameter<FeatureListsParameter> CHROMATOGRAM_LISTS = new OptionalParameter<>(
-      new FeatureListsParameter("Chromatograms", 0, Integer.MAX_VALUE), false);
-
   // ------------------------------------------------------------------------
   // ----- First-phase parameters -------------------------------------------
   // ------------------------------------------------------------------------
@@ -87,7 +84,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
       false);
 
   public ADAP3DecompositionV2Parameters() {
-    super(new Parameter[]{PEAK_LISTS, CHROMATOGRAM_LISTS, PREF_WINDOW_WIDTH, RET_TIME_TOLERANCE,
+    super(new Parameter[]{PEAK_LISTS, PREF_WINDOW_WIDTH, RET_TIME_TOLERANCE,
             MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, HANDLE_ORIGINAL},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_multivariate_curve_res/featdet_multivar_curve_res.html");
   }

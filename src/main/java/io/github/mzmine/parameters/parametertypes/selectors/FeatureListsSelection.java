@@ -94,12 +94,7 @@ public class FeatureListsSelection implements Cloneable {
     if (evaluatedSelection != null) {
       var value = Arrays.stream(evaluatedSelection)
           .map(FeatureListsPlaceholder::getMatchingFeatureList).toArray(ModularFeatureList[]::new);
-      for (var raw : value) {
-        if (raw == null) {
-          throw new IllegalStateException(
-              "Feature list selection points to a missing file (maybe it was removed after first evaluation).");
-        }
-      }
+
       return value;
     }
     MZmineCore.getProject().getCurrentFeatureLists();
@@ -161,7 +156,13 @@ public class FeatureListsSelection implements Cloneable {
   public void setSelectionType(FeatureListsSelectionType selectionType) {
     this.selectionType = selectionType;
   }
-
+  public void resetSelection() {
+    if (evaluatedSelection != null) {
+      logger.finest(() -> "Resetting file selection. Previously evaluated feature lists: " + Arrays
+          .toString(evaluatedSelection));
+    }
+    evaluatedSelection = null;
+  }
   public FeatureList[] getSpecificFeatureLists() {
 
     if(specificFeatureLists != null){

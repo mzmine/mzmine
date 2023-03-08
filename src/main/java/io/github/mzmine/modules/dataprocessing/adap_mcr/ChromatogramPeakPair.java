@@ -65,18 +65,8 @@ public class ChromatogramPeakPair {
       @NotNull ParameterSet parameterSet) {
     Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
 
-    var optionalChromatograms = parameterSet.getParameter(
-        ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS);
-    var useChromatograms = optionalChromatograms.getValue();
-    FeatureList[] chromatograms =
-        useChromatograms ? optionalChromatograms.getEmbeddedParameter().getValue()
-            .getMatchingFeatureLists() : null;
     FeatureList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
-
-    //if only chromatogram is unavailable find it from peak list.
-    if ((chromatograms == null || chromatograms.length == 0) && (peaks != null
-        || peaks.length > 0)) {
 
       for (var peak : peaks) {
         ObservableList<FeatureListAppliedMethod> appliedMethodsList = peak.getAppliedMethods();
@@ -89,6 +79,7 @@ public class ChromatogramPeakPair {
           ParameterSet parameters = appliedMethodsList.get(j).getParameters();
           for (final Parameter<?> param : parameters.getParameters()) {
             if (param instanceof FeatureListsParameter flistParam) {
+              //get all current feature lists in the project
               FeatureListsPlaceholder[] placeholders = flistParam.getValue()
                   .getCurrentFeatureListsPlaceholders();
               for (int k = placeholders.length - 1; k >= 0; k--) {
@@ -115,30 +106,6 @@ public class ChromatogramPeakPair {
         }
       }
       return pairs;
-    } else if (chromatograms == null || chromatograms.length == 0 || peaks == null
-        || peaks.length == 0) {
-      return pairs;
-    } else {
-      Set<RawDataFile> dataFiles = new HashSet<>();
-      for (FeatureList peakList : chromatograms) {
-        dataFiles.add(peakList.getRawDataFile(0));
-      }
-      for (FeatureList peakList : peaks) {
-        dataFiles.add(peakList.getRawDataFile(0));
-      }
-
-      for (RawDataFile dataFile : dataFiles) {
-        FeatureList chromatogram = Arrays.stream(chromatograms)
-            .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
-        FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile)
-            .findFirst().orElse(null);
-        if (chromatogram != null && peak != null) {
-          pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
-        }
-      }
-
-      return pairs;
-    }
   }
 
   private static String getChromatogramSuffixFromAppliedMethods (ObservableList<FeatureListAppliedMethod> appliedMethodsList){

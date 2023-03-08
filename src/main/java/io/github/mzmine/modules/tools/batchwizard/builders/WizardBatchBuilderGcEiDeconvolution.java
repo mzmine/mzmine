@@ -171,10 +171,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // TODO chromatograms need to be picked by name pattern
-    // chromatograms are optional parameter
-    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS, false,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-
     param.setParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME, false);
     param.setParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL, handleOriginalFeatureLists);
     param.setParameter(ADAP3DecompositionV2Parameters.SUFFIX, "spec_deconv");
