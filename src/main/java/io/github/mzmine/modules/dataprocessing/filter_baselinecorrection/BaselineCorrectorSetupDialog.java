@@ -60,18 +60,17 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
- *              to preview how the selected baseline correction method and its parameters works over
- *              the raw data file.
- *
+ * to preview how the selected baseline correction method and its parameters works over the raw data
+ * file.
  */
 public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
 
 
   // Logger.
-  private static final Logger logger =
-      Logger.getLogger(ParameterSetupDialogWithChromatogramPreview.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      ParameterSetupDialogWithChromatogramPreview.class.getName());
 
-  private ParameterSet correctorParameters;
+  private final ParameterSet correctorParameters;
   private BaselineCorrector baselineCorrector;
 
   private PreviewTask previewTask = null;
@@ -93,10 +92,12 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     }
 
     @Override
-    public void keyReleased(KeyEvent ke) {}
+    public void keyReleased(KeyEvent ke) {
+    }
 
     @Override
-    public void keyTyped(KeyEvent ke) {}
+    public void keyTyped(KeyEvent ke) {
+    }
   };
 
   public static List<Component> getAllComponents(final Container c) {
@@ -123,9 +124,8 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
    */
 
   /**
-   *
    * @param correctorParameters Method specific parameters
-   * @param correctorClass Chosen corrector to be instantiated
+   * @param correctorClass      Chosen corrector to be instantiated
    */
   public BaselineCorrectorSetupDialog(boolean valueCheckRequired, ParameterSet correctorParameters,
       Class<? extends BaselineCorrector> correctorClass) {
@@ -150,15 +150,156 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
   }
 
+  /**
+   * This function sets all the information into the plot chart
+   */
+  @Override
+  protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Float> rtRange,
+      Range<Double> mzRange) {
+
+    boolean ready = true;
+    // Abort previous preview task.
+    if (previewTask != null && previewTask.getStatus() == TaskStatus.PROCESSING) {
+      ready = false;
+      previewTask.kill();
+      try {
+        previewThread.join();
+        ready = true;
+      } catch (InterruptedException e) {
+        ready = false;
+      }
+    }
+
+    // Start processing new preview task.
+    if (ready && (previewTask == null || previewTask.getStatus() != TaskStatus.PROCESSING)) {
+
+      baselineCorrector.initProgress(dataFile);
+      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange,
+          Instant.now()); // date does not matter for preview
+      previewThread = new Thread(previewTask);
+      logger.info("Launch preview task.");
+      previewThread.start();
+    }
+  }
+
+  class ProgressThread extends Thread {
+
+    private final RawDataFile dataFile;
+    private final PreviewTask previewTask;
+    private final BaselineCorrectorSetupDialog dialog;
+    private ProgressBar progressBar;
+
+    public ProgressThread(BaselineCorrectorSetupDialog dialog, PreviewTask previewTask,
+        RawDataFile dataFile) {
+      this.previewTask = previewTask;
+      this.dataFile = dataFile;
+      this.dialog = dialog;
+    }
+
+    @Override
+    public void run() {
+
+      Platform.runLater(() -> addProgessBar());
+      while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
+
+        Platform.runLater(
+            () -> progressBar.setProgress(baselineCorrector.getFinishedPercentage(dataFile)));
+        try {
+          Thread.sleep(5);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+      // Clear GUI stuffs
+      Platform.runLater(() -> removeProgessBar());
+      // unset_VK_ESCAPE_KeyListener();
+    }
+
+    private void addProgessBar() {
+      // Add progress bar
+      progressBar = new ProgressBar();
+      progressBar.setProgress(0.25);
+      // progressBar.setetStringPainted(true);
+      // Border border =
+      // BorderFactory.createTitledBorder("Processing... <Press \"ESC\" to cancel> ");
+      // progressBar.setBorder(border);
+      dialog.mainPane.setTop(progressBar);
+      // this.dialog.repaint();
+      progressBar.setVisible(true);
+      // this.dialog.pack();
+    }
+
+    private void removeProgessBar() {
+      // Remove progress bar
+      progressBar.setVisible(false);
+      dialog.mainPane.getChildren().remove(progressBar);
+      // this.dialog.pack();
+    }
+
+  }
+
+  /**
+   * Quick way to recover the baseline plot (by subtracting the corrected file from the original
+   * one).
+   *
+   * @param dataFile    original datafile
+   * @param newDataFile corrected datafile
+   * @param plotType    expected plot type
+   * @return the baseline additional dataset
+   */
+  private XYDataset createBaselineDataset(RawDataFile dataFile, RawDataFile newDataFile,
+      TICPlotType plotType) {
+
+    XYSeriesCollection dataset = new XYSeriesCollection();
+    XYSeries bl_series = new XYSeries("Baseline");
+
+    double intensity;
+    Scan sc, new_sc;
+    DataPoint dp, new_dp;
+
+    // Get scan numbers from original file.
+    final Scan[] scans = dataFile.getScanNumbers(1).toArray(Scan[]::new);
+    final Scan[] newScans = newDataFile.getScanNumbers(1).toArray(Scan[]::new);
+    assert scans.length == newScans.length;
+
+    final int numScans = scans.length;
+    for (int scanIndex = 0; scanIndex < numScans; ++scanIndex) {
+
+      sc = scans[scanIndex];
+      new_sc = newScans[scanIndex];
+
+      if (plotType == TICPlotType.BASEPEAK) {
+        Double scanBP = sc.getBasePeakIntensity();
+        Double newScanBP = new_sc.getBasePeakIntensity();
+
+        if (scanBP == null) {
+          intensity = 0.0;
+        } else if (newScanBP == null) {
+          intensity = scanBP;
+        } else {
+          intensity = scanBP - newScanBP;
+        }
+      } else {
+        intensity = sc.getTIC() - new_sc.getTIC();
+      }
+
+      bl_series.add(sc.getRetentionTime(), intensity);
+    }
+
+    dataset.addSeries(bl_series);
+
+    return dataset;
+  }
+
   class PreviewTask extends AbstractTask {
 
     private String errorMsg;
 
-    private TICPlot ticPlot;
-    private RawDataFile dataFile;
-    private Range<Double> mzRange;
-    private Range<Float> rtRange;
-    private BaselineCorrectorSetupDialog dialog;
+    private final TICPlot ticPlot;
+    private final RawDataFile dataFile;
+    private final Range<Double> mzRange;
+    private final Range<Float> rtRange;
+    private final BaselineCorrectorSetupDialog dialog;
     private ProgressThread progressThread;
 
     private RSessionWrapper rSession;
@@ -224,10 +365,11 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         ticPlot.setPlotType(getPlotType());
 
         // Add the original raw data file
-        final ScanSelection sel = new ScanSelection(rtRange, 1);
-        Scan scans[] = sel.getMatchingScans(dataFile);
+        final ScanSelection sel = new ScanSelection(1, rtRange);
+        Scan[] scans = sel.getMatchingScans(dataFile);
 
-        TICDataSet ticDataset = new TICDataSet(dataFile, List.of(scans), mzRange, null, getPlotType());
+        TICDataSet ticDataset = new TICDataSet(dataFile, List.of(scans), mzRange, null,
+            getPlotType());
         ticPlot.addTICDataSet(ticDataset);
 
         try {
@@ -238,15 +380,14 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
           progressThread.start();
 
           // Create a new corrected raw data file
-          RawDataFile newDataFile =
-              baselineCorrector.correctDatafile(this.rSession, dataFile, correctorParameters, null,
-                  null);
+          RawDataFile newDataFile = baselineCorrector.correctDatafile(this.rSession, dataFile,
+              correctorParameters, null, null);
 
           // If successful, add the new data file
           if (newDataFile != null) {
             scans = sel.getMatchingScans(newDataFile);
-            final TICDataSet newDataset =
-                new TICDataSet(newDataFile, List.of(scans), mzRange, null, getPlotType());
+            final TICDataSet newDataset = new TICDataSet(newDataFile, List.of(scans), mzRange, null,
+                getPlotType());
             ticPlot.addTICDataSet(newDataset);
 
             // Show the trend line as well
@@ -261,12 +402,14 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
         // Turn off R instance.
         try {
-          if (!this.userCanceled)
+          if (!this.userCanceled) {
             this.rSession.close(false);
+          }
         } catch (RSessionWrapperException e) {
           if (!this.userCanceled) {
-            if (errorMsg == null)
+            if (errorMsg == null) {
               errorMsg = e.getMessage();
+            }
           } else {
             // User canceled: Silent.
           }
@@ -296,8 +439,9 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
         // Turn off R instance.
         try {
-          if (this.rSession != null)
+          if (this.rSession != null) {
             this.rSession.close(true);
+          }
         } catch (RSessionWrapperException e) {
           // User canceled: Silent.
         }
@@ -344,146 +488,6 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         Platform.runLater(() -> showPreview(false));
       }
     }
-  }
-
-  class ProgressThread extends Thread {
-
-    private RawDataFile dataFile;
-    private PreviewTask previewTask;
-    private BaselineCorrectorSetupDialog dialog;
-    private ProgressBar progressBar;
-
-    public ProgressThread(BaselineCorrectorSetupDialog dialog, PreviewTask previewTask,
-        RawDataFile dataFile) {
-      this.previewTask = previewTask;
-      this.dataFile = dataFile;
-      this.dialog = dialog;
-    }
-
-    @Override
-    public void run() {
-
-      Platform.runLater(() -> addProgessBar());
-      while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
-
-        Platform.runLater(
-            () -> progressBar.setProgress(baselineCorrector.getFinishedPercentage(dataFile)));
-        try {
-          Thread.sleep(5);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-      // Clear GUI stuffs
-      Platform.runLater(() -> removeProgessBar());
-      // unset_VK_ESCAPE_KeyListener();
-    }
-
-    private void addProgessBar() {
-      // Add progress bar
-      progressBar = new ProgressBar();
-      progressBar.setProgress(0.25);
-      // progressBar.setetStringPainted(true);
-      // Border border =
-      // BorderFactory.createTitledBorder("Processing... <Press \"ESC\" to cancel> ");
-      // progressBar.setBorder(border);
-      dialog.mainPane.setTop(progressBar);
-      // this.dialog.repaint();
-      progressBar.setVisible(true);
-      // this.dialog.pack();
-    }
-
-    private void removeProgessBar() {
-      // Remove progress bar
-      progressBar.setVisible(false);
-      dialog.mainPane.getChildren().remove(progressBar);
-      // this.dialog.pack();
-    }
-
-  }
-
-  /**
-   * This function sets all the information into the plot chart
-   */
-  @Override
-  protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
-
-    boolean ready = true;
-    // Abort previous preview task.
-    if (previewTask != null && previewTask.getStatus() == TaskStatus.PROCESSING) {
-      ready = false;
-      previewTask.kill();
-      try {
-        previewThread.join();
-        ready = true;
-      } catch (InterruptedException e) {
-        ready = false;
-      }
-    }
-
-    // Start processing new preview task.
-    if (ready && (previewTask == null || previewTask.getStatus() != TaskStatus.PROCESSING)) {
-
-      baselineCorrector.initProgress(dataFile);
-      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange, Instant.now()); // date does not matter for preview
-      previewThread = new Thread(previewTask);
-      logger.info("Launch preview task.");
-      previewThread.start();
-    }
-  }
-
-  /**
-   * Quick way to recover the baseline plot (by subtracting the corrected file from the original
-   * one).
-   *
-   * @param dataFile original datafile
-   * @param newDataFile corrected datafile
-   * @param plotType expected plot type
-   * @return the baseline additional dataset
-   */
-  private XYDataset createBaselineDataset(RawDataFile dataFile, RawDataFile newDataFile,
-      TICPlotType plotType) {
-
-    XYSeriesCollection dataset = new XYSeriesCollection();
-    XYSeries bl_series = new XYSeries("Baseline");
-
-    double intensity;
-    Scan sc, new_sc;
-    DataPoint dp, new_dp;
-
-    // Get scan numbers from original file.
-    final Scan[] scans = dataFile.getScanNumbers(1).toArray(Scan[]::new);
-    final Scan[] newScans = newDataFile.getScanNumbers(1).toArray(Scan[]::new);
-    assert scans.length == newScans.length;
-
-    final int numScans = scans.length;
-    for (int scanIndex = 0; scanIndex < numScans; ++scanIndex) {
-
-      sc = scans[scanIndex];
-      new_sc = newScans[scanIndex];
-
-      if (plotType == TICPlotType.BASEPEAK) {
-        Double scanBP = sc.getBasePeakIntensity();
-        Double newScanBP = new_sc.getBasePeakIntensity();
-
-        if (scanBP == null) {
-          intensity = 0.0;
-        } else if (newScanBP == null) {
-          intensity = scanBP;
-        } else {
-          intensity = scanBP - newScanBP;
-        }
-      } else {
-        intensity = sc.getTIC() - new_sc.getTIC();
-      }
-
-      bl_series.add(sc.getRetentionTime(), intensity);
-    }
-
-    dataset.addSeries(bl_series);
-
-    return dataset;
   }
 
   // /* (non-Javadoc)

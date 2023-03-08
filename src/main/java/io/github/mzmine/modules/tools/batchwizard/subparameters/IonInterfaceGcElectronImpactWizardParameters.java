@@ -44,26 +44,26 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
 
   public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
       "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"
-          + "and after the separation, where in many runs cleaning and re-equilibration starts.",
-      true, Range.closed(0.5, 30d));
+      + "and after the separation, where in many runs cleaning and re-equilibration starts.", true,
+      Range.closed(0.5, 30d));
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
       "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ",
       new RTTolerance(0.05f, Unit.MINUTES));
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
-      "Intra-sample RT tolerance",
+      "RT tolerance (intra-sample)",
       "Retention time tolerance for multiple signals of the same compound in the same "
-          + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.",
+      + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.",
       new RTTolerance(0.04f, Unit.MINUTES));
   public static final RTToleranceParameter interSampleRTTolerance = new RTToleranceParameter(
-      "Inter-sample RT tolerance",
+      "RT tolerance (sample-to-sample)",
       "Retention time tolerance for the same compound in different samples.\n"
-          + "Used to align multiple measurements of the same sample or a batch run.",
+      + "Used to align multiple measurements of the same sample or a batch run.",
       new RTTolerance(0.1f, Unit.MINUTES));
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Min # of data points",
-      "Minimum number of data points as used in chromatogram building and feature resolving.", 4, 1,
-      Integer.MAX_VALUE);
+      "Minimum consecutive scans",
+      "Minimum number of consecutive scans with detected data points as used in chromatogram building and feature resolving.",
+      4, 1, Integer.MAX_VALUE);
   public static final DoubleParameter SN_THRESHOLD = new DoubleParameter("Signal/noise threshold",
       "Signal to noise ratio threshold", NumberFormat.getNumberInstance(), 5d, 0.0, null);
   public static final DoubleRangeParameter RT_FOR_CWT_SCALES_DURATION = new DoubleRangeParameter(

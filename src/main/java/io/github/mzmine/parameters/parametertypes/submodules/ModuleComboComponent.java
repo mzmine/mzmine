@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.parameters.parametertypes.submodules;
 
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
@@ -37,10 +37,10 @@ import javafx.scene.layout.FlowPane;
 
 public class ModuleComboComponent extends FlowPane {
 
-  private ComboBox<MZmineProcessingStep<?>> comboBox;
+  private final ComboBox<MZmineProcessingStep<?>> comboBox;
   private Button setButton;
 
-  public ModuleComboComponent(MZmineProcessingStep<?> modules[]) {
+  public ModuleComboComponent(MZmineProcessingStep<?>[] modules) {
 
     // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
@@ -64,11 +64,13 @@ public class ModuleComboComponent extends FlowPane {
     setButton = new Button("Setup");
     setButton.setOnAction(e -> {
       MZmineProcessingStep<?> selected = comboBox.getSelectionModel().getSelectedItem();
-      if (selected == null)
+      if (selected == null) {
         return;
+      }
       ParameterSetupDialog dialog = (ParameterSetupDialog) getScene().getWindow();
-      if (dialog == null)
+      if (dialog == null) {
         return;
+      }
       ParameterSet parameterSet = selected.getParameterSet();
       parameterSet.showSetupDialog(dialog.isValueCheckRequired());
     });

@@ -438,9 +438,6 @@
         <MenuItem text="Local compound database (CSV) search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
-        <MenuItem text="Online compound database search"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule"/>
         <MenuItem
           text="Precursor search in spectral libraries"
           onAction="#runModule"

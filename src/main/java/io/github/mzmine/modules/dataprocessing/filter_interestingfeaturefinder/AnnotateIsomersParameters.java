@@ -25,13 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
@@ -62,8 +61,8 @@ public class AnnotateIsomersParameters extends SimpleParameterSet {
       new IsomerQualityParameters());
 
   public AnnotateIsomersParameters() {
-    super(new Parameter[]{featureLists, mzTolerance, rtTolerance, maxMobilityChange,
-        multimerRecognitionTolerance, qualityParam});
+    super(featureLists, mzTolerance, rtTolerance, maxMobilityChange, multimerRecognitionTolerance,
+        qualityParam);
   }
 
   @Override

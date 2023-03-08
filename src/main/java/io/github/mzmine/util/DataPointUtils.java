@@ -43,8 +43,8 @@ public class DataPointUtils {
    * underlying DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries}
    * and extending classes.
    *
-   * @return 2-d array with dimension double[2][dataPoints.length]. [0][i] will contain mz, [1][i]
-   * will contain intensity values.
+   * @return 2-d array [mzs, intensities] with dimension double[2][dataPoints.length]. [0][i] will
+   * contain mz, [1][i] will contain intensity values.
    */
   public static double[][] getDataPointsAsDoubleArray(DataPoint[] dataPoints) {
     double[][] data = new double[2][];
@@ -224,5 +224,22 @@ public class DataPointUtils {
     DataPoint[] dps = DataPointUtils.getDataPoints(mzs, intensities);
     Arrays.sort(dps, sorter);
     return getDataPointsAsDoubleArray(dps);
+  }
+
+  /**
+   * Ensure sorting by mz ascending. Only applied if input data was unsorted.
+   *
+   * @param mzs         input mzs
+   * @param intensities input intensities
+   * @return [mzs, intensities], either the input arrays if already sorted or new sorted arrays
+   */
+  public static double[][] ensureSortingMzAscendingDefault(final double[] mzs,
+      final double[] intensities) {
+    for (int i = 1; i < mzs.length; i++) {
+      if (mzs[i - 1] > mzs[i]) {
+        return sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
+      }
+    }
+    return new double[][]{mzs, intensities};
   }
 }

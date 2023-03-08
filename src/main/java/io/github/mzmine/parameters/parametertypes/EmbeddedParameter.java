@@ -25,17 +25,52 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterContainer;
+import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import javafx.scene.Node;
 
 /**
- * In case a parameter embeds a parameter set, this interface shall be implemented. This is required
- * because embedded parameter sets might have a
- * {@link io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter} which needs to
- * be set. With this interface, it can be done via
- * {@link io.github.mzmine.modules.batchmode.BatchTask}
+ * embedds another parameter and uses the name and description
  */
-public interface EmbeddedParameter<T extends Parameter<?>> {
+public abstract class EmbeddedParameter<ValueType, PARAMETER extends UserParameter<?, ?>, EditorComponent extends Node> implements
+    UserParameter<ValueType, EditorComponent>, ParameterContainer {
 
-  T getEmbeddedParameter();
+  protected PARAMETER embeddedParameter;
+
+  public EmbeddedParameter(ValueType defaultVal, PARAMETER embeddedParameter) {
+    this.embeddedParameter = embeddedParameter;
+    setValue(defaultVal);
+  }
+
+  public PARAMETER getEmbeddedParameter() {
+    return embeddedParameter;
+  }
+
+  public void setEmbeddedParameter(PARAMETER embeddedParameter) {
+    this.embeddedParameter = embeddedParameter;
+  }
+
+  @Override
+  public String getName() {
+    return embeddedParameter.getName();
+  }
+
+  @Override
+  public String getDescription() {
+    return embeddedParameter.getDescription();
+  }
+
+  @Override
+  public boolean checkValue(Collection<String> errorMessages) {
+    return embeddedParameter.checkValue(errorMessages);
+  }
+
+  @Override
+  public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
+    if (embeddedParameter instanceof ParameterContainer pc) {
+      pc.setSkipSensitiveParameters(skipSensitiveParameters);
+    }
+  }
 
 }
