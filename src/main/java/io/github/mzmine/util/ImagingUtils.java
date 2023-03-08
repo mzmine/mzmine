@@ -55,7 +55,7 @@ public class ImagingUtils {
       return sourceSpectra.stream().filter(s -> s instanceof MobilityScan)
           .map(s -> ((MobilityScan) s)).collect(
               Collectors.toMap(s -> ((ImagingFrame) (s.getFrame())).getMaldiSpotInfo(),
-                  s -> s.getMsMsInfo()));
+                  s -> s.getMsMsInfo(), (msMsInfo, msMsInfo2) -> msMsInfo));
     }
     return Map.of();
   }
