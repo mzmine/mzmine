@@ -78,12 +78,18 @@ public class ImageBuilderParameters extends SimpleParameterSet {
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("Min group size in # of scans", minimumConsecutiveScans);
     nameParameterMap.put("Min highest intensity", minHighest);
-    nameParameterMap.put("Scan to scan accuracy (m/z)", ADAPChromatogramBuilderParameters.mzTolerance);
+    nameParameterMap.put("Scan to scan accuracy (m/z)",
+        ADAPChromatogramBuilderParameters.mzTolerance);
     return nameParameterMap;
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }
