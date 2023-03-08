@@ -48,7 +48,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SpectralDBAnnotation implements FeatureAnnotation {
+public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<SpectralDBAnnotation> {
 
   public static final String XML_ATTR = "spectral_library_annotation";
   private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
@@ -266,5 +266,17 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
   @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ATTR;
+  }
+
+  @Override
+  public int compareTo(@NotNull final SpectralDBAnnotation o) {
+    if(o.getScore()==null && getScore()==null)
+      return 0;
+    if(o.getScore()==null)
+      return -1;
+    if(getScore()==null)
+      return 1;
+
+    return Float.compare(this.getScore(), o.getScore());
   }
 }

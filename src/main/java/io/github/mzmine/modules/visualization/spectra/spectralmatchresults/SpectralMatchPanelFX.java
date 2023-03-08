@@ -224,15 +224,15 @@ public class SpectralMatchPanelFX extends GridPane {
 
     Node newComponent = null;
 
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
+    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
+    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
 
     // check for INCHI
-    if (inchiString != "N/A") {
+    if (!inchiString.equalsIgnoreCase("n/a") && !inchiString.isBlank()) {
       molecule = parseInChi(hit);
     }
     // check for smiles
-    else if (smilesString != "N/A") {
+    else if (!smilesString.equalsIgnoreCase("n/a") && !smilesString.isBlank()) {
       molecule = parseSmiles(hit);
     } else {
       molecule = null;
@@ -253,9 +253,9 @@ public class SpectralMatchPanelFX extends GridPane {
       metaDataPanel.getChildren().add(pnPreview2D);
     }
 
-    ColumnConstraints ccMetadata1 = new ColumnConstraints(META_WIDTH / 2, -1, Double.MAX_VALUE,
+    ColumnConstraints ccMetadata1 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
         Priority.NEVER, HPos.LEFT, false);
-    ColumnConstraints ccMetadata2 = new ColumnConstraints(META_WIDTH / 2, -1, Double.MAX_VALUE,
+    ColumnConstraints ccMetadata2 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
         Priority.NEVER, HPos.LEFT, false);
     ccMetadata1.setPercentWidth(50);
     ccMetadata2.setPercentWidth(50);
@@ -346,10 +346,12 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
   private IAtomContainer parseInChi(SpectralDBAnnotation hit) {
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
+    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
     InChIGeneratorFactory factory;
     IAtomContainer molecule;
-    if (inchiString != "N/A") {
+    if (inchiString.equalsIgnoreCase("n/a") || inchiString.isBlank()) {
+      return null;
+    }
       try {
         factory = InChIGeneratorFactory.getInstance();
         // Get InChIToStructure
@@ -362,25 +364,21 @@ public class SpectralMatchPanelFX extends GridPane {
         logger.log(Level.WARNING, errorMessage, e);
         return null;
       }
-    } else {
-      return null;
-    }
   }
 
   private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
     SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
+    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
     IAtomContainer molecule;
-    if (smilesString != "N/A") {
-      try {
-        molecule = smilesParser.parseSmiles(smilesString);
-        return molecule;
-      } catch (InvalidSmilesException e1) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e1);
-        return null;
-      }
-    } else {
+    if (smilesString.equalsIgnoreCase("n/a") || smilesString.isBlank()) {
+      return null;
+    }
+    try {
+      molecule = smilesParser.parseSmiles(smilesString);
+      return molecule;
+    } catch (InvalidSmilesException e1) {
+      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
+      logger.log(Level.WARNING, errorMessage, e1);
       return null;
     }
   }

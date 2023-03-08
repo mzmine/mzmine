@@ -63,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -238,7 +239,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   /**
    * Checks for isotope pattern in matched signals within mzToleranceSpectra
-   *
    */
   public static boolean checkForIsotopePattern(SpectralSimilarity sim,
       MZTolerance mzToleranceSpectra, int minMatchedIsoSignals) {
@@ -311,12 +311,19 @@ public class RowsSpectralMatchTask extends AbstractTask {
     if (rows != null) {
       logger.info(() -> String.format("Comparing %d library spectra to %d feature list rows",
           entries.size(), totalRows));
-      rows.stream().parallel().forEach(row -> {
+//      rows.stream().parallel().forEach(row -> {
+//        if (!isCanceled()) {
+//          matchRowToLibraries(entries, row);
+//          finishedRows.incrementAndGet();
+//        }
+//      });
+      // need to use completableFuture here because parallel stream does not wait and the current thread goes on
+      List<Void> list = rows.stream().map(row -> CompletableFuture.runAsync(() -> {
         if (!isCanceled()) {
           matchRowToLibraries(entries, row);
           finishedRows.incrementAndGet();
         }
-      });
+      })).map(CompletableFuture::join).toList();
 
       logger.info(() -> String.format("library matches=%d (Errors:%d); rows=%d; library entries=%d",
           getCount(), getErrorCount(), totalRows, entries.size()));
@@ -365,13 +372,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
             (IMSRawDataFile) mobScan.getDataFile());
       }
     } else if (scan instanceof MergedMsMsSpectrum merged
-        && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
+               && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
       MobilityScan mobScan = (MobilityScan) merged.getSourceSpectra().stream()
           .filter(MobilityScan.class::isInstance).max(Comparator.comparingDouble(
               s -> Objects.requireNonNullElse(((MobilityScan) s).getMobility(), 0d))).orElse(null);
@@ -379,7 +386,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && mobScan != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
             (IMSRawDataFile) mobScan.getDataFile());
@@ -419,7 +426,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
               rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
               mzToleranceSpectra, minMatchedIsoSignals)) && (best == null
-              || best.getSimilarity().getScore() < sim.getScore())) {
+                                                             || best.getSimilarity().getScore()
+                                                                < sim.getScore())) {
 
             Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
 

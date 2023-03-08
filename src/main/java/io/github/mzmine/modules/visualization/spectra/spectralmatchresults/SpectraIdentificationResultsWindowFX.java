@@ -133,7 +133,6 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     matchPanels = new HashMap<>();
     setCoupleZoomY(true);
 
-    show();
   }
 
   public void setCoupleZoomY(boolean selected) {
