@@ -25,11 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
-import java.util.Collection;
-
-import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 public class RTToleranceParameter implements UserParameter<RTTolerance, RTToleranceComponent> {
 
@@ -86,7 +85,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   }
 
   @Override
-  public void setValueToComponent(RTToleranceComponent component, RTTolerance newValue) {
+  public void setValueToComponent(RTToleranceComponent component, @Nullable RTTolerance newValue) {
     component.setValue(newValue);
   }
 

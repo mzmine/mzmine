@@ -33,6 +33,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.StackPane;
 import org.controlsfx.control.CheckListView;
+import org.jetbrains.annotations.Nullable;
 
 public class DataTypeCheckListComponent extends StackPane {
 
@@ -62,9 +63,13 @@ public class DataTypeCheckListComponent extends StackPane {
     return dataMap;
   }
 
-  public void setValue(Map<String, Boolean> map) {
+  public void setValue(@Nullable Map<String, Boolean> map) {
     dataTypes.clear();
-    map.keySet().stream().sorted().forEach(dt -> dataTypes.add(dt));
+    if (map == null) {
+      return;
+    }
+
+    map.keySet().stream().sorted().forEach(dataTypes::add);
     map.forEach((dt, b) -> {
       if (b) {
         checkList.getCheckModel().check(dt);

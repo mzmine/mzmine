@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class ComboFieldParameter<E extends Enum<?>> implements UserParameter<ComboFieldValue<E>, ComboFieldComponent<E>> {
@@ -84,7 +85,7 @@ public class ComboFieldParameter<E extends Enum<?>> implements UserParameter<Com
   }
 
   @Override
-  public void setValueToComponent(ComboFieldComponent<E> component, ComboFieldValue<E> newValue) {
+  public void setValueToComponent(ComboFieldComponent<E> component, @Nullable ComboFieldValue<E> newValue) {
     component.setValue(newValue);
   }
 

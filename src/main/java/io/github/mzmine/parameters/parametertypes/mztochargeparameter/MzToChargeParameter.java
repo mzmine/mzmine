@@ -31,6 +31,7 @@ import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.Map.Entry;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -135,7 +136,7 @@ public class MzToChargeParameter implements
 
   @Override
   public void setValueToComponent(MzToChargeComponent mzToChargeComponent,
-      RangeMap<Double, Integer> newValue) {
+      @Nullable RangeMap<Double, Integer> newValue) {
     mzToChargeComponent.setValue(newValue);
   }
 

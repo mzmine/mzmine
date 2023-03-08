@@ -35,6 +35,7 @@ import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -137,7 +138,7 @@ public class FeatureSelectionParameter
   }
 
   @Override
-  public void setValueToComponent(FeatureSelectionComponent component, List<FeatureSelection> newValue) {
+  public void setValueToComponent(FeatureSelectionComponent component, @Nullable List<FeatureSelection> newValue) {
     component.setValue(newValue);
   }
 
