@@ -532,7 +532,7 @@
     <Menu text="Massvoltammogram">
       <MenuItem text="From Raw Data File" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule"/>
-      <MenuItem text="From Ferature List" onAction="#runModule"
+      <MenuItem text="From Feature List" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
     </Menu>
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"

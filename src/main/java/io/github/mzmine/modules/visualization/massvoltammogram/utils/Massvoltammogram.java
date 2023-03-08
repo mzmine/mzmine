@@ -238,9 +238,11 @@ public class Massvoltammogram {
         }
       }
 
-      //Adding the scan to the list of scans and setting the MassSpectrumType to centroid.
-      scans.add(new MassvoltammogramScan(mzs, intensities, potential, MassSpectrumType.CENTROIDED));
-
+      //Adding the scan to the list of scans if features were found for the given potential.
+      if (!mzs.isEmpty() && !intensities.isEmpty()) {
+        scans.add(
+            new MassvoltammogramScan(mzs, intensities, potential, MassSpectrumType.CENTROIDED));
+      }
       //Increasing the potential by the potential step size.
       potential = potential + stepSize;
     }
