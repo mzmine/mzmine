@@ -106,7 +106,7 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
       try {
         // TODO put into separate method and add comments
         // get data points of matching scans
-        DataPoint[] spectraMassList = getDataPoints(scan, true);
+        DataPoint[] spectraMassList = getDataPoints(scan, scan.getPrecursorMz());
         List<DataPoint[]> alignedDataPoints = ScanAlignment.align(mzToleranceSpectra,
             match.getEntry().getDataPoints(), spectraMassList);
         List<DataPoint[]> alignedSignals = ScanAlignment.removeUnaligned(alignedDataPoints);

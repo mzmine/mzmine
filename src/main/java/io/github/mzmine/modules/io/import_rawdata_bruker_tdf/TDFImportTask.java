@@ -39,10 +39,7 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
@@ -82,8 +79,8 @@ import org.jetbrains.annotations.Nullable;
 public class TDFImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
-
   private final MZmineProject project;
+
   @Nullable
   private final MassDetector ms1Detector;
   @Nullable
@@ -92,9 +89,6 @@ public class TDFImportTask extends AbstractTask {
   private final ParameterSet ms1DetectorParam;
   @Nullable
   private final ParameterSet ms2DetectorParam;
-
-  private final boolean denoising = false;
-  private static final double NOISE_THRESHOLD = 9E0;
 
   private File fileNameToOpen;
   private File tdf, tdfBin;
@@ -132,8 +126,8 @@ public class TDFImportTask extends AbstractTask {
   /**
    * @param project
    * @param file
-   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
-   *                      MZmineCore#createNewIMSFile}.
+   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via
+   *                      {@link MZmineCore#createNewIMSFile}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -159,33 +153,19 @@ public class TDFImportTask extends AbstractTask {
       ms1DetectorParam = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
           .getEmbeddedParameter().getValue().getParameterSet();
     } else {
-      if (denoising) {
-        ms1Detector = MassDetectionParameters.centroid;
-        ms1DetectorParam = MZmineCore.getConfiguration()
-            .getModuleParameters(CentroidMassDetector.class).cloneParameterSet();
-        ms1DetectorParam.getParameter(CentroidMassDetectorParameters.noiseLevel)
-            .setValue(NOISE_THRESHOLD);
-        ms1DetectorParam.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
-      } else {
-        ms1Detector = null;
-        ms1DetectorParam = null;
-      }
+      ms1Detector = null;
+      ms1DetectorParam = null;
     }
     if (advancedParam != null && advancedParam.getParameter(
-        AdvancedSpectraImportParameters.msMassDetection).getValue()) {
+        AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
       ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection)
           .getEmbeddedParameter().getValue().getModule();
       ms2DetectorParam = advancedParam.getParameter(
               AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue()
           .getParameterSet();
     } else {
-      if (denoising) {
-        ms2Detector = ms1Detector;
-        ms2DetectorParam = ms1DetectorParam;
-      } else {
-        ms2Detector = null;
-        ms2DetectorParam = null;
-      }
+      ms2Detector = null;
+      ms2DetectorParam = null;
     }
   }
 
@@ -293,7 +273,7 @@ public class TDFImportTask extends AbstractTask {
     // collect average spectra for each frame
     Set<SimpleFrame> frames = new LinkedHashSet<>();
 
-   final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+    final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
 
     try {
       for (int i = 0; i < numFrames; i++) {
@@ -537,7 +517,7 @@ public class TDFImportTask extends AbstractTask {
 
   @Nullable
   private Frame getParentFrame(IMSRawDataFile file, Integer parentFrameNumber) {
-    if(parentFrameNumber == null) {
+    if (parentFrameNumber == null) {
       return null;
     }
     Optional<Frame> optionalFrame = (Optional<Frame>) file.getFrames().stream()

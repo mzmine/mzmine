@@ -83,6 +83,7 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
@@ -119,6 +120,8 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -230,7 +233,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // mass spectrometer
     params = steps.get(WizardPart.MS);
     polarity = getValue(params, MassSpectrometerWizardParameters.polarity);
-    noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.ms2NoiseLevel);
+    noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.msnNoiseLevel);
     noiseLevelMs1 = getValue(params, MassSpectrometerWizardParameters.ms1NoiseLevel);
     minFeatureHeight = getValue(params, MassSpectrometerWizardParameters.minimumFeatureHeight);
     mzTolScans = getValue(params, MassSpectrometerWizardParameters.scanToScanMzTolerance);
@@ -484,7 +487,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
-    param.setParameter(CorrelateGroupingParameters.GROUPSPARAMETER, false);
     param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);
     param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, noiseLevelMs1);
 
@@ -598,6 +600,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LibraryBatchGenerationParameters.mergeMzTolerance, true, mzTolScans);
     param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
     param.setParameter(LibraryBatchGenerationParameters.file, fileName);
+    param.setParameter(LibraryBatchGenerationParameters.postMergingMsLevelFilter,
+        new MsLevelFilter(Options.MSn));
     // chimerics
     param.setParameter(LibraryBatchGenerationParameters.handleChimerics, true);
     var chimerics = param.getParameter(LibraryBatchGenerationParameters.handleChimerics)
@@ -770,7 +774,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // if MS level 0 then apply to all scans
     param.setParameter(MassDetectionParameters.scanSelection,
-        new ScanSelection(msLevel < 1 ? null : msLevel));
+        new ScanSelection(MsLevelFilter.of(msLevel, true)));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
@@ -952,8 +956,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         param));
   }
 
-  protected void makeAndAddLibrarySearchStep(final BatchQueue q) {
-    if (!checkLibraryFiles()) {
+  protected void makeAndAddLibrarySearchStep(final BatchQueue q,
+      boolean libraryGenerationWorkflow) {
+    if (!libraryGenerationWorkflow && !checkLibraryFiles()) {
       return;
     }
 
@@ -963,8 +968,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(SpectralLibrarySearchParameters.peakLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(SpectralLibrarySearchParameters.libraries, new SpectralLibrarySelection());
-    param.setParameter(SpectralLibrarySearchParameters.msLevel, 2);
-    param.setParameter(SpectralLibrarySearchParameters.allMS2Spectra, false);
+    param.setParameter(SpectralLibrarySearchParameters.scanMatchingSelection,
+        ScanMatchingSelection.MERGED_MSN);
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
         new MZTolerance(0.01, 20));
     param.setParameter(SpectralLibrarySearchParameters.mzTolerance, new MZTolerance(0.01, 20));
@@ -992,7 +997,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     var advanced = param.getEmbeddedParameterValue(SpectralLibrarySearchParameters.advanced);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.cropSpectraToOverlap, false);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.deisotoping, false);
-    advanced.setParameter(AdvancedSpectralLibrarySearchParameters.noiseLevel, false, 0d);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.needsIsotopePattern, false);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.rtTolerance, false);
     advanced.setParameter(AdvancedSpectralLibrarySearchParameters.ccsTolerance, false, 0.05);

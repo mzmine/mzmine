@@ -38,8 +38,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
@@ -49,7 +51,8 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   public static final StringParameter peakListName = new StringParameter("Feature list name",
       "Feature list name", "Aligned feature list");
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE);
 
   public static final DoubleParameter MZWeight = new DoubleParameter("Weight for m/z",
       "Score for perfectly matching m/z values");
@@ -103,5 +106,14 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZTolerance);
+    return nameParameterMap;
   }
 }

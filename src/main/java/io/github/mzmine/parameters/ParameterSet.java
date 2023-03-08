@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
@@ -219,4 +220,11 @@ public interface ParameterSet extends ParameterContainer {
         .anyMatch(p -> p instanceof UserParameter<?, ?> && !(p instanceof HiddenParameter));
   }
 
+  /**
+   * @return true if parameter name is in list of parameter
+   */
+  default boolean hasParameter(Parameter<?> p) {
+    return Arrays.stream(getParameters()).map(Parameter::getName)
+        .anyMatch(name -> Objects.equals(p.getName(), name));
+  }
 }

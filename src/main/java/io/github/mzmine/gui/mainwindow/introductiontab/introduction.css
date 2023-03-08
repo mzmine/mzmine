@@ -84,3 +84,15 @@
 body {
 	font-family: "system";
 }
+
+a:link {
+  color: #008eff;
+}
+
+a:visited {
+  color: #008eff;
+}
+
+a:hover {
+  color: #f58f2e;
+}

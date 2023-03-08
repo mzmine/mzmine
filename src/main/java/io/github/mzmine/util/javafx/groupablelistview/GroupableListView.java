@@ -75,15 +75,18 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
           var items = change.getList();
 
           // set all new selections at once to trigger only one event on ObservableList
-          selectedGroups.setAll(items.stream().filter(Objects::nonNull).filter(item -> item instanceof GroupEntity).map(item -> (GroupEntity) item).toList());
+          selectedGroups.setAll(
+              items.stream().filter(Objects::nonNull).filter(item -> item instanceof GroupEntity)
+                  .map(item -> (GroupEntity) item).toList());
           // if group is selected, select all internal data files
-          selectedValues.setAll((List<T>) items.stream().filter(Objects::nonNull).map(item -> {
-            if(item instanceof GroupEntity ge)
-              return listGroups.get(ge).stream().map(ValueEntity::getValue);
-            else {
-              return ((ValueEntity<T>) item).getValue();
-            }
-          }).toList());
+          selectedValues.setAll(items.stream().filter(Objects::nonNull).<T>mapMulti((item, consumer) -> {
+                if (item instanceof GroupEntity ge) {
+                  listGroups.get(ge).stream().map(ValueEntity::getValue).filter(Objects::nonNull)
+                      .forEach(consumer::accept);
+                } else {
+                  consumer.accept(((ValueEntity<T>) item).getValue());
+                }
+              }).toList());
         }
       }
     });

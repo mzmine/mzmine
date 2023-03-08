@@ -46,6 +46,7 @@ public class ScanSelectionParameter extends
     EmbeddedParameterSet<ScanSelectionFiltersParameters, ScanSelection> {
 
 
+  public static final String DEFAULT_NAME = "Scan filters";
   private final ScanSelectionFiltersParameters embeddedParameters;
   private @NotNull ScanSelection value;
   private boolean active;
@@ -55,7 +56,7 @@ public class ScanSelectionParameter extends
   }
 
   public ScanSelectionParameter(@NotNull ScanSelection defaultValue) {
-    this("Scan filters", "Select scans that should be included.", defaultValue);
+    this(DEFAULT_NAME, "Select scans that should be included.", defaultValue);
   }
 
   public ScanSelectionParameter(String name, String description,
@@ -133,6 +134,7 @@ public class ScanSelectionParameter extends
       embeddedParameters.loadValuesFromXML(xmlElement);
       String selectedAttr = xmlElement.getAttribute("selected");
       this.active = requireNonNullElse(Boolean.valueOf(selectedAttr), false);
+      setValue(active, createFilter());
     } else {
       legacyLoadValueFromXML(xmlElement);
     }

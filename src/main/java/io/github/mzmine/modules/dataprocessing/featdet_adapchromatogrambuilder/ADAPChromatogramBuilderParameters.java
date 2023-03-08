@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.Map;
@@ -72,10 +73,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       """, MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-      "Scan to scan accuracy (m/z)", """
-      m/z tolerance of the same compound between two scans.
-      This does not describe the deviation of the accurate mass (measured) from the exact mass (calculated),
-      but the fluctuation of the accurate between two scans.""", 0.002, 10);
+      ToleranceType.SCAN_TO_SCAN, 0.002, 10);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "chromatograms");
@@ -157,6 +155,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     nameParameterMap.put("Group intensity threshold", minGroupIntensity);
     nameParameterMap.put("Min highest intensity", minHighestPoint);
     nameParameterMap.put("Scans", scanSelection);
+    nameParameterMap.put("Scan to scan accuracy (m/z)", mzTolerance);
     return nameParameterMap;
   }
 }
