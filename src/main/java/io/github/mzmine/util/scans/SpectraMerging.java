@@ -351,7 +351,7 @@ public class SpectraMerging {
     final MsMsInfo copy = info.createCopy();
     copy.setMsMsScan(frame);
     return new SimpleMergedMsMsSpectrum(storage, merged[0], merged[1], copy, frame.getMSLevel(),
-        mobilityScans, intensityMergingType, cf, MergingType.ALL_ENERGIES);
+        mobilityScans, intensityMergingType, cf, MergingType.PASEF_SINGLE);
   }
 
   /**
