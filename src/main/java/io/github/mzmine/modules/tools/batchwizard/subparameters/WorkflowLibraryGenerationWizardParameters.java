@@ -30,7 +30,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import java.io.File;
 
 public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWizardParameters {
@@ -38,7 +38,7 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
-      "Export for GNPS FBMN/IIMN",
+      "Export for molecular networking (e.g., GNPS, FBMN, IIMN, MetGem)",
       "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
       true);
 
@@ -47,7 +47,7 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
       FileSelectionType.SAVE, false);
 
 
-  public static final SubModuleParameter<LibraryBatchMetadataParameters> metadata = new SubModuleParameter<>(
+  public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
 

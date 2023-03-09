@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -44,10 +46,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -122,38 +121,21 @@ public class ConversionUtils {
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
     double[] mzs = scan.getMzValues();
     double[] intensities = convertFloatsToDoubles(scan.getIntensityValues());
-    // we are sorting at this point to make sure mz are sorted, as not all mzML files are sorted
-    // latest converters should also ensure sorting of data points
-    // the other method uses sorted arrays
-    double[][] sorted = DataPointUtils.sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
-    return msdkScanToSimpleScan(rawDataFile, scan, sorted[0], sorted[1]);
-  }
-
-  /**
-   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
-   *
-   * @param scan              the scan
-   * @param sortedMzs         use these mz values instead of the scan data
-   * @param sortedIntensities use these intensity values instead of the scan data
-   * @return a {@link SimpleScan}
-   */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan,
-      double[] sortedMzs, double[] sortedIntensities) {
-    return msdkScanToSimpleScan(rawDataFile, scan, sortedMzs, sortedIntensities,
+    return msdkScanToSimpleScan(rawDataFile, scan, mzs, intensities,
         ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
   }
 
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
-   * @param scan              the scan
-   * @param sortedMzs         use these mz values instead of the scan data
-   * @param sortedIntensities use these intensity values instead of the scan data
-   * @param spectrumType      override spectrum type
+   * @param scan         the scan
+   * @param mzs          use these mz values instead of the scan data
+   * @param intensities  use these intensity values instead of the scan data
+   * @param spectrumType override spectrum type
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan,
-      double[] sortedMzs, double[] sortedIntensities, MassSpectrumType spectrumType) {
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
+      double[] intensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
       final var precursorElements = scan.getPrecursorList().getPrecursorElements();
@@ -168,14 +150,14 @@ public class ConversionUtils {
     try {
       injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
           .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
-          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
-          .orElse(null);
+          .map(p -> p.getValue().map(Float::parseFloat)).filter(Optional::isPresent)
+          .map(Optional::get).findFirst().orElse(null);
     } catch (Exception e) {
       // float parsing error
     }
-
+    float retentionTimeInMinutes = requireNonNullElse(scan.getRetentionTime(), 0f) / 60;
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, info, sortedMzs, sortedIntensities, spectrumType,
+        retentionTimeInMinutes, info, mzs, intensities, spectrumType,
         ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
         scan.getScanningRange(), injTime);
 
@@ -256,9 +238,10 @@ public class ConversionUtils {
         }
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(isolationMz,
-              Objects.requireNonNullElse(colissionEnergy, PasefMsMsInfo.UNKNOWN_COLISSIONENERGY)
-                  .floatValue(), Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE),
-              currentFrameNumber, currentScanNumber);
+              requireNonNullElse(colissionEnergy,
+                  PasefMsMsInfo.UNKNOWN_COLISSIONENERGY).floatValue(),
+              requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
+              currentScanNumber);
           buildingInfos.add(info);
         }
       }

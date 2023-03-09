@@ -30,15 +30,16 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.Map;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class HierarAlignerGCParameters extends SimpleParameterSet {
@@ -59,7 +60,8 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
       "What strategy shall be used for the clustering algorithm decision making (See: \"Hierarchical clustering\" algorithms in general).",
       ClusteringLinkageStrategyType.values(), ClusteringLinkageStrategyType.AVERAGE);
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE);
   public static final DoubleParameter MZWeight = new DoubleParameter("Weight for m/z",
       "Weight for chemical similarity. Score for perfectly matching m/z values.");
 
@@ -113,4 +115,13 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/align_hierarch/align_hierarch.html");
   }
 
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZTolerance);
+    return nameParameterMap;
+  }
 }

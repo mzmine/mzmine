@@ -270,7 +270,7 @@ public interface FeatureListRow extends ModularDataModel {
   Scan getMostIntenseFragmentScan();
 
   /**
-   * Returns all fragmentation scans of this row
+   * Returns all fragmentation scans of this row - a new ArrayList
    */
   @NotNull List<Scan> getAllFragmentScans();
 

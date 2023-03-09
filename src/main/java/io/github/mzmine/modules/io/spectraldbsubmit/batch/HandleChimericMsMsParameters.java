@@ -37,7 +37,6 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
@@ -67,12 +66,12 @@ public class HandleChimericMsMsParameters extends SimpleParameterSet {
           + "isolation tolerance is greater than X% of the main signal.", 0.25);
 
   public static final ComboParameter<ChimericMsOption> option = new ComboParameter<>(
-      "Handle chimeric spectra",
+      "Chimeric spectra",
       "Options to handle spectra with multiple signals in the isolation range",
       ChimericMsOption.values(), ChimericMsOption.FLAG);
 
   public HandleChimericMsMsParameters() {
-    super(new Parameter[]{mainMassWindow, isolationWindow, allowedOtherSignals, option});
+    super(mainMassWindow, isolationWindow, allowedOtherSignals, option);
   }
 
 

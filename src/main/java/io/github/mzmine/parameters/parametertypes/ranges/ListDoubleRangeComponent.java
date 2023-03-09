@@ -63,7 +63,7 @@ public class ListDoubleRangeComponent extends GridPane {
 
   public List<Range<Double>> getValue() {
     try {
-      return dulab.adap.common.algorithms.String.toRanges(textField.getText());
+      return dulab.adap.common.algorithms.String.toRanges(inputField.getText());
     } catch (Exception e) {
       return null;
     }

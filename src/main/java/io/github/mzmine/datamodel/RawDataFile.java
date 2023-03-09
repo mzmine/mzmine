@@ -25,9 +25,12 @@
 
 package io.github.mzmine.datamodel;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,6 +68,25 @@ public interface RawDataFile {
    * file space or was created as a dummy file by mzTab-m import.
    */
   @Nullable String getAbsolutePath();
+
+  /**
+   * @return The absolute path this file was loaded from. or a file of getName() if no path was
+   * provided
+   */
+  default @NotNull File getAbsoluteFilePath() {
+    return new File(requireNonNullElse(getAbsolutePath(), getName()));
+  }
+
+  /**
+   * Uses the absolute file path first, if null then use the name which might have been changed by
+   * the user
+   *
+   * @return usually the file.extension as in File.getName()
+   */
+  default String getFileName() {
+    var path = getAbsolutePath();
+    return path != null ? new File(path).getName() : getName();
+  }
 
   int getNumOfScans();
 
@@ -272,4 +294,5 @@ public interface RawDataFile {
    */
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
+
 }

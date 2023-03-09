@@ -42,10 +42,12 @@ public class MobilityToleranceComponent extends BorderPane {
   }
 
   public MobilityTolerance getValue() {
-    final String valueString = toleranceField.getText();
-    final Number toleranceValue = Float.parseFloat(valueString);
-    final float tolerance = toleranceValue.floatValue();
-    return new MobilityTolerance(tolerance);
+    try {
+      final String valueString = toleranceField.getText();
+      return new MobilityTolerance(Float.parseFloat(valueString));
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public void setValue(MobilityTolerance value) {

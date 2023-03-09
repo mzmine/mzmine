@@ -41,18 +41,18 @@ public final class IonInterfaceHplcWizardParameters extends IonInterfaceWizardPa
       "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ");
 
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
-      "Intra-sample RT tolerance",
+      "RT tolerance (intra-sample)",
       "Retention time tolerance for multiple signals of the same compound in the same "
           + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.");
 
   public static final RTToleranceParameter interSampleRTTolerance = new RTToleranceParameter(
-      "Inter-sample RT tolerance",
+      "RT tolerance (sample-to-sample)",
       "Retention time tolerance for the same compound in different samples.\n"
           + "Used to align multiple measurements of the same sample or a batch run.");
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Min # of data points",
-      "Minimum number of data points as used in chromatogram building and feature resolving.", 4, 1,
+      "Minimum consecutive scans",
+      "Minimum number of consecutive scans with detected data points as used in chromatogram building and feature resolving.", 4, 1,
       Integer.MAX_VALUE);
 
   public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
