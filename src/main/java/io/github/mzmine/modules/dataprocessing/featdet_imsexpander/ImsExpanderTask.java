@@ -78,6 +78,7 @@ public class ImsExpanderTask extends AbstractTask {
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final int binWidth;
   private final int maxNumTraces;
+  private final OriginalFeatureListOption handleOriginal;
   private String desc = "Mobility expanding.";
   private long totalRows = 1;
   private long createdRows = 0;
@@ -100,6 +101,7 @@ public class ImsExpanderTask extends AbstractTask {
         ? parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getEmbeddedParameter()
         .getValue() : BinningMobilogramDataAccess.getRecommendedBinWidth(
         (IMSRawDataFile) flist.getRawDataFile(0));
+    handleOriginal = this.parameters.getParameter(ImsExpanderParameters.handleOriginal).getValue();
   }
 
   @Override
@@ -149,6 +151,16 @@ public class ImsExpanderTask extends AbstractTask {
         row -> new ExpandingTrace((ModularFeatureListRow) row,
             useMzToleranceRange ? mzTolerance.getToleranceRange(row.getAverageMZ())
                 : row.getFeature(imsFile).getRawDataPointsMZRange())).toList());
+
+    if (expandingTraces.isEmpty()) {
+      newFlist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
+              getModuleCallDate()));
+      handleOriginal.reflectNewFeatureListToProject(SUFFIX, project, newFlist, flist);
+      setStatus(TaskStatus.FINISHED);
+      desc = "No traces in feature list " + flist.getName();
+      return;
+    }
 
     final List<Frame> frames = (List<Frame>) flist.getSeletedScans(flist.getRawDataFile(0));
     assert frames != null;
@@ -239,9 +251,6 @@ public class ImsExpanderTask extends AbstractTask {
     newFlist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
             getModuleCallDate()));
-    final OriginalFeatureListOption handleOriginal = parameters.getParameter(
-        ImsExpanderParameters.handleOriginal).getValue();
-    // add new list / remove old if requested
     handleOriginal.reflectNewFeatureListToProject(SUFFIX, project, newFlist, flist);
     setStatus(TaskStatus.FINISHED);
   }
