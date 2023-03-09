@@ -613,23 +613,21 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   /**
-   * Weak polarity check. If in doubt (e.g. either the polarityString or polarity is null or
-   * unknown) this returns true.
+   * Weak polarity check. If in doubt (e.g. either the entryPolarityString or scanPolarity is null
+   * or unknown) this returns true.
    *
-   * @param polarityString the polarity string
-   * @param polarity       The spectrum polarity
+   * @param entryPolarityString the scanPolarity string
+   * @param scanPolarity        The spectrum scanPolarity
    * @return false if both polarities are defined and do not match, true otherwise.
    */
-  public boolean weakPolarityCheck(String polarityString, PolarityType polarity) {
-    if (polarity == null || polarity == PolarityType.UNKNOWN) {
+  public boolean weakPolarityCheck(String entryPolarityString, PolarityType scanPolarity) {
+    if (scanPolarity == null || scanPolarity == PolarityType.UNKNOWN) {
       return true;
     }
-    return switch (polarityString) {
-      case null, default -> true;
-      case "+", "Positive", "POSITIVE", "positive", "pos", "+1" ->
-          polarity == PolarityType.POSITIVE;
-      case "-", "Negative", "NEGATIVE", "negative", "neg", "-1" ->
-          polarity == PolarityType.NEGATIVE;
-    };
+    final PolarityType entryPolarity = PolarityType.parseFromString(entryPolarityString);
+    if (entryPolarity != PolarityType.UNKNOWN) {
+      return entryPolarity == scanPolarity;
+    }
+    return true;
   }
 }
