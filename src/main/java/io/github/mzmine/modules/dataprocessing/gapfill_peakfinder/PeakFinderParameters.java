@@ -35,6 +35,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class PeakFinderParameters extends SimpleParameterSet {
@@ -47,7 +49,8 @@ public class PeakFinderParameters extends SimpleParameterSet {
   public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
       "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE);
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
@@ -64,8 +67,18 @@ public class PeakFinderParameters extends SimpleParameterSet {
 
   public PeakFinderParameters() {
     super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance, RTCorrection,
-        useParallel, handleOriginal},
+            useParallel, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_peak_finder/gap-filling.html");
+  }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZTolerance);
+    return nameParameterMap;
   }
 
   @Override

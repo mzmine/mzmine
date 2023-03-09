@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -34,15 +35,15 @@ import org.w3c.dom.Element;
 
 /**
  * Combo Parameter implementation
- *
  */
 public class ComboParameter<ValueType> implements UserParameter<ValueType, ComboBox<ValueType>> {
 
-  private String name, description;
-  private ObservableList<ValueType> choices;
+  private final String name;
+  private final String description;
+  private final ObservableList<ValueType> choices;
   protected ValueType value;
 
-  public ComboParameter(String name, String description, ValueType choices[]) {
+  public ComboParameter(String name, String description, ValueType[] choices) {
     this(name, description, choices, null);
   }
 
@@ -51,21 +52,18 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
     this(name, description, FXCollections.observableArrayList(choices), defaultValue);
   }
 
-  public ComboParameter(String name, String description, ObservableList<ValueType> choices) {
+  public ComboParameter(String name, String description, List<ValueType> choices) {
     this(name, description, choices, null);
   }
 
-  public ComboParameter(String name, String description, ObservableList<ValueType> choices,
+  public ComboParameter(String name, String description, List<ValueType> choices,
       ValueType defaultValue) {
     this.name = name;
     this.description = description;
-    this.choices = choices;
+    this.choices = FXCollections.observableList(choices);
     this.value = defaultValue;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
@@ -87,7 +85,7 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
     return choices;
   }
 
-  public void setChoices(ValueType newChoices[]) {
+  public void setChoices(ValueType[] newChoices) {
     choices.clear();
     choices.addAll(newChoices);
   }
@@ -117,8 +115,9 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
   @Override
   public void loadValueFromXML(Element xmlElement) {
     String elementString = xmlElement.getTextContent();
-    if (elementString.length() == 0)
+    if (elementString.length() == 0) {
       return;
+    }
     for (ValueType option : choices) {
       if (option.toString().equals(elementString)) {
         value = option;
@@ -129,8 +128,9 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     xmlElement.setTextContent(value.toString());
   }
 

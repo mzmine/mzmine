@@ -29,50 +29,62 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter("Scan " + "selection",
-          "Filter scans based on their properties. Different noise levels ( -> mass "
-              + "lists) are recommended for MS1 and MS/MS scans",
-          new ScanSelection());
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      ScanSelectionParameter.DEFAULT_NAME,
+      "Filter scans based on their properties. Different noise levels ( -> mass "
+          + "lists) are recommended for MS1 and MS/MS scans", new ScanSelection());
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      ToleranceType.SCAN_TO_SCAN,
       "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.005, 10,
       false);
 
   public static final IntegerParameter minDataPointsRt = new IntegerParameter(
-      "Minimum consecutive retention time data points",
+      "Minimum consecutive scans (RT)",
       "Minimum number of consecutive time resolved data points in an ion mobility trace."
-          + " In other words, chromatographic peak width in number of data points",
-      7);
+          + " In other words, chromatographic peak width in number of data points", 7);
 
-  public static final IntegerParameter minTotalSignals =
-      new IntegerParameter("Minimum total Signals",
-          "Minimum number of signals (data points) in an ion mobility trace", 200);
+  public static final IntegerParameter minTotalSignals = new IntegerParameter(
+      "Minimum total Signals", "Minimum number of signals (data points) in an ion mobility trace",
+      200);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "ionmobilitytrace");
 
-  public static final ParameterSetParameter advancedParameters =
-      new ParameterSetParameter("Advanced parameters",
-          "Allows adjustment of internal binning parameters for mobilograms",
-          new AdvancedImsTraceBuilderParameters());
+  public static final ParameterSetParameter advancedParameters = new ParameterSetParameter(
+      "Advanced parameters", "Allows adjustment of internal binning parameters for mobilograms",
+      new AdvancedImsTraceBuilderParameters());
 
   public IonMobilityTraceBuilderParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
-        minTotalSignals, suffix, advancedParameters},
+    super(
+        new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt, minTotalSignals,
+            suffix, advancedParameters},
         "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ims-ms_featdet/featdet_ion_mobility_trace_builder/ion-mobility-trace-builder.html");
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Scan selection", scanSelection);
+    nameParameterMap.put("m/z tolerance", mzTolerance);
+    nameParameterMap.put("Minimum consecutive retention time data points", minDataPointsRt);
+    return nameParameterMap;
   }
 
   @NotNull

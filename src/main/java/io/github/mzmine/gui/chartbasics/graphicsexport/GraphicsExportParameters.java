@@ -25,15 +25,14 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.DimensionUnitUtil;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
 import io.github.mzmine.util.ExitCode;
@@ -46,12 +45,12 @@ import org.jfree.chart.JFreeChart;
 
 public class GraphicsExportParameters extends SimpleParameterSet {
 
-  public enum FixedSize {
-    Chart, Plot;
-  }
-
-  public static final FileNameParameter path =
-      new FileNameParameter("Path", "The file path", FileSelectionType.SAVE);
+  public static final FileNameParameter path = new FileNameParameter("Path", "The file path",
+      FileSelectionType.SAVE);
+  public static final OptionalParameter<DoubleParameter> height = new OptionalParameter<DoubleParameter>(
+      new DoubleParameter("Height",
+          "Only uses width if height is unchecked. Otherwise uses fixed height for the chart or plot",
+          DecimalFormat.getInstance(), 8.0));
 
   public static final DoubleParameter width = new DoubleParameter("Width",
       "Uses fixed width for the chart or plot", DecimalFormat.getInstance(), 15.0);
@@ -59,19 +58,14 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   public static final DoubleParameter dpi = new DoubleParameter("Resolution (dpi)",
       "dots per inch resolution (for print usually 300 up to 600 dpi)", DecimalFormat.getInstance(),
       300.0);
-
-  public static final OptionalParameter<DoubleParameter> height =
-      new OptionalParameter<DoubleParameter>(new DoubleParameter("Height",
-          "Only uses width if height is unchecked. Otherwise uses fixed height for the chart or plot",
-          DecimalFormat.getInstance(), 8.0));
-
   public static final ComboParameter<String> exportFormat = new ComboParameter<String>("Format",
-      "The image export format", new String[] {"PDF", "EMF", "EPS", "SVG", "JPG", "PNG"}, "PNG");
-
-  public static final ComboParameter<FixedSize> fixedSize =
-      new ComboParameter<FixedSize>("Fixed size for",
-          "Fixed size for the plot (the data space without axes and titles) or the whole chart.",
-          FixedSize.values(), FixedSize.Chart);
+      "The image export format", new String[]{"PDF", "EMF", "EPS", "SVG", "JPG", "PNG"}, "PNG");
+  public static final ComboParameter<FixedSize> fixedSize = new ComboParameter<FixedSize>(
+      "Fixed size for",
+      "Fixed size for the plot (the data space without axes and titles) or the whole chart.",
+      FixedSize.values(), FixedSize.Chart);
+  public static final ColorPaletteParameter colorPalette = new ColorPaletteParameter(
+      "Color palette", "The color palette used for export.");
 
   public static final DoubleParameter alpha = new DoubleParameter("Transparency",
       "Transparency from 0.0-1.0 (fully visible)", DecimalFormat.getInstance(), 1.0, 0.0, 1.0);
@@ -82,11 +76,9 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   public static final ParameterSetParameter chartParameters = new ParameterSetParameter(
       "Chart parameters", "Manually set the chart parameters", (new ExportChartThemeParameters()));
 
-  public static final ColorPaletteParameter colorPalette = new ColorPaletteParameter("Color palette", "The color palette used for export.");
-
   public GraphicsExportParameters() {
-    super(new Parameter[]{path, unit, exportFormat, fixedSize, width, height, dpi, alpha,
-        chartParameters, colorPalette});
+    super(path, unit, exportFormat, fixedSize, width, height, dpi, alpha, chartParameters,
+        colorPalette);
     height.setValue(true);
   }
 
@@ -94,11 +86,22 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
     assert Platform.isFxApplicationThread();
 
-    if ((getParameters() == null) || (getParameters().length == 0))
+    if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
+    }
     GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(valueCheckRequired, this, chart);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  /**
+   * Converts the pixel value to the specified unit
+   *
+   * @param size as pixel
+   */
+  public void setPixelSize(Dimension size) {
+    setWidthPixel(size.getWidth());
+    setHeightPixel(size.getHeight());
   }
 
   /**
@@ -219,20 +222,15 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   /**
    * Converts the pixel value to the specified unit
    *
-   * @param value as pixel
-   */
-  public void setPixelSize(Dimension size) {
-    setWidthPixel(size.getWidth());
-    setHeightPixel(size.getHeight());
-  }
-
-  /**
-   * Converts the pixel value to the specified unit
-   *
-   * @param value as pixel
+   * @param w as pixel
+   * @param h as pixel
    */
   public void setPixelSize(double w, double h) {
     setWidthPixel(w);
     setHeightPixel(h);
+  }
+
+  public enum FixedSize {
+    Chart, Plot
   }
 }

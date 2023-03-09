@@ -33,6 +33,10 @@ public enum PolarityType {
   POSITIVE(+1, "+"), //
   NEGATIVE(-1, "-"), //
   NEUTRAL(0, "n"), //
+  /**
+   * Any is used in filters
+   */
+  ANY(0, "Any"), //
   UNKNOWN(0, "?");
 
   private final int sign;
@@ -43,33 +47,39 @@ public enum PolarityType {
     this.charValue = charValue;
   }
 
-  /**
-   * @return +1 for positive polarity, -1 for negative polarity, and 0 for neutral or unknown
-   *         polarity.
-   */
-  public int getSign() {
-    return sign;
+  public static PolarityType fromSingleChar(String s) {
+    for (PolarityType p : values()) {
+      if (p.charValue.equals(s)) {
+        return p;
+      }
+    }
+    return UNKNOWN;
+  }
+
+  public static PolarityType fromInt(int i) {
+    if (i == 0) {
+      return UNKNOWN;
+    } else if (i < 0) {
+      return NEGATIVE;
+    } else {
+      return POSITIVE;
+    }
   }
 
   public String asSingleChar() {
     return charValue;
   }
 
-  public static PolarityType fromSingleChar(String s) {
-    for (PolarityType p : values()) {
-      if (p.charValue.equals(s))
-        return p;
-    }
-    return UNKNOWN;
+  /**
+   * @return +1 for positive polarity, -1 for negative polarity, and 0 for neutral or unknown
+   * polarity.
+   */
+  public int getSign() {
+    return sign;
   }
 
-  public static PolarityType fromInt(int i) {
-    if(i == 0) {
-      return UNKNOWN;
-    } else if(i < 0) {
-      return NEGATIVE;
-    } else {
-      return POSITIVE;
-    }
+  @Override
+  public String toString() {
+    return asSingleChar();
   }
 }

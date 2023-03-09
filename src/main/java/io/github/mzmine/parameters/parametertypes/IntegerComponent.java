@@ -24,11 +24,13 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.parameters.ValueChangeDecorator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
-public class IntegerComponent extends FlowPane {
+public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
 
 
   private final Integer minimum, maximum;
@@ -46,6 +48,7 @@ public class IntegerComponent extends FlowPane {
     }
 
     getChildren().add(textField);
+
   }
 
   public void setText(String text) {
@@ -92,19 +95,23 @@ public class IntegerComponent extends FlowPane {
    * 
    * verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText())); } catch (final
    * NumberFormatException e) {
-   * 
+   *
    * // not a number. }
-   * 
+   *
    * return verified; } }
    */
-
   public TextField getTextField() {
     return textField;
   }
 
+  @Override
+  public void addValueChangedListener(final Runnable onChange) {
+    textField.textProperty().addListener((observable, oldValue, newValue) -> onChange.run());
+  }
+
   /**
    * Add a document listener to the underlying textfield (see {@link DelayedDocumentListener}
-   * 
+   *
    * @param dl
    */
   /*

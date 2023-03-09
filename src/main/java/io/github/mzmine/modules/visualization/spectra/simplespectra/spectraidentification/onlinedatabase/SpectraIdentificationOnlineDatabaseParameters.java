@@ -30,7 +30,7 @@ import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabas
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**

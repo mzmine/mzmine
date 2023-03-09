@@ -28,8 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.NeutralMassParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 

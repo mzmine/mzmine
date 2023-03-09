@@ -26,11 +26,8 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -130,6 +127,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
     } else {
 
+      List<String> newErrors = new ArrayList<>();
       // Check each step.
       for (final MZmineProcessingStep<?> batchStep : value) {
 
@@ -139,15 +137,15 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
           continue;
         }
 
-        for (final Parameter<?> parameter : params.getParameters()) {
+        if (!params.checkParameterValues(newErrors, true)) {
+          allParamsOK = false;
+        }
 
-          // Ignore the raw data files and feature lists parameters
-          if (!(parameter instanceof RawDataFilesParameter)
-              && !(parameter instanceof FeatureListsParameter) && !parameter.checkValue(
-              errorMessages)) {
-            allParamsOK = false;
-
-          }
+        if (!newErrors.isEmpty()) {
+          // add module name and
+          errorMessages.add("\n%s:".formatted(batchStep.getModule().getName()));
+          errorMessages.addAll(newErrors);
+          newErrors.clear();
         }
       }
     }

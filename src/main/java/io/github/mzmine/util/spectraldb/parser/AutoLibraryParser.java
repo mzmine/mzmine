@@ -52,6 +52,11 @@ public class AutoLibraryParser extends SpectralDBParser {
   }
 
   @Override
+  public int getProcessedEntries() {
+    return subParser == null ? 0 : subParser.getProcessedEntries();
+  }
+
+  @Override
   public double getProgress() {
     return subParser == null ? 0 : subParser.getProgress();
   }

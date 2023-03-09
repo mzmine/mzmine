@@ -29,9 +29,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -84,7 +85,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   private final NumberFormat mobilityFormat;
 
   private MZTolerance mzTolerance;
-  private ScanSelection scanSelection;
+  private MsLevelFilter scanSelection;
   private Float rtWidth;
   private Integer binWidth;
   private ListView<Range<Double>> mobilogramRangesList;
@@ -92,9 +93,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
   private DoubleRangeComponent mobilogramRangeComp;
+  private MsLevelFilterParameter msLevelFilterParameter;
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
-      double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection,
+      double mobilityScanNoiseLevel, MZTolerance mzTolerance, MsLevelFilter scanSelection,
       Float rtWidth, Integer binWidth) {
     this.pane = pane;
     this.frameNoiseLevel = frameNoiseLevel;
@@ -120,8 +122,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     MZToleranceComponent mzToleranceComponent = new MZToleranceComponent();
     mzToleranceComponent.setValue(mzTolerance);
     DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat, 2d);
-    ScanSelectionComponent scanSelectionComponent = new ScanSelectionComponent();
-    scanSelectionComponent.setValue(scanSelection);
+
+    msLevelFilterParameter = new MsLevelFilterParameter(TOOLTIP_SCANSEL,
+        new Options[]{Options.MS1, Options.MS2}, scanSelection);
+    var scanSelectionComponent = msLevelFilterParameter.createEditingComponent();
     IntegerComponent binWidthComponent = new IntegerComponent(100, 1, 10);
     binWidthComponent.setText(binWidth.toString());
 
@@ -198,12 +202,13 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
         rtWidth = Float.parseFloat(rtWidthComponent.getText());
         rtWidthComponent.setText(rtFormat.format(rtWidth));
-        scanSelection = scanSelectionComponent.getValue();
+        msLevelFilterParameter.setValueFromComponent(scanSelectionComponent);
+        scanSelection = msLevelFilterParameter.getValue();
         mzTolerance = mzToleranceComponent.getValue();
         binWidth = Integer.parseInt(binWidthComponent.getText());
 
         pane.setMzTolerance(mzTolerance);
-        pane.setScanSelection(scanSelection);
+        pane.setMsLevelFilter(scanSelection);
         pane.setFrameNoiseLevel(frameNoiseLevel);
         pane.setMobilityScanNoiseLevel(mobilityScanNoiseLevel);
         pane.setRtWidth(rtWidth);
@@ -264,11 +269,11 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     this.mzTolerance = mzTolerance;
   }
 
-  public ScanSelection getScanSelection() {
+  public MsLevelFilter getMsLevelFilter() {
     return scanSelection;
   }
 
-  public void setScanSelection(ScanSelection scanSelection) {
+  public void setMsLevelFilter(MsLevelFilter scanSelection) {
     this.scanSelection = scanSelection;
   }
 

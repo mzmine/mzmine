@@ -25,10 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
@@ -48,13 +47,12 @@ public class JoinAlignerSpectraSimilarityScoreParameters extends SimpleParameter
       "Choose the MS level of the scans that should be compared. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
       2, 1, 1000);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
-      new ModuleComboParameter<>("Compare spectra similarity",
-          "Algorithm to calculate similarity and filter matches",
-          SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
+  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+      "Compare spectra similarity", "Algorithm to calculate similarity and filter matches",
+      SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
   public JoinAlignerSpectraSimilarityScoreParameters() {
-    super(new Parameter[]{mzTolerance, msLevel, similarityFunction});
+    super(mzTolerance, msLevel, similarityFunction);
   }
 
 }
