@@ -157,6 +157,11 @@ public class ImsExpanderTask extends AbstractTask {
     // the traces and not frames, we can also directly store the raw data on the SSD/HDD as soon as
     // a thread finishes. Thereby we can reduce the memory consumption, especially in images.
     final int tracesPerList = Math.min(expandingTraces.size() / NUM_THREADS, maxNumTraces);
+    if (tracesPerList == 0) {
+      setStatus(TaskStatus.FINISHED);
+      desc = "No traces in feature list " + flist.getName();
+      return;
+    }
     expandingTraces.sort(
         (a, b) -> Float.compare(a.getRtRange().lowerEndpoint(), b.getRtRange().lowerEndpoint()));
     final List<List<ExpandingTrace>> subLists = Lists.partition(expandingTraces, tracesPerList);
