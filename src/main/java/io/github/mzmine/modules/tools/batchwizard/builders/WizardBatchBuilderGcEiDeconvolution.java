@@ -47,7 +47,6 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -86,7 +85,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     // special workflow parameter are extracted here
     // chromatography
-    rtSmoothing = getValue(params, IonInterfaceHplcWizardParameters.smoothing);
+    rtSmoothing = getValue(params, IonInterfaceGcElectronImpactWizardParameters.smoothing);
     cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
     intraSampleRtTol = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.intraSampleRTTolerance);
@@ -130,7 +129,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeMultiCurveResolutionStep(q);
     makeAndAddAlignmentStep(q);
 
-    makeAndAddLibrarySearchStep(q);
+    makeAndAddLibrarySearchStep(q, false);
 
     if (isExportActive) {
       if (exportGnps) {

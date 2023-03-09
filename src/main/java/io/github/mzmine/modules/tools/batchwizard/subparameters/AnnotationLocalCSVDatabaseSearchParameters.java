@@ -38,7 +38,12 @@ public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterS
 
   public static final OptionalParameter<StringParameter> filterSamplesColumn = new OptionalParameter<>(
       new StringParameter("Filename column (for library generation)",
-          "Column header to filter matches to only occur in the given sample. Sample name needs to contain the value of this column. Used for library generation workflows.",
+          """
+          Column header to filter matches to only occur in the given sample. Sample name needs to contain
+          the value of this column. Use something unique as identifier, this could be the full data file name,
+          or a sample id _A1_. Use a pre- and suffix (here _) to make this ID unique, otherwise A1 also
+          matches A11, A12, [..]. Used for library generation workflows.
+          """,
           "filename"), false);
   public static ComboParameter<MassOptions> massOptionsComboParameter = new ComboParameter<>(
       "Use precursor m/z",

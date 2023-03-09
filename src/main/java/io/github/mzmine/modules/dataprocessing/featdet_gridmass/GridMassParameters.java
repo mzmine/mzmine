@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
 import com.google.common.collect.Range;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -43,13 +42,12 @@ public class GridMassParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final DoubleRangeParameter timeSpan = new DoubleRangeParameter(
-      "Min-max width time (min)",
-      "Time range for a peak to be recognized as a 'mass'.\n"
-          + "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
+      "Min-max width time (min)", "Time range for a peak to be recognized as a 'mass'.\n"
+      + "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
       MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.1, 3.0));
 
   public static final DoubleParameter minimumHeight = new DoubleParameter("Minimum height",
@@ -60,8 +58,8 @@ public class GridMassParameters extends SimpleParameterSet {
       "Maximum difference in m/z to recognize features/peaks as the same.",
       MZmineCore.getConfiguration().getMZFormat(), 0.10);
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "chromatograms");
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "This string is added to filename as suffix", "chromatograms");
 
   public static final DoubleParameter smoothingTimeSpan = new DoubleParameter(
       "Smoothing time (min)",
@@ -77,8 +75,8 @@ public class GridMassParameters extends SimpleParameterSet {
       "To reduce false positives removing similarly joint masses crowed along time (solvents or artifacts) > max time span.",
       MZmineCore.getConfiguration().getMZFormat(), 0.50);
 
-  public static final String[] debugLevels =
-      new String[] {"No debug", "Basic information", "Final peak information", "All information"};
+  public static final String[] debugLevels = new String[]{"No debug", "Basic information",
+      "Final peak information", "All information"};
 
   public static final ComboParameter<String> showDebug = new ComboParameter<String>(
       "Debugging level", "Shows details of the process. Useful to optimize parameters.",
@@ -88,23 +86,24 @@ public class GridMassParameters extends SimpleParameterSet {
       "To avoid estimation of features at specific times in minutes. Use 0-0 to ignore. Format: time1-time2, time3-time4, ... ",
       "0-0");
 
+  public GridMassParameters() {
+    super(new Parameter[]{dataFiles, scanSelection, suffix, minimumHeight, mzTolerance, timeSpan,
+            smoothingTimeSpan, smoothingTimeMZ, intensitySimilarity, ignoreTimes, showDebug},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_gridmass/gridmass.html");
+  }
+
   @Override
   public boolean checkParameterValues(Collection<String> errorMessages) {
     boolean allParameterOK = super.checkParameterValues(errorMessages);
 
-    if (scanSelection.getValue().getMsLevel() == null || scanSelection.getValue().getMsLevel() != 1 ) {
+    var selection = getValue(scanSelection);
+    if (!selection.getMsLevelFilter().isSingleMsLevel(1)) {
       errorMessages.add("Grid Mass module is only suitable for MS level 1 data."
           + "\nPlease, choose the correct level in Scans.");
-      allParameterOK=false;
+      allParameterOK = false;
     }
 
     return allParameterOK;
-  }
-
-  public GridMassParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, suffix, minimumHeight, mzTolerance, timeSpan,
-        smoothingTimeSpan, smoothingTimeMZ, intensitySimilarity, ignoreTimes, showDebug},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_gridmass/gridmass.html");
   }
 
 }

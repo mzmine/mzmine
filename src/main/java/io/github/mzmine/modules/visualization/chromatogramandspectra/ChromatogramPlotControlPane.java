@@ -51,6 +51,7 @@ public class ChromatogramPlotControlPane extends VBox {
 
   protected final ObjectProperty<Range<Double>> mzRange;
   private final Button btnParam;
+  private final ParameterSet parameters;
   protected NumberFormat mzFormat;
   protected Number min;
   protected Number max;
@@ -58,8 +59,9 @@ public class ChromatogramPlotControlPane extends VBox {
   protected Consumer<ParameterSet> parameterListener;
 
 
-  public ChromatogramPlotControlPane() {
+  public ChromatogramPlotControlPane(final ParameterSet parameters) {
     super(5);
+    this.parameters = parameters;
 
     setPadding(new Insets(5));
 
@@ -75,8 +77,17 @@ public class ChromatogramPlotControlPane extends VBox {
     mzRangeNode = new MZRangeComponent();
 
     // disable mz range and button if xic is not selected
-    btnUpdateXIC.disableProperty().bind(cbXIC.selectedProperty().not());
-    mzRangeNode.disableProperty().bind(cbXIC.selectedProperty().not());
+    cbXIC.selectedProperty().addListener((observable, oldValue, newValue) -> {
+      // only works if button is active
+      if (!btnUpdateXIC.isDisable()) {
+        btnUpdateXIC.fire();
+      }
+      btnUpdateXIC.setDisable(!newValue);
+      mzRangeNode.setDisable(!newValue);
+      if (!btnUpdateXIC.isDisable()) {
+        btnUpdateXIC.fire();
+      }
+    });
 
     HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam);
     controlsWrap.setAlignment(Pos.CENTER);
@@ -95,15 +106,13 @@ public class ChromatogramPlotControlPane extends VBox {
   }
 
   public void showChromParameterSetup() {
-    showChromParameterSetup(MZmineCore.getConfiguration()
-        .getModuleParameters(ChromatogramAndSpectraVisualizerModule.class));
-  }
-
-  public void showChromParameterSetup(ParameterSet parameterSet) {
-    ExitCode code = parameterSet.showSetupDialog(true);
+    ExitCode code = parameters.showSetupDialog(true);
     if (code == ExitCode.OK) {
+      // keep last settings
+      MZmineCore.getConfiguration()
+          .setModuleParameters(ChromatogramAndSpectraVisualizerModule.class, parameters);
       if (parameterListener != null) {
-        parameterListener.accept(parameterSet);
+        parameterListener.accept(parameters);
       }
     }
   }

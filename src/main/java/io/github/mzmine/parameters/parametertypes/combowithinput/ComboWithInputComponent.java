@@ -23,9 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.ValueChangeDecorator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -34,29 +37,41 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 
-public class ComboWIthInputComponent<EnumValue> extends HBox {
+public class ComboWithInputComponent<EnumValue> extends HBox implements ValueChangeDecorator {
 
   private final ComboBox<EnumValue> comboBox;
   private final Node embeddedComponent;
+  private final UserParameter<?, ? extends Node> embeddedParameter;
+  private List<Runnable> changeListeners;
 
-  public ComboWIthInputComponent(final UserParameter<?, Node> embeddedParameter,
-      final ObservableList<EnumValue> choices, final EnumValue selected,
-      final EnumValue inputTrigger) {
+  public ComboWithInputComponent(final UserParameter<?, ? extends Node> embeddedParameter,
+      final ObservableList<EnumValue> choices, final EnumValue inputTrigger,
+      ComboWithInputValue<EnumValue, ?> defaultValue) {
+    this.embeddedParameter = embeddedParameter;
     setSpacing(5);
     setAlignment(Pos.CENTER_LEFT);
 
     embeddedComponent = embeddedParameter.createEditingComponent();
     embeddedComponent.setDisable(true);
 
+    if (embeddedComponent instanceof ValueChangeDecorator valueChangeDecorator) {
+      valueChangeDecorator.addValueChangedListener(this::onValueChanged);
+    }
+
     comboBox = new ComboBox<>();
     comboBox.getSelectionModel().selectedItemProperty()
         .addListener((observable, oldValue, newValue) -> {
-          embeddedComponent.setDisable(!Objects.equals(getValue(), inputTrigger));
+          embeddedComponent.setDisable(!Objects.equals(getSelectedOption(), inputTrigger));
+          onValueChanged();
         });
     comboBox.setItems(choices);
-    setValue(selected);
+    setValue(defaultValue);
 
-    super.getChildren().addAll(comboBox, embeddedComponent);
+    if (choices.contains(inputTrigger)) {
+      super.getChildren().addAll(comboBox, embeddedComponent);
+    } else {
+      super.getChildren().add(comboBox);
+    }
   }
 
   public Node getEmbeddedComponent() {
@@ -71,11 +86,36 @@ public class ComboWIthInputComponent<EnumValue> extends HBox {
     comboBox.setTooltip(new Tooltip(toolTip));
   }
 
-  public EnumValue getValue() {
+  public EnumValue getSelectedOption() {
     return comboBox.getValue();
   }
 
-  public void setValue(final EnumValue newValue) {
-    comboBox.getSelectionModel().select(newValue);
+  public void setValue(final ComboWithInputValue<EnumValue, ?> newValue) {
+    comboBox.getSelectionModel().select(newValue.getSelectedOption());
+
+    if (embeddedParameter.getValue() != null) {
+      ((UserParameter) this.embeddedParameter).setValueToComponent(embeddedComponent,
+          newValue.getEmbeddedValue());
+    }
   }
+
+  @Override
+  public void addValueChangedListener(final Runnable onChange) {
+    if (changeListeners == null) {
+      changeListeners = new ArrayList<>();
+    }
+    changeListeners.add(onChange);
+    comboBox.getSelectionModel().selectedItemProperty()
+        .addListener((observable, oldValue, newValue) -> onValueChanged());
+  }
+
+  public void onValueChanged() {
+    if (changeListeners == null) {
+      return;
+    }
+    for (final Runnable onChange : changeListeners) {
+      onChange.run();
+    }
+  }
+
 }

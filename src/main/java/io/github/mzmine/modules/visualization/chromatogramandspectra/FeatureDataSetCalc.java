@@ -81,9 +81,9 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Calculating base peak chromatogram(s) of m/z "
-        + mzFormat.format((mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in "
-        + rawDataFiles.size() + " file(s).";
+    return "Calculating base peak chromatogram(s) of m/z " + mzFormat.format(
+        (mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in " + rawDataFiles.size()
+        + " file(s).";
   }
 
   @Override
@@ -106,12 +106,13 @@ public class FeatureDataSetCalc extends AbstractTask {
       }
 
       ManualFeature feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
-          rawDataFile.getDataRTRange(scanSelection.getMsLevel()), mzRange);
+          rawDataFile.getDataRTRange(scanSelection.getMsLevelFilter().getSingleMsLevelOrNull()),
+          mzRange);
       if (feature != null && feature.getScanNumbers() != null
           && feature.getScanNumbers().length > 0) {
         feature.setFeatureList(newFeatureList);
-        ModularFeature modularFeature =
-            FeatureConvertors.ManualFeatureToModularFeature(newFeatureList, feature);
+        ModularFeature modularFeature = FeatureConvertors.ManualFeatureToModularFeature(
+            newFeatureList, feature);
         features.add(new FeatureDataSet(modularFeature));
       } else {
         logger.finest("No scans found for " + rawDataFile.getName());

@@ -97,7 +97,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    */
   public SimpleCompoundDBAnnotation(final OnlineDatabases db, final String id, final String name,
       final String formula, final URL urlDb, final URL url2d, final URL url3d) {
-
+    this(formula);
     putIfNotNull(DatabaseNameType.class, db != null ? db.name() : null);
     putIfNotNull(CompoundNameType.class, name);
 
@@ -113,6 +113,18 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       put(Structure3dUrlType.class, new UrlShortName(url3d.toString(), "3D Structure"));
     }
 
+  }
+
+  public SimpleCompoundDBAnnotation(final String formula) {
+    setFormula(formula);
+  }
+
+  /**
+   * Calculate neutral mass if not already present. then keep the original.
+   *
+   * @param formula molecular formula
+   */
+  public void setFormula(final String formula) {
     putIfNotNull(FormulaType.class, formula);
 
     final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
@@ -121,6 +133,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
           MolecularFormulaManipulator.MonoIsotopic));
     }
   }
+
 
   public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader,
       @NotNull final MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row)
@@ -259,21 +272,25 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float rt = getRT();
-    if (rtTolerance != null && rt != null && (row.getAverageRT() == null
+    if (rtTolerance != null && rt != null && rt > 0 && (row.getAverageRT() == null
         || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float mobility = getMobility();
-    if (mobilityTolerance != null && mobility != null && (row.getAverageMobility() == null
-        || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
+    if (mobilityTolerance != null && mobility != null && mobility > 0 && (
+        row.getAverageMobility() == null || !mobilityTolerance.checkWithinTolerance(mobility,
+            row.getAverageMobility()))) {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float ccs = getCCS();
-    return percentCCSTolerance == null || ccs == null || (row.getAverageCCS() != null && !(
-        Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
+    return percentCCSTolerance == null || ccs == null || ccs <= 0 || (row.getAverageCCS() != null
+        && !(Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
   @Override

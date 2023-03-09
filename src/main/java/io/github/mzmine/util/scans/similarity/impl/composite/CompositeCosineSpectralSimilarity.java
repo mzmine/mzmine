@@ -25,11 +25,6 @@
 
 package io.github.mzmine.util.scans.similarity.impl.composite;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -39,7 +34,12 @@ import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Similar to NIST search algorithm for GC-MS data with lots of signals (more an identity check than
@@ -145,7 +145,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
   @Override
   @NotNull
   public String getName() {
-    return "Composite dot -product identity (similar to NIST search)";
+    return "Composite cosine identity (e.g., GC-EI-MS; similar to NIST search)";
   }
 
   @Override

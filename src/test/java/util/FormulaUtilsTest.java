@@ -26,7 +26,11 @@
 package util;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
@@ -99,5 +103,54 @@ public class FormulaUtilsTest {
 
     Assertions.assertEquals((float) 225.0345531,
         (float) FormulaUtils.calculateMzRatio(molecularFormula));
+  }
+
+  @Test
+  void testGetAllSubformulas() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula);
+    assert all.length == 293;
+  }
+
+  @Test
+  void testGetAllSubformulasGreater50() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 50);
+    assert all.length == 191;
+  }
+
+  @Test
+  void testGetAllSubformulasDoubleCharge() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+2");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 1, 10);
+    assert all.length == 287;
+  }
+
+  @Test
+  void testGetAllSubformulasGreater200() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H3O+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 200);
+    assert all.length == 0;
+  }
+
+  @Test
+  void testFindMzInFormula() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H4O2N+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 40);
+    assert FormulaUtils.getClosestIndexOfFormula(25, all) == 0;
+    assert FormulaUtils.getClosestIndexOfFormula(55, all) == 32;
+    assert FormulaUtils.getClosestIndexOfFormula(250, all) == all.length - 1;
+  }
+
+  @Test
+  void ionizeFormulaTest() {
+    var adduct = new IonType(IonModification.M_PLUS);
+    var annotation = new SimpleCompoundDBAnnotation("C");
+    var annotationPlus = new SimpleCompoundDBAnnotation("CH+");
+    var ion1 = annotation.ionize(adduct);
+    // will remove one H+ to neutralize
+    var ion2 = annotationPlus.ionize(adduct);
+
+    Assertions.assertEquals(ion1.getPrecursorMZ(), ion2.getPrecursorMZ());
   }
 }

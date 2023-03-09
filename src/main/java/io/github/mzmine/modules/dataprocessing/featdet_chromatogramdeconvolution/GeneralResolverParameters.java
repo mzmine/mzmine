@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.R.REngineType;
+import java.util.Map;
 import javafx.collections.FXCollections;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +69,7 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       REngineType.RCALLER);
 
   public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
-      "Min # of data points", "Minimum number of data points on a feature", 3, true);
+      "Minimum scans (data points)", "Minimum number of data points on a feature", 3, true);
 
   public GeneralResolverParameters(Parameter[] parameters) {
     this(parameters, null);
@@ -76,6 +77,15 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
 
   public GeneralResolverParameters(Parameter[] parameters, String url) {
     super(parameters, url);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Min # of data points", MIN_NUMBER_OF_DATAPOINTS);
+    return nameParameterMap;
   }
 
   @Deprecated

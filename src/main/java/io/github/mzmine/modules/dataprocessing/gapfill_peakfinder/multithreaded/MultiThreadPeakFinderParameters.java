@@ -35,6 +35,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
@@ -48,11 +50,13 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
       "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
       0.2);
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE);
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final IntegerParameter minDataPoints = new IntegerParameter("Minimum data points",
+  public static final IntegerParameter minDataPoints = new IntegerParameter(
+      "Minimum scans (data points)",
       "Only fill gaps with features with minimum number of data points. \n Usually lower number of data points are used.",
       1, 1, Integer.MAX_VALUE);
 
@@ -61,11 +65,22 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
   public MultiThreadPeakFinderParameters() {
     super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance, minDataPoints,
-        handleOriginal}, "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_peak_finder/gap-filling.html");
+            handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_peak_finder/gap-filling.html");
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZTolerance);
+    nameParameterMap.put("Minimum data points", minDataPoints);
+    return nameParameterMap;
   }
 }

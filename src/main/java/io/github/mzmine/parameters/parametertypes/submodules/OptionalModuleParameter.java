@@ -44,19 +44,31 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   private final String name;
   private final String description;
+  private final EmbeddedComponentOptions componentViewOption;
   private T embeddedParameters;
   private boolean value;
 
-  public OptionalModuleParameter(String name, String description, T embeddedParameters,
-      boolean defaultVal) {
-    this.name = name;
-    this.description = description;
-    this.embeddedParameters = embeddedParameters;
-    value = defaultVal;
+  public OptionalModuleParameter(String name, String description, T embeddedParameters) {
+    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters);
   }
 
-  public OptionalModuleParameter(String name, String description, T embeddedParameters) {
-    this(name, description, embeddedParameters, false);
+  public OptionalModuleParameter(String name, String description,
+      EmbeddedComponentOptions componentViewOption, T embeddedParameters) {
+    this(name, description, componentViewOption, embeddedParameters, false);
+  }
+
+  public OptionalModuleParameter(String name, String description, T embeddedParameters,
+      boolean defaultVal) {
+    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters, defaultVal);
+  }
+
+  public OptionalModuleParameter(String name, String description,
+      EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal) {
+    this.name = name;
+    this.description = description;
+    this.componentViewOption = componentViewOption;
+    this.embeddedParameters = embeddedParameters;
+    value = defaultVal;
   }
 
   public T getEmbeddedParameters() {
@@ -64,7 +76,12 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   }
 
   public void setEmbeddedParameters(T embeddedParameters) {
-    this.embeddedParameters = embeddedParameters;
+    if (this.embeddedParameters == null) {
+      this.embeddedParameters = embeddedParameters;
+    } else {
+      // copy parameters over. Just in case if there is already a component showing those parameters
+      ParameterUtils.copyParameters(embeddedParameters, this.embeddedParameters);
+    }
   }
 
   @Override
@@ -79,7 +96,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(embeddedParameters);
+    return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value);
   }
 
   @Override
@@ -95,20 +112,20 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   @Override
   public OptionalModuleParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
-    final OptionalModuleParameter<T> copy = new OptionalModuleParameter<>(name, description,
-        embeddedParametersClone);
-    copy.setValue(this.getValue());
-    return copy;
+    return new OptionalModuleParameter<>(name, description, componentViewOption,
+        embeddedParametersClone, getValue());
   }
 
   @Override
   public void setValueFromComponent(OptionalModuleComponent component) {
     this.value = component.isSelected();
+    component.updateParameterSetFromComponents();
   }
 
   @Override
   public void setValueToComponent(OptionalModuleComponent component, Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
+    component.setParameterValuesToComponents();
   }
 
   @Override
@@ -127,7 +144,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
     if (value) {
-      return embeddedParameters.checkParameterValues(errorMessages);
+      return checkEmbeddedValues(errorMessages);
     }
     return true;
   }
