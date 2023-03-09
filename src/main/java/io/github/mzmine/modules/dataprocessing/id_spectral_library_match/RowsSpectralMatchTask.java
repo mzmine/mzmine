@@ -63,7 +63,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -311,24 +310,21 @@ public class RowsSpectralMatchTask extends AbstractTask {
     if (rows != null) {
       logger.info(() -> String.format("Comparing %d library spectra to %d feature list rows",
           entries.size(), totalRows));
-//      rows.stream().parallel().forEach(row -> {
-//        if (!isCanceled()) {
-//          matchRowToLibraries(entries, row);
-//          finishedRows.incrementAndGet();
-//        }
-//      });
-      // need to use completableFuture here because parallel stream does not wait and the current thread goes on
-      List<Void> list = rows.stream().map(row -> CompletableFuture.runAsync(() -> {
-        if (!isCanceled()) {
-          matchRowToLibraries(entries, row);
-          finishedRows.incrementAndGet();
-        }
-      })).map(CompletableFuture::join).toList();
-
+      // cannot use parallel.forEach with side effects - this thread will continue without waiting for
+      // stream to finish
+      var totalMatches = rows.stream().filter(FeatureListRow::hasMs2Fragmentation).parallel()
+          .mapToInt(row -> {
+            if (!isCanceled()) {
+              int matches = matchRowToLibraries(entries, row);
+              finishedRows.incrementAndGet();
+              return matches;
+            }
+            return 0;
+          }).sum();
+      logger.info("Total spectral library matches " + totalMatches);
       logger.info(() -> String.format("library matches=%d (Errors:%d); rows=%d; library entries=%d",
           getCount(), getErrorCount(), totalRows, entries.size()));
     }
-
   }
 
   /**
@@ -401,7 +397,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param entries combined library entries
    * @param row     target row
    */
-  public void matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
+  public int matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
     try {
       // All MS2 or only best MS2 scan
       // best MS1 scan
@@ -448,11 +444,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ids != null) {
         addIdentities(row, ids);
         SortSpectralMatchesTask.sortIdentities(row);
+        return ids.size();
+
       }
     } catch (MissingMassListException e) {
       logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
       errorCounter.getAndIncrement();
     }
+    return 0;
   }
 
   /**
