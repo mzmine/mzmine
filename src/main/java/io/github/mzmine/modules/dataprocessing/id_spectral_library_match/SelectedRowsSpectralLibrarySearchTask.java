@@ -63,7 +63,7 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
     MZmineCore.runLater(() -> {
       resultWindow = new SpectraIdentificationResultsWindowFX();
       resultWindow.addMatches(syncList);
-      resultWindow.show();
+      MZmineCore.getDesktop().addTab(resultWindow);
     });
   }
 
