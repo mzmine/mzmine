@@ -93,7 +93,8 @@ public class RTToleranceComponent extends HBox {
   public void setValue(@Nullable RTTolerance value) {
     if (value == null) {
       toleranceField.setText("");
-      toleranceType.getSelectionModel().clearSelection();
+      // set to default value
+      toleranceType.getSelectionModel().select(toleranceTypes.get(0));
       return;
     }
 
