@@ -73,13 +73,14 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
     }
+    /*
     for (int i = 1; i < scans.size(); i++) {
       if (scans.get(i).getRetentionTime() < scans.get(i - 1).getRetentionTime()) {
         throw new IllegalArgumentException(
             "Scans not sorted in retention time dimension! Cannot create chromatogram.");
       }
     }
-
+*/
     this.scans = scans;
 
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);

@@ -627,6 +627,7 @@ public class ScanUtils {
   public static MassSpectrumType detectSpectrumType(@NotNull double[] mzValues,
       double[] intensityValues) {
 
+    MassSpectrumType massSpectrumType;
     // If the spectrum has less than 5 data points, it should be centroided.
     if (mzValues.length < 5) {
       return MassSpectrumType.CENTROIDED;
@@ -670,16 +671,16 @@ public class ScanUtils {
     // feature is more than 0.1% of the scan m/z range, it also indicates a
     // centroid spectrum. These criteria are empirical and probably not
     // bulletproof. However, it works for all the test cases we have.
-    if ((mainFeatureDataPointCount < 3) || (mainFeatureMzSpan > (scanMzSpan / 1000.0))) {
-      return MassSpectrumType.CENTROIDED;
+    if (!hasZeroDataPoint && ((mainFeatureDataPointCount < 3)) || (!hasZeroDataPoint && (mainFeatureMzSpan > (scanMzSpan / 1000.0)))) {
+        massSpectrumType =  MassSpectrumType.CENTROIDED;
+    }
+    else if (hasZeroDataPoint) {
+      massSpectrumType = MassSpectrumType.PROFILE;
     } else {
-      if (hasZeroDataPoint) {
-        return MassSpectrumType.PROFILE;
-      } else {
-        return MassSpectrumType.THRESHOLDED;
-      }
+      massSpectrumType =  MassSpectrumType.THRESHOLDED;
     }
 
+    return massSpectrumType;
   }
 
   /**
