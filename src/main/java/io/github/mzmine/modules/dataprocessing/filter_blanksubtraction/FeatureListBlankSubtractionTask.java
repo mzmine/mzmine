@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.BlankSubtractionAnnotationType;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -69,7 +70,6 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private final BlankSubtractionOptions keepBackgroundFeatures;
   private final RatioType ratioType;
   private final AbundanceMeasure quantType;
-  private final boolean createVerboseAnnotation;
 
   private AtomicInteger processedRows = new AtomicInteger(0);
   private MZmineProject project;
@@ -106,8 +106,6 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         .getValue();
     this.quantType = parameters.getParameter(FeatureListBlankSubtractionParameters.quantType)
         .getValue();
-    this.createVerboseAnnotation = parameters.getParameter(
-        FeatureListBlankSubtractionParameters.verboseColumn).getValue();
     totalRows = originalFeatureList.getNumberOfRows();
     logger.info(
         String.format("Blank subtraction with quantifier '%s' and ratio '%s'", this.quantType,
@@ -130,6 +128,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+
+    NumberFormats guiFormats = MZmineCore.getConfiguration().getGuiFormats();
 
     if (!checkBlankSelection(originalFeatureList, blankRaws)) {
       setErrorMessage("Feature list " + originalFeatureList.getName()
@@ -235,7 +235,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
               new ModularFeature(notBackgroundAlignedFeaturesList, f)));
         }
 
-        if (this.createVerboseAnnotation) {
+        if (this.createDeletedFeatureList) {
           final StringBuilder sb = new StringBuilder();
           sb.append("Not background: ");
           if (foundInNBlanks == 0) {
@@ -249,7 +249,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
                 notBackgroundFeaturesOfCurrentRow.size() / nonBlankRaws.size() * 100.));
             sb.append(String.format(" and in %3d / %3d (%4.1f%%) background samples (abundance %s)",
                 foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
-                MZmineCore.getConfiguration().getExportFormats().intensity(blankAbundance)));
+                guiFormats.intensity(blankAbundance)));
           }
           featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
         }
@@ -266,12 +266,12 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         backgroundFeaturesOfCurrentRow.forEach(f -> featureListRow.addFeature(f.getRawDataFile(),
             new ModularFeature(backgroundAlignedFeaturesList, f)));
 
-        if (this.createVerboseAnnotation) {
+        if (this.createDeletedFeatureList) {
           final StringBuilder sb = new StringBuilder();
           sb.append(String.format(
               "Background: Found in %3d / %3d (%4.1f%%) background samples (abundance %s) but not in any samples with higher abundances",
               foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
-              MZmineCore.getConfiguration().getExportFormats().intensity(blankAbundance)));
+              guiFormats.intensity(blankAbundance)));
           featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
         }
 

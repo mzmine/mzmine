@@ -90,15 +90,9 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       All features removed by this step will then be saved to a new feature list with the suffix 'subtractedBackground'.""",
       false);
 
-  public static final BooleanParameter verboseColumn = new BooleanParameter(
-      "Create background annotation", """
-      Indicates whether an additional annotation column with information about the background subtraction should be generated. 
-      This annotation includes the number of detection in samples and blank samples and the abundance in the latter.""",
-      false);
-
   public FeatureListBlankSubtractionParameters() {
     super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, quantType, ratioType,
-            foldChange, keepBackgroundFeatures, createDeleted, suffix, verboseColumn},
+            foldChange, keepBackgroundFeatures, createDeleted, suffix},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }
 
