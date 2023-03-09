@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -36,6 +37,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.annotations.BlankSubtractionAnnotationType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -66,6 +69,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private final BlankSubtractionOptions keepBackgroundFeatures;
   private final RatioType ratioType;
   private final AbundanceMeasure quantType;
+  private final boolean createVerboseAnnotation;
 
   private AtomicInteger processedRows = new AtomicInteger(0);
   private MZmineProject project;
@@ -102,6 +106,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         .getValue();
     this.quantType = parameters.getParameter(FeatureListBlankSubtractionParameters.quantType)
         .getValue();
+    this.createVerboseAnnotation = parameters.getParameter(
+        FeatureListBlankSubtractionParameters.verboseColumn).getValue();
     totalRows = originalFeatureList.getNumberOfRows();
     logger.info(
         String.format("Blank subtraction with quantifier '%s' and ratio '%s'", this.quantType,
@@ -178,17 +184,21 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       final List<Feature> backgroundFeaturesOfCurrentRow = new ArrayList<>();
 
       // check the featureRow in the blank samples
+      int foundInNBlanks = 0;
       for (RawDataFile blankRaw : blankRaws) {
         if (originalRow.hasFeature(blankRaw)) {
           // save blank detections to a blank-list
           final Feature blankFeature = originalRow.getFeature(blankRaw);
           backgroundFeaturesOfCurrentRow.add(blankFeature);
+          ++foundInNBlanks;
         }
       }
 
+      double blankAbundance = -1;
+      int foundInSamplesAsBackground = 0;
       if (notBackgroundFeaturesOfCurrentRow.size() < minBlankDetections || checkFoldChange) {
-        final double blankAbundance =
-            checkFoldChange ? getBlankIntensity(originalRow, blankRaws, quantType, ratioType) : 1d;
+        blankAbundance =
+            checkFoldChange ? getBlankAbundance(originalRow, blankRaws, quantType, ratioType) : 1d;
         // copy features from non-blank files.
         for (RawDataFile file : nonBlankRaws) {
           final Feature nonBlankFeature = originalRow.getFeature(file);
@@ -203,6 +213,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
             } else {
               // the feature is indistinguishable from the blanks
               backgroundFeaturesOfCurrentRow.add(nonBlankFeature);
+              foundInSamplesAsBackground++;
             }
           }
         }
@@ -224,6 +235,24 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
               new ModularFeature(notBackgroundAlignedFeaturesList, f)));
         }
 
+        if (this.createVerboseAnnotation) {
+          final StringBuilder sb = new StringBuilder();
+          sb.append("Not background: ");
+          if (foundInNBlanks == 0) {
+            sb.append(String.format(" found only in %3d / %3d (%4.1f%%) samples",
+                notBackgroundFeaturesOfCurrentRow.size(), nonBlankRaws.size(),
+                notBackgroundFeaturesOfCurrentRow.size() / nonBlankRaws.size() * 100.));
+            sb.append(String.format(" but not in any of the %3d blank samples", blankRaws.size()));
+          } else {
+            sb.append(String.format(" found in %3d / %3d (%4.1f%%) samples",
+                notBackgroundFeaturesOfCurrentRow.size(), nonBlankRaws.size(),
+                notBackgroundFeaturesOfCurrentRow.size() / nonBlankRaws.size() * 100.));
+            sb.append(String.format(" and in %3d / %3d (%4.1f%%) background samples (abundance %s)",
+                foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
+                MZmineCore.getConfiguration().getExportFormats().intensity(blankAbundance)));
+          }
+          featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
+        }
         notBackgroundAlignedFeaturesListRows.add(featureListRow);
       }
 
@@ -236,6 +265,15 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
             false);
         backgroundFeaturesOfCurrentRow.forEach(f -> featureListRow.addFeature(f.getRawDataFile(),
             new ModularFeature(backgroundAlignedFeaturesList, f)));
+
+        if (this.createVerboseAnnotation) {
+          final StringBuilder sb = new StringBuilder();
+          sb.append(String.format(
+              "Background: Found in %3d / %3d (%4.1f%%) background samples (abundance %s) but not in any samples with higher abundances",
+              foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
+              MZmineCore.getConfiguration().getExportFormats().intensity(blankAbundance)));
+          featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
+        }
 
         backgroundAlignedFeaturesListRows.add(featureListRow);
       }
@@ -282,7 +320,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     throw new RuntimeException("Unknown parameter");
   }
 
-  private double getBlankIntensity(FeatureListRow row, Collection<RawDataFile> blankRaws,
+  private double getBlankAbundance(FeatureListRow row, Collection<RawDataFile> blankRaws,
       AbundanceMeasure quantType, RatioType ratioType) {
     double intensity = 0d;
     int numDetections = 0;
