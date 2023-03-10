@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -207,7 +208,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   }
 
   @Override
-  public void setValueToComponent(FeatureListsComponent component, FeatureListsSelection newValue) {
+  public void setValueToComponent(FeatureListsComponent component, @Nullable FeatureListsSelection newValue) {
     component.setValue(newValue);
   }
 

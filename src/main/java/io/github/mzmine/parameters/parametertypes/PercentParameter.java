@@ -25,11 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-
-import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation
@@ -103,9 +102,7 @@ public class PercentParameter implements UserParameter<Double, PercentComponent>
   }
 
   @Override
-  public void setValueToComponent(PercentComponent component, Double newValue) {
-    if (newValue == null)
-      return;
+  public void setValueToComponent(PercentComponent component, @Nullable Double newValue) {
     component.setValue(newValue);
   }
 

@@ -34,6 +34,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 public class MassDefectComponent extends HBox {
 
@@ -102,11 +103,18 @@ public class MassDefectComponent extends HBox {
     }
   }
 
-  public void setValue(MassDefectFilter massDefectFilter) {
+  public void setValue(@Nullable MassDefectFilter massDefectFilter) {
     NumberFormat floorFormat = (NumberFormat) format.clone();
     floorFormat.setRoundingMode(RoundingMode.FLOOR);
     NumberFormat ceilFormat = (NumberFormat) format.clone();
     ceilFormat.setRoundingMode(RoundingMode.CEILING);
+
+    if (massDefectFilter == null) {
+    minTxtField.setText("");
+    maxTxtField.setText("");
+      return;
+    }
+
     minTxtField.setText(floorFormat.format(massDefectFilter.getLowerEndpoint()));
     maxTxtField.setText(ceilFormat.format(massDefectFilter.getUpperEndpoint()));
   }

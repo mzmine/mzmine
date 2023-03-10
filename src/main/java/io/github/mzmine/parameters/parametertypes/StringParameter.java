@@ -25,9 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.control.TextField;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class StringParameter implements UserParameter<String, TextField> {
@@ -119,8 +122,8 @@ public class StringParameter implements UserParameter<String, TextField> {
   }
 
   @Override
-  public void setValueToComponent(TextField component, String newValue) {
-    component.setText(newValue);
+  public void setValueToComponent(TextField component, @Nullable String newValue) {
+    component.setText(requireNonNullElse(newValue, ""));
   }
 
   @Override

@@ -38,6 +38,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureListsComponent extends HBox {
 
@@ -103,11 +104,10 @@ public class FeatureListsComponent extends HBox {
 
   }
 
-  void setValue(FeatureListsSelection newValue) {
-    currentValue = newValue.clone();
-    FeatureListsSelectionType type = newValue.getSelectionType();
-    if (type != null) {
-      typeCombo.getSelectionModel().select(type);
+  void setValue(@Nullable FeatureListsSelection newValue) {
+    currentValue = newValue!=null ? newValue.clone() : null;
+    if (newValue!=null && newValue.getSelectionType()!= null) {
+      typeCombo.getSelectionModel().select(newValue.getSelectionType());
     }
     updateNumPeakLists();
   }

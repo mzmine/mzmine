@@ -25,13 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
-
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Simple Parameter implementation
@@ -93,7 +92,7 @@ public class OrderParameter<ValueType>
   }
 
   @Override
-  public void setValueToComponent(OrderComponent<ValueType> component, ValueType[] newValue) {
+  public void setValueToComponent(OrderComponent<ValueType> component, @Nullable ValueType[] newValue) {
     component.setValues(newValue);
   }
 

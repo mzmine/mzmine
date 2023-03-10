@@ -36,6 +36,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -89,7 +90,14 @@ public class RTToleranceComponent extends HBox {
 
   }
 
-  public void setValue(RTTolerance value) {
+  public void setValue(@Nullable RTTolerance value) {
+    if (value == null) {
+      toleranceField.setText("");
+      // set to default value
+      toleranceType.getSelectionModel().select(toleranceTypes.get(0));
+      return;
+    }
+
     double tolerance = value.getTolerance();
     int choiceIndex = value.getUnit().ordinal();
 
