@@ -25,12 +25,11 @@
 
 package io.github.mzmine.gui.preferences;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.text.DecimalFormat;
 import java.util.Collection;
-
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
-
-import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Simple Parameter implementation
@@ -112,7 +111,10 @@ public class NumberFormatParameter implements UserParameter<DecimalFormat, Numbe
   }
 
   @Override
-  public void setValueToComponent(NumberFormatEditor component, DecimalFormat newValue) {
+  public void setValueToComponent(NumberFormatEditor component, @Nullable DecimalFormat newValue) {
+    if (newValue == null) {
+      return;
+    }
     final int decimals = newValue.getMinimumFractionDigits();
     boolean showExponent = newValue.toPattern().contains("E");
     component.setValue(decimals, showExponent);

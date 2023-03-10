@@ -30,6 +30,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.Nullable;
 
 public class AbsoluteAndRelativeIntComponent extends HBox {
 
@@ -64,7 +65,13 @@ public class AbsoluteAndRelativeIntComponent extends HBox {
 
   }
 
-  public void setValue(AbsoluteAndRelativeInt value) {
+  public void setValue(@Nullable AbsoluteAndRelativeInt value) {
+    if(value==null){
+      absField.setText("");
+      relField.setText("");
+      return;
+    }
+
     absField.setText(String.valueOf(value.getAbsolute()));
     relField.setText(String.valueOf(value.getRelative() * 100.f));
   }

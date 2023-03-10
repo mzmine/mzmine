@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -165,7 +166,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   }
 
   @Override
-  public void setValueToComponent(FileNameComponent component, File newValue) {
+  public void setValueToComponent(FileNameComponent component, @Nullable File newValue) {
     component.setValue(newValue);
   }
 

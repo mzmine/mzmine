@@ -25,6 +25,9 @@
 
 package io.github.mzmine.datamodel;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Represents the polarity of ionization.
  */
@@ -45,6 +48,23 @@ public enum PolarityType {
   PolarityType(int sign, String charValue) {
     this.sign = sign;
     this.charValue = charValue;
+  }
+
+  /**
+   * @param str The string.
+   * @return {@link PolarityType#UNKNOWN} if the str is null or cannot be matched.
+   */
+  @NotNull
+  public static PolarityType parseFromString(@Nullable String str) {
+    if (str == null) {
+      return UNKNOWN;
+    }
+
+    return switch (str.toLowerCase()) {
+      case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
+      case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
+      case default -> UNKNOWN;
+    };
   }
 
   public static PolarityType fromSingleChar(String s) {
