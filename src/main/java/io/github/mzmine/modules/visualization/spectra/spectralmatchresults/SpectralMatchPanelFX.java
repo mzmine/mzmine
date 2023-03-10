@@ -36,9 +36,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.io.ClipboardWriter;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
@@ -56,8 +58,6 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
@@ -66,14 +66,18 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import org.controlsfx.control.Notifications;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -119,7 +123,6 @@ public class SpectralMatchPanelFX extends GridPane {
   private XYPlot libraryPlot;
   private VBox metaDataPanel;
   private ScrollPane metaDataScroll;
-  private GridPane pnTitle;
   private GridPane pnExport;
   private final BorderPane mirrorChartWrapper;
   private Label lblScore;
@@ -140,7 +143,7 @@ public class SpectralMatchPanelFX extends GridPane {
     MAX_COS_COLOR = palette.getPositiveColor();
     MIN_COS_COLOR = palette.getNegativeColor();
 
-    pnTitle = createTitlePane();
+    var pnTitle = createTitlePane();
 
     metaDataScroll = createMetaDataPane();
 
@@ -168,38 +171,55 @@ public class SpectralMatchPanelFX extends GridPane {
         BorderWidths.DEFAULT)));
   }
 
-  private GridPane createTitlePane() {
-    pnTitle = new GridPane();
-    pnTitle.setAlignment(Pos.CENTER);
-
+  private Pane createTitlePane() {
     // create Top panel
     double simScore = hit.getSimilarity().getScore();
     Color gradientCol = FxColorUtil.awtColorToFX(
         ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_COS_COLOR),
             FxColorUtil.fxColorToAWT(MAX_COS_COLOR), MIN_COS_COLOR_VALUE, MAX_COS_COLOR_VALUE,
             simScore));
-    pnTitle.setBackground(
-        new Background(new BackgroundFill(gradientCol, CornerRadii.EMPTY, Insets.EMPTY)));
 
-    lblHit = new Label(hit.getCompoundName());
-    lblHit.getStyleClass().add("white-larger-label");
+    lblHit = createLabel(hit.getCompoundName(), "white-larger-label");
 
-    lblScore = new Label(COS_FORM.format(simScore));
-    lblScore.getStyleClass().add("white-score-label");
+    lblScore = createLabel(COS_FORM.format(simScore), "white-score-label");
     lblScore.setTooltip(new Tooltip(
         "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM.format(
             simScore)));
 
-    pnTitle.add(lblHit, 0, 0);
-    pnTitle.add(lblScore, 1, 0);
-    ColumnConstraints ccTitle0 = new ColumnConstraints(150, -1, -1, Priority.ALWAYS, HPos.LEFT,
-        true);
-    ColumnConstraints ccTitle1 = new ColumnConstraints(150, 150, 150, Priority.NEVER, HPos.LEFT,
-        false);
-    pnTitle.getColumnConstraints().add(0, ccTitle0);
-    pnTitle.getColumnConstraints().add(1, ccTitle1);
+    var totalSignals = hit.getLibraryDataPoints(DataPointsTag.FILTERED).length;
+    var overlap = hit.getSimilarity().getOverlap();
+    var lblMatched = createLabel("%d / %d".formatted(overlap, totalSignals),
+        "white-score-label-small");
 
-    return pnTitle;
+    var intensity = hit.getSimilarity().getExplainedLibraryIntensity();
+    var lblExplained = createLabel(COS_FORM.format(intensity), "white-score-label-small");
+    lblExplained.getStyleClass().add("white-score-label-small");
+
+    var leftScores = new VBox(0, lblMatched, lblExplained);
+    leftScores.setAlignment(Pos.CENTER);
+
+    var scoreDef = new VBox(0, createLabel("Matched signals:", "white-score-label-small"),
+        createLabel("Expl. intensity:", "white-score-label-small"));
+    scoreDef.setAlignment(Pos.CENTER_RIGHT);
+
+    var scoreBox = new HBox(5, scoreDef, leftScores, lblScore);
+    scoreBox.setPadding(new Insets(0, 5, 0, 10));
+    scoreBox.setAlignment(Pos.CENTER);
+
+    var titlePane = new BorderPane(lblHit);
+    titlePane.setRight(scoreBox);
+
+    titlePane.setPadding(new Insets(2));
+
+    titlePane.setStyle("-fx-background-color: " + FxColorUtil.colorToHex(gradientCol));
+
+    return titlePane;
+  }
+
+  private Label createLabel(final String label, final String styleClass) {
+    Label lbl = new Label(label);
+    lbl.getStyleClass().add(styleClass);
+    return lbl;
   }
 
   private ScrollPane createMetaDataPane() {
@@ -207,7 +227,6 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataPanel.getStyleClass().add("region");
 
     // preview panel
-    IAtomContainer molecule;
     BorderPane pnPreview2D = new BorderPane();
     pnPreview2D.getStyleClass().add("region");
     pnPreview2D.setPrefSize(META_WIDTH, STRUCTURE_HEIGHT);
@@ -224,19 +243,8 @@ public class SpectralMatchPanelFX extends GridPane {
 
     Node newComponent = null;
 
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
-
     // check for INCHI
-    if (inchiString != "N/A") {
-      molecule = parseInChi(hit);
-    }
-    // check for smiles
-    else if (smilesString != "N/A") {
-      molecule = parseSmiles(hit);
-    } else {
-      molecule = null;
-    }
+    IAtomContainer molecule = parseStructure(hit);
 
     // try to draw the component
     if (molecule != null) {
@@ -253,30 +261,34 @@ public class SpectralMatchPanelFX extends GridPane {
       metaDataPanel.getChildren().add(pnPreview2D);
     }
 
-    ColumnConstraints ccMetadata1 = new ColumnConstraints(META_WIDTH / 2, -1, Double.MAX_VALUE,
+    ColumnConstraints ccMetadata1 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
         Priority.NEVER, HPos.LEFT, false);
-    ColumnConstraints ccMetadata2 = new ColumnConstraints(META_WIDTH / 2, -1, Double.MAX_VALUE,
+    ColumnConstraints ccMetadata2 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
         Priority.NEVER, HPos.LEFT, false);
     ccMetadata1.setPercentWidth(50);
     ccMetadata2.setPercentWidth(50);
 
     GridPane g1 = new GridPane();
-    g1.getStyleClass().add("region");
+//    g1.getStyleClass().add("region");
+
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
         DBEntryField.COMPOUND_FIELDS);
     BorderPane panelInstrument = extractMetaData("Instrument information", hit.getEntry(),
         DBEntryField.INSTRUMENT_FIELDS);
-    g1.add(pnCompounds, 0, 0);
-    g1.add(panelInstrument, 1, 0);
-    g1.getColumnConstraints().add(0, ccMetadata1);
-    g1.getColumnConstraints().add(1, ccMetadata2);
 
     BorderPane pnDB = extractMetaData("Database links", hit.getEntry(),
         DBEntryField.DATABASE_FIELDS);
     BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
         DBEntryField.OTHER_FIELDS);
-    g1.add(pnDB, 0, 1);
-    g1.add(pnOther, 1, 1);
+
+    var leftBox = new VBox(4, pnCompounds);
+    leftBox.setPadding(Insets.EMPTY);
+    var rightBox = new VBox(4, panelInstrument, pnOther, pnDB);
+    rightBox.setPadding(new Insets(0, 0, 0, 15));
+    g1.add(leftBox, 0, 0);
+    g1.add(rightBox, 1, 0);
+    g1.getColumnConstraints().add(0, ccMetadata1);
+    g1.getColumnConstraints().add(1, ccMetadata2);
 
     metaDataPanel.getChildren().add(g1);
     metaDataPanel.setMinSize(META_WIDTH, ENTRY_HEIGHT);
@@ -285,11 +297,32 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataScroll = new ScrollPane(metaDataPanel);
     metaDataScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
     metaDataScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    metaDataScroll.setFitToWidth(true);
+    metaDataScroll.setFitToHeight(true);
     metaDataScroll.setMinSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
     metaDataScroll.setMaxSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
     metaDataScroll.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
 
     return metaDataScroll;
+  }
+
+  private IAtomContainer parseStructure(final SpectralDBAnnotation hit) {
+    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
+    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
+    if (!inchiString.equalsIgnoreCase("n/a") && !inchiString.isBlank()) {
+      var molecule = parseInChi(hit);
+      if (molecule != null) {
+        return molecule;
+      }
+    }
+    // check for smiles
+    if (!smilesString.equalsIgnoreCase("n/a") && !smilesString.isBlank()) {
+      var molecule = parseSmiles(hit);
+      if (molecule != null) {
+        return molecule;
+      }
+    }
+    return null;
   }
 
   private void coupleZoomYListener() {
@@ -346,41 +379,39 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
   private IAtomContainer parseInChi(SpectralDBAnnotation hit) {
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
+    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
     InChIGeneratorFactory factory;
     IAtomContainer molecule;
-    if (inchiString != "N/A") {
-      try {
-        factory = InChIGeneratorFactory.getInstance();
-        // Get InChIToStructure
-        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
-            DefaultChemObjectBuilder.getInstance());
-        molecule = inchiToStructure.getAtomContainer();
-        return molecule;
-      } catch (CDKException e) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e);
-        return null;
-      }
-    } else {
+    if (inchiString.equalsIgnoreCase("n/a") || inchiString.isBlank()) {
+      return null;
+    }
+    try {
+      factory = InChIGeneratorFactory.getInstance();
+      // Get InChIToStructure
+      InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
+          DefaultChemObjectBuilder.getInstance());
+      molecule = inchiToStructure.getAtomContainer();
+      return molecule;
+    } catch (CDKException e) {
+      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
+      logger.log(Level.WARNING, errorMessage, e);
       return null;
     }
   }
 
   private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
     SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
+    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
     IAtomContainer molecule;
-    if (smilesString != "N/A") {
-      try {
-        molecule = smilesParser.parseSmiles(smilesString);
-        return molecule;
-      } catch (InvalidSmilesException e1) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e1);
-        return null;
-      }
-    } else {
+    if (smilesString.equalsIgnoreCase("n/a") || smilesString.isBlank()) {
+      return null;
+    }
+    try {
+      molecule = smilesParser.parseSmiles(smilesString);
+      return molecule;
+    } catch (InvalidSmilesException e1) {
+      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
+      logger.log(Level.WARNING, errorMessage, e1);
       return null;
     }
   }
@@ -389,25 +420,43 @@ public class SpectralMatchPanelFX extends GridPane {
   private BorderPane extractMetaData(String title, SpectralLibraryEntry entry,
       DBEntryField[] other) {
     VBox panelOther = new VBox();
-    panelOther.getStyleClass().add("region");
     panelOther.setAlignment(Pos.TOP_LEFT);
 
     for (DBEntryField db : other) {
-      Object o = entry.getField(db).orElse("N/A");
-      if (!o.equals("N/A")) {
-        Label text = new Label();
-        text.getStyleClass().add("text-label");
-        text.setText(db.toString() + ": " + o);
-        panelOther.getChildren().add(text);
+      String o = entry.getField(db).orElse("n/a").toString();
+      if (!o.equalsIgnoreCase("n/a")) {
+        Label text = new Label(db.toString() + ": " + o);
+        text.setWrapText(true);
+        text.setOnMouseClicked(event -> {
+          ClipboardWriter.writeToClipBoard(o);
+          Notifications.create().title("Copied to clipboard").hideAfter(new Duration(2500))
+              .owner(MZmineCore.getDesktop().getMainWindow()).show();
+//
+//          var popOver = new PopOver();
+//          popOver.setContentNode(new Label("Copied to clipboard"));
+//          popOver.setAutoHide(true);
+//          popOver.setAutoFix(true);
+//          popOver.setHideOnEscape(true);
+//          popOver.setDetachable(true);
+//          popOver.setDetached(false);
+//          popOver.setArrowLocation(ArrowLocation.LEFT_BOTTOM);
+//
+//          PauseTransition pause = new PauseTransition(Duration.seconds(2.5));
+//          pause.setOnFinished(e -> popOver.hide());
+//          pause.play();
+//
+//          popOver.show(text);
+
+        });
+
+        panelOther.getChildren().addAll(text);
       }
     }
 
     Label otherInfo = new Label(title);
     otherInfo.getStyleClass().add("bold-title-label");
-    BorderPane pn = new BorderPane();
-    pn.getStyleClass().add("region");
+    BorderPane pn = new BorderPane(panelOther);
     pn.setTop(otherInfo);
-    pn.setCenter(panelOther);
     return pn;
   }
 
