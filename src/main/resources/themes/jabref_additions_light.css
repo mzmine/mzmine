@@ -51,3 +51,22 @@ BorderPane, GridPane, .tab-pane {
 .text-label {
   -fx-wrap-text: true;
 }
+
+.white-larger-label {
+  -fx-font-size: 13.0pt;
+  -fx-text-fill: white;
+  -fx-wrap-text: true;
+  -fx-font-weight: bold;
+}
+
+.white-score-label {
+  -fx-font-size: 20.0pt;
+  -fx-font-weight: bold;
+  -fx-text-fill: white;
+}
+
+.white-score-label-small {
+  -fx-font-size: 7pt;
+  -fx-font-weight: bold;
+  -fx-text-fill: white;
+}

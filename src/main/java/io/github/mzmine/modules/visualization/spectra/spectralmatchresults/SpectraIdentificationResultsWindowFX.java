@@ -169,7 +169,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
   @NotNull
   private TableView<SpectralDBAnnotation> createTable() {
     TableView<SpectralDBAnnotation> tableView = new TableView<>(visibleMatches);
-tableView.setPadding(Insets.EMPTY);
+    tableView.setPadding(Insets.EMPTY);
     TableColumn<SpectralDBAnnotation, SpectralDBAnnotation> column = new TableColumn<>();
     column.setSortable(false);
 
@@ -298,7 +298,8 @@ tableView.setPadding(Insets.EMPTY);
         }
         visibleMatches.setAll(best);
         shownMatchesLbl.setText(
-            "(%d-%d of %d)".formatted(currentIndex, visibleMatches.size(), totalMatches.size()));
+            "(%d-%d of %d)".formatted(currentIndex, currentIndex + visibleMatches.size(),
+                totalMatches.size()));
       }
     });
   }
