@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.io.ClipboardWriter;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -73,8 +74,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import org.controlsfx.control.Notifications;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -278,22 +281,27 @@ public class SpectralMatchPanelFX extends GridPane {
     ccMetadata2.setPercentWidth(50);
 
     GridPane g1 = new GridPane();
-    g1.getStyleClass().add("region");
+//    g1.getStyleClass().add("region");
+
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
         DBEntryField.COMPOUND_FIELDS);
     BorderPane panelInstrument = extractMetaData("Instrument information", hit.getEntry(),
         DBEntryField.INSTRUMENT_FIELDS);
-    g1.add(pnCompounds, 0, 0);
-    g1.add(panelInstrument, 1, 0);
-    g1.getColumnConstraints().add(0, ccMetadata1);
-    g1.getColumnConstraints().add(1, ccMetadata2);
 
     BorderPane pnDB = extractMetaData("Database links", hit.getEntry(),
         DBEntryField.DATABASE_FIELDS);
     BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
         DBEntryField.OTHER_FIELDS);
-    g1.add(pnDB, 0, 1);
-    g1.add(pnOther, 1, 1);
+
+    var leftBox
+        = new VBox(4, pnCompounds);
+    leftBox.setPadding(Insets.EMPTY);
+    var rightBox = new VBox(4, panelInstrument, pnOther, pnDB);
+    rightBox.setPadding(new Insets(0,0,0,15));
+    g1.add(leftBox, 0, 0);
+    g1.add(rightBox, 1, 0);
+    g1.getColumnConstraints().add(0, ccMetadata1);
+    g1.getColumnConstraints().add(1, ccMetadata2);
 
     metaDataPanel.getChildren().add(g1);
     metaDataPanel.setMinSize(META_WIDTH, ENTRY_HEIGHT);
@@ -302,6 +310,8 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataScroll = new ScrollPane(metaDataPanel);
     metaDataScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
     metaDataScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    metaDataScroll.setFitToWidth(true);
+    metaDataScroll.setFitToHeight(true);
     metaDataScroll.setMinSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
     metaDataScroll.setMaxSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
     metaDataScroll.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
@@ -404,25 +414,47 @@ public class SpectralMatchPanelFX extends GridPane {
   private BorderPane extractMetaData(String title, SpectralLibraryEntry entry,
       DBEntryField[] other) {
     VBox panelOther = new VBox();
-    panelOther.getStyleClass().add("region");
     panelOther.setAlignment(Pos.TOP_LEFT);
 
     for (DBEntryField db : other) {
-      Object o = entry.getField(db).orElse("N/A");
-      if (!o.equals("N/A")) {
-        Label text = new Label();
-        text.getStyleClass().add("text-label");
-        text.setText(db.toString() + ": " + o);
-        panelOther.getChildren().add(text);
+      String o = entry.getField(db).orElse("n/a").toString();
+      if (!o.equalsIgnoreCase("n/a")) {
+        Label text = new Label(db.toString() + ": " + o);
+        text.setWrapText(true);
+        text.setOnMouseClicked(event -> {
+          ClipboardWriter.writeToClipBoard(o);
+          Notifications.create()
+              .title("Copied to clipboard")
+              .hideAfter(new Duration(2500))
+              .owner(MZmineCore.getDesktop().getMainWindow())
+              .show();
+//
+//          var popOver = new PopOver();
+//          popOver.setContentNode(new Label("Copied to clipboard"));
+//          popOver.setAutoHide(true);
+//          popOver.setAutoFix(true);
+//          popOver.setHideOnEscape(true);
+//          popOver.setDetachable(true);
+//          popOver.setDetached(false);
+//          popOver.setArrowLocation(ArrowLocation.LEFT_BOTTOM);
+//
+//          PauseTransition pause = new PauseTransition(Duration.seconds(2.5));
+//          pause.setOnFinished(e -> popOver.hide());
+//          pause.play();
+//
+//          popOver.show(text);
+
+        });
+
+        panelOther.getChildren().addAll(text);
       }
     }
 
+
     Label otherInfo = new Label(title);
     otherInfo.getStyleClass().add("bold-title-label");
-    BorderPane pn = new BorderPane();
-    pn.getStyleClass().add("region");
+    BorderPane pn = new BorderPane(panelOther);
     pn.setTop(otherInfo);
-    pn.setCenter(panelOther);
     return pn;
   }
 
