@@ -227,7 +227,6 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataPanel.getStyleClass().add("region");
 
     // preview panel
-    IAtomContainer molecule;
     BorderPane pnPreview2D = new BorderPane();
     pnPreview2D.getStyleClass().add("region");
     pnPreview2D.setPrefSize(META_WIDTH, STRUCTURE_HEIGHT);
@@ -244,19 +243,8 @@ public class SpectralMatchPanelFX extends GridPane {
 
     Node newComponent = null;
 
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
-
     // check for INCHI
-    if (!inchiString.equalsIgnoreCase("n/a") && !inchiString.isBlank()) {
-      molecule = parseInChi(hit);
-    }
-    // check for smiles
-    else if (!smilesString.equalsIgnoreCase("n/a") && !smilesString.isBlank()) {
-      molecule = parseSmiles(hit);
-    } else {
-      molecule = null;
-    }
+    IAtomContainer molecule = parseStructure(hit);
 
     // try to draw the component
     if (molecule != null) {
@@ -293,11 +281,10 @@ public class SpectralMatchPanelFX extends GridPane {
     BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
         DBEntryField.OTHER_FIELDS);
 
-    var leftBox
-        = new VBox(4, pnCompounds);
+    var leftBox = new VBox(4, pnCompounds);
     leftBox.setPadding(Insets.EMPTY);
     var rightBox = new VBox(4, panelInstrument, pnOther, pnDB);
-    rightBox.setPadding(new Insets(0,0,0,15));
+    rightBox.setPadding(new Insets(0, 0, 0, 15));
     g1.add(leftBox, 0, 0);
     g1.add(rightBox, 1, 0);
     g1.getColumnConstraints().add(0, ccMetadata1);
@@ -317,6 +304,25 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataScroll.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
 
     return metaDataScroll;
+  }
+
+  private IAtomContainer parseStructure(final SpectralDBAnnotation hit) {
+    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
+    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
+    if (!inchiString.equalsIgnoreCase("n/a") && !inchiString.isBlank()) {
+      var molecule = parseInChi(hit);
+      if (molecule != null) {
+        return molecule;
+      }
+    }
+    // check for smiles
+    if (!smilesString.equalsIgnoreCase("n/a") && !smilesString.isBlank()) {
+      var molecule = parseSmiles(hit);
+      if (molecule != null) {
+        return molecule;
+      }
+    }
+    return null;
   }
 
   private void coupleZoomYListener() {
@@ -423,11 +429,8 @@ public class SpectralMatchPanelFX extends GridPane {
         text.setWrapText(true);
         text.setOnMouseClicked(event -> {
           ClipboardWriter.writeToClipBoard(o);
-          Notifications.create()
-              .title("Copied to clipboard")
-              .hideAfter(new Duration(2500))
-              .owner(MZmineCore.getDesktop().getMainWindow())
-              .show();
+          Notifications.create().title("Copied to clipboard").hideAfter(new Duration(2500))
+              .owner(MZmineCore.getDesktop().getMainWindow()).show();
 //
 //          var popOver = new PopOver();
 //          popOver.setContentNode(new Label("Copied to clipboard"));
@@ -449,7 +452,6 @@ public class SpectralMatchPanelFX extends GridPane {
         panelOther.getChildren().addAll(text);
       }
     }
-
 
     Label otherInfo = new Label(title);
     otherInfo.getStyleClass().add("bold-title-label");
