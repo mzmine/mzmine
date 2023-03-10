@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -83,7 +84,7 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
   }
 
   @Override
-  public void setValueToComponent(final OptionalModuleComponent component, final SUB parameters) {
+  public void setValueToComponent(final OptionalModuleComponent component, final @Nullable SUB parameters) {
     component.setParameterValuesToComponents();
   }
 

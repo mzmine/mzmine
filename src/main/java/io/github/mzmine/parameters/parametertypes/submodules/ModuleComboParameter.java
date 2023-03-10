@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -183,7 +184,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
 
   @Override
   public void setValueToComponent(ModuleComboComponent component,
-      MZmineProcessingStep<ModuleType> newValue) {
+      @Nullable MZmineProcessingStep<ModuleType> newValue) {
     component.setSelectedItem(newValue);
   }
 

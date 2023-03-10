@@ -25,9 +25,6 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.util.RangeUtils;
-import java.awt.event.ActionEvent;
-import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.parameters.Parameter;
@@ -37,6 +34,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.RangeUtils;
+import java.awt.event.ActionEvent;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -46,6 +46,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureSelectionComponent extends BorderPane {
 
@@ -108,8 +109,11 @@ public class FeatureSelectionComponent extends BorderPane {
     setRight(buttonPanel);
   }
 
-  void setValue(List<FeatureSelection> newValue) {
+  void setValue(@Nullable List<FeatureSelection> newValue) {
     selection.clear();
+    if (newValue == null) {
+      return;
+    }
     selection.addAll(newValue);
   }
 

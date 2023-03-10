@@ -76,6 +76,14 @@ public interface MergedMassSpectrum extends Scan {
      * merging is usually: 1. merge individual energies 2. merge for each precursor on all MSn
      * levels 3. merge all into one
      */
-    ALL_MSN_TO_PSEUDO_MS2
+    ALL_MSN_TO_PSEUDO_MS2,
+    /**
+     * Merged all {@link MobilityScan}s from a single
+     * {@link io.github.mzmine.datamodel.msms.PasefMsMsInfo} (= single fragmentation event). This
+     * spectrum is created by merging multiple mobility scans, but does not fulfill the criteria of
+     * the other merging types. It is not acquired from multiple MS2 events or multiple collision
+     * energies.
+     */
+    PASEF_SINGLE
   }
 }

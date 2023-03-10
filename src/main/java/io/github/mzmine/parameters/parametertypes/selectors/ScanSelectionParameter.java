@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOp
 import io.github.mzmine.util.XMLUtils;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -115,7 +116,7 @@ public class ScanSelectionParameter extends
   }
 
   @Override
-  public void setValueToComponent(ScanSelectionComponent component, ScanSelection newValue) {
+  public void setValueToComponent(ScanSelectionComponent component, @Nullable ScanSelection newValue) {
     embeddedParameters.setFilter(newValue);
     component.setParameterValuesToComponents();
   }

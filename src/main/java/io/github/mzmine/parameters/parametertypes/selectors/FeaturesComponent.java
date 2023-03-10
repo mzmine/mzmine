@@ -46,6 +46,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.controlsfx.control.CheckListView;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author akshaj This class represents the component which shows Features in the parameter setup
@@ -138,7 +139,10 @@ public class FeaturesComponent extends HBox {
     return currentValue;
   }
 
-  public void setValue(List<Feature> newValue) {
+  public void setValue(@Nullable List<Feature> newValue) {
+    if (newValue == null) {
+      newValue = List.of();
+    }
     currentValue = FXCollections.observableArrayList(newValue);
     featuresList.setItems(currentValue);
   }

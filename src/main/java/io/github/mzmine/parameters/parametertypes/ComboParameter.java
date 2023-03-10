@@ -31,6 +31,7 @@ import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -108,7 +109,11 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
   }
 
   @Override
-  public void setValueToComponent(ComboBox<ValueType> component, ValueType newValue) {
+  public void setValueToComponent(ComboBox<ValueType> component, @Nullable ValueType newValue) {
+    if (newValue == null) {
+      component.getSelectionModel().clearSelection();
+      return;
+    }
     component.getSelectionModel().select(newValue);
   }
 

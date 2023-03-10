@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Objects;
 import javafx.scene.layout.Priority;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -132,7 +133,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public void setValueToComponent(AdvancedParametersComponent component, Boolean newValue) {
+  public void setValueToComponent(AdvancedParametersComponent component, @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
     component.setValue(embeddedParameters);
   }
