@@ -176,32 +176,31 @@ public class SpectralMatchPanelFX extends GridPane {
             FxColorUtil.fxColorToAWT(MAX_COS_COLOR), MIN_COS_COLOR_VALUE, MAX_COS_COLOR_VALUE,
             simScore));
 
+    lblHit = createLabel(hit.getCompoundName(), "white-larger-label");
 
-    lblHit = new Label(hit.getCompoundName());
-    lblHit.getStyleClass().add("white-larger-label");
-    lblHit.setWrapText(false);
-
-
-    lblScore = new Label(COS_FORM.format(simScore));
-    lblScore.getStyleClass().add("white-score-label");
+    lblScore = createLabel(COS_FORM.format(simScore), "white-score-label");
     lblScore.setTooltip(new Tooltip(
         "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM.format(
             simScore)));
 
     var totalSignals = hit.getLibraryDataPoints(DataPointsTag.FILTERED).length;
     var overlap = hit.getSimilarity().getOverlap();
-    var lblMatched = new Label("Matched signals: %d/%d".formatted(overlap, totalSignals));
-    lblMatched.getStyleClass().add("white-score-label-small");
+    var lblMatched = createLabel("%d / %d".formatted(overlap, totalSignals),
+        "white-score-label-small");
 
     var intensity = hit.getSimilarity().getExplainedLibraryIntensity();
-    var lblExplained = new Label("Expl. intensity: "+COS_FORM.format(intensity));
+    var lblExplained = createLabel(COS_FORM.format(intensity), "white-score-label-small");
     lblExplained.getStyleClass().add("white-score-label-small");
 
     var leftScores = new VBox(0, lblMatched, lblExplained);
     leftScores.setAlignment(Pos.CENTER);
 
-    var scoreBox = new HBox(5, leftScores, lblScore);
-    scoreBox.setPadding(new Insets(0, 5,0,10));
+    var scoreDef = new VBox(0, createLabel("Matched signals:", "white-score-label-small"),
+        createLabel("Expl. intensity:", "white-score-label-small"));
+    scoreDef.setAlignment(Pos.CENTER_RIGHT);
+
+    var scoreBox = new HBox(5, scoreDef, leftScores, lblScore);
+    scoreBox.setPadding(new Insets(0, 5, 0, 10));
     scoreBox.setAlignment(Pos.CENTER);
 
     var titlePane = new BorderPane(lblHit);
@@ -212,6 +211,12 @@ public class SpectralMatchPanelFX extends GridPane {
     titlePane.setStyle("-fx-background-color: " + FxColorUtil.colorToHex(gradientCol));
 
     return titlePane;
+  }
+
+  private Label createLabel(final String label, final String styleClass) {
+    Label lbl = new Label(label);
+    lbl.getStyleClass().add(styleClass);
+    return lbl;
   }
 
   private ScrollPane createMetaDataPane() {
@@ -364,18 +369,18 @@ public class SpectralMatchPanelFX extends GridPane {
     if (inchiString.equalsIgnoreCase("n/a") || inchiString.isBlank()) {
       return null;
     }
-      try {
-        factory = InChIGeneratorFactory.getInstance();
-        // Get InChIToStructure
-        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
-            DefaultChemObjectBuilder.getInstance());
-        molecule = inchiToStructure.getAtomContainer();
-        return molecule;
-      } catch (CDKException e) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e);
-        return null;
-      }
+    try {
+      factory = InChIGeneratorFactory.getInstance();
+      // Get InChIToStructure
+      InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
+          DefaultChemObjectBuilder.getInstance());
+      molecule = inchiToStructure.getAtomContainer();
+      return molecule;
+    } catch (CDKException e) {
+      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
+      logger.log(Level.WARNING, errorMessage, e);
+      return null;
+    }
   }
 
   private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
