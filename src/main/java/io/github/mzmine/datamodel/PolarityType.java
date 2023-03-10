@@ -102,4 +102,11 @@ public enum PolarityType {
   public String toString() {
     return asSingleChar();
   }
+
+  /**
+   * @return true if positive or negative
+   */
+  public boolean isDefined() {
+    return this == POSITIVE || this == NEGATIVE;
+  }
 }
