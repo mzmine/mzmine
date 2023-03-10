@@ -144,7 +144,7 @@
         userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
       <SeparatorMenuItem/>
 
-      <MenuItem onAction="#runModule" text="ICP-MS CVS"
+      <MenuItem onAction="#runModule" text="ICP-MS CSV"
         userData="io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportModule"/>
       <accelerator>
         <KeyCodeCombination alt="UP" code="I" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>

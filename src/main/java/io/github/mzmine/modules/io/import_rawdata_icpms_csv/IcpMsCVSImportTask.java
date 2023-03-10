@@ -41,7 +41,6 @@ import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -64,7 +63,8 @@ public class IcpMsCVSImportTask extends AbstractTask {
   private int totalScans, parsedScans;
 
   public IcpMsCVSImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
@@ -146,7 +146,7 @@ public class IcpMsCVSImportTask extends AbstractTask {
         mzValues[i] = Integer.valueOf(mzsList.get(i));
       }
 
-      Range<Double> mzRange = Range.closed(mzValues[0] - 10, mzValues[1] + 10);
+      Range<Double> mzRange = Range.closed(mzValues[0] - 10, mzValues[mzValues.length - 1] + 10);
 
       int scanNumber = 1;
 
@@ -176,11 +176,12 @@ public class IcpMsCVSImportTask extends AbstractTask {
         scanNumber++;
       }
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
-          getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
       setErrorMessage(e.getMessage());
       setStatus(TaskStatus.ERROR);
       return;
