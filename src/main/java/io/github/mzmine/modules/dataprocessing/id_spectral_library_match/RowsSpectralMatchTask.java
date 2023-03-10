@@ -405,7 +405,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       // check for MS1 or MSMS scan
       List<Scan> scans = getScans(row);
       if (scans.isEmpty()) {
-        return;
+        return 0;
       }
 
       List<DataPoint[]> rowMassLists = new ArrayList<>();
