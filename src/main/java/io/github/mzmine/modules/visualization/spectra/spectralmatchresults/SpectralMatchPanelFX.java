@@ -431,7 +431,8 @@ public class SpectralMatchPanelFX extends GridPane {
           ClipboardWriter.writeToClipBoard(o);
           Notifications.create().title("Copied to clipboard").hideAfter(new Duration(2500))
               .owner(MZmineCore.getDesktop().getMainWindow()).show();
-//
+
+          // Other option for overlay
 //          var popOver = new PopOver();
 //          popOver.setContentNode(new Label("Copied to clipboard"));
 //          popOver.setAutoHide(true);
