@@ -485,7 +485,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
         () -> !selectedRows.isEmpty() && rowHasSpectralLibraryMatches(selectedRows));
     showSpectralDBResults.setOnAction(
-        e -> SpectraIdentificationResultsModule.showNewTab(selectedRows));
+        e -> SpectraIdentificationResultsModule.showNewTab(selectedRows, table));
 
     final MenuItem showMatchedLipidSignals = new ConditionalMenuItem("Matched lipid signals",
         () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
