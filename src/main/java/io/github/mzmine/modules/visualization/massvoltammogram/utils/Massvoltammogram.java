@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.massvoltammogram.utils;
@@ -48,22 +56,19 @@ public class Massvoltammogram {
   private final ScanSelection scanSelection;
   private final ReactionMode reactionMode;
   private final double delayTime; //In s.
-  private double potentialRampSpeed; //In mV/s.
   private final Range<Double> potentialRange;
+  //Plot
+  private final MassvoltammogramPlotPanel plot = new MassvoltammogramPlotPanel(this);
+  private double potentialRampSpeed; //In mV/s.
   private double stepSize; //In mV.
   private Range<Double> userInputMzRange;
-
   //Potentials in mV.
   private double startPotential;
   private double endPotential;
-
   //MassvoltammogramScans
   private List<MassvoltammogramScan> rawScans;
   private List<MassvoltammogramScan> rawScansInMzRange;
   private List<MassvoltammogramScan> processedScans;
-
-  //Plot
-  private final MassvoltammogramPlotPanel plot = new MassvoltammogramPlotPanel(this);
 
 
   public Massvoltammogram(RawDataFile file, ScanSelection scanSelection, ReactionMode reactionMode,
@@ -85,9 +90,9 @@ public class Massvoltammogram {
 
     //Creating the massvoltammogram from the raw data file.
     setPotentials();
-    setScansFromRawDataFile();
-    setScansInMzRange();
-    setProcessedScans();
+    extractScansFromRawDataFile();
+    cropRawScansToMzRange();
+    processRawScans();
     plotMassvoltammogram();
   }
 
@@ -110,9 +115,9 @@ public class Massvoltammogram {
 
     //Creating the massvoltammogram from the feature list.
     setPotentials();
-    setScansFromFeatureList();
-    setScansInMzRange();
-    setProcessedScans();
+    extractScansFromFeatureList();
+    cropRawScansToMzRange();
+    processRawScans();
     plotMassvoltammogram();
   }
 
@@ -141,7 +146,7 @@ public class Massvoltammogram {
   /**
    * Extracts all scans needed to draw the massvoltammogram from a raw data file.
    */
-  private void setScansFromRawDataFile() {
+  private void extractScansFromRawDataFile() {
 
     //Initializing a list to add the scans to.
     final List<MassvoltammogramScan> scans = new ArrayList<>();
@@ -186,7 +191,7 @@ public class Massvoltammogram {
   /**
    * Extracts all scans needed to draw the massvoltammogram from a feature list.
    */
-  private void setScansFromFeatureList() {
+  private void extractScansFromFeatureList() {
 
     //Initializing a list to add the scans to.
     final List<MassvoltammogramScan> scans = new ArrayList<>();
@@ -253,7 +258,7 @@ public class Massvoltammogram {
   /**
    * Extracts all values of the raw scans within the mz-range.
    */
-  private void setScansInMzRange() {
+  private void cropRawScansToMzRange() {
 
     //Extracting the mz-range from the scans.
     List<MassvoltammogramScan> scansInMzRange = MassvoltammogramUtils.extractMZRangeFromScan(
@@ -263,7 +268,7 @@ public class Massvoltammogram {
     MassvoltammogramUtils.addZerosToCentroidData(scansInMzRange);
 
     //Aligning the scans to all start and end at the same mz-value.
-    MassvoltammogramUtils.aligneScans(scansInMzRange,
+    MassvoltammogramUtils.alignScans(scansInMzRange,
         MassvoltammogramUtils.getMzRange(scansInMzRange), userInputMzRange,
         MassvoltammogramUtils.getMzRange(rawScans));
 
@@ -273,7 +278,7 @@ public class Massvoltammogram {
   /**
    * Removes excess datapoints for the processed scans.
    */
-  private void setProcessedScans() {
+  private void processRawScans() {
 
     //Removing low intensity signals as well as neighbouring signals with intensity values of 0.
     processedScans = MassvoltammogramUtils.removeNoise(rawScansInMzRange,
@@ -396,8 +401,8 @@ public class Massvoltammogram {
     }
     this.userInputMzRange = mzRangeParameter.getValue(MassvoltammogramMzRangeParameter.mzRange);
 
-    setScansInMzRange();
-    setProcessedScans();
+    cropRawScansToMzRange();
+    processRawScans();
 
     plot.removeAllPlots();
     plotMassvoltammogram();
