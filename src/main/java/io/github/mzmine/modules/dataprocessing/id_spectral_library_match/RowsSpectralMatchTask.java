@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -85,25 +86,26 @@ public class RowsSpectralMatchTask extends AbstractTask {
   // remove +- 4 Da around the precursor - including the precursor signal
   // this signal does not matter for matching
   protected final MZTolerance mzToleranceRemovePrecursor = new MZTolerance(4d, 0d);
-  // scan merging and ms levels
-  // null when single scan is matched
-  private final @Nullable ScanMatchingSelection scanMatchingSelection;
   // in some cases this task is only going to run on one scan
   protected final Scan scan;
   protected final AtomicInteger matches = new AtomicInteger(0);
   protected final MZTolerance mzToleranceSpectra;
   protected final MZTolerance mzTolerancePrecursor;
+  // scan merging and ms levels
+  // null when single scan is matched
+  private final @Nullable ScanMatchingSelection scanMatchingSelection;
   private final MsLevelFilter msLevelFilter;
-  protected RTTolerance rtTolerance;
-  protected PercentTolerance ccsTolerance;
   private final AtomicInteger errorCounter = new AtomicInteger(0);
-  private boolean useRT;
   private final int totalRows;
   private final int minMatch;
   private final boolean removePrecursor;
-  private boolean cropSpectraToOverlap;
   private final String description;
   private final MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
+  private final FragmentScanSelection fragmentScanSelection;
+  protected RTTolerance rtTolerance;
+  protected PercentTolerance ccsTolerance;
+  private boolean useRT;
+  private boolean cropSpectraToOverlap;
   // remove 13C isotopes
   private boolean removeIsotopes;
   private MassListDeisotoperParameters deisotopeParam;
@@ -112,7 +114,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private boolean needsIsotopePattern;
   private int minMatchedIsoSignals;
   private double scanPrecursorMZ;
-  private final FragmentScanSelection fragmentScanSelection;
 
   public RowsSpectralMatchTask(ParameterSet parameters, @NotNull Scan scan,
       @NotNull Instant moduleCallDate) {
@@ -238,7 +239,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   /**
    * Checks for isotope pattern in matched signals within mzToleranceSpectra
-   *
    */
   public static boolean checkForIsotopePattern(SpectralSimilarity sim,
       MZTolerance mzToleranceSpectra, int minMatchedIsoSignals) {
@@ -400,6 +400,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
       // best MS1 scan
       // check for MS1 or MSMS scan
       List<Scan> scans = getScans(row);
+      if (scans.isEmpty()) {
+        return;
+      }
+
       List<DataPoint[]> rowMassLists = new ArrayList<>();
       for (Scan scan : scans) {
         // get mass list and perform deisotoping if active
@@ -411,10 +415,19 @@ public class RowsSpectralMatchTask extends AbstractTask {
       List<SpectralDBAnnotation> ids = null;
       // match against all library entries
       for (SpectralLibraryEntry ident : entries) {
+
+        final String entryPolarity = ident.getOrElse(DBEntryField.POLARITY, null);
+
         final Float libCCS = ident.getOrElse(DBEntryField.CCS, null);
         SpectralDBAnnotation best = null;
         // match all scans against this ident to find best match
         for (int i = 0; i < scans.size(); i++) {
+          final PolarityType scanPolarity = scans.get(i).getPolarity();
+          if (!weakPolarityCheck(entryPolarity, scanPolarity)) {
+            // check each ms2 scan individually, maybe we have grouped pos/neg rows in the future.
+            continue;
+          }
+
           SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(), rowCCS,
               rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
@@ -597,5 +610,24 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   public int getErrorCount() {
     return errorCounter.get();
+  }
+
+  /**
+   * Weak polarity check. If in doubt (e.g. either the entryPolarityString or scanPolarity is null
+   * or unknown) this returns true.
+   *
+   * @param entryPolarityString the scanPolarity string
+   * @param scanPolarity        The spectrum scanPolarity
+   * @return false if both polarities are defined and do not match, true otherwise.
+   */
+  public boolean weakPolarityCheck(String entryPolarityString, PolarityType scanPolarity) {
+    if (scanPolarity == null || scanPolarity == PolarityType.UNKNOWN) {
+      return true;
+    }
+    final PolarityType entryPolarity = PolarityType.parseFromString(entryPolarityString);
+    if (entryPolarity != PolarityType.UNKNOWN) {
+      return entryPolarity == scanPolarity;
+    }
+    return true;
   }
 }
