@@ -186,6 +186,8 @@ public class MZmineJsonLibraryEntry {
       case CHEMSPIDER -> null;
       case SIRIUS_MERGED_SCANS -> null;
       case SIRIUS_MERGED_STATS -> null;
+      case OTHER_MATCHED_COMPOUNDS_N -> null;
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
       case FEATURE_ID -> null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;

@@ -98,7 +98,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       try {
         annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
+        // do not log the full stack trace as this is expected in many cases
+        logger.log(Level.WARNING, e.getMessage());
       }
     }
 
