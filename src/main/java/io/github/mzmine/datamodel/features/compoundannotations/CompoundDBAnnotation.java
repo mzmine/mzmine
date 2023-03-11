@@ -77,7 +77,8 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
+public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
+    Comparable<CompoundDBAnnotation> {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
@@ -117,7 +118,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
       return true;
     } else {
       return useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
-          || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null);
+                               || baseAnnotation.getFormula() != null
+                               || baseAnnotation.getSmiles() != null);
     }
   }
 
@@ -463,4 +465,22 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   }
 
 
+  /**
+   * highest score first
+   *
+   * @param o the object to be compared.
+   */
+  @Override
+  default int compareTo(@NotNull CompoundDBAnnotation o) {
+    var sc = this.getScore();
+    var sc2 = o.getScore();
+    if (sc == null && sc2 == null) {
+      return 0;
+    } else if (sc == null) {
+      return -1;
+    } else if (sc2 == null) {
+      return 1;
+    }
+    return -Float.compare(sc, sc2);
+  }
 }

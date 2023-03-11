@@ -144,7 +144,7 @@
         userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
       <SeparatorMenuItem/>
 
-      <MenuItem onAction="#runModule" text="ICP-MS CVS"
+      <MenuItem onAction="#runModule" text="ICP-MS CSV"
         userData="io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportModule"/>
       <accelerator>
         <KeyCodeCombination alt="UP" code="I" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -534,8 +534,12 @@
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
-    <MenuItem text="Massvoltammogram" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltommogramModule"/>
+    <Menu text="Massvoltammogram">
+      <MenuItem text="From Raw Data File" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule"/>
+      <MenuItem text="From Feature List" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
+    </Menu>
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"
       userData="io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule"/>
 
