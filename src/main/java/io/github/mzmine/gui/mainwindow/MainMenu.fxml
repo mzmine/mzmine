@@ -142,6 +142,8 @@
         userData="io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule"/>
       <MenuItem onAction="#runModule" text="Import spectral libraries"
         userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
+      <MenuItem onAction="#runModule" text="Spectral library to feature list"
+        userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule"/>
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="ICP-MS CSV"
