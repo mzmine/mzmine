@@ -48,14 +48,15 @@ public class TableViewUtils {
 
   public static void autoFitLastColumn(TableView<?> table, DoubleExpression tableWidth) {
     var cols = table.getColumns();
-    if (cols.size() < 2) {
-      throw new IllegalArgumentException("Table must contain 2 or more columns");
+    if (cols.size() < 1) {
+      throw new IllegalArgumentException("Table must contain 1 or more columns");
     }
     // target column to resize
     TableColumn<?, ?> lastCol = cols.get(cols.size() - 1);
     // subtract all widths from the table width
     DoubleExpression remainingWidth = tableWidth;
-    for (var col : cols) {
+    for (int i = 0; i < cols.size()-1; i++) {
+      var col = cols.get(i);
       if (col != lastCol) {
         remainingWidth = remainingWidth.subtract(col.widthProperty());
       }

@@ -36,6 +36,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -47,24 +49,30 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask {
 
-  private static final Logger logger = Logger
-      .getLogger(SelectedRowsSpectralLibrarySearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      SelectedRowsSpectralLibrarySearchTask.class.getName());
   private SpectraIdentificationResultsWindowFX resultWindow;
-  private FeatureTableFX table;
+  private final FeatureTableFX table;
+  private final List<SpectralDBAnnotation> syncList = Collections.synchronizedList(
+      new ArrayList<>());
 
   public SelectedRowsSpectralLibrarySearchTask(List<FeatureListRow> rows, FeatureTableFX table,
       ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(parameters, rows, moduleCallDate); // no new data stored -> null
     this.table = table;
+    MZmineCore.runLater(() -> {
+      resultWindow = new SpectraIdentificationResultsWindowFX();
+      resultWindow.addMatches(syncList);
+      MZmineCore.getDesktop().addTab(resultWindow);
+    });
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    logger.info(() -> String
-        .format("Spectral library matching of %d rows against libraries: %s",
-            rows.size(), librariesJoined));
+    logger.info(() -> String.format("Spectral library matching of %d rows against libraries: %s",
+        rows.size(), librariesJoined));
 
     // add type to featureLists
     for (var row : rows) {
@@ -73,19 +81,11 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
       }
     }
 
-    if (rows.size() == 1) {
-      // add result frame
-      MZmineCore.runLater(() -> {
-        resultWindow = new SpectraIdentificationResultsWindowFX();
-        resultWindow.show();
-      });
-    } else {
-      resultWindow = null;
-    }
-
     // run the actual subtask
     super.run();
-
+    if (resultWindow != null) {
+      MZmineCore.runLater(() -> resultWindow.setMatchingFinished());
+    }
     // Add task description to peakList
     if (!isCanceled()) {
       setStatus(TaskStatus.FINISHED);
@@ -96,9 +96,12 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
   protected void addIdentities(FeatureListRow row, List<SpectralDBAnnotation> matches) {
     super.addIdentities(row, matches);
     // one selected row -> show in dialog
-    if (resultWindow != null) {
-      MZmineCore.runLater(() -> resultWindow.addMatches(matches));
-    }
+      if (resultWindow != null) {
+        MZmineCore.runLater(() -> resultWindow.addMatches(matches));
+      }
+      else {
+        syncList.addAll(matches);
+      }
   }
 
 }

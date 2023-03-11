@@ -311,17 +311,21 @@ public class RowsSpectralMatchTask extends AbstractTask {
     if (rows != null) {
       logger.info(() -> String.format("Comparing %d library spectra to %d feature list rows",
           entries.size(), totalRows));
-      rows.stream().parallel().forEach(row -> {
-        if (!isCanceled()) {
-          matchRowToLibraries(entries, row);
-          finishedRows.incrementAndGet();
-        }
-      });
-
+      // cannot use parallel.forEach with side effects - this thread will continue without waiting for
+      // stream to finish
+      var totalMatches = rows.stream().filter(FeatureListRow::hasMs2Fragmentation).parallel()
+          .mapToInt(row -> {
+            if (!isCanceled()) {
+              int matches = matchRowToLibraries(entries, row);
+              finishedRows.incrementAndGet();
+              return matches;
+            }
+            return 0;
+          }).sum();
+      logger.info("Total spectral library matches " + totalMatches);
       logger.info(() -> String.format("library matches=%d (Errors:%d); rows=%d; library entries=%d",
           getCount(), getErrorCount(), totalRows, entries.size()));
     }
-
   }
 
   /**
@@ -365,13 +369,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
             (IMSRawDataFile) mobScan.getDataFile());
       }
     } else if (scan instanceof MergedMsMsSpectrum merged
-        && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
+               && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
       MobilityScan mobScan = (MobilityScan) merged.getSourceSpectra().stream()
           .filter(MobilityScan.class::isInstance).max(Comparator.comparingDouble(
               s -> Objects.requireNonNullElse(((MobilityScan) s).getMobility(), 0d))).orElse(null);
@@ -379,7 +383,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && mobScan != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
             (IMSRawDataFile) mobScan.getDataFile());
@@ -394,14 +398,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param entries combined library entries
    * @param row     target row
    */
-  public void matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
+  public int matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
     try {
       // All MS2 or only best MS2 scan
       // best MS1 scan
       // check for MS1 or MSMS scan
       List<Scan> scans = getScans(row);
       if (scans.isEmpty()) {
-        return;
+        return 0;
       }
 
       List<DataPoint[]> rowMassLists = new ArrayList<>();
@@ -432,7 +436,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
               rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
               mzToleranceSpectra, minMatchedIsoSignals)) && (best == null
-              || best.getSimilarity().getScore() < sim.getScore())) {
+                                                             || best.getSimilarity().getScore()
+                                                                < sim.getScore())) {
 
             Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
 
@@ -453,11 +458,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ids != null) {
         addIdentities(row, ids);
         SortSpectralMatchesTask.sortIdentities(row);
+        return ids.size();
+
       }
     } catch (MissingMassListException e) {
       logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
       errorCounter.getAndIncrement();
     }
+    return 0;
   }
 
   /**
