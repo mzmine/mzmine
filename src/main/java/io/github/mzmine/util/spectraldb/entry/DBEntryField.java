@@ -83,6 +83,9 @@ public enum DBEntryField {
   QUALITY_CHIMERIC, QUALITY_EXPLAINED_INTENSITY(Float.class), QUALITY_EXPLAINED_SIGNALS(
       Float.class),
 
+  // compound annotation might match to multiple different compounds
+  OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES,
+
   // number of signals
   NUM_PEAKS(Integer.class), // only used for everything that cannot easily be mapped
   UNSPECIFIED;
@@ -217,7 +220,8 @@ public enum DBEntryField {
           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
           QUALITY, QUALITY_CHIMERIC, FILENAME, //
-          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS -> StringType.class;
+          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES ->
+          StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
@@ -296,6 +300,8 @@ public enum DBEntryField {
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
       case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
+      case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
       case FILENAME -> "raw_file_name";
       case SIRIUS_MERGED_SCANS -> "merged_scans";
@@ -346,6 +352,8 @@ public enum DBEntryField {
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
       case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
+      case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
       case FILENAME -> "file_name";
       case SIRIUS_MERGED_SCANS -> "";
@@ -398,6 +406,8 @@ public enum DBEntryField {
       case QUALITY -> "QUALITY";
       case QUALITY_EXPLAINED_INTENSITY -> "QUALITY_EXPLAINED_INTENSITY";
       case QUALITY_EXPLAINED_SIGNALS -> "QUALITY_EXPLAINED_SIGNALS";
+      case OTHER_MATCHED_COMPOUNDS_N -> "OTHER_MATCHED_COMPOUNDS";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "OTHER_MATCHED_COMPOUNDS_NAMES";
       case FEATURE_ID -> "FEATURE_ID";
       case FILENAME -> "FILENAME";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
@@ -441,6 +451,8 @@ public enum DBEntryField {
       case PUBCHEM -> "";
       case CHEMSPIDER -> "";
       case MONA_ID, GNPS_ID -> "";
+      case OTHER_MATCHED_COMPOUNDS_N -> "";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "";
       case NUM_PEAKS -> "##NPOINTS";
       case RESOLUTION, SYNONYMS, MOLWEIGHT -> "";
       case CCS -> "";
@@ -493,7 +505,8 @@ public enum DBEntryField {
           ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, //
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
-          DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC -> value.toString();
+          DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
+          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES -> value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);
