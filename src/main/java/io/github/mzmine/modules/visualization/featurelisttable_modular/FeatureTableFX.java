@@ -819,6 +819,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         .collect(Collectors.toList());
   }
 
+  public ObservableList<TreeItem<ModularFeatureListRow>> getSelectedTableRows() {
+    return getSelectionModel().getSelectedItems();
+  }
+
   @Nullable
   public ModularFeatureListRow getSelectedRow() {
     return getSelectionModel().getSelectedItem() != null ? getSelectionModel().getSelectedItem()

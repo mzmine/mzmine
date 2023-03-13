@@ -25,21 +25,26 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.TableViewUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javafx.application.Platform;
+import java.util.stream.Collectors;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -52,6 +57,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -59,6 +65,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Window to show all spectral libraries matches from selected scan or feature list match
@@ -70,6 +77,8 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
   private static final Logger logger = Logger.getLogger(
       SpectraIdentificationResultsWindowFX.class.getName());
 
+  // link row selection to results
+  private final FeatureTableFX table;
   private final Font headerFont = new Font("Dialog Bold", 16);
   private final ObservableList<SpectralDBAnnotation> totalMatches;
   private final ObservableList<SpectralDBAnnotation> visibleMatches;
@@ -83,9 +92,16 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
   private int currentIndex = 0;
   private int showBestN = 15;
   private Label shownMatchesLbl;
+  private TableColumn<SpectralDBAnnotation, SpectralDBAnnotation> column;
 
   public SpectraIdentificationResultsWindowFX() {
+    this(null);
+  }
+
+  public SpectraIdentificationResultsWindowFX(@Nullable final FeatureTableFX table) {
     super("Spectral matches", false, false);
+    this.table = table;
+    addRowSelectionListener(table);
 
     totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));
     visibleMatches = FXCollections.observableArrayList();
@@ -99,12 +115,6 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
     HBox btnmenu = createButtonMenu();
     mainBox = new VBox(noMatchesFound, btnmenu);
 
-//    ScrollPane scrollPane = new ScrollPane();
-//    scrollPane.setFitToHeight(true);
-//    scrollPane.setFitToWidth(true);
-//    scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
-//    scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
-
     pnMain = new BorderPane(createTable());
     pnMain.setTop(mainBox);
     pnMain.setMinWidth(700);
@@ -115,15 +125,21 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
     setCoupleZoomY(true);
   }
 
-  private void createTopMenu() {
-//    MenuBar menuBar = new MenuBar();
-//    // menuBar.add(new WindowsMenu());
-//
-//    Menu menu = new Menu("Menu");
-//
-//    menuBar.getMenus().add(menu);
-//    pnMain.setTop(menuBar);
+  private void addRowSelectionListener(final FeatureTableFX table) {
+    if (table == null) {
+      return;
+    }
+    table.getSelectedTableRows()
+        .addListener((ListChangeListener<? super TreeItem<ModularFeatureListRow>>) c -> {
+          var rows = c.getList().stream().map(TreeItem::getValue).toList();
+          var allMatches = rows.stream().map(ModularFeatureListRow::getSpectralLibraryMatches)
+              .flatMap(Collection::stream).toList();
+          setMatches(allMatches);
+
+          setTitle(rows);
+        });
   }
+
 
   @NotNull
   private HBox createButtonMenu() {
@@ -170,7 +186,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
   private TableView<SpectralDBAnnotation> createTable() {
     TableView<SpectralDBAnnotation> tableView = new TableView<>(visibleMatches);
     tableView.setPadding(Insets.EMPTY);
-    TableColumn<SpectralDBAnnotation, SpectralDBAnnotation> column = new TableColumn<>();
+    column = new TableColumn<>();
     column.setSortable(false);
 
     column.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
@@ -216,9 +232,23 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
   }
 
   /**
-   * Add a new match and sort the view. Call from {@link Platform#runLater}.
+   * Column header title
+   */
+  public void setTitle(String title) {
+    column.setText(title);
+  }
+
+  /**
+   * Column header title
+   */
+  public void setTitle(List<ModularFeatureListRow> rows) {
+    column.setText(rows.stream().map(FeatureUtils::rowToString).collect(Collectors.joining("; ")));
+  }
+
+  /**
+   * Add a new match and sort the view.
    *
-   * @param match
+   * @param match single match
    */
   public synchronized void addMatches(SpectralDBAnnotation match) {
     if (!totalMatches.contains(match)) {
@@ -231,7 +261,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
   }
 
   /**
-   * add all matches and sort the view. Call from {@link Platform#runLater}.
+   * add all matches and sort the view.
    *
    * @param matches
    */
@@ -243,6 +273,19 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
     // sort and show
     sortTotalMatches();
   }
+
+  /**
+   * set all matches
+   *
+   * @param matches
+   */
+  public void setMatches(List<SpectralDBAnnotation> matches) {
+    totalMatches.setAll(matches);
+    matchPanels.clear();
+    // sort and show
+    sortTotalMatches();
+  }
+
 
   /**
    * Sort all matches and renew panels
