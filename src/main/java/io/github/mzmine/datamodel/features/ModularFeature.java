@@ -220,9 +220,10 @@ public class ModularFeature implements Feature, ModularDataModel {
       IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
     this(flist, dataFile, featureStatus);
 
-    set(FeatureDataType.class, featureData);
-
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    if (featureData != null) {
+      set(FeatureDataType.class, featureData);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    }
   }
 
   /**

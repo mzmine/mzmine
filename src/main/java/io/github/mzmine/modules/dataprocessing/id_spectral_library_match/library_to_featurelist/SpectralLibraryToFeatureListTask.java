@@ -111,10 +111,10 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       final SpectralLibraryDataFile libRaw) {
     var flist = new ModularFeatureList(library.getName(), null, libRaw);
 
-    Map<EqalLibraryEntryTester, List<LibraryEntryWrappedScan>> compoundMap = new HashMap<>();
+    Map<LibraryEntryEqualityTester, List<LibraryEntryWrappedScan>> compoundMap = new HashMap<>();
     libRaw.streamLibraryScan().forEach(scan -> {
       var entry = scan.getEntry();
-      var tester = new EqalLibraryEntryTester(entry.getOrElse(DBEntryField.NAME, ""),
+      var tester = new LibraryEntryEqualityTester(entry.getOrElse(DBEntryField.NAME, ""),
           entry.getOrElse(DBEntryField.FORMULA, ""), entry.getOrElse(DBEntryField.SMILES, ""),
           entry.getOrElse(DBEntryField.INCHI, ""), entry.getOrElse(DBEntryField.INCHIKEY, ""),
           entry.getOrElse(DBEntryField.ION_TYPE, ""));
@@ -166,7 +166,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
     }
 
     if (singleEntryFeatureList.getNumberOfRows() != flist.getNumberOfRows()) {
-      flist.setName("%s merged %d compounds".formatted(flist.getName(), compounds.size()));
+      flist.setName("%s grouped %d compounds".formatted(flist.getName(), compounds.size()));
       flist.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(SpectralLibraryToFeatureListModule.class, parameters,
               moduleCallDate));
