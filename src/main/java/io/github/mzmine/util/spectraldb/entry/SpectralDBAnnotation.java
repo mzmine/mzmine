@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -41,6 +43,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -48,7 +51,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SpectralDBAnnotation implements FeatureAnnotation {
+public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<SpectralDBAnnotation> {
 
   public static final String XML_ATTR = "spectral_library_annotation";
   private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
@@ -141,37 +144,41 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
     return queryScan.getMassList().getDataPoints();
   }
 
+  @NotNull
   public DataPoint[] getLibraryDataPoints(DataPointsTag tag) {
-    switch (tag) {
-      case ORIGINAL:
-        return entry.getDataPoints();
-      case FILTERED:
-        return similarity.getLibrary();
-      case ALIGNED:
-        return similarity.getAlignedDataPoints()[0];
-      case MERGED:
-        return new DataPoint[0];
-    }
-    return new DataPoint[0];
+    return switch (tag) {
+      case ORIGINAL -> requireNonNullElse(entry.getDataPoints(), new DataPoint[0]);
+      case FILTERED -> requireNonNullElse(similarity.getLibrary(), new DataPoint[0]);
+      case ALIGNED -> requireNonNullElse(similarity.getAlignedDataPoints()[0], new DataPoint[0]);
+      case MERGED, ALIGNED_MODIFIED -> new DataPoint[0];
+      case UNALIGNED -> {
+        var input = getLibraryDataPoints(DataPointsTag.FILTERED);
+        var aligned = Set.of(getLibraryDataPoints(DataPointsTag.ALIGNED));
+        yield Arrays.stream(input).filter(dp -> !aligned.contains(dp)).toArray(DataPoint[]::new);
+      }
+    };
   }
 
+  @NotNull
   public DataPoint[] getQueryDataPoints(DataPointsTag tag) {
-    switch (tag) {
-      case ORIGINAL:
+    return switch (tag) {
+      case ORIGINAL -> {
         DataPoint[] dp = getQueryDataPoints();
         if (dp == null) {
-          return new DataPoint[0];
+          yield new DataPoint[0];
         }
         Arrays.sort(dp, new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
-        return dp;
-      case FILTERED:
-        return similarity.getQuery();
-      case ALIGNED:
-        return similarity.getAlignedDataPoints()[1];
-      case MERGED:
-        return new DataPoint[0];
-    }
-    return new DataPoint[0];
+        yield dp;
+      }
+      case FILTERED -> requireNonNullElse(similarity.getQuery(), new DataPoint[0]);
+      case ALIGNED -> requireNonNullElse(similarity.getAlignedDataPoints()[1], new DataPoint[0]);
+      case MERGED, ALIGNED_MODIFIED -> new DataPoint[0];
+      case UNALIGNED -> {
+        var input = getQueryDataPoints(DataPointsTag.FILTERED);
+        var aligned = Set.of(getQueryDataPoints(DataPointsTag.ALIGNED));
+        yield Arrays.stream(input).filter(dp -> !aligned.contains(dp)).toArray(DataPoint[]::new);
+      }
+    };
   }
 
   @Override
@@ -260,11 +267,23 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
   @Override
   public String toString() {
     return String.format("%s (%.3f)", getCompoundName(),
-        Objects.requireNonNullElse(getScore(), 0f));
+        requireNonNullElse(getScore(), 0f));
   }
 
   @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ATTR;
+  }
+
+  @Override
+  public int compareTo(@NotNull final SpectralDBAnnotation o) {
+    if(o.getScore()==null && getScore()==null)
+      return 0;
+    if(o.getScore()==null)
+      return -1;
+    if(getScore()==null)
+      return 1;
+
+    return Float.compare(this.getScore(), o.getScore());
   }
 }

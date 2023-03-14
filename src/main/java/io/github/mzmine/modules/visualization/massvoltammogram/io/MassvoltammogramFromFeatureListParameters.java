@@ -23,33 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
-import static io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.correctors.LocMinLoessCorrectorParameters.choices;
 
-import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.visualization.massvoltammogram.utils.ReactionMode;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import java.awt.Button;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.DecimalFormat;
-import javolution.lang.ValueType;
 
-public class MassvoltammogramParameters extends SimpleParameterSet {
+public class MassvoltammogramFromFeatureListParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
-
-  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-      "Scan Selection", "Filter to choose the scans to be used.", new ScanSelection());
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
   public static final DoubleParameter delayTime = new DoubleParameter("Delay Time / s",
       "Delay time before analytes from the EC cell reach the mass spectrometer",
@@ -71,9 +60,9 @@ public class MassvoltammogramParameters extends SimpleParameterSet {
       "Reaction Mode", "Reaction mode of the experiment.", ReactionMode.values(),
       ReactionMode.OXIDATIVE);
 
-  public MassvoltammogramParameters() {
-    super(new Parameter[]{files, scanSelection, reactionMode, delayTime, potentialRampSpeed,
-        potentialRange, stepSize, mzRange});
+  public MassvoltammogramFromFeatureListParameters() {
+    super(new Parameter[]{featureLists, reactionMode, delayTime, potentialRampSpeed, potentialRange,
+        stepSize, mzRange});
   }
 }
 

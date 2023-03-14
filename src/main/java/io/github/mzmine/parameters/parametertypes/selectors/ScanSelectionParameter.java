@@ -129,6 +129,8 @@ public class ScanSelectionParameter extends
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
+    // need to clear first - null values are not loaded
+    setValue(null);
     boolean isNewFormat =
         xmlElement.getElementsByTagName(SimpleParameterSet.parameterElement).getLength() > 0;
     if (isNewFormat) {

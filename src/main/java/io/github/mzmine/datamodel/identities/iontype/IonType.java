@@ -422,8 +422,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public boolean isModificationOf(IonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
-        && adduct.equals(parent.adduct) && molecules == parent.molecules
-        && charge == parent.charge)) {
+                        && adduct.equals(parent.adduct) && molecules == parent.molecules
+                        && charge == parent.charge)) {
       return false;
     } else if (!parent.hasMods()) {
       return true;
@@ -458,12 +458,28 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return new IonType(1, IonModification.getUndefinedforCharge(this.charge), mod);
   }
 
+
   /**
    * @return count of modification
    */
   public int getModCount() {
     return mod == null ? 0 : mod.getModCount();
   }
+
+  /**
+   * @return count of adducts
+   */
+  public int getAdductCount() {
+    return adduct == null ? 0 : adduct.getModCount();
+  }
+
+  /**
+   * @return sum of modification and adducts, molecules, charge
+   */
+  public int getTotalPartsCount() {
+    return molecules + charge + getModCount() + getAdductCount();
+  }
+
 
   /**
    * ((mz * charge) - deltaMass) / numberOfMolecules
