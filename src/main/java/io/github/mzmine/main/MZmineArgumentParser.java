@@ -51,6 +51,7 @@ public class MZmineArgumentParser {
   private File tempDirectory;
   private boolean isKeepRunningAfterBatch = false;
   private boolean loadTdfPseudoProfile = false;
+  private boolean loadTsfProfile = false;
   private KeepInMemory isKeepInMemory = null;
 
   public void parse(String[] args) {
@@ -83,6 +84,11 @@ public class MZmineArgumentParser {
         "Loads pseudo-profile frame spectra for tdf files instead of centroided spectra.");
     loadTdfPseudoProfile.setRequired(false);
     options.addOption(loadTdfPseudoProfile);
+
+    Option loadTsfProfile = new Option("tsfprofile", false,
+        "Loads profile spectra from .tsf data instead of centroid spectra.");
+    loadTsfProfile.setRequired(false);
+    options.addOption(loadTsfProfile);
 
     CommandLineParser parser = new BasicParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -124,8 +130,11 @@ public class MZmineArgumentParser {
             + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
       }
 
-      if(cmd.hasOption(loadTdfPseudoProfile.getOpt())) {
+      if (cmd.hasOption(loadTdfPseudoProfile.getOpt())) {
         this.loadTdfPseudoProfile = true;
+      }
+      if (cmd.hasOption(loadTsfProfile.getOpt())) {
+        this.loadTsfProfile = true;
       }
 
     } catch (ParseException e) {
@@ -176,6 +185,10 @@ public class MZmineArgumentParser {
 
   public boolean isLoadTdfPseudoProfile() {
     return loadTdfPseudoProfile;
+  }
+
+  public boolean isLoadTsfProfile() {
+    return loadTsfProfile;
   }
 }
 
