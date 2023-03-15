@@ -25,7 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist;
 
-record EqalLibraryEntryTester(String name, String formula, String smiles, String inchi, String inchiKey,
-                                     String adduct) {
+/**
+ * this object just tests for equality of the name, structure, adduct
+ */
+record LibraryEntryEqualityTester(String name, String formula, String smiles, String inchi,
+                                  String inchiKey, String adduct) {
 
 }

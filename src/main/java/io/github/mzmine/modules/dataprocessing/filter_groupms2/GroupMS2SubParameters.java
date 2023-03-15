@@ -33,9 +33,9 @@ import org.jetbrains.annotations.NotNull;
 public class GroupMS2SubParameters extends SimpleParameterSet {
 
   public GroupMS2SubParameters() {
-    super(new Parameter[]{GroupMS2Parameters.minimumRelativeFeatureHeight,
-            GroupMS2Parameters.minRequiredSignals, GroupMS2Parameters.mzTol,
-            GroupMS2Parameters.rtFilter, GroupMS2Parameters.limitMobilityByFeature,
+    super(new Parameter[]{GroupMS2Parameters.mzTol, GroupMS2Parameters.rtFilter,
+            GroupMS2Parameters.minimumRelativeFeatureHeight, GroupMS2Parameters.minRequiredSignals,
+            GroupMS2Parameters.limitMobilityByFeature,
 
             // TIMS specific
             GroupMS2Parameters.combineTimsMsMs, GroupMS2Parameters.outputNoiseLevel,

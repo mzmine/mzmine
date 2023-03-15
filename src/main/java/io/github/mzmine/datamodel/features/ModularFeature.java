@@ -217,12 +217,13 @@ public class ModularFeature implements Feature, ModularDataModel {
    * @param featureStatus The feature status.
    */
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
-      IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
+      @Nullable IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
     this(flist, dataFile, featureStatus);
 
-    set(FeatureDataType.class, featureData);
-
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    if (featureData != null) {
+      set(FeatureDataType.class, featureData);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    }
   }
 
   /**
