@@ -157,8 +157,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
         LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
-    sampleHeader = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-        LocalCSVDatabaseSearchParameters.filterSamples, null);
 
     // all raw data files for a name check if selected
     allRawDataFiles = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles)
@@ -278,10 +276,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           row.setCompoundAnnotations(matches);
         }
       }
-
       if(isotopePatternMatcherParameterSet != null) {
-        refineAnnotations(flist);
+        for (FeatureList flist : featureLists) {
+          refineAnnotations(flist);
+        }
       }
+
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
