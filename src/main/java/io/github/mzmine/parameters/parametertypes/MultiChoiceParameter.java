@@ -25,45 +25,44 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.layout.Priority;
 import org.controlsfx.control.CheckListView;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.CollectionUtils;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 /**
  * Simple Parameter implementation
- *
- *
  */
-public class MultiChoiceParameter<ValueType>
-    implements UserParameter<ValueType[], CheckListView<ValueType>> {
+public class MultiChoiceParameter<ValueType> implements
+    UserParameter<ValueType[], CheckListView<ValueType>> {
 
   private final String name, description;
-  private ValueType choices[], values[];
-  private int minNumber;
+  private final int minNumber;
+  private ValueType[] choices, values;
 
   /**
    * We need the choices parameter non-null even when the length may be 0. We need it to determine
    * the class of the ValueType.
    */
-  public MultiChoiceParameter(String name, String description, ValueType choices[]) {
+  public MultiChoiceParameter(String name, String description, ValueType[] choices) {
     this(name, description, choices, null, 1);
   }
 
-  public MultiChoiceParameter(String name, String description, ValueType choices[],
-      ValueType values[]) {
+  public MultiChoiceParameter(String name, String description, ValueType[] choices,
+      ValueType[] values) {
     this(name, description, choices, values, 1);
   }
 
-  public MultiChoiceParameter(String name, String description, ValueType choices[],
-      ValueType values[], int minNumber) {
+  public MultiChoiceParameter(String name, String description, ValueType[] choices,
+      ValueType[] values, int minNumber) {
 
     assert choices != null;
 
@@ -75,13 +74,14 @@ public class MultiChoiceParameter<ValueType>
   }
 
   /**
+   *
    */
   @Override
   public String getName() {
     return name;
   }
 
-  public void setChoices(ValueType choices[]) {
+  public void setChoices(ValueType[] choices) {
     this.choices = choices;
   }
 
@@ -90,6 +90,7 @@ public class MultiChoiceParameter<ValueType>
   }
 
   /**
+   *
    */
   @Override
   public String getDescription() {
@@ -97,11 +98,16 @@ public class MultiChoiceParameter<ValueType>
   }
 
   @Override
+  public Priority getComponentVgrowPriority() {
+    return Priority.SOMETIMES;
+  }
+
+  @Override
   public CheckListView<ValueType> createEditingComponent() {
-    final ObservableList<ValueType> choicesList =
-        FXCollections.observableArrayList(Arrays.asList(choices));
+    final ObservableList<ValueType> choicesList = FXCollections.observableArrayList(
+        Arrays.asList(choices));
     final CheckListView<ValueType> comp = new CheckListView<>(choicesList);
-    comp.setPrefHeight(150);
+    comp.setPrefHeight(200);
     return comp;
   }
 
@@ -117,8 +123,8 @@ public class MultiChoiceParameter<ValueType>
 
   @Override
   public MultiChoiceParameter<ValueType> cloneParameter() {
-    MultiChoiceParameter<ValueType> copy =
-        new MultiChoiceParameter<ValueType>(name, description, choices, values);
+    MultiChoiceParameter<ValueType> copy = new MultiChoiceParameter<ValueType>(name, description,
+        choices, values);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -134,8 +140,11 @@ public class MultiChoiceParameter<ValueType>
   @Override
   public void setValueToComponent(CheckListView<ValueType> component, ValueType[] newValue) {
     component.getSelectionModel().clearSelection();
-    for (ValueType v : newValue)
+    component.getCheckModel().clearChecks();
+    for (ValueType v : newValue) {
       component.getSelectionModel().select(v);
+      component.getCheckModel().check(v);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -152,14 +161,15 @@ public class MultiChoiceParameter<ValueType>
       }
     }
     Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
-    Object newArray[] = newValues.toArray();
+    Object[] newArray = newValues.toArray();
     this.values = CollectionUtils.changeArrayType(newArray, arrayType);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (values == null)
+    if (values == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     for (ValueType item : values) {
       Element newElement = parentDocument.createElement("item");

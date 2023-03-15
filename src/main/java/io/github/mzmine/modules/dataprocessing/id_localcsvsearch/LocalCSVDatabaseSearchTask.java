@@ -43,15 +43,11 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
-import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -59,12 +55,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.CSVParsingUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
@@ -78,7 +73,10 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
@@ -146,6 +144,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   @Override
   public void run() {
+
     setStatus(TaskStatus.PROCESSING);
 
     try {
@@ -157,11 +156,20 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       databaseValues = CSVParser.parse(dbFileReader,
           "\\t".equals(fieldSeparator) ? '\t' : fieldSeparator.charAt(0));
 
-      List<ImportType> lineIds = findLineIds(importTypes, databaseValues[0]);
+      final StringProperty error = new SimpleStringProperty();
+      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(importTypes, databaseValues[0],
+          error);
+      if (lineIds == null) {
+        setErrorMessage(error.get());
+        return;
+      }
 
       // option to read more fields and append to comment as json
-      final DataType<String> type = DataTypes.get(CommentType.class);
       List<ImportType> commentFields = extractCommentFields();
+      if (commentFields == null) {
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
 
       // sample header index
       if (filterSamples) {
@@ -209,6 +217,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   }
 
+  /**
+   * @return The list of comment fields if the fields were found successfully. Empty list if no
+   * extra comments were selected. Null on error.
+   */
+  @Nullable
   private List<ImportType> extractCommentFields() {
     List<ImportType> commentFields = new ArrayList<>();
     final String appendComments = parameters.getValue(
@@ -218,7 +231,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       commentFields = Arrays.stream(appendComments.split(",")).map(s -> s.trim().toLowerCase())
           .map(s -> new ImportType(true, s, type)).toList();
       if (!commentFields.isEmpty()) {
-        commentFields = findLineIds(commentFields, databaseValues[0]);
+        final SimpleStringProperty error = new SimpleStringProperty();
+        commentFields = CSVParsingUtils.findLineIds(commentFields, databaseValues[0], error);
+        if (commentFields == null) {
+          setErrorMessage(error.get());
+        }
       }
     }
     return commentFields;
@@ -243,30 +260,22 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     for (CompoundDBAnnotation annotation : annotations) {
       for (FeatureListRow peakRow : flist.getRows()) {
-        if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
-          final CompoundDBAnnotation clone = annotation.clone();
-          final Float score = clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance,
-              ccsTolerance);
-          clone.put(CompoundAnnotationScoreType.class, score);
-          clone.put(MzPpmDifferenceType.class,
-              (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
-                  peakRow.getAverageMZ()));
-          if (annotation.get(CCSType.class) != null && peakRow.getAverageCCS() != null) {
-            clone.put(CCSRelativeErrorType.class,
-                PercentTolerance.getPercentError(annotation.get(CCSType.class),
-                    peakRow.getAverageCCS()));
-          }
-          if (annotation.get(RTType.class) != null && peakRow.getAverageRT() != null) {
-            clone.put(RtRelativeErrorType.class,
-                PercentTolerance.getPercentError(annotation.get(RTType.class),
-                    peakRow.getAverageRT()));
-          }
-
-          peakRow.addCompoundAnnotation(clone);
-          peakRow.getCompoundAnnotations()
-              .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
-        }
+        checkMatchAndAnnotate(annotation, peakRow, mzTolerance, rtTolerance, mobTolerance,
+            ccsTolerance);
       }
+    }
+  }
+
+  private void checkMatchAndAnnotate(CompoundDBAnnotation annotation, FeatureListRow row,
+      MZTolerance mzTolerance, RTTolerance rtTolerance, MobilityTolerance mobTolerance,
+      Double percCcsTolerance) {
+
+    final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(row, mzTolerance,
+        rtTolerance, mobTolerance, percCcsTolerance);
+    if (clone != null) {
+      row.addCompoundAnnotation(clone);
+      row.getCompoundAnnotations()
+          .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
     }
   }
 
@@ -341,45 +350,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
         new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     return a;
-  }
-
-  private @NotNull List<ImportType> findLineIds(@NotNull List<ImportType> importTypes,
-      String[] firstLine) {
-    List<ImportType> lines = new ArrayList<>();
-    for (ImportType importType : importTypes) {
-      if (importType.isSelected()) {
-        ImportType type = new ImportType(importType.isSelected(), importType.getCsvColumnName(),
-            importType.getDataType());
-        lines.add(type);
-      }
-    }
-
-    for (ImportType importType : lines) {
-      int columnIndex = getHeaderColumnIndex(firstLine, importType.getCsvColumnName());
-      if (columnIndex == -1) {
-        // log all missing columns
-        String missingHeaders = lines.stream().map(ImportType::getCsvColumnName)
-            .filter(header -> getHeaderColumnIndex(firstLine, header) == -1)
-            .collect(Collectors.joining("; "));
-
-        String message =
-            "Library file " + dataBaseFile.getAbsolutePath() + " does not contain headers: "
-                + missingHeaders;
-        throw new IllegalArgumentException(message);
-      }
-      importType.setColumnIndex(columnIndex);
-    }
-
-    final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
-        .toList();
-    if (!nullMappings.isEmpty()) {
-      setErrorMessage("Did not find specified column " + Arrays.toString(
-          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file "
-          + dataBaseFile.getAbsolutePath());
-      setStatus(TaskStatus.ERROR);
-    }
-
-    return lines;
   }
 
   private int getHeaderColumnIndex(final String[] firstLine, final String colHeader) {

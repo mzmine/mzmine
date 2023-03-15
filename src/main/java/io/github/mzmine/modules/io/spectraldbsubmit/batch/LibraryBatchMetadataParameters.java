@@ -105,7 +105,7 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
 
   private void putIfNotEmpty(HashMap<DBEntryField, Object> map, Parameter<?> p,
       DBEntryField field) {
-    Object value = p.getValue();
+    Object value = getValue(p);
     if (value == null || (value instanceof String s && s.isEmpty())) {
       return;
     }

@@ -71,10 +71,10 @@ import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 public class MzTabmImportTask extends AbstractTask {
 
   // parameter values
-  private MZmineProject project;
+  private final MZmineProject project;
   private final ParameterSet parameters;
-  private File inputFile;
-  private boolean importRawFiles;
+  private final File inputFile;
+  private final boolean importRawFiles;
   private double finishedPercentage = 0.0;
 
   // underlying tasks for importing raw data
@@ -138,8 +138,9 @@ public class MzTabmImportTask extends AbstractTask {
 
       if (!errors.isEmpty()) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Error processing" + inputFile + ":\n"
-            + mzTabmFileParser​.getErrorList().toString() + "\n" + messages.toString());
+        setErrorMessage(
+            "Error processing" + inputFile + ":\n" + mzTabmFileParser​.getErrorList().toString()
+                + "\n" + messages.toString());
         return;
       }
       MzTab mzTabFile = mzTabmFileParser​.getMZTabFile();
@@ -157,7 +158,7 @@ public class MzTabmImportTask extends AbstractTask {
 
       // Create new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
-      RawDataFile rawDataArray[] = rawDataFiles.toArray(new RawDataFile[0]);
+      RawDataFile[] rawDataArray = rawDataFiles.toArray(new RawDataFile[0]);
       ModularFeatureList newFeatureList = new ModularFeatureList(featureListName,
           getMemoryMapStorage(), rawDataArray);
 
@@ -193,7 +194,6 @@ public class MzTabmImportTask extends AbstractTask {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not import data from " + inputFile + ": " + e.getMessage());
-      return;
     }
   }
 
@@ -249,8 +249,8 @@ public class MzTabmImportTask extends AbstractTask {
         }
         boolean tasksFinished = true;
         for (Task task : underlyingTasks) {
-          if ((task.getStatus() == TaskStatus.WAITING)
-              || (task.getStatus() == TaskStatus.PROCESSING)) {
+          if ((task.getStatus() == TaskStatus.WAITING) || (task.getStatus()
+              == TaskStatus.PROCESSING)) {
             tasksFinished = false;
           }
         }
@@ -296,8 +296,8 @@ public class MzTabmImportTask extends AbstractTask {
     if (variableMap.isEmpty()) {
       return;
     }
-    UserParameter<?, ?> newUserParameter =
-        new StringParameter(inputFile.getName() + " study variable", "");
+    UserParameter<?, ?> newUserParameter = new StringParameter(
+        inputFile.getName() + " study variable", "");
     project.addParameter(newUserParameter);
     for (StudyVariable studyVariable : variableMap) {
       // Stop the process if cancel() was called
@@ -330,7 +330,7 @@ public class MzTabmImportTask extends AbstractTask {
     int rowCounter = 0;
     List<SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
     List<SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
-    
+
     MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
 
     for (SmallMoleculeFeature smf : smfList) {
@@ -356,7 +356,7 @@ public class MzTabmImportTask extends AbstractTask {
         url = sml.getUri().get(0);
       }
       // Average Retention Time, convert to minutes for MZmine
-      rtValue = smf.getRetentionTimeInSeconds().floatValue()/60.0f;
+      rtValue = smf.getRetentionTimeInSeconds().floatValue() / 60.0f;
       // Get corresponding SME objects from SMF
       List<SmallMoleculeEvidence> corrSMEList = mzTabAccess.getEvidences(smf);
       // Identification Method
@@ -379,8 +379,8 @@ public class MzTabmImportTask extends AbstractTask {
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
-        SimpleFeatureIdentity newIdentity =
-            new SimpleFeatureIdentity(description, formula, method, identifier, url);
+        SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, method,
+            identifier, url);
         newRow.addFeatureIdentity(newIdentity, false);
       }
 
@@ -401,8 +401,8 @@ public class MzTabmImportTask extends AbstractTask {
           for (OptColumnMapping optCol : optColList) {
             Optional<Assay> optAssay = mzTabAccess.getAssayFor(optCol, mzTabmFile.getMetadata());
             if (!optAssay.isEmpty()) {
-              if (dataFileAssay.getName().equals(optAssay.get().getName())
-                  && optCol.getIdentifier().contains("peak_mz")) {
+              if (dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier()
+                  .contains("peak_mz")) {
                 feature_mz = Double.parseDouble(optCol.getValue());
               } else if (dataFileAssay.getName().equals(optAssay.get().getName())
                   && optCol.getIdentifier().contains("peak_rt")) {
@@ -414,8 +414,8 @@ public class MzTabmImportTask extends AbstractTask {
             }
           }
         }
-        Scan scans[] = {rawData.getScanNumberAtRT(rtValue)};
-        DataPoint finalDataPoint[] = new DataPoint[1];
+        Scan[] scans = {rawData.binarySearchClosestScan(rtValue)};
+        DataPoint[] finalDataPoint = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         Scan representativeScan = null;
         List<Scan> allFragmentScans = List.of();

@@ -140,8 +140,7 @@ public class ParameterSetupPane extends BorderPane {
     mainPane = this;
 
     // Use main CSS
-    mainPane.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     centerPane = new BorderPane();
 
@@ -246,6 +245,7 @@ public class ParameterSetupPane extends BorderPane {
   @NotNull
   public GridPane createParameterPane(@NotNull Parameter<?>[] parameters) {
     GridPane paramsPane = new GridPane();
+    paramsPane.setPadding(new Insets(5));
     // paramsPane.setStyle("-fx-border-color: blue;");
 
     /*
@@ -255,6 +255,8 @@ public class ParameterSetupPane extends BorderPane {
      */
     ColumnConstraints column1 = new ColumnConstraints();
     ColumnConstraints column2 = new ColumnConstraints();
+    column2.setFillWidth(true);
+    column2.setHgrow(Priority.ALWAYS);
     paramsPane.getColumnConstraints().addAll(column1, column2);
     int rowCounter = 0;
 
@@ -311,6 +313,7 @@ public class ParameterSetupPane extends BorderPane {
        */
 
       RowConstraints rowConstraints = new RowConstraints();
+      rowConstraints.setVgrow(up.getComponentVgrowPriority());
       if (comp instanceof AdvancedParametersComponent) {
         paramsPane.add(comp, 0, rowCounter, 2, 1);
         rowConstraints.setVgrow(Priority.SOMETIMES);

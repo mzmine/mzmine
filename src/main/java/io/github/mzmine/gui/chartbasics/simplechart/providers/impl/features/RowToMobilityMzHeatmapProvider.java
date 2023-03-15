@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,8 +55,8 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
 
   private double maxValue = Double.NEGATIVE_INFINITY;
   private double minValue = Double.POSITIVE_INFINITY;
-  private double maxDiameter = 30d;
-  private double minDiameter = 10d;
+  private final double maxDiameter = 30d;
+  private final double minDiameter = 10d;
   private double deltaDiameter = 1d;
   private double deltaValue = 1d;
 
@@ -91,13 +91,10 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   @Override
   public String getLabel(int index) {
     ModularFeatureListRow f = rows.get(index);
-    StringBuilder sb = new StringBuilder();
-    sb.append("m/z:");
-    sb.append(mzFormat.format(f.getAverageMZ()));
-    sb.append("\n");
-    sb.append("Mobility: ");
-    sb.append(mobilityFormat.format(f.getAverageMobility()));
-    return sb.toString();
+    final String sb =
+        "m/z:" + mzFormat.format(f.getAverageMZ()) + "\n" + "Mobility: " + mobilityFormat.format(
+            f.getAverageMobility());
+    return sb;
   }
 
   @NotNull
@@ -111,26 +108,17 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   public String getToolTipText(int itemIndex) {
     ModularFeatureListRow f = rows.get(itemIndex);
 
-    StringBuilder sb = new StringBuilder();
-    sb.append("m/z:");
-    sb.append(mzFormat.format(f.getMZRange().lowerEndpoint()));
-    sb.append(" - ");
-    sb.append(mzFormat.format(f.getMZRange().upperEndpoint()));
-    sb.append("\n");
-    sb.append("Height: ");
-    sb.append(intensityFormat.format(f.getAverageHeight()));
-    sb.append("\n");
-    sb.append("Retention time");
-    sb.append(": ");
-    sb.append(rtFormat.format(f.getAverageRT()));
-    sb.append(" min\n");
-    sb.append("Mobility: ");
-    sb.append(mobilityFormat.format(f.getAverageMobility()));
-    return sb.toString();
+    final String sb =
+        "m/z:" + mzFormat.format(f.getMZRange().lowerEndpoint()) + " - " + mzFormat.format(
+            f.getMZRange().upperEndpoint()) + "\n" + "Height: " + intensityFormat.format(
+            f.getAverageHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
+            f.getAverageRT()) + " min\n" + "Mobility: " + mobilityFormat.format(
+            f.getAverageMobility());
+    return sb;
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     for (int i = 0; i < rows.size(); i++) {
       final ModularFeatureListRow row = rows.get(i);
       for (final IMSRawDataFile file : files) {
@@ -141,7 +129,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
         minValue = Math.min(summedValues[i], minValue);
         maxValue = Math.max(summedValues[i], maxValue);
 
-        if (status.get() == TaskStatus.CANCELED) {
+        if (status.getValue() == TaskStatus.CANCELED) {
           return;
         }
       }
@@ -198,7 +186,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
 
   @Override
   public double getPieDiameter(int index) {
-    return (getZValue(index) - minValue)/deltaValue * deltaDiameter + minDiameter;
+    return (getZValue(index) - minValue) / deltaValue * deltaDiameter + minDiameter;
   }
 
   @Override

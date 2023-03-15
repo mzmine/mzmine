@@ -69,20 +69,21 @@ public class MobilityUnitType extends DataType<MobilityType> {
   }
 
   @Override
-  public @NotNull String getFormattedString(MobilityType value) {
-    return value == null? "" : value.getUnit();
+  public @NotNull String getFormattedString(MobilityType value, boolean export) {
+    return value == null ? "" : value.getUnit();
   }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
-    if(!(value instanceof MobilityType mt)) {
+    if (!(value instanceof MobilityType mt)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
     writer.writeCharacters(mt.name());
   }

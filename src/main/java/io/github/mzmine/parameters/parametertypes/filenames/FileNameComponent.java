@@ -32,30 +32,29 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  *
  */
-public class FileNameComponent extends FlowPane implements LastFilesComponent {
+public class FileNameComponent extends HBox implements LastFilesComponent {
 
   //public static final Font smallFont = new Font("SansSerif", 10);
 
-  private TextField txtFilename;
-  private LastFilesButton btnLastFiles;
-  private FileSelectionType type;
+  private final TextField txtFilename;
+  private final LastFilesButton btnLastFiles;
+  private final FileSelectionType type;
 
-  public FileNameComponent(int textfieldcolumns, List<File> lastFiles, FileSelectionType type,
+  public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters) {
     // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
     this.type = type;
 
     txtFilename = new TextField();
-    txtFilename.setPrefColumnCount(textfieldcolumns);
     //txtFilename.setFont(smallFont);
 
     // last used files chooser button
@@ -107,11 +106,10 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
       txtFilename.setText(selectedFile.getPath());
     });
 
-    HBox hBox = new HBox(txtFilename, btnLastFiles, btnFileBrowser);
-    hBox.setSpacing(7d);
-    hBox.setAlignment(Pos.CENTER_LEFT);
-    super.getChildren().add(hBox);
-
+    getChildren().addAll(txtFilename, btnLastFiles, btnFileBrowser);
+    setAlignment(Pos.CENTER_LEFT);
+    setSpacing(5);
+    HBox.setHgrow(txtFilename, Priority.ALWAYS);
     setLastFiles(lastFiles);
   }
 
@@ -132,7 +130,7 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
 
   public File getValue(boolean allowEmptyString) {
     String fileName = txtFilename.getText();
-    if (allowEmptyString == false && fileName.trim().isEmpty()) {
+    if (!allowEmptyString && fileName.trim().isEmpty()) {
       return null;
     }
     return getValue();

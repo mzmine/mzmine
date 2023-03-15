@@ -59,12 +59,8 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void setStatusBarText(String text) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void setStatusBarText(String text, Color textColor) {
+  public void setStatusBarText(String text, Color textColor, String url) {
+    // do nothing in headless
   }
 
   @Override
@@ -75,6 +71,12 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public void displayMessage(String title, String msg) {
     logger.info(msg);
+  }
+
+  @Override
+  public void displayMessage(final String title, final String msg, final String url) {
+    logger.info(msg);
+    logger.info("URL: " + url);
   }
 
   @Override
@@ -174,4 +176,8 @@ public class HeadLessDesktop implements Desktop {
     return ButtonType.YES;
   }
 
+  @Override
+  public void handleShowTaskView() {
+    // nothing
+  }
 }

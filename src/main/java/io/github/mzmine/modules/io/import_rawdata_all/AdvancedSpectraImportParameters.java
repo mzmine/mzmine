@@ -29,6 +29,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecti
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 
@@ -44,8 +45,15 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
           "Algorithm to use on MS2 scans for mass detection and its parameters",
           MassDetectionParameters.massDetectors, MassDetectionParameters.massDetectors[0]));
 
+  public static final BooleanParameter denormalizeMSnScans = new BooleanParameter(
+      "Denormalize fragment scans (traps)", """
+      Denormalize MS2 (MSn) scans by multiplying with the injection time. Encouraged before spectral merging.
+      (only available in trap-based systems, like Orbitraps, trapped ion mobility spectrometry (tims), etc)
+      This reduces the intensity differences between spectra acquired with different injection times
+      and reverts to "raw" intensities.""", false);
+
   public AdvancedSpectraImportParameters() {
-    super(new Parameter[]{msMassDetection, ms2MassDetection});
+    super(new Parameter[]{msMassDetection, ms2MassDetection, denormalizeMSnScans});
   }
 
 }

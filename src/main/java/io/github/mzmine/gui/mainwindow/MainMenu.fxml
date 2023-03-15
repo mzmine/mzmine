@@ -181,6 +181,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
       <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
+      <MenuItem text="Denormalize scans (multiply by inject time)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
     </Menu>
 
     <Menu text="Mass detection">
@@ -206,14 +208,17 @@
 
   <Menu text="Feature detection">
     <Menu text="LC-MS">
-      <MenuItem onAction="#runModule"
-        text="ADAP chromatogram builder"
+      <MenuItem onAction="#runModule" text="ADAP chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
       <MenuItem text="GridMass" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
       <MenuItem onAction="#runModule"
         text="Targeted feature detection"
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
+    </Menu>
+    <Menu text="GC-MS">
+          <MenuItem onAction="#runModule" text="ADAP chromatogram builder"
+            userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
     </Menu>
     <Menu text="LC-IMS-MS">
       <MenuItem onAction="#runModule"
@@ -275,14 +280,14 @@
 
   <!-- FEATURE LIST METHODS -->
   <Menu text="Feature list methods">
-    <Menu text="Import feature list">
-      <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>
-      <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>
-      <MenuItem text="csv" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>
-    </Menu>
+<!--    <Menu text="Import feature list">-->
+<!--      <MenuItem text="mzTab" onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>-->
+<!--      <MenuItem text="mzTab-m" onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>-->
+<!--      <MenuItem text="csv" onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>-->
+<!--    </Menu>-->
 
     <Menu text="Export feature list">
       <MenuItem text="CSV" onAction="#runModule"
@@ -291,7 +296,7 @@
         userData="io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule"/>
       <MenuItem text="Venn diagram export" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
-      <MenuItem text="MetaboAnalyst" onAction="#runModule"
+      <MenuItem text="Statistics export (MetaboAnalyst)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
       <MenuItem text="mzTab" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule"/>
@@ -314,6 +319,8 @@
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
       <MenuItem text="Spectral library batch generation" onAction="#runModule"
         userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
+      <MenuItem text="FeatureML" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
     </Menu>
 
     <Menu text="Processing">
@@ -321,6 +328,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
       <MenuItem onAction="#runModule" text="Assign DIA pseudo spectra to features (experimental)"
         userData="io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule"/>
+      <MenuItem onAction="#runModule" text="Refine fragmentation scans of features"
+        userData="io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule"/>
       <MenuItem onAction="#runModule"
         text="Internal reference CCS calibration"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule"/>
@@ -342,7 +351,7 @@
     </Menu>
 
     <Menu text="Feature grouping">
-      <MenuItem text="metaCorrelate (corrGroup)" onAction="#runModule"
+      <MenuItem text="Correlation grouping (metaCorrelate)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
       <MenuItem text="MS/MS spectral networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
@@ -444,6 +453,9 @@
           text="Precursor search in spectral libraries"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>
+        <MenuItem text="BioTransformer 3.0"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule"/>
       </Menu>
 
       <Menu text="Search spectra">
@@ -584,7 +596,7 @@
   </Menu>
 
   <Menu text="Processing wizard">
-    <MenuItem text="LC-MS / LC-IMS-MS workflow" onAction="#showWizardTab"
+    <MenuItem text="Processing wizard" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
@@ -593,7 +605,7 @@
     </MenuItem>
   </Menu>
 
-  <!-- WINDOWS -->
+  <!-- Window control -->
   <WindowsMenu>
     <Menu text="Task manager">
       <MenuItem text="Hide" onAction="#hideTaskViewer"/>

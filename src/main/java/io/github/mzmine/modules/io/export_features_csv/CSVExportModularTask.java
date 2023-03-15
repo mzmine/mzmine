@@ -141,6 +141,15 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
+    if (!substitute && featureLists.length > 1) {
+      setErrorMessage("""
+          Cannot export multiple feature lists to the same CSV file. Please use "{}" pattern in filename.\
+          This will be replaced with the feature list name to generate one file per feature list.
+          """);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     // Total number of rows
     for (ModularFeatureList featureList : featureLists) {
       totalTypes += featureList.getNumberOfRows();
@@ -326,7 +335,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     if (value == null) {
       value = ((DataType) subColFactory).getDefaultValue();
     }
-    return csvEscape(subColFactory.getFormattedSubColValue(col, value));
+    return csvEscape(subColFactory.getFormattedSubColExportValue(col, value));
   }
 
   private String getFormattedValue(@Nullable ModularDataModel data, DataType type) {
@@ -335,7 +344,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       value = type.getDefaultValue();
     }
     try {
-      return csvEscape(type.getFormattedString(value));
+      return csvEscape(type.getFormattedExportString(value));
     } catch (Exception e) {
       logger.log(Level.FINEST,
           "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);

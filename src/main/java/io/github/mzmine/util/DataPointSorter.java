@@ -35,6 +35,10 @@ public class DataPointSorter implements Comparator<DataPoint> {
 
   public static final DataPointSorter DEFAULT_MZ_ASCENDING = new DataPointSorter(SortingProperty.MZ,
       SortingDirection.Ascending);
+
+  /**
+   * Sorts by descending intensity.
+   */
   public static final DataPointSorter DEFAULT_INTENSITY = new DataPointSorter(
       SortingProperty.Intensity, SortingDirection.Descending);
 

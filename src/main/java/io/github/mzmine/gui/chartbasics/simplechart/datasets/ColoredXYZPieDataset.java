@@ -123,10 +123,10 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
 
   @Override
   public void run() {
-    status.set(TaskStatus.PROCESSING);
+    setStatus(TaskStatus.PROCESSING);
     xyValueProvider.computeValues(status);
 
-    if (status.get() != TaskStatus.PROCESSING) {
+    if (status.getValue() != TaskStatus.PROCESSING) {
       return;
     }
 

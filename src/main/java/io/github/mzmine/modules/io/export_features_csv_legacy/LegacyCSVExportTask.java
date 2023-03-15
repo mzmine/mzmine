@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -78,6 +79,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private final FeatureListRowsFilter filter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
+
+  private final NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
 
@@ -223,7 +226,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   }
 
   private void exportFeatureList(FeatureList featureList, BufferedWriter writer) throws IOException {
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+    final NumberFormat mzForm = formats.mzFormat();
     RawDataFile[] rawDataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Buffer for writing

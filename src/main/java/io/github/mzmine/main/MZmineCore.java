@@ -39,12 +39,14 @@ import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.ProjectManagerImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -144,7 +146,7 @@ public final class MZmineCore {
       // Load configuration
       if (prefFile.exists() && prefFile.canRead()) {
         try {
-          getInstance().configuration.loadConfiguration(prefFile);
+          getInstance().configuration.loadConfiguration(prefFile, true);
           updateTempDir = true;
         } catch (Exception e) {
           logger.log(Level.WARNING,
@@ -324,6 +326,97 @@ public final class MZmineCore {
     return getInstance().initializedModules.values();
   }
 
+  /**
+   * Show setup dialog and run module if okay
+   *
+   * @param moduleClass the module class
+   */
+  public static ExitCode setupAndRunModule(
+      final Class<? extends MZmineRunnableModule> moduleClass) {
+    return setupAndRunModule(moduleClass, null, null);
+  }
+
+  /**
+   * Show setup dialog and run module if okay
+   *
+   * @param moduleClass the module class
+   * @param onFinish    callback for all tasks finished
+   * @param onError     callback for error
+   */
+  public static ExitCode setupAndRunModule(final Class<? extends MZmineRunnableModule> moduleClass,
+      @Nullable Runnable onFinish, @Nullable Runnable onError) {
+    return setupAndRunModule(moduleClass, onFinish, onError, null);
+  }
+
+  /**
+   * Show setup dialog and run module if okay
+   *
+   * @param moduleClass the module class
+   * @param onFinish    callback for all tasks finished
+   * @param onError     callback for error
+   * @param onCancel    callback for cancelled tasks
+   */
+  public static ExitCode setupAndRunModule(final Class<? extends MZmineRunnableModule> moduleClass,
+      @Nullable Runnable onFinish, @Nullable Runnable onError, @Nullable Runnable onCancel) {
+    // throw exception on headless mode
+    if (isHeadLessMode()) {
+      throw new IllegalStateException(
+          "Cannot setup parameters in headless mode. This needs the parameter setup dialog");
+    }
+
+    MZmineModule module = MZmineCore.getModuleInstance(moduleClass);
+
+    if (module == null) {
+      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
+      return ExitCode.ERROR;
+    }
+
+    ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+
+    logger.info("Setting parameters for module " + module.getName());
+    moduleParameters.setModuleNameAttribute(module.getName());
+
+    try {
+      ExitCode exitCode = moduleParameters.showSetupDialog(true);
+      if (exitCode != ExitCode.OK) {
+        return exitCode;
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    List<Task> tasks = MZmineCore.runMZmineModule(moduleClass, parametersCopy);
+
+    if (onError != null || onFinish != null || onCancel != null) {
+      AllTasksFinishedListener.registerCallbacks(tasks, true, onFinish, onError, onCancel);
+    }
+    return ExitCode.OK;
+  }
+
+  /**
+   * Creates a new empty raw data file with the same type and name+suffix like raw
+   *
+   * @param raw     defines base name and type of raw data file, standard, IMS, or imaging
+   * @param suffix  add a suffix to the raw.name
+   * @param storage the storage to store data on disk for this file
+   * @return new data file of the same type
+   * @throws IOException
+   */
+  public static RawDataFile createNewFile(@NotNull RawDataFile raw, @NotNull final String suffix,
+      @Nullable final MemoryMapStorage storage) throws IOException {
+    String newName = raw.getName() + " " + suffix;
+    String absPath = raw.getAbsolutePath();
+    if (raw instanceof IMSRawDataFile) {
+      return createNewIMSFile(newName, absPath, storage);
+    } else if (raw instanceof ImagingRawDataFileImpl) {
+      return createNewImagingFile(newName, absPath, storage);
+    } else {
+      return new RawDataFileImpl(newName, absPath, storage);
+    }
+  }
+
   public static RawDataFile createNewFile(@NotNull final String name,
       @Nullable final String absPath, @Nullable final MemoryMapStorage storage) throws IOException {
     return new RawDataFileImpl(name, absPath, storage);
@@ -450,6 +543,17 @@ public final class MZmineCore {
     return getInstance().storageList;
   }
 
+  public static @NotNull MetadataTable getProjectMetadata() {
+    return getProject().getProjectMetadata();
+  }
+
+  /**
+   * @return the current project
+   */
+  public static @NotNull MZmineProject getProject() {
+    return getProjectManager().getCurrentProject();
+  }
+
   private void init() {
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
@@ -463,13 +567,10 @@ public final class MZmineCore {
     configuration = new MZmineConfigurationImpl();
 
     // Create instances of core modules
-    projectManager = new ProjectManagerImpl();
-    taskController = new TaskControllerImpl();
+    projectManager = ProjectManagerImpl.getInstance();
+    taskController = TaskControllerImpl.getInstance();
 
     logger.fine("Initializing core classes..");
-
-    projectManager.initModule();
-    taskController.initModule();
   }
 
   public boolean isTdfPseudoProfile() {

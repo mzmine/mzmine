@@ -41,6 +41,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
+import io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule;
 import io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
@@ -64,6 +65,7 @@ import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateF
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
@@ -109,6 +111,7 @@ import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCom
 import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule;
+import io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
@@ -138,9 +141,9 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
-import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataImportModule;
+import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import java.util.List;
 
 public class BatchModeModulesList {
@@ -196,6 +199,7 @@ public class BatchModeModulesList {
       ShoulderPeaksFilterModule.class, //
       ScanFiltersModule.class, //
       ScanSmoothingModule.class, //
+      DenormalizeScansMultiplyByInjectTimeModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
@@ -302,6 +306,7 @@ public class BatchModeModulesList {
       ReferenceCCSCalibrationModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
+      GroupedMs2RefinementModule.class, //
       DiaMs2CorrModule.class, //
       FormulaPredictionFeatureListModule.class, //
       IsotopePeakScannerModule.class, //
@@ -332,7 +337,8 @@ public class BatchModeModulesList {
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
       LibraryAnalysisCSVExportModule.class, //
-      LibraryBatchGenerationModule.class //
+      LibraryBatchGenerationModule.class, //
+      FeatureMLExportModularModule.class
 
       /*
        * needed in batch mode?

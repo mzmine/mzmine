@@ -30,7 +30,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 
 /**
  * Example implementation of a PlotXYDatasetProvider. This can be your usual data-class, you just
@@ -119,7 +119,7 @@ public class SimpleXYProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     finishedPercentage = 1.d;
   }
 

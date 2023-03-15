@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -40,27 +41,35 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MathUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +105,24 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   }
 
   /**
+   * @param baseAnnotation The annotation to check.
+   * @param useIonLibrary  true if an ion library shall be used later on to ionise the
+   *                       formula/smiles/neutral mass.
+   * @return True if the baseAnnotation contains a precursor m/z and useIonLibrary is false. Also
+   * true if useIonLibrary is true and the annotation contains a smiles, a formula or a neutral
+   * mass.
+   */
+  static boolean isBaseAnnotationValid(CompoundDBAnnotation baseAnnotation, boolean useIonLibrary) {
+    if (baseAnnotation.getPrecursorMZ() != null && !useIonLibrary) {
+      return true;
+    } else if (useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
+        || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Calculates the m/z for a given adduct.
    *
    * @param annotation
@@ -105,16 +132,31 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
    */
   static double calcMzForAdduct(@NotNull CompoundDBAnnotation annotation, @NotNull IonType adduct)
       throws CannotDetermineMassException {
-    final Double neutralMass = annotation.get(NeutralMassType.class);
+
+    Double neutralMass = annotation.get(NeutralMassType.class);
+    if (neutralMass == null) {
+      // try to calc the neutral mass and keep it for subsequent calls.
+      neutralMass = CompoundDBAnnotation.calcNeutralMass(annotation);
+      annotation.put(NeutralMassType.class, neutralMass);
+    }
+
     if (neutralMass != null) {
       return adduct.getMZ(neutralMass);
     }
 
+    throw new CannotDetermineMassException(annotation);
+  }
+
+  /**
+   * Calculates the neutral mass of the given annotation from adduct information, smiles, or
+   * formula.
+   *
+   * @return The neutral mass or null.
+   */
+  public static Double calcNeutralMass(CompoundDBAnnotation annotation) {
     final IonType currentAdduct = annotation.get(IonTypeType.class);
     if (currentAdduct != null && annotation.getPrecursorMZ() != null) {
-      final double mass = currentAdduct.getMass(annotation.getPrecursorMZ());
-      annotation.put(NeutralMassType.class, mass); // put neutral mass to speed up subsequent calls
-      return adduct.getMZ(mass);
+      return currentAdduct.getMass(annotation.getPrecursorMZ());
     }
 
     final String formulaString = annotation.getFormula();
@@ -124,13 +166,10 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
             : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFomulaFromSmiles(smiles));
 
     if (neutralFormula != null) {
-      final double mass = MolecularFormulaManipulator.getMass(neutralFormula,
+      return MolecularFormulaManipulator.getMass(neutralFormula,
           MolecularFormulaManipulator.MonoIsotopic);
-      annotation.put(NeutralMassType.class, mass); // put neutral mass to speed up subsequent calls
-      return adduct.getMZ(mass);
     }
-
-    throw new CannotDetermineMassException(annotation);
+    return null;
   }
 
   /**
@@ -212,7 +251,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(PrecursorMZType.class);
   }
 
-  @Override
   @Nullable
   default String getSmiles() {
     return get(SmilesStructureType.class);
@@ -266,13 +304,85 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(DatabaseNameType.class);
   }
 
+  default void setScore(Float score) {
+    put(CompoundAnnotationScoreType.class, score);
+  }
+
   boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
 
-  Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+  /**
+   * @param row                 tested row
+   * @param mzTolerance         matching tolerance
+   * @param rtTolerance         matching tolerance
+   * @param mobilityTolerance   matching tolerance
+   * @param percentCCSTolerance matching tolerance
+   * @return
+   */
+  @Nullable
+  default Float calculateScore(@NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance);
+      @Nullable Double percentCCSTolerance) {
+    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
+      return null;
+    }
+    // setup ranges around the annotation and test for row average values
+    Double mz = getPrecursorMZ();
+    final Float rt = getRT();
+    final Float mobility = getMobility();
+    final Float ccs = getCCS();
+    var mzRange = mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
+    var rtRange = rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
+    var mobilityRange =
+        mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
+            mobility) : null;
+
+    Range<Float> ccsRange = null;
+    if (percentCCSTolerance != null && ccs != null && row.getAverageCCS() != null) {
+      float tol = (float) (ccs * percentCCSTolerance);
+      ccsRange = Range.closed(ccs - tol, ccs + tol);
+    }
+    return (float) FeatureListUtils.getAlignmentScore(row.getAverageMZ(), row.getAverageRT(),
+        row.getAverageMobility(), row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, 1,
+        1, 1, 1);
+  }
+
+  /**
+   * @param row              The row
+   * @param mzTolerance      MZ tolerance for matching or null
+   * @param rtTolerance      RT tolerance for matching or null
+   * @param mobTolerance     mobility tolerance for matching or null
+   * @param percCcsTolerance ccs tolerance for matching or null
+   * @return A <b>clone</b> of the original annotation with {@link MzPpmDifferenceType},
+   * .{@link CCSRelativeErrorType} and {@link RtRelativeErrorType} set.
+   */
+  default @Nullable CompoundDBAnnotation checkMatchAndCalculateDeviation(
+      @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
+      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
+      @Nullable Double percCcsTolerance) {
+    final Float score = calculateScore(row, mzTolerance, rtTolerance, mobTolerance,
+        percCcsTolerance);
+    if (score == null || score <= 0) {
+      return null;
+    }
+
+    final CompoundDBAnnotation clone = clone();
+    clone.put(CompoundAnnotationScoreType.class, score);
+    clone.put(MzPpmDifferenceType.class,
+        (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
+            row.getAverageMZ()));
+    if (get(CCSType.class) != null && row.getAverageCCS() != null) {
+      clone.put(CCSRelativeErrorType.class,
+          PercentTolerance.getPercentError(get(CCSType.class), row.getAverageCCS()));
+    }
+    if (get(RTType.class) != null && row.getAverageRT() != null) {
+      clone.put(RtRelativeErrorType.class,
+          PercentTolerance.getPercentError(get(RTType.class), row.getAverageRT()));
+    }
+
+    return clone;
+  }
 
   /**
    * @return Returns the 2D structure URL.
@@ -319,4 +429,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   Map<DataType<?>, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
+
+  default String toStringComplete() {
+    return getReadOnlyMap().entrySet().stream()
+        .map(e -> e.getKey().getUniqueID() + ": " + e.getValue()).collect(Collectors.joining(", "));
+  }
 }

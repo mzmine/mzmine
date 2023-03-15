@@ -156,6 +156,9 @@ public class MzXMLImportTask extends AbstractTask {
         this.ms2Detector = advancedParam.getParameter(
             AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
       }
+      // currently, we do not support injection times from mzXML file format
+//      denormalizeMSnScans = advancedParam.getValue(
+//          AdvancedSpectraImportParameters.denormalizeMSnScans);
     }
 
     this.applyMassDetection = ms1Detector != null || ms2Detector != null;

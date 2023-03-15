@@ -48,7 +48,7 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       "This string is added to feature list name as suffix", "resolved");
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
-      new OriginalFeatureListHandlingParameter(true);
+      new OriginalFeatureListHandlingParameter(false);
 
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
       "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters(),
@@ -84,5 +84,10 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   @Nullable
   public Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return null;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }

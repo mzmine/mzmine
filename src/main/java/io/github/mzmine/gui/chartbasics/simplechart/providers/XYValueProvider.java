@@ -28,7 +28,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 
 /**
  * This interface is used to provide a dataset with x and y values. The amount of x and y values has
@@ -36,17 +36,18 @@ import javafx.beans.property.SimpleObjectProperty;
  * <p></p>
  * The values are not grabbed during the creation of the dataset. After initialising the dataset
  * (e.g. {@link ColoredXYDataset}) a thread is started where the values of the dataset can be
- * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues(SimpleObjectProperty)}
- * method is used. The implementing class can supply information on the progress of the operation
- * via the method {@link XYValueProvider#getComputationFinishedPercentage()}, which will be
- * represented in the task bar.
+ * calculated or loaded from disk. For that operation, the
+ * {@link XYValueProvider#computeValues(Property)} method is used. The implementing class can supply
+ * information on the progress of the operation via the method
+ * {@link XYValueProvider#getComputationFinishedPercentage()}, which will be represented in the task
+ * bar.
  * <p></p>
  * When the computation ({@link XYValueProvider#computeValues} has finished, the values are loaded
- * into the dataset via the {@link XYValueProvider#getDomainValue(int)} and {@link
- * XYValueProvider#getRangeValue(int)} methods.
+ * into the dataset via the {@link XYValueProvider#getDomainValue(int)} and
+ * {@link XYValueProvider#getRangeValue(int)} methods.
  * <p></p>
- * After the dataset has been loaded successfully, the chart is automatically updated via a {@link
- * org.jfree.chart.JFreeChart#fireChartChanged()} event.
+ * After the dataset has been loaded successfully, the chart is automatically updated via a
+ * {@link org.jfree.chart.JFreeChart#fireChartChanged()} event.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -61,30 +62,30 @@ public interface XYValueProvider {
    *               changed to {@link TaskStatus#CANCELED}. Implementing classes can also make use of
    *               CANCELED or ERROR to stop the task from continuing, if an error occurred.
    */
-  public void computeValues(SimpleObjectProperty<TaskStatus> status);
+  void computeValues(Property<TaskStatus> status);
 
   /**
    * @return A sorted list of domain values. Index has to match the range value indices.
    */
-  public double getDomainValue(int index);
+  double getDomainValue(int index);
 
   /**
    * @return A sorted (ascending) list of range values. Index has to match the domain value indices.
    */
-  public double getRangeValue(int index);
+  double getRangeValue(int index);
 
   /**
    * Called after {@link XYValueProvider#computeValues}.
    *
    * @return The number of values in this data set.
    */
-  public int getValueCount();
+  int getValueCount();
 
   /**
-   * Helper method to provide the user with progress information during {@link
-   * XYValueProvider#computeValues(SimpleObjectProperty)}.
+   * Helper method to provide the user with progress information during
+   * {@link XYValueProvider#computeValues(Property)}.
    *
    * @return a finished percentage. (0.0-1.0)
    */
-  public double getComputationFinishedPercentage();
+  double getComputationFinishedPercentage();
 }

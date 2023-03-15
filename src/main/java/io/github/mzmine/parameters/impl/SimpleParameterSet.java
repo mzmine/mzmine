@@ -64,7 +64,9 @@ public class SimpleParameterSet implements ParameterSet {
 
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
-  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+
+  private String moduleNameAttribute;
+  private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
   private boolean skipSensitiveParameters = false;
@@ -74,11 +76,11 @@ public class SimpleParameterSet implements ParameterSet {
     this(new Parameter<?>[0], null);
   }
 
-  public SimpleParameterSet(Parameter<?> parameters[]) {
+  public SimpleParameterSet(Parameter<?>... parameters) {
     this(parameters, null);
   }
 
-  public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl) {
+  public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {
     this.parameters = parameters;
     this.helpUrl = onlineHelpUrl;
   }
@@ -153,7 +155,7 @@ public class SimpleParameterSet implements ParameterSet {
       if (value.getClass().isArray()) {
         s.append(Arrays.toString((Object[]) value));
       } else {
-        s.append(value.toString());
+        s.append(value);
       }
       if (i < parameters.length - 1) {
         s.append(", ");
@@ -174,7 +176,7 @@ public class SimpleParameterSet implements ParameterSet {
   public ParameterSet cloneParameterSet(boolean keepSelection) {
 
     // Make a deep copy of the parameters
-    Parameter<?> newParameters[] = new Parameter[parameters.length];
+    Parameter<?>[] newParameters = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
       if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
         newParameters[i] = rfp.cloneParameter(keepSelection);
@@ -192,6 +194,7 @@ public class SimpleParameterSet implements ParameterSet {
       SimpleParameterSet newSet = this.getClass().getDeclaredConstructor().newInstance();
       newSet.parameters = newParameters;
       newSet.setSkipSensitiveParameters(skipSensitiveParameters);
+      newSet.setModuleNameAttribute(this.getModuleNameAttribute());
       newSet.helpUrl = helpUrl;
 
       return newSet;
@@ -232,7 +235,7 @@ public class SimpleParameterSet implements ParameterSet {
       if (!pOK) {
         allParametersOK = false;
       }
-      if(p instanceof HiddenParameter<?,?> hidden) {
+      if (p instanceof HiddenParameter<?> hidden) {
         p = hidden.getEmbeddedParameter();
       }
 
@@ -345,5 +348,15 @@ public class SimpleParameterSet implements ParameterSet {
   @Override
   public @Nullable String getOnlineHelpUrl() {
     return helpUrl;
+  }
+
+  @Override
+  public String getModuleNameAttribute() {
+    return moduleNameAttribute;
+  }
+
+  @Override
+  public void setModuleNameAttribute(String moduleName) {
+    this.moduleNameAttribute = moduleName;
   }
 }

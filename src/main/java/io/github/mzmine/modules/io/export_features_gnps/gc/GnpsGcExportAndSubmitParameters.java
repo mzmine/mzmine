@@ -38,7 +38,6 @@ package io.github.mzmine.modules.io.export_features_gnps.gc;
 
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -65,26 +64,27 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Base name of the output files (.MGF and .CSV).", extensions, FileSelectionType.SAVE);
 
-  public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
-      new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
-          "Choose the representative m/z of a an ADAP spectral cluster. This m/z is used as the PEPMASS in the mgf file.",
-          MzMode.values(), MzMode.AS_IN_FEATURE_TABLE);
+  public static final ComboParameter<MzMode> REPRESENTATIVE_MZ = new ComboParameter<AdapMgfExportParameters.MzMode>(
+      "Representative m/z",
+      "Choose the representative m/z of a an ADAP spectral cluster. This m/z is used as the PEPMASS in the mgf file.",
+      MzMode.values(), MzMode.AS_IN_FEATURE_TABLE);
 
-  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY =
-      new ComboParameter<>("Feature intensity", "Intensity in the quantification table (csv).",
-          FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
+  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY = new ComboParameter<>(
+      "Feature intensity", "Intensity in the quantification table (csv).",
+      FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
 
-  public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT =
-      new OptionalModuleParameter<>("Submit to GNPS GC-MS", "Directly submits a GNPS-GC job",
-          new GnpsGcSubmitParameters());
+  public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT = new OptionalModuleParameter<>(
+      "Submit to GNPS GC-MS", "Directly submits a GNPS-GC job", new GnpsGcSubmitParameters());
 
-  public static final BooleanParameter OPEN_FOLDER =
-      new BooleanParameter("Open folder", "Opens the export folder", false);
+  public static final BooleanParameter OPEN_FOLDER = new BooleanParameter("Open folder",
+      "Opens the export folder", false);
 
   public GnpsGcExportAndSubmitParameters() {
-    super(new Parameter[] {FEATURE_LISTS, FILENAME, REPRESENTATIVE_MZ, FEATURE_INTENSITY,
+    super(FEATURE_LISTS,
+        // parameters
+        FILENAME, REPRESENTATIVE_MZ, FEATURE_INTENSITY,
         // SUBMIT,
-        OPEN_FOLDER});
+        OPEN_FOLDER);
   }
 
   @Override

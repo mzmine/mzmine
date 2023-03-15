@@ -31,7 +31,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.javafx.TableViewUitls;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.TableViewUtils;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
@@ -45,6 +46,7 @@ import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class RawDataFileInfoPaneController {
 
@@ -89,6 +91,9 @@ public class RawDataFileInfoPaneController {
   private TableColumn<Scan, String> definitionColumn;
 
   @FXML
+  private TableColumn<Scan, FontIcon> massDetectionColumn;
+
+  @FXML
   private Label lblNumScans;
 
   @FXML
@@ -128,15 +133,17 @@ public class RawDataFileInfoPaneController {
         p -> new SimpleObjectProperty<>(p.getValue().getInjectionTime()));
     definitionColumn.setCellValueFactory(
         p -> new SimpleStringProperty(p.getValue().getScanDefinition()));
+    massDetectionColumn.setCellValueFactory(
+        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(FxIconUtil.getCheckedIcon())
+            : new SimpleObjectProperty<>(FxIconUtil.getUncheckedIcon()));
 
-//    TableViewUitls.setFormattedCellFactory(precursorMzColumn, mzFormat);
-    TableViewUitls.setFormattedCellFactory(basePeakColumn, mzFormat);
-    TableViewUitls.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
-    TableViewUitls.setFormattedCellFactory(rtColumn, rtFormat);
-    TableViewUitls.setFormattedCellFactory(injectTimeColumn, rtFormat);
-    TableViewUitls.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
+    TableViewUtils.setFormattedCellFactory(basePeakColumn, mzFormat);
+    TableViewUtils.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
+    TableViewUtils.setFormattedCellFactory(rtColumn, rtFormat);
+    TableViewUtils.setFormattedCellFactory(injectTimeColumn, rtFormat);
+    TableViewUtils.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
 
-    TableViewUitls.autoFitLastColumn(rawDataTableView);
+    TableViewUtils.autoFitLastColumn(rawDataTableView);
   }
 
   /**

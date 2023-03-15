@@ -25,14 +25,19 @@
 
 package datamodel;
 
+import static datamodel.DataTypeTestUtils.simpleDataTypeSaveLoadTest;
+
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -46,7 +51,7 @@ public class GeneralTypeTests {
   void detectionTypeTest() {
     DetectionType type = new DetectionType();
     var value = FeatureStatus.DETECTED;
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+    simpleDataTypeSaveLoadTest(type, value);
   }
 
   @Test
@@ -56,7 +61,35 @@ public class GeneralTypeTests {
     IsotopePattern pattern = new SimpleIsotopePattern(new double[]{200d, 201d, 202d},
         new double[]{1.0, 0.5, 0.11}, 1, IsotopePatternStatus.DETECTED, "Save load test");
 
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, pattern);
+    simpleDataTypeSaveLoadTest(type, pattern);
+  }
+
+  @Test
+  @DisplayName("AlignmentScore save load")
+  void alignmentScoreTest() {
+    AlignmentMainType type = new AlignmentMainType();
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f, null));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, null, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, null, 0.12f, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, 0.999f, null, 0.000123, 0.12f, 0.43213f));
+    simpleDataTypeSaveLoadTest(type,
+        new AlignmentScores(0.9f, 12, 46, null, 5.1f, 0.000123, 0.12f, 0.43213f));
+  }
+
+  @Test
+  @DisplayName("AlignmentScores sub types test")
+  void alignmentScoreSubTypesTest() {
+    AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f,
+        0.43213f);
+    for (final DataType su : AlignmentScores.subTypes) {
+      assert value.getValue(su) != null;
+    }
   }
 
   @Test
@@ -70,7 +103,7 @@ public class GeneralTypeTests {
         new SimpleIsotopePattern(new double[]{100d, 100.5, 101d}, new double[]{1.0, 0.5, 0.11}, 2,
             IsotopePatternStatus.DETECTED, "Save load test2")));
 
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, pattern);
+    simpleDataTypeSaveLoadTest(type, pattern);
   }
 
   // todo FeatureGroupType
@@ -81,7 +114,7 @@ public class GeneralTypeTests {
     SimpleFeatureInformation info = new SimpleFeatureInformation();
     info.addProperty("bla", "blub");
     info.addProperty("ß012eisd", "ß0widqscn/+9");
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, info);
+    simpleDataTypeSaveLoadTest(type, info);
   }
 
   /**
@@ -95,6 +128,6 @@ public class GeneralTypeTests {
   void mobilityUnitTypeTest() {
     MobilityUnitType type = new MobilityUnitType();
     var value = MobilityType.TIMS;
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+    simpleDataTypeSaveLoadTest(type, value);
   }
 }
