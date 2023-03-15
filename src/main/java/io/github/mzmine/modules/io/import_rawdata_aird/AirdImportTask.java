@@ -169,7 +169,7 @@ public class AirdImportTask extends AbstractTask {
   }
 
   private void loadAsDDA(DDAParser parser) throws Exception {
-    List<DDAMs<float[], float[], float[]>> msList = parser.readAllToMemory();
+    List<DDAMs> msList = parser.readAllToMemory();
     if (msList.size() == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Parsing Cancelled, No MS1 Scan found.");
@@ -178,7 +178,7 @@ public class AirdImportTask extends AbstractTask {
     boolean isMinute = "minute".equals(airdInfo.getRtUnit());
 
     for (int i = 0; i < msList.size(); i++) {
-      DDAMs<float[], float[], float[]> ms1 = msList.get(i);
+      DDAMs ms1 = msList.get(i);
       if (ms1.getCvList() == null || ms1.getCvList().size() == 0) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
@@ -191,7 +191,7 @@ public class AirdImportTask extends AbstractTask {
       newMZmineFile.addScan(ms1Scan);
       if (ms1.getMs2List() != null && ms1.getMs2List().size() != 0) {
         for (int j = 0; j < ms1.getMs2List().size(); j++) {
-          DDAMs<float[], float[], float[]> ms2 = ms1.getMs2List().get(j);
+          DDAMs ms2 = ms1.getMs2List().get(j);
           if (ms2.getCvList() == null || ms2.getCvList().size() == 0) {
             setStatus(TaskStatus.ERROR);
             setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
@@ -211,12 +211,12 @@ public class AirdImportTask extends AbstractTask {
     boolean isMinute = "minute".equals(airdInfo.getRtUnit());
     List<BlockIndex> indexList = airdInfo.getIndexList();
     for (BlockIndex index : indexList) {
-      TreeMap<Float, Spectrum<float[], float[], float[]>> map = parser.getSpectraAsFloat(index);
+      TreeMap<Double, Spectrum> map = parser.getSpectra(index);
       List<Integer> numList = index.getNums();
-      List<Float> rtList = index.getRts();
+      List<Double> rtList = index.getRts();
       List<WindowRange> rangeList = index.getRangeList();
       for (int i = 0; i < rtList.size(); i++) {
-        float rt = rtList.get(i);
+        double rt = rtList.get(i);
         SimpleScan scan = buildSimpleScan(map.get(rt), index.getCvList().get(i),
             rangeList != null ? rangeList.get(0) : null, numList.get(i), rt, index.getLevel(), null,
             isMinute, false);
@@ -231,12 +231,12 @@ public class AirdImportTask extends AbstractTask {
     boolean isMinute = "minute".equals(airdInfo.getRtUnit());
     List<BlockIndex> indexList = airdInfo.getIndexList();
     for (BlockIndex index : indexList) {
-      TreeMap<Float, Spectrum<float[], float[], float[]>> map = parser.getSpectraAsFloat(index);
+      TreeMap<Double, Spectrum> map = parser.getSpectra(index);
       List<Integer> numList = index.getNums();
-      List<Float> rtList = index.getRts();
+      List<Double> rtList = index.getRts();
       List<WindowRange> rangeList = index.getRangeList();
       for (int i = 0; i < rtList.size(); i++) {
-        float rt = rtList.get(i);
+        double rt = rtList.get(i);
         PasefScan scan = (PasefScan) buildSimpleScan(map.get(rt), index.getCvList().get(i),
             rangeList != null ? rangeList.get(0) : null, numList.get(i), rt, index.getLevel(), null,
             isMinute, true);
@@ -247,7 +247,7 @@ public class AirdImportTask extends AbstractTask {
   }
 
   private void loadAsDDAPasef(DDAPasefParser parser) throws Exception {
-    List<DDAPasefMs<float[], float[], float[]>> msList = parser.readAllToMemory();
+    List<DDAPasefMs> msList = parser.readAllToMemory();
     if (msList.size() == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Parsing Cancelled, No MS1 Scan found.");
@@ -256,7 +256,7 @@ public class AirdImportTask extends AbstractTask {
     boolean isMinute = "minute".equals(airdInfo.getRtUnit());
 
     for (int i = 0; i < msList.size(); i++) {
-      DDAPasefMs<float[], float[], float[]> ms1 = msList.get(i);
+      DDAPasefMs ms1 = msList.get(i);
       if (ms1.getCvList() == null || ms1.getCvList().size() == 0) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
@@ -265,12 +265,12 @@ public class AirdImportTask extends AbstractTask {
 
       PasefScan ms1Scan = (PasefScan) buildSimpleScan(ms1.getSpectrum(), ms1.getCvList(), null,
           ms1.getNum(), ms1.getRt(), MsLevel.MS1.getCode(), null, isMinute, true);
-      ms1Scan.setMobilities(ArrayUtil.fromFloatToDouble(ms1.getSpectrum().getMobilities()));
+      ms1Scan.setMobilities(ms1.getSpectrum().getMobilities());
       parsedScans++;
       newMZmineFile.addScan(ms1Scan);
       if (ms1.getMs2List() != null && ms1.getMs2List().size() != 0) {
         for (int j = 0; j < ms1.getMs2List().size(); j++) {
-          DDAPasefMs<float[], float[], float[]> ms2 = ms1.getMs2List().get(j);
+          DDAPasefMs ms2 = ms1.getMs2List().get(j);
           if (ms2.getCvList() == null || ms2.getCvList().size() == 0) {
             setStatus(TaskStatus.ERROR);
             setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
@@ -279,7 +279,7 @@ public class AirdImportTask extends AbstractTask {
           PasefScan ms2Scan = (PasefScan) buildSimpleScan(ms2.getSpectrum(), ms2.getCvList(),
               ms2.getRange(), ms2.getNum(), ms2.getRt(), MsLevel.MS2.getCode(), ms1Scan, isMinute,
               true);
-          ms2Scan.setMobilities(ArrayUtil.fromFloatToDouble(ms2.getSpectrum().getMobilities()));
+          ms2Scan.setMobilities(ms2.getSpectrum().getMobilities());
           parsedScans++;
           newMZmineFile.addScan(ms2Scan);
         }
@@ -287,8 +287,8 @@ public class AirdImportTask extends AbstractTask {
     }
   }
 
-  private SimpleScan buildSimpleScan(Spectrum<float[], float[], float[]> spectrum, List<CV> cvList,
-      WindowRange windowRange, Integer num, float rt, int msLevel, Scan parentScan,
+  private SimpleScan buildSimpleScan(Spectrum spectrum, List<CV> cvList,
+      WindowRange windowRange, Integer num, double rt, int msLevel, Scan parentScan,
       boolean isMinute, boolean isMobility) {
     MassSpectrumType massSpectrumType = null;
     PolarityType polarityType = null;
@@ -335,16 +335,15 @@ public class AirdImportTask extends AbstractTask {
     }
 
     if (isMobility) {
-      PasefScan msScan = new PasefScan(newMZmineFile, num + 1, msLevel, rt * (isMinute ? 60 : 1),
-          msMsInfo, ArrayUtil.fromFloatToDouble(spectrum.getMzs()),
-          ArrayUtil.fromFloatToDouble(spectrum.getInts()), massSpectrumType, polarityType,
+      PasefScan msScan = new PasefScan(newMZmineFile, num + 1, msLevel, (float)rt * (isMinute ? 60 : 1),
+          msMsInfo, spectrum.getMzs(), spectrum.getInts(), massSpectrumType, polarityType,
           filterString, mzRange);
 
       return msScan;
     } else {
-      SimpleScan msScan = new SimpleScan(newMZmineFile, num + 1, msLevel, rt * (isMinute ? 60 : 1),
-          msMsInfo, ArrayUtil.fromFloatToDouble(spectrum.getMzs()),
-          ArrayUtil.fromFloatToDouble(spectrum.getInts()), massSpectrumType, polarityType,
+      SimpleScan msScan = new SimpleScan(newMZmineFile, num + 1, msLevel, (float)rt * (isMinute ? 60 : 1),
+          msMsInfo, spectrum.getMzs(),
+              spectrum.getInts(), massSpectrumType, polarityType,
           filterString, mzRange);
 
       return msScan;
