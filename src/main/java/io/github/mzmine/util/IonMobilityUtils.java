@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -373,7 +374,7 @@ public class IonMobilityUtils {
    * @return Accumulated precursor intensity divided by intensity of all ions in the isolation
    * window. 0 if no intensities are found.
    */
-  public static double getIsolationPurity(final double precursorMz,
+  public static double getPurityInMzAndMobilityRange(final double precursorMz,
       @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
       @NotNull final Range<Float> mobilityRange, boolean sumPrecursorIsotopes) {
 
@@ -425,6 +426,58 @@ public class IonMobilityUtils {
         : 0d;
   }
 
+  public static double getPurityInMzRange(final double precursorMz,
+      @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
+      @NotNull final MobilityScan scan, boolean sumPrecursorIsotopes) {
+
+    double precursorIntensity = 0d;
+    double isolationWindowTIC = 0d;
+
+    access.resetMobilityScan();
+
+    if (access.getNumberOfDataPoints() == 0) {
+      return 0d;
+    }
+
+    if (access.jumpToMobilityScan(scan) == null) {
+      return 0d;
+    }
+
+    final int closestIndex = access.binarySearch(precursorMz, true);
+    final double precursorMzInScan = access.getMzValue(closestIndex);
+    if (mzRange.contains(precursorMzInScan)) {
+      precursorIntensity += access.getIntensityValue(closestIndex);
+      isolationWindowTIC += access.getIntensityValue(closestIndex);
+    }
+
+    for (int i = closestIndex - 1; i > 0; i--) {
+      if (mzRange.contains(access.getMzValue(i))) {
+        isolationWindowTIC += access.getIntensityValue(i);
+        if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+            isotopeTol)) {
+          precursorIntensity += access.getIntensityValue(i);
+        }
+      } else {
+        break;
+      }
+    }
+
+    for (int i = closestIndex + 1; i < access.getNumberOfDataPoints(); i++) {
+      if (mzRange.contains(access.getMzValue(i))) {
+        isolationWindowTIC += access.getIntensityValue(i);
+        if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+            isotopeTol)) {
+          precursorIntensity += access.getIntensityValue(i);
+        }
+      } else {
+        break;
+      }
+    }
+
+    return Double.compare(isolationWindowTIC, 0d) > 0 ? precursorIntensity / isolationWindowTIC
+        : 0d;
+  }
+
   public static SummedIntensityMobilitySeries normalizeMobilogram(
       final SummedIntensityMobilitySeries mobilogram, @Nullable Double normalizationFactor) {
     double[] newIntensities = new double[mobilogram.getNumberOfValues()];
@@ -446,6 +499,15 @@ public class IonMobilityUtils {
     return tolerance.checkWithinTolerance(monoisotopicMz + num13c * isotopeDistance, mzToCheck);
   }
 
+  public static MobilityScan getMobilityScanForMobility(final Frame frame, final float mobility) {
+    switch (frame.getMobilityType()) {
+
+    }
+    ;
+    int index = BinarySearch.binarySearch(mobility, true, 0, frame.getNumberOfMobilityScans(),
+        i -> frame.getMobilityScan(i).getMobility());
+    return frame.getMobilityScan(index);
+  }
 
   public enum MobilogramType {
     BASE_PEAK, TIC;

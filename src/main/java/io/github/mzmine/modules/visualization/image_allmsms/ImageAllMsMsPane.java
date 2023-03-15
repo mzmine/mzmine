@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
@@ -219,6 +221,7 @@ public class ImageAllMsMsPane extends BorderPane {
         .filter(Objects::nonNull).mapToDouble(Range::upperEndpoint).max()
         .orElse(feature.getMZ() + 20d) * 1.2;
 
+    final ChartGroup ms2Group = new ChartGroup(false, false, true, false);
     // add spectra sorted by collision energy
     feature.getAllMS2FragmentScans().stream().sorted(msmsCollisionEnergySorter).map(msms -> {
       SpectraVisualizerTab ms2Tab = new SpectraVisualizerTab(msms.getDataFile());
@@ -226,6 +229,7 @@ public class ImageAllMsMsPane extends BorderPane {
       final ValueAxis domainAxis = spectrumPlot.getXYPlot().getDomainAxis();
 
       domainAxis.setDefaultAutoRange(new org.jfree.data.Range(minMz, maxMz));
+      ms2Group.add(new ChartViewWrapper(spectrumPlot));
 
       ms2Tab.loadRawData(msms);
       var infoMap = ImagingUtils.getMsMsSpotInfosFromScan(msms);

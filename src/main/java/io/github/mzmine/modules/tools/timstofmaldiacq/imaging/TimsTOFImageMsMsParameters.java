@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -44,6 +45,7 @@ import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -60,11 +62,11 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
   public static final NumberListParameter collisionEnergies = new NumberListParameter(
       "Collision energies", "List of collision energies separated by ','.", List.of(20d, 30d, 40d),
       new DecimalFormat("0.0"));
-  public static final IntegerParameter numMsMs = new IntegerParameter("Number of MS/MS spectra",
+  public static final IntegerParameter numMsMs = new IntegerParameter("Number of MS2 spectra",
       "The number of MS/MS spectra to be acquired per feature and collision energy.", 3, 1,
       Integer.MAX_VALUE);
   public static final IntegerParameter minimumDistance = new IntegerParameter(
-      "Minimum distance of MS/MS spectra",
+      "Minimum distance of MS2 pixels",
       "The minimum distance between two MS/MS spots for a single feature.", 30);
   public static final DoubleParameter minimumPurity = new DoubleParameter("Minimum purity score",
       """
@@ -110,12 +112,14 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-  /*@Override
+  @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("Minimum chimerity score", minimumPurity);
+    nameParameterMap.put("Minimum distance of MS/MS spectra", minimumDistance);
+    nameParameterMap.put("Number of MS/MS spectra", numMsMs);
     return nameParameterMap;
-  }*/
+  }
 }

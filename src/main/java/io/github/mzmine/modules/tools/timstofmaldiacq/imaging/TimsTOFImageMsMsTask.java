@@ -389,9 +389,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       double minChimerityScore, ImagingFrame usedFrame) {
     access.jumpToFrame(usedFrame);
 
-    // check the chimerity of the current spot.
-    final double chimerityScore = IonMobilityUtils.getIsolationPurity(precursor.mz(), access,
-        isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0(), true);
+    precursor.feature().getMobility();// check the chimerity of the current spot.
+
+    final double chimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(precursor.mz(),
+        access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0(), true);
     if (chimerityScore < minChimerityScore) {
       return false;
     }

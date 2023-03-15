@@ -197,7 +197,7 @@ public class MsMsQualityExportTask extends AbstractTask {
     final Double window = RangeUtils.rangeLength(mergedMsMs.getMsMsInfo().getIsolationWindow());
 
     mobScanAccess.jumpToFrame((Frame) feature.getRepresentativeScan());
-    final double isolationChimerityScore = IonMobilityUtils.getIsolationPurity(
+    final double isolationChimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(
         mergedMsMs.getPrecursorMz(), mobScanAccess,
         RangeUtils.rangeAround(mergedMsMs.getPrecursorMz().doubleValue(), window * 2),
         info.getMobilityRange(), true);
