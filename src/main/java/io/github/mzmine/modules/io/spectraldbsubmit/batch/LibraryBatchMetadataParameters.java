@@ -97,8 +97,8 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
     putIfNotEmpty(map, ACQUISITION, DBEntryField.ACQUISITION);
     putIfNotEmpty(map, PI, DBEntryField.PRINCIPAL_INVESTIGATOR);
     putIfNotEmpty(map, DATA_COLLECTOR, DBEntryField.DATA_COLLECTOR);
-    if (IONMODE.getValue()) {
-      putIfNotEmpty(map, IONMODE.getEmbeddedParameter(), DBEntryField.POLARITY);
+    if (getValue(IONMODE)) {
+      putIfNotEmpty(map, getParameter(IONMODE).getEmbeddedParameter(), DBEntryField.POLARITY);
     }
     return map;
   }

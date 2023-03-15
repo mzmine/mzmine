@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -125,7 +126,7 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
 
   @Override
   public void setValueToComponent(ImportTypeComponent importTypeComponent,
-      List<ImportType> newValue) {
+      @Nullable List<ImportType> newValue) {
     importTypeComponent.setValue(newValue);
   }
 

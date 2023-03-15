@@ -35,7 +35,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import java.text.DecimalFormat;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class DiaMs2CorrParameters extends SimpleParameterSet {
@@ -66,17 +68,24 @@ public class DiaMs2CorrParameters extends SimpleParameterSet {
       new DecimalFormat("0.00"), 0.80, 0d, 1d);
 
   public static final MZToleranceParameter ms2ScanToScanAccuracy = new MZToleranceParameter(
-      "MS2 scan-to-scan accuracy",
-      "m/z tolerance to build MS2 EICs. Described by the scan-to-scan mass accuracy of MS2 scans.",
-      0.003, 15);
+      ToleranceType.SCAN_TO_SCAN, 0.003, 15);
 
   public DiaMs2CorrParameters() {
-    super(new Parameter[]{flists, ms2ScanSelection, minMs1Intensity, minMs2Intensity, numCorrPoints,
-        minPearson, ms2ScanToScanAccuracy});
+    super(flists, ms2ScanSelection, minMs1Intensity, minMs2Intensity, numCorrPoints, minPearson,
+        ms2ScanToScanAccuracy);
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", ms2ScanToScanAccuracy);
+    return nameParameterMap;
   }
 }

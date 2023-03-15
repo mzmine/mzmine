@@ -48,7 +48,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -105,8 +104,6 @@ public class SpectraVisualizerTab extends MZmineTab {
       "icons/isotopepeakicon.png");
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
   private static final Image exportIcon = FxIconUtil.loadImageFromResources("icons/exporticon.png");
-  private static final Image dbOnlineIcon = FxIconUtil.loadImageFromResources(
-      "icons/DBOnlineIcon.png");
   private static final Image dbCustomIcon = FxIconUtil.loadImageFromResources(
       "icons/DBCustomIcon.png");
   private static final Image dbLipidsIcon = FxIconUtil.loadImageFromResources(
@@ -212,12 +209,6 @@ public class SpectraVisualizerTab extends MZmineTab {
       libraryWindow.show();
     });
 
-    Button dbOnlineButton = new Button(null, new ImageView(dbOnlineIcon));
-    dbOnlineButton.setTooltip(new Tooltip("Select online database for annotation"));
-    dbOnlineButton.setOnAction(
-        e -> OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot,
-            Instant.now()));
-
     Button dbCustomButton = new Button(null, new ImageView(dbCustomIcon));
     dbCustomButton.setTooltip(new Tooltip("Select custom database for annotation"));
     dbCustomButton.setOnAction(
@@ -244,8 +235,8 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     toolBar.getItems()
         .addAll(centroidContinuousButton, dataPointsButton, annotationsButton, pickedPeakButton,
-            isotopePeakButton, axesButton, exportButton, createLibraryEntryButton, dbOnlineButton,
-            dbCustomButton, dbLipidsButton, dbSpectraButton, sumFormulaButton);
+            isotopePeakButton, axesButton, exportButton, createLibraryEntryButton, dbCustomButton,
+            dbLipidsButton, dbSpectraButton, sumFormulaButton);
 
     mainPane.setRight(toolBar);
 

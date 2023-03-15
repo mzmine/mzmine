@@ -38,6 +38,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.Nullable;
 
 public class RawDataFilesComponent extends GridPane {
 
@@ -105,7 +106,13 @@ public class RawDataFilesComponent extends GridPane {
 
   }
 
-  void setValue(RawDataFilesSelection newValue) {
+  void setValue(@Nullable RawDataFilesSelection newValue) {
+    if(newValue==null) {
+      currentValue = null;
+      typeCombo.getSelectionModel().clearSelection();
+      updateNumFiles();
+      return;
+    }
     currentValue = newValue.clone();
     RawDataFilesSelectionType type = newValue.getSelectionType();
     if (type != null)

@@ -78,7 +78,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -264,7 +263,8 @@ public class ModularFeatureListRow implements FeatureListRow {
     // TODO remove features object - not always do we have features
     // FeaturesType creates an empty ListProperty for that
     // return FXCollections.observableArrayList(get(FeaturesType.class).values());
-    return new ArrayList<>(features.values());
+    return features.values().stream().filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+        .toList();
   }
 
   @Override
@@ -501,6 +501,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     set(ManualAnnotationType.class, manual);
   }
 
+  @Override
   @Nullable
   public ManualAnnotation getManualAnnotation() {
     return get(ManualAnnotationType.class);
@@ -752,26 +753,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Object getPreferredAnnotation() {
-    // manual, spec, lipid, compound, formula
-    ManualAnnotation annotation = getManualAnnotation();
-    if (annotation != null && annotation.getCompoundName() != null && !annotation.getCompoundName()
-        .isBlank()) {
-      return annotation;
-    }
-
-    Optional<?> first = getSpectralLibraryMatches().stream().findFirst();
-    if (first.isPresent()) {
-      return first.get();
-    }
-    first = getLipidMatches().stream().findFirst();
-    if (first.isPresent()) {
-      return first.get();
-    }
-    first = getCompoundAnnotations().stream().findFirst();
-    if (first.isPresent()) {
-      return first.get();
-    }
-    return getFormulas().stream().findFirst().orElse(null);
+    return streamAllFeatureAnnotations().findFirst().orElse(null);
   }
 
   @Override
@@ -781,11 +763,11 @@ public class ModularFeatureListRow implements FeatureListRow {
       case FeatureAnnotation ann -> ann.getCompoundName();
       case ManualAnnotation ann -> ann.getCompoundName();
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
+      case MatchedLipid lipid -> lipid.getLipidAnnotation().getAnnotation();
       case null -> null;
       default -> throw new IllegalStateException("Unexpected value: " + annotation);
     };
   }
-
 
   @Override
   public List<ResultFormula> getFormulas() {

@@ -151,10 +151,11 @@ public class MSPEntryGenerator {
       entry.getField(field)
           .ifPresent(value -> s.append(field.getNistMspID()).append(def).append(value).append(br));
     }
-    entry.getField(DBEntryField.POLARITY).ifPresent(p -> {
-      String pol = PolarityType.POSITIVE.equals(p) ? "P" : "N";
+    var polarity = entry.getPolarity();
+    if(polarity.isDefined()) {
+      String pol = PolarityType.POSITIVE.equals(polarity) ? "P" : "N";
       s.append(DBEntryField.POLARITY.getNistMspID()).append(def).append(pol).append(br);
-    });
+    }
 
     // num peaks and data
     DataPoint[] dps = entry.getDataPoints();

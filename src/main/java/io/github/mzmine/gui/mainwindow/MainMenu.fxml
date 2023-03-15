@@ -107,7 +107,7 @@
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
     <Menu text="Raw data import">
-      <MenuItem onAction="#runModule" text="MS data (advanced)"
+      <MenuItem onAction="#runModule" text="Import MS data"
         userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
         <accelerator>
           <KeyCodeCombination alt="UP" code="I"
@@ -142,9 +142,11 @@
         userData="io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule"/>
       <MenuItem onAction="#runModule" text="Import spectral libraries"
         userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
+      <MenuItem onAction="#runModule" text="Spectral library to feature list"
+        userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule"/>
       <SeparatorMenuItem/>
 
-      <MenuItem onAction="#runModule" text="ICP-MS CVS"
+      <MenuItem onAction="#runModule" text="ICP-MS CSV"
         userData="io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportModule"/>
       <accelerator>
         <KeyCodeCombination alt="UP" code="I" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -308,7 +310,7 @@
         userData="io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule"/>
       <MenuItem text="MGF file (ADAP)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule"/>
-      <MenuItem text="GNPS - feature based molecular networking" onAction="#runModule"
+      <MenuItem text="Molecular networking files (e.g., GNPS, FBMN, IIMN, MetGem)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
@@ -319,6 +321,8 @@
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
       <MenuItem text="Spectral library batch generation" onAction="#runModule"
         userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
+      <MenuItem text="FeatureML" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
     </Menu>
 
     <Menu text="Processing">
@@ -326,6 +330,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
       <MenuItem onAction="#runModule" text="Assign DIA pseudo spectra to features (experimental)"
         userData="io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule"/>
+      <MenuItem onAction="#runModule" text="Refine fragmentation scans of features"
+        userData="io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule"/>
       <MenuItem onAction="#runModule"
         text="Internal reference CCS calibration"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule"/>
@@ -347,7 +353,7 @@
     </Menu>
 
     <Menu text="Feature grouping">
-      <MenuItem text="metaCorrelate (corrGroup)" onAction="#runModule"
+      <MenuItem text="Correlation grouping (metaCorrelate)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
       <MenuItem text="MS/MS spectral networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
@@ -442,9 +448,6 @@
         <MenuItem text="Local compound database (CSV) search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
-        <MenuItem text="Online compound database search"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule"/>
         <MenuItem
           text="Precursor search in spectral libraries"
           onAction="#runModule"
@@ -533,8 +536,12 @@
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
-    <MenuItem text="Massvoltammogram" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltommogramModule"/>
+    <Menu text="Massvoltammogram">
+      <MenuItem text="From Raw Data File" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule"/>
+      <MenuItem text="From Feature List" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
+    </Menu>
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"
       userData="io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule"/>
 
@@ -579,9 +586,10 @@
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
     <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
-    <MenuItem text="Kovats index extraction"
-      onAction="#runModule"
-      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>
+<!--    There is an exception with a combobox value being null in the dialog. not sure how to fix -->
+<!--    <MenuItem text="Kovats index extraction"-->
+<!--      onAction="#runModule"-->
+<!--      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>-->
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>

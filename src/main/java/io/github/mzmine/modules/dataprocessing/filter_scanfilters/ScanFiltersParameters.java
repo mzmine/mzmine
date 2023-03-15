@@ -32,34 +32,34 @@ import io.github.mzmine.modules.dataprocessing.filter_scanfilters.savitzkygolay.
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 
 public class ScanFiltersParameters extends SimpleParameterSet {
 
-  public static final ScanFilter rawDataFilters[] =
-      {new SGFilter(), new MeanFilter(), new ResampleFilter(), new RndResampleFilter()};
+  public static final ScanFilter[] rawDataFilters = {new SGFilter(), new MeanFilter(),
+      new ResampleFilter(), new RndResampleFilter()};
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelect =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelect = new ScanSelectionParameter(
+      new ScanSelection(1));
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "filtered");
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "This string is added to filename as suffix", "filtered");
 
-  public static final ModuleComboParameter<ScanFilter> filter =
-      new ModuleComboParameter<ScanFilter>("Filter", "Raw data filter", rawDataFilters, rawDataFilters[0]);
+  public static final ModuleComboParameter<ScanFilter> filter = new ModuleComboParameter<ScanFilter>(
+      "Filter", "Raw data filter", rawDataFilters, rawDataFilters[0]);
 
-  public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove source file after filtering",
-          "If checked, original file will be removed and only filtered version remains");
+  public static final BooleanParameter autoRemove = new BooleanParameter(
+      "Remove source file after filtering",
+      "If checked, original file will be removed and only filtered version remains");
 
   public ScanFiltersParameters() {
-    super(new Parameter[] {dataFiles, scanSelect, suffix, filter, autoRemove},
+    super(new Parameter[]{dataFiles, scanSelect, suffix, filter, autoRemove},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_raw_data/filter-scan-by-scan.html");
   }
 

@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -42,16 +43,16 @@ public class MobilityToleranceComponent extends BorderPane {
   }
 
   public MobilityTolerance getValue() {
-    final String valueString = toleranceField.getText();
-    final Number toleranceValue = Float.parseFloat(valueString);
-    final float tolerance = toleranceValue.floatValue();
-    return new MobilityTolerance(tolerance);
+    try {
+      final String valueString = toleranceField.getText();
+      return new MobilityTolerance(Float.parseFloat(valueString));
+    } catch (Exception e) {
+      return null;
+    }
   }
 
-  public void setValue(MobilityTolerance value) {
-    float tolerance = value.getTolerance();
-    String valueString = String.valueOf(tolerance);
-    toleranceField.setText(valueString);
+  public void setValue(@Nullable MobilityTolerance value) {
+    toleranceField.setText(value==null? "" : ""+value.getTolerance());
   }
 
   public void setToolTipText(String toolTip) {

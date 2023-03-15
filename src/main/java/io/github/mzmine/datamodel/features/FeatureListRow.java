@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -200,6 +201,8 @@ public interface FeatureListRow extends ModularDataModel {
   @ScheduledForRemoval
   void removeFeatureIdentity(FeatureIdentity identity);
 
+  @Nullable ManualAnnotation getManualAnnotation();
+
   /**
    * Returns all candidates for this feature's identity
    *
@@ -267,7 +270,7 @@ public interface FeatureListRow extends ModularDataModel {
   Scan getMostIntenseFragmentScan();
 
   /**
-   * Returns all fragmentation scans of this row
+   * Returns all fragmentation scans of this row - a new ArrayList
    */
   @NotNull List<Scan> getAllFragmentScans();
 
@@ -490,12 +493,28 @@ public interface FeatureListRow extends ModularDataModel {
    */
   boolean hasIsotopePattern();
 
-  Object getPreferredAnnotation();
+  /**
+   * Uses {@link FeatureAnnotationPriority} to find the best annotation from different methods
+   *
+   * @return the preferred annotation or null
+   */
+  @Nullable Object getPreferredAnnotation();
+
+
+  @NotNull
+  default Stream<Object> streamAllFeatureAnnotations() {
+    return new FeatureAnnotationIterator(this).stream();
+  }
+
+  @NotNull
+  default List<Object> getAllFeatureAnnotations() {
+    return streamAllFeatureAnnotations().toList();
+  }
 
   /**
    * Uses {@link #getPreferredAnnotation()}
    *
    * @return preferred compound name
    */
-  String getPreferredAnnotationName();
+  @Nullable String getPreferredAnnotationName();
 }

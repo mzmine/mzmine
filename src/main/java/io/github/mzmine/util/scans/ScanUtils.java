@@ -42,6 +42,8 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -184,6 +186,12 @@ public class ScanUtils {
     return buf.toString();
   }
 
+  /**
+   * DataPoint usage is discouraged when used to stare data. It can be used when sorting of data
+   * points is needed etc.
+   *
+   * @return array of data points
+   */
   @Deprecated
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
     int size = spectrum.getNumberOfDataPoints();
@@ -1278,7 +1286,8 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL_ENERGIES,
+          null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1339,7 +1348,8 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL_ENERGIES,
+          null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1662,32 +1672,31 @@ public class ScanUtils {
   /**
    * Filters the raw mz + intensity data of a scan to remove neighbouring zeros.
    *
-   * @param scan The scan, [][0] are mzs, [][1] are intensities
-   * @return A multidimensional array with the filtered values. [][0] are mzs, [][1] are
-   * intensities.
+   * @param scan The scan, [0] are mzs, [1] are intensities
+   * @return A multidimensional array with the filtered values. [0] are mzs, [1] are intensities.
    */
   public static double[][] removeExtraZeros(double[][] scan) {
     // remove all extra zeros
-    final int numDp = scan.length;
+    final int numDp = scan[0].length;
     final TDoubleArrayList filteredMzs = new TDoubleArrayList();
     final TDoubleArrayList filteredIntensities = new TDoubleArrayList();
     filteredMzs.add(scan[0][0]);
-    filteredIntensities.add(scan[0][1]);
+    filteredIntensities.add(scan[1][0]);
     for (int i = 1; i < numDp - 1;
         i++) { // previous , this and next are zero --> do not add this data point
-      if (scan[i - 1][1] != 0 || scan[i][1] != 0 || scan[i + 1][1] != 0) {
-        filteredMzs.add(scan[i][0]);
-        filteredIntensities.add(scan[i][1]);
+      if (scan[1][i - 1] != 0 || scan[1][i] != 0 || scan[1][i + 1] != 0) {
+        filteredMzs.add(scan[0][i]);
+        filteredIntensities.add(scan[1][i]);
       }
     }
-    filteredMzs.add(scan[numDp - 1][0]);
-    filteredIntensities.add(scan[numDp - 1][1]);
+    filteredMzs.add(scan[0][numDp - 1]);
+    filteredIntensities.add(scan[1][numDp - 1]);
 
     //Convert the ArrayList to an array.
-    double[][] filteredScan = new double[filteredMzs.size()][2];
+    double[][] filteredScan = new double[2][filteredMzs.size()];
     for (int i = 0; i < filteredMzs.size(); i++) {
-      filteredScan[i][0] = filteredMzs.get(i);
-      filteredScan[i][1] = filteredIntensities.get(i);
+      filteredScan[0][i] = filteredMzs.get(i);
+      filteredScan[1][i] = filteredIntensities.get(i);
     }
 
     return filteredScan;
@@ -1887,31 +1896,78 @@ public class ScanUtils {
   /**
    * Use scan or mass list
    *
-   * @return the input scan or the corresponding mass list
-   * @throws MissingMassListException
+   * @return the input scan or the corresponding mass list.
+   * @throws MissingMassListException if mass list was demanded and is missing. user needs to apply
+   *                                  mass detection
    */
-  public static @NotNull MassSpectrum getMassSpectrum(final Scan scan, final boolean useMassList)
+  public static @NotNull MassSpectrum getMassListOrThrow(final MassSpectrum s)
       throws MissingMassListException {
-    if (useMassList) {
-      MassList masses = scan.getMassList();
-      if (masses == null) {
-        throw new MissingMassListException(scan);
-      }
-      return masses;
-    }
-    return scan;
+    return getMassSpectrum(s, true);
   }
 
-  public static double[] getIntensityValues(final Scan scan, final boolean useMassList)
+  /**
+   * Use scan or mass list
+   *
+   * @return the input scan or the corresponding mass list.
+   * @throws MissingMassListException if mass list was demanded and is missing. user needs to apply
+   *                                  mass detection
+   */
+  public static @NotNull MassSpectrum getMassSpectrum(final MassSpectrum s,
+      final boolean useMassList) throws MissingMassListException {
+    if (!useMassList || !(s instanceof Scan scan)) {
+      return s;
+    }
+
+    MassList masses = scan.getMassList();
+    if (masses == null) {
+      throw new MissingMassListException(scan);
+    }
+    return masses;
+  }
+
+  /**
+   * Only use the array when needed. Best way to iterate scan data in a single thread is
+   * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
+   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   *
+   * @param scan        target scan
+   * @param useMassList either use mass list or return the input scan
+   * @return scan.getMasstList if input is a scan
+   * @throws MissingMassListException if useMassList is true and no mass detection was applied,
+   *                                  users need to apply mass detection to all scans
+   */
+  public static double[] getIntensityValues(final MassSpectrum scan, final boolean useMassList)
       throws MissingMassListException {
     return getMassSpectrum(scan, useMassList).getIntensityValues(new double[0]);
   }
 
-  public static double[] getMzValues(final Scan scan, final boolean useMassList)
+  /**
+   * Only use the array when needed. Best way to iterate scan data in a single thread is
+   * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
+   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   *
+   * @param scan        target scan
+   * @param useMassList either use mass list or return the input scan
+   * @return scan.getMasstList if input is a scan
+   * @throws MissingMassListException if useMassList is true and no mass detection was applied,
+   *                                  users need to apply mass detection to all scans
+   */
+  public static double[] getMzValues(final MassSpectrum scan, final boolean useMassList)
       throws MissingMassListException {
     return getMassSpectrum(scan, useMassList).getMzValues(new double[0]);
   }
 
+  /**
+   * Usage of datapoints is sometimes required so this method can be used when data needs to be
+   * sorted etc. Otherwise use the double arrays for mz and intensity instead. Also look at
+   * {@link EfficientDataAccess} for single threaded access to scans from one dataset.
+   *
+   * @param scan        the target scan
+   * @param useMassList extract data from mass list
+   * @return
+   * @throws MissingMassListException users need to run mass detection before on this scan
+   */
+  @Deprecated
   public static DataPoint[] extractDataPoints(final Scan scan, final boolean useMassList)
       throws MissingMassListException {
     return extractDataPoints(getMassSpectrum(scan, useMassList));

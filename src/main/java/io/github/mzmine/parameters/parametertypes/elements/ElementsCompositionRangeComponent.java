@@ -133,18 +133,16 @@ public class ElementsCompositionRangeComponent extends FlowPane {
   }
 
   public void setElements(MolecularFormulaRange elements) {
-
+    elementsValues.clear();
     if (elements == null) {
       return;
     }
-    elementsValues.clear();
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
       ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(isotope, String.valueOf(maxCount),
           String.valueOf(minCount));
       elementsValues.add(elementsValue);
-
     }
 
   }

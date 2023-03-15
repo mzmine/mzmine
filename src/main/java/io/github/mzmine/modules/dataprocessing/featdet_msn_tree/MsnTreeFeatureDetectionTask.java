@@ -72,10 +72,10 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
     this.project = project;
     this.dataFile = dataFile;
 
-    scanSelection = parameters.getParameter(MsnTreeFeatureDetectionParameters.scanSelection)
-        .getValue();
-    mzTol = parameters.getParameter(MsnTreeFeatureDetectionParameters.mzTol).getValue();
-    newFeatureList = new ModularFeatureList(dataFile.getName() + " MSn trees",
+    scanSelection = parameters.getValue(MsnTreeFeatureDetectionParameters.scanSelection);
+    mzTol = parameters.getValue(MsnTreeFeatureDetectionParameters.mzTol);
+    String suffix = parameters.getValue(MsnTreeFeatureDetectionParameters.suffix);
+    newFeatureList = new ModularFeatureList(dataFile.getName() + " " + suffix,
         getMemoryMapStorage(), dataFile);
     this.parameterSet = parameters;
   }
@@ -133,10 +133,16 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
 
     int id = 0;
     for (int i = 0; i < chromatograms.length; i++) {
+      var mstree = trees.get(i);
       final SimpleFullChromatogram eic = chromatograms[i];
-      ModularFeature f = new ModularFeature(newFeatureList, dataFile,
-          eic.toIonTimeSeries(storage, scans), FeatureStatus.DETECTED);
-      f.setAllMS2FragmentScans(trees.get(i).getAllFragmentScans());
+      var hasData = eic.hasNonZeroData();
+      var featureData = hasData ? eic.toIonTimeSeries(storage, scans) : null;
+      var f = new ModularFeature(newFeatureList, dataFile, featureData, FeatureStatus.DETECTED);
+      // need to set mz if data was empty
+      if (!hasData) {
+        f.setMZ(mstree.getPrecursorMz());
+      }
+      f.setAllMS2FragmentScans(mstree.getAllFragmentScans());
       ModularFeatureListRow row = new ModularFeatureListRow(newFeatureList, id, f);
       newFeatureList.addRow(row);
       id++;

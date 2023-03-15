@@ -97,6 +97,7 @@ public final class MZmineCore {
   private ProjectManagerImpl projectManager;
   private boolean headLessMode = true;
   private boolean tdfPseudoProfile = false;
+  private boolean tsfProfile = false;
   // batch exit code is only set if run in headless mode with batch file
   private ExitCode batchExitCode = null;
 
@@ -137,6 +138,7 @@ public final class MZmineCore {
       MZmineArgumentParser argsParser = new MZmineArgumentParser();
       argsParser.parse(args);
       getInstance().tdfPseudoProfile = argsParser.isLoadTdfPseudoProfile();
+      getInstance().tsfProfile = argsParser.isLoadTsfProfile();
 
       // override preferences file by command line argument pref
       final File prefFile = Objects.requireNonNullElse(argsParser.getPreferencesFile(),
@@ -146,7 +148,7 @@ public final class MZmineCore {
       // Load configuration
       if (prefFile.exists() && prefFile.canRead()) {
         try {
-          getInstance().configuration.loadConfiguration(prefFile);
+          getInstance().configuration.loadConfiguration(prefFile, true);
           updateTempDir = true;
         } catch (Exception e) {
           logger.log(Level.WARNING,
@@ -575,5 +577,9 @@ public final class MZmineCore {
 
   public boolean isTdfPseudoProfile() {
     return tdfPseudoProfile;
+  }
+
+  public boolean isTsfProfile() {
+    return tsfProfile;
   }
 }

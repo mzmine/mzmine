@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class ColorParameter implements UserParameter<Color, ColorPicker> {
@@ -97,7 +98,7 @@ public class ColorParameter implements UserParameter<Color, ColorPicker> {
   }
 
   @Override
-  public void setValueToComponent(ColorPicker component, Color newValue) {
+  public void setValueToComponent(ColorPicker component, @Nullable Color newValue) {
     component.setValue(newValue);
   }
 

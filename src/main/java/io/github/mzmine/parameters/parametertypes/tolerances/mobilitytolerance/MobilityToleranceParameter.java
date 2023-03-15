@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class MobilityToleranceParameter implements UserParameter<MobilityTolerance, MobilityToleranceComponent> {
@@ -86,7 +87,7 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
 
   @Override
   public void setValueToComponent(
-      MobilityToleranceComponent component, MobilityTolerance newValue) {
+      MobilityToleranceComponent component, @Nullable MobilityTolerance newValue) {
     component.setValue(newValue);
   }
 

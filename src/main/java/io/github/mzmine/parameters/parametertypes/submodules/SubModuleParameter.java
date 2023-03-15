@@ -31,13 +31,16 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
- * Parameter represented by check box with additional sub-parameters
+ * Parameter that opens a separate dialog to set complex sub parameters. Also see
+ * {@link ParameterSetParameter} and {@link OptionalModuleParameter} for parameters that open the
+ * embedded parameterset in a sub panel
  */
 public class SubModuleParameter<SUB extends ParameterSet> implements
-    UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet {
+    UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet<SUB, Boolean> {
 
   private final String name;
   private final String description;
@@ -108,10 +111,12 @@ public class SubModuleParameter<SUB extends ParameterSet> implements
 
   @Override
   public void setValueFromComponent(SubModuleComponent component) {
+    // uses a dialog on demand
   }
 
   @Override
-  public void setValueToComponent(SubModuleComponent component, Boolean newValue) {
+  public void setValueToComponent(SubModuleComponent component, @Nullable Boolean newValue) {
+    // uses a dialog on demand
   }
 
   @Override

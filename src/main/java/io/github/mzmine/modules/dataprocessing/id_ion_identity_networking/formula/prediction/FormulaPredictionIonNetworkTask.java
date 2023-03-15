@@ -423,8 +423,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
             topNmsmsSignals);
 
         if (score != null) {
-          msmsScore = score.getScore();
-          msmsAnnotations = score.getAnnotation();
+          msmsScore = score.explainedIntensity();
+          msmsAnnotations = score.annotation();
 
           // Check the MS/MS condition
           if (msmsScore < msmsMinScore) {

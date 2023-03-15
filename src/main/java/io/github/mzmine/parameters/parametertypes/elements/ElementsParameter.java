@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 public class ElementsParameter implements UserParameter<List<Element>, ElementsComponent> {
@@ -71,7 +72,7 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
   }
 
   @Override
-  public void setValueToComponent(ElementsComponent elementsComponent, List<Element> newValue) {
+  public void setValueToComponent(ElementsComponent elementsComponent, @Nullable List<Element> newValue) {
     elementsComponent.setValue(newValue);
   }
 

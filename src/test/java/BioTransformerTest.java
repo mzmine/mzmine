@@ -92,7 +92,6 @@ class BioTransformerTest {
 
     final CompoundDBAnnotation expected = new SimpleCompoundDBAnnotation();
     expected.put(FormulaType.class, "C23H29N5O");
-    expected.put(PrecursorMZType.class, 392.244486548d);
     expected.put(IonTypeType.class, new IonType(IonModification.H));
     expected.put(SmilesStructureType.class, "CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)CC(C)C");
     expected.put(InChIKeyStructureType.class, "QMAQKWMYJDPUDV-UHFFFAOYSA-N");
@@ -102,12 +101,12 @@ class BioTransformerTest {
     expected.put(CompoundNameType.class, "BTM00001");
     expected.put(ALogPType.class, 2.3947f);
     expected.put(EnzymeType.class, "Unspecified environmental bacterial enzyme");
-    expected.put(NeutralMassType.class, 391.237210548d);
+    expected.put(NeutralMassType.class, 391.23721054799995);
+    expected.put(PrecursorMZType.class, 392.24448654799994);
 
     Assertions.assertEquals(9, compoundDBAnnotations.size());
-    Assertions.assertEquals(expected, compoundDBAnnotations.get(0),
-        "\n" + expected.toStringComplete() + "\n" + compoundDBAnnotations.get(0)
-            .toStringComplete());
+    var actual = compoundDBAnnotations.get(0);
+    Assertions.assertEquals(expected.toFullString(), actual.toFullString());
   }
 
   @Test

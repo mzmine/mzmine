@@ -27,35 +27,35 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
  * Parameters for identifying peaks by searching on-line databases.
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
  */
+@Deprecated
 public class SpectraIdentificationOnlineDatabaseParameters extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabases> database =
-      new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
-          OnlineDatabases.values(), OnlineDatabases.PubChem);
+  public static final ModuleComboParameter<OnlineDatabases> database = new ModuleComboParameter<OnlineDatabases>(
+      "Database", "Database to search", OnlineDatabases.values(), OnlineDatabases.PubChem);
 
-  public static final ComboParameter<IonizationType> ionizationType =
-      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
-          IonizationType.values());
+  public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+      "Ionization type", "Ionization type", IonizationType.values());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter noiseLevel =
-      new DoubleParameter("Noise level", "Set a noise level");
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
+      "Set a noise level");
 
   public SpectraIdentificationOnlineDatabaseParameters() {
-    super(new Parameter[] {database, ionizationType, mzTolerance, noiseLevel});
+    super(database, ionizationType, mzTolerance, noiseLevel);
   }
 
 }

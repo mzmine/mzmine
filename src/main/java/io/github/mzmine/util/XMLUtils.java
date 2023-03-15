@@ -26,27 +26,118 @@
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Objects;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * XML processing utilities
  */
 public class XMLUtils {
 
+  /**
+   * Parse XML file. Use {@link Document#getDocumentElement()}
+   *
+   * @param file xml file
+   * @return the document
+   * @throws ParserConfigurationException
+   * @throws IOException
+   * @throws SAXException
+   */
+  public static Document load(final File file)
+      throws ParserConfigurationException, IOException, SAXException {
+    return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
+  }
+
+  /**
+   * Write XML file
+   *
+   * @param file     out file
+   * @param document xml document
+   * @throws TransformerException
+   * @throws IOException
+   */
+  public static void saveToFile(final File file, final Document document)
+      throws TransformerException, IOException {
+    // Create transformer.
+    final Transformer transformer = TransformerFactory.newInstance().newTransformer();
+    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+    // Write to file and transform.
+    try (FileOutputStream fos = new FileOutputStream(file)) {
+      transformer.transform(new DOMSource(document), new StreamResult(fos));
+    }
+  }
+
+  /**
+   * Creates a new element named id and sets attributes by value pairs
+   *
+   * @param doc                 the xml document
+   * @param id                  the name of the node
+   * @param attributeValuePairs key, value pairs, uses toString, null values are converted to empty
+   *                            strings
+   * @return the new Element
+   */
+  public static @NotNull Element createElement(@NotNull final Document doc,
+      @NotNull final String id, @NotNull final Object... attributeValuePairs) {
+    Element element = doc.createElement(id);
+    for (int i = 0; i < attributeValuePairs.length; i += 2) {
+      Object key = attributeValuePairs[i];
+      Object value = attributeValuePairs[i + 1];
+      element.setAttribute(key.toString(), Objects.requireNonNullElse(value.toString(), ""));
+    }
+    return element;
+  }
+
+  /**
+   * Creates a new element named id and sets attributes by value pairs and appends it to parent
+   *
+   * @param parent              the parent node to append to
+   * @param id                  the name of the node
+   * @param attributeValuePairs key, value pairs, uses toString, null values are converted to empty
+   *                            strings
+   * @return the new Element, child of parent
+   */
+  public static @NotNull Element appendElement(@NotNull final Element parent,
+      @NotNull final String id, @NotNull final Object... attributeValuePairs) {
+    Element child = createElement(parent.getOwnerDocument(), id, attributeValuePairs);
+    parent.appendChild(child);
+    return child;
+  }
+
+
   public static Range<Integer> parseIntegerRange(Element xmlElement, String tagName) {
     NodeList items = xmlElement.getElementsByTagName(tagName);
-    if (items.getLength() == 0)
+    if (items.getLength() == 0) {
       return null;
+    }
     Element tag = (Element) items.item(0);
     items = tag.getElementsByTagName("min");
-    if (items.getLength() == 0)
+    if (items.getLength() == 0) {
       return null;
+    }
     Element min = (Element) items.item(0);
     items = tag.getElementsByTagName("max");
-    if (items.getLength() == 0)
+    if (items.getLength() == 0) {
       return null;
+    }
     Element max = (Element) items.item(0);
 
     String minText = min.getTextContent();
@@ -57,12 +148,14 @@ public class XMLUtils {
 
   public static Range<Double> parseDoubleRange(Element xmlElement, String tagName) {
     NodeList items = xmlElement.getElementsByTagName(tagName);
-    if (items.getLength() == 0)
+    if (items.getLength() == 0) {
       return null;
+    }
     Element tag = (Element) items.item(0);
     items = tag.getElementsByTagName("min");
-    if (items.getLength() == 0)
+    if (items.getLength() == 0) {
       return null;
+    }
     Element min = (Element) items.item(0);
     items = tag.getElementsByTagName("max");
     if (items.getLength() == 0) {
@@ -99,8 +192,9 @@ public class XMLUtils {
   }
 
   public static void appendString(Element xmlElement, String tagName, String value) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     Element newElement = parentDocument.createElement(tagName);
     newElement.setTextContent(value);
@@ -108,9 +202,10 @@ public class XMLUtils {
 
   public static String parseString(Element xmlElement, String tagName) {
     NodeList items = xmlElement.getElementsByTagName(tagName);
-    if (items.getLength() == 0)
+    if (items.getLength() == 0) {
       return null;
-    else
+    } else {
       return items.item(0).getTextContent();
+    }
   }
 }

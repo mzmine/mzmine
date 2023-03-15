@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -122,7 +123,7 @@ public class ClearAnnotationsParameter implements
 
   @Override
   public void setValueToComponent(ClearAnnotationsComponent clearAnnotationsComponent,
-      Map<DataType<?>, Boolean> newValue) {
+      @Nullable Map<DataType<?>, Boolean> newValue) {
     clearAnnotationsComponent.setValue(newValue);
   }
 

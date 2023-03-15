@@ -32,7 +32,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.layout.Priority;
 import org.controlsfx.control.CheckListView;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -97,11 +99,16 @@ public class MultiChoiceParameter<ValueType> implements
   }
 
   @Override
+  public Priority getComponentVgrowPriority() {
+    return Priority.SOMETIMES;
+  }
+
+  @Override
   public CheckListView<ValueType> createEditingComponent() {
     final ObservableList<ValueType> choicesList = FXCollections.observableArrayList(
         Arrays.asList(choices));
     final CheckListView<ValueType> comp = new CheckListView<>(choicesList);
-    comp.setPrefHeight(150);
+    comp.setPrefHeight(200);
     return comp;
   }
 
@@ -112,6 +119,9 @@ public class MultiChoiceParameter<ValueType> implements
 
   @Override
   public void setValue(ValueType[] values) {
+    if (choices == null) {
+      choices = values;
+    }
     this.values = values;
   }
 
@@ -132,9 +142,12 @@ public class MultiChoiceParameter<ValueType> implements
   }
 
   @Override
-  public void setValueToComponent(CheckListView<ValueType> component, ValueType[] newValue) {
+  public void setValueToComponent(CheckListView<ValueType> component, @Nullable ValueType[] newValue) {
     component.getSelectionModel().clearSelection();
     component.getCheckModel().clearChecks();
+    if (newValue == null) {
+      return;
+    }
     for (ValueType v : newValue) {
       component.getSelectionModel().select(v);
       component.getCheckModel().check(v);
