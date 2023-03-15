@@ -1,32 +1,37 @@
 package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CSVUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CompoundAnnotationsCSVExportTask extends AbstractTask {
 
@@ -122,8 +127,18 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
     }
     private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
             throws IOException {
-         // ToDO : Add headers and raws to csv
         try {
+            // Create a list of column DataTypes
+            var columns = Stream.of(
+                            CompoundNameType.class, IonTypeType.class, ScoreType.class,
+                            PrecursorMZType.class, MobilityType.class, CCSType.class, RTType.class)
+                    .map(c -> DataTypes.get((Class) c))
+                    .toList();
+
+           // Create a header string by joining the unique IDs of the DataTypes with commas
+            var header = columns.stream()
+                    .map(DataType::getUniqueID)
+                    .collect(Collectors.joining(","));
 
             // loop through all rows in the feature list
             for (FeatureListRow row : featureList.getRows()) {
@@ -131,25 +146,23 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
                 for (Object object : featureAnnotations) {
                     if (object instanceof FeatureAnnotation annotation) {
                         // Export fields from the FeatureAnnotation object
-                        String CompoundName = annotation.getCompoundName();
-                        double precursorMZ = annotation.getPrecursorMZ();
+                        String compoundName = annotation.getCompoundName();
                         IonType adductType = annotation.getAdductType();
+                        String scoreType = annotation.getScoreString();
+                        double precursorMZ = annotation.getPrecursorMZ();
                         Float mobility = annotation.getMobility();
                         Float getCCS = annotation.getCCS();
                         Float getRT = annotation.getRT();
-                        Float getScore = annotation.getScore();
+
+                        String result = Stream.of(compoundName, adductType, scoreType, precursorMZ, mobility, getCCS, getRT)
+                                .map(o -> (o == null) ? "" : CSVUtils.escape(o.toString()))
+                                .collect(Collectors.joining(","));
 
                         // Export the fields as needed
-                        writer.write(CompoundName + "," + precursorMZ + "," +adductType + "," +mobility + "," +getCCS + "," +getRT + "," +getScore);
+                        writer.write(result);
 
                     }
                 }
-                // write the feature annotation to the output file
-                // Write the feature annotation to the file
-//                        writer.append(annotation.getCompoundName());
-//                        writer.append(",");
-//                        writer.append(annotation.getFeatureValue());
-//                        writer.append("\n");
             }
 
             writer.close();
@@ -157,31 +170,5 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
         } catch (IOException e) {
             System.out.println("Error exporting feature annotations: " + e.getMessage());
         }
-//        final NumberFormat mzForm = formats.mzFormat();
-//        RawDataFile[] rawDataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
-//
-//        // Buffer for writing
-//        StringBuilder line = new StringBuilder();
-//
-//        // Write column headers
-//
-//        // Common elements
-//        int length = commonElements.length;
-//        String name;
-//        for (int i = 0; i < length; i++) {
-//            if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT)) {
-//                line.append("best ion").append(fieldSeparator);
-//                line.append("auto MS2 verify").append(fieldSeparator);
-//                line.append("identified by n=").append(fieldSeparator);
-//                line.append("partners").append(fieldSeparator);
-//            } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION)) {
-//                line.append("best ion").append(fieldSeparator);
-//            } else {
-//                name = commonElements[i].toString();
-//                name = name.replace("Export ", "");
-//                name = escapeStringForCSV(name);
-//                line.append(name).append(fieldSeparator);
-//            }
-//        }
     }
 }
