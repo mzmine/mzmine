@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -135,7 +136,7 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   }
 
   @Override
-  public void setValueToComponent(MZToleranceComponent component, MZTolerance newValue) {
+  public void setValueToComponent(MZToleranceComponent component, @Nullable MZTolerance newValue) {
     component.setValue(newValue);
   }
 

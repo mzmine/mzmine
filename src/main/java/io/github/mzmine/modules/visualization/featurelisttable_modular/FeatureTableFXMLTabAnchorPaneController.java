@@ -161,8 +161,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
             .contains(anyFilterString);
       }
 
-      return mzFilter.contains(row.getAverageMZ()) && rtFilter.contains((double) row.getAverageRT())
-          && anyFilterOk;
+      Double mz = row.getAverageMZ();
+      Float rt = row.getAverageRT();
+      return (mz == null || mzFilter.contains(mz)) && (rt == null || rtFilter.contains(
+          rt.doubleValue())) && anyFilterOk;
     });
 
     // Update rows in feature table

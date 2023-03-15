@@ -73,6 +73,15 @@ public class SimpleFullChromatogram {
     return mode;
   }
 
+  public boolean hasNonZeroData() {
+    for (final double v : intensities) {
+      if (v > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * @param scans the original full list of scans that was used to create this chromatogram
    * @return an ion time series with only data points > 0 with 1 leading and trailing zero around

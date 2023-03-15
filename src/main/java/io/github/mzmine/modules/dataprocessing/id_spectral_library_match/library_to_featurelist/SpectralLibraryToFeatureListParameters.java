@@ -23,19 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 
-public class MassvoltammogramMzRangeParameter extends SimpleParameterSet {
+public class SpectralLibraryToFeatureListParameters extends SimpleParameterSet {
 
-  public static final MZRangeParameter mzRange = new MZRangeParameter("m/z Range",
-      "Minimal and maximal m/z");
+  public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
 
-  public MassvoltammogramMzRangeParameter(){
-    super(new Parameter[]{mzRange});
+  public SpectralLibraryToFeatureListParameters() {
+    super(libraries);
   }
-
 }

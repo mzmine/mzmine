@@ -86,6 +86,10 @@ public class ModuleComboComponent extends FlowPane {
   }
 
   public void setSelectedItem(MZmineProcessingStep<?> selected) {
+    if (selected == null) {
+      comboBox.getSelectionModel().clearSelection();
+      return;
+    }
     comboBox.getSelectionModel().select(selected);
   }
 

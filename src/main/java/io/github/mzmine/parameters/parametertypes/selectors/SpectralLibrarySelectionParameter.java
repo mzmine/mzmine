@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -155,7 +156,7 @@ public class SpectralLibrarySelectionParameter implements
 
   @Override
   public void setValueToComponent(SpectralLibrarySelectionComponent component,
-      SpectralLibrarySelection newValue) {
+      @Nullable SpectralLibrarySelection newValue) {
     component.setValue(newValue);
   }
 

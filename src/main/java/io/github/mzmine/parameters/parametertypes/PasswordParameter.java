@@ -25,13 +25,16 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.exceptions.DecryptionException;
 import io.github.mzmine.util.exceptions.EncryptionException;
+import java.util.Collection;
 import javafx.scene.control.PasswordField;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Password parameter
@@ -40,7 +43,9 @@ import javafx.scene.control.PasswordField;
  */
 public class PasswordParameter implements UserParameter<String, PasswordField> {
 
-  private String name, description, value;
+  private final String name;
+  private final String description;
+  private String value;
   private int inputsize = 20;
   private boolean valueRequired = true;
 
@@ -145,12 +150,12 @@ public class PasswordParameter implements UserParameter<String, PasswordField> {
 
   @Override
   public void setValueFromComponent(PasswordField component) {
-    value = component.getText().toString();
+    value = component.getText();
   }
 
   @Override
-  public void setValueToComponent(PasswordField component, String newValue) {
-    component.setText(newValue);
+  public void setValueToComponent(PasswordField component, @Nullable String newValue) {
+    component.setText(requireNonNullElse(newValue, ""));
   }
 
   @Override

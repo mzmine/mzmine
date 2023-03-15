@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -123,7 +124,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public void setValueToComponent(OptionalModuleComponent component, Boolean newValue) {
+  public void setValueToComponent(OptionalModuleComponent component, @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
     component.setParameterValuesToComponents();
   }

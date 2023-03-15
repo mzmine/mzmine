@@ -25,12 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -103,7 +104,7 @@ public class PaintScaleParameter implements UserParameter<PaintScale, PaintScale
   }
 
   @Override
-  public void setValueToComponent(PaintScaleComponent component, PaintScale newValue) {
+  public void setValueToComponent(PaintScaleComponent component, @Nullable PaintScale newValue) {
     component.getComboBox().getSelectionModel().select(newValue);
   }
 

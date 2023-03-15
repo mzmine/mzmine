@@ -62,7 +62,7 @@ public class GroupMS2Parameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTol = new MZToleranceParameter(
       "MS1 to MS2 precursor tolerance (m/z)",
       "Describes the tolerance between the precursor ion in a MS1 scan and the precursor "
-          + "m/z assigned to the MS2 scan.", 0.01, 10);
+      + "m/z assigned to the MS2 scan.", 0.01, 10);
 
 
   public static final RtLimitsFilterParameter rtFilter = new RtLimitsFilterParameter(
@@ -87,19 +87,19 @@ public class GroupMS2Parameters extends SimpleParameterSet {
   public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
       new DoubleParameter("Minimum signal intensity (absolute, TIMS)",
           "If a TIMS feature is processed, this parameter "
-              + "can be used to filter low abundant signals in the MS/MS spectrum, since multiple "
-              + "MS/MS mobility scans need to be merged together.",
+          + "can be used to filter low abundant signals in the MS/MS spectrum, since multiple "
+          + "MS/MS mobility scans need to be merged together.",
           MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE), false);
 
   public static final OptionalParameter<PercentParameter> outputNoiseLevelRelative = new OptionalParameter<>(
       new PercentParameter("Minimum signal intensity (relative, TIMS)",
           "If an ion mobility spectrometry (TIMS) feature is processed, this parameter "
-              + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
-              + "MS/MS mobility scans need to be merged together.", 0.01d), true);
+          + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
+          + "MS/MS mobility scans need to be merged together.", 0.01d), true);
 
   public GroupMS2Parameters() {
-    super(new Parameter[]{PEAK_LISTS, minimumRelativeFeatureHeight, minRequiredSignals, mzTol,
-            rtFilter, limitMobilityByFeature,
+    super(new Parameter[]{PEAK_LISTS, mzTol, rtFilter, minimumRelativeFeatureHeight,
+            minRequiredSignals, limitMobilityByFeature,
             // TIMS specific
             combineTimsMsMs, outputNoiseLevel, outputNoiseLevelRelative},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");

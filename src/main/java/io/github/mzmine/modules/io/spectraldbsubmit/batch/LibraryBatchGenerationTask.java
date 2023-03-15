@@ -37,6 +37,7 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -60,6 +61,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
@@ -85,6 +87,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -189,7 +192,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     } catch (Exception e) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not export library to " + outFile + " because of internal exception:"
-          + e.getMessage());
+                      + e.getMessage());
       logger.log(Level.WARNING,
           String.format("Error writing library file: %s. Message: %s", outFile.getAbsolutePath(),
               e.getMessage()), e);
@@ -202,21 +205,41 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private void processRow(final BufferedWriter writer, final FeatureListRow row)
       throws IOException {
     List<Scan> scans = row.getAllFragmentScans();
-    List<CompoundDBAnnotation> matches = row.getCompoundAnnotations();
+
+    var featureList = row.getFeatureList();
+    // might filter matches for compound name in feature list name
+    // only if this option is active
+    List<CompoundDBAnnotation> matches = row.getCompoundAnnotations().stream()
+        .filter(match -> msMsQualityChecker.matchesName(match, featureList)).toList();
+
     if (scans.isEmpty() || matches.isEmpty()) {
       return;
     }
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
-    var match = matches.get(0);
+    // if multiple compounds match, they are sorted by score descending
+    var filteredMatches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
 
-    if (!msMsQualityChecker.matchesName(match, row.getFeatureList())) {
+    if (filteredMatches.stream()
+        .noneMatch(match -> msMsQualityChecker.matchesName(match, featureList))) {
       return;
     }
 
     // handle chimerics
     final var chimericMap = handleChimericsAndFilterScansIfSelected(row, scans);
 
+    scans = selectMergeAndFilterScans(scans);
+    // export
+    exportAllMatches(writer, row, scans, filteredMatches, chimericMap);
+  }
+
+  /**
+   * Selects scans from the list, merges them if active, and filters for MS2 if selected
+   *
+   * @param scans input list of scans usually from a row
+   * @return list of selected scans
+   */
+  private List<Scan> selectMergeAndFilterScans(List<Scan> scans) {
     if (enableMsnMerge) {
       // merge spectra, find best spectrum for each MSn node in the tree and each energy
       // filter after merging scans to also generate PSEUDO MS2 from MSn spectra
@@ -227,36 +250,77 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         scans.removeIf(postMergingMsLevelFilter::notMatch);
       }
     }
-    // cache all formulas
-    IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
-    FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
+    return scans;
+  }
 
-    boolean explainedSignalsOnly = msMsQualityChecker.exportExplainedSignalsOnly();
-    // filter matches
-    for (final Scan msmsScan : scans) {
-      final MSMSScore score = msMsQualityChecker.match(msmsScan, match, sortedFormulas);
-      if (score.isFailed(false)) {
-        continue;
+  /**
+   * Exports all matches
+   *
+   * @param scans           filtered scans
+   * @param filteredMatches filtered annotations, each will be exported
+   * @param chimericMap     flags chimeric spectra
+   */
+  private void exportAllMatches(final BufferedWriter writer, final FeatureListRow row,
+      final List<Scan> scans, final List<CompoundDBAnnotation> filteredMatches,
+      final Map<Scan, ChimericPrecursorResult> chimericMap) throws IOException {
+    // filtered matches contain one match per compound name sorted by the least complex first
+    // M+H better than 2M+H2+2
+    for (final CompoundDBAnnotation match : filteredMatches) {
+      // cache all formulas
+      IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
+      FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
+
+      boolean explainedSignalsOnly = msMsQualityChecker.exportExplainedSignalsOnly();
+      // filter matches
+      for (final Scan msmsScan : scans) {
+        final MSMSScore score = msMsQualityChecker.match(msmsScan, match, sortedFormulas);
+        if (score.isFailed(false)) {
+          continue;
+        }
+
+        DataPoint[] dps = explainedSignalsOnly ? score.getAnnotatedDataPoints()
+            : extractDataPoints(msmsScan, true);
+
+        SpectralLibraryEntry entry = createEntry(row, match, chimericMap, msmsScan, score, dps,
+            filteredMatches);
+        exportEntry(writer, entry);
+        exported.incrementAndGet();
       }
-
-      DataPoint[] dps =
-          explainedSignalsOnly ? score.getAnnotatedDataPoints() : extractDataPoints(msmsScan, true);
-
-      SpectralLibraryEntry entry = createEntry(row, match, chimericMap, msmsScan, score, dps);
-      exportEntry(writer, entry);
-      exported.incrementAndGet();
     }
   }
 
+
+  /**
+   * @param row                 row that was matched
+   * @param match               the match to export
+   * @param chimericMap         mpas scans to their chimeric results. might be empty if scoring was
+   *                            off
+   * @param msmsScan            scan to export
+   * @param score               fragmentation pattern score
+   * @param dps                 data points
+   * @param allMatchedCompounds filtered list of all matched compounds (one adduct per compound
+   *                            name). also contains match which is currently exported.
+   * @return the new spectral library entry
+   */
   @NotNull
   private SpectralLibraryEntry createEntry(final FeatureListRow row,
       final CompoundDBAnnotation match, final Map<Scan, ChimericPrecursorResult> chimericMap,
-      final Scan msmsScan, final MSMSScore score, final DataPoint[] dps) {
+      final Scan msmsScan, final MSMSScore score, final DataPoint[] dps,
+      final List<CompoundDBAnnotation> allMatchedCompounds) {
     // add instrument type etc by parameter
     SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan, match,
         dps);
     entry.putAll(metadataMap);
 
+    // matched against mutiple compounds in the same sample?
+    // usually metadata is filtered so that raw data files only contain specific compounds without interference
+    if (allMatchedCompounds.size() > 1) {
+      // 1 would be the match itself
+      entry.putIfNotNull(DBEntryField.OTHER_MATCHED_COMPOUNDS_N, allMatchedCompounds.size() - 1);
+      entry.putIfNotNull(DBEntryField.OTHER_MATCHED_COMPOUNDS_NAMES, allMatchedCompounds.stream()
+          .filter(m -> !Objects.equals(match.getCompoundName(), m.getCompoundName()))
+          .map(CompoundDBAnnotation::toString).collect(Collectors.joining("; ")));
+    }
     // score might be successful without having a formula - so check if we actually have scores
     if (score.explainedSignals() > 0) {
       entry.putIfNotNull(DBEntryField.QUALITY_EXPLAINED_INTENSITY, score.explainedIntensity());
@@ -274,9 +338,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
     // add file info
     int scanNumber = msmsScan.getScanNumber();
-    final String fileUSI = Path.of(
-        Objects.requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
-            msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
+    final String fileUSI = Path.of(requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
+        msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
 
     entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scanNumber);
     entry.getField(DBEntryField.DATASET_ID).ifPresent(

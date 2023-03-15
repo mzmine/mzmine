@@ -58,6 +58,12 @@ public class ComboFieldComponent<E extends Enum<?>> extends HBox {
   }
 
   public void setValue(ComboFieldValue<E> value) {
+    if (value == null) {
+      inputField.setText("");
+      comboBox.setValue(null);
+      return;
+    }
+
     inputField.setText(value.getFieldText());
     comboBox.setValue(value.getValueType());
   }

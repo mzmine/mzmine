@@ -79,9 +79,13 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.isolationWindow = isolationWindow;
   }
 
+  public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
+    this(isolationMz, charge, null, null, null, msLevel, null, null);
+  }
+
   public static DDAMsMsInfo fromMzML(MzMLPrecursorElement precursorElement, int msLevel) {
     Optional<MzMLPrecursorSelectedIonList> list = precursorElement.getSelectedIonList();
-    if (!list.isPresent()) {
+    if (list.isEmpty()) {
       return null;
     }
 

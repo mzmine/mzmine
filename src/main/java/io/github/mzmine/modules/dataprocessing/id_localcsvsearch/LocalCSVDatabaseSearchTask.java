@@ -70,11 +70,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -125,7 +123,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final IonLibraryParameterSet ionLibraryParameterSet;
   private final Boolean filterSamples;
   private final String sampleHeader;
-  private final List<RawDataFile> raws;
+  private final List<RawDataFile> allRawDataFiles;
   private IonNetworkLibrary ionNetworkLibrary;
 
   private String[][] databaseValues;
@@ -155,12 +153,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
         LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
-    sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
-        .getEmbeddedParameter().getValue();
+    sampleHeader = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        LocalCSVDatabaseSearchParameters.filterSamples, null);
 
     // all raw data files for a name check if selected
-    raws = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles).flatMap(Collection::stream)
-        .distinct().toList();
+    allRawDataFiles = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles)
+        .flatMap(Collection::stream).distinct().toList();
   }
 
   @Override
@@ -234,7 +232,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         }
         try {
           String[] currentLine = databaseValues[finishedLines];
-          if (filterSamples && !matchSample(raws, currentLine[sampleColIndex])) {
+          // check already once for all raw data files
+          if (filterSamples && !matchSample(allRawDataFiles, currentLine[sampleColIndex])) {
             // sample mismatch for this line
             continue;
           }
@@ -242,6 +241,17 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           processOneLine(mzSortedRows, currentLine, lineIds, commentFields);
         } catch (Exception e) {
           logger.log(Level.FINE, "Exception while processing csv line " + finishedLines, e);
+        }
+      }
+
+      for (final SortedList<FeatureListRow> flist : mzSortedRows) {
+        for (final FeatureListRow row : flist) {
+          var matches = row.getCompoundAnnotations().stream().sorted()
+              .collect(Collectors.toCollection(ArrayList::new));
+          if (matches.isEmpty()) {
+            continue;
+          }
+          row.setCompoundAnnotations(matches);
         }
       }
 
@@ -288,7 +298,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private boolean matchSample(final List<RawDataFile> raws, final String sample) {
-    return this.raws.stream().anyMatch(raw -> raw.getName().contains(sample));
+    return raws.stream()
+        .anyMatch(raw -> raw.getName().toLowerCase().contains(sample.toLowerCase()));
   }
 
   /**
@@ -312,7 +323,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     // not all feature lists have all samples
     indexStream.forEach(i -> {
       var rawFiles = featureLists[i].getRawDataFiles();
-      //  if active, check sample name contains id
+      //  if active, check sample name contains id - this time for the feature list
       if (!filterSamples || matchSample(rawFiles, values[sampleColIndex])) {
         var sortedRows = mzSortedRows.get(i);
 
@@ -373,8 +384,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         rtTolerance, mobTolerance, percCcsTolerance);
     if (clone != null) {
       row.addCompoundAnnotation(clone);
-      row.getCompoundAnnotations()
-          .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
     }
   }
 

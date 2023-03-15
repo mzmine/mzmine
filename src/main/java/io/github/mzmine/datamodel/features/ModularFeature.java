@@ -194,6 +194,20 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
+   * Creates a new feature.
+   *
+   * @param flist         The feature list.
+   * @param dataFile      The raw data file of this feature.
+   */
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, FeatureStatus featureStatus) {
+    this(flist);
+    assert dataFile != null;
+
+    set(RawFileType.class, dataFile);
+    set(DetectionType.class, featureStatus);
+  }
+
+  /**
    * Creates a new feature. The properties are determined via
    * {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
    *
@@ -203,15 +217,13 @@ public class ModularFeature implements Feature, ModularDataModel {
    * @param featureStatus The feature status.
    */
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
-      IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
-    this(flist);
-    assert dataFile != null;
+      @Nullable IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
+    this(flist, dataFile, featureStatus);
 
-    set(RawFileType.class, dataFile);
-    set(DetectionType.class, featureStatus);
-    set(FeatureDataType.class, featureData);
-
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    if (featureData != null) {
+      set(FeatureDataType.class, featureData);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    }
   }
 
   /**

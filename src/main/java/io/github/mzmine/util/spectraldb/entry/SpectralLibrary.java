@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
@@ -115,5 +116,13 @@ public class SpectralLibrary {
    */
   public boolean equalSources(SpectralLibrary lib) {
     return lib != null && lib.getPath().equals(this.getPath());
+  }
+
+  public int getNumEntries() {
+    return getEntries().size();
+  }
+
+  public Stream<SpectralLibraryEntry> stream() {
+    return getEntries().stream();
   }
 }

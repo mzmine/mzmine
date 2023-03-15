@@ -1682,32 +1682,31 @@ public class ScanUtils {
   /**
    * Filters the raw mz + intensity data of a scan to remove neighbouring zeros.
    *
-   * @param scan The scan, [][0] are mzs, [][1] are intensities
-   * @return A multidimensional array with the filtered values. [][0] are mzs, [][1] are
-   * intensities.
+   * @param scan The scan, [0] are mzs, [1] are intensities
+   * @return A multidimensional array with the filtered values. [0] are mzs, [1] are intensities.
    */
   public static double[][] removeExtraZeros(double[][] scan) {
     // remove all extra zeros
-    final int numDp = scan.length;
+    final int numDp = scan[0].length;
     final TDoubleArrayList filteredMzs = new TDoubleArrayList();
     final TDoubleArrayList filteredIntensities = new TDoubleArrayList();
     filteredMzs.add(scan[0][0]);
-    filteredIntensities.add(scan[0][1]);
+    filteredIntensities.add(scan[1][0]);
     for (int i = 1; i < numDp - 1;
         i++) { // previous , this and next are zero --> do not add this data point
-      if (scan[i - 1][1] != 0 || scan[i][1] != 0 || scan[i + 1][1] != 0) {
-        filteredMzs.add(scan[i][0]);
-        filteredIntensities.add(scan[i][1]);
+      if (scan[1][i - 1] != 0 || scan[1][i] != 0 || scan[1][i + 1] != 0) {
+        filteredMzs.add(scan[0][i]);
+        filteredIntensities.add(scan[1][i]);
       }
     }
-    filteredMzs.add(scan[numDp - 1][0]);
-    filteredIntensities.add(scan[numDp - 1][1]);
+    filteredMzs.add(scan[0][numDp - 1]);
+    filteredIntensities.add(scan[1][numDp - 1]);
 
     //Convert the ArrayList to an array.
-    double[][] filteredScan = new double[filteredMzs.size()][2];
+    double[][] filteredScan = new double[2][filteredMzs.size()];
     for (int i = 0; i < filteredMzs.size(); i++) {
-      filteredScan[i][0] = filteredMzs.get(i);
-      filteredScan[i][1] = filteredIntensities.get(i);
+      filteredScan[0][i] = filteredMzs.get(i);
+      filteredScan[1][i] = filteredIntensities.get(i);
     }
 
     return filteredScan;

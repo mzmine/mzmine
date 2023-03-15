@@ -25,12 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-
-import org.w3c.dom.Element;
-
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 public class NeutralMassParameter implements UserParameter<Double, NeutralMassComponent> {
 
@@ -85,7 +84,7 @@ public class NeutralMassParameter implements UserParameter<Double, NeutralMassCo
   }
 
   @Override
-  public void setValueToComponent(NeutralMassComponent component, Double newValue) {
+  public void setValueToComponent(NeutralMassComponent component, @Nullable Double newValue) {
     if (ionMass != null)
       component.setIonMass(ionMass);
     if (charge != null)
