@@ -5,8 +5,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
