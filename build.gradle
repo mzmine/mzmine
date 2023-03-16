@@ -99,7 +99,7 @@ println "OS detected as " + project.ext.osSuffix
 repositories {
 
     // TODO change to mavenCentral()
-     mavenLocal()
+    mavenLocal()
 //    maven { url = 'https://maven.aliyun.com/repository/jcenter' }
 //    maven { url = 'https://maven.aliyun.com/repository/google' }
 //    maven { url = 'https://maven.aliyun.com/repository/central' }
@@ -244,7 +244,7 @@ dependencies {
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
-    implementation "net.csibio.aird:aird-sdk:2.2.0"
+    implementation "net.csibio.aird:aird-sdk:2.2.2"
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
 
     // jackson for json parsing
