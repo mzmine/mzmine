@@ -62,6 +62,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -159,119 +160,130 @@ class IsotopeFinderTask extends AbstractTask {
     int missingValues = 0;
     int detected = 0;
 
-    // find for all rows the isotope pattern
-    for (FeatureListRow row : featureList.getRows()) {
-      if (isCanceled()) {
-        return;
-      }
-
-      // start at max intensity signal
-      Feature feature = row.getFeature(raw);
-      double mz = feature.getMZ();
-      final Scan scan = findBestScanOrMobilityScan(scans, mobScans, feature);
-
-      // find candidate isotope pattern in max scan
-      // for each charge state to determine best charge
-      // merge afterward to get one isotope patten with all possible isotopes
-      int maxFoundIsotopes = 0;
-      int bestCharge = 0;
-      IsotopePattern pattern = null;
-
-      for (int i = 0; i < isotopeMaxCharge; i++) {
-        // charge is zero indexed but always starts at 1 -> max charge
-        final int charge = i + 1;
-        final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
-        final double currentMaxDiff = maxIsoMzDiff[i];
-        final SimpleDataPoint featureDp = new SimpleDataPoint(mz, feature.getHeight());
-        List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
-            currentMaxDiff, isoMzTolerance, scan, featureDp);
-
-        if (scan instanceof MobilityScan && !candidates.isEmpty()) {
-          candidates = normalizeImsIntensities(candidates, scan, featureDp);
+    try {
+      // find for all rows the isotope pattern
+      for (FeatureListRow row : featureList.getRows()) {
+        if (isCanceled()) {
+          return;
         }
 
-        if (candidates.size() > 1) { // feature itself is always in cadidates
-          IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
-              charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
-          if (pattern == null) {
-            pattern = newPattern;
-          } else if (pattern instanceof SimpleIsotopePattern) {
-            // combine 2 isotope pattern
-            pattern = new MultiChargeStateIsotopePattern(pattern, newPattern);
-          } else if (pattern instanceof MultiChargeStateIsotopePattern multi) {
-            // add next patterns
-            multi.addPattern(newPattern);
-          } else {
-            throw new IllegalStateException("Isotope pattern type is not handled.");
+        // start at max intensity signal
+        Feature feature = row.getFeature(raw);
+        Scan scan = feature.getRepresentativeScan();
+        // no MS1 scan available
+        if (scan == null) {
+          continue;
+        }
+
+        double mz = feature.getMZ();
+        scan = findBestScanOrMobilityScan(scans, mobScans, feature);
+
+        // find candidate isotope pattern in max scan
+        // for each charge state to determine best charge
+        // merge afterward to get one isotope patten with all possible isotopes
+        int maxFoundIsotopes = 0;
+        int bestCharge = 0;
+        IsotopePattern pattern = null;
+
+        for (int i = 0; i < isotopeMaxCharge; i++) {
+          // charge is zero indexed but always starts at 1 -> max charge
+          final int charge = i + 1;
+          final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
+          final double currentMaxDiff = maxIsoMzDiff[i];
+          final SimpleDataPoint featureDp = new SimpleDataPoint(mz, feature.getHeight());
+          List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
+              currentMaxDiff, isoMzTolerance, scan, featureDp);
+
+          if (scan instanceof MobilityScan && !candidates.isEmpty()) {
+            candidates = normalizeImsIntensities(candidates, scan, featureDp);
           }
 
-          if (candidates.size() > maxFoundIsotopes) {
-            maxFoundIsotopes = candidates.size();
-            // charge is zero indexed but always starts at 1 -> max charge
-            bestCharge = charge;
+          if (candidates.size() > 1) { // feature itself is always in cadidates
+            IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
+                charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
+            if (pattern == null) {
+              pattern = newPattern;
+            } else if (pattern instanceof SimpleIsotopePattern) {
+              // combine 2 isotope pattern
+              pattern = new MultiChargeStateIsotopePattern(pattern, newPattern);
+            } else if (pattern instanceof MultiChargeStateIsotopePattern multi) {
+              // add next patterns
+              multi.addPattern(newPattern);
+            } else {
+              throw new IllegalStateException("Isotope pattern type is not handled.");
+            }
+
+            if (candidates.size() > maxFoundIsotopes) {
+              maxFoundIsotopes = candidates.size();
+              // charge is zero indexed but always starts at 1 -> max charge
+              bestCharge = charge;
+            }
           }
         }
-      }
-      if (pattern == null) {
-        // no pattern found
-        continue;
-      }
+        if (pattern == null) {
+          // no pattern found
+          continue;
+        }
 
-      if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
-        // add isotope pattern and charge
-        feature.setIsotopePattern(pattern);
-        feature.setCharge(bestCharge);
-        //Final CCS Calculation
-        RawDataFile data = feature.getRawDataFile();
-        Float mobility = feature.getMobility();
-        MobilityType mobilityType = feature.getMobilityUnit();
-        if (data instanceof IMSRawDataFile imsfile) {
-            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
-                && mobilityType != null) {
+        if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
+          // add isotope pattern and charge
+          feature.setIsotopePattern(pattern);
+          feature.setCharge(bestCharge);
+          //Final CCS Calculation
+          RawDataFile data = feature.getRawDataFile();
+          Float mobility = feature.getMobility();
+          MobilityType mobilityType = feature.getMobilityUnit();
+          if (data instanceof IMSRawDataFile imsfile) {
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0 && mobilityType != null) {
               Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
               if (ccs != null) {
                 feature.setCCS(ccs);
               }
             }
-        }//end
-        detected++;
-      } else {
-        // find pattern in FWHM
-        //      Float fwhmDiff = feature.getFWHM();
-        //      if (fwhmDiff != null) {
-        //        fwhmDiff /= 2f;
-        //
-        //        if (candidates.size() > 1) {
-        //          int next = 1;
-        //          while (scanIndex + next < totalScans || scanIndex - next >= 0) {
-        //            if (scanIndex + next < totalScans) {
-        //              scans.jumpToIndex(scanIndex + next);
-        //              if (checkRetentionTime(scans.getCurrentScan(), maxRT, fwhmDiff)) {
-        //                checkCandidatesInScan(scans, candidates);
-        //              }
-        //            }
-        //            if (scanIndex - next >= 0) {
-        //              scans.jumpToIndex(scanIndex - next);
-        //              if (checkRetentionTime(scans.getCurrentScan(), maxRT, fwhmDiff)) {
-        //                checkCandidatesInScan(scans, candidates);
-        //              }
-        //            }
-        //            next++;
-        //          }
-        //        }
-        //        // all scans in FWHMN checked... add isotope pattern
-        //        if (candidates.size() > 1) {
-        //          feature.setIsotopePattern(new SimpleIsotopePattern(
-        //              candidates.stream().map(d -> new SimpleDataPoint(d.getMZ(), d.getIntensity()))
-        //                  .toArray(DataPoint[]::new), IsotopePatternStatus.DETECTED, "Pattern finder"));
-        //          detected++;
-        //        }
-        //      } else {
-        //        // missing FWHM
-        //        missingValues++;
-        //      }
+          }//end
+          detected++;
+        } else {
+          // find pattern in FWHM
+          //      Float fwhmDiff = feature.getFWHM();
+          //      if (fwhmDiff != null) {
+          //        fwhmDiff /= 2f;
+          //
+          //        if (candidates.size() > 1) {
+          //          int next = 1;
+          //          while (scanIndex + next < totalScans || scanIndex - next >= 0) {
+          //            if (scanIndex + next < totalScans) {
+          //              scans.jumpToIndex(scanIndex + next);
+          //              if (checkRetentionTime(scans.getCurrentScan(), maxRT, fwhmDiff)) {
+          //                checkCandidatesInScan(scans, candidates);
+          //              }
+          //            }
+          //            if (scanIndex - next >= 0) {
+          //              scans.jumpToIndex(scanIndex - next);
+          //              if (checkRetentionTime(scans.getCurrentScan(), maxRT, fwhmDiff)) {
+          //                checkCandidatesInScan(scans, candidates);
+          //              }
+          //            }
+          //            next++;
+          //          }
+          //        }
+          //        // all scans in FWHMN checked... add isotope pattern
+          //        if (candidates.size() > 1) {
+          //          feature.setIsotopePattern(new SimpleIsotopePattern(
+          //              candidates.stream().map(d -> new SimpleDataPoint(d.getMZ(), d.getIntensity()))
+          //                  .toArray(DataPoint[]::new), IsotopePatternStatus.DETECTED, "Pattern finder"));
+          //          detected++;
+          //        }
+          //      } else {
+          //        // missing FWHM
+          //        missingValues++;
+          //      }
+        }
+        processedRows++;
       }
-      processedRows++;
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Error in isotope finder "+ ex.getMessage(), ex);
+      setStatus(TaskStatus.ERROR);
+      return;
     }
 
     if (missingValues > 0) {

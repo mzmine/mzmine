@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -60,21 +61,25 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureListUtils;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,6 +87,31 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LocalCSVDatabaseSearchTask.class.getName());
 
+  // all data types that we need
+  private final FormulaType formulaType = (FormulaType) DataTypes.get(FormulaType.class);
+  private final CompoundNameType compoundNameType = (CompoundNameType) DataTypes.get(
+      CompoundNameType.class);
+  private final CommentType commentType = (CommentType) DataTypes.get(CommentType.class);
+  private final PrecursorMZType precursorMz = (PrecursorMZType) DataTypes.get(
+      PrecursorMZType.class);
+
+  private final RTType rtType = (RTType) DataTypes.get(RTType.class);
+  private final MobilityType mobType = (MobilityType) DataTypes.get(MobilityType.class);
+  private final CCSType ccsType = (CCSType) DataTypes.get(CCSType.class);
+  private final SmilesStructureType smilesType = (SmilesStructureType) DataTypes.get(
+      SmilesStructureType.class);
+  private final InChIStructureType inchiType = (InChIStructureType) DataTypes.get(
+      InChIStructureType.class);
+  private final InChIKeyStructureType inchiKeyType = (InChIKeyStructureType) DataTypes.get(
+      InChIKeyStructureType.class);
+  private final IonTypeType adductType = (IonTypeType) DataTypes.get(IonTypeType.class);
+  private final NeutralMassType neutralMassType = (NeutralMassType) DataTypes.get(
+      NeutralMassType.class);
+  private final IonTypeType ionTypeType = (IonTypeType) DataTypes.get(IonTypeType.class);
+  private final PubChemIdType pubchemIdType = (PubChemIdType) DataTypes.get(PubChemIdType.class);
+
+  // vars
+  private final FeatureList[] featureLists;
   private final MobilityTolerance mobTolerance;
   private final Double ccsTolerance;
   private final File dataBaseFile;
@@ -93,20 +123,18 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final IonLibraryParameterSet ionLibraryParameterSet;
   private final Boolean filterSamples;
   private final String sampleHeader;
-  private final List<RawDataFile> raws;
+  private final List<RawDataFile> allRawDataFiles;
   private IonNetworkLibrary ionNetworkLibrary;
 
   private String[][] databaseValues;
   private int finishedLines = 0;
-  private final FeatureList flist;
   private int sampleColIndex = -1;
 
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters,
+  LocalCSVDatabaseSearchTask(FeatureList[] featureLists, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
-    this.flist = peakList;
-    raws = flist.getRawDataFiles();
+    this.featureLists = featureLists;
     this.parameters = parameters;
 
     dataBaseFile = parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile)
@@ -125,8 +153,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
         LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
-    sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
-        .getEmbeddedParameter().getValue();
+    sampleHeader = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        LocalCSVDatabaseSearchParameters.filterSamples, null);
+
+    // all raw data files for a name check if selected
+    allRawDataFiles = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles)
+        .flatMap(Collection::stream).distinct().toList();
   }
 
   @Override
@@ -139,28 +171,35 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Peak identification of " + flist + " using database " + dataBaseFile;
+    return "Local CSV identification using database " + dataBaseFile;
   }
 
   @Override
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
+
+    try (BufferedReader dbFileReader = new BufferedReader(new FileReader(dataBaseFile))) {
+      // read database contents in memory
+      databaseValues = CSVParser.parse(dbFileReader,
+          "\\t".equals(fieldSeparator) ? '\t' : fieldSeparator.charAt(0));
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage(e.getMessage());
+      return;
+    }
 
     try {
       ionNetworkLibrary =
           ionLibraryParameterSet != null ? new IonNetworkLibrary(ionLibraryParameterSet,
               mzTolerance) : null;
-      // read database contents in memory
-      FileReader dbFileReader = new FileReader(dataBaseFile);
-      databaseValues = CSVParser.parse(dbFileReader,
-          "\\t".equals(fieldSeparator) ? '\t' : fieldSeparator.charAt(0));
 
       final StringProperty error = new SimpleStringProperty();
       final List<ImportType> lineIds = CSVParsingUtils.findLineIds(importTypes, databaseValues[0],
           error);
       if (lineIds == null) {
         setErrorMessage(error.get());
+        setStatus(TaskStatus.ERROR);
         return;
       }
 
@@ -181,25 +220,40 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         }
       }
 
+      // extract rows and sort by mz for binary search
+      var mzSortedRows = Arrays.stream(featureLists)
+          .map(flist -> flist.getRows().sorted(FeatureListRowSorter.MZ_ASCENDING)).toList();
+
+      // finished header
       finishedLines++;
       for (; finishedLines < databaseValues.length; finishedLines++) {
         if (isCanceled()) {
-          dbFileReader.close();
           return;
         }
         try {
           String[] currentLine = databaseValues[finishedLines];
-          if (filterSamples && !matchSample(currentLine[sampleColIndex])) {
+          // check already once for all raw data files
+          if (filterSamples && !matchSample(allRawDataFiles, currentLine[sampleColIndex])) {
             // sample mismatch for this line
             continue;
           }
 
-          processOneLine(currentLine, lineIds, commentFields);
+          processOneLine(mzSortedRows, currentLine, lineIds, commentFields);
         } catch (Exception e) {
           logger.log(Level.FINE, "Exception while processing csv line " + finishedLines, e);
         }
       }
-      dbFileReader.close();
+
+      for (final SortedList<FeatureListRow> flist : mzSortedRows) {
+        for (final FeatureListRow row : flist) {
+          var matches = row.getCompoundAnnotations().stream().sorted()
+              .collect(Collectors.toCollection(ArrayList::new));
+          if (matches.isEmpty()) {
+            continue;
+          }
+          row.setCompoundAnnotations(matches);
+        }
+      }
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
@@ -209,9 +263,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    flist.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Peak identification using database " + dataBaseFile,
-            LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
+    for (var flist : featureLists) {
+      flist.addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod("Peak identification using database " + dataBaseFile,
+              LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
+    }
 
     setStatus(TaskStatus.FINISHED);
 
@@ -241,13 +297,73 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     return commentFields;
   }
 
-  private boolean matchSample(final String sample) {
-    return raws.stream().anyMatch(raw -> raw.getName().contains(sample));
+  private boolean matchSample(final List<RawDataFile> raws, final String sample) {
+    return raws.stream()
+        .anyMatch(raw -> raw.getName().toLowerCase().contains(sample.toLowerCase()));
   }
 
-  private void processOneLine(@NotNull String[] values, @NotNull List<ImportType> linesWithIndices,
+  /**
+   * @param mzSortedRows     rows per feature list sorted by mz
+   * @param values           csv values to be parsed into annotation
+   * @param linesWithIndices columns
+   * @param commentFields    comment fields that are put together into the comment
+   */
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  private void processOneLine(final List<SortedList<FeatureListRow>> mzSortedRows,
+      @NotNull String[] values, @NotNull List<ImportType> linesWithIndices,
       @NotNull final List<ImportType> commentFields) {
 
+    final List<CompoundDBAnnotation> annotations = getCompoundDBAnnotations(values,
+        linesWithIndices, commentFields);
+
+    IntStream indexStream = IntStream.range(0, featureLists.length);
+    if (featureLists.length > 1000) {
+      indexStream.parallel();
+    }
+    // not all feature lists have all samples
+    indexStream.forEach(i -> {
+      var rawFiles = featureLists[i].getRawDataFiles();
+      //  if active, check sample name contains id - this time for the feature list
+      if (!filterSamples || matchSample(rawFiles, values[sampleColIndex])) {
+        var sortedRows = mzSortedRows.get(i);
+
+        for (CompoundDBAnnotation annotation : annotations) {
+          List<FeatureListRow> candidates = binarySearchCandidates(sortedRows, annotation);
+
+          for (FeatureListRow row : candidates) {
+            checkMatchAndAnnotate(annotation, row, mzTolerance, rtTolerance, mobTolerance,
+                ccsTolerance);
+          }
+        }
+      }
+    });
+  }
+
+  @NotNull
+  private List<FeatureListRow> binarySearchCandidates(final SortedList<FeatureListRow> mzSortedRows,
+      final CompoundDBAnnotation annotation) {
+    // ranges are build with prechecks - so if there is no mobility use Range.all() to deactivate the filter
+    Double mz = annotation.getPrecursorMZ();
+    assert mz != null;
+    final Float rt = annotation.getRT();
+    final Float mobility = annotation.getMobility();
+    var mzRange = mzTolerance.getToleranceRange(mz);
+    Range<Float> rtRange =
+        rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : Range.all();
+    Range<Float> mobilityRange =
+        mobTolerance != null && mobility != null ? mobTolerance.getToleranceRange(mobility)
+            : Range.all();
+
+    // get all canditates with binary search
+    // CCS is still missing here but will be tested later
+    return FeatureListUtils.getCandidatesWithinRanges(mzRange, rtRange, mobilityRange, mzSortedRows,
+        true);
+  }
+
+  @NotNull
+  private List<CompoundDBAnnotation> getCompoundDBAnnotations(final @NotNull String[] values,
+      final @NotNull List<ImportType> linesWithIndices,
+      final @NotNull List<ImportType> commentFields) {
     final CompoundDBAnnotation baseAnnotation = getCompoundFromLine(values, linesWithIndices,
         commentFields);
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
@@ -257,13 +373,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     } else {
       annotations.add(baseAnnotation);
     }
-
-    for (CompoundDBAnnotation annotation : annotations) {
-      for (FeatureListRow peakRow : flist.getRows()) {
-        checkMatchAndAnnotate(annotation, peakRow, mzTolerance, rtTolerance, mobTolerance,
-            ccsTolerance);
-      }
-    }
+    return annotations;
   }
 
   private void checkMatchAndAnnotate(CompoundDBAnnotation annotation, FeatureListRow row,
@@ -274,28 +384,19 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         rtTolerance, mobTolerance, percCcsTolerance);
     if (clone != null) {
       row.addCompoundAnnotation(clone);
-      row.getCompoundAnnotations()
-          .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
     }
+  }
+
+  @Nullable
+  private static Float replaceWildcardLowerEq0WithNull(final DataType<Float> type,
+      final Map<DataType<?>, String> map) {
+    float value = Float.parseFloat(map.getOrDefault(type, "-1"));
+    return value > 0 ? value : null;
   }
 
   @NotNull
   private CompoundDBAnnotation getCompoundFromLine(@NotNull String[] values,
       @NotNull List<ImportType> linesWithIndices, @NotNull final List<ImportType> commentFields) {
-    var formulaType = DataTypes.get(FormulaType.class);
-    var compoundNameType = DataTypes.get(CompoundNameType.class);
-    var commentType = DataTypes.get(CommentType.class);
-    var precursorMz = DataTypes.get(PrecursorMZType.class);
-    var rtType = DataTypes.get(RTType.class);
-    var mobType = DataTypes.get(MobilityType.class);
-    var ccsType = DataTypes.get(CCSType.class);
-    var smilesType = DataTypes.get(SmilesStructureType.class);
-    var inchiType = DataTypes.get(InChIStructureType.class);
-    var inchiKeyType = DataTypes.get(InChIKeyStructureType.class);
-    var adductType = DataTypes.get(IonTypeType.class);
-    var neutralMassType = DataTypes.get(NeutralMassType.class);
-    var ionTypeType = DataTypes.get(IonTypeType.class);
-    var pubchemIdType = new PubChemIdType();
 
     final Map<DataType<?>, String> entry = new HashMap<>();
 
@@ -311,11 +412,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String lineAdduct = entry.get(adductType);
     final Double lineMZ =
         (entry.get(precursorMz) != null) ? Double.parseDouble(entry.get(precursorMz)) : null;
-    final Float lineRT = (entry.get(rtType) != null) ? Float.parseFloat(entry.get(rtType)) : null;
-    final Float lineMob =
-        (entry.get(mobType) != null) ? Float.parseFloat(entry.get(mobType)) : null;
-    final Float lineCCS =
-        (entry.get(ccsType) != null) ? Float.parseFloat(entry.get(ccsType)) : null;
+
+    // make sure to replace <=0 with null as this is defined as wildcards that match every value
+    Float lineRT = replaceWildcardLowerEq0WithNull(rtType, entry);
+    Float lineMob = replaceWildcardLowerEq0WithNull(mobType, entry);
+    Float lineCCS = replaceWildcardLowerEq0WithNull(ccsType, entry);
     final Double neutralMass =
         entry.get(neutralMassType) != null ? Double.parseDouble(entry.get(neutralMassType)) : null;
     final String smiles = entry.get(smilesType);

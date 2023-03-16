@@ -42,6 +42,7 @@ import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,9 +64,9 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   protected final int msLevel;
   protected final Range<Double> scanningMzRange;
   protected final PolarityType polarity;
+  private final MergingType mergingType;
   protected String scanDefinition; // cannot be final due to subclasses
   protected MassList massList = null;
-  private final MergingType mergingType;
 
   /**
    * Construncts a new SimpleMergedMassSpectrum. A {@link ScanPointerMassList} will be created by
@@ -75,7 +76,9 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
    * @param mzValues             The merged mz values
    * @param intensityValues      The merged intensities
    * @param msLevel              The ms level
-   * @param sourceSpectra        The source spectra used to create this spectrum
+   * @param sourceSpectra        The source spectra used to create this spectrum. In case there are
+   *                             {@link MergedMassSpectrum}, they are unpacked automatically to
+   *                             their source spectra.
    * @param intensityMergingType The merging type this spectrum was created with.
    * @param centerFunction       The center function this spectrum was created with.
    * @param mergingType
@@ -88,6 +91,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     super(storage, mzValues, intensityValues);
     assert !sourceSpectra.isEmpty();
 
+    this.sourceSpectra = sourceSpectra.stream().flatMap(this::unpackSourceSpectra).toList();
     this.mergingType = mergingType;
     RawDataFile file = null;
     PolarityType tempPolarity = null;
@@ -101,9 +105,6 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
           tempPolarity = scan.getPolarity();
           tempScanningMzRange = scan.getScanningMZRange();
         }
-        if (file != scan.getDataFile()) {
-          logger.warning("Merging spectra with different raw data files");
-        }
         numScans++;
         tempRt += scan.getRetentionTime();
       }
@@ -113,12 +114,18 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     retentionTime = tempRt / numScans;
     this.polarity = tempPolarity;
     this.scanningMzRange = tempScanningMzRange;
-    this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
     this.intensityMergingType = intensityMergingType;
     this.centerFunction = centerFunction;
     this.msLevel = msLevel;
     this.scanDefinition = ScanUtils.scanToString(this, true);
     addMassList(new ScanPointerMassList(this));
+  }
+
+  private Stream<MassSpectrum> unpackSourceSpectra(MassSpectrum spectrum) {
+    if (spectrum instanceof MergedMassSpectrum merged) {
+      return merged.getSourceSpectra().stream();
+    }
+    return Stream.of(spectrum);
   }
 
   @Override

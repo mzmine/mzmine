@@ -31,8 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The MS/MS score is used during molecular formula prediction to score how many signals are
- * described by the molecular formula candidate. The score is calculated in {@link
- * MSMSScoreCalculator#evaluateMSMS}
+ * described by the molecular formula candidate. The score is calculated in
+ * {@link MSMSScoreCalculator#evaluateMsMsFast}
  */
 public class MsMsScoreType extends ScoreType {
 

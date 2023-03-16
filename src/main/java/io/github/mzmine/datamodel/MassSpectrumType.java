@@ -53,7 +53,11 @@ public enum MassSpectrumType {
   /**
    * Mixed is only used to describe multiple spectra
    */
-  MIXED;
+  MIXED,
+  /**
+   * ANY is only used when filtering
+   */
+  ANY;
 
   public static boolean isCentroided(MassSpectrumType spectraType) {
     return spectraType != null && spectraType.isCentroided();
@@ -64,7 +68,7 @@ public enum MassSpectrumType {
       case PROFILE -> false;
       // mixed means that at least one is centroided
       // thresholding is usually applied after centroiding
-      case THRESHOLDED, MIXED, CENTROIDED -> true;
+      case THRESHOLDED, MIXED, CENTROIDED, ANY -> true;
     };
   }
 }

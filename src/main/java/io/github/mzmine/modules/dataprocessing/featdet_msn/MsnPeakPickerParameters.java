@@ -32,6 +32,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 
 public class MsnPeakPickerParameters extends SimpleParameterSet {
 
@@ -47,19 +49,27 @@ public class MsnPeakPickerParameters extends SimpleParameterSet {
             "MS level for precursor chromatogram building. Must be greater than 1.",
             2, 2, 1000);
 
-    /**
-     * MZ tolerance for precursor chromatogram building.
-     */
-    public static final MZToleranceParameter mzDifference = new MZToleranceParameter();
+  /**
+   * MZ tolerance for precursor chromatogram building.
+   */
+  public static final MZToleranceParameter mzDifference = new MZToleranceParameter(
+      ToleranceType.SCAN_TO_SCAN);
 
-    /**
-     * RT tolerance for precursor chromatogram building.
-     */
-    public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
+  /**
+   * RT tolerance for precursor chromatogram building.
+   */
+  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-    public MsnPeakPickerParameters() {
-        super(new Parameter[]{dataFiles, scanSelection, msLevel, mzDifference,
-            rtTolerance});
-    }
+  public MsnPeakPickerParameters() {
+    super(dataFiles, scanSelection, msLevel, mzDifference, rtTolerance);
+  }
 
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", mzDifference);
+    return nameParameterMap;
+  }
 }

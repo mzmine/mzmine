@@ -37,7 +37,6 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
@@ -147,7 +146,6 @@ public class MGFEntryGenerator {
    * Creates a simple MSP nist format DB entry
    */
   public static String createMGFEntry(SpectralLibraryEntry entry) {
-    String def = "=";
     String br = "\n";
     StringBuilder s = new StringBuilder();
     s.append("BEGIN IONS").append(br);
@@ -158,13 +156,8 @@ public class MGFEntryGenerator {
       if (id == null || id.isBlank()) {
         continue;
       }
-      entry.getField(field)
-          .ifPresent(value -> s.append(field.getMgfID()).append(def).append(value).append(br));
+      entry.getField(field).ifPresent(value -> appendValue(s, field, value));
     }
-    entry.getField(DBEntryField.POLARITY).ifPresent(p -> {
-      String pol = PolarityType.NEGATIVE.equals(p) ? "Negative" : "Positive";
-      s.append(DBEntryField.POLARITY.getMgfID()).append(def).append(pol).append(br);
-    });
 
     // num peaks and data
     DataPoint[] dps = entry.getDataPoints();
@@ -184,5 +177,10 @@ public class MGFEntryGenerator {
     }
     s.append("END IONS").append(br);
     return s.toString();
+  }
+
+  private static StringBuilder appendValue(final StringBuilder s, final DBEntryField field,
+      final Object value) {
+    return s.append(field.getMgfID()).append("=").append(field.formatForMgf(value)).append("\n");
   }
 }

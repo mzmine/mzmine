@@ -43,8 +43,8 @@ public class DataPointUtils {
    * underlying DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries}
    * and extending classes.
    *
-   * @return 2-d array with dimension double[2][dataPoints.length]. [0][i] will contain mz, [1][i]
-   * will contain intensity values.
+   * @return 2-d array [mzs, intensities] with dimension double[2][dataPoints.length]. [0][i] will
+   * contain mz, [1][i] will contain intensity values.
    */
   public static double[][] getDataPointsAsDoubleArray(DataPoint[] dataPoints) {
     double[][] data = new double[2][];
@@ -88,16 +88,9 @@ public class DataPointUtils {
    */
   public static double[][] getDataPointsAsDoubleArray(DoubleBuffer mzValues,
       DoubleBuffer intensityValues) {
-    assert mzValues.capacity() == intensityValues.capacity();
-
-    double[][] data = new double[2][];
-    data[0] = new double[mzValues.capacity()];
-    data[1] = new double[mzValues.capacity()];
-    for (int i = 0; i < mzValues.capacity(); i++) {
-      data[0][i] = mzValues.get(i);
-      data[1][i] = intensityValues.get(i);
-    }
-    return data;
+    assert mzValues.limit() == intensityValues.limit();
+    return new double[][]{getDoubleBufferAsArray(mzValues),
+        getDoubleBufferAsArray(intensityValues)};
   }
 
   /**
@@ -105,11 +98,9 @@ public class DataPointUtils {
    * subclasses. Usually, the data should be accessed directly via the buffer.
    */
   public static double[] getDoubleBufferAsArray(DoubleBuffer values) {
-    double[] data = new double[values.capacity()];
-
-    for (int i = 0; i < values.capacity(); i++) {
-      data[i] = values.get(i);
-    }
+    double[] data = new double[values.limit()];
+    // set start to 0 to get absolute array not relative to point
+    values.get(0, data);
     return data;
   }
 
@@ -145,12 +136,12 @@ public class DataPointUtils {
 
   public static double[][] getDatapointsAboveNoiseLevel(DoubleBuffer rawMzs,
       DoubleBuffer rawIntensities, double noiseLevel) {
-    assert rawMzs.capacity() == rawIntensities.capacity();
+    assert rawMzs.limit() == rawIntensities.limit();
 
     List<Double> mzs = new ArrayList<>();
     List<Double> intensities = new ArrayList<>();
 
-    for (int i = 0; i < rawMzs.capacity(); i++) {
+    for (int i = 0; i < rawMzs.limit(); i++) {
       if (rawIntensities.get(i) > noiseLevel) {
         mzs.add(rawMzs.get(i));
         intensities.add(rawIntensities.get(i));
@@ -233,5 +224,22 @@ public class DataPointUtils {
     DataPoint[] dps = DataPointUtils.getDataPoints(mzs, intensities);
     Arrays.sort(dps, sorter);
     return getDataPointsAsDoubleArray(dps);
+  }
+
+  /**
+   * Ensure sorting by mz ascending. Only applied if input data was unsorted.
+   *
+   * @param mzs         input mzs
+   * @param intensities input intensities
+   * @return [mzs, intensities], either the input arrays if already sorted or new sorted arrays
+   */
+  public static double[][] ensureSortingMzAscendingDefault(final double[] mzs,
+      final double[] intensities) {
+    for (int i = 1; i < mzs.length; i++) {
+      if (mzs[i - 1] > mzs[i]) {
+        return sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
+      }
+    }
+    return new double[][]{mzs, intensities};
   }
 }

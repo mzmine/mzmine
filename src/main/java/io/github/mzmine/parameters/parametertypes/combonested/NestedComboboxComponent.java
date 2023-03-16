@@ -29,6 +29,9 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
@@ -41,10 +44,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import org.jetbrains.annotations.Nullable;
 
 public class NestedComboboxComponent extends BorderPane {
 
@@ -187,7 +187,7 @@ public class NestedComboboxComponent extends BorderPane {
     return comboBox.getSelectionModel().getSelectedItem();
   }
 
-  protected void setCurrentChoice(String choice) {
+  protected void setCurrentChoice(@Nullable String choice) {
     comboBox.getSelectionModel().select(choice);
   }
 

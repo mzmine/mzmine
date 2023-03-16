@@ -30,10 +30,11 @@ import java.util.List;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.text.Text;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
+import org.jetbrains.annotations.Nullable;
 
 public class ListDoubleComponent extends GridPane {
 
@@ -93,7 +94,10 @@ public class ListDoubleComponent extends GridPane {
     return doublesList;
   }
 
-  public void setValue(List<Double> doublesList) {
+  public void setValue(@Nullable List<Double> doublesList) {
+    if (doublesList == null) {
+      return;
+    }
     if (doublesList.size() > inputFields.size()) {
       throw new IllegalArgumentException("doublesList.size() > inputFields.size()");
     }

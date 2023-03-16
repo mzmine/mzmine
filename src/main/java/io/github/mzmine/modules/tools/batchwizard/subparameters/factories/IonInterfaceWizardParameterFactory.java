@@ -71,8 +71,8 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
       case HPLC, UHPLC, HILIC, MALDI, LDI, DESI, SIMS -> super.toString();
       case GC_EI -> "GC-EI";
       case GC_CI -> "GC-CI";
-      case DIRECT_INFUSION -> "DIRECT";
-      case FLOW_INJECT -> "FLOW INJECT";
+      case DIRECT_INFUSION -> "Direct";
+      case FLOW_INJECT -> "Flow inject";
     };
   }
 
@@ -101,9 +101,9 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new RTTolerance(0.1f, Unit.MINUTES));
       // different workflow for GC-EI
       case GC_EI ->
-          new IonInterfaceGcElectronImpactWizardParameters(this, 6, Range.closed(0.3, 30d),
+          new IonInterfaceGcElectronImpactWizardParameters(this, false, Range.closed(0.3, 30d),
               new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
-              new RTTolerance(0.1f, Unit.MINUTES));
+              new RTTolerance(0.1f, Unit.MINUTES), 4, 5.0, Range.closed(0.001, 0.06));
       // parameters for imaging
       case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25);
       //
@@ -116,6 +116,49 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
     return switch (this) {
       case MALDI, LDI, DESI, SIMS -> true;
       case HPLC, UHPLC, HILIC, GC_CI, GC_EI, DIRECT_INFUSION, FLOW_INJECT -> false;
+    };
+  }
+
+  /**
+   * Group values for easier decisions
+   */
+  public IonIterfaceGroup group() {
+    return switch (this) {
+      case MALDI, LDI, DESI, SIMS -> IonIterfaceGroup.SPATIAL_IMAGING;
+      case HPLC, UHPLC, HILIC, GC_CI -> IonIterfaceGroup.CHROMATOGRAPHY_SOFT;
+      case DIRECT_INFUSION, FLOW_INJECT -> IonIterfaceGroup.DIRECT_AND_FLOW;
+      case GC_EI -> IonIterfaceGroup.CHROMATOGRAPHY_HARD;
+    };
+  }
+
+  /**
+   * Not all combinations work.
+   *
+   * @return supported combinations
+   */
+  public IonMobilityWizardParameterFactory[] getMatchingImsPresets() {
+    return switch (this) {
+      case DIRECT_INFUSION, FLOW_INJECT, HPLC, UHPLC, HILIC, GC_CI, MALDI, LDI, DESI, SIMS ->
+          IonMobilityWizardParameterFactory.values();
+      case GC_EI ->
+          new IonMobilityWizardParameterFactory[]{IonMobilityWizardParameterFactory.NO_IMS};
+    };
+  }
+
+  /**
+   * Not all combinations work.
+   *
+   * @return supported combinations
+   */
+  public WorkflowWizardParameterFactory[] getMatchingWorkflowPresets() {
+    return switch (this) {
+      case DIRECT_INFUSION, FLOW_INJECT, HPLC, UHPLC, HILIC, GC_CI ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
+              WorkflowWizardParameterFactory.LIBRARY_GENERATION};
+      case GC_EI ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
+      case MALDI, LDI, DESI, SIMS ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING};
     };
   }
 }

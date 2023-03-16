@@ -101,30 +101,34 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                   correct++;
                 }
                 state = State.WAIT_FOR_META;
-              } else if (l.toLowerCase().startsWith("scans")) {
-                // belongs to the previously created entry and
-                // is another spectrum
-
-                // data starts
-                state = State.DATA;
               } else {
+                sep = l.indexOf('=');
+                if (sep == -1) {
+                  // data starts
+                  state = State.DATA;
+                }
                 switch (state) {
                   case WAIT_FOR_META:
                     // wait for next entry
                     break;
                   case DATA:
-                    String[] data = l.split("\t");
+                    // split for any white space (tab or space ...)
+                    String[] data = l.split("\\s+");
                     dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
                         Double.parseDouble(data[1])));
                     break;
                   case META:
-                    sep = l.indexOf('=');
                     if (sep != -1 && sep < l.length() - 1) {
                       DBEntryField field = DBEntryField.forMgfID(l.substring(0, sep));
                       if (field != null) {
                         String content = l.substring(sep + 1);
-                        if (!content.isEmpty()) {
+                        if (!content.isBlank()) {
                           try {
+                            // allow 1+ as 1 and 2- as -2
+                            if (field.equals(DBEntryField.CHARGE)) {
+                              content = parseCharge(content);
+                            }
+
                             Object value = field.convertValue(content);
 
                             // name
@@ -144,12 +148,18 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                                 }
                               }
                             }
+                            // retention time is in seconds, mzmine uses minutes
+                            if (field.equals(DBEntryField.RT)) {
+                              value = ((Float) value) / 60.f;
+                            }
 
-                            fields.put(field, value);
+                            if (value != null) {
+                              fields.put(field, value);
+                            }
                           } catch (Exception e) {
                             logger.log(Level.WARNING,
                                 "Cannot convert value type of " + content + " to "
-                                    + field.getObjectClass().toString(), e);
+                                + field.getObjectClass().toString(), e);
                           }
                         }
                       }
@@ -169,6 +179,14 @@ public class GnpsMgfParser extends SpectralDBTextParser {
       finish();
       return true;
     }
+  }
+
+  private String parseCharge(final String str) {
+    var lastChar = str.charAt(str.length() - 1);
+    if (lastChar == '+' || lastChar == '-') {
+      return lastChar + str.substring(0, str.length() - 1);
+    }
+    return str;
   }
 
   private enum State {

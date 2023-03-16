@@ -36,6 +36,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Wizard
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Describes the sequence of steps in the wizard. Elements should stay in correct order.
@@ -84,4 +85,12 @@ public enum WizardPart {
     return Arrays.stream(getDefaultPresets()).map(WizardParameterFactory::create).toList();
   }
 
+  /**
+   * @param uniqeId unique id as saved to files by WizardParameterFactory
+   * @return the WizardParameterFactory that matches the uniqueID
+   */
+  public Optional<WizardParameterFactory> getParameterFactory(final String uniqeId) {
+    return Arrays.stream(getDefaultPresets()).filter(p -> p.getUniqueId().equals(uniqeId))
+        .findFirst();
+  }
 }

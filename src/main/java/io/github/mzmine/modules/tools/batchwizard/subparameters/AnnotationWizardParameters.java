@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 
 /**
  * Reuses spectral library files parameters of {@link SpectralLibraryImportParameters}
@@ -36,14 +37,19 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Annota
  */
 public final class AnnotationWizardParameters extends WizardStepParameters {
 
-  // TODO add LocalCSVDatabase search
-  // needs less parameters only the most important ones to reproduce the library generation workflow
-//  public static final OptionalModuleParameter<LocalCSVDatabaseSearchParameters>
+  public static final OptionalModuleParameter<AnnotationLocalCSVDatabaseSearchParameters> localCsvSearch = new OptionalModuleParameter<>(
+      "Local CSV database",
+      """
+      Search a local CSV or TSV database as comma- or tab-separated data, respectively.
+      Matches are done based on m/z, retention time, and ion mobility if applicable and selected.
+      """,
+      new AnnotationLocalCSVDatabaseSearchParameters());
+
 
   public AnnotationWizardParameters() {
     super(WizardPart.ANNOTATION, AnnotationWizardParameterFactory.Annotation,
         // parameters
-        SpectralLibraryImportParameters.dataBaseFiles);
+        localCsvSearch, SpectralLibraryImportParameters.dataBaseFiles);
   }
 
 }

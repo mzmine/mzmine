@@ -30,17 +30,22 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 
+/**
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
+ */
+@Deprecated
 public interface DBGateway {
 
   /**
    * Retrieves candidate compounds
    */
-  public String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
+  String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
       ParameterSet parameters) throws IOException;
 
   /**
    * This method retrieves the details about a compound
    */
-  public CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException;
+  CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException;
 
 }

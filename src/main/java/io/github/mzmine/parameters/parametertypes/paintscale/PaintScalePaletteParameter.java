@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -150,7 +151,10 @@ public class PaintScalePaletteParameter implements
 
   @Override
   public void setValueToComponent(PaintScalePaletteComponent component,
-      SimpleColorPalette newValue) {
+      @Nullable SimpleColorPalette newValue) {
+    if (newValue == null) {
+      return;
+    }
     component.setPalettes(palettes);
     component.setValue(newValue);
   }

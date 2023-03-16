@@ -38,13 +38,15 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class AddIonNetworkingParameters extends SimpleParameterSet {
 
   // different depth of settings
   public enum Setup {
-    FULL, SUB, SIMPLE;
+    FULL, SUB, SIMPLE
   }
 
   // NOT INCLUDED in sub
@@ -52,8 +54,8 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   // MZ-tolerance: deisotoping, adducts
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter("m/z tolerance",
-      "Tolerance value of the m/z difference between peaks");
+  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
+      ToleranceType.INTRA_SAMPLE);
 
   public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height",
       "Minimum height of feature shape (not used for average mode)",
@@ -74,7 +76,7 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
           new IonNetworkRefinementParameters(true), true);
 
   // setup
-  private Setup setup;
+  private final Setup setup;
 
   // Constructor
   public AddIonNetworkingParameters() {
@@ -136,5 +138,14 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZ_TOLERANCE);
+    return nameParameterMap;
   }
 }

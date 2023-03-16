@@ -80,6 +80,9 @@ public class ImportTypeComponent extends BorderPane {
 
   public void setValue(List<ImportType> value) {
     table.getItems().clear();
+    if (value == null) {
+      return;
+    }
     table.getItems().addAll(value);
   }
 }

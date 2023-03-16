@@ -53,8 +53,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
@@ -72,10 +74,10 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
       "Field separator",
       "Character(s) used to separate fields in the database file. Use '\\t' for tab separated files.",
       ",");
-  public static final PercentParameter intTolerance = new PercentParameter(
-      "Intensity tolerance",
+  public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
       "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      ToleranceType.SCAN_TO_SCAN);
   public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
       new RTToleranceParameter());
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance = new OptionalParameter<>(
@@ -107,6 +109,15 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
     super(new Parameter[]{rawDataFile, scanSelection, suffix, featureListFile, fieldSeparator,
             columns, intTolerance, mzTolerance, rtTolerance, mobilityTolerance, ionLibrary},
         "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/targeted_featdet/targeted-featdet.html");
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", mzTolerance);
+    return nameParameterMap;
   }
 
   @Override

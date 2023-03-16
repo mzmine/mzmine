@@ -43,8 +43,8 @@ public final class IonMobilityWizardParameters extends WizardStepParameters {
       new DecimalFormat("0.0000"), 0.04d);
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Min # of data points",
-      "Minimum number of data points as used in ion mobility feature resolving.", 5, 1,
+      "Minimum consecutive scans",
+      "Minimum number of consecutive scans with detected data points as used in ion mobility feature resolving.", 5, 1,
       Integer.MAX_VALUE);
 
   public static final HiddenParameter<Boolean> imsActive = new HiddenParameter<>(

@@ -34,7 +34,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -47,8 +50,8 @@ import org.w3c.dom.NodeList;
  * @author $Author$
  * @version $Revision$
  */
-public class IonModificationParameter
-    implements UserParameter<IonModification[][], IonModificationComponent> {
+public class IonModificationParameter implements
+    UserParameter<IonModification[][], IonModificationComponent> {
 
   // Logger.
   private static final Logger logger = Logger.getLogger(IonModificationParameter.class.getName());
@@ -72,7 +75,7 @@ public class IonModificationParameter
   /**
    * Create the parameter.
    *
-   * @param name name of the parameter.
+   * @param name        name of the parameter.
    * @param description description of the parameter.
    */
   public IonModificationParameter(final String name, final String description) {
@@ -84,7 +87,8 @@ public class IonModificationParameter
 
   @Override
   public IonModificationComponent createEditingComponent() {
-    comp = new IonModificationComponent(List.of(adducts.getChoices()), List.of(modification.getChoices()));
+    comp = new IonModificationComponent(List.of(adducts.getChoices()),
+        List.of(modification.getChoices()));
     return comp;
   }
 
@@ -118,8 +122,8 @@ public class IonModificationParameter
       // adduct or modification
       if (a.getNodeName().equals(TAG)) {
         // is selected?
-        boolean selectedNode =
-            Boolean.parseBoolean(a.getAttributes().getNamedItem(SELECTED_ATTRIBUTE).getNodeValue());
+        boolean selectedNode = Boolean.parseBoolean(
+            a.getAttributes().getNamedItem(SELECTED_ATTRIBUTE).getNodeValue());
 
         // sub adduct types that define the total adducttype
         NodeList childs = a.getChildNodes();
@@ -161,10 +165,9 @@ public class IonModificationParameter
         IonModification adduct = null;
         if (adducts.size() == 1) {
           adduct = adducts.get(0);
-        } else
-          adduct =
-              CombinedIonModification.create(adducts);
-
+        } else {
+          adduct = CombinedIonModification.create(adducts);
+        }
 
         // A new choice?
         if (!newChoices.contains(adduct)) {
@@ -191,8 +194,8 @@ public class IonModificationParameter
     for (int i = 0; i < 2; i++) {
       final IonModification[] choices = i == 0 ? adducts.getChoices() : modification.getChoices();
       final IonModification[] value = i == 0 ? adducts.getValue() : modification.getValue();
-      final List<IonModification> selections =
-          Arrays.asList(value == null ? new IonModification[0] : value);
+      final List<IonModification> selections = Arrays.asList(
+          value == null ? new IonModification[0] : value);
 
       if (choices != null) {
         final Document parent = xmlElement.getOwnerDocument();
@@ -207,7 +210,7 @@ public class IonModificationParameter
 
   /**
    * Save all
-   * 
+   *
    * @param parent
    * @param parentElement
    * @param selections
@@ -235,7 +238,7 @@ public class IonModificationParameter
     return copy;
   }
 
-  private void setChoices(IonModification[] ad, IonModification[] mods) {
+  public void setChoices(IonModification[] ad, IonModification[] mods) {
     adducts.setChoices(ad);
     modification.setChoices(mods);
   }
@@ -279,12 +282,35 @@ public class IonModificationParameter
 
   @Override
   public void setValue(IonModification[][] newValue) {
-    adducts.setValue(newValue[0]);
-    modification.setValue(newValue[1]);
+    var selectedAdducts = newValue[0];
+    var selectedMods = newValue[1];
+
+    // make sure all choices are available
+    ensureAllChoices(adducts, selectedAdducts);
+    ensureAllChoices(modification, selectedMods);
+
+    adducts.setValue(selectedAdducts);
+    modification.setValue(selectedMods);
+  }
+
+  private void ensureAllChoices(final MultiChoiceParameter<IonModification> param,
+      final IonModification[] selected) {
+    if (selected == null) {
+      return;
+    }
+    var choices = param.getChoices();
+    if (choices == null) {
+      choices = selected;
+    } else if (!Set.of(choices).containsAll(List.of(selected))) {
+      choices = Stream.of(selected, choices).flatMap(Arrays::stream).distinct()
+          .toArray(IonModification[]::new);
+    }
+    param.setChoices(choices);
   }
 
   @Override
-  public void setValueToComponent(IonModificationComponent component, IonModification[][] newValue) {
+  public void setValueToComponent(IonModificationComponent component,
+      @Nullable IonModification[][] newValue) {
     component.setValue(newValue);
   }
 }
