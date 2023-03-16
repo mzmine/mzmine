@@ -93,6 +93,54 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   // needs a storage for mass lists if advanced import with mass detection was selected but not supported for a MS file type
   private MemoryMapStorage storageMassLists = null;
 
+  /**
+   * @return true if duplciates found in import list and already loaded files
+   */
+  @Nullable
+  private static boolean checkDuplicateFilesInImportListAndProject(
+      final @NotNull MZmineProject project, final File[] fileNames) {
+    // check that files were not loaded before
+    File[] currentAndLoadFiles = Stream.concat(
+        project.getCurrentRawDataFiles().stream().map(RawDataFile::getFileName).map(File::new),
+        Arrays.stream(fileNames)).toArray(File[]::new);
+    return containsDuplicateFiles(currentAndLoadFiles,
+        "raw data file names in the import list that collide with already loaded data");
+  }
+
+  /**
+   * @param context libraries or raw data
+   * @return true if file names are duplicates
+   */
+  @Nullable
+  private static boolean containsDuplicateFiles(final File[] fileNames, String context) {
+    List<String> duplicates = CollectionUtils.streamDuplicates(
+        Arrays.stream(fileNames).map(File::getName)).toList();
+    if (!duplicates.isEmpty()) {
+      String msg = """
+          Stopped import as there were duplicate %s.
+          Make sure to use unique names as MZmine and many downstream tools depend on this. Duplicates are:
+          %s""".formatted(context, String.join("\n", duplicates));
+      logger.warning(msg);
+      MZmineCore.getDesktop().displayErrorMessage(msg);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the file and its parent both start with .d
+   *
+   * @param f file to validate
+   * @return the valid bruker file path for bruker .d files or the input file
+   */
+  public static File validateBrukerPath(File f) {
+    if (f.getName().endsWith(".d") && f.getParent().endsWith(".d")) {
+      return f.getParentFile();
+    } else {
+      return f;
+    }
+  }
+
   @Override
   public @NotNull String getName() {
     return MODULE_NAME;
@@ -116,7 +164,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     return AllSpectralDataImportParameters.class;
   }
 
-
   @NotNull
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
@@ -136,7 +183,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // for bruker files path might point to D:\datafile.d\datafile.d  where the first is a folder
     // change to the folder
     // skip files that are already loaded
-    final File[] fileNames = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(project, parameters);
+    final File[] fileNames = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(project,
+        parameters);
 
     // after skipping already loaded
     if (checkDuplicateFilesInImportListAndProject(project, fileNames)) {
@@ -199,13 +247,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         .count();
     if (numTdf > 0) {
       TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-                                               .getParameter(MZminePreferences.numOfThreads)
-                                               .getValue() / numTdf));
+          .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
     }
     if (numTsf > 0) {
       TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-                                               .getParameter(MZminePreferences.numOfThreads)
-                                               .getValue() / numTsf));
+          .getParameter(MZminePreferences.numOfThreads).getValue() / numTsf));
     }
 
     for (int i = 0; i < fileNames.length; i++) {
@@ -266,54 +312,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     }
 
     return ExitCode.OK;
-  }
-
-  /**
-   * @return true if duplciates found in import list and already loaded files
-   */
-  @Nullable
-  private static boolean checkDuplicateFilesInImportListAndProject(
-      final @NotNull MZmineProject project, final File[] fileNames) {
-    // check that files were not loaded before
-    File[] currentAndLoadFiles = Stream.concat(
-        project.getCurrentRawDataFiles().stream().map(RawDataFile::getFileName).map(File::new),
-        Arrays.stream(fileNames)).toArray(File[]::new);
-    return containsDuplicateFiles(currentAndLoadFiles,
-        "raw data file names in the import list that collide with already loaded data");
-  }
-
-  /**
-   * @param context libraries or raw data
-   * @return true if file names are duplicates
-   */
-  @Nullable
-  private static boolean containsDuplicateFiles(final File[] fileNames, String context) {
-    List<String> duplicates = CollectionUtils.streamDuplicates(
-        Arrays.stream(fileNames).map(File::getName)).toList();
-    if (!duplicates.isEmpty()) {
-      String msg = """
-          Stopped import as there were duplicate %s.
-          Make sure to use unique names as MZmine and many downstream tools depend on this. Duplicates are:
-          %s""".formatted(context, String.join("\n", duplicates));
-      logger.warning(msg);
-      MZmineCore.getDesktop().displayErrorMessage(msg);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the file and its parent both start with .d
-   *
-   * @param f file to validate
-   * @return the valid bruker file path for bruker .d files or the input file
-   */
-  public static File validateBrukerPath(File f) {
-    if (f.getName().endsWith(".d") && f.getParent().endsWith(".d")) {
-      return f.getParentFile();
-    } else {
-      return f;
-    }
   }
 
   /**
@@ -381,8 +379,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_TDF ->
           new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, advancedParam, module,
               parameters, moduleCallDate);
-      case AIRD ->
-          new AirdImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
+      case AIRD -> new AirdImportTask(project, file, module, parameters, moduleCallDate, storage);
       // all unsupported tasks are wrapped to apply import and mass detection separately
       case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, advancedParam, module,
@@ -397,7 +394,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-                   + " and file " + file.getAbsolutePath());
+        + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, module, parameters, moduleCallDate,
