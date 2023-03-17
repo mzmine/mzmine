@@ -6,19 +6,22 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
-import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.modules.io.import_rawdata_aird.AirdImportTask;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import net.csibio.aird.bean.AirdInfo;
 import net.csibio.aird.bean.BlockIndex;
 import net.csibio.aird.bean.CV;
 import net.csibio.aird.bean.WindowRange;
 import net.csibio.aird.bean.common.Spectrum;
 import net.csibio.aird.constant.PSI;
-import net.csibio.aird.enums.MsLevel;
 import net.csibio.aird.parser.DIAPasefParser;
 
 public class DIAPasefLoader {
@@ -27,36 +30,67 @@ public class DIAPasefLoader {
     AirdInfo airdInfo = parser.getAirdInfo();
     List<BlockIndex> indexList = airdInfo.getIndexList();
     Long totalCount = airdInfo.getTotalCount();
-    for (int i = 0; i < totalCount; i++) {
-      Spectrum spectrum = parser.getSpectrum(i);
-      List<BuildingMobilityScan> spectra = buildSpectraForTIMSFrame(spectrum);
+    double[] mobiDict = parser.getMobiDict();
+    HashMap<Double, Integer> dictIndexMap = new HashMap<>();
+    for (int i = 0; i < mobiDict.length; i++) {
+      dictIndexMap.put(mobiDict[i], i);
     }
-//    for (BlockIndex index : indexList) {
-//      TreeMap<Double, Spectrum> map = parser.getSpectra(index);
-//      List<Integer> numList = index.getNums();
-//      List<Double> rtList = index.getRts();
-//      List<WindowRange> rangeList = index.getRangeList();
-//      String polarity = airdInfo.getPolarity();
-//      String msType = airdInfo.getMsType();
-//      String activator = airdInfo.getActivator();
-//      Float energy = airdInfo.getEnergy();
-//      for (int i = 0; i < rtList.size(); i++) {
-//        double rt = rtList.get(i);
-//        SimpleFrame frame = buildSimpleScan(task, map.get(rt), index.getCvList().get(i),
-//            rangeList != null ? rangeList.get(0) : null, numList.get(i), rt, index.getLevel(),
-//            polarity == null ? index.getPolarities().get(i) : polarity,
-//            index.getFilterStrings() != null ? index.getFilterStrings().get(i) : "",
-//            msType == null ? (index.getMsTypes().get(i)) : msType,
-//            activator == null ? index.getActivators().get(i) : activator,
-//            energy == null ? index.getEnergies().get(i) : energy,
-//            index.getInjectionTimes() != null ? index.getInjectionTimes().get(i) : null, null);
-//        task.parsedScans++;
-//        task.newMZmineFile.addScan(frame);
-//      }
+//    for (int i = 0; i < totalCount; i++) {
+//      Spectrum spectrum = parser.getSpectrum(i);
+//      List<BuildingMobilityScan> spectra = buildSpectraForTIMSFrame(spectrum, dictIndexMap);
+//      SimpleFrame frame = buildSimpleFrame()
 //    }
+    HashMap<Double, List<Spectrum>> rtMap = new HashMap<>();
+    for (BlockIndex index : indexList) {
+      TreeMap<Double, Spectrum> map = parser.getSpectra(index);
+      List<Double> rtList = index.getRts();
+      for (int i = 0; i < rtList.size(); i++) {
+        double rt = rtList.get(i);
+        Spectrum spectrum = map.get(rt);
+        if (!rtMap.containsKey(rt)) {
+          rtMap.put(rt, new ArrayList<>());
+        }
+        rtMap.get(rt).add(spectrum);
+      }
+    }
+    int iter = 1;
+    for (BlockIndex index : indexList) {
+      TreeMap<Double, Spectrum> map = parser.getSpectra(index);
+      List<Integer> numList = index.getNums();
+      List<Double> rtList = index.getRts();
+      List<WindowRange> rangeList = index.getRangeList();
+      String polarity = airdInfo.getPolarity();
+      String msType = airdInfo.getMsType();
+      String activator = airdInfo.getActivator();
+      Float energy = airdInfo.getEnergy();
+
+      for (int i = 0; i < rtList.size(); i++) {
+        double rt = rtList.get(i);
+        List<Spectrum> spectra = rtMap.get(rt);
+        if (spectra == null) {
+          continue;
+        }
+        rtMap.remove(rt);
+        List<Point> points = merge(spectra);
+        SimpleFrame frame = buildSimpleFrame(task, points, index.getCvList().get(i),
+            rangeList != null ? rangeList.get(0) : null, iter, rt / 60, index.getLevel(),
+            polarity == null ? index.getPolarities().get(i) : polarity,
+            index.getFilterStrings() != null ? index.getFilterStrings().get(i) : "",
+            msType == null ? (index.getMsTypes().get(i)) : msType,
+            activator == null ? index.getActivators().get(i) : activator,
+            energy == null ? index.getEnergies().get(i) : energy,
+            index.getInjectionTimes() != null ? index.getInjectionTimes().get(i) : null, null);
+        List<BuildingMobilityScan> subSpectra = buildSpectraForTIMSFrame(frame, points,
+            dictIndexMap, mobiDict);
+        frame.setMobilityScans(subSpectra, false);
+        iter++;
+        task.parsedScans++;
+        task.newMZmineFile.addScan(frame);
+      }
+    }
   }
 
-  private static SimpleFrame buildSimpleScan(AirdImportTask task, Spectrum spectrum,
+  private static SimpleFrame buildSimpleFrame(AirdImportTask task, List<Point> points,
       List<CV> cvList, WindowRange windowRange, Integer num, double rt, int msLevel,
       String polarity, String filterString, String massSpectrum, String activator, Float energy,
       Float injectionTime, Scan parentScan) {
@@ -96,23 +130,68 @@ public class DIAPasefLoader {
       mzRange = Range.closed(lowestMz, highestMz);
     }
 
-    DDAMsMsInfoImpl msMsInfo = null;
-    if (msLevel == MsLevel.MS2.getCode()) {
-      msMsInfo = BaseLoader.buildMsMsInfo(activator, energy, windowRange, parentScan);
+    double[] mzs = new double[points.size()];
+    double[] ints = new double[points.size()];
+    for (int i = 0; i < points.size(); i++) {
+      mzs[i] = points.get(i).mz();
+      ints[i] = points.get(i).intensity();
     }
+    SimpleFrame frame = new SimpleFrame(task.newMZmineFile, num, msLevel, (float) rt, mzs, ints,
+        msType, polarityType, filterString, mzRange, MobilityType.TIMS, null, (float) rt);
 
-    SimpleFrame msScan = new SimpleFrame(task.newMZmineFile, num + 1, msLevel, (float) rt,
-        spectrum.getMzs(), spectrum.getInts(), msType, polarityType, filterString, mzRange,
-        MobilityType.TIMS, null, injectionTime);
-    return msScan;
+    return frame;
   }
 
-  private static List<BuildingMobilityScan> buildSpectraForTIMSFrame(Spectrum spectrum) {
+  private static List<BuildingMobilityScan> buildSpectraForTIMSFrame(SimpleFrame frame,
+      List<Point> points, HashMap<Double, Integer> dictMap, double[] dictArray) {
     List<BuildingMobilityScan> spectra = new ArrayList<>();
-    double[] mzs = spectrum.getMzs();
-    double[] ints = spectrum.getInts();
-    double[] mobilities = spectrum.getMobilities();
+    TreeMap<Double, List<Integer>> mobiMap = new TreeMap<>();
+    for (int i = 0; i < points.size(); i++) {
+      double mobi = points.get(i).mobility();
+      if (!mobiMap.containsKey(mobi)) {
+        mobiMap.put(mobi, new ArrayList<>());
+      }
+      mobiMap.get(mobi).add(i);
+    }
 
+    mobiMap.forEach((mobi, indexList) -> {
+      double[] mzsTemp = new double[indexList.size()];
+      double[] intsTemp = new double[indexList.size()];
+      for (int i = 0; i < indexList.size(); i++) {
+        mzsTemp[i] = points.get(indexList.get(i)).mz();
+        intsTemp[i] = points.get(indexList.get(i)).intensity();
+      }
+      BuildingMobilityScan scan = new BuildingMobilityScan(dictMap.get(mobi), mzsTemp, intsTemp);
+      spectra.add(scan);
+    });
+    Set<Integer> scanNumberSet = spectra.stream().map(BuildingMobilityScan::getMobilityScanNumber)
+        .collect(Collectors.toSet());
+    int maxScanNumber = spectra.get(0).getMobilityScanNumber();
+    double[] mobilityArray = new double[maxScanNumber + 1];
+    for (int i = 0; i <= maxScanNumber; i++) {
+      if (!scanNumberSet.contains(i)) {
+        spectra.add(new BuildingMobilityScan(i, new double[]{}, new double[]{}));
+      }
+      mobilityArray[i] = dictArray[i];
+    }
+    frame.setMobilities(mobilityArray);
+    spectra.sort(Comparator.comparing(BuildingMobilityScan::getMobilityScanNumber));
     return spectra;
+  }
+
+  public static List<Point> merge(List<Spectrum> spectra) {
+    int total = 0;
+    for (Spectrum spectrum : spectra) {
+      total += spectrum.getMzs().length;
+    }
+    List<Point> points = new ArrayList<>(total);
+    for (Spectrum spectrum : spectra) {
+      for (int i = 0; i < spectrum.getMzs().length; i++) {
+        points.add(
+            new Point(spectrum.getMzs()[i], spectrum.getInts()[i], spectrum.getMobilities()[i]));
+      }
+    }
+    points.sort(Comparator.comparing(Point::mz));
+    return points;
   }
 }
