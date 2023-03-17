@@ -254,8 +254,11 @@
     <SeparatorMenuItem/>
 
     <MenuItem text="Smoothing"
-      onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
+              onAction="#runModule"
+              userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
+    <MenuItem text="Smoothing"
+              onAction="#runModule"
+              userData="io.github.mzmine.modules.dataprocessing.featuretest.TestModule"/>
 
     <Menu text="Chromatogram resolving">
       <MenuItem text="Local minimum resolver" onAction="#runModule"
