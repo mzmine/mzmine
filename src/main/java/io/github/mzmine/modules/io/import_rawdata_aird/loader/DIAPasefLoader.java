@@ -20,6 +20,7 @@ import net.csibio.aird.bean.AirdInfo;
 import net.csibio.aird.bean.BlockIndex;
 import net.csibio.aird.bean.CV;
 import net.csibio.aird.bean.WindowRange;
+import net.csibio.aird.bean.common.MobilityPoint;
 import net.csibio.aird.bean.common.Spectrum;
 import net.csibio.aird.constant.PSI;
 import net.csibio.aird.parser.DIAPasefParser;
@@ -71,7 +72,7 @@ public class DIAPasefLoader {
           continue;
         }
         rtMap.remove(rt);
-        List<Point> points = merge(spectra);
+        List<MobilityPoint> points = merge(spectra);
         SimpleFrame frame = buildSimpleFrame(task, points, index.getCvList().get(i),
             rangeList != null ? rangeList.get(0) : null, iter, rt / 60, index.getLevel(),
             polarity == null ? index.getPolarities().get(i) : polarity,
@@ -90,7 +91,7 @@ public class DIAPasefLoader {
     }
   }
 
-  private static SimpleFrame buildSimpleFrame(AirdImportTask task, List<Point> points,
+  private static SimpleFrame buildSimpleFrame(AirdImportTask task, List<MobilityPoint> points,
       List<CV> cvList, WindowRange windowRange, Integer num, double rt, int msLevel,
       String polarity, String filterString, String massSpectrum, String activator, Float energy,
       Float injectionTime, Scan parentScan) {
@@ -143,7 +144,7 @@ public class DIAPasefLoader {
   }
 
   private static List<BuildingMobilityScan> buildSpectraForTIMSFrame(SimpleFrame frame,
-      List<Point> points, HashMap<Double, Integer> dictMap, double[] dictArray) {
+      List<MobilityPoint> points, HashMap<Double, Integer> dictMap, double[] dictArray) {
     List<BuildingMobilityScan> spectra = new ArrayList<>();
     TreeMap<Double, List<Integer>> mobiMap = new TreeMap<>();
     for (int i = 0; i < points.size(); i++) {
@@ -179,19 +180,19 @@ public class DIAPasefLoader {
     return spectra;
   }
 
-  public static List<Point> merge(List<Spectrum> spectra) {
+  public static List<MobilityPoint> merge(List<Spectrum> spectra) {
     int total = 0;
     for (Spectrum spectrum : spectra) {
       total += spectrum.getMzs().length;
     }
-    List<Point> points = new ArrayList<>(total);
+    List<MobilityPoint> points = new ArrayList<>(total);
     for (Spectrum spectrum : spectra) {
       for (int i = 0; i < spectrum.getMzs().length; i++) {
         points.add(
-            new Point(spectrum.getMzs()[i], spectrum.getInts()[i], spectrum.getMobilities()[i]));
+            new MobilityPoint(spectrum.getMzs()[i], spectrum.getInts()[i], spectrum.getMobilities()[i]));
       }
     }
-    points.sort(Comparator.comparing(Point::mz));
+    points.sort(Comparator.comparing(MobilityPoint::mz));
     return points;
   }
 }
