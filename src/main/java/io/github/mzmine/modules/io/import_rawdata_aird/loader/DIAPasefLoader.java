@@ -4,7 +4,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.modules.io.import_rawdata_aird.AirdImportTask;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 import net.csibio.aird.bean.AirdInfo;
 import net.csibio.aird.bean.BlockIndex;
 import net.csibio.aird.bean.CV;
-import net.csibio.aird.bean.WindowRange;
 import net.csibio.aird.bean.common.MobilityPoint;
 import net.csibio.aird.bean.common.Spectrum;
 import net.csibio.aird.constant.PSI;
@@ -30,17 +28,11 @@ public class DIAPasefLoader {
   public static void load(AirdImportTask task, DIAPasefParser parser) throws IOException {
     AirdInfo airdInfo = parser.getAirdInfo();
     List<BlockIndex> indexList = airdInfo.getIndexList();
-    Long totalCount = airdInfo.getTotalCount();
     double[] mobiDict = parser.getMobiDict();
     HashMap<Double, Integer> dictIndexMap = new HashMap<>();
     for (int i = 0; i < mobiDict.length; i++) {
       dictIndexMap.put(mobiDict[i], i);
     }
-//    for (int i = 0; i < totalCount; i++) {
-//      Spectrum spectrum = parser.getSpectrum(i);
-//      List<BuildingMobilityScan> spectra = buildSpectraForTIMSFrame(spectrum, dictIndexMap);
-//      SimpleFrame frame = buildSimpleFrame()
-//    }
     HashMap<Double, List<Spectrum>> rtMap = new HashMap<>();
     for (BlockIndex index : indexList) {
       TreeMap<Double, Spectrum> map = parser.getSpectra(index);
@@ -56,14 +48,9 @@ public class DIAPasefLoader {
     }
     int iter = 1;
     for (BlockIndex index : indexList) {
-      TreeMap<Double, Spectrum> map = parser.getSpectra(index);
-      List<Integer> numList = index.getNums();
       List<Double> rtList = index.getRts();
-      List<WindowRange> rangeList = index.getRangeList();
       String polarity = airdInfo.getPolarity();
       String msType = airdInfo.getMsType();
-      String activator = airdInfo.getActivator();
-      Float energy = airdInfo.getEnergy();
 
       for (int i = 0; i < rtList.size(); i++) {
         double rt = rtList.get(i);
@@ -74,13 +61,10 @@ public class DIAPasefLoader {
         rtMap.remove(rt);
         List<MobilityPoint> points = merge(spectra);
         SimpleFrame frame = buildSimpleFrame(task, points, index.getCvList().get(i),
-            rangeList != null ? rangeList.get(0) : null, iter, rt / 60, index.getLevel(),
+                iter, rt / 60, index.getLevel(),
             polarity == null ? index.getPolarities().get(i) : polarity,
             index.getFilterStrings() != null ? index.getFilterStrings().get(i) : "",
-            msType == null ? (index.getMsTypes().get(i)) : msType,
-            activator == null ? index.getActivators().get(i) : activator,
-            energy == null ? index.getEnergies().get(i) : energy,
-            index.getInjectionTimes() != null ? index.getInjectionTimes().get(i) : null, null);
+            msType == null ? (index.getMsTypes().get(i)) : msType);
         List<BuildingMobilityScan> subSpectra = buildSpectraForTIMSFrame(frame, points,
             dictIndexMap, mobiDict);
         frame.setMobilityScans(subSpectra, false);
@@ -92,9 +76,8 @@ public class DIAPasefLoader {
   }
 
   private static SimpleFrame buildSimpleFrame(AirdImportTask task, List<MobilityPoint> points,
-      List<CV> cvList, WindowRange windowRange, Integer num, double rt, int msLevel,
-      String polarity, String filterString, String massSpectrum, String activator, Float energy,
-      Float injectionTime, Scan parentScan) {
+      List<CV> cvList, Integer num, double rt, int msLevel,
+      String polarity, String filterString, String massSpectrum) {
     MassSpectrumType msType = null;
     PolarityType polarityType = null;
     Double lowestMz = null;
@@ -138,7 +121,7 @@ public class DIAPasefLoader {
       ints[i] = points.get(i).intensity();
     }
     SimpleFrame frame = new SimpleFrame(task.newMZmineFile, num, msLevel, (float) rt, mzs, ints,
-        msType, polarityType, filterString, mzRange, MobilityType.TIMS, null, (float) rt);
+        msType, polarityType, filterString, mzRange, MobilityType.TIMS, null, null);
 
     return frame;
   }

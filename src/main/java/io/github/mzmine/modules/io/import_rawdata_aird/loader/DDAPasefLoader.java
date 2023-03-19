@@ -26,11 +26,10 @@ public class DDAPasefLoader {
       task.setErrorMessage("Parsing Cancelled, No MS1 Scan found.");
       return;
     }
-    boolean isMinute = "minute".equals(task.airdInfo.getRtUnit());
 
     for (int i = 0; i < msList.size(); i++) {
       DDAPasefMs ms1 = msList.get(i);
-      SimpleFrame ms1Frame = buildSimpleScan(task, ms1, null, MsLevel.MS1.getCode());
+      SimpleFrame ms1Frame = buildSimpleFrame(task, ms1, null, MsLevel.MS1.getCode());
       task.parsedScans++;
       task.newMZmineFile.addScan(ms1Frame);
       if (ms1.getMs2List() != null && ms1.getMs2List().size() != 0) {
@@ -42,7 +41,7 @@ public class DDAPasefLoader {
                 "Please check the 'PSI CV' option when using AirdPro for conversion");
             return;
           }
-          SimpleScan ms2Scan = buildSimpleScan(task, ms2, ms1Frame, MsLevel.MS2.getCode());
+          SimpleScan ms2Scan = buildSimpleFrame(task, ms2, ms1Frame, MsLevel.MS2.getCode());
           task.parsedScans++;
           task.newMZmineFile.addScan(ms2Scan);
         }
@@ -50,8 +49,8 @@ public class DDAPasefLoader {
     }
   }
 
-  private static SimpleFrame buildSimpleScan(AirdImportTask task, DDAPasefMs ddaMs,
-      Frame parentScan, int msLevel) {
+  private static SimpleFrame buildSimpleFrame(AirdImportTask task, DDAPasefMs ddaMs,
+      Frame parentFrame, int msLevel) {
     MassSpectrumType massSpectrumType = null;
     PolarityType polarityType = null;
     Double lowestMz = null;
@@ -84,12 +83,6 @@ public class DDAPasefLoader {
     Range mzRange = null;
     if (lowestMz != null && highestMz != null) {
       mzRange = Range.closed(lowestMz, highestMz);
-    }
-
-    DDAMsMsInfoImpl msMsInfo = null;
-    if (msLevel == MsLevel.MS2.getCode()) {
-      msMsInfo = BaseLoader.buildMsMsInfo(ddaMs.getActivator(), ddaMs.getEnergy(), ddaMs.getRange(),
-          parentScan);
     }
 
     SimpleFrame frame = new SimpleFrame(task.newMZmineFile, ddaMs.getNum() + 1, msLevel,
