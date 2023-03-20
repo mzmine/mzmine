@@ -62,7 +62,10 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
 
     @Override
     public double getFinishedPercentage() {
-        return 0;
+        if (totalRows == 0) {
+            return 0;
+        }
+        return (double) processedRows / (double) totalRows;
     }
 
     @Override
@@ -140,6 +143,9 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
                     .map(DataType::getUniqueID)
                     .collect(Collectors.joining(","));
 
+            // write header to file
+            writer.write(header);
+
             // loop through all rows in the feature list
             for (FeatureListRow row : featureList.getRows()) {
                 List<Object> featureAnnotations = row.getAllFeatureAnnotations();
@@ -160,12 +166,10 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
 
                         // Export the fields as needed
                         writer.write(result);
-
+                        processedRows++;
                     }
                 }
             }
-
-            writer.close();
             System.out.println("Export successful!");
         } catch (IOException e) {
             System.out.println("Error exporting feature annotations: " + e.getMessage());
