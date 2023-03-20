@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -147,25 +146,13 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
 
   public static boolean overlaps(MaldiTimsPrecursor p1, MaldiTimsPrecursor p2,
       final double minDistance) {
-    final int digits = 3;
-    final double digitMult = Math.pow(10d, digits);
-
-    final Range<Integer> r1 = Range.closed(
-        (int) Math.round(p1.oneOverK0().lowerEndpoint() * digitMult),
-        (int) Math.round(p1.oneOverK0().upperEndpoint() * digitMult));
-
-    final Range<Integer> r2 = Range.closed(
-        (int) Math.round(p2.oneOverK0().lowerEndpoint() * digitMult),
-        (int) Math.round(p2.oneOverK0().upperEndpoint() * digitMult));
-
     final float lowerBound = Math.min(p1.oneOverK0().upperEndpoint(),
         p2.oneOverK0().upperEndpoint());
-    final float upperBound = Math.max(p2.oneOverK0().lowerEndpoint(),
+    final float upperBound = Math.max(p1.oneOverK0().lowerEndpoint(),
         p2.oneOverK0().lowerEndpoint());
 
-//    p1.oneOverK0().isConnected(p2.oneOverK0());
-
-    return r1.isConnected(r2) || Math.abs(lowerBound - upperBound) < minDistance;
+    return p1.oneOverK0().isConnected(p2.oneOverK0())
+        || Math.abs(lowerBound - upperBound) < minDistance;
   }
 
   @Override
