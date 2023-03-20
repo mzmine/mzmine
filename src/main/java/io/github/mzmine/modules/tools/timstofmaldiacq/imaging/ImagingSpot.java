@@ -108,6 +108,28 @@ public final class ImagingSpot {
     return false;
   }
 
+  public boolean checkPrecursor(MaldiTimsPrecursor precursor, double minMobilityDistance) {
+    switch (imagingMode) {
+      case TRIPLE -> {
+        for (int x = 0; x < 2; x++) {
+          for (int y = 0; y < 2; y++) {
+            if (x == 0 && y == 0) {
+              continue;
+            }
+            if (checkPrecursor(precursor, x, y, minMobilityDistance)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+      case SINGLE -> {
+        return checkPrecursor(precursor, 0, 0, minMobilityDistance);
+      }
+    }
+    return false;
+  }
+
   /**
    * Checks if the precursor can be added to this spot. Also increments the spot msms counter for
    * the CE of this spot.
@@ -116,7 +138,7 @@ public final class ImagingSpot {
    * @param yOffset integer offset in y direction from this spot
    * @return True if the precursor was added successfully, false if it would overlap
    */
-  public boolean addPrecursorToList(MaldiTimsPrecursor precursor, int xOffset, int yOffset,
+  private boolean addPrecursorToList(MaldiTimsPrecursor precursor, int xOffset, int yOffset,
       double minMobilityDistance) {
     var list = getPrecursorList(xOffset, yOffset);
     if (list.size() == MAX_PRECURSORS) {
@@ -130,6 +152,21 @@ public final class ImagingSpot {
 
     list.add(precursor);
     precursor.incrementSpotCounterForCollisionEnergy(collisionEnergy);
+    return true;
+  }
+
+  private boolean checkPrecursor(MaldiTimsPrecursor precursor, int xOffset, int yOffset,
+      double minMobilityDistance) {
+    var list = getPrecursorList(xOffset, yOffset);
+    if (list.size() == MAX_PRECURSORS) {
+      return false;
+    }
+    for (MaldiTimsPrecursor p : list) {
+      if (TopNSelectionModule.overlaps(p, precursor, minMobilityDistance)) {
+        return false;
+      }
+    }
+
     return true;
   }
 

@@ -121,7 +121,7 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
           new FeatureListsSelection((ModularFeatureList) cmbFlist.getValue()));
 
       currentTask = new TimsTOFImageMsMsTask(null, Instant.now(), param, MZmineCore.getProject(),
-          true);
+          true, true);
       MZmineCore.getTaskController().addTask(currentTask);
 
       currentTask.addTaskStatusListener((task, newStatus, oldStatus) -> {

@@ -50,6 +50,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeDouble;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -80,6 +81,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       TimsTOFMaldiAcquisitionTask.class.getName());
   public final FeatureList[] flists;
   public final ParameterSet parameters;
+  private final boolean preview;
   private final Double maxMobilityWidth;
   private final Double minMobilityWidth;
   private final File acqControl;
@@ -103,31 +105,29 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private final int totalMsMsPerFeature;
   private final Map<Feature, List<ImagingSpot>> featureSpotMap = new HashMap<>();
   private final Map<ImagingFrame, ImagingSpot> frameSpotMap = new HashMap<>();
-  private final double minMobilityDistance;
+  private final AdvancedParametersParameter<AdvancedImageMsMsParameters> advancedParam;
   private String desc = "Scheduling precursors MALDI acquisition";
   private double progress = 0d;
   private File currentCeFile = null;
 
   protected TimsTOFImageMsMsTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project,
-      boolean scheduleOnly) {
+      boolean scheduleOnly, boolean preview) {
     super(storage, moduleCallDate);
-    this.parameters = parameters;
+    this.parameters = parameters.cloneParameterSet();
+    this.preview = preview;
 
-    var advancedParam = parameters.getParameter(TimsTOFImageMsMsParameters.advancedParameters);
+    advancedParam = parameters.getParameter(TimsTOFImageMsMsParameters.advancedParameters);
 
     flists = parameters.getValue(TimsTOFImageMsMsParameters.flists).getMatchingFeatureLists();
     maxMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.maxMobilityWidth,
         AdvancedImageMsMsParameters.MAX_MOBILITY_WIDTH);
     minMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.minMobilityWidth,
-        AdvancedImageMsMsParameters.MIN_MOBILITY_DISTANCE);
+        AdvancedImageMsMsParameters.MIN_MOBILITY_WIDTH);
     acqControl = parameters.getValue(TimsTOFImageMsMsParameters.acquisitionControl);
     savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
     isolationWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.isolationWidth,
-        AdvancedImageMsMsParameters.MIN_ISOLATION_WIDTH);
-    minMobilityDistance = advancedParam.getValueOrDefault(
-        AdvancedImageMsMsParameters.minMobiltiyDistance,
         AdvancedImageMsMsParameters.MIN_ISOLATION_WIDTH);
     numMsMs = parameters.getValue(TimsTOFImageMsMsParameters.numMsMs);
     collisionEnergies = parameters.getValue(TimsTOFImageMsMsParameters.collisionEnergies);
@@ -201,6 +201,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     // sort low to high area. First find spots for low intensity features so we definitely fragment
     // those. should be easier to find spots for high area features
     rows.sort(Comparator.comparingDouble(FeatureListRow::getAverageArea));
+
+    final double minMobilityDistance = getQuadSwitchTime(flist);
     for (int i = 0; i < rows.size(); i++) {
       progress = i / (double) rows.size();
 
@@ -227,7 +229,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
       // check existing msms spots first
       addEntriesToExistingSpots(access, minFeatureIntensity, frameSpotMap, precursor, imagingData,
-          numMsMs, featureSpotMap, minDistance, minChimerityScore);
+          numMsMs, featureSpotMap, minDistance, minChimerityScore, minMobilityDistance);
 
       // we have all needed entries
       if (precursor.getLowestMsMsCountForCollisionEnergies() >= numMsMs) {
@@ -242,7 +244,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
 
       // find new entries
       createNewMsMsSpots(access, frameSpotMap, minFeatureIntensity, imagingData, precursor, numMsMs,
-          featureSpotMap, minDistance, minChimerityScore);
+          featureSpotMap, minDistance, minChimerityScore, minMobilityDistance);
 
       spotsFeatureCounter[precursor.getTotalMsMs()]++;
     }
@@ -252,6 +254,11 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       logger.finest(
           () -> String.format("%d features have %d MS/MS spots. (%.1f)", (spotsFeatureCounter[j]),
               j, (spotsFeatureCounter[j] / (double) rows.size() * 100)));
+    }
+
+    if (preview) {
+      setStatus(TaskStatus.FINISHED);
+      return;
     }
 
     flist.addDescriptionOfAppliedTask(
@@ -296,8 +303,8 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private void createNewMsMsSpots(MobilityScanDataAccess access,
       Map<ImagingFrame, ImagingSpot> spotMap, double minMsMsIntensity,
       IonTimeSeries<? extends ImagingFrame> imagingData, MaldiTimsPrecursor precursor, int numMsMs,
-      Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance,
-      double minChimerityScore) {
+      Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance, double minChimerityScore,
+      final double minMobilityDistance) {
     final IntensitySortedSeries<IonTimeSeries<? extends ImagingFrame>> imagingSorted = new IntensitySortedSeries<>(
         imagingData);
     final List<ImagingSpot> spots = featureSpotMap.computeIfAbsent(precursor.feature(),
@@ -350,7 +357,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
       Map<ImagingFrame, ImagingSpot> spotMap, MaldiTimsPrecursor precursor,
       IonTimeSeries<? extends ImagingFrame> imagingData, final int numMsMs,
       Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance,
-      final double minChimerityScore) {
+      final double minChimerityScore, final double minMobilityDistance) {
     final List<ImagingFrame> usedFrames = getPossibleExistingSpots(spotMap, imagingData,
         minMsMsIntensity);
 
@@ -358,6 +365,10 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
         f -> new ArrayList<>());
     for (ImagingFrame usedFrame : usedFrames) {
       final ImagingSpot imagingSpot = spotMap.get(usedFrame);
+
+      if (!imagingSpot.checkPrecursor(precursor, minMobilityDistance)) {
+        continue;
+      }
 
       // check if we meet the minimum distance requirement
       final List<Double> collisionEnergy = TimsTOFAcquisitionUtils.getPossibleCollisionEnergiesForSpot(
@@ -388,8 +399,6 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private boolean checkChimerityScore(MobilityScanDataAccess access, MaldiTimsPrecursor precursor,
       double minChimerityScore, ImagingFrame usedFrame) {
     access.jumpToFrame(usedFrame);
-
-    precursor.feature().getMobility();// check the chimerity of the current spot.
 
     final double chimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(precursor.mz(),
         access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0(), true);
@@ -504,5 +513,16 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     }
 
     return counter;
+  }
+
+  private double getQuadSwitchTime(FeatureList flist) {
+    final Double switchTime = advancedParam.getValueOrDefault(
+        AdvancedImageMsMsParameters.quadSwitchTime, AdvancedImageMsMsParameters.QUAD_SWITCH_TIME);
+
+    final Scan representativeScan = flist.getRows().get(0).getBestFeature().getRepresentativeScan();
+    if (representativeScan instanceof Frame frame) {
+      return TimsTOFAcquisitionUtils.getOneOverK0DistanceForSwitchTime(frame, switchTime);
+    }
+    throw new IllegalArgumentException("Not an IMS file.");
   }
 }

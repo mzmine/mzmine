@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
@@ -74,8 +75,9 @@ public class TimsTOFAcquisitionUtils {
           Math.min(toBeUpperBound, mobilityBounds.upperEndpoint()));
     }
 
-    logger.fine(() -> String.format("Unexpected mobility range length: %.3f. Min = %.3f, Max = %.3f",
-        initialLength, minMobilityWidth, maxMobilityWidth));
+    logger.fine(
+        () -> String.format("Unexpected mobility range length: %.3f. Min = %.3f, Max = %.3f",
+            initialLength, minMobilityWidth, maxMobilityWidth));
     return initial;
   }
 
@@ -358,5 +360,19 @@ public class TimsTOFAcquisitionUtils {
     var dy = spot2.yIndexPos() - spot1.yIndexPos();
 
     return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  public static double getRecommendedOneOverK0DistanceForSwitchTime(@NotNull final Frame frame) {
+    final double switchTimeMs = 1.65;
+    return getOneOverK0DistanceForSwitchTime(frame, switchTimeMs);
+  }
+
+  public static double getOneOverK0DistanceForSwitchTime(@NotNull final Frame frame,
+      final double switchTimeMs) {
+    final double oneOverK0Range = RangeUtils.rangeLength(frame.getMobilityRange());
+    final double rampTimeMilliSeconds =
+        frame.getNumberOfMobilityScans() * 0.1; // one scan per 100 µs
+    final double oneOverK0perMs = oneOverK0Range / rampTimeMilliSeconds;
+    return oneOverK0perMs * switchTimeMs;
   }
 }

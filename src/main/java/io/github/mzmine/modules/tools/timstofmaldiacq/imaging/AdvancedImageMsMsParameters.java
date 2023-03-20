@@ -62,19 +62,18 @@ public class AdvancedImageMsMsParameters extends SimpleParameterSet {
           Maximum width of the mobility isolation window.
           The default value is 0.04.
           """, new DecimalFormat("0.000"), MAX_MOBILITY_WIDTH), false);
-  public static final double MIN_MOBILITY_DISTANCE = 0.01d;
-  public static final OptionalParameter<DoubleParameter> minMobiltiyDistance = new OptionalParameter<>(
-      new DoubleParameter("Minimum mobility isolation distance", """
-          Minimum distance between two precursors in mobility dimension.
-          Use higher values for lower ramp times and lower values for higher ramp times.
-          The default is 0.01 and should be widely applicable.
-          """, new DecimalFormat("0.0000"), MIN_MOBILITY_DISTANCE), false);
+  public static final double QUAD_SWITCH_TIME = 1.65d;
+  public static final OptionalParameter<DoubleParameter> quadSwitchTime = new OptionalParameter<>(
+      new DoubleParameter("Quadrupole switch time (ms)", """
+          Minimum jump time for the quad to jump between two precursors.
+          The default (1.65 ms) is computed from the ramp time and acquisition mobility range and should be widely applicable.
+          """, new DecimalFormat("0.0000"), QUAD_SWITCH_TIME), false);
   public static final double MIN_ISOLATION_WIDTH = 1.7d;
   public static final OptionalParameter<DoubleParameter> isolationWidth = new OptionalParameter<>(
       new DoubleParameter("Isolation width", "The isolation width for precursors. (Default = 1.7)",
           new DecimalFormat("0.0"), MIN_ISOLATION_WIDTH));
 
   public AdvancedImageMsMsParameters() {
-    super(minMobiltiyDistance, isolationWidth, minMobilityWidth, maxMobilityWidth, ms2ImagingMode);
+    super(quadSwitchTime, isolationWidth, minMobilityWidth, maxMobilityWidth, ms2ImagingMode);
   }
 }

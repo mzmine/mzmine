@@ -435,11 +435,7 @@ public class IonMobilityUtils {
 
     access.resetMobilityScan();
 
-    if (access.getNumberOfDataPoints() == 0) {
-      return 0d;
-    }
-
-    if (access.jumpToMobilityScan(scan) == null) {
+    if (access.jumpToMobilityScan(scan) == null || access.getNumberOfDataPoints() == 0) {
       return 0d;
     }
 
@@ -499,13 +495,18 @@ public class IonMobilityUtils {
     return tolerance.checkWithinTolerance(monoisotopicMz + num13c * isotopeDistance, mzToCheck);
   }
 
-  public static MobilityScan getMobilityScanForMobility(final Frame frame, final float mobility) {
-    switch (frame.getMobilityType()) {
+  public static MobilityScan getMobilityScanForMobility(final Frame frame, final double mobility) {
+    final int index = switch (frame.getMobilityType()) {
+      case TIMS -> { // reverse order for tims, invert the binary search.
+        final int numScans = frame.getNumberOfMobilityScans();
+        int i = BinarySearch.binarySearch(mobility, true, 0, numScans,
+            j -> frame.getMobilities().getDouble(numScans - j));
+        yield numScans - i;
+      }
+      case default -> BinarySearch.binarySearch(mobility, true, 0, frame.getNumberOfMobilityScans(),
+          i -> frame.getMobilities().getDouble(i));
+    };
 
-    }
-    ;
-    int index = BinarySearch.binarySearch(mobility, true, 0, frame.getNumberOfMobilityScans(),
-        i -> frame.getMobilityScan(i).getMobility());
     return frame.getMobilityScan(index);
   }
 

@@ -26,6 +26,7 @@
 package util;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class TimsTofAcquisitionUtilsTest {
 
@@ -195,15 +197,33 @@ public class TimsTofAcquisitionUtilsTest {
     final List<Double> ce = List.of(20d);
     final var p1 = new MaldiTimsPrecursor(null, 0d, Range.closed(0.846f, 0.883f), ce);
     final var p2 = new MaldiTimsPrecursor(null, 0d, Range.closed(0.886f, 0.912f), ce);
-    Assertions.assertFalse(TopNSelectionModule.overlaps(p1, p2));
-    Assertions.assertFalse(TopNSelectionModule.overlaps(p2, p1));
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p1, p2, 0.002));
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p2, p1, 0.002));
+    Assertions.assertTrue(TopNSelectionModule.overlaps(p2, p1, 0.004));
 
     final var p3 = new MaldiTimsPrecursor(null, 0d, Range.closed(0.887f, 0.912f), ce);
     Assertions.assertTrue(TopNSelectionModule.overlaps(p2, p3));
-    Assertions.assertFalse(TopNSelectionModule.overlaps(p1, p3));
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p1, p3, 0.003f));
 
     final var p4 = new MaldiTimsPrecursor(null, 0d, Range.closed(1.503f, 1.543f), ce);
     final var p5 = new MaldiTimsPrecursor(null, 0d, Range.closed(1.541f, 1.581f), ce);
     Assertions.assertTrue(TopNSelectionModule.overlaps(p4, p5));
+
+    final var p7 = new MaldiTimsPrecursor(null, 0d, Range.closed(1.437f, 1.477f), ce);
+    final var p8 = new MaldiTimsPrecursor(null, 0d, Range.closed(1.481f, 1.521f), ce);
+    Assertions.assertTrue(TopNSelectionModule.overlaps(p7, p8, 0.01));
+    Assertions.assertTrue(TopNSelectionModule.overlaps(p8, p7, 0.01));
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p7, p8, 0.003));
+    Assertions.assertFalse(TopNSelectionModule.overlaps(p8, p7, 0.003));
+  }
+
+  @Test
+  public void testGetSwitchTime() {
+    Frame frame = Mockito.mock(Frame.class);
+    Mockito.when(frame.getMobilityRange()).thenReturn(Range.closed(0.8, 1.9));
+    Mockito.when(frame.getNumberOfMobilityScans()).thenReturn(981);
+    logger.info(() -> "" + TimsTOFAcquisitionUtils.getOneOverK0DistanceForSwitchTime(frame, 1.65));
+    logger.info(() -> "" + TimsTOFAcquisitionUtils.getOneOverK0DistanceForSwitchTime(frame, 3.3));
+    logger.info(() -> "" + TimsTOFAcquisitionUtils.getOneOverK0DistanceForSwitchTime(frame, 0.825));
   }
 }
