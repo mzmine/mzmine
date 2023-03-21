@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.ranges;
 import com.google.common.collect.Range;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -85,7 +86,7 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
   }
 
   @Override
-  public void setValueToComponent(IntRangeComponent component, Range<Integer> newValue) {
+  public void setValueToComponent(IntRangeComponent component, @Nullable Range<Integer> newValue) {
     component.setValue(newValue);
   }
 

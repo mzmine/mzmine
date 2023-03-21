@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -102,8 +103,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   }
 
   @Override
-  public void setValueToComponent(final DirectoryComponent component, final File newValue) {
-
+  public void setValueToComponent(final DirectoryComponent component, @Nullable final File newValue) {
     component.setValue(newValue);
   }
 

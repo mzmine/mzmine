@@ -25,12 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.OptionalParameterContainer;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
-import java.util.Objects;
 import javafx.scene.Node;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -74,7 +76,7 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
   @Override
   public void setValue(Boolean value) {
-    this.value = Objects.requireNonNullElse(value, false);
+    this.value = requireNonNullElse(value, false);
   }
 
   @Override
@@ -92,8 +94,8 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void setValueToComponent(OptionalParameterComponent<?> component, Boolean newValue) {
-    component.setSelected(newValue);
+  public void setValueToComponent(OptionalParameterComponent<?> component, @Nullable Boolean newValue) {
+    component.setSelected(requireNonNullElse(newValue, false));
     if (embeddedParameter.getValue() != null) {
       ((UserParameter) this.embeddedParameter).setValueToComponent(component.getEmbeddedComponent(),
           embeddedParameter.getValue());

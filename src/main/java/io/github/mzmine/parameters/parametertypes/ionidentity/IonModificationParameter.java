@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -309,7 +310,7 @@ public class IonModificationParameter implements
 
   @Override
   public void setValueToComponent(IonModificationComponent component,
-      IonModification[][] newValue) {
+      @Nullable IonModification[][] newValue) {
     component.setValue(newValue);
   }
 }

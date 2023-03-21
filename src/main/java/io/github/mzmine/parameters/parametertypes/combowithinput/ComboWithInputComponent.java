@@ -36,6 +36,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.Nullable;
 
 public class ComboWithInputComponent<EnumValue> extends HBox implements ValueChangeDecorator {
 
@@ -90,7 +91,12 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
     return comboBox.getValue();
   }
 
-  public void setValue(final ComboWithInputValue<EnumValue, ?> newValue) {
+  public void setValue(@Nullable final ComboWithInputValue<EnumValue, ?> newValue) {
+    if (newValue == null) {
+      comboBox.getSelectionModel().clearSelection();
+      return;
+    }
+
     comboBox.getSelectionModel().select(newValue.getSelectedOption());
 
     if (embeddedParameter.getValue() != null) {

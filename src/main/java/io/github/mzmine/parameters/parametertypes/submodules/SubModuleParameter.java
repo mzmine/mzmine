@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -114,7 +115,7 @@ public class SubModuleParameter<SUB extends ParameterSet> implements
   }
 
   @Override
-  public void setValueToComponent(SubModuleComponent component, Boolean newValue) {
+  public void setValueToComponent(SubModuleComponent component, @Nullable Boolean newValue) {
     // uses a dialog on demand
   }
 

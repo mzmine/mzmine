@@ -33,6 +33,7 @@ import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import org.controlsfx.control.CheckTreeView;
+import org.jetbrains.annotations.Nullable;
 
 public class ClearAnnotationsComponent extends BorderPane {
 
@@ -50,8 +51,11 @@ public class ClearAnnotationsComponent extends BorderPane {
     setValue(value);
   }
 
-  public void setValue(Map<DataType<?>, Boolean> value) {
+  public void setValue(@Nullable Map<DataType<?>, Boolean> value) {
     treeView.getRoot().getChildren().clear();
+    if (value == null) {
+      return;
+    }
     value.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getHeaderString()))
         .forEach(entry -> {
           final CheckBoxTreeItem<DataType<?>> item = new CheckBoxTreeItem<>(entry.getKey(), null,

@@ -362,6 +362,9 @@ public class FormulaUtils {
    */
   public static IMolecularFormula replaceAllIsotopesWithoutExactMass(IMolecularFormula f)
       throws IOException {
+    if (f == null) {
+      return null;
+    }
     for (IIsotope iso : f.isotopes()) {
       // find isotope without exact mass
       if (iso.getExactMass() == null || iso.getExactMass() == 0) {
@@ -430,8 +433,13 @@ public class FormulaUtils {
    * @param minMzValue     the minimum mz value to consider
    * @return list of original formula followed by sub formulas, sorted by ascending mz
    */
+  @Nullable
   public static FormulaWithExactMz[] getAllFormulas(IMolecularFormula inputFormula,
       @Nullable Integer resetAbsCharge, double minMzValue) {
+    if (inputFormula == null) {
+      return null;
+    }
+
     if (resetAbsCharge != null) {
       inputFormula = resetAbsCharge(inputFormula, resetAbsCharge);
     }
@@ -702,7 +710,7 @@ public class FormulaUtils {
 
         logger.finest(
             () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "
-                + charge + ". Adjusting protonation.");
+                  + charge + ". Adjusting protonation.");
 
         final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
             -charge);
@@ -734,7 +742,7 @@ public class FormulaUtils {
    * Creates the ionized formula combining the adduct from the feature annotation
    */
   public static @Nullable IMolecularFormula getIonizedFormula(final FeatureAnnotation annotation) {
-    if (annotation.getFormula() == null) {
+    if (annotation.getFormula() == null || annotation.getFormula().isBlank()) {
       return null;
     }
 

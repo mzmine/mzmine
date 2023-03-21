@@ -90,7 +90,7 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
   public void setParameterValuesToComponents() {
     super.setParameterValuesToComponents();
     var selection = createSelection();
-    textDescription.setText(selection.toShortDescription());
+    textDescription.setText(selection!=null? selection.toShortDescription() : "");
   }
 
 }

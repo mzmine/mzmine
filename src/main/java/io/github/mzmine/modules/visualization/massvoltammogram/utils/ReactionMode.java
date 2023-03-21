@@ -23,14 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.modules.visualization.massvoltammogram.utils;
 
 public enum ReactionMode {
   OXIDATIVE("Oxidative"), REDUCTIVE("Reductive");
 
   final String name;
 
-  private ReactionMode(String name) {
+  ReactionMode(String name) {
     this.name = name;
   }
 
