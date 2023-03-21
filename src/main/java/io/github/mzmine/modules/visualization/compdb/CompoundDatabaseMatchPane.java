@@ -175,7 +175,7 @@ public class CompoundDatabaseMatchPane extends BorderPane {
       rowCounter++;
     }
 
-    for (Entry<DataType<?>, Object> entry : annotation.getReadOnlyMap().entrySet()) {
+    for (Entry<DataType, Object> entry : annotation.getReadOnlyMap().entrySet()) {
       final DataType<?> type = entry.getKey();
       final Object value = entry.getValue();
 

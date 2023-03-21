@@ -27,8 +27,10 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.util.javafx.DraggableListCell;
 import java.util.Arrays;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ListView;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A modified ListView that can reorder items by dragging with mouse
@@ -56,7 +58,11 @@ public class OrderComponent<ValueType> extends ListView<ValueType> {
     setPrefWidth(150);
   }
 
-  public void setValues(ValueType newValues[]) {
+  public void setValues(@Nullable ValueType newValues[]) {
+    if (newValues == null) {
+      setItems(FXCollections.observableList(List.of()));
+      return;
+    }
     setItems(FXCollections.observableArrayList(Arrays.asList(newValues)));
   }
 

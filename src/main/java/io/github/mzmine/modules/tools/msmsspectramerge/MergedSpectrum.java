@@ -25,19 +25,28 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A spectrum of merged peaks with meta information
  */
-public class MergedSpectrum {
+public class MergedSpectrum implements MassSpectrum {
+
   /**
    * spectral information
    */
@@ -190,34 +199,100 @@ public class MergedSpectrum {
     System.arraycopy(right.origins, 0, norigs, origins.length, right.origins.length);
     final int[] nscans = Arrays.copyOf(scanIds, scanIds.length + right.scanIds.length);
     System.arraycopy(right.scanIds, 0, nscans, scanIds.length, right.scanIds.length);
-    MergedSpectrum newMerged =
-        new MergedSpectrum(mergedSpectrum, norigs, nscans, right.precursorMz, right.polarity,
-            right.precursorCharge, removedScansByLowQuality + right.removedScansByLowQuality,
-            removedScansByLowCosine + right.removedScansByLowCosine,
-            Math.max(bestFragmentScanScore, right.bestFragmentScanScore));
+    MergedSpectrum newMerged = new MergedSpectrum(mergedSpectrum, norigs, nscans, right.precursorMz,
+        right.polarity, right.precursorCharge,
+        removedScansByLowQuality + right.removedScansByLowQuality,
+        removedScansByLowCosine + right.removedScansByLowCosine,
+        Math.max(bestFragmentScanScore, right.bestFragmentScanScore));
     return newMerged;
+  }
+
+  @Override
+  public int getNumberOfDataPoints() {
+    return data.length;
+  }
+
+  @Override
+  public MassSpectrumType getSpectrumType() {
+    return MassSpectrumType.CENTROIDED;
+  }
+
+  @Override
+  public double[] getMzValues(@NotNull double[] dst) {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public double[] getIntensityValues(@NotNull double[] dst) {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public double getMzValue(int index) {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public double getIntensityValue(int index) {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public @Nullable Double getBasePeakMz() {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public @Nullable Double getBasePeakIntensity() {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public @Nullable Integer getBasePeakIndex() {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public @Nullable Range<Double> getDataPointMZRange() {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
   }
 
   /**
    * @return calculate the total ion count of this merged spectrum
    */
-  public double getTIC() {
+  public Double getTIC() {
     double tic = 0d;
-    for (MergedDataPoint p : data)
+    for (MergedDataPoint p : data) {
       tic += p.intensity;
+    }
     return tic;
+  }
+
+  @Override
+  public int binarySearch(double mz, boolean defaultToClosestMz) {
+    return MassSpectrum.super.binarySearch(mz, defaultToClosestMz);
+  }
+
+  @Override
+  public int binarySearch(double mz, boolean defaultToClosestMz, int fromIndex, int toIndex) {
+    return MassSpectrum.super.binarySearch(mz, defaultToClosestMz, fromIndex, toIndex);
+  }
+
+  @Override
+  public int indexOf(double mz, boolean defaultToClosestMz) {
+    return MassSpectrum.super.indexOf(mz, defaultToClosestMz);
   }
 
   /**
    * @param minimumRelativeNumberOfScans in how many scans the peaks have to be contained (in
-   *        percent)
+   *                                     percent)
    * @return new merged spectrum containing only peaks that occur consistently in source spectra
    */
   public MergedSpectrum filterByRelativeNumberOfScans(double minimumRelativeNumberOfScans) {
     int minNum = (int) (scanIds.length * minimumRelativeNumberOfScans);
-    if (minNum > 1)
+    if (minNum > 1) {
       return filterByNumberOfScans(minNum);
-    else
+    } else
       return this;
   }
 
@@ -228,10 +303,25 @@ public class MergedSpectrum {
   public MergedSpectrum filterByNumberOfScans(int minimumNumberOfScans) {
     return new MergedSpectrum(
         Arrays.stream(data).filter(x -> x.sources.length >= minimumNumberOfScans)
-            .toArray(MergedDataPoint[]::new),
-        origins, scanIds, precursorMz, polarity, precursorCharge, removedScansByLowQuality,
-        removedScansByLowCosine, bestFragmentScanScore
+            .toArray(MergedDataPoint[]::new), origins, scanIds, precursorMz, polarity,
+        precursorCharge, removedScansByLowQuality, removedScansByLowCosine, bestFragmentScanScore
 
     );
+  }
+
+  @NotNull
+  @Override
+  public Iterator<DataPoint> iterator() {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public void forEach(Consumer<? super DataPoint> action) {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
+  }
+
+  @Override
+  public Spliterator<DataPoint> spliterator() {
+    throw new UnsupportedOperationException("Not supported for " + this.getClass().getName());
   }
 }

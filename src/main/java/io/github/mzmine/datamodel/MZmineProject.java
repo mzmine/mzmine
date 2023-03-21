@@ -230,4 +230,11 @@ public interface MZmineProject {
 
   @NotNull MetadataTable getProjectMetadata();
 
+  /**
+   * find data file by name. Acquires read lock on files for synchronization.
+   *
+   * @param name name of the file, compared with ignore case
+   * @return the RawDataFile or null if the name was null or no such file exists
+   */
+  @Nullable RawDataFile getDataFileByName(@Nullable String name);
 }

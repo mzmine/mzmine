@@ -30,7 +30,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.util.function.IntFunction;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,8 +43,7 @@ public class AnyXYProvider implements PlotXYDataProvider {
   private final IntFunction<Double> rangeFunction;
 
   public AnyXYProvider(Color awtColor, String seriesKey, int numValues,
-      IntFunction<Double> domainFunction,
-      IntFunction<Double> rangeFunction) {
+      IntFunction<Double> domainFunction, IntFunction<Double> rangeFunction) {
     this.awtColor = awtColor;
     this.seriesKey = seriesKey;
     this.numValues = numValues;
@@ -84,7 +83,7 @@ public class AnyXYProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     // nothint to compute
   }
 

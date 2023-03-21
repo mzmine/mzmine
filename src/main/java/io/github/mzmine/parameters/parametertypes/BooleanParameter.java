@@ -25,9 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.control.CheckBox;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -96,8 +99,8 @@ public class BooleanParameter implements UserParameter<Boolean, CheckBox> {
   }
 
   @Override
-  public void setValueToComponent(CheckBox component, Boolean newValue) {
-    component.setSelected(newValue);
+  public void setValueToComponent(CheckBox component, @Nullable Boolean newValue) {
+    component.setSelected(requireNonNullElse(newValue, false));
   }
 
   @Override

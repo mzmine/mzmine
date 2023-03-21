@@ -25,12 +25,18 @@
 
 package io.github.mzmine.datamodel;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -66,6 +72,25 @@ public interface RawDataFile {
    */
   @Nullable String getAbsolutePath();
 
+  /**
+   * @return The absolute path this file was loaded from. or a file of getName() if no path was
+   * provided
+   */
+  default @NotNull File getAbsoluteFilePath() {
+    return new File(requireNonNullElse(getAbsolutePath(), getName()));
+  }
+
+  /**
+   * Uses the absolute file path first, if null then use the name which might have been changed by
+   * the user
+   *
+   * @return usually the file.extension as in File.getName()
+   */
+  default String getFileName() {
+    var path = getAbsolutePath();
+    return path != null ? new File(path).getName() : getName();
+  }
+
   int getNumOfScans();
 
   int getNumOfScans(int msLevel);
@@ -75,21 +100,27 @@ public interface RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return max number of data points in masslist
+   * @return max number of data points in all masslists (centroid) of all scans
    */
-  int getMaxCentroidDataPoints();
+  default int getMaxCentroidDataPoints() {
+    return stream().map(Scan::getMassList).filter(Objects::nonNull)
+        .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
+  }
+
 
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return max raw data points in scans
+   * @return max number of data points in all raw scans
    */
   int getMaxRawDataPoints();
 
   /**
    * Returns sorted array of all MS levels in this file
    */
-  @NotNull int[] getMSLevels();
+  default @NotNull int[] getMSLevels() {
+    return stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
+  }
 
   /**
    * Returns sorted array of all scan numbers in given MS level
@@ -97,7 +128,9 @@ public interface RawDataFile {
    * @param msLevel MS level
    * @return Sorted array of scan numbers, never returns null
    */
-  @NotNull List<Scan> getScanNumbers(int msLevel);
+  default @NotNull List<Scan> getScanNumbers(int msLevel) {
+    return stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
+  }
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
@@ -106,22 +139,104 @@ public interface RawDataFile {
    * @param rtRange Retention time range
    * @return Sorted array of scan numbers, never returns null
    */
-  @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
+  default @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
+    return stream()
+        .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
+        .toArray(Scan[]::new);
+  }
 
   /**
-   * @param rt      The rt
-   * @param mslevel The ms level
-   * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   * the rt range of this file.
-   */
-  Scan getScanNumberAtRT(float rt, int mslevel);
-
-  /**
+   * Uses binary search
+   *
    * @param rt The rt
-   * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   * the rt range of this file.
+   * @return the closest scan or null if no scans avaialble
    */
-  Scan getScanNumberAtRT(float rt);
+  default @Nullable Scan binarySearchClosestScan(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt, mslevel);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
+      return getScan(indexClosestScan);
+    }
+    return null;
+  }
+
+  /**
+   * Uses binary search
+   *
+   * @param rt The rt
+   * @return the closest scan or null if no scans avaialble
+   */
+  default @Nullable Scan binarySearchClosestScan(float rt) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
+      return getScan(indexClosestScan);
+    }
+    return null;
+  }
+
+  /**
+   * binary search the closest scan
+   *
+   * @param rt search retention time
+   * @return closest index or -1 if no scan was found
+   */
+  default int binarySearchClosestScanIndex(float rt) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int closestIndex = Math.abs(BinarySearch.binarySearch(rt, true, getNumOfScans(),
+        index -> getScan(index).getRetentionTime()));
+    return closestIndex >= getNumOfScans() ? -1 : closestIndex;
+  }
+
+  /**
+   * binary search the closest scan
+   *
+   * @param rt search retention time
+   * @return closest index or -1 if no scan was found
+   */
+  default int binarySearchClosestScanIndex(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan == -1) {
+      return -1;
+    }
+    //matches ms level
+    if (getScan(indexClosestScan).getMSLevel() == mslevel) {
+      return indexClosestScan;
+    }
+
+    // find the closest scan with msLevel around the found scan (might be other level)
+    int before = -1;
+    int after = -1;
+    for (int i = indexClosestScan; i < getNumOfScans(); i++) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        after = i;
+        break;
+      }
+    }
+    for (int i = indexClosestScan - 1; i > 0; i--) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        before = i;
+        break;
+      }
+    }
+    if (after != -1 && before != -1) {
+      if (Math.abs(getScan(after).getRetentionTime() - rt) < Math.abs(
+          getScan(before).getRetentionTime() - rt)) {
+        return after;
+      } else {
+        return before;
+      }
+    } else if (after != -1) {
+      return after;
+    } else {
+      return before;
+    }
+  }
 
   @NotNull Range<Double> getDataMZRange();
 
@@ -254,4 +369,5 @@ public interface RawDataFile {
    */
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
+
 }

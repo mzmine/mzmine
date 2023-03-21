@@ -39,7 +39,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -58,7 +58,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   private final javafx.scene.paint.Color color;
   private final boolean isUseSingleColorPaintScale;
   int numValues = 0;
-  private double progress;
+  private final double progress;
   private PaintScale paintScale = null;
 
   public IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(final ModularFeature f) {
@@ -122,7 +122,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     numValues = 0;
     double max = Double.NEGATIVE_INFINITY;
     for (int i = 0; i < data.getMobilograms().size(); i++) {

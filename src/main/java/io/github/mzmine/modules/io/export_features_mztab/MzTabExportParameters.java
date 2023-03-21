@@ -52,7 +52,7 @@ public class MzTabExportParameters extends SimpleParameterSet {
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
-          + "If the file already exists, it will be overwritten.", extensions, 32,
+          + "If the file already exists, it will be overwritten.", extensions,
       FileSelectionType.SAVE);
 
   public static final BooleanParameter exportall = new BooleanParameter("Include all features",

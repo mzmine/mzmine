@@ -1,6 +1,6 @@
 ![MZmine 3](logo/MZmine_logo_RGB.png)
 
-![Build Status](https://github.com/mzmine/mzmine3/actions/workflows/gradle.yml/badge.svg?event=push)
+[![Development Build Release](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml/badge.svg)](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml)
 
 MZmine is an open-source software for mass-spectrometry data processing. The goals of the project is
 to provide a user-friendly, flexible and easily extendable software with a complete set of modules
@@ -8,7 +8,7 @@ covering the entire MS data analysis workflow.
 
 More information about the software can be found on the [MZmine](http://mzmine.github.io) website.
 
-Getting started with the [Documentation](https://mzmine.github.io/mzmine_documentation/index.html)
+Getting started with the [Documentation](https://mzmine.github.io/mzmine_documentation/index.html) and our [YouTube channel](https://www.youtube.com/@mzmineproject/playlists?view=1&sort=lad&flow=grid)
 
 ## License
 

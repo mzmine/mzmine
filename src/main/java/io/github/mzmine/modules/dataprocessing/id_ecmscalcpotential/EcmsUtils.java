@@ -52,17 +52,19 @@ public class EcmsUtils {
    * @param delayTime          Delay time in s.
    * @return The potential at the given retention time.
    */
-  public static double getPotentialAtRt(final float rt, final double delayTime, final double potentialRampSpeed) {
+  public static double getPotentialAtRt(final float rt, final double delayTime,
+      final double potentialRampSpeed) {
     return (rt * 60d - delayTime) * potentialRampSpeed;
   }
 
   /**
-   * @param delayTime   Delay time in s.
-   * @param rampSpeed   Ramp Speed in mV/s.
-   * @param potential   Potential in mV.
-   * @return            The retention time of a given potential.
+   * @param delayTime Delay time in s.
+   * @param rampSpeed Ramp Speed in mV/s.
+   * @param potential Potential in mV.
+   * @return The retention time of a given potential in min.
    */
-  public static float getRtAtPotential(final double delayTime, final double rampSpeed, final double potential) {
-    return (float) ((float) delayTime + (potential / (rampSpeed * 60d)));
+  public static float getRtAtPotential(final double delayTime, final double rampSpeed,
+      final double potential) {
+    return (float) ((float) (delayTime / 60) + (potential / (rampSpeed * 60d)));
   }
 }

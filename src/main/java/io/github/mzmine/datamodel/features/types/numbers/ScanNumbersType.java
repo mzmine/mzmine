@@ -46,7 +46,7 @@ public class ScanNumbersType extends ListDataType<Scan> {
 
   @NotNull
   @Override
-  public String getFormattedString(List<Scan> list) {
+  public String getFormattedString(List<Scan> list, boolean export) {
     return list != null ? String.valueOf(list.size()) : "";
   }
 

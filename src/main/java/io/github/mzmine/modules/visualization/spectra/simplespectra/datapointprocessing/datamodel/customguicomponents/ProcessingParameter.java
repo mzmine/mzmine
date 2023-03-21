@@ -25,18 +25,18 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
-
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPParameterValueWrapper;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 public class ProcessingParameter
     implements UserParameter<DPPParameterValueWrapper, ProcessingComponent> {
 
-  private String name;
-  private String description;
+  private final String name;
+  private final String description;
   private DPPParameterValueWrapper value;
 
   public ProcessingParameter(String name, String description) {
@@ -104,7 +104,10 @@ public class ProcessingParameter
 
   @Override
   public void setValueToComponent(ProcessingComponent component,
-      DPPParameterValueWrapper newValue) {
+      @Nullable DPPParameterValueWrapper newValue) {
+    if (newValue == null) {
+      return;
+    }
     component.setValueFromValueWrapper(newValue);
   }
 

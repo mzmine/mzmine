@@ -24,32 +24,31 @@
  */
 package io.github.mzmine.modules.dataanalysis.clustering;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.text.DecimalFormat;
-import java.util.List;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import javax.swing.SwingUtilities;
-import org.jfree.data.xy.AbstractXYDataset;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYDataset;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataanalysis.clustering.hierarchical.HierarClusterer;
 import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotDataset;
 import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotWindow;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
+import java.text.DecimalFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingNode;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javax.swing.SwingUtilities;
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -61,31 +60,30 @@ import weka.core.Instances;
 import weka.core.SparseInstance;
 import weka.gui.hierarchyvisualizer.HierarchyVisualizer;
 
-public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotDataset {
+public class ClusteringTask extends AbstractTaskXYDataset implements ProjectionPlotDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private double[] component1Coords;
   private double[] component2Coords;
-  private ParameterSet parameters;
-  private RawDataFile[] selectedRawDataFiles;
-  private FeatureListRow[] selectedRows;
-  private int[] groupsForSelectedRawDataFiles, groupsForSelectedVariables;
+  private final ParameterSet parameters;
+  private final RawDataFile[] selectedRawDataFiles;
+  private final FeatureListRow[] selectedRows;
+  private final int[] groupsForSelectedRawDataFiles;
+  private final int[] groupsForSelectedVariables;
   private Object[] parameterValuesForGroups;
   private int finalNumberOfGroups;
-  private String datasetTitle;
-  private int xAxisDimension = 1;
-  private int yAxisDimension = 2;
-  private TaskStatus status = TaskStatus.WAITING;
-  private String errorMessage;
+  private final String datasetTitle;
+  private final int xAxisDimension = 1;
+  private final int yAxisDimension = 2;
   private ProjectionStatus projectionStatus;
-  private MZmineProcessingStep<ClusteringAlgorithm> clusteringStep;
-  private ClusteringDataType typeOfData;
+  private final MZmineProcessingStep<ClusteringAlgorithm> clusteringStep;
+  private final ClusteringDataType typeOfData;
   private Instances dataset;
   private int progress;
-  private FeatureList featureList;
+  private final FeatureList featureList;
 
   public ClusteringTask(ParameterSet parameters) {
 
@@ -95,8 +93,8 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         .getMatchingFeatureLists()[0];
     this.selectedRawDataFiles = parameters.getParameter(ClusteringParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
-    this.selectedRows =
-        parameters.getParameter(ClusteringParameters.rows).getMatchingRows(featureList);
+    this.selectedRows = parameters.getParameter(ClusteringParameters.rows)
+        .getMatchingRows(featureList);
     clusteringStep = parameters.getParameter(ClusteringParameters.clusteringAlgorithm).getValue();
     typeOfData = parameters.getParameter(ClusteringParameters.typeOfData).getValue();
 
@@ -191,7 +189,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   @Override
   public void run() {
 
-    status = TaskStatus.PROCESSING;
+    setStatus(TaskStatus.PROCESSING);
 
     logger.info("Clustering");
 
@@ -213,7 +211,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     ClusteringResult result = clusteringAlgorithm.performClustering(dataset, clusteringParameters);
 
     String cluster = "";
-    if (clusteringAlgorithm.getName().toString().equals("Hierarchical clusterer")) {
+    if (clusteringAlgorithm.getName().equals("Hierarchical clusterer")) {
       progress = 0;
       // Getting the result of the clustering in Newick format
       cluster = result.getHiearchicalCluster();
@@ -235,8 +233,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
           String clusterNumber2 = "Cluster " + nextNumber;
 
           if (cluster.indexOf(clusterNumber2) < 0) {
-            c = cluster.substring(cluster.indexOf(clusterNumber) + clusterNumber.length(),
-                cluster.length());
+            c = cluster.substring(cluster.indexOf(clusterNumber) + clusterNumber.length());
           } else {
             c = cluster.substring(cluster.indexOf(clusterNumber) + clusterNumber.length(),
                 cluster.indexOf(clusterNumber2));
@@ -260,7 +257,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         TextField data = new TextField(c);
         visualizationPane.setBottom(data);
 
-        if(!MZmineCore.isHeadLessMode()) {
+        if (!MZmineCore.isHeadLessMode()) {
           Platform.runLater(() -> {
             Stage visualizationWindow = new Stage();
             visualizationWindow.setTitle(clusterNumber);
@@ -291,8 +288,9 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
       } else {
         String[] variableNames = new String[selectedRows.length];
         for (int i = 0; i < selectedRows.length; i++) {
-          variableNames[i] = selectedRows[i].getID() + " - " + selectedRows[i].getAverageMZ()
-              + " - " + selectedRows[i].getAverageRT();
+          variableNames[i] =
+              selectedRows[i].getID() + " - " + selectedRows[i].getAverageMZ() + " - "
+                  + selectedRows[i].getAverageRT();
           if (selectedRows[i].getPeakIdentities() != null
               && selectedRows[i].getPeakIdentities().size() > 0) {
             variableNames[i] += " - " + selectedRows[i].getPeakIdentities().get(0).getName();
@@ -336,7 +334,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
         double[][] pcaResult = pcaProj.getState();
 
-        if (status == TaskStatus.CANCELED) {
+        if (isCanceled()) {
           return;
         }
 
@@ -352,7 +350,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
         double[][] sammonsResult = sammonsProj.getState();
 
-        if (status == TaskStatus.CANCELED) {
+        if (isCanceled()) {
           return;
         }
 
@@ -360,15 +358,15 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         component2Coords = sammonsResult[yAxisDimension - 1];
       }
 
-      if(!MZmineCore.isHeadLessMode()) {
+      if (!MZmineCore.isHeadLessMode()) {
         Platform.runLater(() -> {
-          ProjectionPlotWindow newFrame =
-              new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
+          ProjectionPlotWindow newFrame = new ProjectionPlotWindow(
+              desktop.getSelectedPeakLists()[0], this, parameters);
           newFrame.show();
         });
       }
     }
-    status = TaskStatus.FINISHED;
+    setStatus(TaskStatus.FINISHED);
     logger.info("Finished computing Clustering visualization.");
   }
 
@@ -381,12 +379,12 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   private double[][] createMatrix(boolean isForSamples) {
     // Generate matrix of raw data (input to CDA)
     boolean useArea = true;
-    if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
-        .getValue() == FeatureMeasurementType.AREA) {
+    if (parameters.getParameter(ClusteringParameters.featureMeasurementType).getValue()
+        == AbundanceMeasure.Area) {
       useArea = true;
     }
-    if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
-        .getValue() == FeatureMeasurementType.HEIGHT) {
+    if (parameters.getParameter(ClusteringParameters.featureMeasurementType).getValue()
+        == AbundanceMeasure.Height) {
       useArea = false;
     }
     double[][] rawData;
@@ -452,8 +450,8 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
       double[] values = new double[data.numAttributes()];
       System.arraycopy(rawData[i], 0, values, 0, rawData[0].length);
       if (clusteringStep.getModule().getClass().equals(HierarClusterer.class)) {
-        values[data.numAttributes() - 1] =
-            data.attribute("name").addStringValue(this.selectedRawDataFiles[i].getName());
+        values[data.numAttributes() - 1] = data.attribute("name")
+            .addStringValue(this.selectedRawDataFiles[i].getName());
       }
       Instance inst = new SparseInstance(1.0, values);
       data.add(inst);
@@ -504,33 +502,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     if (projectionStatus != null) {
       projectionStatus.cancel();
     }
-
-    status = TaskStatus.CANCELED;
-  }
-
-  @Override
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-
-  @Override
-  public TaskStatus getStatus() {
-    return status;
-  }
-
-  /**
-   * // @see io.github.mzmine.taskcontrol.Task#setStatus()
-   */
-  public void setStatus(TaskStatus newStatus) {
-    this.status = newStatus;
-  }
-
-  public boolean isCanceled() {
-    return status == TaskStatus.CANCELED;
-  }
-
-  public boolean isFinished() {
-    return status == TaskStatus.FINISHED;
+    super.cancel();
   }
 
   @Override
@@ -554,8 +526,4 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     }
   }
 
-  @Override
-  public TaskPriority getTaskPriority() {
-    return TaskPriority.NORMAL;
-  }
 }

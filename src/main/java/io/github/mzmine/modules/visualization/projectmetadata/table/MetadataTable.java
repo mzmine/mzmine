@@ -25,7 +25,11 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table;
 
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
+
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.io.TableIOUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.File;
@@ -44,7 +48,7 @@ public class MetadataTable {
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
   // use GoF "State" pattern where the state will interpret the table format (either long or wide)
-  private TableExportUtility tableExportUtility = new WideTableExportUtility(this);
+  private TableIOUtils tableIOUtils = new WideTableIOUtils(this);
 
   public MetadataTable() {
     this.data = new HashMap<>();
@@ -86,14 +90,17 @@ public class MetadataTable {
   /**
    * Add file to the table and try to set the date column
    *
-   * @param newFile
+   * @param newFile file to be added
    */
   public void addFile(RawDataFile newFile) {
     // try to set a value of a start time stamp parameter for a sample
     try {
       // is usually saved as ZonedDateTime with 2022-06-01T18:36:09Z where the Z stands for UTC
-      setValue(new DateMetadataColumn("run_date", "Run start time stamp of the sample"), newFile,
-          newFile.getStartTimeStamp());
+      MetadataColumn dateCol = getColumnByName(DATE_HEADER);
+      if (dateCol == null) {
+        dateCol = new DateMetadataColumn(DATE_HEADER, "Run start time stamp of the sample");
+      }
+      setValue(dateCol, newFile, newFile.getStartTimeStamp());
     } catch (Exception ignored) {
       logger.warning("Cannot set date " + newFile.getStartTimeStamp().toString());
     }
@@ -195,28 +202,27 @@ public class MetadataTable {
    * @return was the export successful?
    */
   public boolean exportMetadata(File file) {
-    return tableExportUtility.exportTo(file);
+    return tableIOUtils.exportTo(file);
   }
 
   /**
    * Import the metadata depending on the table format (state).
    *
-   * @param file       from which the metadata will be exported
-   * @param appendMode whether the new metadata should be appended or they should replace the old
-   *                   metadata
+   * @param file           from which the metadata will be exported
+   * @param skipColOnError
    * @return was the import successful?
    */
-  public boolean importMetadata(File file, boolean appendMode) {
-    return tableExportUtility.importFrom(file, appendMode);
+  public boolean importMetadata(File file, final boolean skipColOnError) {
+    return tableIOUtils.importFrom(file, skipColOnError);
   }
 
   /**
    * Update the state of the tableExportUtility.
    *
-   * @param tableExportUtility the new state which represents the new table format.
+   * @param tableIOUtils the new state which represents the new table format.
    */
-  public void setTableExportUtility(TableExportUtility tableExportUtility) {
-    this.tableExportUtility = tableExportUtility;
+  public void setTableExportUtility(TableIOUtils tableIOUtils) {
+    this.tableIOUtils = tableIOUtils;
   }
 
   /**

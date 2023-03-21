@@ -65,6 +65,9 @@ public class ElementsComponent extends HBox {
   }
 
   public void setValue(List<Element> value) {
+    if (value == null) {
+      return;
+    }
     this.periodicTableDialog.setSelectedElements(value);
   }
 

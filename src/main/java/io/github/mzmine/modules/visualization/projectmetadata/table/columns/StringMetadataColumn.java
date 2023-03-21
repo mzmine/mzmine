@@ -25,7 +25,8 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specific String-type implementation of the project parameter.
@@ -51,8 +52,13 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
   }
 
   @Override
-  public String convert(String input, String defaultValue) {
-    return input == null ? defaultValue : input.trim();
+  public String convertOrElse(String input, String defaultValue) {
+    return input == null ? defaultValue : convertOrThrow(input);
+  }
+
+  @Override
+  public String convertOrThrow(@NotNull final String input) {
+    return input.trim();
   }
 
   @Override

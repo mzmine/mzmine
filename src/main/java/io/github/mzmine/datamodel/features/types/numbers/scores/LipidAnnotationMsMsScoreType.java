@@ -37,7 +37,7 @@ public class LipidAnnotationMsMsScoreType extends ScoreType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     return new DecimalFormat("0.0");
   }
 

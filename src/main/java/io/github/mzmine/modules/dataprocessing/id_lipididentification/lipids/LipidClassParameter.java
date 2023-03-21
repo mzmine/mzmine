@@ -29,38 +29,38 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidClassParameter<ValueType>
-    implements UserParameter<ValueType[], LipidClassComponent> {
+public class LipidClassParameter<ValueType> implements
+    UserParameter<ValueType[], LipidClassComponent> {
 
-  private String name;
-  private String description;
+  private final String name;
+  private final String description;
   private ValueType[] choices;
   private ValueType[] values;
-  private int minNumber;
+  private final int minNumber;
 
   /**
    * We need the choices parameter non-null even when the length may be 0. We need it to determine
    * the class of the ValueType.
    */
-  public LipidClassParameter(String name, String description, ValueType choices[]) {
+  public LipidClassParameter(String name, String description, ValueType[] choices) {
     this(name, description, choices, null, 1);
   }
 
-  public LipidClassParameter(String name, String description, ValueType choices[],
-      ValueType values[]) {
+  public LipidClassParameter(String name, String description, ValueType[] choices,
+      ValueType[] values) {
     this(name, description, choices, values, 1);
   }
 
-  public LipidClassParameter(String name, String description, ValueType choices[],
-      ValueType values[], int minNumber) {
+  public LipidClassParameter(String name, String description, ValueType[] choices,
+      ValueType[] values, int minNumber) {
 
     assert choices != null;
 
@@ -76,7 +76,7 @@ public class LipidClassParameter<ValueType>
     return name;
   }
 
-  public void setChoices(ValueType choices[]) {
+  public void setChoices(ValueType[] choices) {
     this.choices = choices;
   }
 
@@ -106,8 +106,8 @@ public class LipidClassParameter<ValueType>
 
   @Override
   public LipidClassParameter<ValueType> cloneParameter() {
-    LipidClassParameter<ValueType> copy =
-        new LipidClassParameter<ValueType>(name, description, choices, values);
+    LipidClassParameter<ValueType> copy = new LipidClassParameter<ValueType>(name, description,
+        choices, values);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -121,7 +121,7 @@ public class LipidClassParameter<ValueType>
   }
 
   @Override
-  public void setValueToComponent(LipidClassComponent component, ValueType[] newValue) {
+  public void setValueToComponent(LipidClassComponent component, @Nullable ValueType[] newValue) {
     component.setValue(newValue);
   }
 
@@ -140,14 +140,15 @@ public class LipidClassParameter<ValueType>
       }
     }
     Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
-    Object newArray[] = newValues.toArray();
+    Object[] newArray = newValues.toArray();
     this.values = CollectionUtils.changeArrayType(newArray, arrayType);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (values == null)
+    if (values == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     for (ValueType item : values) {
       Element newElement = parentDocument.createElement("item");

@@ -31,19 +31,23 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
+/**
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
+ */
+@Deprecated
 public class PeakListIdentificationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final ComboParameter<IonizationType> ionizationType =
-      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
-          IonizationType.values());
+  public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+      "Ionization type", "Ionization type", IonizationType.values());
 
   public PeakListIdentificationParameters() {
-    super(new Parameter[] {peakLists, SingleRowIdentificationParameters.DATABASE, ionizationType,
-        SingleRowIdentificationParameters.MAX_RESULTS,
-        SingleRowIdentificationParameters.MZ_TOLERANCE,
-        SingleRowIdentificationParameters.ISOTOPE_FILTER},
+    super(new Parameter[]{peakLists, SingleRowIdentificationParameters.DATABASE, ionizationType,
+            SingleRowIdentificationParameters.MAX_RESULTS,
+            SingleRowIdentificationParameters.MZ_TOLERANCE,
+            SingleRowIdentificationParameters.ISOTOPE_FILTER},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_online_db/online-cmpd-db-search.html");
   }
 

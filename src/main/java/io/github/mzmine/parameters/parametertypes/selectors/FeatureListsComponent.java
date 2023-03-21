@@ -37,9 +37,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.Nullable;
 
-public class FeatureListsComponent extends BorderPane {
+public class FeatureListsComponent extends HBox {
 
 
   private final ComboBox<FeatureListsSelectionType> typeCombo;
@@ -48,27 +49,26 @@ public class FeatureListsComponent extends BorderPane {
   private FeatureListsSelection currentValue = new FeatureListsSelection();
 
   public FeatureListsComponent() {
-
-    // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    setSpacing(5);
 
     numPeakListsLabel = new Label();
-    setLeft(numPeakListsLabel);
 
     detailsButton = new Button("Select");
     detailsButton.setDisable(true);
-    setRight(detailsButton);
 
-    typeCombo = new ComboBox<>(FXCollections.observableArrayList(FeatureListsSelectionType.values()));
+    typeCombo = new ComboBox<>(
+        FXCollections.observableArrayList(FeatureListsSelectionType.values()));
     typeCombo.getSelectionModel().selectFirst();
 
-    typeCombo.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-      currentValue.setSelectionType(newValue);
-      detailsButton.setDisable((newValue != FeatureListsSelectionType.NAME_PATTERN)
-          && (newValue != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
-      updateNumPeakLists();
-    });
+    typeCombo.getSelectionModel().selectedItemProperty()
+        .addListener((options, oldValue, newValue) -> {
+          currentValue.setSelectionType(newValue);
+          detailsButton.setDisable((newValue != FeatureListsSelectionType.NAME_PATTERN) && (newValue
+              != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
+          updateNumPeakLists();
+        });
 
-    setCenter(typeCombo);
+    getChildren().addAll(numPeakListsLabel, typeCombo, detailsButton);
 
     detailsButton.setOnAction(e -> {
       FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
@@ -81,7 +81,7 @@ public class FeatureListsComponent extends BorderPane {
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{plsParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
-          FeatureList pls[] = paramSet.getParameter(plsParameter).getValue();
+          FeatureList[] pls = paramSet.getParameter(plsParameter).getValue();
           currentValue.setSpecificFeatureLists(pls);
         }
 
@@ -91,7 +91,7 @@ public class FeatureListsComponent extends BorderPane {
         final StringParameter nameParameter = new StringParameter("Name pattern",
             "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
             currentValue.getNamePattern());
-        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {nameParameter});
+        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{nameParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
           String namePattern = paramSet.getParameter(nameParameter).getValue();
@@ -102,21 +102,19 @@ public class FeatureListsComponent extends BorderPane {
       updateNumPeakLists();
     });
 
-
   }
 
-  void setValue(FeatureListsSelection newValue) {
-    currentValue = newValue.clone();
-    FeatureListsSelectionType type = newValue.getSelectionType();
-    if (type != null)
-      typeCombo.getSelectionModel().select(type);
+  void setValue(@Nullable FeatureListsSelection newValue) {
+    currentValue = newValue!=null ? newValue.clone() : null;
+    if (newValue!=null && newValue.getSelectionType()!= null) {
+      typeCombo.getSelectionModel().select(newValue.getSelectionType());
+    }
     updateNumPeakLists();
   }
 
   FeatureListsSelection getValue() {
     return currentValue;
   }
-
 
 
   public void setToolTipText(String toolTip) {
@@ -128,11 +126,12 @@ public class FeatureListsComponent extends BorderPane {
       numPeakListsLabel.setText("");
       numPeakListsLabel.setTooltip(null);
     } else {
-      FeatureList pls[] = currentValue.getMatchingFeatureLists();
+      FeatureList[] pls = currentValue.getMatchingFeatureLists();
       if (pls.length == 1) {
         String plName = pls[0].getName();
-        if (plName.length() > 22)
+        if (plName.length() > 22) {
           plName = plName.substring(0, 20) + "...";
+        }
         numPeakListsLabel.setText(plName);
       } else {
         numPeakListsLabel.setText(pls.length + " selected");

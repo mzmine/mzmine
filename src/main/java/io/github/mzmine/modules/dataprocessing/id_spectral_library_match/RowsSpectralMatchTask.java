@@ -31,26 +31,30 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanAlignment;
-import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
-import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -65,6 +69,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RowsSpectralMatchTask extends AbstractTask {
 
@@ -78,33 +83,36 @@ public class RowsSpectralMatchTask extends AbstractTask {
   protected final ParameterSet parameters;
   protected final List<SpectralLibrary> libraries;
   protected final String librariesJoined;
+  // remove +- 4 Da around the precursor - including the precursor signal
+  // this signal does not matter for matching
+  protected final MZTolerance mzToleranceRemovePrecursor = new MZTolerance(4d, 0d);
   // in some cases this task is only going to run on one scan
   protected final Scan scan;
   protected final AtomicInteger matches = new AtomicInteger(0);
   protected final MZTolerance mzToleranceSpectra;
   protected final MZTolerance mzTolerancePrecursor;
-  protected final RTTolerance rtTolerance;
-  protected final PercentTolerance ccsTolerance;
+  // scan merging and ms levels
+  // null when single scan is matched
+  private final @Nullable ScanMatchingSelection scanMatchingSelection;
+  private final MsLevelFilter msLevelFilter;
   private final AtomicInteger errorCounter = new AtomicInteger(0);
-  private final boolean useRT;
   private final int totalRows;
-  private final int msLevel;
-  private final double noiseLevel;
   private final int minMatch;
   private final boolean removePrecursor;
-  private final boolean cropSpectraToOverlap;
   private final String description;
   private final MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
-  private final boolean allMS2Scans;
+  private final FragmentScanSelection fragmentScanSelection;
+  protected RTTolerance rtTolerance;
+  protected PercentTolerance ccsTolerance;
+  private boolean useRT;
+  private boolean cropSpectraToOverlap;
   // remove 13C isotopes
-  private final boolean removeIsotopes;
-  private final MassListDeisotoperParameters deisotopeParam;
+  private boolean removeIsotopes;
+  private MassListDeisotoperParameters deisotopeParam;
   // needs any signals within mzToleranceSpectra for
   // 13C, H, 2H or Cl
-  private final boolean needsIsotopePattern;
-  private final int minMatchedIsoSignals;
-  // use precursor mz provided by user
-  private boolean useScanPrecursorMZ;
+  private boolean needsIsotopePattern;
+  private int minMatchedIsoSignals;
   private double scanPrecursorMZ;
 
   public RowsSpectralMatchTask(ParameterSet parameters, @NotNull Scan scan,
@@ -113,47 +121,57 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.scan = scan;
     this.rows = null;
-    this.libraries = parameters.getValue(SingleSpectrumLibrarySearchParameters.libraries)
+    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
         .getMatchingLibraries();
     this.librariesJoined = libraries.stream().map(SpectralLibrary::getName)
         .collect(Collectors.joining(", "));
     this.description = String.format("Spectral library matching for Scan %s in %d libraries: %s",
         scan, libraries.size(), librariesJoined);
 
-    mzToleranceSpectra = parameters.getValue(SingleSpectrumLibrarySearchParameters.mzTolerance);
-    msLevel = scan.getMSLevel();
-    noiseLevel = parameters.getValue(SingleSpectrumLibrarySearchParameters.noiseLevel);
+    mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
 
-    useScanPrecursorMZ = parameters.getValue(SingleSpectrumLibrarySearchParameters.usePrecursorMZ);
-    scanPrecursorMZ = !useScanPrecursorMZ ? scan.getPrecursorMz()
-        : parameters.getParameter(SingleSpectrumLibrarySearchParameters.usePrecursorMZ)
-            .getEmbeddedParameter().getValue();
+    scanMatchingSelection = null;
+    msLevelFilter = MsLevelFilter.of(scan.getMSLevel());
+
+    // use precursor mz provided by user
+    scanPrecursorMZ = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        SingleSpectrumLibrarySearchParameters.usePrecursorMZ, scan.getPrecursorMz());
 
     useRT = false;
     rtTolerance = null;
 
-    minMatch = parameters.getValue(SingleSpectrumLibrarySearchParameters.minMatch);
-    simFunction = parameters.getValue(SingleSpectrumLibrarySearchParameters.similarityFunction);
-    needsIsotopePattern = parameters.getValue(
-        SingleSpectrumLibrarySearchParameters.needsIsotopePattern);
-    minMatchedIsoSignals = !needsIsotopePattern ? 0
-        : parameters.getParameter(SingleSpectrumLibrarySearchParameters.needsIsotopePattern)
-            .getEmbeddedParameter().getValue();
-    removeIsotopes = parameters.getValue(SingleSpectrumLibrarySearchParameters.deisotoping);
-    deisotopeParam = parameters.getParameter(SingleSpectrumLibrarySearchParameters.deisotoping)
-        .getEmbeddedParameters();
+    minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
+    simFunction = parameters.getValue(SpectralLibrarySearchParameters.similarityFunction);
+    removePrecursor = parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
+    mzTolerancePrecursor = scan.getMSLevel() <= 1 ? null
+        : parameters.getValue(SpectralLibrarySearchParameters.mzTolerancePrecursor);
 
-    removePrecursor = parameters.getValue(SingleSpectrumLibrarySearchParameters.removePrecursor);
+    var useAdvanced = parameters.getValue(SpectralLibrarySearchParameters.advanced);
+    if (useAdvanced) {
+      AdvancedSpectralLibrarySearchParameters advanced = parameters.getParameter(
+          SpectralLibrarySearchParameters.advanced).getEmbeddedParameters();
 
-    cropSpectraToOverlap = parameters.getValue(
-        SingleSpectrumLibrarySearchParameters.cropSpectraToOverlap);
-    mzTolerancePrecursor = msLevel <= 1 ? null
-        : parameters.getValue(SingleSpectrumLibrarySearchParameters.mzTolerancePrecursor);
-    ccsTolerance = parameters.getValue(SingleSpectrumLibrarySearchParameters.ccsTolerance)
-        ? new PercentTolerance(
-        parameters.getParameter(SingleSpectrumLibrarySearchParameters.ccsTolerance)
-            .getEmbeddedParameter().getValue()) : null;
-    allMS2Scans = false;
+      needsIsotopePattern = advanced.getValue(
+          AdvancedSpectralLibrarySearchParameters.needsIsotopePattern);
+      minMatchedIsoSignals = !needsIsotopePattern ? 0
+          : advanced.getParameter(AdvancedSpectralLibrarySearchParameters.needsIsotopePattern)
+              .getEmbeddedParameter().getValue();
+      removeIsotopes = advanced.getValue(AdvancedSpectralLibrarySearchParameters.deisotoping);
+      deisotopeParam = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.deisotoping)
+          .getEmbeddedParameters();
+      cropSpectraToOverlap = advanced.getValue(
+          AdvancedSpectralLibrarySearchParameters.cropSpectraToOverlap);
+
+      ccsTolerance = advanced.getValue(AdvancedSpectralLibrarySearchParameters.ccsTolerance)
+          ? new PercentTolerance(
+          advanced.getParameter(AdvancedSpectralLibrarySearchParameters.ccsTolerance)
+              .getEmbeddedParameter().getValue()) : null;
+    }
+
+    // not used for single spectrum
+    fragmentScanSelection = new FragmentScanSelection(mzToleranceSpectra, true,
+        IncludeInputSpectra.ALL, IntensityMergingType.MAXIMUM, msLevelFilter);
+
     totalRows = 1;
   }
 
@@ -171,49 +189,56 @@ public class RowsSpectralMatchTask extends AbstractTask {
         rows.size(), libraries.size(), librariesJoined);
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
-    msLevel = parameters.getValue(SpectralLibrarySearchParameters.msLevel);
-    noiseLevel = parameters.getValue(SpectralLibrarySearchParameters.noiseLevel);
-
-    useRT = parameters.getValue(SpectralLibrarySearchParameters.rtTolerance);
-    rtTolerance = parameters.getParameter(SpectralLibrarySearchParameters.rtTolerance)
-        .getEmbeddedParameter().getValue();
-
     minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
     simFunction = parameters.getValue(SpectralLibrarySearchParameters.similarityFunction);
-    needsIsotopePattern = parameters.getValue(SpectralLibrarySearchParameters.needsIsotopePattern);
-    minMatchedIsoSignals = !needsIsotopePattern ? 0
-        : parameters.getParameter(SpectralLibrarySearchParameters.needsIsotopePattern)
-            .getEmbeddedParameter().getValue();
-    removeIsotopes = parameters.getValue(SpectralLibrarySearchParameters.deisotoping);
-    deisotopeParam = parameters.getParameter(SpectralLibrarySearchParameters.deisotoping)
-        .getEmbeddedParameters();
-
     removePrecursor = parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
 
-    cropSpectraToOverlap = parameters.getValue(
-        SpectralLibrarySearchParameters.cropSpectraToOverlap);
-    if (msLevel > 1) {
+    scanMatchingSelection = parameters.getValue(
+        SpectralLibrarySearchParameters.scanMatchingSelection);
+
+    msLevelFilter = scanMatchingSelection.getMsLevelFilter();
+    if (!msLevelFilter.isMs1Only()) {
       mzTolerancePrecursor = parameters.getValue(
           SpectralLibrarySearchParameters.mzTolerancePrecursor);
     } else {
       mzTolerancePrecursor = null;
     }
 
-    allMS2Scans = parameters.getValue(SpectralLibrarySearchParameters.allMS2Spectra);
+    var useAdvanced = parameters.getValue(SpectralLibrarySearchParameters.advanced);
+    if (useAdvanced) {
+      AdvancedSpectralLibrarySearchParameters advanced = parameters.getParameter(
+          SpectralLibrarySearchParameters.advanced).getEmbeddedParameters();
+      useRT = advanced.getValue(AdvancedSpectralLibrarySearchParameters.rtTolerance);
+      rtTolerance = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.rtTolerance)
+          .getEmbeddedParameter().getValue();
 
-    ccsTolerance = parameters.getValue(SingleSpectrumLibrarySearchParameters.ccsTolerance)
-        ? new PercentTolerance(
-        parameters.getParameter(SingleSpectrumLibrarySearchParameters.ccsTolerance)
-            .getEmbeddedParameter().getValue()) : null;
+      needsIsotopePattern = advanced.getValue(
+          AdvancedSpectralLibrarySearchParameters.needsIsotopePattern);
+      minMatchedIsoSignals = !needsIsotopePattern ? 0
+          : advanced.getParameter(AdvancedSpectralLibrarySearchParameters.needsIsotopePattern)
+              .getEmbeddedParameter().getValue();
+      removeIsotopes = advanced.getValue(AdvancedSpectralLibrarySearchParameters.deisotoping);
+      deisotopeParam = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.deisotoping)
+          .getEmbeddedParameters();
+      cropSpectraToOverlap = advanced.getValue(
+          AdvancedSpectralLibrarySearchParameters.cropSpectraToOverlap);
+
+      ccsTolerance = advanced.getValue(AdvancedSpectralLibrarySearchParameters.ccsTolerance)
+          ? new PercentTolerance(
+          advanced.getParameter(AdvancedSpectralLibrarySearchParameters.ccsTolerance)
+              .getEmbeddedParameter().getValue()) : null;
+    }
+
+    var includeInputScans =
+        scanMatchingSelection.isAll() ? IncludeInputSpectra.ALL : IncludeInputSpectra.NONE;
+    fragmentScanSelection = new FragmentScanSelection(mzToleranceSpectra, true, includeInputScans,
+        IntensityMergingType.MAXIMUM, msLevelFilter);
 
     totalRows = rows.size();
   }
 
   /**
    * Checks for isotope pattern in matched signals within mzToleranceSpectra
-   *
-   * @param sim
-   * @return
    */
   public static boolean checkForIsotopePattern(SpectralSimilarity sim,
       MZTolerance mzToleranceSpectra, int minMatchedIsoSignals) {
@@ -286,17 +311,21 @@ public class RowsSpectralMatchTask extends AbstractTask {
     if (rows != null) {
       logger.info(() -> String.format("Comparing %d library spectra to %d feature list rows",
           entries.size(), totalRows));
-      rows.stream().parallel().forEach(row -> {
-        if (!isCanceled()) {
-          matchRowToLibraries(entries, row);
-          finishedRows.incrementAndGet();
-        }
-      });
-
+      // cannot use parallel.forEach with side effects - this thread will continue without waiting for
+      // stream to finish
+      var totalMatches = rows.stream().filter(FeatureListRow::hasMs2Fragmentation).parallel()
+          .mapToInt(row -> {
+            if (!isCanceled()) {
+              int matches = matchRowToLibraries(entries, row);
+              finishedRows.incrementAndGet();
+              return matches;
+            }
+            return 0;
+          }).sum();
+      logger.info("Total spectral library matches " + totalMatches);
       logger.info(() -> String.format("library matches=%d (Errors:%d); rows=%d; library entries=%d",
           getCount(), getErrorCount(), totalRows, entries.size()));
     }
-
   }
 
   /**
@@ -308,7 +337,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   public void matchScan(List<SpectralLibraryEntry> entries, Scan scan) {
     try {
       // get mass list and perform deisotoping if active
-      DataPoint[] masses = getDataPoints(scan, true);
+      DataPoint[] masses = getDataPoints(scan, scan.getPrecursorMz());
 
       // get a ccs for the precursor of this scan
       final Float precursorCCS = getPrecursorCCSFromMsMs(scan);
@@ -325,7 +354,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         }
       }
     } catch (MissingMassListException e) {
-      logger.log(Level.WARNING, "No mass list in spectrum:" + scan.toString(), e);
+      logger.log(Level.WARNING, "No mass list in spectrum:" + scan, e);
     }
   }
 
@@ -340,13 +369,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
             (IMSRawDataFile) mobScan.getDataFile());
       }
     } else if (scan instanceof MergedMsMsSpectrum merged
-        && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
+               && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
       MobilityScan mobScan = (MobilityScan) merged.getSourceSpectra().stream()
           .filter(MobilityScan.class::isInstance).max(Comparator.comparingDouble(
               s -> Objects.requireNonNullElse(((MobilityScan) s).getMobility(), 0d))).orElse(null);
@@ -354,7 +383,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && mobScan != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge(),
             (IMSRawDataFile) mobScan.getDataFile());
@@ -369,16 +398,20 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param entries combined library entries
    * @param row     target row
    */
-  public void matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
+  public int matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
     try {
       // All MS2 or only best MS2 scan
       // best MS1 scan
       // check for MS1 or MSMS scan
       List<Scan> scans = getScans(row);
+      if (scans.isEmpty()) {
+        return 0;
+      }
+
       List<DataPoint[]> rowMassLists = new ArrayList<>();
       for (Scan scan : scans) {
         // get mass list and perform deisotoping if active
-        DataPoint[] rowMassList = getDataPoints(scan, true);
+        DataPoint[] rowMassList = getDataPoints(scan, row.getAverageMZ());
         rowMassLists.add(rowMassList);
       }
 
@@ -386,15 +419,25 @@ public class RowsSpectralMatchTask extends AbstractTask {
       List<SpectralDBAnnotation> ids = null;
       // match against all library entries
       for (SpectralLibraryEntry ident : entries) {
+
+        final String entryPolarity = ident.getOrElse(DBEntryField.POLARITY, null);
+
         final Float libCCS = ident.getOrElse(DBEntryField.CCS, null);
         SpectralDBAnnotation best = null;
         // match all scans against this ident to find best match
         for (int i = 0; i < scans.size(); i++) {
+          final PolarityType scanPolarity = scans.get(i).getPolarity();
+          if (!weakPolarityCheck(entryPolarity, scanPolarity)) {
+            // check each ms2 scan individually, maybe we have grouped pos/neg rows in the future.
+            continue;
+          }
+
           SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(), rowCCS,
               rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
               mzToleranceSpectra, minMatchedIsoSignals)) && (best == null
-              || best.getSimilarity().getScore() < sim.getScore())) {
+                                                             || best.getSimilarity().getScore()
+                                                                < sim.getScore())) {
 
             Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
 
@@ -415,11 +458,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ids != null) {
         addIdentities(row, ids);
         SortSpectralMatchesTask.sortIdentities(row);
+        return ids.size();
+
       }
     } catch (MissingMassListException e) {
       logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
       errorCounter.getAndIncrement();
     }
+    return 0;
   }
 
   /**
@@ -442,8 +488,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
       DataPoint[] rowMassList, SpectralLibraryEntry ident) {
     // retention time
     // MS level 1 or check precursorMZ
-    if (checkRT(rowRT, ident) && (msLevel == 1 || checkPrecursorMZ(rowMZ, ident)) && checkCCS(
-        rowCCS, ident)) {
+    if (checkRT(rowRT, ident) && (msLevelFilter.isMs1Only() || checkPrecursorMZ(rowMZ, ident))
+        && checkCCS(rowCCS, ident)) {
       DataPoint[] library = ident.getDataPoints();
       if (removeIsotopes) {
         library = removeIsotopes(library);
@@ -454,18 +500,18 @@ public class RowsSpectralMatchTask extends AbstractTask {
       // fragmentation energy
       DataPoint[] query = rowMassList;
       if (cropSpectraToOverlap) {
-        DataPoint[][] cropped = ScanAlignment.cropToOverlap(mzToleranceSpectra, library, query);
+        DataPoint[][] cropped = ScanAlignment.cropToOverlap(mzToleranceSpectra, library, query,
+            ident.getPrecursorMZ(), rowMZ);
         library = cropped[0];
         query = cropped[1];
       }
 
       // remove precursor signals
-      if (msLevel > 1 && removePrecursor && ident.getPrecursorMZ() != null) {
+      if (!msLevelFilter.isMs1Only() && removePrecursor && ident.getPrecursorMZ() != null) {
         // precursor mz from library entry for signal filtering
         double precursorMZ = ident.getPrecursorMZ();
         // remove from both spectra
         library = removePrecursor(library, precursorMZ);
-        query = removePrecursor(query, precursorMZ);
       }
 
       // check spectra similarity
@@ -480,12 +526,16 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
 
+  /**
+   * Remove precursor +- mzToleranceRemovePrecursor
+   */
   private DataPoint[] removePrecursor(DataPoint[] masslist, double precursorMZ) {
+    var removeMzRange = mzToleranceRemovePrecursor.getToleranceRange(precursorMZ);
     List<DataPoint> filtered = new ArrayList<>();
     for (DataPoint dp : masslist) {
       double mz = dp.getMZ();
-      // skip precursor mz
-      if (!mzTolerancePrecursor.checkWithinTolerance(mz, precursorMZ)) {
+      // skip precursor mz +- 4
+      if (!removeMzRange.contains(mz)) {
         filtered.add(dp);
       }
     }
@@ -524,7 +574,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @return the mass list data points from scan
    * @throws MissingMassListException if no mass list available
    */
-  protected DataPoint[] getDataPoints(Scan scan, boolean noiseFilter)
+  protected DataPoint[] getDataPoints(Scan scan, Double precursorMz)
       throws MissingMassListException {
     if (scan == null || scan.getMassList() == null) {
       return new DataPoint[0];
@@ -532,33 +582,26 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
     MassList masses = scan.getMassList();
     DataPoint[] dps = masses.getDataPoints();
-    if (noiseFilter) {
-      dps = ScanUtils.getFiltered(dps, noiseLevel);
-    }
     if (removeIsotopes) {
       dps = removeIsotopes(dps);
+    }
+    // remove precursor signals
+    if (!msLevelFilter.isMs1Only() && removePrecursor && precursorMz != null) {
+      // remove from both spectra
+      dps = removePrecursor(dps, precursorMz);
     }
     return dps;
   }
 
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
-    if (msLevel == 1) {
-      List<Scan> scans = new ArrayList<>();
-      scans.add(row.getBestFeature().getRepresentativeScan());
-      return scans;
+    if (msLevelFilter.isMs1Only()) {
+      var scan = row.getBestFeature().getRepresentativeScan();
+      return scan == null ? List.of() : List.of(scan);
     } else {
-      // first entry is the best scan
-      List<Scan> scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minMatch,
-          ScanSortMode.MAX_TIC);
-      if (allMS2Scans) {
-        return scans;
-      } else {
-        // only keep first (with highest TIC)
-        while (scans.size() > 1) {
-          scans.remove(1);
-        }
-        return scans;
-      }
+      // merge spectra by enegy and total - or just use all scans
+      // depending on selected option
+      var allScans = fragmentScanSelection.getAllFragmentSpectra(row);
+      return allScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch).toList();
     }
   }
 
@@ -575,5 +618,24 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   public int getErrorCount() {
     return errorCounter.get();
+  }
+
+  /**
+   * Weak polarity check. If in doubt (e.g. either the entryPolarityString or scanPolarity is null
+   * or unknown) this returns true.
+   *
+   * @param entryPolarityString the scanPolarity string
+   * @param scanPolarity        The spectrum scanPolarity
+   * @return false if both polarities are defined and do not match, true otherwise.
+   */
+  public boolean weakPolarityCheck(String entryPolarityString, PolarityType scanPolarity) {
+    if (scanPolarity == null || scanPolarity == PolarityType.UNKNOWN) {
+      return true;
+    }
+    final PolarityType entryPolarity = PolarityType.parseFromString(entryPolarityString);
+    if (entryPolarity != PolarityType.UNKNOWN) {
+      return entryPolarity == scanPolarity;
+    }
+    return true;
   }
 }

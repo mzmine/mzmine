@@ -25,8 +25,11 @@
 
 package io.github.mzmine.gui.preferences;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -105,15 +108,15 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
   }
 
   @Override
-  public void setValueToComponent(NumOfThreadsEditor component, Integer newValue) {
-    component.setValue(automatic, newValue);
+  public void setValueToComponent(NumOfThreadsEditor component, @Nullable Integer newValue) {
+    component.setValue(automatic, requireNonNullElse(newValue, 0));
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
     String attrValue = xmlElement.getAttribute("isautomatic");
     if (attrValue.length() > 0) {
-      this.automatic = Boolean.valueOf(attrValue);
+      this.automatic = Boolean.parseBoolean(attrValue);
     }
 
     String textContent = xmlElement.getTextContent();

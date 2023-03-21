@@ -30,7 +30,11 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -46,6 +50,7 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.Nullable;
 
 public class FileNamesComponent extends BorderPane {
 
@@ -58,7 +63,6 @@ public class FileNamesComponent extends BorderPane {
   private final Path defaultDir;
 
   public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir) {
-
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
 
@@ -73,7 +77,7 @@ public class FileNamesComponent extends BorderPane {
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
-      if(defaultDir != null) {
+      if (defaultDir != null) {
         fileChooser.setInitialDirectory(defaultDir.toFile());
       }
       fileChooser.setTitle("Select files");
@@ -134,37 +138,48 @@ public class FileNamesComponent extends BorderPane {
   }
 
   private List<Button> createFromDirectoryBtns(List<ExtensionFilter> filters) {
+    List<String> allExtensions = filters.stream().map(ExtensionFilter::getExtensions)
+        .flatMap(Collection::stream).filter(ext -> !"*.*".equals(ext)).toList();
+    ExtensionFilter allFilters = new ExtensionFilter("All", allExtensions);
+
     List<Button> btns = new ArrayList<>();
+    // create from folder button
+    createButton(btns, allFilters, true);
+
     for (ExtensionFilter filter : filters) {
-      if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
-        continue;
-      }
-      String name = filter.getExtensions().size() > 3 ? "From folder"
-          : "All " + filter.getExtensions().get(0);
-
-      Button btnFromDirectory = new Button(name);
-      btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
-      btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
-      btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-      btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
-      btns.add(btnFromDirectory);
-      btnFromDirectory.setOnAction(e -> {
-        // Create chooser.
-        DirectoryChooser fileChooser = new DirectoryChooser();
-        fileChooser.setTitle("Select a folder");
-        setInitialDirectory(fileChooser);
-
-        // Open chooser.
-        File dir = fileChooser.showDialog(null);
-        if (dir == null) {
-          return;
-        }
-
-        // list all files in sub directories
-        setValue(FileAndPathUtil.findFilesInDirFlat(dir, filter, useSubFolders.isSelected()));
-      });
+      createButton(btns, filter, false);
     }
     return btns;
+  }
+
+  private void createButton(final List<Button> btns, final ExtensionFilter filter,
+      final boolean isAllFilter) {
+    if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
+      return;
+    }
+    String name = isAllFilter ? "From folder" : "All " + filter.getExtensions().get(0);
+
+    Button btnFromDirectory = new Button(name);
+    btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
+    btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
+    btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+    btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
+    btns.add(btnFromDirectory);
+    btnFromDirectory.setOnAction(e -> {
+      // Create chooser.
+      DirectoryChooser fileChooser = new DirectoryChooser();
+      fileChooser.setTitle("Select a folder");
+      setInitialDirectory(fileChooser);
+
+      // Open chooser.
+      File dir = fileChooser.showDialog(null);
+      if (dir == null) {
+        return;
+      }
+
+      // list all files in sub directories
+      setValue(FileAndPathUtil.findFilesInDirFlat(dir, filter, useSubFolders.isSelected()));
+    });
   }
 
   /**
@@ -195,17 +210,13 @@ public class FileNamesComponent extends BorderPane {
     return files.toArray(new File[0]);
   }
 
-  public void setValue(File[] value) {
+  public void setValue(@Nullable File[] value) {
     if (value == null) {
       txtFilename.setText("");
       return;
     }
-    StringBuilder b = new StringBuilder();
-    for (File file : value) {
-      b.append(file.getPath());
-      b.append("\n");
-    }
-    txtFilename.setText(b.toString());
+    txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath).collect(
+        Collectors.joining("\n")));
   }
 
   public void setToolTipText(String toolTip) {

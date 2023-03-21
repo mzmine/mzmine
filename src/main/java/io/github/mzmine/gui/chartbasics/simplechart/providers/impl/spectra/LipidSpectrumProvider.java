@@ -37,7 +37,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.util.Iterator;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -162,7 +162,7 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
 
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
   }
 

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -167,7 +168,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   @Override
-  public void setValueToComponent(FeaturesComponent component, List<Feature> newValue) {
+  public void setValueToComponent(FeaturesComponent component, @Nullable List<Feature> newValue) {
     component.setValue(newValue);
   }
 

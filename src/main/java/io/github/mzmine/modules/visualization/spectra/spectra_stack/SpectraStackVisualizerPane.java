@@ -44,6 +44,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -322,7 +323,8 @@ public class SpectraStackVisualizerPane extends BorderPane {
       Feature best = null;
       for (FeatureListRow r : rows) {
         Feature f = selectedRaw == null ? r.getBestFeature() : r.getFeature(selectedRaw);
-        if (f != null && (best == null || f.getHeight() > best.getHeight())) {
+        if (f != null && (best == null || Objects.compare(f, best,
+            Comparator.comparing(Feature::getHeight, Comparator.nullsLast(Comparator.comparingDouble(Float::doubleValue))))>0)) {
           best = f;
         }
       }

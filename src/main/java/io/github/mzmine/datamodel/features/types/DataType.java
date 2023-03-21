@@ -64,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public abstract class DataType<T> {
+public abstract class DataType<T> implements Comparable<DataType> {
 
   private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
@@ -118,7 +118,7 @@ public abstract class DataType<T> {
                 if (list != null) {
                   list = new ArrayList<>(list);
                   list.remove(data);
-                  list.add(0, (T) data);
+                  list.add(0, data);
                   model.set((DataType) type, list);
                 }
               } catch (Exception ex) {
@@ -150,14 +150,39 @@ public abstract class DataType<T> {
   @NotNull
   public abstract String getUniqueID();
 
+
   /**
-   * A formatted string representation of the value
+   * A formatted string representation of the value either for export or internally in MZmine GUI
+   *
+   * @return the formatted representation of the value, or the {@link #getDefaultValue()} for null
+   * values, (or an empty String if default is also null)
+   */
+  public @NotNull String getFormattedString(T value, boolean export) {
+    // default behavior is the same for export or GUI
+    if (value != null) {
+      return value.toString();
+    }
+    T defaultValue = getDefaultValue();
+    return defaultValue != null ? defaultValue.toString() : "";
+  }
+
+  /**
+   * A formatted string representation of the value - internally in MZmine GUI
    *
    * @return the formatted representation of the value (or an empty String)
    */
   @NotNull
-  public String getFormattedString(T value) {
-    return value != null ? value.toString() : "";
+  public final String getFormattedString(T value) {
+    return getFormattedString(value, false);
+  }
+
+  /**
+   * A formatted string representation of the value - for export
+   *
+   * @return the formatted representation of the value (or an empty String)
+   */
+  public final @NotNull String getFormattedExportString(T value) {
+    return getFormattedString(value, true);
   }
 
   /**
@@ -247,6 +272,7 @@ public abstract class DataType<T> {
 
   /**
    * Defines if this data type is visible in the feature table by default.
+   *
    * @return true or false.
    */
   public boolean getDefaultVisibility() {
@@ -269,12 +295,17 @@ public abstract class DataType<T> {
   // TODO dirty hack to make this a "singleton"
   @Override
   public boolean equals(Object obj) {
-    return obj != null && obj.getClass().equals(this.getClass());
+    return obj instanceof DataType dt && dt.getUniqueID().equals(this.getUniqueID());
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return getUniqueID().hashCode();
+  }
+
+  @Override
+  public int compareTo(@NotNull final DataType o) {
+    return getUniqueID().compareTo(o.getUniqueID());
   }
 
   /**
