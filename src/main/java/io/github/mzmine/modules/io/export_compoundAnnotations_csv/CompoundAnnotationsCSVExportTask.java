@@ -39,6 +39,9 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
     private final FeatureList[] featureLists;
     private final File fileName;
 
+    private String fieldSeparator = ",";
+
+
     private int processedRows = 0, totalRows = 0;
 
     public CompoundAnnotationsCSVExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -52,6 +55,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
         super(null, moduleCallDate);
         this.featureLists = featureLists;
         this.fileName = fileName;
+        this.fieldSeparator = fieldSeparator;
     }
 
     @Override
@@ -161,7 +165,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
                         Float getRT = annotation.getRT();
 
                         String result = Stream.of(compoundName, adductType, scoreType, precursorMZ, mobility, getCCS, getRT)
-                                .map(o -> (o == null) ? "" : CSVUtils.escape(o.toString()))
+                                .map(o -> (o == null) ? "" : CSVUtils.escape(o.toString(), fieldSeparator))
                                 .collect(Collectors.joining(","));
 
                         // Export the fields as needed

@@ -101,24 +101,4 @@ public class CSVUtils {
         Arrays.stream(list).mapToObj(format::format).collect(Collectors.joining(sep)));
   }
 
-  public static String escape(String value) {
-    if (value == null) {
-      return "";
-    }
-
-    StringBuilder sb = new StringBuilder();
-    sb.append('"');
-
-    for (int i = 0; i < value.length(); i++) {
-      char c = value.charAt(i);
-      if (c == '"') {
-        sb.append("\"\"");
-      } else {
-        sb.append(c);
-      }
-    }
-
-    sb.append('"');
-    return sb.toString();
-  }
 }
