@@ -67,7 +67,7 @@ public class AdvancedImageMsMsParameters extends SimpleParameterSet {
       new DoubleParameter("Quadrupole switch time (ms)", """
           Minimum jump time for the quad to jump between two precursors.
           The default (1.65 ms) is computed from the ramp time and acquisition mobility range and should be widely applicable.
-          """, new DecimalFormat("0.0000"), QUAD_SWITCH_TIME), false);
+          """, new DecimalFormat("0.00"), QUAD_SWITCH_TIME), false);
   public static final double MIN_ISOLATION_WIDTH = 1.7d;
   public static final OptionalParameter<DoubleParameter> isolationWidth = new OptionalParameter<>(
       new DoubleParameter("Isolation width", "The isolation width for precursors. (Default = 1.7)",

@@ -122,4 +122,9 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
     nameParameterMap.put("Number of MS/MS spectra", numMsMs);
     return nameParameterMap;
   }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
