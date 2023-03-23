@@ -392,6 +392,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
       logger.info("Saved configuration to file " + file);
     } catch (Exception e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
       throw new IOException(e);
     }
   }
