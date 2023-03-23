@@ -264,15 +264,22 @@ public class MassvoltammogramUtils {
    */
   public static double getMinMZ(List<MassvoltammogramScan> scans) {
 
+    //Initializing the counter for the lists index.
+    int listIndex = 0;
+
     //Setting the absolute minimal m/z-value equal to the first scans minimal m/z-value.
-    double absoluteMinMz = scans.get(0).getMinMz();
+    while (scans.get(listIndex).isEmpty()) {
+      listIndex++;
+    }
+    double absoluteMinMz = scans.get(listIndex).getMinMz();
 
     //Checking all the other scans in the list weather there is an even smaller m/z-value.
-    for (int i = 1; i < scans.size(); i++) {
-
-      if (scans.get(i).getMinMz() < absoluteMinMz) {
-        absoluteMinMz = scans.get(i).getMinMz();
+    while (listIndex < scans.size()) {
+      if (!scans.get(listIndex).isEmpty() && scans.get(listIndex).getMinMz() < absoluteMinMz) {
+        absoluteMinMz = scans.get(listIndex).getMinMz();
       }
+
+      listIndex++;
     }
 
     return absoluteMinMz;
@@ -286,15 +293,22 @@ public class MassvoltammogramUtils {
    */
   public static double getMaxMZ(List<MassvoltammogramScan> scans) {
 
+    //Initializing the counter for the lists index.
+    int listIndex = 0;
+
     //Setting the absolute maximal m/z-value equal to the first scans maximal m/z-value.
-    double absoluteMaxMz = scans.get(0).getMaxMz();
+    while (scans.get(listIndex).isEmpty()) {
+      listIndex++;
+    }
+    double absoluteMaxMz = scans.get(listIndex).getMaxMz();
 
     //Checking all the other scans in the list weather there is a bigger m/z-value.
-    for (int i = 1; i < scans.size(); i++) {
-
-      if (scans.get(i).getMaxMz() > absoluteMaxMz) {
-        absoluteMaxMz = scans.get(i).getMaxMz();
+    while (listIndex < scans.size()) {
+      if (!scans.get(listIndex).isEmpty() && scans.get(listIndex).getMaxMz() > absoluteMaxMz) {
+        absoluteMaxMz = scans.get(listIndex).getMaxMz();
       }
+
+      listIndex++;
     }
 
     return absoluteMaxMz;

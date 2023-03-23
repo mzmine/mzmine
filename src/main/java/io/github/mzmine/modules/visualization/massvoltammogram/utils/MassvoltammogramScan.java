@@ -104,4 +104,8 @@ public final class MassvoltammogramScan {
   public int getNumberOfDatapoints() {
     return mzs.length;
   }
+
+  public boolean isEmpty() {
+    return mzs.length == 0;
+  }
 }
