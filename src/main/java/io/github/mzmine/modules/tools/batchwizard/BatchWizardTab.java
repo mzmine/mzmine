@@ -258,7 +258,7 @@ public class BatchWizardTab extends SimpleTab {
           MessageFormat.format(formatPath, specialSet, parent));
       ImageView view = new ImageView(icon);
       view.setPreserveRatio(true);
-      view.setFitHeight(125);
+      view.setFitHeight(150);
 
       if (MZmineCore.getConfiguration().isDarkMode()) {
         ColorAdjust whiteEffect = new ColorAdjust();
@@ -442,6 +442,7 @@ public class BatchWizardTab extends SimpleTab {
         MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
       }
     } catch (Exception e) {
+      logger.log(Level.WARNING, "Cannot create batch" + e.getMessage(), e);
       DialogLoggerUtil.showErrorDialog("Cannot create batch", e.getMessage());
     }
   }

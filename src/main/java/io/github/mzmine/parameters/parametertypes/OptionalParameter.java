@@ -25,49 +25,34 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import static java.util.Objects.requireNonNullElse;
+
+import io.github.mzmine.parameters.OptionalParameterContainer;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.Node;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
  * Parameter represented by check box with an additional sub-parameter
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>> implements
-    UserParameter<Boolean, OptionalParameterComponent<?>>,
-    EmbeddedParameter<EmbeddedParameterType> {
+public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>> extends
+    EmbeddedParameter<Boolean, EmbeddedParameterType, OptionalParameterComponent<?>> implements
+    OptionalParameterContainer {
 
-  private final EmbeddedParameterType embeddedParameter;
-
-  // It is important to set default value here, otherwise the embedded value
-  // is not shown in the parameter setup dialog
-  private Boolean value = false;
+  private boolean value;
 
   public OptionalParameter(EmbeddedParameterType embeddedParameter) {
-    this.embeddedParameter = embeddedParameter;
+    this(embeddedParameter, false);
   }
 
   public OptionalParameter(EmbeddedParameterType embeddedParameter, boolean defaultValue) {
-    this.embeddedParameter = embeddedParameter;
-    value = defaultValue;
+    super(defaultValue, embeddedParameter);
   }
 
-  @Override
-  public EmbeddedParameterType getEmbeddedParameter() {
-    return embeddedParameter;
-  }
-
-  @Override
-  public String getName() {
-    return embeddedParameter.getName();
-  }
-
-  @Override
-  public String getDescription() {
-    return embeddedParameter.getDescription();
-  }
 
   @Override
   public OptionalParameterComponent<?> createEditingComponent() {
@@ -80,16 +65,23 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
+  public boolean isSelected() {
+    return value;
+  }
+
+  @Override
+  public void setSelected(boolean state) {
+    value = state;
+  }
+
+  @Override
   public void setValue(Boolean value) {
-    this.value = value;
+    this.value = requireNonNullElse(value, false);
   }
 
   @Override
   public OptionalParameter cloneParameter() {
-    final UserParameter<?, ?> embeddedParameterClone = embeddedParameter.cloneParameter();
-    final OptionalParameter copy = new OptionalParameter(embeddedParameterClone);
-    copy.setValue(this.getValue());
-    return copy;
+    return new OptionalParameter(embeddedParameter.cloneParameter(), this.getValue());
   }
 
   @Override
@@ -102,8 +94,8 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void setValueToComponent(OptionalParameterComponent<?> component, Boolean newValue) {
-    component.setSelected(newValue);
+  public void setValueToComponent(OptionalParameterComponent<?> component, @Nullable Boolean newValue) {
+    component.setSelected(requireNonNullElse(newValue, false));
     if (embeddedParameter.getValue() != null) {
       ((UserParameter) this.embeddedParameter).setValueToComponent(component.getEmbeddedComponent(),
           embeddedParameter.getValue());
@@ -119,22 +111,16 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null) {
-      xmlElement.setAttribute("selected", value.toString());
-    }
+    xmlElement.setAttribute("selected", String.valueOf(value));
     embeddedParameter.saveValueToXML(xmlElement);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(getName() + " is not set properly");
-      return false;
+    if (!value) {
+      return true;
     }
-    if (value) {
-      return embeddedParameter.checkValue(errorMessages);
-    }
-    return true;
+    return embeddedParameter.checkValue(errorMessages);
   }
 
   @Override
@@ -149,4 +135,5 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
     return getEmbeddedParameter().valueEquals(thatOpt.embeddedParameter);
   }
+
 }

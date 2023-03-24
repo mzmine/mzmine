@@ -34,7 +34,6 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
@@ -158,7 +157,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!parametersClass.isInstance(parameters)) {
       throw new IllegalArgumentException(
           "Given parameter set is an instance of " + parameters.getClass() + " instead of "
-              + parametersClass);
+          + parametersClass);
     }
     moduleParameters.put(moduleClass, parameters);
 
@@ -268,8 +267,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           // already contain encrypted data
           // that needs this key for encryption
           if (file.equals(MZmineConfiguration.CONFIG_FILE)) {
-            new SimpleParameterSet(new Parameter[]{globalEncrypter}).loadValuesFromXML(
-                preferencesElement);
+            new SimpleParameterSet(globalEncrypter).loadValuesFromXML(preferencesElement);
           }
           preferences.loadValuesFromXML(preferencesElement);
         }
@@ -296,7 +294,19 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
               moduleClassName);
 
           ParameterSet moduleParameters = getModuleParameters(moduleClass);
-          moduleParameters.loadValuesFromXML(moduleElement);
+          if (moduleParameters == null) {
+            logger.info(
+                "Module %s was in the config file but was not found in the current version of MZmine".formatted(
+                    moduleClass.getName()));
+          }
+
+          MZmineModule moduleInstance = MZmineCore.getModuleInstance(moduleClass);
+          if (moduleInstance != null && moduleInstance.getParameterSetClass() == null) {
+            // some modules do not have a parameterset class
+            continue;
+          }
+          var parameterElement = (Element) moduleElement.getElementsByTagName("parameters").item(0);
+          moduleParameters.loadValuesFromXML(parameterElement);
         } catch (Exception | NoClassDefFoundError e) {
           logger.log(Level.WARNING, "Failed to load configuration for module " + moduleClassName,
               e);
@@ -355,7 +365,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
       // save encryption key to local config only
       // ATTENTION: this should to be written after all other configs
-      final SimpleParameterSet encSet = new SimpleParameterSet(new Parameter[]{globalEncrypter});
+      final SimpleParameterSet encSet = new SimpleParameterSet(globalEncrypter);
       encSet.setSkipSensitiveParameters(skipSensitive);
       encSet.saveValuesToXML(prefElement);
 
@@ -415,7 +425,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
-              + "colors.");
+          + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -428,7 +438,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default paint scale set in preferences is invalid. Returning standard "
-              + "colors.");
+          + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }

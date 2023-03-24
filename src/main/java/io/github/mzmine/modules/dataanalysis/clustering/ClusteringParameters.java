@@ -32,14 +32,14 @@ import io.github.mzmine.modules.dataanalysis.clustering.hierarchical.HierarClust
 import io.github.mzmine.modules.dataanalysis.clustering.simplekmeans.SimpleKMeansClusterer;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import java.util.Arrays;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import java.util.List;
 
 public class ClusteringParameters extends SimpleParameterSet {
 
@@ -53,7 +53,7 @@ public class ClusteringParameters extends SimpleParameterSet {
 
   public static final FeatureSelectionParameter rows = new FeatureSelectionParameter(
       "Feature list rows", "Feature list rows to include in calculation",
-      Arrays.asList(new FeatureSelection(null, null, null, null)));
+      List.of(new FeatureSelection(null, null, null, null)));
   public static final ComboParameter<ClusteringDataType> typeOfData = new ComboParameter<ClusteringDataType>(
       "Type of data", "Specify the type of data used for the clustering: samples or variables",
       ClusteringDataType.values());

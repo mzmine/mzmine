@@ -63,6 +63,10 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
+    if (parser != null) {
+      return "Import spectral library from %s (%d)".formatted(dataBaseFile,
+          parser.getProcessedEntries());
+    }
     return "Import spectral library from " + dataBaseFile;
   }
 
@@ -76,6 +80,7 @@ public class SpectralLibraryImportTask extends AbstractTask {
       final List<SpectralLibraryEntry> entries = library.getEntries();
       if (entries.size() > 0) {
         project.addSpectralLibrary(library);
+
         logger.log(Level.INFO,
             () -> String.format("Library %s successfully added with %d entries", dataBaseFile,
                 entries.size()));
@@ -87,8 +92,7 @@ public class SpectralLibraryImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
       return;
-    }
-    setStatus(TaskStatus.FINISHED);
+    } setStatus(TaskStatus.FINISHED);
   }
 
   /**

@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Collection API related utilities
@@ -139,4 +140,14 @@ public class CollectionUtils {
     return result;
   }
 
+  /**
+   * creates a stream of duplicates. Filters by hashset
+   *
+   * @param input the input stream
+   * @return filtered stream of duplicates
+   */
+  public static <T> Stream<T> streamDuplicates(Stream<T> input) {
+    Set<T> items = new HashSet<>();
+    return input.filter(n -> !items.add(n));
+  }
 }

@@ -26,47 +26,43 @@
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
 package io.github.mzmine.modules.io.spectraldbsubmit.param;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 
 /**
- * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class LibrarySubmitIonParameters extends SimpleParameterSet {
 
-  public static final ParameterSetParameter META_PARAM =
-      new ParameterSetParameter("Metadata", "", new LibraryMetaDataParameters());
-  public static final ParameterSetParameter SUBMIT_PARAM =
-      new ParameterSetParameter("Submit", "", new LibrarySubmitParameters());
+  public static final ParameterSetParameter META_PARAM = new ParameterSetParameter("Metadata", "",
+      new LibraryMetaDataParameters());
+  public static final ParameterSetParameter SUBMIT_PARAM = new ParameterSetParameter("Submit", "",
+      new LibrarySubmitParameters());
   // set later
   public static final StringParameter ADDUCT = new StringParameter("ADDUCT", "", "", false);
   public static final DoubleParameter MZ = new DoubleParameter("MZ", "");
   public static final IntegerParameter CHARGE = new IntegerParameter("CHARGE", "", 0);
 
   public LibrarySubmitIonParameters() {
-    super(new Parameter[] {
-        // meta data param
+    super(// meta data param
         META_PARAM,
         // submit param
         SUBMIT_PARAM,
         // Ion specific
-        ADDUCT, MZ, CHARGE});
+        ADDUCT, MZ, CHARGE);
   }
 }

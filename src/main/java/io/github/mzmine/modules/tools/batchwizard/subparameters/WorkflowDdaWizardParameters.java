@@ -37,8 +37,8 @@ public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters 
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
-      "Export for GNPS FBMN/IIMN",
-      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
+      "Export for molecular networking (e.g., GNPS, FBMN, IIMN, MetGem)",
+      "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS and other tools",
       true);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(

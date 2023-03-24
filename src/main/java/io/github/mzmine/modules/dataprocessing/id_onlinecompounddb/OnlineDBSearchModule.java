@@ -25,23 +25,27 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Module for identifying peaks by searching on-line databases.
+ *
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
  */
+@Deprecated
 public class OnlineDBSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Online database search";
@@ -62,9 +66,8 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    final FeatureList[] featureLists = parameters
-        .getParameter(PeakListIdentificationParameters.peakLists).getValue()
-        .getMatchingFeatureLists();
+    final FeatureList[] featureLists = parameters.getParameter(
+        PeakListIdentificationParameters.peakLists).getValue().getMatchingFeatureLists();
     for (final FeatureList featureList : featureLists) {
       Task newTask = new PeakListIdentificationTask(parameters, featureList, moduleCallDate);
       tasks.add(newTask);

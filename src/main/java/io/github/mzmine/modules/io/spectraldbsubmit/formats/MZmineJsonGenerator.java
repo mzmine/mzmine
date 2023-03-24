@@ -197,8 +197,10 @@ public class MZmineJsonGenerator {
         default -> json.add(id, value.toString());
       }
     }
-    entry.getField(DBEntryField.POLARITY)
-        .ifPresent(value -> json.add(DBEntryField.POLARITY.getMZmineJsonID(), value.toString()));
+    var polarity = entry.getPolarity();
+    if(polarity.isDefined()) {
+      json.add(DBEntryField.POLARITY.getMZmineJsonID(), polarity.toString());
+    }
 
     DataPoint[] dps = entry.getDataPoints();
     json.add(DBEntryField.NUM_PEAKS.getMZmineJsonID(), dps.length);

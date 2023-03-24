@@ -25,13 +25,14 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation
@@ -102,7 +103,11 @@ public class ColoringTypeParameter implements UserParameter<ColoringType, ComboB
   }
 
   @Override
-  public void setValueToComponent(ComboBox<ColoringType> component, ColoringType newValue) {
+  public void setValueToComponent(ComboBox<ColoringType> component, @Nullable ColoringType newValue) {
+    if (newValue == null) {
+      component.getSelectionModel().clearSelection();
+      return;
+    }
     component.getSelectionModel().select(newValue);
   }
 

@@ -25,15 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
-
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.UserParameter;
 
 public class IntRangeParameter implements UserParameter<Range<Integer>, IntRangeComponent> {
 
@@ -53,17 +51,11 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
     this.value = defaultValue;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
@@ -85,9 +77,7 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
 
   @Override
   public IntRangeParameter cloneParameter() {
-    IntRangeParameter copy = new IntRangeParameter(name, description);
-    copy.setValue(this.getValue());
-    return copy;
+    return new IntRangeParameter(name, description, valueRequired, getValue());
   }
 
   @Override
@@ -96,18 +86,20 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
   }
 
   @Override
-  public void setValueToComponent(IntRangeComponent component, Range<Integer> newValue) {
+  public void setValueToComponent(IntRangeComponent component, @Nullable Range<Integer> newValue) {
     component.setValue(newValue);
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
     NodeList minNodes = xmlElement.getElementsByTagName("min");
-    if (minNodes.getLength() != 1)
+    if (minNodes.getLength() != 1) {
       return;
+    }
     NodeList maxNodes = xmlElement.getElementsByTagName("max");
-    if (maxNodes.getLength() != 1)
+    if (maxNodes.getLength() != 1) {
       return;
+    }
     String minText = minNodes.item(0).getTextContent();
     String maxText = maxNodes.item(0).getTextContent();
     Integer min = Integer.valueOf(minText);
@@ -117,8 +109,9 @@ public class IntRangeParameter implements UserParameter<Range<Integer>, IntRange
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     Element newElement = parentDocument.createElement("min");
     newElement.setTextContent(String.valueOf(value.lowerEndpoint()));

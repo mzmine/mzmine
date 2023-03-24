@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -41,7 +42,8 @@ public class RawDataFilesParameter implements
 
   private static final String PATH_ATTRIBUTE = "path";
   private String name = "Raw data files";
-  private int minCount, maxCount;
+  private final int minCount;
+  private final int maxCount;
 
   private RawDataFilesSelection value;
 
@@ -86,7 +88,7 @@ public class RawDataFilesParameter implements
     value.setSelectionType(selectionType);
   }
 
-  public void setValue(RawDataFilesSelectionType selectionType, RawDataFile dataFiles[]) {
+  public void setValue(RawDataFilesSelectionType selectionType, RawDataFile[] dataFiles) {
     if (value == null) {
       value = new RawDataFilesSelection();
     }
@@ -123,7 +125,7 @@ public class RawDataFilesParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    RawDataFile matchingFiles[];
+    RawDataFile[] matchingFiles;
     if (value == null) {
       matchingFiles = new RawDataFile[0];
     } else {
@@ -168,7 +170,7 @@ public class RawDataFilesParameter implements
       path = path.isEmpty() ? null : path;
       newValues.add(new RawDataFilePlaceholder(itemString, path));
     }
-    RawDataFilePlaceholder specificFiles[] = newValues.toArray(new RawDataFilePlaceholder[0]);
+    RawDataFilePlaceholder[] specificFiles = newValues.toArray(new RawDataFilePlaceholder[0]);
 
     String namePattern = null;
     items = xmlElement.getElementsByTagName("name_pattern");
@@ -221,7 +223,7 @@ public class RawDataFilesParameter implements
   }
 
   @Override
-  public void setValueToComponent(RawDataFilesComponent component, RawDataFilesSelection newValue) {
+  public void setValueToComponent(RawDataFilesComponent component, @Nullable RawDataFilesSelection newValue) {
     component.setValue(newValue);
   }
 

@@ -27,6 +27,7 @@ package io.github.mzmine.parameters;
 
 import javafx.scene.Node;
 import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parameter interface, represents parameters or variables used in the project
@@ -43,7 +44,7 @@ public interface UserParameter<ValueType, EditorComponent extends Node> extends
 
   void setValueFromComponent(EditorComponent component);
 
-  void setValueToComponent(EditorComponent component, ValueType newValue);
+  void setValueToComponent(EditorComponent component, @Nullable ValueType newValue);
 
   UserParameter<ValueType, EditorComponent> cloneParameter();
 

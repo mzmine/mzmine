@@ -25,14 +25,15 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class FontParameter implements UserParameter<FontSpecs, FontSpecsComponent> {
 
@@ -103,7 +104,10 @@ public class FontParameter implements UserParameter<FontSpecs, FontSpecsComponen
   }
 
   @Override
-  public void setValueToComponent(FontSpecsComponent component, FontSpecs newValue) {
+  public void setValueToComponent(FontSpecsComponent component, @Nullable FontSpecs newValue) {
+    if (newValue == null) {
+      return;
+    }
     component.setFont(newValue.getFont());
     component.setColor(newValue.getColor());
   }

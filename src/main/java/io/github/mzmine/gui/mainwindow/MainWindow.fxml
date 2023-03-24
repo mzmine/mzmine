@@ -70,8 +70,7 @@
               maxWidth="300" minWidth="250" alignment="CENTER_RIGHT" hgap="5"/>
                 <StackPane scaleShape="true">
                   <Label alignment="CENTER"
-                    minWidth="150" onMouseClicked="#handleMemoryBarClick"
-                    prefWidth="150" fx:id="memoryBarLabel">
+                    minWidth="150" prefWidth="150" fx:id="memoryBarLabel">
                     <tooltip>
                       <Tooltip text="Free/total Java heap size"/>
                     </tooltip>

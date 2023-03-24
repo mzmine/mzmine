@@ -49,6 +49,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.La
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -546,7 +547,7 @@ public class MSnTreeTab extends SimpleTab {
     var root = any.getRoot();
     // only get the merged spectrum on each level
     FragmentScanSelection selection = new FragmentScanSelection(mzTol, false,
-        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM);
+        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS);
     List<Scan> mergedSpectra = selection.getAllFragmentSpectra(root);
 
     // MS2 has two spectra - the merged MS2 and the spectrum of all MSn merged into it

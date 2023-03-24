@@ -27,6 +27,7 @@ package io.github.mzmine.parameters;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import org.w3c.dom.Element;
 
 /**
@@ -39,23 +40,23 @@ public interface Parameter<ValueType> {
    *
    * @return Parameter name
    */
-  public String getName();
+  String getName();
 
-  public ValueType getValue();
+  ValueType getValue();
 
-  public void setValue(ValueType newValue);
+  void setValue(ValueType newValue);
 
-  public boolean checkValue(Collection<String> errorMessages);
+  boolean checkValue(Collection<String> errorMessages);
 
-  public void loadValueFromXML(Element xmlElement);
+  void loadValueFromXML(Element xmlElement);
 
-  public void saveValueToXML(Element xmlElement);
+  void saveValueToXML(Element xmlElement);
 
   /**
    * We use isSensitive() to decide whether a parameter has to be encrypted (e.g. passwords).
    * Further, sensitive parameters are not written to project level configs
    */
-  public default boolean isSensitive() {
+  default boolean isSensitive() {
     return false;
   }
 
@@ -63,10 +64,10 @@ public interface Parameter<ValueType> {
    * We use cloneParameter() instead of clone() to force the implementing classes to implement this
    * method. Plain clone() is automatically implemented by the Object class.
    */
-  public Parameter<ValueType> cloneParameter();
+  Parameter<ValueType> cloneParameter();
 
-  public default boolean valueEquals(Parameter<?> that) {
-    if(that == null) {
+  default boolean valueEquals(Parameter<?> that) {
+    if (that == null) {
       return false;
     }
     if (!(this.getClass() == that.getClass())) {
@@ -79,13 +80,9 @@ public interface Parameter<ValueType> {
       return Double.compare((Double) this.getValue(), (Double) that.getValue()) == 0;
     } else if (getValue() instanceof Float) {
       return Float.compare((Float) this.getValue(), (Float) that.getValue()) == 0;
-    } else if (getValue() instanceof Integer) {
-      return ((Integer) getValue()).equals((Integer) that.getValue());
-    } else if (getValue() instanceof String) {
-      return this.getValue().equals(that.getValue());
     } else if (getValue() instanceof Object[]) {
       return Arrays.deepEquals((Object[]) getValue(), (Object[]) that.getValue());
     }
-    return this.getValue().equals(that.getValue());
+    return Objects.equals(this.getValue(), that.getValue());
   }
 }

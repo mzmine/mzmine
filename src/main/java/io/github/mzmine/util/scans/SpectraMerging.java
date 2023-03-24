@@ -72,7 +72,6 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -352,54 +351,7 @@ public class SpectraMerging {
     final MsMsInfo copy = info.createCopy();
     copy.setMsMsScan(frame);
     return new SimpleMergedMsMsSpectrum(storage, merged[0], merged[1], copy, frame.getMSLevel(),
-        mobilityScans, intensityMergingType, cf, MergingType.ALL);
-  }
-
-  /**
-   * Merges Multiple MS/MS spectra with the same collision energy into a single MS/MS spectrum.
-   *
-   * @param spectra              The source spectra, may be of multiple collision energies.
-   * @param tolerance            The mz tolerance to merch peaks in a spectrum
-   * @param intensityMergingType Specifies the way to treat intensities (sum, avg, max)
-   * @param storage              The storage to use.
-   * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
-   */
-  public static List<Scan> mergeMsMsSpectra(@NotNull final Collection<Scan> spectra,
-      @NotNull final MZTolerance tolerance,
-      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
-      @Nullable final MemoryMapStorage storage) {
-
-    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
-
-    final List<Scan> mergedSpectra = new ArrayList<>();
-    // group spectra with the same CE into the same list
-    final Map<Float, List<Scan>> grouped = spectra.stream()
-        .collect(Collectors.groupingBy(SpectraMerging::getCollisionEnergy));
-
-    for (final Entry<Float, List<Scan>> entry : grouped.entrySet()) {
-      final Scan spectrum = entry.getValue().get(0);
-      final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
-          tolerance, intensityMergingType, cf, null, null, null);
-
-      if (mzIntensities[0].length == 0) {
-        continue;
-      }
-
-      final List<MassSpectrum> sourceSpectra = entry.getValue().stream().flatMap(s -> {
-        if (s instanceof MergedMassSpectrum spec) {
-          return spec.getSourceSpectra().stream();
-        } else {
-          return Stream.of(s);
-        }
-      }).collect(Collectors.toList());
-
-      final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
-          mzIntensities[0], mzIntensities[1], spectrum.getMsMsInfo(), spectrum.getMSLevel(),
-          sourceSpectra, intensityMergingType, cf, MergingType.ALL);
-      mergedSpectra.add(mergedMsMsSpectrum);
-    }
-
-    return mergedSpectra;
+        mobilityScans, intensityMergingType, cf, MergingType.PASEF_SINGLE);
   }
 
   /**
@@ -449,7 +401,7 @@ public class SpectraMerging {
         IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null, null);
 
     return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
-        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL);
+        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL_ENERGIES);
   }
 
   /**
@@ -487,8 +439,7 @@ public class SpectraMerging {
       @Nullable final MemoryMapStorage storage) {
 
     // if we have mass lists, use them to merge.
-    final List<? extends MassSpectrum> spectra = source.stream()
-        .map(s -> s instanceof Scan scan ? scan.getMassList() : s).toList();
+    final var spectra = source.stream().map(ScanUtils::getMassListOrThrow).toList();
 
     final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
         intensityMergingType, centerFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks);
@@ -618,13 +569,13 @@ public class SpectraMerging {
 
     private final String label;
 
+    IntensityMergingType(String label) {
+      this.label = label;
+    }
+
     @Override
     public String toString() {
       return this.label;
-    }
-
-    IntensityMergingType(String label) {
-      this.label = label;
     }
   }
 }

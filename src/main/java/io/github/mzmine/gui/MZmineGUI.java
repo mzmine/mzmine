@@ -91,6 +91,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -650,7 +651,18 @@ public class MZmineGUI extends Application implements Desktop {
 
       final StackPane pane = new StackPane(flow);
       pane.setPadding(new Insets(5));
-      dialog.getDialogPane().setContent(pane);
+
+      var scroll = new ScrollPane(pane);
+      scroll.setFitToWidth(true);
+      scroll.setFitToHeight(true);
+      var parent = new BorderPane(scroll);
+      stage.setMaxWidth(750);
+      stage.setMaxHeight(750);
+      pane.setMaxSize(800, 750);
+      scroll.setMaxSize(800, 750);
+      parent.setMaxSize(800, 750);
+      dialog.getDialogPane().setContent(parent);
+      dialog.setResizable(true);
 
       dialog.showAndWait();
     });

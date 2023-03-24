@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A component for selecting adducts.
@@ -100,7 +101,7 @@ public class IonModificationComponent extends HBox {
     return new IonModification[][]{ad, md};
   }
 
-  public void setValue(final IonModification[][] values) {
+  public void setValue(@Nullable final IonModification[][] values) {
     if (values != null && values.length == 2) {
       if (values[0] != null) {
         adducts.setValue(Arrays.stream(values[0]).filter(Objects::nonNull).toList());

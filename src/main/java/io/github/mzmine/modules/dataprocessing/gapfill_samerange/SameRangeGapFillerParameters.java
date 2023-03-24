@@ -31,6 +31,8 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 
 public class SameRangeGapFillerParameters extends SimpleParameterSet {
 
@@ -39,7 +41,8 @@ public class SameRangeGapFillerParameters extends SimpleParameterSet {
   public static final StringParameter suffix = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "gap-filled");
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
       new OriginalFeatureListHandlingParameter(false);
@@ -47,6 +50,15 @@ public class SameRangeGapFillerParameters extends SimpleParameterSet {
   public SameRangeGapFillerParameters() {
     super(new Parameter[]{peakLists, suffix, mzTolerance, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_same_mz_and_RT_range/same_mz_and_RT_range_gap_filler.html");
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", mzTolerance);
+    return nameParameterMap;
   }
 
 }

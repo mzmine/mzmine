@@ -75,9 +75,6 @@ public class CorrelateGroupingTask extends AbstractTask {
   protected RTTolerance rtTolerance;
   protected boolean autoSuffix;
   protected String suffix;
-  // GROUP and MIN SAMPLES FILTER
-  protected boolean useGroups;
-  protected String groupingParameter;
   /**
    * Minimum percentage of samples (in group if useGroup) that have to contain a feature
    */
@@ -120,12 +117,6 @@ public class CorrelateGroupingTask extends AbstractTask {
 
     totalRows = 0;
 
-    // sample groups parameter
-    useGroups = parameters.getParameter(CorrelateGroupingParameters.GROUPSPARAMETER).getValue();
-    groupingParameter =
-        (String) parameters.getParameter(CorrelateGroupingParameters.GROUPSPARAMETER)
-            .getEmbeddedParameter().getValue();
-
     // height and noise
     noiseLevelCorr = parameters.getParameter(CorrelateGroupingParameters.NOISE_LEVEL).getValue();
     minHeight = parameters.getParameter(CorrelateGroupingParameters.MIN_HEIGHT).getValue();
@@ -133,9 +124,7 @@ public class CorrelateGroupingTask extends AbstractTask {
     // by min percentage of samples in a sample set that contain this feature MIN_SAMPLES
     MinimumFeaturesFilterParameters minS = parameterSet
         .getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER).getEmbeddedParameters();
-    minFFilter = minS
-        .createFilterWithGroups(project, featureList.getRawDataFiles(), groupingParameter,
-            minHeight);
+    minFFilter = minS.createFilterWithGroups(project, featureList.getRawDataFiles(), "", minHeight);
 
     // tolerances
     rtTolerance = parameterSet.getParameter(CorrelateGroupingParameters.RT_TOLERANCE).getValue();
