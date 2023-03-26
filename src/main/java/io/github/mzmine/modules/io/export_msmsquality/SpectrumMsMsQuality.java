@@ -27,26 +27,31 @@ package io.github.mzmine.modules.io.export_msmsquality;
 
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
+import org.jetbrains.annotations.Nullable;
 
-public record SpectrumMsMsQuality(float chimerity, MSMSScore score, int numPeaks,
+public record SpectrumMsMsQuality(int rowId, float chimerity, MSMSScore score, int numPeaks,
                                   float spectralEntropy, float normalizedEntropy,
                                   float weightedEntropy, float normalizedWeightedEntropy,
-                                  FeatureAnnotation annotation) {
+                                  FeatureAnnotation annotation, @Nullable Double tic,
+                                  @Nullable Double bpi) {
 
   public String toCsvString(CharSequence separator) {
-    return String.join(separator, annotation != null ? annotation.getCompoundName() : "",
+    return String.join(separator, Integer.toString(rowId),
+        annotation != null ? annotation.getCompoundName() : "",
         annotation.getAdductType() != null ? annotation.getAdductType().toString(false) : "",
         Float.toString(chimerity),
         (score.explainedIntensity() >= 0 ? String.valueOf(score.explainedIntensity()) : "0"),
         (score.explainedSignals() >= 0 ? String.valueOf(score.explainedSignals()) : "0"),
         Integer.toString(numPeaks), Float.toString(spectralEntropy),
         Float.toString(normalizedEntropy), Float.toString(weightedEntropy),
-        Float.toString(normalizedWeightedEntropy));
+        Float.toString(normalizedWeightedEntropy), tic != null ? "%.0f".formatted(tic) : "0",
+        bpi != null ? "%.0f".formatted(bpi) : "0");
   }
 
   public static String getHeader(CharSequence separator) {
-    return String.join(separator, "Compound", "adduct", "chimerity_score", "explained_intensity",
-        "explained_peaks", "num_peaks", "spectral_entropy", "normalized_entropy",
-        "weighted_entropy", "normalized_weighted_entropy", "collision_energy");
+    return String.join(separator, "row_id", "Compound", "adduct", "chimerity_score",
+        "explained_intensity", "explained_peaks", "num_peaks", "spectral_entropy",
+        "normalized_entropy", "weighted_entropy", "normalized_weighted_entropy", "collision_energy",
+        "tic", "bpi");
   }
 }
