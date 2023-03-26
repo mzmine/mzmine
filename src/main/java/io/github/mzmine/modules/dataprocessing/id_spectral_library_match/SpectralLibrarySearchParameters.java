@@ -76,7 +76,7 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       0.0015, 10);
 
   public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
-      "For MS2 scans, remove precursor signal prior to matching (+- precursor m/z tolerance)",
+      "For MS2 scans, remove precursor signal prior to matching (+- 4 Da)",
       true);
 
 
