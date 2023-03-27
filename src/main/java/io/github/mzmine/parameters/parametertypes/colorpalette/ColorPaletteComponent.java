@@ -38,6 +38,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Gui component for a SimpleColorPalette. Allows editing and selection of different palettes.
@@ -153,8 +154,13 @@ public class ColorPaletteComponent extends GridPane {
     return box.getValue();
   }
 
-  public void setValue(SimpleColorPalette value) {
-    if (box.getItems().indexOf(value) == -1) {
+  public void setValue(@Nullable SimpleColorPalette value) {
+    if (value == null) {
+      box.setValue(null);
+      return;
+    }
+
+    if (!box.getItems().contains(value)) {
       logger.warning("Value of ColorPaletteComponent was set to a value not contained "
           + "in the items. This might lead to unexpected behaviour.");
     }

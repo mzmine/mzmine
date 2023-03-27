@@ -28,16 +28,16 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.controlsfx.control.CheckTreeView;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import org.controlsfx.control.CheckTreeView;
+import org.jetbrains.annotations.Nullable;
 
 /**
- *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class LipidClassComponent extends BorderPane {
@@ -127,9 +127,11 @@ public class LipidClassComponent extends BorderPane {
    *
    * @param values the selected objects.
    */
-  public void setValue(final Object[] values) {
-
+  public void setValue(@Nullable final Object[] values) {
     lipidChoices.getCheckModel().clearChecks();
+    if (values == null) {
+      return;
+    }
 
     for (Object lipidClass : values) {
       CheckBoxTreeItem<Object> item = classToItemMap.get(lipidClass);

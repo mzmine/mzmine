@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -109,7 +110,7 @@ public class OptOutParameter implements UserParameter<Map<String, Boolean>, OptO
   }
 
   @Override
-  public void setValueToComponent(OptOutComponent optOutComponent, Map<String, Boolean> newValue) {
+  public void setValueToComponent(OptOutComponent optOutComponent, @Nullable Map<String, Boolean> newValue) {
     // no component (yet)
   }
 

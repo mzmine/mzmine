@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.scans;
 
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
@@ -100,15 +101,20 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
    * Applies the selection to a list of MS spectra from the same MS level. The first scan is the
    * representative scan that merges all
    *
-   * @param scans all scans from the same level
-   * @return list of merged and single spectra
+   * @param scans all scans from the same level. Already merged scans are removed.
+   * @return list of merged and single spectra. Previously merged scans are removed.
    */
   private List<Scan> computeAllScans(final List<Scan> scans) {
     if (scans.size() == 1) {
       return scans;
     }
 
-    Map<Float, List<Scan>> byFragmentationEnergy = ScanUtils.splitByFragmentationEnergy(scans);
+    final List<Scan> noMergedScans = scans.stream().filter(
+        scan -> !(scan instanceof MergedMassSpectrum merged)
+            || merged.getMergingType() == MergingType.PASEF_SINGLE).toList();
+
+    Map<Float, List<Scan>> byFragmentationEnergy = ScanUtils.splitByFragmentationEnergy(
+        noMergedScans);
     List<Scan> allScans = new ArrayList<>();
     // merge by energies separately and then all together
     List<Scan> mergedByEnergy = mergeByFragmentationEnergy(byFragmentationEnergy);
@@ -120,7 +126,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     switch (inputSpectra) {
       case NONE -> {
       }
-      case ALL -> allScans.addAll(scans);
+      case ALL -> allScans.addAll(noMergedScans);
       case HIGHEST_TIC_PER_ENERGY ->
           allScans.addAll(filterBestScansPerEnergy(byFragmentationEnergy.values()));
     }

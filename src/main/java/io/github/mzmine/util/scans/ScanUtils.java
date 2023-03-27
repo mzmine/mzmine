@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.scans;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import gnu.trove.list.array.TDoubleArrayList;
@@ -215,7 +217,7 @@ public class ScanUtils {
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
     if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
-      return new SimpleDataPoint(scanBasePeakMz, scan.getBasePeakIntensity());
+      return new SimpleDataPoint(scanBasePeakMz, requireNonNullElse(scan.getBasePeakIntensity(), 0d));
     }
 
     final double lower = mzRange.lowerEndpoint();
@@ -1884,13 +1886,16 @@ public class ScanUtils {
   }
 
 
-  public static @Nullable Float getActivationEnergy(final MassSpectrum spectrum) {
+  /**
+   * @return the collision energy or -1 if null
+   */
+  public static float getActivationEnergy(final MassSpectrum spectrum) {
     if (spectrum instanceof Scan scan && scan.getMsMsInfo() != null) {
-      return scan.getMsMsInfo().getActivationEnergy();
+      return requireNonNullElse(scan.getMsMsInfo().getActivationEnergy(), -1f);
     } else if (spectrum instanceof MergedMsMsSpectrum merged) {
       return merged.getCollisionEnergy();
     }
-    return null;
+    return -1f;
   }
 
   /**

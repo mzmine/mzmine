@@ -30,8 +30,11 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -47,6 +50,7 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.Nullable;
 
 public class FileNamesComponent extends BorderPane {
 
@@ -206,17 +210,13 @@ public class FileNamesComponent extends BorderPane {
     return files.toArray(new File[0]);
   }
 
-  public void setValue(File[] value) {
+  public void setValue(@Nullable File[] value) {
     if (value == null) {
       txtFilename.setText("");
       return;
     }
-    StringBuilder b = new StringBuilder();
-    for (File file : value) {
-      b.append(file.getPath());
-      b.append("\n");
-    }
-    txtFilename.setText(b.toString());
+    txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath).collect(
+        Collectors.joining("\n")));
   }
 
   public void setToolTipText(String toolTip) {

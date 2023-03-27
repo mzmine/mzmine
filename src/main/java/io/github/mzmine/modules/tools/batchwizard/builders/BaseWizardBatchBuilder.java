@@ -84,6 +84,8 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Advance
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
@@ -635,6 +637,20 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralLibraryImportModule.class), importParams));
+  }
+
+  /**
+   * convert loaded library to feature list
+   */
+  protected void makeAndAddLibraryToFeatureListStep(final BatchQueue q) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralLibraryToFeatureListModule.class).cloneParameterSet();
+
+    param.setParameter(SpectralLibraryToFeatureListParameters.libraries,
+        new SpectralLibrarySelection());
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(SpectralLibraryToFeatureListModule.class), param));
   }
 
   protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
