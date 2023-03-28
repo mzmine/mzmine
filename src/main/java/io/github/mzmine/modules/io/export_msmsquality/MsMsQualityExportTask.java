@@ -226,10 +226,13 @@ public class MsMsQualityExportTask extends AbstractTask {
       score = new MSMSScore(Result.SUCCESS_WITHOUT_FORMULA);
     }
 
-    return new SpectrumMsMsQuality((float) isolationChimerityScore, score,
+    final Double tic = msmsScan.getTIC();
+    final Double bpi = msmsScan.getBasePeakIntensity();
+
+    return new SpectrumMsMsQuality(feature.getRow().getID(), (float) isolationChimerityScore, score,
         msmsScan.getNumberOfDataPoints(), (float) ScanUtils.getSpectralEntropy(msmsScan),
         (float) ScanUtils.getNormalizedSpectralEntropy(msmsScan),
         (float) ScanUtils.getWeightedSpectralEntropy(msmsScan),
-        (float) ScanUtils.getNormalizedWeightedSpectralEntropy(msmsScan), annotation);
+        (float) ScanUtils.getNormalizedWeightedSpectralEntropy(msmsScan), annotation, tic, bpi);
   }
 }
