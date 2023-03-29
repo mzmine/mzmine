@@ -118,9 +118,9 @@ public class GroupMS2Task extends AbstractTask {
     minimumSignals = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMS2Parameters.minRequiredSignals, 0);
 
-    // only used for tims
+    // only used for tims, keeping input spectra is important for later merging.
     timsFragmentScanSelection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
-        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS,
+        IncludeInputSpectra.ALL, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS,
         getMemoryMapStorage());
 
     this.list = list;
