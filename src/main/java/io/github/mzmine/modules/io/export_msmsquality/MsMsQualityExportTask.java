@@ -28,11 +28,14 @@ package io.github.mzmine.modules.io.export_msmsquality;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -68,6 +71,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -85,7 +89,7 @@ public class MsMsQualityExportTask extends AbstractTask {
   private final String separator = ";";
   private final Map<IMSRawDataFile, MobilityScanDataAccess> mobScanAccessMap = new HashMap<>();
   private final MZTolerance msmsFormulaTolerance;
-  private final boolean annotatedOnly = true;
+  private final boolean annotatedOnly;
   private final ParameterSet parameterSet;
   private final ParameterSet folParams;
   private final MassDetector factorOfLowest = MassDetectionParameters.factorOfLowest;
@@ -102,12 +106,60 @@ public class MsMsQualityExportTask extends AbstractTask {
     exportFile = parameterSet.getValue(MsMsQualityExportParameters.file);
     matchCompoundToFlist = parameterSet.getValue(
         MsMsQualityExportParameters.matchCompoundNameToFlist);
+    annotatedOnly = parameterSet.getValue(MsMsQualityExportParameters.onlyCompoundAnnotated);
 
     folParams = MZmineCore.getConfiguration().getModuleParameters(FactorOfLowestMassDetector.class)
         .cloneParameterSet();
     folParams.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 1d);
 
     numRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
+  }
+
+  private static double getChimerityScore(ModularFeature feature,
+      MobilityScanDataAccess mobScanAccess, MergedMsMsSpectrum mergedMsMs, PasefMsMsInfo info,
+      Double window) {
+    final List<String> spotNames = getSpotNames(mergedMsMs);
+    double isolationChimerityScore = 0d;
+    int numMs1 = 0;
+    if (!spotNames.isEmpty()) {
+      for (String spotName : spotNames) {
+        final Frame ms1Frame = mobScanAccess.getEligibleFrames().stream().filter(
+            f -> f instanceof ImagingFrame img && img.getMaldiSpotInfo() != null
+                && img.getMaldiSpotInfo().spotName().contains(spotName)).findFirst().orElse(null);
+        if (ms1Frame != null) {
+          isolationChimerityScore += getChimerityForFrame(feature, mobScanAccess, ms1Frame, info,
+              window);
+          numMs1++;
+        }
+      }
+    } else {
+      final Frame ms1Frame = (Frame) feature.getRepresentativeScan();
+      isolationChimerityScore += getChimerityForFrame(feature, mobScanAccess, ms1Frame, info,
+          window);
+      numMs1++;
+    }
+    return isolationChimerityScore / numMs1;
+  }
+
+  @NotNull
+  private static List<String> getSpotNames(MergedMsMsSpectrum mergedMsMs) {
+    final List<String> spotNames = mergedMsMs.getSourceSpectra().stream()
+        .<String>mapMulti((s, c) -> {
+          if (s instanceof MobilityScan ms && ms.getFrame() instanceof ImagingFrame img
+              && img.getMaldiSpotInfo() != null) {
+            c.accept(img.getMaldiSpotInfo().spotName());
+          }
+        }).distinct().toList();
+    return spotNames;
+  }
+
+  private static double getChimerityForFrame(ModularFeature feature,
+      MobilityScanDataAccess mobScanAccess, Frame frame, PasefMsMsInfo info, Double window) {
+    mobScanAccess.jumpToFrame((Frame) frame);
+    final double isolationChimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(
+        feature.getMZ(), mobScanAccess, RangeUtils.rangeAround(feature.getMZ(), window),
+        info.getMobilityRange(), true);
+    return isolationChimerityScore;
   }
 
   @Override
@@ -161,7 +213,7 @@ public class MsMsQualityExportTask extends AbstractTask {
                 getModuleCallDate()));
       }
     } catch (IOException e) {
-      logger.warning(() -> "Error exporting feature list quality.");
+      logger.log(Level.WARNING, "Error exporting feature list quality.", e);
     }
 
     setStatus(TaskStatus.FINISHED);
@@ -181,7 +233,6 @@ public class MsMsQualityExportTask extends AbstractTask {
 
       writer.write(featureList.getName() + separator);
       writer.write(quality.toCsvString(separator));
-      writer.write(String.format("%s%.1f", separator, mergedMsMs.getCollisionEnergy()));
       /*if (feature.get(MaldiSpotType.class) != null) {
         writer.write(separator + feature.get(MaldiSpotType.class));
       }*/
@@ -195,16 +246,12 @@ public class MsMsQualityExportTask extends AbstractTask {
 
     final PasefMsMsInfo info = (PasefMsMsInfo) mergedMsMs.getMsMsInfo();
     final Double window = RangeUtils.rangeLength(mergedMsMs.getMsMsInfo().getIsolationWindow());
-
-    mobScanAccess.jumpToFrame((Frame) feature.getRepresentativeScan());
-    final double isolationChimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(
-        mergedMsMs.getPrecursorMz(), mobScanAccess,
-        RangeUtils.rangeAround(mergedMsMs.getPrecursorMz().doubleValue(), window * 2),
-        info.getMobilityRange(), true);
+    final double isolationChimerityScore = getChimerityScore(feature, mobScanAccess, mergedMsMs,
+        info, window);
 
     final MSMSScore score;
 
-    if (formula != null) {
+    if (formula != null && annotation.getAdductType() != null) {
       final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
           formula, SilentChemObjectBuilder.getInstance());
       try {
@@ -228,11 +275,18 @@ public class MsMsQualityExportTask extends AbstractTask {
 
     final Double tic = msmsScan.getTIC();
     final Double bpi = msmsScan.getBasePeakIntensity();
-
+    final List<String> spotNames = getSpotNames(mergedMsMs);
+    final IonTimeSeries<? extends Scan> eic = feature.getFeatureData();
+    final List<? extends Scan> scans = eic.getSpectra().stream().filter(
+            s -> s instanceof ImagingFrame img && spotNames.contains(img.getMaldiSpotInfo().spotName()))
+        .toList();
+    final double precursorIntensity = scans.stream().map(eic::getIntensityForSpectrum)
+        .mapToDouble(Double::doubleValue).sum();
     return new SpectrumMsMsQuality(feature.getRow().getID(), (float) isolationChimerityScore, score,
         msmsScan.getNumberOfDataPoints(), (float) ScanUtils.getSpectralEntropy(msmsScan),
         (float) ScanUtils.getNormalizedSpectralEntropy(msmsScan),
         (float) ScanUtils.getWeightedSpectralEntropy(msmsScan),
-        (float) ScanUtils.getNormalizedWeightedSpectralEntropy(msmsScan), annotation, tic, bpi);
+        (float) ScanUtils.getNormalizedWeightedSpectralEntropy(msmsScan), annotation, tic, bpi,
+        precursorIntensity, spotNames, ScanUtils.extractCollisionEnergies(msmsScan));
   }
 }

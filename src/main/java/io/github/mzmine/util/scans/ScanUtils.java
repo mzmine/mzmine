@@ -198,6 +198,18 @@ public class ScanUtils {
     };
   }
 
+  public static List<Float> extractCollisionEnergies(MassSpectrum spectrum) {
+    return switch (spectrum) {
+      case MergedMassSpectrum merged ->
+          merged.getSourceSpectra().stream().map(ScanUtils::extractCollisionEnergy).distinct()
+              .filter(Objects::nonNull).toList();
+      case Scan scan ->
+          scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null ? List.of(
+              scan.getMsMsInfo().getActivationEnergy()) : List.of();
+      case default -> List.of();
+    };
+  }
+
   /**
    * DataPoint usage is discouraged when used to stare data. It can be used when sorting of data
    * points is needed etc.
@@ -227,7 +239,8 @@ public class ScanUtils {
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
     if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
-      return new SimpleDataPoint(scanBasePeakMz, requireNonNullElse(scan.getBasePeakIntensity(), 0d));
+      return new SimpleDataPoint(scanBasePeakMz,
+          requireNonNullElse(scan.getBasePeakIntensity(), 0d));
     }
 
     final double lower = mzRange.lowerEndpoint();
