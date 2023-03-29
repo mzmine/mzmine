@@ -26,9 +26,11 @@
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ClearAnnotationsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class ClearFeatureAnnotationsParameters extends SimpleParameterSet {
 
@@ -41,4 +43,8 @@ public class ClearFeatureAnnotationsParameters extends SimpleParameterSet {
     super(new Parameter[]{featureLists, clear});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }
