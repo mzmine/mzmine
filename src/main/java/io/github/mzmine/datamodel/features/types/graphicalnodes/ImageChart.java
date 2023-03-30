@@ -107,6 +107,7 @@ public class ImageChart extends StackPane {
     view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
       getChildren().remove(view);
       getChildren().add(chart);
+      e.consume();
     }));
 
     MZmineCore.runLater(() -> getChildren().add(view));

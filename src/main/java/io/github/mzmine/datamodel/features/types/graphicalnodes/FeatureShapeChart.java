@@ -41,9 +41,11 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
@@ -64,7 +66,7 @@ public class FeatureShapeChart extends StackPane {
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
-      if(f.getRawDataFile() instanceof ImagingRawDataFile) {
+      if (f.getRawDataFile() instanceof ImagingRawDataFile) {
         continue;
       }
       IonTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
@@ -104,12 +106,22 @@ public class FeatureShapeChart extends StackPane {
     }
 
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    Platform.runLater(() -> {
-      getChildren().add(chart);
-      chart.addDatasets(datasets);
+    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
 
-      chart.getXYPlot().getDomainAxis().setRange(defaultRange);
-      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
-    });
+    chart.addDatasets(datasets);
+    chart.getXYPlot().getDomainAxis().setRange(defaultRange);
+    chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
+
+    BufferedImage img = chart.getChart()
+        .createBufferedImage(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
+            GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
+    view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
+      getChildren().remove(view);
+      getChildren().add(chart);
+      e.consume();
+    }));
+
+    MZmineCore.runLater(() -> getChildren().add(view));
   }
 }

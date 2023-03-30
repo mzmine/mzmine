@@ -90,6 +90,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
       // change buffered image to buffered chart on mouse click
       getChildren().remove(view);
       getChildren().add(chart);
+      e.consume();
     }));
 
     Platform.runLater(() -> getChildren().add(view));
