@@ -161,6 +161,10 @@ public class ScanUtils {
         && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
+    if (scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null) {
+      buf.append(" CE: ").append(scan.getMsMsInfo().getActivationEnergy()).append("eV");
+    }
+
     switch (scan.getSpectrumType()) {
       case CENTROIDED -> buf.append(" c");
       case PROFILE -> buf.append(" p");
@@ -217,7 +221,8 @@ public class ScanUtils {
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
     if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
-      return new SimpleDataPoint(scanBasePeakMz, requireNonNullElse(scan.getBasePeakIntensity(), 0d));
+      return new SimpleDataPoint(scanBasePeakMz,
+          requireNonNullElse(scan.getBasePeakIntensity(), 0d));
     }
 
     final double lower = mzRange.lowerEndpoint();
