@@ -48,6 +48,9 @@ import java.util.List;
 
 public class Massvoltammogram {
 
+  //Plot
+  private final MassvoltammogramPlotPanel plot = new MassvoltammogramPlotPanel(this);
+
   //Raw Data
   private final RawDataFile file;
   private final ModularFeatureList featureList;
@@ -57,19 +60,22 @@ public class Massvoltammogram {
   private final ReactionMode reactionMode;
   private final double delayTime; //In s.
   private final Range<Double> potentialRange;
-  //Plot
-  private final MassvoltammogramPlotPanel plot = new MassvoltammogramPlotPanel(this);
   private double potentialRampSpeed; //In mV/s.
   private double stepSize; //In mV.
   private Range<Double> userInputMzRange;
+
   //Potentials in mV.
   private double startPotential;
   private double endPotential;
+
   //MassvoltammogramScans
   private List<MassvoltammogramScan> rawScans;
   private List<MassvoltammogramScan> rawScansInMzRange;
   private List<MassvoltammogramScan> processedScans;
 
+  //Progress.
+  private int numExtractedScans;
+  private int numTotalScans;
 
   public Massvoltammogram(RawDataFile file, ScanSelection scanSelection, ReactionMode reactionMode,
       double delayTime, double potentialRampSpeed, Range<Double> potentialRange, double stepSize,
@@ -88,12 +94,8 @@ public class Massvoltammogram {
     //Setting unused variables to null.
     this.featureList = null;
 
-    //Creating the massvoltammogram from the raw data file.
+    //Setting the potentials.
     setPotentials();
-    extractScansFromRawDataFile();
-    cropRawScansToMzRange();
-    processRawScans();
-    plotMassvoltammogram();
   }
 
   public Massvoltammogram(ModularFeatureList featureList, ReactionMode reactionMode,
@@ -113,12 +115,40 @@ public class Massvoltammogram {
     this.file = null;
     this.scanSelection = null;
 
-    //Creating the massvoltammogram from the feature list.
+    //Setting the potentials.
     setPotentials();
-    extractScansFromFeatureList();
+  }
+
+  public void draw() {
+
+    //Setting the total number of scans needed to be extracted.
+    numTotalScans = ((int) Math.abs(endPotential) / (int) stepSize) + 1;
+
+    //Extracting the raw scans
+    if (file != null) {
+      extractScansFromRawDataFile();
+    } else if (featureList != null) {
+      extractScansFromFeatureList();
+    }
+
+    //Creating the massvoltammogram from the raw scans.
     cropRawScansToMzRange();
     processRawScans();
     plotMassvoltammogram();
+
+    //Resetting the number of processed scans, to show the progress correctly if the draw method gets called again.
+    numExtractedScans = 0;
+  }
+
+  /**
+   * @return Returns the progress for the extraction of the raw scans.
+   */
+  public double getProgress() {
+    if (numTotalScans > 0) {
+      return (double) numExtractedScans / (double) numTotalScans;
+    } else {
+      return 0;
+    }
   }
 
   /**
@@ -183,6 +213,9 @@ public class Massvoltammogram {
 
       //Incrementing the potential.
       potential = potential + stepSize;
+
+      //Updating the number of extracted scans for the progress.
+      numExtractedScans++;
     }
 
     this.rawScans = scans;
@@ -250,6 +283,9 @@ public class Massvoltammogram {
       }
       //Increasing the potential by the potential step size.
       potential = potential + stepSize;
+
+      //Updating the number of extracted scans for the progress.
+      numExtractedScans++;
     }
 
     this.rawScans = scans;
