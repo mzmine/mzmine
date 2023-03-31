@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
-import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExport;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportTask;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.geometry.Orientation;
@@ -100,7 +100,7 @@ public class MassvoltammogramToolBar extends ToolBar {
     //Creating a button to export the plot.
     final Button exportButton = new Button(null, new ImageView(EXPORT_PLOT_ICON));
     exportButton.setTooltip(new Tooltip("Export the massvoltammogram."));
-    exportButton.setOnAction(e -> MassvoltammogramExport.exportPlot(massvoltammogram));
+    exportButton.setOnAction(e -> new MassvoltammogramExportTask(massvoltammogram));
     exportButton.setMinSize(35, 35);
 
     //Creating a button to edit the m/z-range.

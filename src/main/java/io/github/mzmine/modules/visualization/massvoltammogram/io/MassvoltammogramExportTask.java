@@ -25,9 +25,14 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -39,6 +44,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,22 +58,42 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class MassvoltammogramExport {
+public class MassvoltammogramExportTask implements Task {
 
-  private MassvoltammogramExport() {
-    throw new IllegalStateException("Utility class");
+  //Export variables.
+  private final Massvoltammogram massvoltammogram;  //The massvoltammogram that will be exported.
+  private File file; //The file the massvoltammogram will be exported to
+
+  //Task variables.
+  private TaskStatus taskStatus;
+  private List<TaskStatusListener> listeners;
+  private String errorMessage = null;
+
+  //Finished percentage.
+  private int numExportedScans;
+  private int numTotalScans;
+
+
+  public MassvoltammogramExportTask(Massvoltammogram massvoltammogram) {
+
+    //Setting the massvoltammogram to be exported.
+    this.massvoltammogram = massvoltammogram;
+
+    //Adding the ExportTask to the TaskController.
+    MZmineCore.getTaskController().addTask(this, getTaskPriority());
+
+    //Running the ExportTask
+    setStatus(TaskStatus.PROCESSING);
   }
 
   /**
    * Method to export the massvoltammogram to different file formats.
-   *
-   * @param massvoltammogram The massvoltammogram to be exported.
    */
-  public static void exportPlot(Massvoltammogram massvoltammogram) {
+  public void run() {
 
     //Initializing a file chooser and a file to save the selected path to.
     final FileChooser fileChooser = new FileChooser();
-    final AtomicReference<File> file = new AtomicReference<>(null);
+    final AtomicReference<File> chosenFile = new AtomicReference<>(null);
 
     //Generating the extension filters.
     final FileChooser.ExtensionFilter extensionFilterPNG = new ExtensionFilter(
@@ -78,27 +104,31 @@ public class MassvoltammogramExport {
     fileChooser.getExtensionFilters()
         .addAll(Arrays.asList(extensionFilterCSV, extensionFilterXLSX, extensionFilterPNG));
 
-    //Opening dialog to choose the path to save the png files to.
-    FxThreadUtil.runOnFxThreadAndWait(() -> file.set(fileChooser.showSaveDialog(null)));
-    if (file.get() == null) {
+    //Opening dialog to choose the path to save the file to.
+    FxThreadUtil.runOnFxThreadAndWait(() -> chosenFile.set(fileChooser.showSaveDialog(null)));
+
+    //Cancelling the task if no file was chosen.
+    if (chosenFile.get() == null) {
+      cancel();
       return;
     }
-    final String selectedFormat = FilenameUtils.getExtension(file.get().getName());
+    this.file = chosenFile.get();
 
+    //Exporting the massvoltammogram to the selected format.
+    final String selectedFormat = FilenameUtils.getExtension(chosenFile.get().getName());
     switch (selectedFormat) {
-      case "csv" -> MassvoltammogramExport.toCSV(massvoltammogram, file.get());
-      case "png" -> MassvoltammogramExport.toPNG(massvoltammogram, file.get());
-      case "xlsx" -> MassvoltammogramExport.toXLSX(massvoltammogram, file.get());
+      case "csv" -> toCSV();
+      case "png" -> toPNG();
+      case "xlsx" -> toXLSX();
     }
+
+    setStatus(TaskStatus.FINISHED);
   }
 
   /**
    * Method to export the massvoltammogram to a png-file.
-   *
-   * @param massvoltammogram The massvoltammogram to be exported.
-   * @param file             The path the massvoltammogram will be exported to.
    */
-  private static void toPNG(Massvoltammogram massvoltammogram, File file) {
+  private void toPNG() {
 
     MassvoltammogramPlotPanel plot = massvoltammogram.getPlot();
 
@@ -123,11 +153,8 @@ public class MassvoltammogramExport {
 
   /**
    * Method to export the massvoltammograms scan sto single csv-files.
-   *
-   * @param massvoltammogram The massvoltammogram to be exported.
-   * @param file             the pht the massvoltammogram will be exported to.
    */
-  private static void toCSV(Massvoltammogram massvoltammogram, File file) {
+  private void toCSV() {
 
     //Getting the file name and path.
     final String fileName = FilenameUtils.removeExtension(file.getName());
@@ -142,6 +169,9 @@ public class MassvoltammogramExport {
 
     //Getting the data to export from the PlotPanel.
     List<MassvoltammogramScan> scans = massvoltammogram.getRawScansInMzRange();
+
+    //Setting the total number of scans to calculate the finished percentage.
+    numTotalScans = scans.size();
 
     //Exporting the data to csv files.
     for (MassvoltammogramScan scan : scans) {
@@ -163,64 +193,69 @@ public class MassvoltammogramExport {
       catch (IOException ioException) {
         ioException.printStackTrace();
       }
+
+      //Updating the number of exported scans.
+      numExportedScans++;
     }
   }
 
   /**
    * Method to export the massvoltammograms data to a single xlsx-file.
-   *
-   * @param massvoltammogram The massvoltammogram to be exported.
-   * @param file             The file the massvoltammogram will be exported to.
    */
-  private static void toXLSX(Massvoltammogram massvoltammogram, File file) {
+  private void toXLSX() {
 
     //Creating an excel-workbook.
-    XSSFWorkbook xlsxWorkbook = new XSSFWorkbook();
-    XSSFSheet sheet = xlsxWorkbook.createSheet("Massvoltammogram");
+    try (XSSFWorkbook xlsxWorkbook = new XSSFWorkbook()) {
+      XSSFSheet sheet = xlsxWorkbook.createSheet("Massvoltammogram");
 
-    //Getting all the massvoltammograms scans.
-    List<MassvoltammogramScan> scans = massvoltammogram.getRawScansInMzRange();
+      //Getting all the massvoltammograms scans.
+      List<MassvoltammogramScan> scans = massvoltammogram.getRawScansInMzRange();
 
-    //Adding the potential values to the first row.
-    Row firstRow = sheet.createRow(0);
-    int firstRowCellCounter = 1;
-    for (MassvoltammogramScan scan : scans) {
+      //Setting the total number of scans to calculate the finished percentage.
+      numTotalScans = scans.size();
 
-      Cell potentialCell = firstRow.createCell(firstRowCellCounter);
-      potentialCell.setCellValue(scan.getPotential());
+      //Adding the potential values to the first row.
+      Row firstRow = sheet.createRow(0);
+      int firstRowCellCounter = 1;
+      for (MassvoltammogramScan scan : scans) {
 
-      firstRowCellCounter += 2;
-    }
+        Cell potentialCell = firstRow.createCell(firstRowCellCounter);
+        potentialCell.setCellValue(scan.getPotential());
 
-    //Writing the intensity and mz-values of all MassvoltammogramScans to the excel-file
-    int columnCounter = 0;
-    for (MassvoltammogramScan scan : scans) {
-
-      //Going over all datapoints in the given scan.
-      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
-
-        //Adding the datapoint to an already existing row in the excel-file.
-        if (sheet.getRow(i + 1) != null) {
-          Row row = sheet.getRow(i + 1);
-          addDatapointToExcelRow(scan, row, columnCounter, i);
-        }
-
-        //Adding a new row in the excel-file for the data if no row is found.
-        else {
-          Row row = sheet.createRow(i + 1);
-          addDatapointToExcelRow(scan, row, columnCounter, i);
-        }
+        firstRowCellCounter += 2;
       }
-      //Increasing the column counter.
-      columnCounter += 2;
-    }
 
-    //Writing the excel-file to disk.
-    try {
+      //Writing the intensity and mz-values of all MassvoltammogramScans to the excel-file
+      int columnCounter = 0;
+      for (MassvoltammogramScan scan : scans) {
+
+        //Going over all datapoints in the given scan.
+        for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
+
+          //Adding the datapoint to an already existing row in the excel-file.
+          if (sheet.getRow(i + 1) != null) {
+            Row row = sheet.getRow(i + 1);
+            addDatapointToExcelRow(scan, row, columnCounter, i);
+          }
+
+          //Adding a new row in the excel-file for the data if no row is found.
+          else {
+            Row row = sheet.createRow(i + 1);
+            addDatapointToExcelRow(scan, row, columnCounter, i);
+          }
+        }
+        //Increasing the column counter.
+        columnCounter += 2;
+
+        //Updating the number of exported scans.
+        numExportedScans++;
+      }
+
+      //Writing the excel-file to disk.
       FileOutputStream fileOutputStream = new FileOutputStream(file);
       xlsxWorkbook.write(fileOutputStream);
 
-    } catch (Exception e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -233,7 +268,7 @@ public class MassvoltammogramExport {
    * @param columnNumber   The number of the column the datapoint will be added to.
    * @param datapointIndex The index of the datapoint in the MassvoltammogramScan.
    */
-  private static void addDatapointToExcelRow(MassvoltammogramScan scan, Row row, int columnNumber,
+  private void addDatapointToExcelRow(MassvoltammogramScan scan, Row row, int columnNumber,
       int datapointIndex) {
 
     //Creating the cells.
@@ -243,5 +278,79 @@ public class MassvoltammogramExport {
     //Adding the data.
     mzCell.setCellValue(scan.getMz(datapointIndex));
     intensityCell.setCellValue(scan.getIntensity(datapointIndex));
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "Exporting the massvoltammogram to disk.";
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+
+    if (numTotalScans > 0) {
+
+      return (double) numExportedScans / (double) numTotalScans;
+    } else {
+      return 0;
+    }
+  }
+
+  @Override
+  public TaskStatus getStatus() {
+    return taskStatus;
+  }
+
+  public final void setStatus(TaskStatus newStatus) {
+    TaskStatus oldStatus = taskStatus;
+    this.taskStatus = newStatus;
+    if (listeners != null && !taskStatus.equals(oldStatus)) {
+      for (TaskStatusListener listener : listeners) {
+        listener.taskStatusChanged(this, taskStatus, oldStatus);
+      }
+    }
+  }
+
+  @Override
+  public final String getErrorMessage() {
+    return errorMessage;
+  }
+
+  public final void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  @Override
+  public void cancel() {
+    setStatus(TaskStatus.CANCELED);
+  }
+
+  @Override
+  public void addTaskStatusListener(TaskStatusListener list) {
+    if (listeners == null) {
+      listeners = new ArrayList<>();
+    }
+    listeners.add(list);
+  }
+
+  @Override
+  public boolean removeTaskStatusListener(TaskStatusListener list) {
+    if (listeners != null) {
+      return listeners.remove(list);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void clearTaskStatusListener() {
+    if (listeners != null) {
+      listeners.clear();
+    }
   }
 }
