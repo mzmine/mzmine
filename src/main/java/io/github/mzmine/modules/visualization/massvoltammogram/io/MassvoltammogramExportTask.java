@@ -69,7 +69,7 @@ public class MassvoltammogramExportTask implements Task {
   private List<TaskStatusListener> listeners;
   private String errorMessage = null;
 
-  //Finished percentage.
+  //Progress.
   private int numExportedScans;
   private int numTotalScans;
 
@@ -80,16 +80,40 @@ public class MassvoltammogramExportTask implements Task {
     this.massvoltammogram = massvoltammogram;
 
     //Adding the ExportTask to the TaskController.
+    setStatus(TaskStatus.WAITING);
     MZmineCore.getTaskController().addTask(this, getTaskPriority());
+  }
 
-    //Running the ExportTask
+  public void run() {
+
+    //Getting the file the massvoltammogram will be exported to.
+    getFile();
+
+    //Starting the export.
     setStatus(TaskStatus.PROCESSING);
+
+    //Cancelling the task if no file was chosen.
+    if (file == null) {
+      cancel();
+      return;
+    }
+
+    //Exporting the massvoltammogram to the selected format.
+    final String selectedFormat = FilenameUtils.getExtension(file.getName());
+    switch (selectedFormat) {
+      case "csv" -> toCSV();
+      case "png" -> toPNG();
+      case "xlsx" -> toXLSX();
+      default -> cancel();
+    }
+
+    setStatus(TaskStatus.FINISHED);
   }
 
   /**
-   * Method to export the massvoltammogram to different file formats.
+   * Sets the file field to the file chosen by the user. File can be null if no file was chosen.
    */
-  public void run() {
+  private void getFile() {
 
     //Initializing a file chooser and a file to save the selected path to.
     final FileChooser fileChooser = new FileChooser();
@@ -107,22 +131,8 @@ public class MassvoltammogramExportTask implements Task {
     //Opening dialog to choose the path to save the file to.
     FxThreadUtil.runOnFxThreadAndWait(() -> chosenFile.set(fileChooser.showSaveDialog(null)));
 
-    //Cancelling the task if no file was chosen.
-    if (chosenFile.get() == null) {
-      cancel();
-      return;
-    }
+    //Setting the file.
     this.file = chosenFile.get();
-
-    //Exporting the massvoltammogram to the selected format.
-    final String selectedFormat = FilenameUtils.getExtension(chosenFile.get().getName());
-    switch (selectedFormat) {
-      case "csv" -> toCSV();
-      case "png" -> toPNG();
-      case "xlsx" -> toXLSX();
-    }
-
-    setStatus(TaskStatus.FINISHED);
   }
 
   /**
@@ -282,14 +292,16 @@ public class MassvoltammogramExportTask implements Task {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting the massvoltammogram to disk.";
+    return "Exporting the massvoltammogram.";
   }
 
+  /**
+   * @return Returns the progress of the export. Returns 0 if no progress could be calculated.
+   */
   @Override
   public double getFinishedPercentage() {
 
     if (numTotalScans > 0) {
-
       return (double) numExportedScans / (double) numTotalScans;
     } else {
       return 0;

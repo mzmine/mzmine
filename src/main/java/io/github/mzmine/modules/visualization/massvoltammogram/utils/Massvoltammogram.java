@@ -48,14 +48,14 @@ import java.util.List;
 
 public class Massvoltammogram {
 
-  //Plot
+  //The plot.
   private final MassvoltammogramPlotPanel plot = new MassvoltammogramPlotPanel(this);
 
-  //Raw Data
+  //Raw Data.
   private final RawDataFile file;
   private final ModularFeatureList featureList;
 
-  //Parameter
+  //Parameter.
   private final ScanSelection scanSelection;
   private final ReactionMode reactionMode;
   private final double delayTime; //In s.
@@ -68,7 +68,7 @@ public class Massvoltammogram {
   private double startPotential;
   private double endPotential;
 
-  //MassvoltammogramScans
+  //MassvoltammogramScans.
   private List<MassvoltammogramScan> rawScans;
   private List<MassvoltammogramScan> rawScansInMzRange;
   private List<MassvoltammogramScan> processedScans;
@@ -77,6 +77,7 @@ public class Massvoltammogram {
   private int numExtractedScans;
   private int numTotalScans;
 
+  //Constructor from raw data file.
   public Massvoltammogram(RawDataFile file, ScanSelection scanSelection, ReactionMode reactionMode,
       double delayTime, double potentialRampSpeed, Range<Double> potentialRange, double stepSize,
       Range<Double> mzRange) {
@@ -98,6 +99,7 @@ public class Massvoltammogram {
     setPotentials();
   }
 
+  //Constructor from feature list.
   public Massvoltammogram(ModularFeatureList featureList, ReactionMode reactionMode,
       double delayTime, double potentialRampSpeed, Range<Double> potentialRange, double stepSize,
       Range<Double> mzRange) {
@@ -119,6 +121,9 @@ public class Massvoltammogram {
     setPotentials();
   }
 
+  /**
+   * Method to create all necessary MassvoltammogramScans as well as the MassvoltammogramPlotPanel.
+   */
   public void draw() {
 
     //Setting the total number of scans needed to be extracted.
@@ -319,7 +324,6 @@ public class Massvoltammogram {
     //Removing low intensity signals as well as neighbouring signals with intensity values of 0.
     processedScans = MassvoltammogramUtils.removeNoise(rawScansInMzRange,
         getMaxIntensity(rawScansInMzRange));
-
   }
 
   /**
