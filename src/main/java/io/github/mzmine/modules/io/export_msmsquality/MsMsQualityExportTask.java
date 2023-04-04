@@ -25,10 +25,12 @@
 
 package io.github.mzmine.modules.io.export_msmsquality;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -59,6 +61,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IonMobilityUtils;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -178,7 +181,7 @@ public class MsMsQualityExportTask extends AbstractTask {
 
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile))) {
       writer.write(
-          String.join(separator, "feature_list", SpectrumMsMsQuality.getHeader(separator), "spot"));
+          String.join(separator, "feature_list", SpectrumMsMsQuality.getHeader(separator)));
       writer.newLine();
 
       for (FeatureList featureList : featureLists) {
@@ -228,6 +231,9 @@ public class MsMsQualityExportTask extends AbstractTask {
 
     for (Scan msmsScan : feature.getAllMS2FragmentScans()) {
       final MergedMsMsSpectrum mergedMsMs = (MergedMsMsSpectrum) msmsScan;
+      if (mergedMsMs.getMergingType() != MergingType.PASEF_SINGLE) {
+        continue;
+      }
       final SpectrumMsMsQuality quality = getImsMsMsQuality(feature, formula, mobScanAccess,
           msmsScan, mergedMsMs, annotation);
 
@@ -282,11 +288,15 @@ public class MsMsQualityExportTask extends AbstractTask {
         .toList();
     final double precursorIntensity = scans.stream().map(eic::getIntensityForSpectrum)
         .mapToDouble(Double::doubleValue).sum();
+    final PasefMsMsInfo ms2Info = (PasefMsMsInfo) msmsScan.getMsMsInfo();
+    final String mobRange = ParsingUtils.rangeToString((Range) ms2Info.getMobilityRange());
+    final String precursorMz = "%.4f".formatted(ms2Info.getIsolationMz());
     return new SpectrumMsMsQuality(feature.getRow().getID(), (float) isolationChimerityScore, score,
         msmsScan.getNumberOfDataPoints(), (float) ScanUtils.getSpectralEntropy(msmsScan),
         (float) ScanUtils.getNormalizedSpectralEntropy(msmsScan),
         (float) ScanUtils.getWeightedSpectralEntropy(msmsScan),
         (float) ScanUtils.getNormalizedWeightedSpectralEntropy(msmsScan), annotation, tic, bpi,
-        precursorIntensity, spotNames, ScanUtils.extractCollisionEnergies(msmsScan));
+        precursorIntensity, spotNames, mobRange, precursorMz,
+        ScanUtils.extractCollisionEnergies(msmsScan));
   }
 }
