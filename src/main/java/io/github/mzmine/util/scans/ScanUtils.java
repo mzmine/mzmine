@@ -162,7 +162,7 @@ public class ScanUtils {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
     if (scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null) {
-      buf.append(" CE: ").append(scan.getMsMsInfo().getActivationEnergy()).append("eV");
+      buf.append(" CE: ").append(scan.getMsMsInfo().getActivationEnergy());
     }
 
     switch (scan.getSpectrumType()) {
