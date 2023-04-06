@@ -32,6 +32,10 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -85,7 +89,8 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting annotations of feature list(s) " + Arrays.toString(featureLists) + " to CSV file(s) ";
+    return "Exporting annotations of feature list(s) " + Arrays.toString(featureLists)
+           + " to CSV file(s) ";
   }
 
   @Override
@@ -162,8 +167,10 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
     try {
       // Create a list of column DataTypes
       var columns = Stream.of(IDType.class, CompoundNameType.class, IonTypeType.class,
-          ScoreType.class, PrecursorMZType.class, MobilityType.class, CCSType.class, RTType.class,
-          MethodType.class).map(c -> DataTypes.get((Class) c)).toList();
+              ScoreType.class, PrecursorMZType.class, MobilityType.class, CCSType.class, RTType.class,
+              FormulaType.class, SmilesStructureType.class, InChIStructureType.class,
+              InChIKeyStructureType.class, MethodType.class).map(c -> DataTypes.get((Class) c))
+          .toList();
 
       // Create a header string by joining the unique IDs of the DataTypes with commas
       var header = columns.stream().map(DataType::getUniqueID).collect(Collectors.joining(","));
@@ -181,7 +188,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
             String method = annotation.getAnnotationMethodUniqueId();
             // count exported for method
             int alreadyExported = methodCounter.computeIfAbsent(method, m -> 0);
-            if(alreadyExported>=topNMatches) {
+            if (alreadyExported >= topNMatches) {
               continue;
             }
             // Export fields from the FeatureAnnotation object
@@ -193,9 +200,13 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
             Float mobility = annotation.getMobility();
             Float getCCS = annotation.getCCS();
             Float getRT = annotation.getRT();
+            String smiles = annotation.getSmiles();
+            String inchi = annotation.getInChI();
+            String inchikey = annotation.getInChIKey();
+            String formula = annotation.getFormula();
 
             String result = Stream.of(rowId, compoundName, adductType, scoreType, precursorMZ,
-                    mobility, getCCS, getRT, method)
+                    mobility, getCCS, getRT, formula, smiles, inchi, inchikey, method)
                 .map(o -> (o == null) ? "" : CSVUtils.escape(o.toString(), fieldSeparator))
                 .collect(Collectors.joining(","));
 

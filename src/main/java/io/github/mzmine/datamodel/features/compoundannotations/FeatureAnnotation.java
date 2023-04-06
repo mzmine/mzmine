@@ -69,6 +69,10 @@ public interface FeatureAnnotation {
 
   @Nullable String getSmiles();
 
+  @Nullable String getInChI();
+
+  @Nullable String getInChIKey();
+
   @Nullable String getCompoundName();
 
   @Nullable String getFormula();
