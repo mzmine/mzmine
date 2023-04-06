@@ -48,18 +48,17 @@ import java.util.List;
 
 public class Massvoltammogram {
 
-  //The plot.
+  //Plot parameter.
   private final MassvoltammogramPlotPanel plot = new MassvoltammogramPlotPanel(this);
-
   //Raw Data.
   private final RawDataFile file;
   private final ModularFeatureList featureList;
-
   //Parameter.
   private final ScanSelection scanSelection;
   private final ReactionMode reactionMode;
   private final double delayTime; //In s.
   private final Range<Double> potentialRange;
+  private double divisor;
   private double potentialRampSpeed; //In mV/s.
   private double stepSize; //In mV.
   private Range<Double> userInputMzRange;
@@ -76,6 +75,8 @@ public class Massvoltammogram {
   //Progress.
   private int numExtractedScans;
   private int numTotalScans;
+
+  private boolean mzRangeIsEmpty;
 
   //Constructor from raw data file.
   public Massvoltammogram(RawDataFile file, ScanSelection scanSelection, ReactionMode reactionMode,
@@ -138,8 +139,16 @@ public class Massvoltammogram {
 
     //Creating the massvoltammogram from the raw scans.
     cropRawScansToMzRange();
-    processRawScans();
-    plotMassvoltammogram();
+
+    //Processing and plotting the massvoltammogram.
+    if (!mzRangeIsEmpty) {
+      processRawScans();
+      plotMassvoltammogram();
+
+      //Plotting an empty massvoltammogram if there is no data in the mz-range.
+    } else {
+      plotEmptyMassvoltammogram();
+    }
 
     //Resetting the number of processed scans, to show the progress correctly if the draw method gets called again.
     numExtractedScans = 0;
@@ -302,16 +311,16 @@ public class Massvoltammogram {
   private void cropRawScansToMzRange() {
 
     //Extracting the mz-range from the scans.
-    List<MassvoltammogramScan> scansInMzRange = MassvoltammogramUtils.extractMZRangeFromScan(
-        rawScans, userInputMzRange);
+    rawScansInMzRange = MassvoltammogramUtils.extractMZRangeFromScan(rawScans, userInputMzRange);
+
+    //Checking if there is no raw data in the mz-range before aligning the scans.
+    checkIfMzRangeIsEmpty();
 
     //Adding datapoints with an intensity of zero around centroid datapoints to visualize them correctly.
-    MassvoltammogramUtils.addZerosToCentroidData(scansInMzRange);
+    MassvoltammogramUtils.addZerosToCentroidData(rawScansInMzRange);
 
     //Aligning the scans to all start and end at the same mz-value.
-    MassvoltammogramUtils.alignScans(scansInMzRange, userInputMzRange);
-
-    this.rawScansInMzRange = scansInMzRange;
+    MassvoltammogramUtils.alignScans(rawScansInMzRange, userInputMzRange);
   }
 
   /**
@@ -321,7 +330,7 @@ public class Massvoltammogram {
 
     //Removing low intensity signals as well as neighbouring signals with intensity values of 0.
     processedScans = MassvoltammogramUtils.removeNoise(rawScansInMzRange,
-        getMaxIntensity(rawScansInMzRange));
+        MassvoltammogramUtils.getMaxIntensity(rawScansInMzRange));
   }
 
   /**
@@ -330,7 +339,8 @@ public class Massvoltammogram {
   private void plotMassvoltammogram() {
 
     //Calculating the divisor needed to scale the z-axis.
-    final double divisor = MassvoltammogramUtils.getDivisor(getMaxIntensity(processedScans));
+    final double maxIntensity = MassvoltammogramUtils.getMaxIntensity(processedScans);
+    divisor = MassvoltammogramUtils.getDivisor(maxIntensity);
 
     for (MassvoltammogramScan scan : processedScans) {
 
@@ -354,20 +364,52 @@ public class Massvoltammogram {
   }
 
   /**
+   * Creates an empty massvoltammogram plot in the given mz- and potential-range.
+   */
+  private void plotEmptyMassvoltammogram() {
+
+    //Adding the line plots to the plot panel.
+    for (MassvoltammogramScan scan : rawScansInMzRange) {
+      plot.addLinePlot("Spectrum at " + scan.getPotential() + " mV.", Color.black, scan.getMzs(),
+          scan.getPotentialAsArray(), scan.getIntensities());
+    }
+
+    //Setting up the plot's axis.
+    plot.setAxisLabels("m/z", "Potential / mV", "Intensity / a.u.");
+    plot.setFixedBounds(0, userInputMzRange.lowerEndpoint(), userInputMzRange.upperEndpoint());
+    plot.setFixedBounds(1, potentialRange.lowerEndpoint(), potentialRange.upperEndpoint());
+    plot.setFixedBounds(2, 0d, 10d);
+  }
+
+  /**
    * Sets the plots axis and labels.
    */
   private void formatPlot() {
-
-    //Calculating the divisor needed to scale the z-axis.
-    final double divisor = MassvoltammogramUtils.getDivisor(getMaxIntensity(processedScans));
 
     //Setting up the plot's axis.
     plot.setAxisLabels("m/z", "Potential / mV",
         "Intensity / 10" + MassvoltammogramUtils.toSuperscript((int) Math.log10(divisor))
             + " a.u.");
-    plot.setFixedBounds(1, potentialRange.lowerEndpoint(), potentialRange.upperEndpoint());
     plot.setFixedBounds(0, userInputMzRange.lowerEndpoint(), userInputMzRange.upperEndpoint());
+    plot.setFixedBounds(1, potentialRange.lowerEndpoint(), potentialRange.upperEndpoint());
   }
+
+  /**
+   * Checks if all the MassvoltammogramScans in the extracted mz-range are empty.
+   */
+  private void checkIfMzRangeIsEmpty() {
+
+    int numScans = rawScansInMzRange.size();
+    int numEmptyScans = 0;
+
+    for (MassvoltammogramScan scan : rawScansInMzRange) {
+      if (scan.isEmpty()) {
+        numEmptyScans++;
+      }
+    }
+    mzRangeIsEmpty = numScans == numEmptyScans;
+  }
+
 
   /**
    * @return Returns the massvoltammograms raw scans in m/z-range.
@@ -399,32 +441,6 @@ public class Massvoltammogram {
     return "";
   }
 
-  /**
-   * Finds the maximal intensity in a set of MassvoltammogramScans.
-   *
-   * @param scans The list of MassvoltammogramScans the maximal intensity will be extracted from.
-   * @return Returns the maximal intensity over all MassvoltammogramScans.
-   */
-  public double getMaxIntensity(List<MassvoltammogramScan> scans) {
-
-    //Setting the initial max intensity to 0.
-    double maxIntensity = 0;
-
-    //Going over every datapoint in all the scans and comparing the intensity to the current max intensity.
-    for (MassvoltammogramScan scan : scans) {
-      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
-        if (scan.getIntensity(i) > maxIntensity) {
-          maxIntensity = scan.getIntensity(i);
-        }
-      }
-    }
-    return maxIntensity;
-  }
-
-
-  public List<MassvoltammogramScan> getProcessedScans() {
-    return processedScans;
-  }
 
   /**
    * Asks the user for a new m/z-range, extracts this new m/z- range from the raw scans and plots
@@ -432,17 +448,25 @@ public class Massvoltammogram {
    */
   public void editMzRange() {
 
-    //Getting user input for the new m/z-Range.
+    //Getting user input for the new m/z-Range and cropping the raw scans.
     final MassvoltammogramMzRangeParameter mzRangeParameter = new MassvoltammogramMzRangeParameter();
     if (mzRangeParameter.showSetupDialog(true) != ExitCode.OK) {
       return;
     }
     this.userInputMzRange = mzRangeParameter.getValue(MassvoltammogramMzRangeParameter.mzRange);
-
     cropRawScansToMzRange();
-    processRawScans();
 
+    //Removing the old line plots to draw new ones.
     plot.removeAllPlots();
-    plotMassvoltammogram();
+
+    //Processing and plotting the massvoltammogram.
+    if (!mzRangeIsEmpty) {
+      processRawScans();
+      plotMassvoltammogram();
+
+      //Plotting an empty massvoltammogram if there is no data in the mz-range.
+    } else {
+      plotEmptyMassvoltammogram();
+    }
   }
 }

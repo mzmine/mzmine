@@ -79,6 +79,9 @@ public final class MassvoltammogramScan {
     return mzs[getNumberOfDatapoints() - 1];
   }
 
+  /**
+   * @return Returns the scans mz-values range. Returns null if the scan is empty.
+   */
   public Range<Double> getMzRange() {
     if (isEmpty()) {
       return null;

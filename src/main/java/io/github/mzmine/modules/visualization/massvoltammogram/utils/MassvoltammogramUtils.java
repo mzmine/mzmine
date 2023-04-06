@@ -128,29 +128,25 @@ public class MassvoltammogramUtils {
     //Going over all MassvoltammogramScans in the massvoltammogram.
     for (MassvoltammogramScan scan : scans) {
 
+      //Adds datapoints with 0 intensity to the beginning and end of an empty scan.
       if (scan.isEmpty()) {
-
         scan.setMzs(
             new double[]{userInputMzRange.lowerEndpoint(), userInputMzRange.upperEndpoint()});
         scan.setIntensities(new double[]{0, 0});
-
         continue;
-
       }
 
+      //Adds a datapoint with 0 intensity to the beginning of a scan, if no other datapoint is found.
       if (scan.getMinMz() > userInputMzRange.lowerEndpoint()) {
-
         scan.setMzs(
             ArrayUtils.addAll(new double[]{userInputMzRange.lowerEndpoint()}, scan.getMzs()));
         scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
-
       }
 
+      //Adds a datapoint with 0 intensity to the end of a scan, if no other datapoint is found.
       if (scan.getMaxMz() < userInputMzRange.upperEndpoint()) {
-
         scan.setMzs(ArrayUtils.add(scan.getMzs(), userInputMzRange.upperEndpoint()));
         scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
-
       }
     }
   }
@@ -249,73 +245,17 @@ public class MassvoltammogramUtils {
   }
 
   /**
-   * Method to get the min m/z-value from a list of scans.
-   *
-   * @param scans The scans.
-   * @return Returns the minimal m/z-value.
-   */
-  public static double getMinMZ(List<MassvoltammogramScan> scans) {
-
-    //Initializing the counter for the lists index.
-    int listIndex = 0;
-
-    //Setting the absolute minimal m/z-value equal to the first scans minimal m/z-value.
-    while (scans.get(listIndex).isEmpty()) {
-      listIndex++;
-    }
-    double absoluteMinMz = scans.get(listIndex).getMinMz();
-
-    //Checking all the other scans in the list weather there is an even smaller m/z-value.
-    while (listIndex < scans.size()) {
-      if (!scans.get(listIndex).isEmpty() && scans.get(listIndex).getMinMz() < absoluteMinMz) {
-        absoluteMinMz = scans.get(listIndex).getMinMz();
-      }
-
-      listIndex++;
-    }
-
-    return absoluteMinMz;
-  }
-
-  /**
-   * Method to get the max m/z-value from a list of scans.
-   *
-   * @param scans The scans.
-   * @return Returns the maximal m/z-value.
-   */
-  public static double getMaxMZ(List<MassvoltammogramScan> scans) {
-
-    //Initializing the counter for the lists index.
-    int listIndex = 0;
-
-    //Setting the absolute maximal m/z-value equal to the first scans maximal m/z-value.
-    while (scans.get(listIndex).isEmpty()) {
-      listIndex++;
-    }
-    double absoluteMaxMz = scans.get(listIndex).getMaxMz();
-
-    //Checking all the other scans in the list weather there is a bigger m/z-value.
-    while (listIndex < scans.size()) {
-      if (!scans.get(listIndex).isEmpty() && scans.get(listIndex).getMaxMz() > absoluteMaxMz) {
-        absoluteMaxMz = scans.get(listIndex).getMaxMz();
-      }
-
-      listIndex++;
-    }
-
-    return absoluteMaxMz;
-  }
-
-  /**
    * Method to get the m/z-range of a list of MassvoltammogramScans.
    *
    * @param scans The list of MassvoltammogramScans whose m/z-range will be determined.
-   * @return Returns the m/z-range of the list of MassvoltammogramScans.
+   * @return Returns the m/z-range of the list of MassvoltammogramScans. Returns null if all
+   * MassvoltammogramScans in the list are empty.
    */
   public static Range<Double> getMzRange(List<MassvoltammogramScan> scans) {
 
     Range<Double> mzRange = null;
 
+    //Going over all scans in the list and creating a range, that encloses all single scan mz-ranges.
     for (MassvoltammogramScan scan : scans) {
 
       Range<Double> currentMzRange = scan.getMzRange();
@@ -323,13 +263,34 @@ public class MassvoltammogramUtils {
       if (mzRange == null) {
         mzRange = currentMzRange;
 
-      } else {
+      } else if (currentMzRange != null) {
         mzRange = mzRange.span(currentMzRange);
       }
     }
     return mzRange;
   }
 
+  /**
+   * Finds the maximal intensity in a set of MassvoltammogramScans.
+   *
+   * @param scans The list of MassvoltammogramScans the maximal intensity will be extracted from.
+   * @return Returns the maximal intensity over all MassvoltammogramScans.
+   */
+  public static double getMaxIntensity(List<MassvoltammogramScan> scans) {
+
+    //Setting the initial max intensity to 0.
+    double maxIntensity = 0;
+
+    //Going over every datapoint in all the scans and comparing the intensity to the current max intensity.
+    for (MassvoltammogramScan scan : scans) {
+      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
+        if (scan.getIntensity(i) > maxIntensity) {
+          maxIntensity = scan.getIntensity(i);
+        }
+      }
+    }
+    return maxIntensity;
+  }
 
   /**
    * @param superscript Integer that will be converted to superscript.
