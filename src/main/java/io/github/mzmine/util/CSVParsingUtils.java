@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -122,8 +123,8 @@ public class CSVParsingUtils {
           case IntegerType it -> annotation.put(it, Integer.parseInt(line[columnIndex]));
           case DoubleType dt -> annotation.put(dt, Double.parseDouble(line[columnIndex]));
           case IonAdductType ignored -> {
-            final IonType ionType = IonType.parseFromString(line[columnIndex]);
-            annotation.put(IonTypeType.class, ionType);
+            final IonType ionType = IonTypeParser.parse(line[columnIndex]);
+            annotation.putIfNotNull(IonTypeType.class, ionType);
           }
           case StringType st -> annotation.put(st, line[columnIndex]);
           default -> throw new RuntimeException(
