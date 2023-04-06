@@ -123,42 +123,34 @@ public class MassvoltammogramUtils {
    *
    * @param scans The scans to be aligned.
    */
-  public static void alignScans(List<MassvoltammogramScan> scans,
-      Range<Double> extractedScansMzRange, Range<Double> userInputMzRange,
-      Range<Double> rawDataMzRange) {
+  public static void alignScans(List<MassvoltammogramScan> scans, Range<Double> userInputMzRange) {
 
     //Going over all MassvoltammogramScans in the massvoltammogram.
     for (MassvoltammogramScan scan : scans) {
 
-      //The user min mz is within the raw data mz range.
-      if (extractedScansMzRange.lowerEndpoint() > userInputMzRange.lowerEndpoint()
-          && userInputMzRange.lowerEndpoint() > rawDataMzRange.lowerEndpoint()) {
+      if (scan.isEmpty()) {
+
+        scan.setMzs(
+            new double[]{userInputMzRange.lowerEndpoint(), userInputMzRange.upperEndpoint()});
+        scan.setIntensities(new double[]{0, 0});
+
+        continue;
+
+      }
+
+      if (scan.getMinMz() > userInputMzRange.lowerEndpoint()) {
 
         scan.setMzs(
             ArrayUtils.addAll(new double[]{userInputMzRange.lowerEndpoint()}, scan.getMzs()));
         scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
 
-        //The user min mz is below the raw data mz range.
-      } else if (extractedScansMzRange.lowerEndpoint() > userInputMzRange.lowerEndpoint()
-          && userInputMzRange.lowerEndpoint() < rawDataMzRange.lowerEndpoint()) {
-
-        scan.setMzs(ArrayUtils.addAll(new double[]{rawDataMzRange.lowerEndpoint()}, scan.getMzs()));
-        scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
       }
 
-      //The user max mz is within the raw data mz range.
-      if (extractedScansMzRange.upperEndpoint() < userInputMzRange.upperEndpoint()
-          && userInputMzRange.upperEndpoint() < rawDataMzRange.upperEndpoint()) {
+      if (scan.getMaxMz() < userInputMzRange.upperEndpoint()) {
 
         scan.setMzs(ArrayUtils.add(scan.getMzs(), userInputMzRange.upperEndpoint()));
         scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
 
-        //The user max mz is above the raw data mz range.
-      } else if (extractedScansMzRange.upperEndpoint() < userInputMzRange.upperEndpoint()
-          && userInputMzRange.upperEndpoint() > rawDataMzRange.upperEndpoint()) {
-
-        scan.setMzs(ArrayUtils.add(scan.getMzs(), rawDataMzRange.upperEndpoint()));
-        scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
       }
     }
   }
@@ -322,10 +314,20 @@ public class MassvoltammogramUtils {
    */
   public static Range<Double> getMzRange(List<MassvoltammogramScan> scans) {
 
-    double minMz = MassvoltammogramUtils.getMinMZ(scans);
-    double maxMz = MassvoltammogramUtils.getMaxMZ(scans);
+    Range<Double> mzRange = null;
 
-    return Range.closed(minMz, maxMz);
+    for (MassvoltammogramScan scan : scans) {
+
+      Range<Double> currentMzRange = scan.getMzRange();
+
+      if (mzRange == null) {
+        mzRange = currentMzRange;
+
+      } else {
+        mzRange = mzRange.span(currentMzRange);
+      }
+    }
+    return mzRange;
   }
 
 

@@ -88,7 +88,7 @@ public class MassvoltammogramTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Creating Massvoltammogram.";
+    return "Creating the massvoltammogram.";
   }
 
   /**

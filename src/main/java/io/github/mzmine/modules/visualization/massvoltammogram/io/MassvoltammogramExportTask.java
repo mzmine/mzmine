@@ -29,11 +29,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.TaskStatusListener;
-import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -44,12 +41,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import org.apache.commons.io.FilenameUtils;
@@ -58,36 +53,32 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class MassvoltammogramExportTask implements Task {
+public class MassvoltammogramExportTask extends AbstractTask {
+
+  //Logger.
+  private static final Logger logger = Logger.getLogger(MassvoltammogramExportTask.class.getName());
 
   //Export variables.
   private final Massvoltammogram massvoltammogram;  //The massvoltammogram that will be exported.
-  private File file; //The file the massvoltammogram will be exported to
-
-  //Task variables.
-  private TaskStatus taskStatus;
-  private List<TaskStatusListener> listeners;
-  private String errorMessage = null;
+  private final File file; //The file the massvoltammogram will be exported to.
 
   //Progress.
   private int numExportedScans;
   private int numTotalScans;
 
 
-  public MassvoltammogramExportTask(Massvoltammogram massvoltammogram) {
+  public MassvoltammogramExportTask(Massvoltammogram massvoltammogram, File file) {
+    super(null, Instant.now());
 
     //Setting the massvoltammogram to be exported.
     this.massvoltammogram = massvoltammogram;
+    this.file = file;
 
     //Adding the ExportTask to the TaskController.
-    setStatus(TaskStatus.WAITING);
     MZmineCore.getTaskController().addTask(this, getTaskPriority());
   }
 
   public void run() {
-
-    //Getting the file the massvoltammogram will be exported to.
-    getFile();
 
     //Starting the export.
     setStatus(TaskStatus.PROCESSING);
@@ -111,31 +102,6 @@ public class MassvoltammogramExportTask implements Task {
   }
 
   /**
-   * Sets the file field to the file chosen by the user. File can be null if no file was chosen.
-   */
-  private void getFile() {
-
-    //Initializing a file chooser and a file to save the selected path to.
-    final FileChooser fileChooser = new FileChooser();
-    final AtomicReference<File> chosenFile = new AtomicReference<>(null);
-
-    //Generating the extension filters.
-    final FileChooser.ExtensionFilter extensionFilterPNG = new ExtensionFilter(
-        "Portable Network Graphics", ".png");
-    final FileChooser.ExtensionFilter extensionFilterCSV = new ExtensionFilter("CSV-File", ".csv");
-    final FileChooser.ExtensionFilter extensionFilterXLSX = new ExtensionFilter("Excel-File",
-        ".xlsx");
-    fileChooser.getExtensionFilters()
-        .addAll(Arrays.asList(extensionFilterCSV, extensionFilterXLSX, extensionFilterPNG));
-
-    //Opening dialog to choose the path to save the file to.
-    FxThreadUtil.runOnFxThreadAndWait(() -> chosenFile.set(fileChooser.showSaveDialog(null)));
-
-    //Setting the file.
-    this.file = chosenFile.get();
-  }
-
-  /**
    * Method to export the massvoltammogram to a png-file.
    */
   private void toPNG() {
@@ -156,8 +122,9 @@ public class MassvoltammogramExportTask implements Task {
     //Saving the buffered image to a png file.
     try {
       ImageIO.write(bufferedImage, "PNG", file);
-    } catch (IllegalArgumentException | IOException ex) {
-      ex.printStackTrace();
+    } catch (IllegalArgumentException | IOException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
   }
 
@@ -173,8 +140,9 @@ public class MassvoltammogramExportTask implements Task {
     //Creating a new folder at the selected directory.
     try {
       Files.createDirectory(Paths.get(folderPath));
-    } catch (IOException ioException) {
-      ioException.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
 
     //Getting the data to export from the PlotPanel.
@@ -200,8 +168,9 @@ public class MassvoltammogramExportTask implements Task {
         writer.flush();
       }
       //Handling the exception from the file writer.
-      catch (IOException ioException) {
-        ioException.printStackTrace();
+      catch (IOException e) {
+        e.printStackTrace();
+        logger.log(Level.WARNING, e.getMessage(), e);
       }
 
       //Updating the number of exported scans.
@@ -267,6 +236,7 @@ public class MassvoltammogramExportTask implements Task {
 
     } catch (IOException e) {
       e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
   }
 
@@ -305,64 +275,6 @@ public class MassvoltammogramExportTask implements Task {
       return (double) numExportedScans / (double) numTotalScans;
     } else {
       return 0;
-    }
-  }
-
-  @Override
-  public TaskStatus getStatus() {
-    return taskStatus;
-  }
-
-  public final void setStatus(TaskStatus newStatus) {
-    TaskStatus oldStatus = taskStatus;
-    this.taskStatus = newStatus;
-    if (listeners != null && !taskStatus.equals(oldStatus)) {
-      for (TaskStatusListener listener : listeners) {
-        listener.taskStatusChanged(this, taskStatus, oldStatus);
-      }
-    }
-  }
-
-  @Override
-  public final String getErrorMessage() {
-    return errorMessage;
-  }
-
-  public final void setErrorMessage(String errorMessage) {
-    this.errorMessage = errorMessage;
-  }
-
-  @Override
-  public TaskPriority getTaskPriority() {
-    return TaskPriority.NORMAL;
-  }
-
-  @Override
-  public void cancel() {
-    setStatus(TaskStatus.CANCELED);
-  }
-
-  @Override
-  public void addTaskStatusListener(TaskStatusListener list) {
-    if (listeners == null) {
-      listeners = new ArrayList<>();
-    }
-    listeners.add(list);
-  }
-
-  @Override
-  public boolean removeTaskStatusListener(TaskStatusListener list) {
-    if (listeners != null) {
-      return listeners.remove(list);
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public void clearTaskStatusListener() {
-    if (listeners != null) {
-      listeners.clear();
     }
   }
 }

@@ -309,9 +309,7 @@ public class Massvoltammogram {
     MassvoltammogramUtils.addZerosToCentroidData(scansInMzRange);
 
     //Aligning the scans to all start and end at the same mz-value.
-    MassvoltammogramUtils.alignScans(scansInMzRange,
-        MassvoltammogramUtils.getMzRange(scansInMzRange), userInputMzRange,
-        MassvoltammogramUtils.getMzRange(rawScans));
+    MassvoltammogramUtils.alignScans(scansInMzRange, userInputMzRange);
 
     this.rawScansInMzRange = scansInMzRange;
   }

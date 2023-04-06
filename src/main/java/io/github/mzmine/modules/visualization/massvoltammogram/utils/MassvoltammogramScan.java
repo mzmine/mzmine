@@ -26,7 +26,9 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.utils;
 
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import java.util.Arrays;
 import java.util.List;
 
 public final class MassvoltammogramScan {
@@ -77,6 +79,14 @@ public final class MassvoltammogramScan {
     return mzs[getNumberOfDatapoints() - 1];
   }
 
+  public Range<Double> getMzRange() {
+    if (isEmpty()) {
+      return null;
+    } else {
+      return Range.closed(getMinMz(), getMaxMz());
+    }
+  }
+
   public double[] getIntensities() {
     return intensities;
   }
@@ -95,6 +105,13 @@ public final class MassvoltammogramScan {
 
   public double getPotential() {
     return potential;
+  }
+
+  public double[] getPotentialAsArray() {
+
+    double[] potentialAsArray = new double[getNumberOfDatapoints()];
+    Arrays.fill(potentialAsArray, potential);
+    return potentialAsArray;
   }
 
   public MassSpectrumType getMassSpectrumType() {
