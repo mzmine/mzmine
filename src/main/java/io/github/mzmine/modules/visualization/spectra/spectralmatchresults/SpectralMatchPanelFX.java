@@ -172,6 +172,10 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
   private Pane createTitlePane() {
+    String explIntTooltip = "Explained library intensity for matched library signals divided by all library signal intensities";
+    String matchedSignalsTooltip = "Matched library signals divided by all library signals";
+
+    String styleWhiteScoreSmall = "white-score-label-small";
     // create Top panel
     double simScore = hit.getSimilarity().getScore();
     Color gradientCol = FxColorUtil.awtColorToFX(
@@ -181,25 +185,25 @@ public class SpectralMatchPanelFX extends GridPane {
 
     lblHit = createLabel(hit.getCompoundName(), "white-larger-label");
 
-    lblScore = createLabel(COS_FORM.format(simScore), "white-score-label");
-    lblScore.setTooltip(new Tooltip(
+    String simScoreTooltip =
         "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM.format(
-            simScore)));
+            simScore);
+    lblScore = createLabel(COS_FORM.format(simScore), simScoreTooltip, "white-score-label");
 
     var totalSignals = hit.getLibraryDataPoints(DataPointsTag.FILTERED).length;
     var overlap = hit.getSimilarity().getOverlap();
-    var lblMatched = createLabel("%d / %d".formatted(overlap, totalSignals),
-        "white-score-label-small");
+    var lblMatched = createLabel("%d / %d".formatted(overlap, totalSignals), matchedSignalsTooltip, styleWhiteScoreSmall);
 
     var intensity = hit.getSimilarity().getExplainedLibraryIntensity();
-    var lblExplained = createLabel(COS_FORM.format(intensity), "white-score-label-small");
-    lblExplained.getStyleClass().add("white-score-label-small");
+    var lblExplained = createLabel(COS_FORM.format(intensity), explIntTooltip, styleWhiteScoreSmall);
+
+    lblExplained.getStyleClass().add(styleWhiteScoreSmall);
 
     var leftScores = new VBox(0, lblMatched, lblExplained);
     leftScores.setAlignment(Pos.CENTER);
 
-    var scoreDef = new VBox(0, createLabel("Matched signals:", "white-score-label-small"),
-        createLabel("Expl. intensity:", "white-score-label-small"));
+    var scoreDef = new VBox(0, createLabel("Matched signals:", matchedSignalsTooltip, styleWhiteScoreSmall),
+        createLabel("Expl. intensity:", explIntTooltip, styleWhiteScoreSmall));
     scoreDef.setAlignment(Pos.CENTER_RIGHT);
 
     var scoreBox = new HBox(5, scoreDef, leftScores, lblScore);
@@ -217,8 +221,15 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
   private Label createLabel(final String label, final String styleClass) {
+    return createLabel(label, null, styleClass);
+  }
+
+  private Label createLabel(final String label, String tooltip, final String styleClass) {
     Label lbl = new Label(label);
     lbl.getStyleClass().add(styleClass);
+    if (tooltip != null) {
+      lbl.setTooltip(new Tooltip(tooltip));
+    }
     return lbl;
   }
 

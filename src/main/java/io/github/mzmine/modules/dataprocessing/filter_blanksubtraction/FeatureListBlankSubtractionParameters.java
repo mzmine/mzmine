@@ -47,7 +47,7 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "Aligned feature list", 1, 1);
 
   public static final RawDataFilesParameter blankRawDataFiles = new RawDataFilesParameter(
-      "Blank/Control raw data files", 1, 100);
+      "Blank/Control raw data files", 1, Integer.MAX_VALUE  );
 
   public static final IntegerParameter minBlanks = new IntegerParameter(
       "Minimum # of detection in blanks",
