@@ -74,6 +74,7 @@ public class ScanHistogramTab extends MZmineTab {
   private final Boolean useIntensityRange;
   private final MassDefectFilter massDefectFilter;
   private final Boolean useMassDefect;
+  private final ScanDataType scanDataType;
   protected HistogramPanel histo;
   private RawDataFile[] dataFiles;
   // scan counter
@@ -101,6 +102,7 @@ public class ScanHistogramTab extends MZmineTab {
     massDefectFilter = parameters.getParameter(ScanHistogramParameters.massDefect)
         .getEmbeddedParameter().getValue();
     valueType = parameters.getValue(ScanHistogramParameters.type);
+    scanDataType = parameters.getValue(ScanHistogramParameters.scanDataType);
 
     data = buildHistogramData(dataFile);
 
@@ -143,8 +145,7 @@ public class ScanHistogramTab extends MZmineTab {
           }
         }
       } else {
-        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
-            scanSelection);
+        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, scanDataType, scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextScan() != null) {
           addAllDataPoints(scanAccess, data);

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.scan_histogram;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -45,6 +46,13 @@ public class ScanHistogramParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
+
+  public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
+      "MS data selection",
+      "Show either raw data or filtered centroid data (after mass detection and other filters).\n"
+      + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
+      ScanDataType.values(), ScanDataType.CENTROID);
+
   public static final MZRangeParameter mzRange = new MZRangeParameter(true);
 
   public static final OptionalParameter<DoubleRangeParameter> heightRange = new OptionalParameter<>(
@@ -59,7 +67,7 @@ public class ScanHistogramParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getMZFormat()));
   public static final BooleanParameter useMobilityScans = new BooleanParameter("Use mobility scans",
       "If the file contains an ion mobility dimension, the data from "
-          + "mobility scans will be used instead of the data from summed frames.", false);
+      + "mobility scans will be used instead of the data from summed frames.", false);
   public static final DoubleParameter binWidth = new DoubleParameter("Bin width",
       "Binning of values");
 
@@ -67,9 +75,8 @@ public class ScanHistogramParameters extends SimpleParameterSet {
       "Create histogram of this type", ScanHistogramType.values(), ScanHistogramType.MZ);
 
   public ScanHistogramParameters() {
-    super(
-        new Parameter[]{dataFiles, scanSelection, mzRange, heightRange, massDefect, type, binWidth,
-            useMobilityScans},
+    super(new Parameter[]{dataFiles, scanSelection, scanDataType, mzRange, heightRange, massDefect,
+            type, binWidth, useMobilityScans},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_overview/raw_data_additional.html#scan-histogram");
   }
 
