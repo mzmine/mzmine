@@ -53,7 +53,8 @@ public class ScanHistogramParameters extends SimpleParameterSet {
       + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.CENTROID);
 
-  public static final MZRangeParameter mzRange = new MZRangeParameter(true);
+  public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
+      new MZRangeParameter(true), false);
 
   public static final OptionalParameter<DoubleRangeParameter> heightRange = new OptionalParameter<>(
       new DoubleRangeParameter("Signal intensity range",

@@ -71,9 +71,7 @@ public class ScanHistogramTab extends MZmineTab {
   private final double binWidth;
   private final ScanHistogramType valueType;
   private final Range<Double> intensityRange;
-  private final Boolean useIntensityRange;
   private final MassDefectFilter massDefectFilter;
-  private final Boolean useMassDefect;
   private final ScanDataType scanDataType;
   protected HistogramPanel histo;
   private RawDataFile[] dataFiles;
@@ -92,15 +90,14 @@ public class ScanHistogramTab extends MZmineTab {
 
     this.dataFiles = dataFile;
     scanSelection = parameters.getValue(ScanHistogramParameters.scanSelection);
-    mzRange = parameters.getValue(ScanHistogramParameters.mzRange);
+    mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(ScanHistogramParameters.mzRange,
+        Range.all());
     binWidth = parameters.getValue(ScanHistogramParameters.binWidth);
     useMobilityScans = parameters.getValue(ScanHistogramParameters.useMobilityScans);
-    useIntensityRange = parameters.getValue(ScanHistogramParameters.heightRange);
-    intensityRange = parameters.getParameter(ScanHistogramParameters.heightRange)
-        .getEmbeddedParameter().getValue();
-    useMassDefect = parameters.getValue(ScanHistogramParameters.massDefect);
-    massDefectFilter = parameters.getParameter(ScanHistogramParameters.massDefect)
-        .getEmbeddedParameter().getValue();
+    intensityRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ScanHistogramParameters.heightRange, Range.all());
+    massDefectFilter = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ScanHistogramParameters.massDefect, MassDefectFilter.ALL);
     valueType = parameters.getValue(ScanHistogramParameters.type);
     scanDataType = parameters.getValue(ScanHistogramParameters.scanDataType);
 
@@ -168,8 +165,8 @@ public class ScanHistogramTab extends MZmineTab {
     for (int i = 0; i < n; i++) {
       double mz = scan.getMzValue(i);
       double intensity = scan.getIntensityValue(i);
-      if (mzRange.contains(mz) && (!useIntensityRange || intensityRange.contains(intensity)) && (
-          !useMassDefect || massDefectFilter.contains(mz))) {
+      if (mzRange.contains(mz) && intensityRange.contains(intensity) && massDefectFilter.contains(
+          mz)) {
         double val = switch (valueType) {
           case MZ -> mz;
           case INTENSITY -> intensity;
