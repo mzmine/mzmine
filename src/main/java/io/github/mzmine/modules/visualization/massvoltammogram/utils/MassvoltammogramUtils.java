@@ -123,34 +123,52 @@ public class MassvoltammogramUtils {
    *
    * @param scans The scans to be aligned.
    */
-  public static void alignScans(List<MassvoltammogramScan> scans, Range<Double> userInputMzRange) {
+  public static void alignScans(List<MassvoltammogramScan> scans, Range<Double> userInputMzRange,
+      Range<Double> rawDataMzRange) {
 
     //Going over all MassvoltammogramScans in the massvoltammogram.
     for (MassvoltammogramScan scan : scans) {
 
-      //Adds datapoints with 0 intensity to the beginning and end of an empty scan.
+      //Adding the datapoints to scans if they are empty.
       if (scan.isEmpty()) {
-        scan.setMzs(
-            new double[]{userInputMzRange.lowerEndpoint(), userInputMzRange.upperEndpoint()});
-        scan.setIntensities(new double[]{0, 0});
+        if (userInputMzRange.lowerEndpoint() > rawDataMzRange.lowerEndpoint()) {
+          prependEmptyDataPoint(scan, userInputMzRange.lowerEndpoint());
+
+        } else if (userInputMzRange.lowerEndpoint() < rawDataMzRange.lowerEndpoint()) {
+          prependEmptyDataPoint(scan, rawDataMzRange.lowerEndpoint());
+        }
+
+        if (userInputMzRange.upperEndpoint() < rawDataMzRange.upperEndpoint()) {
+          appendEmptyDataPoint(scan, userInputMzRange.upperEndpoint());
+
+        } else if (userInputMzRange.upperEndpoint() > rawDataMzRange.upperEndpoint()) {
+          appendEmptyDataPoint(scan, rawDataMzRange.upperEndpoint());
+        }
+
         continue;
       }
 
       //Adds a datapoint with 0 intensity to the beginning of a scan, if no other datapoint is found.
-      if (scan.getMinMz() > userInputMzRange.lowerEndpoint()) {
-        scan.setMzs(
-            ArrayUtils.addAll(new double[]{userInputMzRange.lowerEndpoint()}, scan.getMzs()));
-        scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
+      if (scan.getMinMz() > userInputMzRange.lowerEndpoint()
+          && userInputMzRange.lowerEndpoint() > rawDataMzRange.lowerEndpoint()) {
+        prependEmptyDataPoint(scan, userInputMzRange.lowerEndpoint());
+
+      } else if (scan.getMinMz() > userInputMzRange.lowerEndpoint()
+          && userInputMzRange.lowerEndpoint() < rawDataMzRange.lowerEndpoint()) {
+        prependEmptyDataPoint(scan, rawDataMzRange.lowerEndpoint());
       }
 
       //Adds a datapoint with 0 intensity to the end of a scan, if no other datapoint is found.
-      if (scan.getMaxMz() < userInputMzRange.upperEndpoint()) {
-        scan.setMzs(ArrayUtils.add(scan.getMzs(), userInputMzRange.upperEndpoint()));
-        scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
+      if (scan.getMaxMz() < userInputMzRange.upperEndpoint()
+          && userInputMzRange.upperEndpoint() < rawDataMzRange.upperEndpoint()) {
+        appendEmptyDataPoint(scan, userInputMzRange.upperEndpoint());
+
+      } else if (scan.getMaxMz() < userInputMzRange.upperEndpoint()
+          && userInputMzRange.upperEndpoint() > rawDataMzRange.upperEndpoint()) {
+        appendEmptyDataPoint(scan, rawDataMzRange.upperEndpoint());
       }
     }
   }
-
 
   /**
    * Removes datapoints with low intensity values. Keeps datapoints with intensity of 0.
@@ -327,6 +345,30 @@ public class MassvoltammogramUtils {
       }
     }
     return output.toString();
+  }
+
+  /**
+   * Adds a datapoint with an intensity of 0 for the given mz at the beginning of the dataset.
+   *
+   * @param scan The scan the datapoint will be added to.
+   * @param mz   The datapoints mz-value
+   */
+  private static void prependEmptyDataPoint(MassvoltammogramScan scan, double mz) {
+
+    scan.setMzs(ArrayUtils.addAll(new double[]{mz}, scan.getMzs()));
+    scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
+  }
+
+  /**
+   * Adds a datapoint with an intensity of 0 for the given mz at the end of the dataset.
+   *
+   * @param scan The scan the datapoint will be added to.
+   * @param mz   The datapoints mz-value.
+   */
+  private static void appendEmptyDataPoint(MassvoltammogramScan scan, double mz) {
+
+    scan.setMzs(ArrayUtils.add(scan.getMzs(), mz));
+    scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
   }
 }
 

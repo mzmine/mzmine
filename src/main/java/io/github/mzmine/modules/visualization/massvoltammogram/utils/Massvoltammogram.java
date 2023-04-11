@@ -320,7 +320,8 @@ public class Massvoltammogram {
     MassvoltammogramUtils.addZerosToCentroidData(rawScansInMzRange);
 
     //Aligning the scans to all start and end at the same mz-value.
-    MassvoltammogramUtils.alignScans(rawScansInMzRange, userInputMzRange);
+    MassvoltammogramUtils.alignScans(rawScansInMzRange, userInputMzRange,
+        MassvoltammogramUtils.getMzRange(rawScans));
   }
 
   /**
@@ -368,10 +369,13 @@ public class Massvoltammogram {
    */
   private void plotEmptyMassvoltammogram() {
 
-    //Adding the line plots to the plot panel.
-    for (MassvoltammogramScan scan : rawScansInMzRange) {
-      plot.addLinePlot("Spectrum at " + scan.getPotential() + " mV.", Color.black, scan.getMzs(),
-          scan.getPotentialAsArray(), scan.getIntensities());
+    //Adding the empty line plots to the plot panel only if the mz-range is contained by the raw data.
+    //Otherwise, showing an empty plot.
+    if (rawDataContainsMzRange(userInputMzRange)) {
+      for (MassvoltammogramScan scan : rawScansInMzRange) {
+        plot.addLinePlot("Spectrum at " + scan.getPotential() + " mV.", Color.black, scan.getMzs(),
+            scan.getPotentialAsArray(), scan.getIntensities());
+      }
     }
 
     //Setting up the plot's axis.
@@ -410,6 +414,18 @@ public class Massvoltammogram {
     mzRangeIsEmpty = numScans == numEmptyScans;
   }
 
+  /**
+   * Checks weather a given mz-range is contained in the raw data's mz-range.
+   *
+   * @param mzRange The mz-range to be checked.
+   * @return Returns true if the given mz-range is contained in the raw data's mz-range.
+   */
+  private boolean rawDataContainsMzRange(Range<Double> mzRange) {
+
+    Range<Double> rawDataMzRange = MassvoltammogramUtils.getMzRange(rawScans);
+    return rawDataMzRange.contains(mzRange.lowerEndpoint()) && rawDataMzRange.contains(
+        mzRange.upperEndpoint());
+  }
 
   /**
    * @return Returns the massvoltammograms raw scans in m/z-range.
