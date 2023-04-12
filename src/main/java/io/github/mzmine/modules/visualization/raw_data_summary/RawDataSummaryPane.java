@@ -92,8 +92,10 @@ public class RawDataSummaryPane extends BorderPane {
     var noisetab = new Tab("Noise", noisePane);
     var intensitytab = new Tab("Intensity", intensityHistoPane);
 
+    // set everything to main pane
     TabPane tabPane = new TabPane(mztab, noisetab, intensitytab);
     setCenter(tabPane);
+
   }
 
   private BorderPane createScanHistoParameters(final RawDataFile[] dataFiles,
