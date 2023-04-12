@@ -240,7 +240,7 @@ public class ScanHistogramTab extends MZmineTab {
     }
     RawDataFile[] newFiles = dataFiles.toArray(RawDataFile[]::new);
     HistogramData newData = buildHistogramData(newFiles);
-    histo.setData(newData, binWidth);
+    histo.setData(newData);
     this.dataFiles = newFiles;
 
     data = newData;
