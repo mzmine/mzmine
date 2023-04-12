@@ -25,6 +25,10 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.util.maths.Precision;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Paint;
@@ -50,10 +54,6 @@ import org.jfree.data.xy.XYBarDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.util.maths.Precision;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 
 public class HistogramChartFactory {
 
@@ -636,6 +636,10 @@ public class HistogramChartFactory {
   }
 
   public static Range getBounds(double[] data) {
+    if (data == null || data.length == 0) {
+      return new Range(-1, -1 + Double.MIN_VALUE);
+    }
+
     double min = Double.MAX_VALUE;
     double max = Double.NEGATIVE_INFINITY;
     for (double d : data) {

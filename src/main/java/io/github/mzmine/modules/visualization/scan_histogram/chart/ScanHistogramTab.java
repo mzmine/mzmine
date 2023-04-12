@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.scan_histogram.chart;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -124,6 +123,13 @@ public class ScanHistogramTab extends MZmineTab {
     //addKeyBindings();
   }
 
+  /**
+   * The main pane that contains all the controls and the histogram
+   */
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
   private HistogramData buildHistogramData(RawDataFile... dataFiles) {
     logger.info("Starting to build mz distribution histogram for " + Arrays.stream(dataFiles)
         .map(Object::toString).collect(Collectors.joining(",")));
@@ -151,12 +157,12 @@ public class ScanHistogramTab extends MZmineTab {
       }
     }
 
-    if (!data.isEmpty()) {
+    return new HistogramData(data.toDoubleArray());
+//    if (!data.isEmpty()) {
       // to array
-      return new HistogramData(data.toDoubleArray());
-    } else {
-      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
-    }
+//    } else {
+//      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
+//    }
   }
 
   private void addAllDataPoints(Scan scan, DoubleArrayList data) {
@@ -223,16 +229,19 @@ public class ScanHistogramTab extends MZmineTab {
   }
 
   @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    if (rawDataFiles == null || rawDataFiles.isEmpty() || CollectionUtils.isEqualCollection(
-        rawDataFiles, getRawDataFiles())) {
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> dataFiles) {
+    setDataFiles(dataFiles);
+  }
+
+  public void setDataFiles(final Collection<? extends RawDataFile> dataFiles) {
+    if (dataFiles == null || dataFiles.isEmpty() || CollectionUtils.isEqualCollection(dataFiles,
+        getRawDataFiles())) {
       return;
     }
-
-    RawDataFile[] newFiles = rawDataFiles.toArray(RawDataFile[]::new);
+    RawDataFile[] newFiles = dataFiles.toArray(RawDataFile[]::new);
     HistogramData newData = buildHistogramData(newFiles);
     histo.setData(newData, binWidth);
-    dataFiles = newFiles;
+    this.dataFiles = newFiles;
 
     data = newData;
   }
