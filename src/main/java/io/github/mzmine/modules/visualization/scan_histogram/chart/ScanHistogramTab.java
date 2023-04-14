@@ -111,6 +111,11 @@ public class ScanHistogramTab extends MZmineTab {
 
     histo = new HistogramPanel(valueType.toString(), data, binWidth);
 
+    var chartPanel = histo.getChartPanel();
+    if (chartPanel != null && chartPanel.getChart() != null && chartPanel.getChart().getLegend() != null) {
+      chartPanel.getChart().getLegend().setVisible(false);
+    }
+
     //setMinWidth(1050);
     //setMinHeight(700);
     //setScene(mainScene);
@@ -159,7 +164,7 @@ public class ScanHistogramTab extends MZmineTab {
 
     return new HistogramData(data.toDoubleArray());
 //    if (!data.isEmpty()) {
-      // to array
+    // to array
 //    } else {
 //      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
 //    }

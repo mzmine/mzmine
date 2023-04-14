@@ -463,6 +463,9 @@ public class HistogramPanel extends BorderPane {
           southwest.setCenter(pnHisto);
         } else {
           pnHisto.setChart(histo);
+          if (histo != null) {
+            histo.getLegend().setVisible(false);
+          }
         }
 
         lbStats.setText("DONE");
