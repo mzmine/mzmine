@@ -101,6 +101,8 @@
                             <items>
                               <MenuItem onAction="#handleShowRawDataOverview"
                                 text="Show raw data overview"/>
+                              <MenuItem onAction="#handleShowRawDataSummary"
+                                text="Show raw data summary"/>
                               <MenuItem onAction="#handleShowIMSDataOverview"
                                 text="Show ion mobility raw data overview"/>
                               <MenuItem onAction="#handleShowImageViewer"

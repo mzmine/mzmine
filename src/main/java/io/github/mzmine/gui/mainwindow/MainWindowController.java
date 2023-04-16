@@ -48,6 +48,8 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
@@ -57,6 +59,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.ExitCode;
@@ -257,13 +260,11 @@ public class MainWindowController {
   public void initialize() {
 
     // do not switch panes by arrows
-    mainTabPane.addEventFilter(
-        KeyEvent.ANY,
-        event -> {
-          if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
-            event.consume();
-          }
-        });
+    mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
+      if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
+        event.consume();
+      }
+    });
 
     rawDataList.setEditable(false);
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -351,7 +352,8 @@ public class MainWindowController {
       MZmineCore.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
               ((MZmineTab) tab).getFeatureLists(), change.getList()))) {
             ((MZmineTab) tab).onFeatureListSelectionChanged(change.getList());
           }
@@ -359,34 +361,36 @@ public class MainWindowController {
       });
     });
 
-    featureListsList.getSelectionModel().getSelectedItems().addListener((ListChangeListener<GroupableListViewEntity>) change -> {
-      while (change.next()) {
-        if (change.getList() == null) {
-          return;
-        }
+    featureListsList.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<GroupableListViewEntity>) change -> {
+          while (change.next()) {
+            if (change.getList() == null) {
+              return;
+            }
 
-        if (featureListsList.getSelectedValues().size() == 1) {
-          openFeatureListMenuItem.setText("Open feature list");
-          showFeatureListSummaryMenuItem.setText("Show feature list summary");
-          featureListsRemoveMenuItem.setText("Remove feature list");
-        } else {
-          openFeatureListMenuItem.setText("Open feature lists");
-          showFeatureListSummaryMenuItem.setText("Show feature lists summary");
-          featureListsRemoveMenuItem.setText("Remove feature lists");
-        }
+            if (featureListsList.getSelectedValues().size() == 1) {
+              openFeatureListMenuItem.setText("Open feature list");
+              showFeatureListSummaryMenuItem.setText("Show feature list summary");
+              featureListsRemoveMenuItem.setText("Remove feature list");
+            } else {
+              openFeatureListMenuItem.setText("Open feature lists");
+              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+              featureListsRemoveMenuItem.setText("Remove feature lists");
+            }
 
-        if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
-          featureListsRenameMenuItem.setDisable(false);
-          if (featureListsList.getSelectionModel().getSelectedItems().get(0) instanceof GroupEntity) {
-            featureListsRenameMenuItem.setText("Rename group");
-          } else {
-            featureListsRenameMenuItem.setText("Rename feature list");
+            if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
+              featureListsRenameMenuItem.setDisable(false);
+              if (featureListsList.getSelectionModel().getSelectedItems()
+                  .get(0) instanceof GroupEntity) {
+                featureListsRenameMenuItem.setText("Rename group");
+              } else {
+                featureListsRenameMenuItem.setText("Rename feature list");
+              }
+            } else {
+              featureListsRenameMenuItem.setDisable(true);
+            }
           }
-        } else {
-          featureListsRenameMenuItem.setDisable(true);
-        }
-      }
-    });
+        });
   }
 
   private void initRawDataList() {
@@ -646,6 +650,15 @@ public class MainWindowController {
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
             selectedFiles.toArray(new RawDataFile[0]));
     MZmineCore.runMZmineModule(RawDataOverviewModule.class, parameters);
+  }
+
+  public void handleShowRawDataSummary(final ActionEvent actionEvent) {
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(RawDataSummaryModule.class);
+    parameters.getParameter(RawDataSummaryParameters.dataFiles)
+        .setValue(new RawDataFilesSelection(selectedFiles.toArray(new RawDataFile[0])));
+    MZmineCore.setupAndRunModule(RawDataSummaryModule.class);
   }
 
   public void handleShowIMSDataOverview(Event event) {
@@ -1051,4 +1064,5 @@ public class MainWindowController {
   public NotificationPane getNotificationPane() {
     return notificationPane;
   }
+
 }
