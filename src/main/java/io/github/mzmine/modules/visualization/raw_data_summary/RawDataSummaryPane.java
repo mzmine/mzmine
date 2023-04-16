@@ -55,19 +55,19 @@ public class RawDataSummaryPane extends BorderPane {
   public RawDataSummaryPane(final RawDataFile[] dataFiles, final ParameterSet parameters) {
     super();
 
-    var scanDataType = parameters.getValue(RawDataSummaryParameters.scanDataType);
-    var scanSelection = parameters.getValue(RawDataSummaryParameters.scanSelection);
+    final var scanDataType = parameters.getValue(RawDataSummaryParameters.scanDataType);
+    final var scanSelection = parameters.getValue(RawDataSummaryParameters.scanSelection);
 
-    var useMzRange = parameters.getValue(RawDataSummaryParameters.mzRange);
-    var mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+    final var useMzRange = parameters.getValue(RawDataSummaryParameters.mzRange);
+    final var mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         RawDataSummaryParameters.mzRange, Range.all());
-    var useHeightRange = parameters.getValue(RawDataSummaryParameters.heightRange);
-    var heightRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+    final var useHeightRange = parameters.getValue(RawDataSummaryParameters.heightRange);
+    final var heightRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         RawDataSummaryParameters.heightRange, Range.all());
-    var massDefectFilter = new MassDefectFilter(0.25, 0.4);
-    var upperMzCutoffForMassDefect = 200d;
+    final var massDefectFilter = new MassDefectFilter(0.25, 0.4);
+    final var upperMzCutoffForMassDefect = 200d;
 
-    var formats = MZmineCore.getConfiguration().getGuiFormats();
+    final var formats = MZmineCore.getConfiguration().getGuiFormats();
 
     BorderPane mzHistoPane = createScanHistoParameters(
         "m/z distribution: intensity > " + formats.intensity(heightRange.lowerEndpoint()),
@@ -108,7 +108,6 @@ public class RawDataSummaryPane extends BorderPane {
     // set everything to main pane
     TabPane tabPane = new TabPane(mztab, noisetab, intensitytab);
     setCenter(tabPane);
-
   }
 
   private BorderPane createScanHistoParameters(final String title, final RawDataFile[] dataFiles,
@@ -116,7 +115,7 @@ public class RawDataSummaryPane extends BorderPane {
       final Range<Double> mzRange, final Boolean useHeightRange, final Range<Double> heightRange,
       final boolean useMassDetect, MassDefectFilter massDefectFilter,
       final ScanHistogramType histoType, final double binWidth) {
-    ScanHistogramParameters mzparams = new ScanHistogramParameters();
+    final var mzparams = new ScanHistogramParameters().cloneParameterSet();
     mzparams.setParameter(ScanHistogramParameters.dataFiles, new RawDataFilesSelection(dataFiles));
     mzparams.setParameter(ScanHistogramParameters.useMobilityScans, false);
     mzparams.setParameter(ScanHistogramParameters.massDefect, useMassDetect, massDefectFilter);
@@ -127,7 +126,7 @@ public class RawDataSummaryPane extends BorderPane {
     mzparams.setParameter(ScanHistogramParameters.type, histoType);
     mzparams.setParameter(ScanHistogramParameters.binWidth, binWidth);
     // important to clone the parameters here to not change them by static parameters later
-    var tab = new ScanHistogramTab("", mzparams.cloneParameterSet(), dataFiles);
+    var tab = new ScanHistogramTab("", mzparams, dataFiles);
     tab.setClosable(false);
     tabs.add(tab);
     var label = new Label(title);
