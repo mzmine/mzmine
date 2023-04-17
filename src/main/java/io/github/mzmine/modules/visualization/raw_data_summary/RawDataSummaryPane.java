@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.raw_data_summary;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramParameters;
@@ -39,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -50,6 +52,10 @@ import javafx.scene.layout.HBox;
 public class RawDataSummaryPane extends BorderPane {
 
   private final List<ScanHistogramTab> tabs = new ArrayList<>(3);
+  private final SplitPane noiseSplit;
+  private final BorderPane noiseMainPane;
+  private final BorderPane noiseHistoPane;
+  private final BorderPane noiseHistoDenormalizedPane;
 
 
   public RawDataSummaryPane(final RawDataFile[] dataFiles, final ParameterSet parameters) {
@@ -64,20 +70,21 @@ public class RawDataSummaryPane extends BorderPane {
     final var useHeightRange = parameters.getValue(RawDataSummaryParameters.heightRange);
     final var heightRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         RawDataSummaryParameters.heightRange, Range.all());
-    final var massDefectFilter = new MassDefectFilter(0.25, 0.4);
+    final var massDefectFilter = new MassDefectFilter(0.6, 0.8);
     final var upperMzCutoffForMassDefect = 200d;
 
     final var formats = MZmineCore.getConfiguration().getGuiFormats();
 
-    BorderPane mzHistoPane = createScanHistoParameters(
-        "m/z distribution: intensity > " + formats.intensity(heightRange.lowerEndpoint()),
-        dataFiles, scanDataType, scanSelection, useMzRange, mzRange, useHeightRange, heightRange,
-        false, MassDefectFilter.ALL, ScanHistogramType.MZ, 0.005);
+    var intensityLbl = heightRange.hasLowerBound() ? ": intensity≥" + formats.intensity(
+        heightRange.lowerEndpoint()) : "";
+    BorderPane mzHistoPane = createScanHistoParameters("m/z distribution" + intensityLbl, dataFiles,
+        scanDataType, scanSelection, useMzRange, mzRange, useHeightRange, heightRange, false,
+        MassDefectFilter.ALL, ScanHistogramType.MZ, 0.005);
 
     BorderPane massDefectHistoPane = createScanHistoParameters(
-        "Mass defect distribution: intensity > " + formats.intensity(heightRange.lowerEndpoint()),
-        dataFiles, scanDataType, scanSelection, useMzRange, mzRange, true, heightRange, false,
-        MassDefectFilter.ALL, ScanHistogramType.MASS_DEFECT, 0.0025);
+        "Mass defect (MD) distribution" + intensityLbl, dataFiles, scanDataType, scanSelection,
+        useMzRange, mzRange, true, heightRange, false, MassDefectFilter.ALL,
+        ScanHistogramType.MASS_DEFECT, 0.0025);
 
     BorderPane intensityHistoPane = createScanHistoParameters("Intensity distribution", dataFiles,
         scanDataType, scanSelection, useMzRange, mzRange, false, heightRange, false,
@@ -85,19 +92,36 @@ public class RawDataSummaryPane extends BorderPane {
 
     // within mass defect
     var noiseMzRange = Range.closed(0d, upperMzCutoffForMassDefect);
-    BorderPane intensityInMassDefectMzHistoPane = createScanHistoParameters(
-        "Noise (intensity) distribution within " + massDefectFilter, dataFiles, scanDataType,
-        scanSelection, true, noiseMzRange, false, heightRange, true, massDefectFilter,
+    String mzFilterString = " for m/z≤" + (int) upperMzCutoffForMassDefect;
+
+    noiseHistoPane = createScanHistoParameters(
+        "Noise distribution: MD within " + massDefectFilter + mzFilterString, dataFiles,
+        scanDataType, scanSelection, true, noiseMzRange, false, heightRange, true, massDefectFilter,
         ScanHistogramType.INTENSITY, -1);
 
+    noiseHistoDenormalizedPane = createScanHistoParameters(
+        "Noise distribution (x inject time): MD within " + massDefectFilter + mzFilterString,
+        dataFiles, scanDataType, scanSelection, true, noiseMzRange, false, heightRange, true,
+        massDefectFilter, ScanHistogramType.INTENSITY_RECAL, -1);
+
     BorderPane massDefectBelow200HistoPane = createScanHistoParameters(
-        "Mass defect within m/z " + noiseMzRange, dataFiles, scanDataType, scanSelection, true,
+        "Mass defect" + mzFilterString + intensityLbl, dataFiles, scanDataType, scanSelection, true,
         noiseMzRange, true, heightRange, false, MassDefectFilter.ALL, ScanHistogramType.MASS_DEFECT,
         0.0025);
 
-    var noisePane = new BorderPane(
-        new SplitPane(intensityInMassDefectMzHistoPane, massDefectBelow200HistoPane));
+    // only show noise recalibrated histograms for
+    noiseSplit = new SplitPane(noiseHistoPane, noiseHistoDenormalizedPane);
+    noiseSplit.setOrientation(Orientation.VERTICAL);
+    noiseMainPane = new BorderPane();
+    if (hasInjectTime(dataFiles)) {
+      noiseSplit.getItems().setAll(noiseHistoPane, noiseHistoDenormalizedPane);
+      noiseMainPane.setCenter(noiseSplit);
+    } else {
+      noiseSplit.getItems().clear();
+      noiseMainPane.setCenter(noiseHistoPane);
+    }
 
+    var noisePane = new BorderPane(new SplitPane(noiseMainPane, massDefectBelow200HistoPane));
     var mztab = new Tab("m/z", new SplitPane(mzHistoPane, massDefectHistoPane));
     var noisetab = new Tab("Noise", noisePane);
     var intensitytab = new Tab("Intensity", intensityHistoPane);
@@ -109,6 +133,19 @@ public class RawDataSummaryPane extends BorderPane {
     TabPane tabPane = new TabPane(mztab, noisetab, intensitytab);
     setCenter(tabPane);
   }
+
+  /**
+   * Checks if the first selected file has inject time
+   *
+   * @return true if first file has a scan with inject time
+   */
+  private boolean hasInjectTime(final RawDataFile[] files) {
+    if (files == null || files.length == 0) {
+      return false;
+    }
+    return files[0].stream().anyMatch(Scan::hasInjectionTime);
+  }
+
 
   private BorderPane createScanHistoParameters(final String title, final RawDataFile[] dataFiles,
       final ScanDataType scanDataType, final ScanSelection scanSelection, final Boolean useMzRange,
@@ -140,6 +177,18 @@ public class RawDataSummaryPane extends BorderPane {
 
   public void setDataFiles(final Collection<? extends RawDataFile> dataFiles) {
     tabs.forEach(tab -> tab.setDataFiles(dataFiles));
+
+    if (dataFiles == null) {
+      return;
+    }
+
+    if (hasInjectTime(dataFiles.toArray(RawDataFile[]::new))) {
+      noiseSplit.getItems().setAll(noiseHistoPane, noiseHistoDenormalizedPane);
+      noiseMainPane.setCenter(noiseSplit);
+    } else {
+      noiseSplit.getItems().clear();
+      noiseMainPane.setCenter(noiseHistoPane);
+    }
   }
 
   public Collection<? extends RawDataFile> getDataFiles() {
