@@ -23,52 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.abstr;
+package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.main.MZmineCore;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Used to export to generic formats. Header is just score
+ * General DataType that defines a method like the annotation methods
  */
-public class ScoreType extends FloatType {
-
-  public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
-
-  public ScoreType() {
-    super(DEFAULT);
-  }
+public class MethodType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "score";
+    // never change this unique ID
+    return "method";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Score";
-  }
-
-  @Override
-  public NumberFormat getFormat() {
-    try {
-      return MZmineCore.getConfiguration().getGuiFormats().scoreFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    try {
-      return MZmineCore.getConfiguration().getExportFormats().scoreFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+    return "Method";
   }
 }
