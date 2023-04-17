@@ -31,9 +31,7 @@ import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltamm
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,7 +44,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -108,24 +105,25 @@ public class MassvoltammogramExportTask extends AbstractTask {
 
     MassvoltammogramPlotPanel plot = massvoltammogram.getPlot();
 
-    //Extracting the buffered frame as an image.
-    Image image = plot.createImage(plot.getWidth(), plot.getHeight());
-    plot.paint(image.getGraphics());
-    image = new ImageIcon(image).getImage();
+    plot.setBackgroundTransparent(true);
 
-    BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null),
-        BufferedImage.TYPE_INT_RGB);
-    Graphics graphics = bufferedImage.createGraphics();
-    graphics.drawImage(image, 0, 0, Color.WHITE, null);
+    BufferedImage img = new BufferedImage(plot.getWidth(), plot.getHeight(),
+        BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = img.createGraphics();
+
+    plot.paint(img.getGraphics());
+    graphics.drawImage(img, 0, 0, null);
     graphics.dispose();
 
     //Saving the buffered image to a png file.
     try {
-      ImageIO.write(bufferedImage, "PNG", file);
+      ImageIO.write(img, "PNG", file);
     } catch (IllegalArgumentException | IOException e) {
       e.printStackTrace();
       logger.log(Level.WARNING, e.getMessage(), e);
     }
+
+    plot.setBackgroundTransparent(false);
   }
 
   /**

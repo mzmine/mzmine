@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
+import java.awt.Color;
 import java.awt.Font;
 import org.math.plot.Plot3DPanel;
 
@@ -65,4 +66,12 @@ public class MassvoltammogramPlotPanel extends Plot3DPanel {
     return massvoltammogramToolBar;
   }
 
+  public void setBackgroundTransparent(boolean bgTransparent) {
+    if (bgTransparent) {
+      plotCanvas.setBackground(new Color(0f, 0f, 0f, 0f));
+      
+    } else {
+      plotCanvas.setBackground(Color.white);
+    }
+  }
 }
