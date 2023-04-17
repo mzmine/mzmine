@@ -116,7 +116,7 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     }
 
     updateParameterSetFromComponents();
-    double noiseLevel = parameterSet.getParameter(MobilityScanMergerParameters.noiseLevel)
+    final double noiseLevel = parameterSet.getParameter(MobilityScanMergerParameters.noiseLevel)
         .getValue();
     IntensityMergingType intensityMergingType = parameterSet.getParameter(
         MobilityScanMergerParameters.mergingType).getValue();
@@ -134,7 +134,7 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
       merged = SpectraMerging.calculatedMergedMzsAndIntensities(
           frameComboBox.getValue().getMobilityScans().stream().map(MobilityScan::getMassList)
               .toList(), mzTolerance, intensityMergingType,
-          new CenterFunction(CenterMeasure.AVG, weighting), noiseLevel, null, null);
+          new CenterFunction(CenterMeasure.AVG, weighting), null, noiseLevel, null);
     } catch (NullPointerException e) {
       MZmineCore.getDesktop().displayErrorMessage(
           "No mass list present in " + frameComboBox.getValue().getDataFile().getName()
