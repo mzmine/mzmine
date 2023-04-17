@@ -63,6 +63,14 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     setDataPoints(storage, mzValues, intensityValues);
   }
 
+  public AbstractStorableSpectrum(@Nullable DoubleBuffer mzValues,
+      @Nullable DoubleBuffer intensityValues) {
+    this.mzValues = mzValues;
+    this.intensityValues = intensityValues;
+    //todo transfer checks
+    onDataChangedEvent();
+  }
+
   protected synchronized void setDataPoints(@Nullable MemoryMapStorage storage,
       @Nullable double[] mzValues, @Nullable double[] intensityValues) {
 
@@ -84,6 +92,10 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzsIntensities[0]);
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzsIntensities[1]);
+    onDataChangedEvent();
+  }
+
+  private void onDataChangedEvent() {
     updateMzRangeAndTICValues();
   }
 

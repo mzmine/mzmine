@@ -33,6 +33,8 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.FileMemoryMapper;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,6 +69,10 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private Predicate<MsScan> msScanPredicate = s -> true;
   private Predicate<Chromatogram> chromatogramPredicate = c -> true;
+
+  private ParameterSet advancedParameters;
+
+  private MemoryMapStorage storage;
 
   /**
    * <p>
@@ -141,6 +147,17 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    */
   public MzMLFileImportMethod(File mzMLFile) {
     this(mzMLFile, null, s -> false, c -> false);
+  }
+
+  /**
+   * <p>
+   *  Constructor for MzMLFileImportMethod that takes storage and advanced parameters to pass into MZMLParser
+   * </p>
+   */
+  public MzMLFileImportMethod(File mzMLFile, MemoryMapStorage storage, ParameterSet advancedParameters) {
+    this(mzMLFile, null, s -> false, c -> false);
+    this.advancedParameters = advancedParameters;
+    this.storage = storage;
   }
 
   /**
@@ -240,7 +257,7 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
       final XMLStreamReaderImpl xmlStreamReader = new XMLStreamReaderImpl();
       xmlStreamReader.setInput(is, "UTF-8");
 
-      this.parser = new MzMLParser(this);
+      this.parser = new MzMLParser(this, storage, advancedParameters);
       this.newRawFile = parser.getMzMLRawFile();
 
       lastLoggedProgress = 0;

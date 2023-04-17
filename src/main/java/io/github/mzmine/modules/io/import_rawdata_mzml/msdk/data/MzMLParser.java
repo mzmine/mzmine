@@ -30,6 +30,8 @@ import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -58,13 +60,17 @@ public class MzMLParser {
   private int totalScans = 0, parsedScans = 0;
   private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
+  private ParameterSet advancedParameters;
+
+  private MemoryMapStorage storage;
+
   /**
    * <p>
    * Constructor for {@link MzMLParser MzMLParser}
    * </p>
    *
-   * @param importer an instance of an initialized {@link MzMLFileImportMethod
-   *                 MzMLFileImportMethod}
+   * @param importer an instance of an initialized
+   *                 {@link MzMLFileImportMethod MzMLFileImportMethod}
    */
   public MzMLParser(MzMLFileImportMethod importer) {
     this.vars = new Vars();
@@ -74,10 +80,21 @@ public class MzMLParser {
         vars.spectrumList, vars.chromatogramsList);
   }
 
+  public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
+      ParameterSet advancedParameters) {
+    this.vars = new Vars();
+    this.tracker = new TagTracker();
+    this.importer = importer;
+    this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
+        vars.spectrumList, vars.chromatogramsList);
+    this.storage = storage;
+    this.advancedParameters = advancedParameters;
+  }
+
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl} enters the given tag
+   * Carry out the required parsing of the mzML data when the
+   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} enters the given tag
    * </p>
    *
    * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
@@ -143,7 +160,9 @@ public class MzMLParser {
         vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
             "defaultArrayLength").toInt();
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
-        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
+        //        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
+        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength,
+            storage, advancedParameters);
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
@@ -207,12 +226,7 @@ public class MzMLParser {
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
-        if (vars.spectrum != null && !vars.skipBinaryDataArray) {
-          //here we obtain the text value of the whole TAG_BINARY
-          //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
-          vars.spectrum.processBinaryScanValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
-          tracker.exit(tracker.current());
-        }
+        //todo check if we can put this before previous if and use this to create boolean to indicate detection of both mzs and intensities
         if (!vars.skipBinaryDataArray) {
           if (MzMLCV.cvMzArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
             vars.spectrum.setMzBinaryDataInfo(vars.binaryDataInfo);
@@ -220,6 +234,13 @@ public class MzMLParser {
           if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
             vars.spectrum.setIntensityBinaryDataInfo(vars.binaryDataInfo);
           }
+        }
+        if (vars.spectrum != null && !vars.skipBinaryDataArray) {
+          //here we obtain the text value of the whole TAG_BINARY
+          //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
+          vars.spectrum.processBinaryScanValues(xmlStreamReader.getElementText(),
+              vars.binaryDataInfo);
+          tracker.exit(tracker.current());
         }
 
 
@@ -324,7 +345,8 @@ public class MzMLParser {
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
         if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
-          vars.chromatogram.processBinaryChromatogramValues(xmlStreamReader.getElementText(), vars.binaryDataInfo);
+          vars.chromatogram.processBinaryChromatogramValues(xmlStreamReader.getElementText(),
+              vars.binaryDataInfo);
           tracker.exit(tracker.current());
         }
         if (!vars.skipBinaryDataArray) {
@@ -428,8 +450,8 @@ public class MzMLParser {
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl} exits the given tag
+   * Carry out the required parsing of the mzML data when the
+   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} exits the given tag
    * </p>
    *
    * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
@@ -513,10 +535,10 @@ public class MzMLParser {
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl} when {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS
-   * CHARACTERS} are found
-   * Deprecated until random access parser is introduced
+   * Carry out the required parsing of the mzML data when the
+   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} when
+   * {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS CHARACTERS} are found Deprecated
+   * until random access parser is introduced
    * </p>
    *
    * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
@@ -540,7 +562,8 @@ public class MzMLParser {
           && importer.getChromatogramPredicate().test(vars.chromatogram)) {
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
           case MzMLCV.cvRetentionTimeArray:
-            vars.chromatogram.getDoubleBufferRetentionTimes();
+            vars.chromatogram.getDoubleRetentionTimes();
+//            vars.chromatogram.getDoubleBufferRetentionTimes();
             break;
 
           case MzMLCV.cvIntensityArray:

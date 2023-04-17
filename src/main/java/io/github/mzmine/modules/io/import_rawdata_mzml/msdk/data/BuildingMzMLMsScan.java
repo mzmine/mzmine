@@ -39,7 +39,11 @@ import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgo
 import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.SpectralProcessingUtils;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +63,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 public class BuildingMzMLMsScan implements MsScan {
+//public class BuildingMzMLMsScan implements Scan {
   //public class MzMLMsScan extends AbstractStorableSpectrum implements MsScan {
 
   private final @NotNull MzMLRawDataFile dataFile;
@@ -78,8 +83,20 @@ public class BuildingMzMLMsScan implements MsScan {
   private Range<Double> mzRange;
   private Range<Double> mzScanWindowRange;
 
+  private ParameterSet advancedParameters;
+
+  // intermediate arrays
+  double[] intensitiesTemp;
+  double[] mzValuesTemp;
+
+  SpectralProcessingUtils spectralProcessor;
+
+  //Final memory-mapped processed data
+  //No intermediate results
   private DoubleBuffer mzValues;
   private DoubleBuffer intensityValues;
+
+  private MemoryMapStorage storage;
 
   /**
    * <p>
@@ -92,7 +109,8 @@ public class BuildingMzMLMsScan implements MsScan {
    * @param scanNumber      the Scan Number
    * @param numOfDataPoints the number of data points in the m/z and intensity arrays
    */
-  public BuildingMzMLMsScan(MzMLRawDataFile dataFile, String id, Integer scanNumber, int numOfDataPoints) {
+  public BuildingMzMLMsScan(MzMLRawDataFile dataFile, String id, Integer scanNumber,
+      int numOfDataPoints) {
     this.cvParams = new MzMLCVGroup();
     this.precursorList = new MzMLPrecursorList();
     this.productList = new MzMLProductList();
@@ -110,7 +128,32 @@ public class BuildingMzMLMsScan implements MsScan {
     this.mzScanWindowRange = null;
     this.mzValues = null;
     this.intensityValues = null;
+  }
 
+  public BuildingMzMLMsScan(MzMLRawDataFile dataFile, String id, Integer scanNumber,
+      int numOfDataPoints, MemoryMapStorage storage, ParameterSet advancedParameters) {
+    this.cvParams = new MzMLCVGroup();
+    this.precursorList = new MzMLPrecursorList();
+    this.productList = new MzMLProductList();
+    this.scanList = new MzMLScanList();
+    this.dataFile = dataFile;
+    this.id = id;
+    this.scanNumber = scanNumber;
+    this.numOfDataPoints = numOfDataPoints;
+    this.mzBinaryDataInfo = null;
+    this.intensityBinaryDataInfo = null;
+    this.spectrumType = null;
+    this.tic = null;
+    this.retentionTime = null;
+    this.mzRange = null;
+    this.mzScanWindowRange = null;
+    this.mzValues = null;
+    this.intensityValues = null;
+    //using memory map storage from AllSpectralDataImport class
+    this.storage = storage;
+    this.spectralProcessor = new SpectralProcessingUtils(this, advancedParameters);
+    this.intensitiesTemp = null;
+    this.mzValuesTemp = null;
   }
 
   /**
@@ -246,21 +289,43 @@ public class BuildingMzMLMsScan implements MsScan {
     return this.intensityValues;
   }
 
-
-  public void processBinaryScanValues(CharArray xmlMzContent, MzMLBinaryDataInfo binaryDataInfo) {
+  public void processBinaryScanValues(CharArray xmlBinaryContent,
+      MzMLBinaryDataInfo binaryDataInfo) {
     if (binaryDataInfo.getArrayLength() != this.numOfDataPoints) {
       logger.warning(
           "Binary data array contains an array of different length than the default array length of the scan (#"
               + getScanNumber() + ")");
     }
     try {
+      //todo is array needed
       double[] array = new double[this.numOfDataPoints];
+      //checks to see when both binary arrays are present and spectral processing can start
       if (MzMLCV.cvMzArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.mzValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
+        mzValuesTemp = MzMLPeaksDecoder.decodeToDouble(xmlBinaryContent, binaryDataInfo,
+            this.storage, array);
+        if (intensitiesTemp != null && advancedParameters != null) {
+          //run spectral processing here
+          this.spectralProcessor.processScan(mzValuesTemp, intensitiesTemp);
+        } else {
+          mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValuesTemp);
+        }
       }
       if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
+        intensitiesTemp = MzMLPeaksDecoder.decodeToDouble(xmlBinaryContent, binaryDataInfo,
+            this.storage, array);
+        if (mzValuesTemp != null && advancedParameters != null) {
+          //run spectral processing here
+          this.spectralProcessor.processScan(mzValuesTemp, intensitiesTemp);
+        } else {
+          intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensitiesTemp);
+        }
       }
+//      if (intensitiesTemp != null && mzValuesTemp != null && advancedParameters != null) {
+//        //run spectral processing here
+//        SpectralProcessingUtils spectralProcessingUtils = new SpectralProcessingUtils(this,
+//            this.advancedParameters);
+//        spectralProcessingUtils.processScan(mzValuesTemp, intensitiesTemp);
+//      }
     } catch (Exception e) {
       throw (new MSDKRuntimeException(e));
     }
@@ -682,4 +747,24 @@ public class BuildingMzMLMsScan implements MsScan {
     return Optional.ofNullable(null);
   }
 
+  public void setAdvancedParameters(ParameterSet advancedParam) {
+    this.advancedParameters = advancedParam;
+  }
+
+  public void setDoubleBufferMzValues(double[] values) {
+    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(this.storage, values);
+  }
+
+  public void setDoubleBufferIntensities(double[] values) {
+    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(this.storage, values);
+  }
+
+  /**
+   * Helper method used to free up the memory after memory-mapping
+   */
+  public void setTempValuesToNull() {
+    this.mzValuesTemp = null;
+    this.intensitiesTemp = null;
+    System.gc();
+  }
 }

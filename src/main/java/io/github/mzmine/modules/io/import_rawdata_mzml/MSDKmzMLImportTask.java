@@ -60,7 +60,6 @@ import io.github.mzmine.util.DateTimeUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
 import java.io.IOException;
@@ -124,6 +123,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
     this.parameters = parameters;
     this.module = module;
 
+    //todo duplication of code
+    //move to one of utility classes??
     if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
         this.ms1Detector = advancedParam.getParameter(
@@ -155,7 +156,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
       if (fis != null) {
         msdkTask = new MzMLFileImportMethod(fis);
       } else {
-        msdkTask = new MzMLFileImportMethod(file);
+//        msdkTask = new MzMLFileImportMethod(file);
+        msdkTask = new MzMLFileImportMethod(file, storage, advancedParam);
       }
       addTaskStatusListener((task, newStatus, oldStatus) -> {
         if (newStatus == TaskStatus.CANCELED) {
@@ -190,7 +192,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         if (msdkTaskRes.getStartTimeStamp() != null) {
           newMZmineFile.setStartTimeStamp(DateTimeUtils.parse(msdkTaskRes.getStartTimeStamp()));
         }
-      } catch (Exception ingored) {
+      } catch (Exception ignored) {
       }
 
       if (newMZmineFile instanceof IMSRawDataFileImpl) {
@@ -248,37 +250,22 @@ public class MSDKmzMLImportTask extends AbstractTask {
       }
       BuildingMzMLMsScan mzMLScan = (BuildingMzMLMsScan) scan;
 
-      Scan newScan = null;
-      if (applyMassDetection) {
-        // wrap scan
-        MsdkScanWrapper wrapper = new MsdkScanWrapper(mzMLScan);
-        double[][] mzIntensities = null;
+      Scan newScan;
 
-        // apply mass detection
-        if (ms1Detector != null && wrapper.getMSLevel() == 1) {
-          mzIntensities = applyMassDetection(ms1Detector, wrapper);
-        } else if (ms2Detector != null && wrapper.getMSLevel() >= 2) {
-          mzIntensities = applyMassDetection(ms2Detector, wrapper);
-          if (denormalizeMSnScans) {
-            ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
-                wrapper.getInjectionTime());
-          }
-        }
+      //todo is wrapper needed?
+//      MsdkScanWrapper wrapper = new MsdkScanWrapper(mzMLScan);
 
-        if (mzIntensities != null) {
-          // scans sorting is enforced in {@link AbstractStorableSpectrum#setDataPoints}
-          // create mass list and scan. Override data points and spectrum type
-          newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
-              mzIntensities[1], MassSpectrumType.CENTROIDED);
-          ScanPointerMassList newMassList = new ScanPointerMassList(newScan);
-          newScan.addMassList(newMassList);
-        }
-      }
-
-      if (newScan == null) {
-        // mz arrays are sorted within this method to ensure order in scans
-        newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan);
-      }
+      //todo handle scan sorting
+      // scans sorting is enforced in {@link AbstractStorableSpectrum#setDataPoints}
+      // create mass list and scan. Override data points and spectrum type
+//          newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
+//              mzIntensities[1], MassSpectrumType.CENTROIDED);
+//
+      newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan,
+          mzMLScan.getDoubleBufferMzValues(), mzMLScan.getDoubleBufferIntensityValues(),
+          MassSpectrumType.CENTROIDED);
+      ScanPointerMassList newMassList = new ScanPointerMassList(newScan);
+      newScan.addMassList(newMassList);
 
       newMZmineFile.addScan(newScan);
       parsedScans++;

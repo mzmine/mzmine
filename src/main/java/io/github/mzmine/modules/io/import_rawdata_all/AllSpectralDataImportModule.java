@@ -331,7 +331,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               moduleCallDate);
       // imaging, maldi, or LC-MS
       case BRUKER_TSF ->
-          new TSFImportTask(project, file, MemoryMapStorage.forRawDataFile(), module, parameters,
+          new TSFImportTask(project, file, storage, module, parameters,
               moduleCallDate);
       // IMS
       case BRUKER_TDF ->

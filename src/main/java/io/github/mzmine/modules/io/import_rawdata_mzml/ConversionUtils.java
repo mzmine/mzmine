@@ -183,6 +183,36 @@ public class ConversionUtils {
     return newScan;
   }
 
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
+      DoubleBuffer sortedMzs, DoubleBuffer sortedIntensities, MassSpectrumType spectrumType) {
+    DDAMsMsInfo info = null;
+    if (scan.getPrecursorList() != null) {
+      final var precursorElements = scan.getPrecursorList().getPrecursorElements();
+      if (precursorElements.size() == 1) {
+        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMsLevel());
+      } else if (precursorElements.size() > 1) {
+        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMsLevel());
+      }
+    }
+
+    Float injTime = null;
+    try {
+      injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
+    } catch (Exception e) {
+      // float parsing error
+    }
+
+    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
+        scan.getRetentionTime() / 60, info, sortedMzs, sortedIntensities, spectrumType,
+        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
+        scan.getScanningRange(), injTime);
+
+    return newScan;
+  }
+
   public static BuildingMobilityScan msdkScanToMobilityScan(int scannum, MsScan scan) {
     return new BuildingMobilityScan(scannum, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()));

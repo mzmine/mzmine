@@ -37,8 +37,8 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SeparationType;
 import io.github.msdk.datamodel.SimpleActivationInfo;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,9 +68,10 @@ class MzMLChromatogram implements Chromatogram {
   private Double mz;
   private SeparationType separationType;
   private Range<Float> rtRange;
-  //  private float[] rtValues;
-  private DoubleBuffer rtValues;
-  private DoubleBuffer intensityValues;
+  private double[] rtValues;
+  private double[] intensityValues;
+
+  private MemoryMapStorage storage;
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -101,7 +102,6 @@ class MzMLChromatogram implements Chromatogram {
     this.rtRange = null;
     this.rtValues = null;
     this.intensityValues = null;
-
   }
 
   /**
@@ -398,7 +398,7 @@ class MzMLChromatogram implements Chromatogram {
         "This chromatogram was used for import only. Use the DoubleBuffer method");
   }
 
-  public DoubleBuffer getDoubleBufferRetentionTimes() {
+  public double[] getDoubleRetentionTimes() {
     return this.rtValues;
   }
 
@@ -412,10 +412,10 @@ class MzMLChromatogram implements Chromatogram {
     try {
       double[] array = new double[this.numOfDataPoints];
       if (MzMLCV.cvRetentionTimeArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.rtValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
+        this.rtValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, storage, array);
       }
       if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
+        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, storage, array);
       }
     } catch (Exception e) {
       throw (new MSDKRuntimeException(e));
