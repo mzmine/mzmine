@@ -40,6 +40,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchTask;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
@@ -61,6 +63,7 @@ import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -75,6 +78,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -625,6 +629,16 @@ public class MainWindowController {
 
   public TasksView getTasksView() {
     return taskView;
+  }
+
+  public void handleLibraryToFeatureList(final ActionEvent actionEvent) {
+    logger.finest("Libraries to feature lists");
+    var libraries = Collections.unmodifiableList(MZmineGUI.getSelectedSpectralLibraryList());
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralLibraryToFeatureListModule.class);
+    parameters.getParameter(SpectralLibraryToFeatureListParameters.libraries)
+        .setValue(new SpectralLibrarySelection(libraries));
+    MZmineCore.runMZmineModule(SpectralLibraryToFeatureListModule.class, parameters);
   }
 
   public void handleShowChromatogram(Event event) {
