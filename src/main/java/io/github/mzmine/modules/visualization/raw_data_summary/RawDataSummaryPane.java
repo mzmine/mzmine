@@ -69,15 +69,16 @@ public class RawDataSummaryPane extends BorderPane {
 
     final var formats = MZmineCore.getConfiguration().getGuiFormats();
 
-    BorderPane mzHistoPane = createScanHistoParameters(
-        "m/z distribution: intensity > " + formats.intensity(heightRange.lowerEndpoint()),
-        dataFiles, scanDataType, scanSelection, useMzRange, mzRange, useHeightRange, heightRange,
-        false, MassDefectFilter.ALL, ScanHistogramType.MZ, 0.005);
+    var intensityLbl = heightRange.hasLowerBound() ? ": intensity≥" + formats.intensity(
+        heightRange.lowerEndpoint()) : "";
+    BorderPane mzHistoPane = createScanHistoParameters("m/z distribution" + intensityLbl, dataFiles,
+        scanDataType, scanSelection, useMzRange, mzRange, useHeightRange, heightRange, false,
+        MassDefectFilter.ALL, ScanHistogramType.MZ, 0.005);
 
     BorderPane massDefectHistoPane = createScanHistoParameters(
-        "Mass defect distribution: intensity > " + formats.intensity(heightRange.lowerEndpoint()),
-        dataFiles, scanDataType, scanSelection, useMzRange, mzRange, true, heightRange, false,
-        MassDefectFilter.ALL, ScanHistogramType.MASS_DEFECT, 0.0025);
+        "Mass defect (MD) distribution" + intensityLbl, dataFiles, scanDataType, scanSelection,
+        useMzRange, mzRange, true, heightRange, false, MassDefectFilter.ALL,
+        ScanHistogramType.MASS_DEFECT, 0.0025);
 
     BorderPane intensityHistoPane = createScanHistoParameters("Intensity distribution", dataFiles,
         scanDataType, scanSelection, useMzRange, mzRange, false, heightRange, false,
@@ -85,13 +86,15 @@ public class RawDataSummaryPane extends BorderPane {
 
     // within mass defect
     var noiseMzRange = Range.closed(0d, upperMzCutoffForMassDefect);
+    String mzFilterString = " for m/z≤" + (int) upperMzCutoffForMassDefect;
+
     BorderPane intensityInMassDefectMzHistoPane = createScanHistoParameters(
-        "Noise (intensity) distribution within " + massDefectFilter, dataFiles, scanDataType,
-        scanSelection, true, noiseMzRange, false, heightRange, true, massDefectFilter,
+        "Noise distribution: MD within " + massDefectFilter + mzFilterString, dataFiles,
+        scanDataType, scanSelection, true, noiseMzRange, false, heightRange, true, massDefectFilter,
         ScanHistogramType.INTENSITY, -1);
 
     BorderPane massDefectBelow200HistoPane = createScanHistoParameters(
-        "Mass defect within m/z " + noiseMzRange, dataFiles, scanDataType, scanSelection, true,
+        "Mass defect" + mzFilterString + intensityLbl, dataFiles, scanDataType, scanSelection, true,
         noiseMzRange, true, heightRange, false, MassDefectFilter.ALL, ScanHistogramType.MASS_DEFECT,
         0.0025);
 
