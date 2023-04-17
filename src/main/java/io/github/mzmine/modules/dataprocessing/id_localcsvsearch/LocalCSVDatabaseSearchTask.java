@@ -49,7 +49,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
@@ -446,8 +446,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(inchiKey, () -> a.put(inchiKeyType, inchiKey));
     doIfNotNull(lineMZ, () -> a.put(precursorMz, lineMZ));
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
-    doIfNotNull(IonType.parseFromString(lineAdduct),
-        () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
+    a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
     doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
         new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     return a;

@@ -555,6 +555,9 @@
 
     <SeparatorMenuItem/>
 
+    <MenuItem text="Raw data summary" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule"/>
+
     <MenuItem text="Scan histogram" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule"/>
 
