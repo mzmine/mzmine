@@ -33,6 +33,7 @@ import java.awt.event.ActionEvent;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.DoubleStream;
 import javafx.animation.PauseTransition;
@@ -456,10 +457,16 @@ public class HistogramPanel extends BorderPane {
         if (y != null) {
           histo.getXYPlot().getRangeAxis().setRange(y);
         }
-        pnHisto = new EChartViewer(histo, true, true, true, true, true);
         histo.getLegend().setVisible(true);
-
-        southwest.setCenter(pnHisto);
+        if (pnHisto == null) {
+          pnHisto = new EChartViewer(histo, true, true, true, true, true);
+          southwest.setCenter(pnHisto);
+        } else {
+          pnHisto.setChart(histo);
+          if (histo != null) {
+            histo.getLegend().setVisible(false);
+          }
+        }
 
         lbStats.setText("DONE");
         lbStats.setTextFill(Color.GREEN);
@@ -468,7 +475,7 @@ public class HistogramPanel extends BorderPane {
         lbStats.setText("ERROR");
       }
     } catch (Exception e) {
-      logger.severe(e.toString());
+      logger.log(Level.WARNING, "Error during histogram panel set chart " + e.getMessage(), e);
       lbStats.setText("ERROR");
     }
   }

@@ -792,6 +792,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(MassDetectionParameters.scanSelection,
         new ScanSelection(MsLevelFilter.of(msLevel, true)));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
+    param.setParameter(MassDetectionParameters.denormalizeMSnScans, false);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));

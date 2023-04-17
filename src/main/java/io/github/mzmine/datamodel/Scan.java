@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -147,13 +148,16 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   @Nullable
   public Float getInjectionTime();
 
+  default boolean hasInjectionTime() {
+    return getInjectionTime() != null && getInjectionTime() >= 0;
+  }
+
   /**
    * @return The actual scanning range of the instrument
    */
   @NotNull Range<Double> getScanningMZRange();
 
   /**
-   *
    * @return The {@link MsMsInfo}. If null, this is not an MSn scan.
    */
   @Nullable MsMsInfo getMsMsInfo();
@@ -196,7 +200,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   }
 
   /**
-   *
    * Method to check if the scan m/z range is not empty
    *
    * @return boolean
