@@ -66,12 +66,28 @@ public class MassvoltammogramPlotPanel extends Plot3DPanel {
     return massvoltammogramToolBar;
   }
 
+  /**
+   * Sets the plots background transparent.
+   *
+   * @param bgTransparent True sets the background transparent, false sets it back to white.
+   */
   public void setBackgroundTransparent(boolean bgTransparent) {
     if (bgTransparent) {
       plotCanvas.setBackground(new Color(0f, 0f, 0f, 0f));
-      
+
     } else {
       plotCanvas.setBackground(Color.white);
     }
+  }
+
+  /**
+   * Sets the intensity axis bounds to fixed values
+   *
+   * @param minValue The intensity axis min value.
+   * @param maxValue The intensity axis max value.
+   */
+  public void scaleIntensityAxis(double minValue, double maxValue) {
+
+    setFixedBounds(2, minValue, maxValue);
   }
 }

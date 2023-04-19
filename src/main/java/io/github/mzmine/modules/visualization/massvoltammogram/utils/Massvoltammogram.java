@@ -35,10 +35,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
-import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramMzRangeParameter;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.collections.BinarySearch;
 import java.awt.Color;
@@ -58,7 +56,6 @@ public class Massvoltammogram {
   private final ReactionMode reactionMode;
   private final double delayTime; //In s.
   private final Range<Double> potentialRange;
-  private double divisor;
   private double potentialRampSpeed; //In mV/s.
   private double stepSize; //In mV.
   private Range<Double> userInputMzRange;
@@ -77,6 +74,7 @@ public class Massvoltammogram {
   private int numTotalScans;
 
   private boolean mzRangeIsEmpty;
+  private double divisor;
 
   //Constructor from raw data file.
   public Massvoltammogram(RawDataFile file, ScanSelection scanSelection, ReactionMode reactionMode,
@@ -140,9 +138,14 @@ public class Massvoltammogram {
     //Creating the massvoltammogram from the raw scans.
     cropRawScansToMzRange();
 
-    //Processing and plotting the massvoltammogram.
     if (!mzRangeIsEmpty) {
+
+      //Processing the data.
       processRawScans();
+
+      //Plotting the processed data.
+      divisor = MassvoltammogramUtils.getDivisor(
+          MassvoltammogramUtils.getMaxIntensity(processedScans));
       plotMassvoltammogram();
 
       //Plotting an empty massvoltammogram if there is no data in the mz-range.
@@ -339,10 +342,6 @@ public class Massvoltammogram {
    */
   private void plotMassvoltammogram() {
 
-    //Calculating the divisor needed to scale the z-axis.
-    final double maxIntensity = MassvoltammogramUtils.getMaxIntensity(processedScans);
-    divisor = MassvoltammogramUtils.getDivisor(maxIntensity);
-
     for (MassvoltammogramScan scan : processedScans) {
 
       //Initializing a double array for the divided intensities as well as the potentials.
@@ -462,27 +461,52 @@ public class Massvoltammogram {
    * Asks the user for a new m/z-range, extracts this new m/z- range from the raw scans and plots
    * the scans in the new m/z-range.
    */
-  public void editMzRange() {
+  public void editMzRange(Range<Double> mzRange) {
 
-    //Getting user input for the new m/z-Range and cropping the raw scans.
-    final MassvoltammogramMzRangeParameter mzRangeParameter = new MassvoltammogramMzRangeParameter();
-    if (mzRangeParameter.showSetupDialog(true) != ExitCode.OK) {
-      return;
-    }
-    this.userInputMzRange = mzRangeParameter.getValue(MassvoltammogramMzRangeParameter.mzRange);
+    this.userInputMzRange = mzRange;
     cropRawScansToMzRange();
 
     //Removing the old line plots to draw new ones.
     plot.removeAllPlots();
 
-    //Processing and plotting the massvoltammogram.
     if (!mzRangeIsEmpty) {
+
+      //Processing the data.
       processRawScans();
+
+      //Plotting the processed data.
+      divisor = MassvoltammogramUtils.getDivisor(
+          MassvoltammogramUtils.getMaxIntensity(processedScans));
       plotMassvoltammogram();
 
       //Plotting an empty massvoltammogram if there is no data in the mz-range.
     } else {
       plotEmptyMassvoltammogram();
     }
+  }
+
+  /**
+   * Scales the massvoltammogram-plots intensity axis to a set max value.
+   *
+   * @param maxValue The max value the intensity axis will be scaled to.
+   */
+  public void scalePlotsIntensityAxis(double maxValue) {
+
+    //Calculating the new divisor to resize the shown data.
+    this.divisor = MassvoltammogramUtils.getDivisor(maxValue);
+
+    //Removing the old line plots and plotting the rescaled data.
+    plot.removeAllPlots();
+    if (!mzRangeIsEmpty) {
+      plotMassvoltammogram();
+    } else {
+      plotEmptyMassvoltammogram();
+      plot.setAxisLabel(2,
+          "Intensity / 10" + MassvoltammogramUtils.toSuperscript((int) Math.log10(divisor))
+              + " a.u.");
+    }
+
+    //Scaling the intensity axis to the new max value.
+    plot.scaleIntensityAxis(0, maxValue / divisor);
   }
 }
