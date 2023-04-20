@@ -278,7 +278,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
           Object tmp = readMetaData(main, "retention time");
           if (tmp != null) {
             if (tmp instanceof Number) {
-              value = ((Number) tmp).doubleValue();
+              value = ((Number) tmp).floatValue();
             } else {
               try {
                 String v = (String) tmp;

@@ -325,11 +325,21 @@ public class FormulaUtils {
   }
 
   /**
+   * @param formula formula maybe with defined isotopes
+   * @return mono isotopic mass
+   */
+  public static double getMonoisotopicMass(IMolecularFormula formula) {
+    return formula == null ? 0d
+        : MolecularFormulaManipulator.getMass(formula, MolecularFormulaManipulator.MonoIsotopic);
+  }
+
+  /**
    * Creates a formula with the major isotopes (important to use this method for exact mass
    * calculation over the CDK version, which generates formulas without an exact mass)
    *
    * @return the formula or null
    */
+  @Nullable
   public static IMolecularFormula createMajorIsotopeMolFormula(String formula) {
     try {
       // new formula consists of isotopes without exact mass

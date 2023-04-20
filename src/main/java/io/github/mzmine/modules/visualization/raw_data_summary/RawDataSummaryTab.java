@@ -23,52 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.abstr;
+package io.github.mzmine.modules.visualization.raw_data_summary;
 
-import io.github.mzmine.main.MZmineCore;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.parameters.ParameterSet;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Used to export to generic formats. Header is just score
- */
-public class ScoreType extends FloatType {
+public class RawDataSummaryTab extends SimpleTab {
 
-  public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
+  private final RawDataSummaryPane mainPane;
 
-  public ScoreType() {
-    super(DEFAULT);
+  public RawDataSummaryTab(final RawDataFile[] dataFiles, final ParameterSet parameterSet) {
+    super("Raw data summary", true, false);
+    mainPane = new RawDataSummaryPane(dataFiles, parameterSet);
+    setContent(mainPane);
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "score";
+  public void onRawDataFileSelectionChanged(final Collection<? extends RawDataFile> rawDataFiles) {
+    super.onRawDataFileSelectionChanged(rawDataFiles);
+    mainPane.setDataFiles(rawDataFiles);
   }
 
   @Override
-  public @NotNull String getHeaderString() {
-    return "Score";
-  }
-
-  @Override
-  public NumberFormat getFormat() {
-    try {
-      return MZmineCore.getConfiguration().getGuiFormats().scoreFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    try {
-      return MZmineCore.getConfiguration().getExportFormats().scoreFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
+    return  mainPane.getDataFiles();
   }
 }
