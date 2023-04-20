@@ -25,17 +25,17 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
-public class PotentialType extends FloatType {
+public class PotentialType extends IntegerType {
 
-  private static final DecimalFormat format = new DecimalFormat("0.00");
+  private static final DecimalFormat format = new DecimalFormat("0");
 
   public PotentialType() {
-    super(format);
+    super();
   }
 
   @Override
@@ -45,7 +45,7 @@ public class PotentialType extends FloatType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Potential / V";
+    return "Potential / mV";
   }
 
   @Override
