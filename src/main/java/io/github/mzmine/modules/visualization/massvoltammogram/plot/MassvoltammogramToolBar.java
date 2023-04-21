@@ -27,14 +27,11 @@ package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramAxisParameters;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportParameters;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportTask;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.FxThreadUtil;
-import java.io.File;
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
@@ -43,8 +40,6 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.math.plot.canvas.Plot3DCanvas;
 import org.math.plot.canvas.PlotCanvas;
 
@@ -114,7 +109,7 @@ public class MassvoltammogramToolBar extends ToolBar {
 
     //Creating a button to edit the m/z-range.
     final Button editAxisRangesButton = new Button(null, new ImageView(EDIT_AXIS_RANGES_ICON));
-    editAxisRangesButton.setTooltip(new Tooltip("Edit the massvoltammograms m/z-range."));
+    editAxisRangesButton.setTooltip(new Tooltip("Edit the massvoltammograms axis ranges."));
     editAxisRangesButton.setOnAction(e -> editAxisRanges());
     editAxisRangesButton.setMinSize(35, 35);
 
@@ -128,25 +123,13 @@ public class MassvoltammogramToolBar extends ToolBar {
    */
   private void exportMassvoltammogram() {
 
-    //Initializing a file chooser and a file to save the selected path to.
-    final FileChooser fileChooser = new FileChooser();
-    final AtomicReference<File> chosenFile = new AtomicReference<>(null);
+    MassvoltammogramExportParameters exportParameters = new MassvoltammogramExportParameters();
 
-    //Generating the extension filters.
-    final FileChooser.ExtensionFilter extensionFilterPNG = new ExtensionFilter(
-        "Portable Network Graphics", ".png");
-    final FileChooser.ExtensionFilter extensionFilterCSV = new ExtensionFilter("CSV-File", ".csv");
-    final FileChooser.ExtensionFilter extensionFilterXLSX = new ExtensionFilter("Excel-File",
-        ".xlsx");
-    fileChooser.getExtensionFilters()
-        .addAll(Arrays.asList(extensionFilterCSV, extensionFilterXLSX, extensionFilterPNG));
-
-    //Opening dialog to choose the path to save the file to.
-    FxThreadUtil.runOnFxThreadAndWait(() -> chosenFile.set(fileChooser.showSaveDialog(null)));
-
-    if (chosenFile.get() != null) {
-      new MassvoltammogramExportTask(massvoltammogram, chosenFile.get());
+    if (exportParameters.showSetupDialog(true) != ExitCode.OK) {
+      return;
     }
+
+    new MassvoltammogramExportTask(massvoltammogram, exportParameters);
   }
 
   /**
