@@ -193,6 +193,16 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   }
 
   @Override
+  public @Nullable String getInChI() {
+    return entry.getOrElse(DBEntryField.INCHI, null);
+  }
+
+  @Override
+  public @Nullable String getInChIKey() {
+    return entry.getOrElse(DBEntryField.INCHIKEY, null);
+  }
+
+  @Override
   public @Nullable String getCompoundName() {
     return entry.getOrElse(DBEntryField.NAME, null);
   }
