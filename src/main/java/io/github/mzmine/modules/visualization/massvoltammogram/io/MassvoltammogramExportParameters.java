@@ -39,7 +39,7 @@ public class MassvoltammogramExportParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> fileFormat = new ComboParameter<>("File Format",
       "The file format the massvoltammogram will be exported to",
-      new String[]{"CSV", "XLSX", "PNG", "JPG",}, "CSV");
+      new String[]{"CSV", "XLSX", "PNG", "JPG", "EMF", "PDF"}, "CSV");
 
   public static final BooleanParameter transparency = new BooleanParameter("Transparency",
       "Set the background transparent for supported graphics formats.");

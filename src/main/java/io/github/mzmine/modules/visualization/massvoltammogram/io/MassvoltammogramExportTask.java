@@ -25,11 +25,13 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
+import com.itextpdf.text.DocumentException;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -87,6 +89,8 @@ public class MassvoltammogramExportTask extends AbstractTask {
       case "XLSX" -> toXLSX();
       case "PNG" -> toPNG();
       case "JPG" -> toJPG();
+      case "EMF" -> toEMF();
+      case "PDF" -> toPDF();
       default -> cancel();
     }
 
@@ -107,7 +111,7 @@ public class MassvoltammogramExportTask extends AbstractTask {
     BufferedImage img = new BufferedImage(plot.getWidth(), plot.getHeight(),
         BufferedImage.TYPE_INT_ARGB);
     Graphics2D graphics = img.createGraphics();
-    plot.paint(img.getGraphics());
+    plot.paint(graphics);
     graphics.drawImage(img, 0, 0, null);
     graphics.dispose();
 
@@ -134,7 +138,7 @@ public class MassvoltammogramExportTask extends AbstractTask {
     BufferedImage img = new BufferedImage(plot.getWidth(), plot.getHeight(),
         BufferedImage.TYPE_INT_RGB);
     Graphics2D graphics = img.createGraphics();
-    plot.paint(img.getGraphics());
+    plot.paint(graphics);
     graphics.drawImage(img, 0, 0, null);
     graphics.dispose();
 
@@ -257,6 +261,36 @@ public class MassvoltammogramExportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
       logger.log(Level.WARNING, e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Method to export the massvoltammogram to a emf-file.
+   */
+  private void toEMF() {
+
+    File file = new File(filePath + ".emf");
+    try {
+      SwingExportUtil.writeToEMF(massvoltammogram.getPlot(), file);
+
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage());
+    }
+  }
+
+  /**
+   * Method to export the massvoltammogram to a pdf-file.
+   */
+  private void toPDF() {
+
+    File file = new File(filePath + ".pdf");
+    try {
+      SwingExportUtil.writeToPDF(massvoltammogram.getPlot(), file);
+
+    } catch (IOException | DocumentException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage());
     }
   }
 
