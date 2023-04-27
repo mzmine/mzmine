@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
@@ -44,12 +45,67 @@ public class IINTests {
   @Test
   void testIonTypeParsing() {
     IonType type1 = new IonType(IonModification.NH4);
-    final String[] string = new String[] {"M+NH4", "M+NH4]+", "[M+NH4]+", "[1M+NH4]+", "1M+NH4]1+"};
+    final String[] string = new String[]{"M+NH4", "M+NH4]+", "[M+NH4]+", "[1M+NH4]+", "1M+NH4]1+"};
 
     for (String s : string) {
-      IonType ionType = IonType.parseFromString(s);
-      Assertions.assertEquals(type1, ionType);
+      IonType ionType = IonTypeParser.parse(s);
+      Assertions.assertEquals(type1.toString(true), ionType.toString(true));
     }
+  }
+
+  @Test
+  void testIonTypeParsingMultiple() {
+    final String[] string = new String[]{"[M+NH4]+", "[M-H2O+H]+", "[M-2H2O+H]+", "[M-H2O-H+2Na]+"};
+
+    for (String s : string) {
+      IonType ionType = IonTypeParser.parse(s);
+      Assertions.assertNotNull(ionType);
+      Assertions.assertEquals(s, ionType.toString(false));
+    }
+  }
+
+  @Test
+  void testIonParserRandomString() {
+    testIonParser("[M+TEST]+", "[M+TEST]+", 1, 1, 1);
+    testIonParser("[M-TEST]-", "[M-TEST]-", 1, -1, 1);
+  }
+
+  @Test
+  void testIonParse() {
+    testIonParser("2M+", "[2M]+", 2, 1, 0);
+    testIonParser("M+", "[M]+", 1, 1, 0);
+    testIonParser("M-2H]2-", "[M-2H]-2", 1, -2, 0);
+    testIonParser("M-H-", "[M-H]-", 1, -1, 0);
+    testIonParser("M+H", "[M+H]+", 1, 1, 0);
+    testIonParser("M-H]-1", "[M-H]-", 1, -1, 0);
+    testIonParser("[2M+2H+Na]+3", 2, 3, 0);
+    testIonParser("M+Na+2H+3", "[M+2H+Na]+3", 1, 3, 0);
+    testIonParser("[M+2Na-H-H2O]+", "[M-H2O-H+2Na]+", 1, 1, 1);
+    testIonParser("M+H+", "[M+H]+", 1, 1, 0);
+    testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1, 1);
+    testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1, 1);
+    testIonParser("[M-H+Fe]2+", "[M+Fe-H]+2", 1, 2, 1);
+
+    // counter intuitve but we expect ions to have a charge and default to 1
+    testIonParser("[M-H2O]", "[M-H2O]+", 1, 1, 1);
+  }
+
+  private static void testIonParser(final String input, int mol, int charge, int mod) {
+    testIonParser(input, input, mol, charge, mod);
+  }
+
+  private static void testIonParser(final String input, String formatted, int mol, int charge,
+      int mod) {
+    IonType ionType = IonTypeParser.parse(input);
+
+    Assertions.assertNotNull(ionType, "%s could not be parsed".formatted(input));
+    Assertions.assertEquals(charge, ionType.getCharge(),
+        "%s charge was wrong as %d".formatted(input, charge));
+    Assertions.assertEquals(mol, ionType.getMolecules(),
+        "%s mol was wrong as %d".formatted(input, mol));
+    Assertions.assertEquals(mod, ionType.getModCount(),
+        "%s mod was wrong as %d".formatted(input, mod));
+    Assertions.assertEquals(formatted, ionType.toString(false));
   }
 
   @Test
@@ -65,14 +121,16 @@ public class IINTests {
     annotation.put(FormulaType.class, "C16H17NO3");
     double mzFromFormula = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
 
-    annotation.put(PrecursorMZType.class,272.1281199);
+    annotation.put(PrecursorMZType.class, 272.1281199);
     annotation.put(IonTypeType.class, ionType);
     double mzFromMz = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
 
     annotation.put(NeutralMassType.class, 271.1208434);
     double mzFromNeutral = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
 
-    logger.info(() -> "Smiles: " + mzFromSmiles + "\tFormula: " + mzFromFormula + "\tPrecursor: " + mzFromMz + "\tNeutral: " + mzFromNeutral);
+    logger.info(
+        () -> "Smiles: " + mzFromSmiles + "\tFormula: " + mzFromFormula + "\tPrecursor: " + mzFromMz
+              + "\tNeutral: " + mzFromNeutral);
     Assertions.assertTrue(tol.checkWithinTolerance(mzFromFormula, mzFromNeutral));
     Assertions.assertTrue(tol.checkWithinTolerance(mzFromMz, mzFromNeutral));
     Assertions.assertTrue(tol.checkWithinTolerance(mzFromSmiles, mzFromNeutral));

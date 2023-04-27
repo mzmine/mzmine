@@ -208,4 +208,9 @@ public class CombinedIonModification extends IonModification {
         streamModifications().map(IonModification::getMolFormula).collect(Collectors.joining(";")));
     return map;
   }
+
+  @Override
+  public IonModification withCharge(final int newCharge) {
+    return new CombinedIonModification(mods, type, mass, newCharge);
+  }
 }
