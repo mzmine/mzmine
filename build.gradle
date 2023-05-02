@@ -57,8 +57,10 @@ group = "io.github.mzmine"
 description = "MZmine"
 
 java {
-    sourceCompatibility = "19"
-    targetCompatibility = "19"
+    // if you're not yet on a newer JDK, 17 is LTS
+    languageVersion.set(JavaLanguageVersion.of(17))
+    // or if you're using a newer JDK
+    languageVersion.set(JavaLanguageVersion.of(19))
 }
 defaultTasks "test", "jpackage", "notarizeApp"
 
