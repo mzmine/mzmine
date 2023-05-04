@@ -279,4 +279,6 @@ public interface SpectralLibraryEntry extends MassList {
       case String s -> Integer.parseInt(s);
     };
   }
+
+  public <T> T setField(DBEntryField field, T value);
 }

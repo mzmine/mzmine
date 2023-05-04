@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
@@ -95,9 +96,18 @@ public class FeatureShapeChart extends StackPane {
       } else {
         final Float length = Math.max(RangeUtils.rangeLength(bestFeature.getRawDataPointsRTRange()),
             0.001f);
-        defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * length, 0),
-            Math.min(rt + 3 * length,
-                bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
+        if (bestFeature.getRawDataFile().getDataRTRange().upperEndpoint() != 0.0) {
+          defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * length, 0),
+              Math.min(rt + 3 * length,
+                  bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
+        } else if (row.get(RTRangeType.class) != null) {
+          // This case is for when no actual raw data are imported during feature table import
+          // (e.g., in case of mzTab-m import). Otherwise, "Undefined error" message is thrown
+          defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * length, 0),
+              Math.min(rt + 3 * length, row.get(RTRangeType.class).upperEndpoint()));
+        } else {
+          defaultRange = new Range(0, 1);
+        }
       }
     } else {
       defaultRange = new Range(0, 1);

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_features_mztabm;
 
+import com.google.common.collect.Range;
 import de.isas.mztab2.io.MzTabValidatingWriter;
 import de.isas.mztab2.model.Assay;
 import de.isas.mztab2.model.CV;
@@ -50,6 +51,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -292,6 +294,7 @@ public class MZTabmExportTask extends AbstractTask {
 
             Double rowMZ = featureListRow.getAverageMZ();
             Float rowRT = featureListRow.getAverageRT();
+            Range<Float> rowRTRange = featureListRow.get(RTRangeType.class);
             Integer rowCharge = featureListRow.getRowCharge().intValue();
 
             //check if the fields that shouldn't be empty do not contain nulls
@@ -311,7 +314,12 @@ public class MZTabmExportTask extends AbstractTask {
               sme.setExpMassToCharge(rowMZ.doubleValue());
             }
             if (rowRT != null) {
-              smf.setRetentionTimeInSeconds(rowRT.doubleValue());
+              smf.setRetentionTimeInSeconds(rowRT.doubleValue() * 60f);
+            }
+            if (rowRTRange != null) {
+              //todo re-check conversion
+              smf.setRetentionTimeInSecondsStart(rowRTRange.lowerEndpoint().doubleValue() * 60f);
+              smf.setRetentionTimeInSecondsEnd(rowRTRange.upperEndpoint().doubleValue() * 60f);
             }
 
             int dataFileCount = 0;

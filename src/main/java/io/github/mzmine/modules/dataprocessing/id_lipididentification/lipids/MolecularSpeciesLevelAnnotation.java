@@ -104,6 +104,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     this.lipidChains = lipidChains;
   }
 
+  public void setMolecularFormula(IMolecularFormula formula) {this.molecularFormula = formula;}
+
   @Override
   public int hashCode() {
     final int prime = 31;

@@ -39,34 +39,60 @@ import de.isas.mztab2.model.StudyVariable;
 import de.isas.mztab2.model.ValidationMessage;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
-import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
+import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType.Level;
 
 public class MzTabmImportTask extends AbstractTask {
 
@@ -75,10 +101,12 @@ public class MzTabmImportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final File inputFile;
   private final boolean importRawFiles;
+  private @NotNull
+  final Map<String, IonizationType> lipidIonTypeMap;
   private double finishedPercentage = 0.0;
 
   // underlying tasks for importing raw data
-  private final List<Task> underlyingTasks = new ArrayList<Task>();
+  private final List<Task> underlyingTasks = new ArrayList<>();
 
   public MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -87,6 +115,9 @@ public class MzTabmImportTask extends AbstractTask {
     this.parameters = parameters;
     this.inputFile = inputFile;
     this.importRawFiles = parameters.getParameter(MzTabmImportParameters.importRawFiles).getValue();
+
+    lipidIonTypeMap = Arrays.stream(IonizationType.values())
+        .collect(Collectors.toMap(IonizationType::getAdductName, ion -> ion));
   }
 
   @Override
@@ -128,7 +159,7 @@ public class MzTabmImportTask extends AbstractTask {
 
       // Load mzTab file
       MzTabFileParser mzTabmFileParser​ = new MzTabFileParser(inputFile);
-      mzTabmFileParser​.parse(System.err, MZTabErrorType.Level.Info, 500);
+      mzTabmFileParser​.parse(System.err, Level.Info, 500);
 
       // inspect the output of the parse and errors
       MZTabErrorList errors = mzTabmFileParser​.getErrorList();
@@ -188,7 +219,6 @@ public class MzTabmImportTask extends AbstractTask {
       // Finish
       setStatus(TaskStatus.FINISHED);
       finishedPercentage = 1.0;
-
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -319,21 +349,22 @@ public class MzTabmImportTask extends AbstractTask {
 
   private void importTablesData(ModularFeatureList newFeatureList, MzTab mzTabmFile,
       List<RawDataFile> rawDataFiles) {
+
     List<Assay> assayList = mzTabmFile.getMetadata().getAssay();
     List<SmallMoleculeSummary> smallMoleculeSummaryList = mzTabmFile.getSmallMoleculeSummary();
 
     // Loop through SMF data
     String formula, description, method, url = "";
-    double mzExp = 0, abundance = 0, feature_mz = 0;
-    float feature_rt = 0, feature_height = 0, rtValue = 0;
-    int charge = 0;
-    int rowCounter = 0;
+    double mzExp, abundance = 0, feature_mz;
+    float feature_rt, feature_height = 0, rtValue;
+    int charge, rowCounter = 0;
     List<SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
     List<SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
 
     MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
 
-    for (SmallMoleculeFeature smf : smfList) {
+    for (int j = 0; j < smfList.size(); j++) {
+      SmallMoleculeFeature smf = smfList.get(j);
       // Stop the process if cancel() is called
       if (isCanceled()) {
         return;
@@ -347,18 +378,24 @@ public class MzTabmImportTask extends AbstractTask {
           break;
         }
       }
-      formula = sml.getChemicalFormula().get(0);
-      description = sml.getChemicalName().get(0);
+
+      formula = smeList.get(rowCounter - 1).getChemicalFormula();
+
+      description = sml.getChemicalName().toString(); //.get(0);
       charge = smf.getCharge();
+
       // sm. (smile ->getSmiles(), inchikey -> getInchi(), database ->getDatabase(), reliability
       // ->getReliability)
       if (sml.getUri().size() != 0) {
         url = sml.getUri().get(0);
       }
-      // Average Retention Time, convert to minutes for MZmine
-      rtValue = smf.getRetentionTimeInSeconds().floatValue() / 60.0f;
+
       // Get corresponding SME objects from SMF
       List<SmallMoleculeEvidence> corrSMEList = mzTabAccess.getEvidences(smf);
+
+      // Average Retention Time, convert to minutes for MZmine
+      rtValue = smf.getRetentionTimeInSeconds().floatValue() / 60.0f;
+
       // Identification Method
       try {
         method = corrSMEList.get(0).getIdentificationMethod().getName();
@@ -366,7 +403,7 @@ public class MzTabmImportTask extends AbstractTask {
         method = null;
       }
       // Identifier
-      String identifier = sml.getDatabaseIdentifier().get(0);
+      String identifier = sml.getDatabaseIdentifier().toString(); //.get(0);
       if ((url != null) && (url.equals("null"))) {
         url = null;
       }
@@ -378,19 +415,28 @@ public class MzTabmImportTask extends AbstractTask {
       }
       // m/z value
       mzExp = smf.getExpMassToCharge();
-      // Add shared info to peakListRow
-      FeatureListRow newRow = new ModularFeatureListRow(newFeatureList, rowCounter);
-      newRow.setAverageMZ(mzExp);
-      newRow.setAverageRT(rtValue);
+
+      // Add shared info to featureListRow
+      FeatureListRow featureListRow = new ModularFeatureListRow(newFeatureList, rowCounter);
+      featureListRow.setAverageMZ(mzExp);
+      featureListRow.setAverageRT(rtValue);
+      if (sml.getTheoreticalNeutralMass().size() != 0) {
+        featureListRow.set(NeutralMassType.class, sml.getTheoreticalNeutralMass().get(0));
+      }
+
+      //todo what is happening here???
       if (description != null) {
         if (method != null) {
-          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, method, identifier, url);
-          newRow.addFeatureIdentity(newIdentity, false);
+
+          featureListRow.set(FormulaType.class, formula);
+//          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, method, identifier, url);
+//          featureListRow.addFeatureIdentity(newIdentity, false);
         } else {
-          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, "", identifier, url);
-          newRow.addFeatureIdentity(newIdentity, false);
+//          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, "", identifier, url);
+//          featureListRow.addFeatureIdentity(newIdentity, false);
         }
       }
+      //===============================================
 
       // Add raw data file entries to row
       for (int i = 0; i < rawDataFiles.size(); i++) {
@@ -400,52 +446,276 @@ public class MzTabmImportTask extends AbstractTask {
         if (smf.getAbundanceAssay().get(i) != null) {
           abundance = smf.getAbundanceAssay().get(i);
         }
+
         List<OptColumnMapping> optColList = sml.getOpt();
         // Use average values if optional data for each msrun is not provided
         feature_mz = mzExp;
         // MzMine expects minutes, mzTab-M uses seconds
         feature_rt = rtValue;
+
+        //todo set feature abundance for each raw file
         if (optColList != null) {
           for (OptColumnMapping optCol : optColList) {
             Optional<Assay> optAssay = mzTabAccess.getAssayFor(optCol, mzTabmFile.getMetadata());
-            if (!optAssay.isEmpty()) {
-              if (dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier()
-                  .contains("peak_mz")) {
+            //if there is no assays
+            if (optAssay.isEmpty() || dataFileAssay.getName() == null) {
+              if (optCol.getIdentifier().contains("peak_mz") || optCol.getIdentifier()
+                  .contains("feature_mz")) {
                 feature_mz = Double.parseDouble(optCol.getValue());
-              } else if (dataFileAssay.getName().equals(optAssay.get().getName())
-                  && optCol.getIdentifier().contains("peak_rt")) {
+              }
+              if (optCol.getIdentifier().contains("peak_rt") || optCol.getIdentifier()
+                  .contains("feature_rt")) {
+                feature_rt = Float.parseFloat(optCol.getValue()) / 60f;
+              }
+              if (optCol.getIdentifier().contains("peak_height") || optCol.getIdentifier()
+                  .contains("feature_height")) {
+                feature_height = Float.parseFloat(optCol.getValue());
+              }
+            } else {
+              if (dataFileAssay.getName().equals(optAssay.get().getName()) && (
+                  optCol.getIdentifier().contains("peak_mz") || optCol.getIdentifier()
+                      .contains("feature_mz"))) {
+                feature_mz = Double.parseDouble(optCol.getValue());
+              } else if (dataFileAssay.getName().equals(optAssay.get().getName()) && (
+                  optCol.getIdentifier().contains("peak_rt") || optCol.getIdentifier()
+                      .contains("feature_rt"))) {
                 feature_rt = (float) Double.parseDouble(optCol.getValue());
-              } else if (dataFileAssay.getName().equals(optAssay.get().getName())
-                  && optCol.getIdentifier().contains("peak_height")) {
+              } else if (dataFileAssay.getName().equals(optAssay.get().getName()) && (
+                  optCol.getIdentifier().contains("peak_height") || optCol.getIdentifier()
+                      .contains("feature_height"))) {
+                //todo recheck height export-import
                 feature_height = (float) Double.parseDouble(optCol.getValue());
               }
             }
           }
         }
-        Scan[] scans = {rawData.binarySearchClosestScan(rtValue)};
+
+        //todo is this bit needed?
         DataPoint[] finalDataPoint = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
-        Scan representativeScan = null;
         List<Scan> allFragmentScans = List.of();
+        //============================================
 
-        Range<Float> finalRTRange = Range.singleton(feature_rt);
-        Range<Double> finalMZRange = Range.singleton(feature_mz);
-        Range<Float> finalIntensityRange = Range.singleton(feature_height);
-        FeatureStatus status = FeatureStatus.DETECTED;
-        if (abundance == 0) {
-          status = FeatureStatus.UNKNOWN;
+        //import rt ranges
+        if (smf.getRetentionTimeInSecondsStart().floatValue() != 0f
+            && smf.getRetentionTimeInSecondsEnd().floatValue() != 0f) {
+          Range<Float> rtRange = Range.closed(
+              smf.getRetentionTimeInSecondsStart().floatValue() / 60f,
+              smf.getRetentionTimeInSecondsEnd().floatValue() / 60f);
+          featureListRow.set(RTRangeType.class, rtRange);
+        } else {
+          featureListRow.set(RTRangeType.class, Range.singleton(feature_rt));
         }
 
-        Feature feature = new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt,
-            feature_height, (float) abundance, scans, finalDataPoint, status, representativeScan,
-            allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+        Range<Double> finalMZRange = Range.singleton(feature_mz);
+        Range<Float> finalIntensityRange = Range.singleton(feature_height);
 
+        FeatureStatus status;
+        if (abundance == 0) {
+          status = FeatureStatus.UNKNOWN;
+        } else {
+          status = FeatureStatus.DETECTED;
+        }
+
+        ModularFeature feature = new ModularFeature(newFeatureList, rawData, status);
+
+        feature.setMZ(feature_mz);
+        feature.setRT(feature_rt);
+        //todo finalDataPOint
+        //finalDataPoint[0].getMZ()
+        //todo extract abundance for different assays
+        feature.setArea((float) abundance);
+//        featureListRow.set(AreaType.class, (float) abundance);
+
+        //todo is this needed
+        Scan[] scans = {rawData.binarySearchClosestScan(rtValue)};
+        Scan representativeScan = scans[0];
+        feature.setRepresentativeScan(representativeScan);
+        //======================
+
+        feature.setHeight(feature_height);
         feature.setCharge(charge);
-        newRow.addFeature(rawData, feature);
+        feature.setAllMS2FragmentScans(allFragmentScans);
+
+        feature.setRawDataPointsMZRange(finalMZRange);
+        feature.setRawDataPointsIntensityRange(finalIntensityRange);
+
+        //import annotations
+        featureListRow.set(CompoundNameType.class, smeList.get(j).getChemicalName());
+        featureListRow.set(FormulaType.class, smeList.get(j).getChemicalFormula());
+        featureListRow.set(InChIKeyStructureType.class, smeList.get(j).getInchi());
+        featureListRow.set(SmilesStructureType.class, smeList.get(j).getSmiles());
+
+        //todo import mzmine annotations from optCol
+        List<OptColumnMapping> optSMEColList = smeList.get(j).getOpt();
+        if (optColList != null) {
+          List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
+          CompoundDBAnnotation compoundDBIdentity = new SimpleCompoundDBAnnotation();
+
+          List<SpectralDBAnnotation> matches = new ArrayList<>();
+
+          //todo the arbitrary m/z and intensities arrays are used here
+          SpectralDBEntry spectralDBEntry = new SpectralDBEntry(null, new double[1000],
+              new double[1000]);
+          Double similarityScore = null;
+          Integer numMatchedSignals = null;
+          SpectralDBAnnotation spectralDBAnnotation;
+          Map<DBEntryField, Object> map = new HashMap<>();
+
+          MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = new MolecularSpeciesLevelAnnotation(
+              null, null, null, null);
+          MatchedLipid matchedLipid = new MatchedLipid(null, null, null, null, null);
+
+          for (OptColumnMapping optCol : optSMEColList) {
+            if (!optCol.getValue().equals("null")) {
+              if (optCol.getIdentifier().contains("compound_db_identity")) {
+                extractCompoundDBAnnotations(compoundDBIdentity, optCol);
+              }
+              if (optCol.getIdentifier().contains("spectral_db_matches")) {
+                extractSpectralDBAnnotations(map, optCol);
+                if (optCol.getIdentifier().contains("cosine_score")) {
+                  similarityScore = Double.parseDouble(optCol.getValue());
+                }
+                if (optCol.getIdentifier().contains("n_matching_signals")) {
+                  map.put(DBEntryField.OTHER_MATCHED_COMPOUNDS_N,
+                      Integer.parseInt(optCol.getValue()));
+                  numMatchedSignals = Integer.parseInt(optCol.getValue());
+                }
+              }
+              if (optCol.getIdentifier().contains("lipid_annotations")) {
+                extractLipidAnnotations(molecularSpeciesLevelAnnotation, matchedLipid, optCol);
+              }
+            }
+          }
+          matchedLipid.setLipidAnnotation(molecularSpeciesLevelAnnotation);
+          featureListRow.addLipidAnnotation(matchedLipid);
+          compoundAnnotations.add(compoundDBIdentity);
+          featureListRow.set(CompoundDatabaseMatchesType.class, compoundAnnotations);
+
+          spectralDBEntry.putAll(map);
+          if (similarityScore != null) {
+            SpectralSimilarity similarity = new SpectralSimilarity("Cosine similarity",
+                similarityScore, numMatchedSignals, Double.NaN);
+            spectralDBAnnotation = new SpectralDBAnnotation(spectralDBEntry, similarity, null,
+                null);
+            matches.add(spectralDBAnnotation);
+          }
+          featureListRow.addSpectralLibraryMatches(matches);
+        }
+        featureListRow.addFeature(rawData, feature);
       }
 
       // Add row to feature list
-      newFeatureList.addRow(newRow);
+      newFeatureList.addRow(featureListRow);
+    }
+  }
+
+  private void extractLipidAnnotations(MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation,
+      MatchedLipid matchedLipid, OptColumnMapping optCol) {
+    Double mzDiffPpm = null;
+    Double msmsScore = null;
+    //todo matched signals
+    //Set<LipidFragment> matchedSignals = null;
+
+    if (optCol.getIdentifier().contains("lipid_annotations_lipid_annotations")) {
+      molecularSpeciesLevelAnnotation.setAnnotation(optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("ion_adduct")) {
+      matchedLipid.setIonizationType(
+          lipidIonTypeMap.getOrDefault(optCol.getValue(), null));
+    }
+    if (optCol.getIdentifier().contains("mol_formula")) {
+      molecularSpeciesLevelAnnotation.setMolecularFormula(
+          FormulaUtils.createMajorIsotopeMolFormula(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("mz_diff_ppm")) {
+      mzDiffPpm = Double.parseDouble(optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("msms_score")) {
+      msmsScore = Double.parseDouble(optCol.getValue());
+    }
+    //if (optCol.getIdentifier().contains("matched_signals")) {
+    //todo add matched signals
+    //}
+
+    if (mzDiffPpm != null) {
+      matchedLipid.setAccurateMz(mzDiffPpm);
+    }
+    if (msmsScore != null) {
+      matchedLipid.setMsMsScore(msmsScore);
+    }
+
+    //todo add matched signals
+    //matchedLipid.setMatchedFragments(matchedSignals);
+  }
+
+  private static void extractSpectralDBAnnotations(Map<DBEntryField, Object> map, OptColumnMapping optCol) {
+    if (optCol.getIdentifier().contains("compound_name")) {
+      map.put(DBEntryField.NAME, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("ion_adduct")) {
+      map.put(DBEntryField.ION_TYPE, IonTypeParser.parse(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("mol_formula")) {
+      map.put(DBEntryField.FORMULA, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("smiles")) {
+      map.put(DBEntryField.SMILES, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("inchi")) {
+      map.put(DBEntryField.INCHI, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("precursor_mz")) {
+      map.put(DBEntryField.PRECURSOR_MZ, Double.parseDouble(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("neutral_mass")) {
+      map.put(DBEntryField.EXACT_MASS, Double.parseDouble(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("precursor_mz")) {
+      map.put(DBEntryField.PRECURSOR_MZ, Double.parseDouble(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("ccs")) {
+      map.put(DBEntryField.CCS, Float.parseFloat(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("ccs_percent_error")) {
+      //todo
+    }
+  }
+
+  private static void extractCompoundDBAnnotations(CompoundDBAnnotation newIdentity,
+      OptColumnMapping optCol) {
+    if (optCol.getIdentifier().contains("compound_name")) {
+      newIdentity.put(CompoundNameType.class, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("annotation_score")) {
+      newIdentity.put(CompoundAnnotationScoreType.class, Float.parseFloat(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("mol_formula")) {
+      newIdentity.put(FormulaType.class, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("adduct")) {
+      newIdentity.put(IonTypeType.class, IonTypeParser.parse(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("precursor_mz")) {
+      newIdentity.put(PrecursorMZType.class, Double.parseDouble(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("smiles")) {
+      newIdentity.put(SmilesStructureType.class, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("inchi")) {
+      newIdentity.put(InChIStructureType.class, optCol.getValue());
+    }
+    if (optCol.getIdentifier().contains("mz_diff_ppm")) {
+      newIdentity.putIfNotNull(MzPpmDifferenceType.class, Float.parseFloat(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("neutral_mass")) {
+      newIdentity.putIfNotNull(NeutralMassType.class, Double.parseDouble(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("rt")) {
+      newIdentity.putIfNotNull(RTType.class, Float.parseFloat(optCol.getValue()));
+    }
+    if (optCol.getIdentifier().contains("ccs")) {
+      newIdentity.putIfNotNull(NeutralMassType.class, Double.parseDouble(optCol.getValue()));
     }
   }
 }
