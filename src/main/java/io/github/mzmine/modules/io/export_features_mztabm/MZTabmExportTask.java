@@ -93,6 +93,9 @@ public class MZTabmExportTask extends AbstractTask {
   private SmallMoleculeFeature smf;
   private SmallMoleculeEvidence sme;
 
+  //atm default values are used in case charges, theoretical masses, and best_confidence_value
+  //in case if value is null
+  //modify in case mzTab-M specification is updated
   private final Integer DEFAULT_INTEGER_VALUE = 1000;
 
   private final Double DEFAULT_DOUBLE_VALUE = 1000.00;
@@ -225,7 +228,7 @@ public class MZTabmExportTask extends AbstractTask {
           sm.setReliability("2");
 
           final Collection<DataType> dataTypes = featureListRow.getTypes()
-              .values(); //todo values() returns raw data type - discuss??
+              .values(); //values() returns raw data type
 
           List<GlobalOptColumnMappingBuilder> globalOptColumns = new ArrayList<>();
 
@@ -292,6 +295,14 @@ public class MZTabmExportTask extends AbstractTask {
               }
             }
 
+            //check if there is best id confidence measure present
+            if (sm.getBestIdConfidenceMeasure() == null) {
+              Parameter parameter = new Parameter();
+              parameter.setName("NaN");
+              sm.setBestIdConfidenceMeasure(parameter);
+              sm.setBestIdConfidenceValue(DEFAULT_DOUBLE_VALUE);
+            }
+
             Double rowMZ = featureListRow.getAverageMZ();
             Float rowRT = featureListRow.getAverageRT();
             Range<Float> rowRTRange = featureListRow.get(RTRangeType.class);
@@ -344,7 +355,7 @@ public class MZTabmExportTask extends AbstractTask {
                 sme.setSpectraRef(sr);
 
                 String featureMZ = formatter.format(feature.getMZ());
-                String featureRT = formatter.format(feature.getRT());
+                String featureRT = formatter.format(feature.getRT() * 60f);
                 String featureHeight = formatter.format(feature.getHeight());
                 Double featureArea = feature.getArea().doubleValue();
 
@@ -481,6 +492,12 @@ public class MZTabmExportTask extends AbstractTask {
     }
     if (uniqueID == "precursor_mz") {
       sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
+    }
+    if (uniqueID.contains("score")) {
+      Parameter parameter = new Parameter();
+      parameter.setName(uniqueID);
+      sm.setBestIdConfidenceMeasure(parameter);
+      sm.setBestIdConfidenceValue(Double.valueOf(returnValue));
     }
   }
 
@@ -626,16 +643,19 @@ public class MZTabmExportTask extends AbstractTask {
     mtd.setSmallMoleculeFeatureQuantificationUnit(
         new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
             .name("Arbitrary quantification unit"));
-    mtd.addIdConfidenceMeasureItem(new Parameter().id(1).cvLabel("MS").cvAccession("MS:1001153")
-        .name("search engine specific score"));
+    mtd.addIdConfidenceMeasureItem(new Parameter().id(1).cvLabel("MS").cvAccession("MS_1003303")
+        .name("spectral similarity"));
     mtd.setSmallMoleculeIdentificationReliability(
         new Parameter().cvLabel("MS").cvAccession("MS:1002896")
             .name("compound identification confidence level"));
     mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834")
         .name("LC-MS label-free quantification analysis"));
     mtd.addCvItem(new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary")
-        .version("4.0.9"). //todo update version 4.1.108
+        .version("4.1.108").
             uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
+    mtd.addCvItem(new CV().id(2).label("MS")
+        .fullName("PRIDE PRoteomics IDEntifications (PRIDE) database controlled vocabulary")
+        .version("17.11.2022").uri("http://purl.obolibrary.org/obo/pride_cv.obo"));
     mtd.addDatabaseItem(
         new Database().id(1).prefix("mzmdb").version(MZmineCore.getMZmineVersion().toString())
             .uri("https://mzmine.github.io/").param(new Parameter().name("MZmine database")));
