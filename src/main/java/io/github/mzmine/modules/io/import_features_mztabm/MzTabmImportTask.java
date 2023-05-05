@@ -37,7 +37,6 @@ import de.isas.mztab2.model.SmallMoleculeFeature;
 import de.isas.mztab2.model.SmallMoleculeSummary;
 import de.isas.mztab2.model.StudyVariable;
 import de.isas.mztab2.model.ValidationMessage;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -56,6 +55,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
@@ -63,7 +63,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -189,9 +188,8 @@ public class MzTabmImportTask extends AbstractTask {
 
       // Create new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
-      RawDataFile[] rawDataArray = rawDataFiles.toArray(new RawDataFile[0]);
       ModularFeatureList newFeatureList = new ModularFeatureList(featureListName,
-          getMemoryMapStorage(), rawDataArray);
+          getMemoryMapStorage(), rawDataFiles);
 
       // Check if not canceled
       if (isCanceled()) {
@@ -381,7 +379,7 @@ public class MzTabmImportTask extends AbstractTask {
 
       formula = smeList.get(rowCounter - 1).getChemicalFormula();
 
-      description = sml.getChemicalName().toString(); //.get(0);
+      description = sml.getChemicalName().toString();
       charge = smf.getCharge();
 
       // sm. (smile ->getSmiles(), inchikey -> getInchi(), database ->getDatabase(), reliability
@@ -424,16 +422,9 @@ public class MzTabmImportTask extends AbstractTask {
         featureListRow.set(NeutralMassType.class, sml.getTheoreticalNeutralMass().get(0));
       }
 
-      //todo what is happening here???
       if (description != null) {
         if (method != null) {
-
           featureListRow.set(FormulaType.class, formula);
-//          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, method, identifier, url);
-//          featureListRow.addFeatureIdentity(newIdentity, false);
-        } else {
-//          SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, "", identifier, url);
-//          featureListRow.addFeatureIdentity(newIdentity, false);
         }
       }
       //===============================================
@@ -453,7 +444,6 @@ public class MzTabmImportTask extends AbstractTask {
         // MzMine expects minutes, mzTab-M uses seconds
         feature_rt = rtValue;
 
-        //todo set feature abundance for each raw file
         if (optColList != null) {
           for (OptColumnMapping optCol : optColList) {
             Optional<Assay> optAssay = mzTabAccess.getAssayFor(optCol, mzTabmFile.getMetadata());
@@ -483,18 +473,16 @@ public class MzTabmImportTask extends AbstractTask {
               } else if (dataFileAssay.getName().equals(optAssay.get().getName()) && (
                   optCol.getIdentifier().contains("peak_height") || optCol.getIdentifier()
                       .contains("feature_height"))) {
-                //todo recheck height export-import
-                feature_height = (float) Double.parseDouble(optCol.getValue());
+                feature_height = (float) Double.parseDouble(optCol.getValue()) / 60f;
               }
             }
           }
         }
 
-        //todo is this bit needed?
-        DataPoint[] finalDataPoint = new DataPoint[1];
-        finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
-        List<Scan> allFragmentScans = List.of();
-        //============================================
+        //final DataPoint
+        //DataPoint[] finalDataPoint = new DataPoint[1];
+        //finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
+        //List<Scan> allFragmentScans = List.of();
 
         //import rt ranges
         if (smf.getRetentionTimeInSecondsStart().floatValue() != 0f
@@ -521,21 +509,31 @@ public class MzTabmImportTask extends AbstractTask {
 
         feature.setMZ(feature_mz);
         feature.setRT(feature_rt);
-        //todo finalDataPOint
-        //finalDataPoint[0].getMZ()
-        //todo extract abundance for different assays
         feature.setArea((float) abundance);
-//        featureListRow.set(AreaType.class, (float) abundance);
 
-        //todo is this needed
-        Scan[] scans = {rawData.binarySearchClosestScan(rtValue)};
-        Scan representativeScan = scans[0];
+        //obtain representative scan from raw data
+        Scan[] closestScans = {rawData.binarySearchClosestScan(rtValue)};
+        Scan representativeScan = closestScans[0];
         feature.setRepresentativeScan(representativeScan);
-        //======================
+        feature.set(BestScanNumberType.class, (feature.getRepresentativeScan()));
+
+        //todo fix shape rendering and create FeatureData
+        //scan indices can be extracted from spectra ref SME section
+        //double[] mzs = representativeScan.getMzValues(
+        //    new double[representativeScan.getNumberOfDataPoints()]);
+        //double[] intensities = representativeScan.getIntensityValues(
+        //    new double[representativeScan.getNumberOfDataPoints()]);
+        //List<Scan> scanList = null;
+        //create scan list here using getSpectraRef().
+        //smeList.get(j).getSpectraRef().stream().map(SpectraRef::getReference).toArray();
+
+        // FetureShapeChart requires FeatureData
+        // SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(getMemoryMapStorage(), mzs, intensities, scanList);
+        // feature.set(FeatureDataType.class, featureData);
 
         feature.setHeight(feature_height);
         feature.setCharge(charge);
-        feature.setAllMS2FragmentScans(allFragmentScans);
+        //feature.setAllMS2FragmentScans(allFragmentScans);
 
         feature.setRawDataPointsMZRange(finalMZRange);
         feature.setRawDataPointsIntensityRange(finalIntensityRange);
@@ -546,7 +544,6 @@ public class MzTabmImportTask extends AbstractTask {
         featureListRow.set(InChIKeyStructureType.class, smeList.get(j).getInchi());
         featureListRow.set(SmilesStructureType.class, smeList.get(j).getSmiles());
 
-        //todo import mzmine annotations from optCol
         List<OptColumnMapping> optSMEColList = smeList.get(j).getOpt();
         if (optColList != null) {
           List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
@@ -554,9 +551,16 @@ public class MzTabmImportTask extends AbstractTask {
 
           List<SpectralDBAnnotation> matches = new ArrayList<>();
 
-          //todo the arbitrary m/z and intensities arrays are used here
-          SpectralDBEntry spectralDBEntry = new SpectralDBEntry(null, new double[1000],
-              new double[1000]);
+          //if the representative scan is null, the arbitrary m/z and intensities arrays are used here
+          SpectralDBEntry spectralDBEntry = null;
+          if (representativeScan != null) {
+            spectralDBEntry = new SpectralDBEntry(null, representativeScan.getMzValues(
+                new double[representativeScan.getNumberOfDataPoints()]),
+                representativeScan.getIntensityValues(
+                    new double[representativeScan.getNumberOfDataPoints()]));
+          } else {
+            spectralDBEntry = new SpectralDBEntry(null, new double[1000], new double[1000]);
+          }
           Double similarityScore = null;
           Integer numMatchedSignals = null;
           SpectralDBAnnotation spectralDBAnnotation;
@@ -604,14 +608,14 @@ public class MzTabmImportTask extends AbstractTask {
         }
         featureListRow.addFeature(rawData, feature);
       }
-
       // Add row to feature list
       newFeatureList.addRow(featureListRow);
     }
   }
 
-  private void extractLipidAnnotations(MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation,
-      MatchedLipid matchedLipid, OptColumnMapping optCol) {
+  private void extractLipidAnnotations(
+      MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation, MatchedLipid matchedLipid,
+      OptColumnMapping optCol) {
     Double mzDiffPpm = null;
     Double msmsScore = null;
     //todo matched signals
@@ -621,8 +625,7 @@ public class MzTabmImportTask extends AbstractTask {
       molecularSpeciesLevelAnnotation.setAnnotation(optCol.getValue());
     }
     if (optCol.getIdentifier().contains("ion_adduct")) {
-      matchedLipid.setIonizationType(
-          lipidIonTypeMap.getOrDefault(optCol.getValue(), null));
+      matchedLipid.setIonizationType(lipidIonTypeMap.getOrDefault(optCol.getValue(), null));
     }
     if (optCol.getIdentifier().contains("mol_formula")) {
       molecularSpeciesLevelAnnotation.setMolecularFormula(
@@ -649,7 +652,8 @@ public class MzTabmImportTask extends AbstractTask {
     //matchedLipid.setMatchedFragments(matchedSignals);
   }
 
-  private static void extractSpectralDBAnnotations(Map<DBEntryField, Object> map, OptColumnMapping optCol) {
+  private static void extractSpectralDBAnnotations(Map<DBEntryField, Object> map,
+      OptColumnMapping optCol) {
     if (optCol.getIdentifier().contains("compound_name")) {
       map.put(DBEntryField.NAME, optCol.getValue());
     }
@@ -678,7 +682,7 @@ public class MzTabmImportTask extends AbstractTask {
       map.put(DBEntryField.CCS, Float.parseFloat(optCol.getValue()));
     }
     if (optCol.getIdentifier().contains("ccs_percent_error")) {
-      //todo
+      //todo add ccs percent error
     }
   }
 
