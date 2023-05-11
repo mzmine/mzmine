@@ -627,8 +627,7 @@ public class FileAndPathUtil {
         .getPathMatcher((pattern.startsWith("glob:") ? "" : "glob:") + pattern);
 
     try (Stream<Path> stream = Files.walk(rootDir, 1)) {
-      return stream.filter(file -> !Files.isDirectory(file))
-          .filter(file -> matcher.matches(file.getFileName())).map(Path::toFile)
+      return stream.filter(file -> matcher.matches(file.getFileName())).map(Path::toFile)
           .toArray(File[]::new);
     }
   }
