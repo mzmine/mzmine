@@ -25,7 +25,9 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.BasicParser;
@@ -47,6 +49,7 @@ public class MZmineArgumentParser {
   private static final Logger logger = Logger.getLogger(MZmineArgumentParser.class.getName());
 
   private File batchFile;
+  private File[] overrideDataFiles;
   private File preferencesFile;
   private File tempDirectory;
   private boolean isKeepRunningAfterBatch = false;
@@ -61,6 +64,11 @@ public class MZmineArgumentParser {
     Option batch = new Option("b", "batch", true, "batch mode file");
     batch.setRequired(false);
     options.addOption(batch);
+
+    Option input = new Option("i", "input", true,
+        "input files. Either defined in a .txt text file with one file per line or ");
+    input.setRequired(false);
+    options.addOption(input);
 
     Option pref = new Option("p", "pref", true, "preferences file");
     pref.setRequired(false);
@@ -102,6 +110,20 @@ public class MZmineArgumentParser {
         logger.info(() -> "Batch file set by command line: " + sbatch);
         batchFile = new File(sbatch);
       }
+
+      String sinput = cmd.getOptionValue(input.getLongOpt());
+      if (sinput != null) {
+        logger.info(() -> "Input files were set to: " + sinput);
+        // search for files
+        try {
+          overrideDataFiles = FileAndPathUtil.parseFileInputArgument(sinput);
+        } catch (IOException e) {
+          logger.log(Level.SEVERE,
+              "Could not read the list of input data files. Either provide a string \"mypath/*.mzML\" or a text file that contains all files delimited by a new line.");
+          throw new RuntimeException(e);
+        }
+      }
+
       String spref = cmd.getOptionValue(pref.getLongOpt());
       if (spref != null) {
         logger.info(() -> "Preferences file set by command line: " + spref);
@@ -112,7 +134,7 @@ public class MZmineArgumentParser {
       if (stemp != null) {
         logger.info(
             () -> "Temp directory set by command line, will override all other definitions: "
-                + stemp);
+                  + stemp);
         tempDirectory = new File(stemp);
       }
 
@@ -127,7 +149,7 @@ public class MZmineArgumentParser {
       if (keepInData != null) {
         isKeepInMemory = KeepInMemory.parse(keepInData);
         logger.info(() -> "the -m / --memory argument was set to " + isKeepInMemory.toString()
-            + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
+                          + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
       }
 
       if (cmd.hasOption(loadTdfPseudoProfile.getOpt())) {
@@ -189,6 +211,10 @@ public class MZmineArgumentParser {
 
   public boolean isLoadTsfProfile() {
     return loadTsfProfile;
+  }
+
+  public File[] getOverrideDataFiles() {
+    return overrideDataFiles;
   }
 }
 
