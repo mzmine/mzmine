@@ -147,10 +147,19 @@ public class BatchTask extends AbstractTask {
 
         if (allFiles.length != 0) {
           // set files to import
-          queue.setImportFiles(allFiles);
-
+          if (!queue.setImportFiles(allFiles)) {
+            if (skipOnError) {
+              processedSteps += stepsPerDataset;
+              continue;
+            } else {
+              setStatus(TaskStatus.ERROR);
+              setErrorMessage("Could not set data files in advanced batch mode. Will cancel all jobs. " + datasetName);
+              return;
+            }
+          }
           // set files to output
           setOutputFiles(parentDir, createResultsDir, datasetName);
+
         } else {
           errorDataset++;
           logger.info("No data files found in directory: " + datasetName);

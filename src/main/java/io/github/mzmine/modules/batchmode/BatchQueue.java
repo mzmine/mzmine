@@ -42,6 +42,7 @@ import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -235,8 +236,9 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    * first step in batch
    *
    * @param allFiles replaces import files
+   * @return true if success, false if not. e.g., if there was no data import step in the batch file
    */
-  public boolean setImportFiles(final File[] allFiles) {
+  public boolean setImportFiles(final File[] allFiles) throws IllegalStateException {
     MZmineProcessingStep<?> currentStep = get(0);
     ParameterSet importParameters = currentStep.getParameterSet();
     try {
@@ -245,10 +247,10 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       importParam.setValue(allFiles);
       return true;
     } catch (Exception ex) {
-      logger.warning(
-          "When running batch and changing the data input, the first step in the batch needs to be the all spectral data import module.");
-      throw new IllegalStateException(
-          "When running batch and changing the data input, the first step in the batch needs to be the all spectral data import module");
+      logger.log(Level.WARNING,
+          "Could not change input data files in batch. When running batch and changing the data input, the first step in the batch needs to be the all spectral data import module.",
+          ex);
+      return false;
     }
   }
 

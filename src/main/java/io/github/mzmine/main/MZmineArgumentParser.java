@@ -25,6 +25,7 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class MZmineArgumentParser {
   private static final Logger logger = Logger.getLogger(MZmineArgumentParser.class.getName());
 
   private File batchFile;
-  private File[] overrideDataFiles;
+  private @Nullable File[] overrideDataFiles;
   private File preferencesFile;
   private File tempDirectory;
   private boolean isKeepRunningAfterBatch = false;
@@ -65,8 +66,10 @@ public class MZmineArgumentParser {
     batch.setRequired(false);
     options.addOption(batch);
 
-    Option input = new Option("i", "input", true,
-        "input files. Either defined in a .txt text file with one file per line or ");
+    Option input = new Option("i", "input", true, """
+        input data files. Either defined in a .txt text file with one file per line
+        or by glob pattern matching. To match all .mzML files in a path: -i "D:\\Data\\*.mzML"
+        """);
     input.setRequired(false);
     options.addOption(input);
 
@@ -201,6 +204,7 @@ public class MZmineArgumentParser {
    *
    * @return true will keep objects in memory which are usually stored in memory mapped files
    */
+  @Nullable
   public KeepInMemory isKeepInMemory() {
     return isKeepInMemory;
   }
@@ -213,6 +217,13 @@ public class MZmineArgumentParser {
     return loadTsfProfile;
   }
 
+  /**
+   * Defines data files that will be used in headless mode. Those files will replace the input files
+   * in the {@link AllSpectralDataImportModule}
+   *
+   * @return data files if specified as argument else null
+   */
+  @Nullable
   public File[] getOverrideDataFiles() {
     return overrideDataFiles;
   }
