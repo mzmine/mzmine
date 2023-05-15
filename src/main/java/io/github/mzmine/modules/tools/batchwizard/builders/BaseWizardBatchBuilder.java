@@ -33,6 +33,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters.ChimericMsOption;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -98,8 +100,6 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters;
-import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
@@ -631,7 +631,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     chimerics.setParameter(HandleChimericMsMsParameters.mainMassWindow, mzTolScans);
     chimerics.setParameter(HandleChimericMsMsParameters.isolationWindow,
         getIsolationToleranceForInstrument(steps));
-    chimerics.setParameter(HandleChimericMsMsParameters.allowedOtherSignals, 0.2);
+    chimerics.setParameter(HandleChimericMsMsParameters.minimumPrecursorPurity, 0.75);
 
     // quality
     var quality = param.getParameter(LibraryBatchGenerationParameters.quality)
