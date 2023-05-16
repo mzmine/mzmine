@@ -46,7 +46,6 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -73,8 +72,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
       "Feature intensity", "Intensity in the quantification table (csv).",
       AbundanceMeasure.values(), AbundanceMeasure.Area);
 
-  public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT = new OptionalModuleParameter<>(
-      "Submit to GNPS GC-MS", "Directly submits a GNPS-GC job", new GnpsGcSubmitParameters());
+//  public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT = new OptionalModuleParameter<>(
+//      "Submit to GNPS GC-MS", "Directly submits a GNPS-GC job", new GnpsGcSubmitParameters());
 
   public static final BooleanParameter OPEN_FOLDER = new BooleanParameter("Open folder",
       "Opens the export folder", false);
