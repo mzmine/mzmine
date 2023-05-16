@@ -104,12 +104,6 @@ public class MassvoltammogramTask extends AbstractTask {
     }
   }
 
-  /**
-   * todo
-   * mz range beschränken
-   * button to edit intensity axis range
-   */
-
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
@@ -125,12 +119,6 @@ public class MassvoltammogramTask extends AbstractTask {
       massvoltammogram = new Massvoltammogram(featureList, reactionMode, delayTime,
           potentialRampSpeed, potentialRange, stepSize, mzRange);
 
-    } else {
-
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("No data source is selected.");
-      cancel();
-      return;
     }
 
     //Drawing the massvoltammogram from the entered data.
