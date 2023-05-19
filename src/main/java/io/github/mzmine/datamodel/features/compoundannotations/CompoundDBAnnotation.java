@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
@@ -257,6 +259,16 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   @Nullable
   default String getSmiles() {
     return get(SmilesStructureType.class);
+  }
+
+  @Nullable
+  default String getInChI() {
+    return get(InChIStructureType.class);
+  }
+
+  @Nullable
+  default String getInChIKey() {
+    return get(InChIKeyStructureType.class);
   }
 
   @Override

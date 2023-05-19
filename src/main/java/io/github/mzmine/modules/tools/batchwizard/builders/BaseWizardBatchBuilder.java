@@ -87,6 +87,8 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
+import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
@@ -364,6 +366,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       if (exportSirius) {
         makeAndAddSiriusExportStep(q, exportPath);
       }
+      makeAndAddAllAnnotationExportStep(q, exportPath);
     }
   }
 
@@ -406,6 +409,22 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SiriusExportModule.class),
         param));
+  }
+
+  protected static void makeAndAddAllAnnotationExportStep(final BatchQueue q,
+      final File exportPath) {
+    final ParameterSet param = new CompoundAnnotationsCSVExportParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), fileName.getName() + "_annotations.csv");
+
+    param.setParameter(CompoundAnnotationsCSVExportParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(CompoundAnnotationsCSVExportParameters.topNMatches, 10);
+    param.setParameter(CompoundAnnotationsCSVExportParameters.filename, fileName);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(CompoundAnnotationsCSVExportModule.class), param));
   }
 
   protected void makeAndAddDeisotopingStep(final BatchQueue q, final @Nullable RTTolerance rtTol) {
@@ -792,6 +811,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(MassDetectionParameters.scanSelection,
         new ScanSelection(MsLevelFilter.of(msLevel, true)));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
+    param.setParameter(MassDetectionParameters.denormalizeMSnScans, false);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));

@@ -161,6 +161,10 @@ public class ScanUtils {
         && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
+    if (scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null) {
+      buf.append(" CE: ").append(scan.getMsMsInfo().getActivationEnergy());
+    }
+
     switch (scan.getSpectrumType()) {
       case CENTROIDED -> buf.append(" c");
       case PROFILE -> buf.append(" p");

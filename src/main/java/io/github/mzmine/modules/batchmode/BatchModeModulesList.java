@@ -112,6 +112,7 @@ import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModul
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
+import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule;
 import io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule;
@@ -344,6 +345,7 @@ public class BatchModeModulesList {
       MzTabImportModule.class, //
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
+      CompoundAnnotationsCSVExportModule.class, //
       LibraryAnalysisCSVExportModule.class, //
       LibraryBatchGenerationModule.class, //
       FeatureMLExportModularModule.class, //
