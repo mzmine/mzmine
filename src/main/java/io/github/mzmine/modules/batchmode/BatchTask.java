@@ -39,7 +39,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -148,10 +147,19 @@ public class BatchTask extends AbstractTask {
 
         if (allFiles.length != 0) {
           // set files to import
-          setImportFiles(allFiles);
-
+          if (!queue.setImportFiles(allFiles)) {
+            if (skipOnError) {
+              processedSteps += stepsPerDataset;
+              continue;
+            } else {
+              setStatus(TaskStatus.ERROR);
+              setErrorMessage("Could not set data files in advanced batch mode. Will cancel all jobs. " + datasetName);
+              return;
+            }
+          }
           // set files to output
           setOutputFiles(parentDir, createResultsDir, datasetName);
+
         } else {
           errorDataset++;
           logger.info("No data files found in directory: " + datasetName);
@@ -230,19 +238,6 @@ public class BatchTask extends AbstractTask {
     }
   }
 
-  private void setImportFiles(final File[] allFiles) {
-    MZmineProcessingStep<?> currentStep = queue.get(0);
-    ParameterSet importParameters = currentStep.getParameterSet();
-    FileNamesParameter importParam = importParameters.getParameter(
-        AllSpectralDataImportParameters.fileNames);
-    if (importParam == null) {
-      logger.warning(
-          "When running advanced batch, the first step in the batch needs to be the all spectral data import module.");
-      throw new IllegalStateException(
-          "When running advanced batch, the first step in the batch needs to be the all spectral data import module");
-    }
-    importParam.setValue(allFiles);
-  }
 
   private void processQueueStep(int stepNumber) {
 
