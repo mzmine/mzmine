@@ -25,8 +25,12 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.GroupType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
@@ -40,9 +44,13 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableColumn;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -204,6 +212,44 @@ public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> 
       case 3 -> stats.group();
       default -> null;
     };
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    if (!(value instanceof SimpleStatistics stats)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+          + value.getClass());
+    }
+
+    saveSubColumnsToXML(writer, flist, row, feature, file, stats);
+  }
+
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  
+    SimpleModularDataModel model = loadSubColumnsFromXML(reader, project, flist, row, feature,
+        file);
+    if (model.getMap().isEmpty()) {
+      return null;
+    }
+
+    return new SimpleStatistics(model.getNonNullElse(MinimumType.class, 0d),
+        model.getNonNullElse(MeanType.class, 0d), model.getNonNullElse(MaximumType.class, 0d),
+        model.getNonNullElse(GroupType.class, ""));
+  }
+
+  private static <T> T getOrDefault(final Map<Class<? extends DataType>, Object> values,
+      T defaultValue) {
+    return (T) values.getOrDefault(MinimumType.class, defaultValue);
   }
 
 }
