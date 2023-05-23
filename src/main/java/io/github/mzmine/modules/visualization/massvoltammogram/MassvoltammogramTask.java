@@ -119,6 +119,11 @@ public class MassvoltammogramTask extends AbstractTask {
       massvoltammogram = new Massvoltammogram(featureList, reactionMode, delayTime,
           potentialRampSpeed, potentialRange, stepSize, mzRange);
 
+    } else {
+
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("No data source is selected.");
+      return;
     }
 
     //Drawing the massvoltammogram from the entered data.
