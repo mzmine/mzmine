@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.ParsingUtils;
@@ -192,6 +193,16 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   }
 
   @Override
+  public @Nullable String getInChI() {
+    return entry.getOrElse(DBEntryField.INCHI, null);
+  }
+
+  @Override
+  public @Nullable String getInChIKey() {
+    return entry.getOrElse(DBEntryField.INCHIKEY, null);
+  }
+
+  @Override
   public @Nullable String getCompoundName() {
     return entry.getOrElse(DBEntryField.NAME, null);
   }
@@ -203,8 +214,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
 
   @Override
   public @Nullable IonType getAdductType() {
-    final String adduct = entry.getOrElse(DBEntryField.SMILES, null);
-    return IonType.parseFromString(adduct);
+    final String adduct = entry.getOrElse(DBEntryField.ION_TYPE, null);
+    return IonTypeParser.parse(adduct);
   }
 
   @Override
@@ -256,7 +267,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
         that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
         getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
-        && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
+           && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 
   @Override
@@ -266,8 +277,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
 
   @Override
   public String toString() {
-    return String.format("%s (%.3f)", getCompoundName(),
-        requireNonNullElse(getScore(), 0f));
+    return String.format("%s (%.3f)", getCompoundName(), requireNonNullElse(getScore(), 0f));
   }
 
   @Override
@@ -277,12 +287,15 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
 
   @Override
   public int compareTo(@NotNull final SpectralDBAnnotation o) {
-    if(o.getScore()==null && getScore()==null)
+    if (o.getScore() == null && getScore() == null) {
       return 0;
-    if(o.getScore()==null)
+    }
+    if (o.getScore() == null) {
       return -1;
-    if(getScore()==null)
+    }
+    if (getScore() == null) {
       return 1;
+    }
 
     return Float.compare(this.getScore(), o.getScore());
   }

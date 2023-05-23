@@ -23,28 +23,46 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ClearAnnotationsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
+import javafx.util.StringConverter;
+import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public class ClearFeatureAnnotationsParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
+public class BlankSubtractionAnnotationType extends StringType implements EditableColumnType,
+    StringParser<String>, AnnotationType {
 
-  public static final ClearAnnotationsParameter clear = new ClearAnnotationsParameter(
-      "Clear annotations", "Clears the selected annotation types.");
+  private StringConverter<String> converter = new DefaultStringConverter();
 
-  public ClearFeatureAnnotationsParameters() {
-    super(new Parameter[]{featureLists, clear});
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Blank subtraction";
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public String fromString(String s) {
+    return s;
+  }
+
+  @Override
+  public StringConverter<String> getStringConverter() {
+    return converter;
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "blank_subtraction";
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }

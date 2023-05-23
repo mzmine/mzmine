@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
@@ -104,8 +105,8 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
       if (error.get() > correct.get()) {
         logger.warning("Stopping to parse file " + dataBaseFile.getName() + " as MoNA library, "
-            + "there were too many entries with mismatching format. This is usually the case when "
-            + "reading GNPS json libraries and just to determine the file type.");
+                       + "there were too many entries with mismatching format. This is usually the case when "
+                       + "reading GNPS json libraries and just to determine the file type.");
         return false;
       }
 
@@ -139,6 +140,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
         error.getAndIncrement();
       }
     } catch (Exception ex) {
+      logger.log(Level.FINEST, "During mona parser read: " + ex.getMessage());
       error.getAndIncrement();
     }
     return null;
@@ -276,7 +278,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
           Object tmp = readMetaData(main, "retention time");
           if (tmp != null) {
             if (tmp instanceof Number) {
-              value = ((Number) tmp).doubleValue();
+              value = ((Number) tmp).floatValue();
             } else {
               try {
                 String v = (String) tmp;
@@ -340,8 +342,11 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
   private Double readMetaDataDouble(JsonObject main, String id) {
     return main.getJsonArray(META_DATA).stream().map(v -> v.asJsonObject())
-        .filter(v -> v.getString("name").equals(id))
-        .map(v -> v.getJsonNumber("value").doubleValue()).findFirst().orElse(null);
+        .filter(v -> v.getString("name").equals(id)).map(v -> {
+          var value = v.get("value");
+          return value.getValueType().equals(ValueType.NUMBER) ? v.getJsonNumber("value")
+              .doubleValue() : Double.parseDouble(v.getString("value"));
+        }).findFirst().orElse(null);
   }
 
   private JsonValue readCompoundMetaDataJson(JsonObject main, String id) {

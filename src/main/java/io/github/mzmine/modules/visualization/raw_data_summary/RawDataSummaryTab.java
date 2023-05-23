@@ -23,28 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
+package io.github.mzmine.modules.visualization.raw_data_summary;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ClearAnnotationsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.parameters.ParameterSet;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class ClearFeatureAnnotationsParameters extends SimpleParameterSet {
+public class RawDataSummaryTab extends SimpleTab {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
+  private final RawDataSummaryPane mainPane;
 
-  public static final ClearAnnotationsParameter clear = new ClearAnnotationsParameter(
-      "Clear annotations", "Clears the selected annotation types.");
-
-  public ClearFeatureAnnotationsParameters() {
-    super(new Parameter[]{featureLists, clear});
+  public RawDataSummaryTab(final RawDataFile[] dataFiles, final ParameterSet parameterSet) {
+    super("Raw data summary", true, false);
+    mainPane = new RawDataSummaryPane(dataFiles, parameterSet);
+    setContent(mainPane);
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public void onRawDataFileSelectionChanged(final Collection<? extends RawDataFile> rawDataFiles) {
+    super.onRawDataFileSelectionChanged(rawDataFiles);
+    mainPane.setDataFiles(rawDataFiles);
+  }
+
+  @Override
+  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
+    return  mainPane.getDataFiles();
   }
 }

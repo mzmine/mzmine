@@ -23,57 +23,57 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
+package io.github.mzmine.modules.visualization.raw_data_summary;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- */
-public class FeatureListBlankSubtractionModule implements MZmineProcessingModule {
+public class RawDataSummaryModule implements MZmineRunnableModule {
 
-  public static final String MODULE_NAME = "Feature list blank subtraction";
+  private static final String MODULE_NAME = "Raw data summary";
+  private static final String MODULE_DESCRIPTION = "Composes multiple views to explore the shape and distribution of raw data";
 
   @Override
-  public String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureListBlankSubtractionParameters.class;
+  public @NotNull String getDescription() {
+    return MODULE_DESCRIPTION;
   }
 
   @Override
-  public String getDescription() {
-    return "Subtracts features appearing in (procedural) blank measurements feature list from an aligned feature list. Additionally, removed features can be saved to another feature list for inspection. ";
-  }
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-  @Override
-  public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
+    RawDataFile[] dataFiles = parameters.getParameter(RawDataSummaryParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
 
-    Task task = new FeatureListBlankSubtractionTask(project,
-        (FeatureListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList(),
-        moduleCallDate);
-
-    tasks.add(task);
+    var tab = new RawDataSummaryTab(dataFiles, parameters.cloneParameterSet());
+    MZmineCore.getDesktop().addTab(tab);
 
     return ExitCode.OK;
   }
 
   @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTFILTERING;
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+  }
+
+  @Override
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return RawDataSummaryParameters.class;
   }
 
 }

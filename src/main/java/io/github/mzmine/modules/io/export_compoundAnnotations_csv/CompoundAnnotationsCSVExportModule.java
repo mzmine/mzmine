@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
+package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -31,49 +31,41 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- */
-public class FeatureListBlankSubtractionModule implements MZmineProcessingModule {
+public class CompoundAnnotationsCSVExportModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Feature list blank subtraction";
+    private static final String MODULE_NAME = "Export all annotations to CSV file";
 
-  @Override
-  public String getName() {
-    return MODULE_NAME;
-  }
+    private static final String MODULE_DESCRIPTION =
+            "This method exports the CompoundAnnotations into a CSV (comma-separated values) file.";
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureListBlankSubtractionParameters.class;
-  }
+    @Override
+    public @NotNull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public String getDescription() {
-    return "Subtracts features appearing in (procedural) blank measurements feature list from an aligned feature list. Additionally, removed features can be saved to another feature list for inspection. ";
-  }
+    @Override
+    public @NotNull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
+    @Override
+    public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+        return CompoundAnnotationsCSVExportParameters.class;
+    }
 
-    Task task = new FeatureListBlankSubtractionTask(project,
-        (FeatureListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList(),
-        moduleCallDate);
+    @Override
+    public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+        CompoundAnnotationsCSVExportTask task = new CompoundAnnotationsCSVExportTask(parameters, moduleCallDate);
+        tasks.add(task);
+        return ExitCode.OK;
+    }
 
-    tasks.add(task);
-
-    return ExitCode.OK;
-  }
-
-  @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTFILTERING;
-  }
-
+    @Override
+    public @NotNull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.FEATURELISTEXPORT;
+    }
 }

@@ -23,28 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
+package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ClearAnnotationsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-public class ClearFeatureAnnotationsParameters extends SimpleParameterSet {
+/**
+ * General DataType that defines a method like the annotation methods
+ */
+public class MethodType extends StringType {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
-  public static final ClearAnnotationsParameter clear = new ClearAnnotationsParameter(
-      "Clear annotations", "Clears the selected annotation types.");
-
-  public ClearFeatureAnnotationsParameters() {
-    super(new Parameter[]{featureLists, clear});
+  @Override
+  public @NotNull String getUniqueID() {
+    // never change this unique ID
+    return "method";
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public @NotNull String getHeaderString() {
+    return "Method";
   }
 }

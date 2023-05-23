@@ -89,7 +89,6 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   private final AbundanceMeasure featureMeasure;
 
   private File file;
-  private final boolean submit;
   private final boolean openFolder;
 
   GnpsGcExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -108,7 +107,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).setValue(file);
     // submit =
     // parameters.getParameter(GnpsGcExportAndSubmitParameters.SUBMIT).getValue();
-    submit = false;
+//    submit = false;
   }
 
   @Override
@@ -139,7 +138,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     // add csv quant table
     list.add(addLegacyQuantTableTask(parameters, null));
     // add full quant table
-    list.add(addFullQuantTableTask(parameters, null));
+//    list.add(addFullQuantTableTask(parameters, null));
 
     // finish listener to submit
     final File fileName = file;
@@ -149,11 +148,11 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
         l -> {
           try {
             logger.info("succeed" + thistask.getStatus().toString());
-            if (submit) {
-              GnpsGcSubmitParameters param = parameters.getParameter(
-                  GnpsGcExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
-              submit(fileName, param);
-            }
+//            if (submit) {
+//              GnpsGcSubmitParameters param = parameters.getParameter(
+//                  GnpsGcExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
+//              submit(fileName, param);
+//            }
 
             // open folder
             try {
@@ -245,13 +244,8 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant_full.csv");
 
-    ModularFeatureList[] flist = parameters.getParameter(
-        GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
-
-    FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
-        .getValue();
-
-    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";", filter,
+    CSVExportModularTask quanExportModular = new CSVExportModularTask(new ModularFeatureList[]{
+        (ModularFeatureList) featureList}, full, ",", ";", FeatureListRowsFilter.ALL,
         true, getModuleCallDate());
 
     if (tasks != null) {
