@@ -54,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 public interface SubColumnsFactory {
 
   Logger logger = Logger.getLogger(SubColumnsFactory.class.getName());
+  String SUB_TYPES_XML_ELEMENT = "subtypes";
 
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
@@ -175,12 +176,25 @@ public interface SubColumnsFactory {
       final @NotNull MZmineProject project, final @NotNull ModularFeatureList flist,
       final @NotNull ModularFeatureListRow row, final @Nullable ModularFeature feature,
       final @Nullable RawDataFile file) throws XMLStreamException {
+
     SimpleModularDataModel model = new SimpleModularDataModel();
+    boolean startFound = false;
+
     while (reader.hasNext()) {
       int next = reader.next();
 
-      if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
-          .equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+      if (next == XMLEvent.START_ELEMENT && reader.getLocalName().equals(SUB_TYPES_XML_ELEMENT)) {
+        startFound = true;
+      }
+
+      if(!startFound) {
+        if (next == XMLEvent.END_ELEMENT) {
+          return model;
+        }
+        continue;
+      }
+
+      if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(SUB_TYPES_XML_ELEMENT)) {
         break;
       }
       if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
@@ -197,6 +211,13 @@ public interface SubColumnsFactory {
       final @NotNull ModularFeatureList flist, final @NotNull ModularFeatureListRow row,
       final @Nullable ModularFeature feature, final @Nullable RawDataFile file, final Object value)
       throws XMLStreamException {
+
+    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
+
+    if (value == null) {
+      writer.writeEndElement();
+      return;
+    }
     var cols = getNumberOfSubColumns();
     for (int i = 0; i < cols; i++) {
       DataType sub = getType(i);
@@ -218,6 +239,8 @@ public interface SubColumnsFactory {
 
       writer.writeEndElement();
     }
+
+    writer.writeEndElement();
   }
 
 }
