@@ -1,30 +1,49 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
-import io.github.mzmine.datamodel.data_access.ScanDataAccess;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.IsotopePatternType;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.ArrayList;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.Weights;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class DatabaseIsotopeRefinerScanBased {
@@ -33,100 +52,115 @@ public class DatabaseIsotopeRefinerScanBased {
   private static final Logger logger = Logger.getLogger(
       DatabaseIsotopeRefinerScanBased.class.getName());
 
-  public static void refine(List<FeatureListRow> rows, MZTolerance mzTolerance, double minIntensity,
-      double minIsotopeScore) throws CloneNotSupportedException {
-
-    final Map<RawDataFile, ScanDataAccess> accessMap = new HashMap<>();
-
-    List<DataPoint> rowsFoundIsotope = new ArrayList<>();
-    for (FeatureListRow row : rows) {
-      List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
-
-      if (annotations.isEmpty()) {
-        continue;
-      }
-      final Feature feature = row.getBestFeature();
-
-//      ScanDataAccess access = accessMap.get(feature.getRawDataFile());
-//      if(access == null) {
-//        access = EfficientDataAccess.of(feature.getRawDataFile(), ScanDataType.CENTROID);
-//        accessMap.put(feature.getRawDataFile(), access);
-//      }
-
-      final ScanDataAccess access = accessMap.computeIfAbsent(feature.getRawDataFile(),
-          file -> EfficientDataAccess.of(file, ScanDataType.CENTROID));
-      if (!access.jumpToScan(feature.getRepresentativeScan())) {
-        continue;
-      }
-
-      float bestScore = 0;
-      for (CompoundDBAnnotation annotation : annotations) {
-        if (annotation.getFormula() == null || annotation.getAdductType() == null) {
-          continue;
-        }
-        String formula = annotation.getFormula();
-        IonType adductType = annotation.getAdductType();
-        IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
-        assert molecularFormula != null;
-        IMolecularFormula ionFormula = adductType.addToFormula(molecularFormula);
-        final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
-            ionFormula, 0.01, mzTolerance.getMzToleranceForMass(row.getAverageMZ()),
-            adductType.getCharge(), adductType.getPolarity(), false);
-//        predictedIsotopePattern = IsotopePatternCalculator.removeDataPointsBelowIntensity(predictedIsotopePattern,
-//            minIntensity);
-        //searching for isotopes in representativeScan of Feature if an isotope is found,
-        // FeatureListRow of isotope is deleted
-        IsotopePatternMatcher isotopePatternMatcher = new IsotopePatternMatcher(
-            predictedIsotopePattern, minIntensity);
-
-        for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
-          final double mz = access.getMzValue(i);
-          final double intensity = access.getIntensityValue(i);
-          boolean foundIsotope = isotopePatternMatcher.offerDataPoint(mz, intensity, mzTolerance);
-          if (foundIsotope) {
-            rowsFoundIsotope.add(new SimpleDataPoint(mz, intensity));
-            logger.info("Isotope peak found for " + row.getAverageMZ() + " at m/z " + intensity);
-          }
-        }
-
-        if (isotopePatternMatcher.matches()) {
-          final IsotopePattern measuredIsotopePattern = isotopePatternMatcher.measuredIsotopePattern(
-              mzTolerance);
-          assert measuredIsotopePattern != null;
-
-          if (IsotopePatternScoreCalculator.checkMatch(predictedIsotopePattern,
-              measuredIsotopePattern, mzTolerance, 10.0, minIsotopeScore)) {
-            final float isotopePatternScore = isotopePatternMatcher.score(mzTolerance);
-            annotation.put(IsotopePatternType.class, measuredIsotopePattern);
-            annotation.put(IsotopePatternScoreType.class, isotopePatternScore);
-            if (isotopePatternScore >= bestScore) {
-              bestScore = isotopePatternScore;
-
-              Feature bestFeature = row.getBestFeature();
-              ((ModularFeature) bestFeature).set(CompoundNameType.class,
-                  annotation.getCompoundName());
-              ((ModularFeature) bestFeature).set(IsotopePatternType.class, measuredIsotopePattern);
-              ((ModularFeature) bestFeature).set(IsotopePatternScoreType.class,
-                  isotopePatternScore);
-              logger.info("Full isotope pattern found for m/z " + row.getAverageMZ());
-            }
-
-          }
-
-        }
-
-        // sort annotations by compound score
-        List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>(
-            row.getCompoundAnnotations());
-        compoundAnnotations.sort((o1, o2) -> {
-          float score1 = Objects.requireNonNullElse(o1.get(IsotopePatternScoreType.class), 0f);
-          float score2 = Objects.requireNonNullElse(o2.get(IsotopePatternScoreType.class), 0f);
-          return Double.compare(score1, score2) * -1;
-        });
-        row.setCompoundAnnotations(compoundAnnotations);
-      }
+  /**
+   * Apply isotope scoring to filter annotations. Uses cosine similarity to match predicted and
+   * measured isotope pattern. Apply isotope finder first
+   *
+   * @param rows            apply to all rows
+   * @param mzTolerance     tolerance for signal matching
+   * @param minIntensity    minimum isotope intensity for prediction
+   * @param minIsotopeScore minimum isotope score to retain annotations
+   */
+  public static void refineAnnotationsByIsotopes(List<FeatureListRow> rows, MZTolerance mzTolerance,
+      double minIntensity, double minIsotopeScore) {
+    for (final FeatureListRow row : rows) {
+      refineAnnotationsByIsotopes(row, mzTolerance, minIntensity, minIsotopeScore);
     }
   }
+
+  /**
+   * Apply isotope scoring to filter annotations. Uses cosine similarity to match predicted and
+   * measured isotope pattern. Apply isotope finder first
+   *
+   * @param row             apply to this row
+   * @param mzTolerance     tolerance for signal matching
+   * @param minIntensity    minimum isotope intensity for prediction
+   * @param minIsotopeScore minimum isotope score to retain annotations
+   */
+  public static void refineAnnotationsByIsotopes(FeatureListRow row, MZTolerance mzTolerance,
+      double minIntensity, double minIsotopeScore) {
+    refineAnnotationsByIsotopes(row, mzTolerance, minIntensity, minIsotopeScore, new HashMap<>());
+  }
+
+  /**
+   * Apply isotope scoring to filter annotations. Uses cosine similarity to match predicted and
+   * measured isotope pattern. Apply isotope finder first
+   *
+   * @param row                  apply to this row
+   * @param mzTolerance          tolerance for signal matching
+   * @param minIntensity         minimum isotope intensity for prediction
+   * @param minIsotopeScore      minimum isotope score to retain annotations
+   * @param ionIsotopePatternMap map to cache ions formula to predicted patterns
+   */
+  public static void refineAnnotationsByIsotopes(FeatureListRow row, MZTolerance mzTolerance,
+      double minIntensity, double minIsotopeScore,
+      Map<IMolecularFormula, IsotopePattern> ionIsotopePatternMap) {
+    var measuredPattern = row.getBestIsotopePattern();
+    if (measuredPattern == null) {
+      return;
+    }
+
+    var measuredIsotopes = ScanUtils.extractDataPoints(measuredPattern);
+    var remainingAnnotations = row.getCompoundAnnotations().stream().filter(annotation ->
+        calculateIsotopeScore(annotation, measuredIsotopes, mzTolerance, minIntensity,
+            ionIsotopePatternMap) >= minIsotopeScore).toList();
+    row.setCompoundAnnotations(remainingAnnotations);
+  }
+
+  /**
+   * @param annotation           annotation with formula and ion
+   * @param measuredIsotopes     all measured isotope signals from an IsotopePattern
+   * @param mzTolerance          matching tolerance
+   * @param minIntensity         minimum isotope intensity for prediction
+   * @param ionIsotopePatternMap map to cache ions formula to predicted patterns
+   * @return the isotope pattern score or 0 on error or if no pattern was detected
+   */
+  private static double calculateIsotopeScore(final CompoundDBAnnotation annotation,
+      final DataPoint[] measuredIsotopes, final MZTolerance mzTolerance, final double minIntensity,
+      final Map<IMolecularFormula, IsotopePattern> ionIsotopePatternMap) {
+    var adductType = annotation.getAdductType();
+    if (annotation.getFormula() == null || adductType == null) {
+      return 0;
+    }
+    // create ion formula
+    IMolecularFormula ionFormula = FormulaUtils.getIonizedFormula(annotation);
+    assert ionFormula != null;
+    // cache the ionformula to IsotopePattern to reuse isotope patterns for the same formula
+    try {
+      final IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.computeIfAbsent(ionFormula,
+          key -> getCalculateIsotopePattern(mzTolerance, minIntensity, adductType, ionFormula));
+//        predictedIsotopePattern = IsotopePatternCalculator.removeDataPointsBelowIntensity(predictedIsotopePattern,
+//            minIntensity);
+      var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
+
+      var similarity = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0,
+          HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO, mzTolerance, 0, predictedIsotopes,
+          measuredIsotopes);
+      // also match with library as ground truth to give more weight to predicted signals
+      var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0,
+          HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0, predictedIsotopes,
+          measuredIsotopes);
+
+      if (similarity != null && similarityLibrary!=null) {
+        var score = (float) (similarity.getScore() + similarityLibrary.getScore()*2)/3f;
+        annotation.put(IsotopePatternScoreType.class, score);
+        return similarity.getScore();
+      }
+      return 0;
+    }catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot match isotope pattern similarity. Maybe no adduct, formula information", ex);
+      return 0;
+    }
+  }
+
+  @NotNull
+  private static IsotopePattern getCalculateIsotopePattern(final MZTolerance mzTolerance,
+      final double minIntensity, final IonType adductType, final IMolecularFormula ionFormula) {
+    return IsotopePatternCalculator.calculateIsotopePattern(ionFormula, minIntensity,
+        mzTolerance.getMzToleranceForMass(FormulaUtils.calculateMzRatio(ionFormula)),
+        adductType.getCharge(), adductType.getPolarity(), false);
+  }
+
 }
 
 

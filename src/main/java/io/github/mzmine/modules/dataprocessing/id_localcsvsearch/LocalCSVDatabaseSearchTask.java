@@ -278,7 +278,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       }
       if(isotopePatternMatcherParameterSet != null) {
         for (FeatureList flist : featureLists) {
-          refineAnnotations(flist);
+          refineAnnotationsByIsotopes(flist);
         }
       }
 
@@ -301,13 +301,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   }
 
-  private void refineAnnotations(FeatureList flist) {
-    try {
-      DatabaseIsotopeRefinerScanBased.refine(flist.getRows(), isotopeMzTolerance,
+  private void refineAnnotationsByIsotopes(FeatureList flist) {
+      DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopes(flist.getRows(), isotopeMzTolerance,
           minRelativeIsotopeIntensity, minIsotopeScore);
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-    }
   }
 
   /**
