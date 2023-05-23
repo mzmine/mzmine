@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
+import io.github.mzmine.datamodel.features.types.ClassificationType;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.GroupType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -59,7 +59,7 @@ public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> 
 
 
   private final DataType[] columns = new DataType[]{new MinimumType(DEFAULT_FORMAT),
-      new MeanType(DEFAULT_FORMAT), new MaximumType(DEFAULT_FORMAT), new GroupType()};
+      new MeanType(DEFAULT_FORMAT), new MaximumType(DEFAULT_FORMAT), new ClassificationType()};
   private final NumberFormat guiFormat;
   private final NumberFormat exportFormat;
 
@@ -189,7 +189,7 @@ public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> 
       case MinimumType ignored -> stats.min();
       case MaximumType ignored -> stats.max();
       case MeanType ignored -> stats.mean();
-      case GroupType ignored -> stats.group();
+      case ClassificationType ignored -> stats.group();
       default -> throw new IllegalArgumentException(
           "Cannot handle column in SumpleStatisticsType: " + sub);
     };
@@ -235,7 +235,7 @@ public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> 
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-  
+
     SimpleModularDataModel model = loadSubColumnsFromXML(reader, project, flist, row, feature,
         file);
     if (model.getMap().isEmpty()) {
@@ -244,7 +244,7 @@ public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> 
 
     return new SimpleStatistics(model.getNonNullElse(MinimumType.class, 0d),
         model.getNonNullElse(MeanType.class, 0d), model.getNonNullElse(MaximumType.class, 0d),
-        model.getNonNullElse(GroupType.class, ""));
+        model.getNonNullElse(ClassificationType.class, ""));
   }
 
   private static <T> T getOrDefault(final Map<Class<? extends DataType>, Object> values,

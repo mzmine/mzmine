@@ -28,15 +28,15 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-public class GroupType extends StringType {
+public class ClassificationType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "group";
+    return "class";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Group";
+    return "Class";
   }
 }
