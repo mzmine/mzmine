@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types.numbers.stats;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +36,11 @@ import org.jetbrains.annotations.NotNull;
 public class MeanType extends DoubleType {
 
   private final NumberFormat format;
+
+  public MeanType() {
+    // need this constructor for unique test
+    this(MZmineCore.getConfiguration().getGuiFormats().percentFormat());
+  }
 
   public MeanType(final NumberFormat format) {
     super(format);

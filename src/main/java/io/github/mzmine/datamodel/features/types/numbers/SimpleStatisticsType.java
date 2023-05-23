@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.MaximumType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.MeanType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.MinimumType;
+import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +54,15 @@ public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> 
       new MeanType(DEFAULT_FORMAT), new MaximumType(DEFAULT_FORMAT), new GroupType()};
   private final NumberFormat guiFormat;
   private final NumberFormat exportFormat;
+
+  public SimpleStatisticsType() {
+    // need this constructor for unique test
+    this(MZmineCore.getConfiguration().getGuiFormats().percentFormat());
+  }
+
+  protected SimpleStatisticsType(NumberFormat format) {
+    this(format, format);
+  }
 
   protected SimpleStatisticsType(NumberFormat guiFormat, NumberFormat exportFormat) {
     super(guiFormat);

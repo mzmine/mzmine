@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types.numbers.stats;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +37,10 @@ public class MaximumType extends DoubleType {
 
   private final NumberFormat format;
 
+  public MaximumType() {
+    // need this constructor for unique test
+    this(MZmineCore.getConfiguration().getGuiFormats().percentFormat());
+  }
   public MaximumType(final NumberFormat format) {
     super(format);
     this.format = format;
