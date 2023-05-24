@@ -421,8 +421,7 @@ public class Massvoltammogram {
   private boolean rawDataOverlapsWithMzRange(Range<Double> mzRange) {
 
     Range<Double> rawDataMzRange = getRawDataMzRange();
-    return rawDataMzRange.contains(mzRange.lowerEndpoint()) || rawDataMzRange.contains(
-        mzRange.upperEndpoint());
+    return rawDataMzRange.isConnected(mzRange);
   }
 
   /**
@@ -436,20 +435,20 @@ public class Massvoltammogram {
 
     //Setting the mz-range to the raw data files mz-range if a raw data file is used.
     if (file != null) {
-      rawDataMzRange = file.getDataMZRange(0);
+      rawDataMzRange = file.getDataMZRange(1);
 
       //Setting the mz-range to the feature lists mz-range if a feature list is used instead.
     } else if (featureList != null) {
 
       //Setting the range to the first feature lists mz-range.
       List<RawDataFile> files = featureList.getRawDataFiles();
-      rawDataMzRange = files.get(0).getDataMZRange(0);
+      rawDataMzRange = files.get(0).getDataMZRange(1);
 
       //Spanning the mz-range around all feature lists if multiple feature lists are used.
       if (files.size() > 1) {
 
         for (int i = 1; i < files.size(); i++) {
-          rawDataMzRange = rawDataMzRange.span(files.get(i).getDataMZRange());
+          rawDataMzRange = rawDataMzRange.span(files.get(i).getDataMZRange(1));
         }
       }
     }
