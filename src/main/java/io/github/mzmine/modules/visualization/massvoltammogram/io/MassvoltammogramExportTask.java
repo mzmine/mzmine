@@ -25,12 +25,13 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
-import io.github.mzmine.main.MZmineCore;
+import com.itextpdf.text.DocumentException;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -57,22 +58,25 @@ public class MassvoltammogramExportTask extends AbstractTask {
 
   //Export variables.
   private final Massvoltammogram massvoltammogram;  //The massvoltammogram that will be exported.
-  private final File file; //The file the massvoltammogram will be exported to.
+  private final String filePath; //The path the massvoltammogram will be exported to.
+  private final String fileFormat;  //The file format the massvoltammogram will be exported to.
+  private final Boolean bgTransparent;
 
   //Progress.
   private int numExportedScans;
   private int numTotalScans;
 
 
-  public MassvoltammogramExportTask(Massvoltammogram massvoltammogram, File file) {
+  public MassvoltammogramExportTask(Massvoltammogram massvoltammogram,
+      MassvoltammogramExportParameters parameters) {
     super(null, Instant.now());
 
-    //Setting the massvoltammogram to be exported.
     this.massvoltammogram = massvoltammogram;
-    this.file = file;
+    this.filePath = parameters.getValue(MassvoltammogramExportParameters.path).getAbsolutePath();
+    this.fileFormat = parameters.getValue(MassvoltammogramExportParameters.fileFormat);
+    this.bgTransparent = parameters.getValue(MassvoltammogramExportParameters.transparency);
 
-    //Adding the ExportTask to the TaskController.
-    MZmineCore.getTaskController().addTask(this, getTaskPriority());
+    run();
   }
 
   public void run() {
@@ -80,18 +84,13 @@ public class MassvoltammogramExportTask extends AbstractTask {
     //Starting the export.
     setStatus(TaskStatus.PROCESSING);
 
-    //Cancelling the task if no file was chosen.
-    if (file == null) {
-      cancel();
-      return;
-    }
-
-    //Exporting the massvoltammogram to the selected format.
-    final String selectedFormat = FilenameUtils.getExtension(file.getName());
-    switch (selectedFormat) {
-      case "csv" -> toCSV();
-      case "png" -> toPNG();
-      case "xlsx" -> toXLSX();
+    switch (fileFormat) {
+      case "CSV" -> toCSV();
+      case "XLSX" -> toXLSX();
+      case "PNG" -> toPNG();
+      case "JPG" -> toJPG();
+      case "EMF" -> toEMF();
+      case "PDF" -> toPDF();
       default -> cancel();
     }
 
@@ -105,17 +104,19 @@ public class MassvoltammogramExportTask extends AbstractTask {
 
     MassvoltammogramPlotPanel plot = massvoltammogram.getPlot();
 
-    plot.setBackgroundTransparent(true);
+    //Setting the background transparent if chosen.
+    plot.setBackgroundTransparent(bgTransparent);
 
+    //Writing the plot to a buffered image
     BufferedImage img = new BufferedImage(plot.getWidth(), plot.getHeight(),
         BufferedImage.TYPE_INT_ARGB);
     Graphics2D graphics = img.createGraphics();
-
-    plot.paint(img.getGraphics());
+    plot.paint(graphics);
     graphics.drawImage(img, 0, 0, null);
     graphics.dispose();
 
     //Saving the buffered image to a png file.
+    File file = new File(filePath + ".png");
     try {
       ImageIO.write(img, "PNG", file);
     } catch (IllegalArgumentException | IOException e) {
@@ -127,17 +128,41 @@ public class MassvoltammogramExportTask extends AbstractTask {
   }
 
   /**
+   * Method to export the massvoltammogram to a jpg-file.
+   */
+  private void toJPG() {
+
+    MassvoltammogramPlotPanel plot = massvoltammogram.getPlot();
+
+    //Writing the plot to a buffered image
+    BufferedImage img = new BufferedImage(plot.getWidth(), plot.getHeight(),
+        BufferedImage.TYPE_INT_RGB);
+    Graphics2D graphics = img.createGraphics();
+    plot.paint(graphics);
+    graphics.drawImage(img, 0, 0, null);
+    graphics.dispose();
+
+    //Saving the buffered image to a png file.
+    File file = new File(filePath + ".jpg");
+    try {
+      ImageIO.write(img, "JPG", file);
+    } catch (IllegalArgumentException | IOException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+  }
+
+  /**
    * Method to export the massvoltammograms scan sto single csv-files.
    */
   private void toCSV() {
 
-    //Getting the file name and path.
-    final String fileName = FilenameUtils.removeExtension(file.getName());
-    final String folderPath = FilenameUtils.removeExtension(file.getAbsolutePath());
+    //Getting the file name.
+    final String fileName = FilenameUtils.getName(filePath);
 
     //Creating a new folder at the selected directory.
     try {
-      Files.createDirectory(Paths.get(folderPath));
+      Files.createDirectory(Paths.get(filePath));
     } catch (IOException e) {
       e.printStackTrace();
       logger.log(Level.WARNING, e.getMessage(), e);
@@ -154,7 +179,7 @@ public class MassvoltammogramExportTask extends AbstractTask {
 
       //Initializing a file writer to export the csv file and naming the file.
       try (FileWriter writer = new FileWriter(
-          folderPath + File.separator + fileName + "_" + scan.getPotential() + "_mV.csv")) {
+          filePath + File.separator + fileName + "_" + scan.getPotential() + "_mV.csv")) {
 
         //Filling the csv file with all data from the scan.
         for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
@@ -229,12 +254,43 @@ public class MassvoltammogramExportTask extends AbstractTask {
       }
 
       //Writing the excel-file to disk.
+      File file = new File(filePath + ".xlsx");
       FileOutputStream fileOutputStream = new FileOutputStream(file);
       xlsxWorkbook.write(fileOutputStream);
 
     } catch (IOException e) {
       e.printStackTrace();
       logger.log(Level.WARNING, e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Method to export the massvoltammogram to a emf-file.
+   */
+  private void toEMF() {
+
+    File file = new File(filePath + ".emf");
+    try {
+      SwingExportUtil.writeToEMF(massvoltammogram.getPlot(), file);
+
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage());
+    }
+  }
+
+  /**
+   * Method to export the massvoltammogram to a pdf-file.
+   */
+  private void toPDF() {
+
+    File file = new File(filePath + ".pdf");
+    try {
+      SwingExportUtil.writeToPDF(massvoltammogram.getPlot(), file);
+
+    } catch (IOException | DocumentException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage());
     }
   }
 
