@@ -38,7 +38,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: papeloto/action-zip@v1
         with:
-          files: build/jpackage/MZmine/
+          files: build/
           dest: build/jpackage/MZmine_Linux_portable.zip
 
       # UPLOAD ALL FILES
