@@ -28,11 +28,15 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * General type that can be added as a classification. eg, for categories on a number column
+ */
 public class ClassificationType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "class";
+    // do not change. neeeds to be constant for loading saving
+    return "classification";
   }
 
   @Override

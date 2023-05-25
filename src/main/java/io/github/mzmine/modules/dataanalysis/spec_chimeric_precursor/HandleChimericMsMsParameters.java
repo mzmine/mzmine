@@ -83,4 +83,8 @@ public class HandleChimericMsMsParameters extends SimpleParameterSet {
     }
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
