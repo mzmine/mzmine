@@ -50,7 +50,7 @@ import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
-public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
+public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
   public static final DirectoryParameter savePathDir = new DirectoryParameter("Data location",
@@ -90,7 +90,7 @@ public class TimsTOFImageMsMsParameters extends SimpleParameterSet {
   public static final AdvancedParametersParameter<AdvancedImageMsMsParameters> advancedParameters = new AdvancedParametersParameter<>(
       new AdvancedImageMsMsParameters());
 
-  public TimsTOFImageMsMsParameters() {
+  public SimsefImagingSchedulerParameters() {
     super(flists, savePathDir, acquisitionControl, numMsMs, collisionEnergies, minimumDistance,
         minimumIntensity, minimumPurity, advancedParameters, exportOnly);
   }

@@ -36,28 +36,29 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TimsTOFImageMsMsModule implements MZmineProcessingModule {
+public class SimsefImagingSchedulerModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "Maldi imaging MSMS acquisition module";
+    return "SIMSEF scheduler module";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return TimsTOFImageMsMsParameters.class;
+    return SimsefImagingSchedulerParameters.class;
   }
 
   @Override
   public @NotNull String getDescription() {
-    return "null";
+    return "Schedules imaging MS2 experiments for SIMSEF acquisition.";
   }
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new TimsTOFImageMsMsTask(null, moduleCallDate, parameters, project, false, false));
+    tasks.add(
+        new SimsefImagingSchedulerTask(null, moduleCallDate, parameters, project, false, false));
     return ExitCode.OK;
   }
 

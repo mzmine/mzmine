@@ -613,8 +613,8 @@
       userData="io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule"/>
     <MenuItem onAction="#runModule" text="timsTOF MALDI acquisition"
       userData="io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule"/>
-    <MenuItem onAction="#runModule" text="timsTOF MALDI Image MSMS acquisition"
-      userData="io.github.mzmine.modules.tools.timstofmaldiacq.imaging.TimsTOFImageMsMsModule"/>
+    <MenuItem onAction="#runModule" text="timsTOF SIMSEF imaging scheduler"
+      userData="io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule"/>
   </Menu>
 
   <Menu text="Processing wizard">

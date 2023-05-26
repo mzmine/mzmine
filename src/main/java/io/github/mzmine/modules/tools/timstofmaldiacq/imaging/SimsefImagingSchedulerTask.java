@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TimsTOFImageMsMsTask extends AbstractTask {
+public class SimsefImagingSchedulerTask extends AbstractTask {
 
   public static final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
   private static final Logger logger = Logger.getLogger(
@@ -110,30 +110,30 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
   private double progress = 0d;
   private File currentCeFile = null;
 
-  protected TimsTOFImageMsMsTask(@Nullable MemoryMapStorage storage,
+  protected SimsefImagingSchedulerTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet parameters, @NotNull MZmineProject project,
       boolean scheduleOnly, boolean preview) {
     super(storage, moduleCallDate);
     this.parameters = parameters.cloneParameterSet();
     this.preview = preview;
 
-    advancedParam = parameters.getParameter(TimsTOFImageMsMsParameters.advancedParameters);
+    advancedParam = parameters.getParameter(SimsefImagingSchedulerParameters.advancedParameters);
 
-    flists = parameters.getValue(TimsTOFImageMsMsParameters.flists).getMatchingFeatureLists();
+    flists = parameters.getValue(SimsefImagingSchedulerParameters.flists).getMatchingFeatureLists();
     maxMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.maxMobilityWidth,
         AdvancedImageMsMsParameters.MAX_MOBILITY_WIDTH);
     minMobilityWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.minMobilityWidth,
         AdvancedImageMsMsParameters.MIN_MOBILITY_WIDTH);
-    acqControl = parameters.getValue(TimsTOFImageMsMsParameters.acquisitionControl);
-    savePathDir = parameters.getValue(TimsTOFImageMsMsParameters.savePathDir);
-    exportOnly = parameters.getValue(TimsTOFImageMsMsParameters.exportOnly);
+    acqControl = parameters.getValue(SimsefImagingSchedulerParameters.acquisitionControl);
+    savePathDir = parameters.getValue(SimsefImagingSchedulerParameters.savePathDir);
+    exportOnly = parameters.getValue(SimsefImagingSchedulerParameters.exportOnly);
     isolationWidth = advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.isolationWidth,
         AdvancedImageMsMsParameters.MIN_ISOLATION_WIDTH);
-    numMsMs = parameters.getValue(TimsTOFImageMsMsParameters.numMsMs);
-    collisionEnergies = parameters.getValue(TimsTOFImageMsMsParameters.collisionEnergies);
-    minMsMsIntensity = parameters.getValue(TimsTOFImageMsMsParameters.minimumIntensity);
-    minDistance = parameters.getValue(TimsTOFImageMsMsParameters.minimumDistance);
-    minChimerityScore = parameters.getValue(TimsTOFImageMsMsParameters.minimumPurity);
+    numMsMs = parameters.getValue(SimsefImagingSchedulerParameters.numMsMs);
+    collisionEnergies = parameters.getValue(SimsefImagingSchedulerParameters.collisionEnergies);
+    minMsMsIntensity = parameters.getValue(SimsefImagingSchedulerParameters.minimumIntensity);
+    minDistance = parameters.getValue(SimsefImagingSchedulerParameters.minimumDistance);
+    minChimerityScore = parameters.getValue(SimsefImagingSchedulerParameters.minimumPurity);
     this.scheduleOnly = scheduleOnly;
     isolationWindow = new MZTolerance((isolationWidth * 1.3) / 2,
         0d); // isolation window typically wider than set
@@ -262,7 +262,7 @@ public class TimsTOFImageMsMsTask extends AbstractTask {
     }
 
     flist.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(TimsTOFImageMsMsModule.class, parameters,
+        new SimpleFeatureListAppliedMethod(SimsefImagingSchedulerModule.class, parameters,
             getModuleCallDate()));
     if (scheduleOnly) {
       setStatus(TaskStatus.FINISHED);

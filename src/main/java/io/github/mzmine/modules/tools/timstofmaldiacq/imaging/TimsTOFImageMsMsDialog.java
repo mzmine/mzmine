@@ -62,7 +62,7 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
 
   private final ImagingPlot imageChart = new ImagingPlot(
       MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class));
-  private TimsTOFImageMsMsTask currentTask;
+  private SimsefImagingSchedulerTask currentTask;
 
   private PauseTransition delay = new PauseTransition(Duration.millis(500));
 
@@ -117,11 +117,11 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
       }
 
       final ParameterSet param = parameters.cloneParameterSet();
-      param.setParameter(TimsTOFImageMsMsParameters.flists,
+      param.setParameter(SimsefImagingSchedulerParameters.flists,
           new FeatureListsSelection((ModularFeatureList) cmbFlist.getValue()));
 
-      currentTask = new TimsTOFImageMsMsTask(null, Instant.now(), param, MZmineCore.getProject(),
-          true, true);
+      currentTask = new SimsefImagingSchedulerTask(null, Instant.now(), param,
+          MZmineCore.getProject(), true, true);
       MZmineCore.getTaskController().addTask(currentTask);
 
       currentTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
