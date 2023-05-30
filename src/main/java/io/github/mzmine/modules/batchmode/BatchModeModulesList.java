@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
 import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
@@ -316,6 +317,7 @@ public class BatchModeModulesList {
       CliqueMSModule.class, //
       GroupMS2Module.class, //
       GroupedMs2RefinementModule.class, //
+      PrecursorPurityCheckerModule.class, //
       DiaMs2CorrModule.class, //
       MaldiGroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //
