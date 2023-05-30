@@ -51,7 +51,6 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();
 
-
   public MultiChargeStateIsotopePattern(@NotNull IsotopePattern... patterns) {
     this(Arrays.asList(patterns));
   }
@@ -61,6 +60,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
       throw new IllegalArgumentException("List of isotope patterns cannot be empty");
     }
     this.patterns.addAll(patterns);
+    onPatternsChanged();
   }
 
   public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -112,6 +112,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
       patterns.add(0, pattern);
     } else {
       patterns.add(pattern);
+      onPatternsChanged();
     }
   }
 
@@ -247,5 +248,21 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   @Override
   public int hashCode() {
     return Objects.hash(patterns);
+  }
+
+  private void onPatternsChanged() {
+    int biggestPatternIndex = -1;
+    int biggestPatternSize = Integer.MIN_VALUE;
+    for (int i = 0; i < patterns.size(); i++) {
+      if (patterns.get(i).getNumberOfDataPoints() > biggestPatternSize) {
+        biggestPatternSize = patterns.get(i).getNumberOfDataPoints();
+        biggestPatternIndex = i;
+      }
+    }
+
+    if (biggestPatternIndex != -1) {
+      var preferred = patterns.remove(biggestPatternIndex);
+      addPattern(preferred, true);
+    }
   }
 }
