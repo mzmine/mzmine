@@ -60,7 +60,7 @@ public class PotentialType extends IntegerType {
       // silent, still V value from old projects.
     }
 
-    return (int) Float.parseFloat(str) * 1000;
+    return (int) (Float.parseFloat(str) * 1000);
   }
 
   @Override
