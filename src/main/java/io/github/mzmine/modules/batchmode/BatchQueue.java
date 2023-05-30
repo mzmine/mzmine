@@ -33,11 +33,16 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.CollectionUtils;
 import io.github.mzmine.util.javafx.ArrayObservableList;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -225,4 +230,28 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       }
     }
   }
+
+  /**
+   * Replace all import files in the {@link AllSpectralDataImportModule} - which needs to be the
+   * first step in batch
+   *
+   * @param allFiles replaces import files
+   * @return true if success, false if not. e.g., if there was no data import step in the batch file
+   */
+  public boolean setImportFiles(final File[] allFiles) throws IllegalStateException {
+    MZmineProcessingStep<?> currentStep = get(0);
+    ParameterSet importParameters = currentStep.getParameterSet();
+    try {
+      FileNamesParameter importParam = importParameters.getParameter(
+          AllSpectralDataImportParameters.fileNames);
+      importParam.setValue(allFiles);
+      return true;
+    } catch (Exception ex) {
+      logger.log(Level.WARNING,
+          "Could not change input data files in batch. When running batch and changing the data input, the first step in the batch needs to be the all spectral data import module.",
+          ex);
+      return false;
+    }
+  }
+
 }

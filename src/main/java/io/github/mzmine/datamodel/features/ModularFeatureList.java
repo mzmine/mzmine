@@ -65,6 +65,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
@@ -134,6 +135,17 @@ public class ModularFeatureList implements FeatureList {
       // check feature data for graphical columns
       DataTypeUtils.applyFeatureSpecificGraphicalTypes((ModularFeature) dataModel);
     });
+
+    // add row bindings automatically
+    featureTypes.addListener(
+        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
+          DataType added = change.getValueAdded();
+          if (added == null) {
+            return;
+          }
+          // add row bindings
+          addRowBinding(added.createDefaultRowBindings());
+        });
   }
 
   @Override
@@ -323,8 +335,6 @@ public class ModularFeatureList implements FeatureList {
       if (!featureTypes.containsKey(type.getClass())) {
         // all {@link ModularFeature} will automatically add a default data map
         featureTypes.put(type.getClass(), type);
-        // add row bindings
-        addRowBinding(type.createDefaultRowBindings());
       }
     }
   }

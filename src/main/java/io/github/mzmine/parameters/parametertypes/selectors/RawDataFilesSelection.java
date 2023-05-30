@@ -53,6 +53,10 @@ public class RawDataFilesSelection implements Cloneable {
   public RawDataFilesSelection(RawDataFilesSelectionType selectionType) {
     this.selectionType = selectionType;
   }
+  public RawDataFilesSelection(RawDataFile[] specificDataFiles) {
+    this.selectionType = RawDataFilesSelectionType.SPECIFIC_FILES;
+    setSpecificFiles(specificDataFiles);
+  }
 
   public RawDataFilePlaceholder[] getEvaluationResult() {
     if (evaluatedSelection != null) {

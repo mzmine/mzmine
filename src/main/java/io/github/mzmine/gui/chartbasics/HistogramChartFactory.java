@@ -25,6 +25,10 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.util.maths.Precision;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Paint;
@@ -36,6 +40,7 @@ import java.util.logging.Logger;
 import org.apache.commons.math3.analysis.function.Gaussian;
 import org.apache.commons.math3.fitting.GaussianCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
@@ -50,10 +55,6 @@ import org.jfree.data.xy.XYBarDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.util.maths.Precision;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 
 public class HistogramChartFactory {
 
@@ -67,9 +68,8 @@ public class HistogramChartFactory {
    * @param data the data
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
-   * @param sigDigits number of significant digits
    * @return double[] {normFactor, mean, sigma} as a result of
-   *         GaussianCurveFitter.create().fit(obs.toList())
+   * GaussianCurveFitter.create().fit(obs.toList())
    */
   public static double[] gaussianFit(List<DataPoint> data, double gMin, double gMax) {
     // gaussian fit
@@ -77,8 +77,9 @@ public class HistogramChartFactory {
 
     for (int i = 0; i < data.size(); i++) {
       double x = data.get(i).getMZ();
-      if (x >= gMin && x <= gMax)
+      if (x >= gMin && x <= gMax) {
         obs.add(x, data.get(i).getIntensity());
+      }
     }
     try {
       return fitter.fit(obs.toList());
@@ -93,11 +94,10 @@ public class HistogramChartFactory {
    * Performs Gaussian fit on XYSeries
    *
    * @param series the data
-   * @param gMin lower bound of Gaussian fit
-   * @param gMax upper bound of Gaussian fit
-   * @param sigDigits number of significant digits
+   * @param gMin   lower bound of Gaussian fit
+   * @param gMax   upper bound of Gaussian fit
    * @return double[] {normFactor, mean, sigma} as a result of
-   *         GaussianCurveFitter.create().fit(obs.toList())
+   * GaussianCurveFitter.create().fit(obs.toList())
    */
   public static double[] gaussianFit(XYSeries series, double gMin, double gMax) {
     // gaussian fit
@@ -105,8 +105,9 @@ public class HistogramChartFactory {
 
     for (int i = 0; i < series.getItemCount(); i++) {
       double x = series.getX(i).doubleValue();
-      if (x >= gMin && x <= gMax)
+      if (x >= gMin && x <= gMax) {
         obs.add(x, series.getY(i).doubleValue());
+      }
     }
 
     return fitter.fit(obs.toList());
@@ -115,13 +116,12 @@ public class HistogramChartFactory {
   /**
    * Performs Gaussian fit on XYSeries
    *
-   * @param data the data
+   * @param data   the data
    * @param series the series index
-   * @param gMin lower bound of Gaussian fit
-   * @param gMax upper bound of Gaussian fit
-   * @param sigDigits number of significant digits
+   * @param gMin   lower bound of Gaussian fit
+   * @param gMax   upper bound of Gaussian fit
    * @return double[] {normFactor, mean, sigma} as a result of
-   *         GaussianCurveFitter.create().fit(obs.toList())
+   * GaussianCurveFitter.create().fit(obs.toList())
    */
   public static double[] gaussianFit(XYDataset data, int series, double gMin, double gMax) {
     // gaussian fit
@@ -129,8 +129,9 @@ public class HistogramChartFactory {
 
     for (int i = 0; i < data.getItemCount(series); i++) {
       double x = data.getXValue(series, i);
-      if (x >= gMin && x <= gMax)
+      if (x >= gMin && x <= gMax) {
         obs.add(x, data.getYValue(series, i));
+      }
     }
     return fitter.fit(obs.toList());
   }
@@ -139,9 +140,9 @@ public class HistogramChartFactory {
    * Adds a Gaussian curve to the plot
    *
    * @param plot
-   * @param series the data
-   * @param gMin lower bound of Gaussian fit
-   * @param gMax upper bound of Gaussian fit
+   * @param series    the data
+   * @param gMin      lower bound of Gaussian fit
+   * @param gMax      upper bound of Gaussian fit
    * @param sigDigits number of significant digits
    * @return
    */
@@ -157,10 +158,10 @@ public class HistogramChartFactory {
    * Adds a Gaussian curve to the plot
    *
    * @param plot
-   * @param data the data
-   * @param series the series index
-   * @param gMin lower bound of Gaussian fit
-   * @param gMax upper bound of Gaussian fit
+   * @param data      the data
+   * @param series    the series index
+   * @param gMin      lower bound of Gaussian fit
+   * @param gMax      upper bound of Gaussian fit
    * @param sigDigits number of significant digits
    * @return
    */
@@ -176,9 +177,9 @@ public class HistogramChartFactory {
    * Adds a Gaussian curve to the plot
    *
    * @param plot
-   * @param fit double[] {normFactor, mean, sigma}
+   * @param fit       double[] {normFactor, mean, sigma}
    * @param drawStart start of curve
-   * @param drawEnd end of curve
+   * @param drawEnd   end of curve
    * @param sigDigits number of significant digits
    * @return
    */
@@ -192,11 +193,11 @@ public class HistogramChartFactory {
    * Adds a Gaussian curve to the plot
    *
    * @param plot
-   * @param fit double[] {normFactor, mean, sigma}
+   * @param fit       double[] {normFactor, mean, sigma}
    * @param drawStart start of curve
-   * @param drawEnd end of curve
-   * @param gMin lower bound of Gaussian fit
-   * @param gMax upper bound of Gaussian fit
+   * @param drawEnd   end of curve
+   * @param gMin      lower bound of Gaussian fit
+   * @param gMax      upper bound of Gaussian fit
    * @param sigDigits number of significant digits
    * @return
    */
@@ -211,7 +212,7 @@ public class HistogramChartFactory {
     String sigma = Precision.toString(fit[2], sigDigits, 7);
     String norm = Precision.toString(fit[0], sigDigits, 7);
     XYSeries gs = new XYSeries("Gaussian: " + mean + " \u00B1 " + sigma + " [" + norm
-        + "] (mean \u00B1 sigma [normalisation])");
+                               + "] (mean \u00B1 sigma [normalisation])");
     // add lower dp number out of gaussian fit range
     int steps = 100;
     if (gMin > drawStart) {
@@ -243,8 +244,9 @@ public class HistogramChartFactory {
     plot.setDataset(index, gsdata);
     plot.setRenderer(index, new XYLineAndShapeRenderer(true, false));
 
-    if (annotations)
+    if (annotations) {
       addGaussianFitAnnotations(plot, fit);
+    }
 
     return fit;
   }
@@ -253,12 +255,12 @@ public class HistogramChartFactory {
    * Adds annotations to the Gaussian fit parameters
    *
    * @param plot
-   * @param fit Gaussian fit {normalisation factor, mean, sigma}
+   * @param fit  Gaussian fit {normalisation factor, mean, sigma}
    */
   public static void addGaussianFitAnnotations(XYPlot plot, double[] fit) {
     Paint c = plot.getDomainCrosshairPaint();
     BasicStroke s = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1,
-        new float[] {5f, 2.5f}, 0);
+        new float[]{5f, 2.5f}, 0);
 
     plot.addDomainMarker(new ValueMarker(fit[1], c, s));
     plot.addDomainMarker(new ValueMarker(fit[1] - fit[2], c, s));
@@ -294,14 +296,16 @@ public class HistogramChartFactory {
             sum2 += bins[i];
             if ((sum2 / (double) sum) >= 0.99) {
               barwidth = function.apply(min + (binwidth / 2.0) + i * binwidth).doubleValue()
-                  - function.apply(min + (binwidth / 2.0) + (i - 1) * binwidth).doubleValue();
+                         - function.apply(min + (binwidth / 2.0) + (i - 1) * binwidth)
+                             .doubleValue();
             }
           }
         }
       }
       return createHistogram(series, barwidth, yAxisLabel);
-    } else
+    } else {
       return null;
+    }
   }
 
   public static JFreeChart createHistogram(XYSeries series, double barwidth, String yAxisLabel) {
@@ -343,8 +347,8 @@ public class HistogramChartFactory {
    *
    * @param data
    * @param binwidth
-   * @param min real minimum of data
-   * @param max real maximum of data
+   * @param min      real minimum of data
+   * @param max      real maximum of data
    * @param function function to transform data axis
    * @return A histogram array with length = datawidth/binwidth +1 (datawidth = max-min)
    */
@@ -359,9 +363,12 @@ public class HistogramChartFactory {
     for (double v : data) {
       int i = (int) Math.ceil((v - min) / binwidth) - 1;
       if (i < 0) // does only happen if min>than minimum value of data
+      {
         i = 0;
-      if (i >= bins.length)
+      }
+      if (i >= bins.length) {
         i = bins.length - 1;
+      }
       bins[i]++;
     }
 
@@ -372,8 +379,9 @@ public class HistogramChartFactory {
       // start peak and add data if>0
       if (bins[i] > 0) {
         // add previous zero once
-        if (!peakStarted && i > 0)
+        if (!peakStarted && i > 0) {
           addDPToSeries(series, bins, i - 1, binwidth, min, max, function);
+        }
 
         // add data
         addDPToSeries(series, bins, i, binwidth, min, max, function);
@@ -393,8 +401,8 @@ public class HistogramChartFactory {
    *
    * @param data
    * @param binwidth
-   * @param min real minimum of data
-   * @param max real maximum of data
+   * @param min      real minimum of data
+   * @param max      real maximum of data
    * @param function function to transform data axis
    * @return A histogram array with length = datawidth/binwidth +1 (datawidth = max-min)
    */
@@ -409,9 +417,12 @@ public class HistogramChartFactory {
     for (double v : data) {
       int i = (int) Math.ceil((v - min) / binwidth) - 1;
       if (i < 0) // does only happen if min>than minimum value of data
+      {
         i = 0;
-      if (i >= bins.length)
+      }
+      if (i >= bins.length) {
         i = bins.length - 1;
+      }
       bins[i]++;
     }
 
@@ -422,8 +433,9 @@ public class HistogramChartFactory {
       // start peak and add data if>0
       if (bins[i] > 0) {
         // add previous zero once
-        if (!peakStarted && i > 0)
+        if (!peakStarted && i > 0) {
           addDPToSeries(series, bins, i - 1, binwidth, min, max, function);
+        }
 
         // add data
         addDPToSeries(series, bins, i, binwidth, min, max, function);
@@ -442,8 +454,9 @@ public class HistogramChartFactory {
       double max, DoubleFunction<Double> function) {
     // adds a data point to the series
     double x = min + (binwidth / 2.0) + i * binwidth;
-    if (function != null)
+    if (function != null) {
       x = function.apply(x);
+    }
     series.add(x, bins[i]);
   }
 
@@ -452,8 +465,8 @@ public class HistogramChartFactory {
    *
    * @param data
    * @param binwidth
-   * @param min real minimum of data
-   * @param max real maximum of data
+   * @param min      real minimum of data
+   * @param max      real maximum of data
    * @param function function to transform data axis
    * @return A histogram array with length = datawidth/binwidth +1 (datawidth = max-min)
    */
@@ -468,9 +481,12 @@ public class HistogramChartFactory {
     for (double v : data) {
       int i = (int) Math.ceil((v - min) / binwidth) - 1;
       if (i < 0) // does only happen if min>than minimum value of data
+      {
         i = 0;
-      if (i >= bins.length)
+      }
+      if (i >= bins.length) {
         i = bins.length - 1;
+      }
       bins[i]++;
     }
 
@@ -481,8 +497,9 @@ public class HistogramChartFactory {
       // start peak and add data if>0
       if (bins[i] > 0) {
         // add previous zero once
-        if (!peakStarted && i > 0)
+        if (!peakStarted && i > 0) {
           addDPToList(result, bins, i - 1, binwidth, min, max, function);
+        }
 
         // add data
         addDPToList(result, bins, i, binwidth, min, max, function);
@@ -501,8 +518,9 @@ public class HistogramChartFactory {
       double min, double max, DoubleFunction<Double> function) {
     // adds a data point to the series
     double x = min + (binwidth / 2.0) + i * binwidth;
-    if (function != null)
+    if (function != null) {
       x = function.apply(x);
+    }
     list.add(new SimpleDataPoint(x, bins[i]));
   }
 
@@ -513,14 +531,17 @@ public class HistogramChartFactory {
    * @param bins
    * @param value
    * @param binwidth
-   * @param min minimum of
+   * @param min      minimum of
    */
   public static void addValueToHistoArray(int[] bins, double value, double binwidth, double min) {
     int i = (int) Math.ceil((value - min) / binwidth) - 1;
     if (i < 0) // does only happen if min>than minimum value of data
+    {
       i = 0;
-    if (i >= bins.length)
+    }
+    if (i >= bins.length) {
       i = bins.length - 1;
+    }
     bins[i]++;
   }
 
@@ -547,8 +568,9 @@ public class HistogramChartFactory {
       xybarrenderer.setBarPainter(new StandardXYBarPainter());
       // xybarrenderer.setDrawBarOutline(false);
       return chart;
-    } else
+    } else {
       return null;
+    }
   }
 
   public static JFreeChart createHistogram(double[] data) {
@@ -575,10 +597,9 @@ public class HistogramChartFactory {
   }
 
   /**
-   *
    * @param data
    * @param yAxisLabel
-   * @param width automatic width if parameter is <=0
+   * @param width      automatic width if parameter is <=0
    * @return
    */
   public static JFreeChart createHistogram(double[] data, String yAxisLabel, double width) {
@@ -587,62 +608,73 @@ public class HistogramChartFactory {
   }
 
   /**
-   *
    * @param data
    * @param yAxisLabel
-   * @param width automatic width if parameter is <=0
+   * @param width      automatic width if parameter is <=0
    * @return
    */
   public static JFreeChart createHistogram(double[] data, String yAxisLabel, double width,
       double min, double max) {
-    if (width <= 0)
+    if (width <= 0) {
       return createHistogram(data, yAxisLabel, min, max);
-    else {
+    } else {
       return createHistogram(data, width, yAxisLabel, min, max, val -> val);
     }
   }
 
   /**
-   *
    * @param data
    * @param yAxisLabel
-   * @param width automatic width if parameter is <=0
-   * @param function transform the data axis after binning
+   * @param width      automatic width if parameter is <=0
+   * @param function   transform the data axis after binning
    * @return
    */
   public static JFreeChart createHistogram(double[] data, String yAxisLabel, double width,
       double min, double max, DoubleFunction<Double> function) {
-    if (width <= 0)
+    if (width <= 0) {
       return createHistogram(data, yAxisLabel, min, max, function);
-    else {
+    } else {
       return createHistogram(data, width, yAxisLabel, min, max, function);
     }
   }
 
   public static double getMin(double[] data) {
     double min = Double.MAX_VALUE;
-    for (double d : data)
-      if (d < min)
+    for (double d : data) {
+      if (d < min) {
         min = d;
+      }
+    }
     return min;
   }
 
   public static double getMax(double[] data) {
     double max = Double.NEGATIVE_INFINITY;
-    for (double d : data)
-      if (d > max)
+    for (double d : data) {
+      if (d > max) {
         max = d;
+      }
+    }
     return max;
   }
 
-  public static Range getBounds(double[] data) {
+  /**
+   * @param data
+   * @return the data range min-max or -1 to -1+Double.MIN_VALUE for empty data
+   */
+  public static @NotNull Range getBounds(double[] data) {
+    if (data == null || data.length == 0) {
+      return new Range(-1, -1 + Double.MIN_VALUE);
+    }
     double min = Double.MAX_VALUE;
     double max = Double.NEGATIVE_INFINITY;
     for (double d : data) {
-      if (d < min)
+      if (d < min) {
         min = d;
-      if (d > max)
+      }
+      if (d > max) {
         max = d;
+      }
     }
     return new Range(min, max);
   }
