@@ -57,7 +57,8 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
   @NotNull
   public static MsLevelFilter of(@Nullable final Integer msLevel, boolean useMSnForLevel2) {
     return switch (msLevel) {
-      case null, -1 -> ALL_LEVELS;
+      case null -> ALL_LEVELS;
+      case -1 -> ALL_LEVELS;
       case 1 -> new MsLevelFilter(Options.MS1, 1);
       case 2 ->
           useMSnForLevel2 ? new MsLevelFilter(Options.MSn) : new MsLevelFilter(Options.MS2, 2);
