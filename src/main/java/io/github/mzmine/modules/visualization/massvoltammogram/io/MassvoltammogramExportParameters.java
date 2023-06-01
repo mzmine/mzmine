@@ -23,32 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential;
+package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.DecimalFormat;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
-public class CalcEcmsPotentialParameters extends SimpleParameterSet {
+public class MassvoltammogramExportParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter flists = new FeatureListsParameter();
+  public static final FileNameParameter path = new FileNameParameter("Path",
+      "The path the file will be saved to.", FileSelectionType.SAVE, false);
 
-  public static final DoubleParameter delayTime = new DoubleParameter("Delay Time / s",
-      "Delay time before analytes from the EC cell reach the mass spectrometer",
-      new DecimalFormat("0.0"), 30d);
+  public static final ComboParameter<String> fileFormat = new ComboParameter<>("File Format",
+      "The file format the massvoltammogram will be exported to",
+      new String[]{"CSV", "XLSX", "PNG", "JPG", "EMF", "PDF"}, "CSV");
 
-  public static final DoubleParameter potentialRampSpeed = new DoubleParameter(
-      "Potential ramp / mV/s", "Potential ramp speed in mV/s.");
+  public static final BooleanParameter transparency = new BooleanParameter("Transparency",
+      "Set the background transparent for supported graphics formats.");
 
-  public static final PercentParameter potentialAssignmentIntensityPercentage = new PercentParameter(
-      "Potential assingment intensity",
-      "Percentage of the maximum metabolite intensity that will be used to assign the formation potential to a metabolite.");
-
-  public CalcEcmsPotentialParameters() {
-    super(new Parameter[]{flists, delayTime, potentialRampSpeed,
-        potentialAssignmentIntensityPercentage});
+  public MassvoltammogramExportParameters() {
+    super(new Parameter[]{path, fileFormat, transparency});
+    setModuleNameAttribute("Export the massvoltammogram.");
   }
 }

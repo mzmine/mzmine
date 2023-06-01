@@ -23,32 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential;
+/*
+ * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
+ * Lab (University of California, San Diego).
+ *
+ * It is freely available under the GNU GPL licence of MZmine2.
+ *
+ * For any questions or concerns, please refer to:
+ * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
+ *
+ * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
+ */
 
-import io.github.mzmine.parameters.Parameter;
+package io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor;
+
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.DecimalFormat;
 
-public class CalcEcmsPotentialParameters extends SimpleParameterSet {
+/**
+ * Check MS/MS precursor purity in related MS1 scan
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
+public class PrecursorPurityCheckerParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter flists = new FeatureListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final DoubleParameter delayTime = new DoubleParameter("Delay Time / s",
-      "Delay time before analytes from the EC cell reach the mass spectrometer",
-      new DecimalFormat("0.0"), 30d);
-
-  public static final DoubleParameter potentialRampSpeed = new DoubleParameter(
-      "Potential ramp / mV/s", "Potential ramp speed in mV/s.");
-
-  public static final PercentParameter potentialAssignmentIntensityPercentage = new PercentParameter(
-      "Potential assingment intensity",
-      "Percentage of the maximum metabolite intensity that will be used to assign the formation potential to a metabolite.");
-
-  public CalcEcmsPotentialParameters() {
-    super(new Parameter[]{flists, delayTime, potentialRampSpeed,
-        potentialAssignmentIntensityPercentage});
+  public PrecursorPurityCheckerParameters() {
+    super(featureLists, HandleChimericMsMsParameters.mainMassWindow,
+        HandleChimericMsMsParameters.isolationWindow,
+        HandleChimericMsMsParameters.minimumPrecursorPurity);
   }
+
 }
