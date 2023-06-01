@@ -27,15 +27,23 @@ package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import java.text.DecimalFormat;
 
-public class MassvoltammogramMzRangeParameter extends SimpleParameterSet {
+public class MassvoltammogramAxisParameters extends SimpleParameterSet {
 
-  public static final MZRangeParameter mzRange = new MZRangeParameter("m/z Range",
-      "Minimal and maximal m/z");
+  public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
+      new MZRangeParameter("m/z Range", "Minimal and maximal m/z"));
 
-  public MassvoltammogramMzRangeParameter() {
-    super(new Parameter[]{mzRange});
+  public static final OptionalParameter<DoubleParameter> maxIntensity = new OptionalParameter<>(
+      new DoubleParameter("max. Intensity", "The massvoltammograms intensity axis maximal value",
+          new DecimalFormat("0")));
+
+  public MassvoltammogramAxisParameters() {
+    super(new Parameter[]{maxIntensity, mzRange});
+    setModuleNameAttribute("Set masvoltammograms axis.");
   }
 
 }

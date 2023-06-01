@@ -290,7 +290,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
       Plot p = getChart().getPlot();
       if (addZoomHistory && p instanceof XYPlot && !(p instanceof CombinedDomainXYPlot
-          || p instanceof CombinedRangeXYPlot)) {
+                                                     || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -328,12 +328,13 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       }
 
       // mouse adapter for scrolling and zooming
-      mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
-      addMouseHandler(mouseAdapter);
-
-      // add gestures
-      if (standardGestures) {
-        addStandardGestures();
+      if (mouseAdapter == null) {
+        mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
+        addMouseHandler(mouseAdapter);
+        // add gestures
+        if (standardGestures) {
+          addStandardGestures();
+        }
       }
       //      mouseAdapter.addDebugHandler();
     }

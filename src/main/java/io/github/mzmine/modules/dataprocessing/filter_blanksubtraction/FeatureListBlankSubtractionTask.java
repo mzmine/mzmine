@@ -241,14 +241,15 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
           if (foundInNBlanks == 0) {
             sb.append(String.format(" found only in %3d / %3d (%4.1f%%) samples",
                 notBackgroundFeaturesOfCurrentRow.size(), nonBlankRaws.size(),
-                notBackgroundFeaturesOfCurrentRow.size() / nonBlankRaws.size() * 100.));
+                ((float) notBackgroundFeaturesOfCurrentRow.size()) / nonBlankRaws.size() * 100.));
             sb.append(String.format(" but not in any of the %3d blank samples", blankRaws.size()));
           } else {
             sb.append(String.format(" found in %3d / %3d (%4.1f%%) samples",
                 notBackgroundFeaturesOfCurrentRow.size(), nonBlankRaws.size(),
-                notBackgroundFeaturesOfCurrentRow.size() / nonBlankRaws.size() * 100.));
+                ((float) notBackgroundFeaturesOfCurrentRow.size()) / nonBlankRaws.size() * 100.));
             sb.append(String.format(" and in %3d / %3d (%4.1f%%) background samples (abundance %s)",
-                foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
+                foundInNBlanks, blankRaws.size(),
+                ((float) foundInNBlanks) / blankRaws.size() * 100.,
                 guiFormats.intensity(blankAbundance)));
           }
           featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
@@ -270,7 +271,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
           final StringBuilder sb = new StringBuilder();
           sb.append(String.format(
               "Background: Found in %3d / %3d (%4.1f%%) background samples (abundance %s) but not in any samples with higher abundances",
-              foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
+              foundInNBlanks, blankRaws.size(), ((float) foundInNBlanks) / blankRaws.size() * 100.,
               guiFormats.intensity(blankAbundance)));
           featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
         }

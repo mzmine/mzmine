@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
 import org.apache.commons.lang3.StringUtils;
@@ -80,6 +81,8 @@ public enum DBEntryField {
 
   // Quality measures in wrapper object
   QUALITY, // individual properties
+  // percentage of precursor purity
+  QUALITY_PRECURSOR_PURITY(Float.class), // flag if was chimeric
   QUALITY_CHIMERIC, QUALITY_EXPLAINED_INTENSITY(Float.class), QUALITY_EXPLAINED_SIGNALS(
       Float.class),
 
@@ -226,8 +229,10 @@ public enum DBEntryField {
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
       case CHARGE -> ChargeType.class;
+      // TODO change to float
       case COLLISION_ENERGY, ISOLATION_WINDOW, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS ->
           DoubleType.class;
+      case QUALITY_PRECURSOR_PURITY -> FloatType.class;
       case FORMULA -> FormulaType.class;
       case INCHI -> InChIStructureType.class;
       case INCHIKEY -> InChIKeyStructureType.class;
@@ -297,6 +302,7 @@ public enum DBEntryField {
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
       case QUALITY -> "quality";
+      case QUALITY_PRECURSOR_PURITY -> "precursor_purity";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
       case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
@@ -350,6 +356,7 @@ public enum DBEntryField {
       case QUALITY -> "quality";
       case DATASET_ID -> "dataset_id";
       case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY_PRECURSOR_PURITY -> "precursor_purity";
       case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
       case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
       case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
@@ -402,6 +409,7 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "ISOLATION_WINDOW";
       case USI -> "USI";
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
+      case QUALITY_PRECURSOR_PURITY -> "PRECURSOR_PURITY";
       case DATASET_ID -> "DATASET_ID";
       case QUALITY -> "QUALITY";
       case QUALITY_EXPLAINED_INTENSITY -> "QUALITY_EXPLAINED_INTENSITY";
@@ -460,6 +468,7 @@ public enum DBEntryField {
       case MSN_PRECURSOR_MZS -> "";
       case MSN_FRAGMENTATION_METHODS -> "";
       case MSN_ISOLATION_WINDOWS -> "";
+      case QUALITY_PRECURSOR_PURITY -> "";
       case FRAGMENTATION_METHOD -> "";
       case ISOLATION_WINDOW -> "";
       case FILENAME -> "";
@@ -506,7 +515,8 @@ public enum DBEntryField {
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
-          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES -> value.toString();
+          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY ->
+          value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);
