@@ -43,24 +43,20 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
 
-public class FeatureShapeMobilogramChart extends StackPane {
+public class FeatureShapeMobilogramChart extends BufferedChartNode {
 
   public FeatureShapeMobilogramChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
-
+    super(true);
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
     final IMSRawDataFile imsFile = (IMSRawDataFile) row.getRawDataFiles().stream()
         .filter(file -> file instanceof IMSRawDataFile).findAny().orElse(null);
-    if(imsFile == null) {
+    if (imsFile == null) {
       return;
     }
     final MobilityType mt = imsFile.getMobilityType();
@@ -107,16 +103,7 @@ public class FeatureShapeMobilogramChart extends StackPane {
     chart.getXYPlot().getDomainAxis().setRange(defaultRange);
     chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
 
-    BufferedImage img = chart.getChart()
-        .createBufferedImage(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
-            GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
-    view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
-      getChildren().remove(view);
-      getChildren().add(chart);
-      e.consume();
-    }));
-
-    MZmineCore.runLater(() -> getChildren().add(view));
+    setChartCreateImage(chart, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
+        GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
   }
 }
