@@ -31,6 +31,12 @@ import javafx.scene.paint.Color;
 public class ColorUtils {
 
   /**
+   * Basic value to use as minimum. The value is arbitrary now and not tested. might change in the
+   * future.
+   */
+  public static double MIN_REDMEAN_COLOR_DIFF = 65;
+
+  /**
    * Returns tinted version of the given color.
    *
    * @param color  input color
@@ -48,8 +54,8 @@ public class ColorUtils {
    * colors.
    */
   public static double getColorDistance(Color color1, Color color2) {
-    return Math.abs(color1.getRed() - color2.getRed()) + Math
-        .abs(color1.getGreen() - color2.getGreen()) + Math.abs(color1.getBlue() - color2.getBlue());
+    return Math.abs(color1.getRed() - color2.getRed()) + Math.abs(
+        color1.getGreen() - color2.getGreen()) + Math.abs(color1.getBlue() - color2.getBlue());
   }
 
   /**
@@ -68,14 +74,27 @@ public class ColorUtils {
     return getContrastPaletteColor(FxColorUtil.awtColorToFX(color), palette);
   }
 
-  public static java.awt.Color getContrastPaletteColorAWT(java.awt.Color color, SimpleColorPalette palette) {
-    return FxColorUtil
-        .fxColorToAWT(getContrastPaletteColor(FxColorUtil.awtColorToFX(color), palette));
+  public static java.awt.Color getContrastPaletteColorAWT(java.awt.Color color,
+      SimpleColorPalette palette) {
+    return FxColorUtil.fxColorToAWT(
+        getContrastPaletteColor(FxColorUtil.awtColorToFX(color), palette));
   }
 
   public static java.awt.Color getContrastPaletteColorAWT(Color color, SimpleColorPalette palette) {
-    return FxColorUtil
-        .fxColorToAWT(getContrastPaletteColor(color, palette));
+    return FxColorUtil.fxColorToAWT(getContrastPaletteColor(color, palette));
   }
 
+  /**
+   * @return The "red mean" color difference.
+   */
+  public static double getColorDifference(Color clr1, Color clr2) {
+
+    final double rmean = 255 * 0.5 * (clr1.getRed() + clr2.getRed());
+    final double rterm = (2 + rmean / 256) * Math.pow(255 * (clr1.getRed() - clr2.getRed()), 2);
+    final double gterm = 4 * Math.pow(255 * (clr1.getGreen() - clr2.getGreen()), 2);
+    final double bterm =
+        (2 + (255 - rmean) / 256) * +Math.pow(+255 * (clr1.getBlue() - clr2.getBlue()), 2);
+
+    return Math.sqrt(rterm + gterm + bterm);
+  }
 }

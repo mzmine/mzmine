@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.IsotopePattern;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-import io.github.mzmine.datamodel.IsotopePattern;
 
 /**
  * Data set for isotope pattern
@@ -38,19 +38,22 @@ public class IsotopesDataSet extends AbstractXYDataset implements IntervalXYData
    *
    */
   private static final long serialVersionUID = 1L;
-  private IsotopePattern isotopePattern;
   // private DataPoint[] dataPoints;
-  private String label;
+  private final String label;
+  private IsotopePattern isotopePattern;
 
   public IsotopesDataSet(IsotopePattern isotopePattern) {
+    this(isotopePattern, "Isotopes (" + isotopePattern.getNumberOfDataPoints() + ") "
+        + isotopePattern.getDescription());
+  }
 
-    // dataPoints = isotopePattern.getDataPoints();
-
-    label = "Isotopes (" + isotopePattern.getNumberOfDataPoints() + ") "
-        + isotopePattern.getDescription();
-
+  /**
+   * @param isotopePattern the pattern
+   * @param label          The label (usually 'Isotopes (number of signals)'
+   */
+  public IsotopesDataSet(IsotopePattern isotopePattern, String label) {
     this.isotopePattern = isotopePattern;
-
+    this.label = label;
   }
 
   public IsotopePattern getIsotopePattern() {
