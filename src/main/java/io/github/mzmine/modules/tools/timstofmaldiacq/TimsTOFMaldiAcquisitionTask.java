@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.PrecursorSelectionModule;
@@ -149,6 +150,11 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
       final IMSRawDataFile file = (IMSRawDataFile) flist.getRawDataFile(0);
       final Range<Float> dataMobilityRange = RangeUtils.toFloatRange(file.getDataMobilityRange());
 
+      final double mobilityGap = TimsTOFAcquisitionUtils.getOneOverK0DistanceForSwitchTime(
+          file.getFrame(0), 1.65d);
+      logger.finest("Mobility gap for file %s determined as 1/K0 = %.3f".formatted(file.getName(),
+          mobilityGap));
+
       final List<MaldiTimsPrecursor> precursors = flist.getRows().stream().filter(
           row -> row.getBestFeature() != null
               && row.getBestFeature().getFeatureStatus() != FeatureStatus.UNKNOWN
@@ -183,7 +189,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
       var spotName = spotNames.get(0);
 
       final List<List<MaldiTimsPrecursor>> precursorLists = precursorSelectionModule.getPrecursorList(
-          precursors, precursorSelectionParameters);
+          precursors, precursorSelectionParameters, mobilityGap);
 
       int spotIncrement = 1;
       for (int ceCounter = 0; ceCounter < numCes; ceCounter++) {
@@ -229,7 +235,9 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
           spotIncrement++;
         }
       }
-
+      flist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(TimsTOFMaldiAcquisitionModule.class, parameters,
+              getModuleCallDate()));
     }
 
     TimsTOFAcquisitionUtils.acquire(acqControl, acqFile, exportOnly);

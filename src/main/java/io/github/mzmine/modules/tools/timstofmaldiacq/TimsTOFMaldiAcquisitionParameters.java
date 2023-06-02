@@ -64,11 +64,11 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flists = new FeatureListsParameter();
   public static final DoubleParameter minMobilityWidth = new DoubleParameter(
       "Minimum mobility window", "Minimum width of the mobility isolation window.",
-      new DecimalFormat("0.000"), 0.005);
+      new DecimalFormat("0.000"), 0.02);
 
   public static final DoubleParameter maxMobilityWidth = new DoubleParameter(
       "Maximum mobility window", "Maximum width of the mobility isolation window.",
-      new DecimalFormat("0.000"), 0.015);
+      new DecimalFormat("0.000"), 0.04);
 
   public static final DirectoryParameter savePathDir = new DirectoryParameter("Data location",
       "Path to where acquired measurements shall be saved.",

@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 public class TopNSelectionModule implements PrecursorSelectionModule {
 
   public static Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> findOverlaps(
-      List<MaldiTimsPrecursor> precursors) {
+      List<MaldiTimsPrecursor> precursors, final double mobilityGap) {
 
     Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlapsMap = new HashMap<>();
     for (final MaldiTimsPrecursor precursor : precursors) {
@@ -50,7 +50,7 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
           continue;
         }
 
-        if (overlaps(precursor, precursor2)) {
+        if (overlaps(precursor, precursor2, mobilityGap)) {
           overlapping.add(precursor2);
         }
       }
@@ -167,7 +167,7 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
 
   @Override
   public List<List<MaldiTimsPrecursor>> getPrecursorList(Collection<MaldiTimsPrecursor> precursors,
-      ParameterSet parameters) {
+      ParameterSet parameters, final double mobilityGap) {
     final int numPrecursors = parameters.getValue(TopNSelectionParameters.numPrecursors);
 
     // get the top N precursors
@@ -188,7 +188,8 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
     }
 
     // arrange the topN precursors into non overlapping lists
-    final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = findOverlaps(topN);
+    final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = findOverlaps(topN,
+        mobilityGap);
     return findRampsIterative(overlaps);
   }
 }
