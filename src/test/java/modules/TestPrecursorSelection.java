@@ -53,7 +53,7 @@ public class TestPrecursorSelection {
 
     final List<MaldiTimsPrecursor> list = List.of(p1, p2, p3, p4, p5);
     final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = TopNSelectionModule.findOverlaps(
-        list);
+        list, 0);
 
     final List<List<MaldiTimsPrecursor>> lists = TopNSelectionModule.findRampsIterative(overlaps);
     for (List<MaldiTimsPrecursor> precursors : lists) {
@@ -86,7 +86,7 @@ public class TestPrecursorSelection {
 
     final List<MaldiTimsPrecursor> list = List.of(p1, p2, p3, p4, p5, p6, p7, p8);
     final Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> overlaps = TopNSelectionModule.findOverlaps(
-        list);
+        list, 0);
 
 //    final List<List<MaldiTimsPrecursor>> lists = TopNSelectionModule.generateTargetLists(overlaps,
 //        list);
