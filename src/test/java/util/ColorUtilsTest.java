@@ -30,6 +30,7 @@ import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.Vision;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class ColorUtilsTest {
@@ -47,11 +48,14 @@ public class ColorUtilsTest {
     final var red = new Color(0.835f, 0.369f, 0.f, 1f); // vermillion (darker orange)
     final var pink = new Color(0.800f, 0.475f, 0.655f, 1f);
 
-    logger.info("" + ColorUtils.getColorDifference(orange, red));
-    logger.info("" + ColorUtils.getColorDifference(brightBlue, darkBlue));
-    logger.info("" + ColorUtils.getColorDifference(darkBlue, Color.BLUE));
-    logger.info("" + ColorUtils.getColorDifference(green, yellow));
-    logger.info("" + ColorUtils.getColorDifference(Color.BLACK, Color.WHITE));
+    Assertions.assertEquals(133.22658710091355d, ColorUtils.getColorDifference(orange, red));
+    Assertions.assertEquals(205.02990544415744d,
+        ColorUtils.getColorDifference(brightBlue, darkBlue));
+    Assertions.assertEquals(264.08099643825886d,
+        ColorUtils.getColorDifference(darkBlue, Color.BLUE));
+    Assertions.assertEquals(409.5452849092953d, ColorUtils.getColorDifference(green, yellow));
+    Assertions.assertEquals(764.8339663572415d,
+        ColorUtils.getColorDifference(Color.BLACK, Color.WHITE));
   }
 
 }

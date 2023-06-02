@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -48,6 +49,9 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
   public static final String XML_ELEMENT = "multi_charge_state_isotopepattern";
 
+  public static final Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
+      IsotopePattern::getNumberOfDataPoints);
+
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();
 
@@ -60,7 +64,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
       throw new IllegalArgumentException("List of isotope patterns cannot be empty");
     }
     this.patterns.addAll(patterns);
-    onPatternsChanged();
+    evaluateIsotopePatterns();
   }
 
   public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -108,11 +112,12 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
    * @param setPreferred true: start of list; false: end of list
    */
   public void addPattern(IsotopePattern pattern, boolean setPreferred) {
+    patterns.remove(pattern);
     if (setPreferred) {
       patterns.add(0, pattern);
     } else {
       patterns.add(pattern);
-      onPatternsChanged();
+      evaluateIsotopePatterns();
     }
   }
 
@@ -250,19 +255,10 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
     return Objects.hash(patterns);
   }
 
-  private void onPatternsChanged() {
-    int biggestPatternIndex = -1;
-    int biggestPatternSize = Integer.MIN_VALUE;
-    for (int i = 0; i < patterns.size(); i++) {
-      if (patterns.get(i).getNumberOfDataPoints() > biggestPatternSize) {
-        biggestPatternSize = patterns.get(i).getNumberOfDataPoints();
-        biggestPatternIndex = i;
-      }
-    }
-
-    if (biggestPatternIndex != -1) {
-      var preferred = patterns.remove(biggestPatternIndex);
-      addPattern(preferred, true);
-    }
+  /**
+   * Sorts the isotope patterns by pattern size.
+   */
+  private void evaluateIsotopePatterns() {
+    patterns.sort(patternSizeComparator);
   }
 }

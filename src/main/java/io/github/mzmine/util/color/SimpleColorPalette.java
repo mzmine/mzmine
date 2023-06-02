@@ -178,13 +178,16 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return clr;
   }
 
+  /**
+   * @param exclusion A color to be visually different from.
+   * @return A visually different color.
+   */
   public synchronized Color getNextColor(@NotNull final Color exclusion) {
-    final double minDiff = 10d;
     final int startNext = next;
 
     do {
       var clr = getNextColor();
-      if (ColorUtils.getColorDifference(clr, exclusion) > 10) {
+      if (ColorUtils.getColorDifference(clr, exclusion) > ColorUtils.MIN_REDMEAN_COLOR_DIFF) {
         return clr; // this color is different
       }
     } while (startNext != next);

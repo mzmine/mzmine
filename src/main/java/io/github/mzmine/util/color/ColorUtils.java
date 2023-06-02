@@ -30,6 +30,10 @@ import javafx.scene.paint.Color;
 
 public class ColorUtils {
 
+  /**
+   * Basic value to use as minimum. The value is arbitrary now and not tested. might change in the
+   * future.
+   */
   public static double MIN_REDMEAN_COLOR_DIFF = 65;
 
   /**

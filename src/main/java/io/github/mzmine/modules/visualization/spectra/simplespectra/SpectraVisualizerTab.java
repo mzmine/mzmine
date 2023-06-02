@@ -67,6 +67,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -491,8 +492,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     // in given m/z range. In such case we use the max intensity of
     // whole scan as normalization factor.
     if (normalizationFactor == 0) {
-      searchMZRange = Range.atLeast(0.0);
-      normalizationFactor = scanDataSet.getHighestIntensity(searchMZRange);
+      normalizationFactor = Objects.requireNonNullElse(scanDataSet.getScan().getBasePeakIntensity(),
+          1d);
     }
 
     IsotopePattern normalizedPattern = IsotopePatternCalculator.normalizeIsotopePattern(newPattern,
