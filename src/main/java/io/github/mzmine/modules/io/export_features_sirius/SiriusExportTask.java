@@ -291,7 +291,7 @@ public class SiriusExportTask extends AbstractTask {
           SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(scan, true));
       case SimpleMassSpectrum spec ->
           SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(spec));
-      case default -> throw new IllegalStateException(
+      default -> throw new IllegalStateException(
           "Cannot extract data points from spectrum class " + spectrum.getClass().getName());
     };
 
