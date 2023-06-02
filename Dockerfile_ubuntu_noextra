@@ -1,0 +1,4 @@
+FROM ubuntu:latest
+LABEL maintainer="Robin Schmid <rschmid1789@gmail.com>"
+COPY /build/jpackage/MZmine /opt/MZmine
+ENTRYPOINT ["/opt/MZmine/bin/MZmine"]

@@ -1,0 +1,16 @@
+FROM eclipse-temurin:19.0.2_7-jdk-alpine AS BUILD
+WORKDIR /project
+COPY . .
+#RUN gradlew --version
+#RUN gradlew jpackageImage --stacktrace --info
+
+## Package stage
+#FROM alpine:latest
+#RUN apk --no-cache add gcompat
+##ENV JAR_NAME=app.jar
+##ENV APP_HOME=/usr/app/
+#WORKDIR /app
+#COPY --from=builder /src/build/jpackage/MZmine .
+#ENTRYPOINT ["./bin/MZmine"]
+##EXPOSE 8080
+##ENTRYPOINT exec java -jar $APP_HOME/build/libs/$JAR_NAME

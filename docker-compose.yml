@@ -1,0 +1,6 @@
+version: '1'
+
+services:
+  mzmine:
+    build: .
+    image: mzmine:v1
