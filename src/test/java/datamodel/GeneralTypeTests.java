@@ -38,6 +38,8 @@ import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
+import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -104,6 +106,15 @@ public class GeneralTypeTests {
             IsotopePatternStatus.DETECTED, "Save load test2")));
 
     simpleDataTypeSaveLoadTest(type, pattern);
+  }
+
+
+  @Test
+  void precursorPurityTypeTest() {
+    var type = new PrecursorPurityType();
+    SimpleStatistics stats = new SimpleStatistics(0.2, 5, 10.1, "Test Group");
+    simpleDataTypeSaveLoadTest(type, stats);
+    simpleDataTypeSaveLoadTest(type, null);
   }
 
   // todo FeatureGroupType

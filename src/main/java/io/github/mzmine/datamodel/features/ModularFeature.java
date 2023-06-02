@@ -63,7 +63,6 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -293,24 +292,6 @@ public class ModularFeature implements Feature, ModularDataModel {
       }
     });
     buffertColCharts.clear();
-  }
-
-  @Override
-  public <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      try {
-        DataType newType = tclass.getConstructor().newInstance();
-        ModularFeatureList flist = (ModularFeatureList) getFeatureList();
-        flist.addFeatureType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException |
-               InvocationTargetException | IllegalAccessException e) {
-        e.printStackTrace();
-        return false;
-      }
-    }
-    // access default method
-    return ModularDataModel.super.set(tclass, value);
   }
 
   /**

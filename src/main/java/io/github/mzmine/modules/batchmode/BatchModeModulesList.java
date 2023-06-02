@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
 import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
@@ -109,6 +110,7 @@ import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModul
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
+import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule;
 import io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule;
@@ -308,6 +310,7 @@ public class BatchModeModulesList {
       CliqueMSModule.class, //
       GroupMS2Module.class, //
       GroupedMs2RefinementModule.class, //
+      PrecursorPurityCheckerModule.class, //
       DiaMs2CorrModule.class, //
       FormulaPredictionFeatureListModule.class, //
       IsotopePeakScannerModule.class, //
@@ -336,6 +339,7 @@ public class BatchModeModulesList {
       MzTabImportModule.class, //
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
+      CompoundAnnotationsCSVExportModule.class, //
       LibraryAnalysisCSVExportModule.class, //
       LibraryBatchGenerationModule.class, //
       FeatureMLExportModularModule.class

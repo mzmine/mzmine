@@ -500,9 +500,9 @@ public class SiriusExportTask extends AbstractTask {
    * a correlated ion.
    *
    * @param sortedDp  data points sorted by mz.
-   * @param tolerance MZ tolerance to filter equal data points.
+   * @param mzTol MZ tolerance to filter equal data points.
    */
-  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance tolerance) {
+  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
     for (int i = sortedDp.size() - 2; i >= 0; i--) {
       if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
         if (sortedDp.get(i) instanceof AnnotatedDataPoint) {

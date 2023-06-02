@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySelection {
 
@@ -45,6 +46,10 @@ public class SpectralLibrarySelection {
       List<File> specificLibraryNames) {
     this.selectionType = selectionType;
     this.specificLibraryNames = specificLibraryNames;
+  }
+
+  public SpectralLibrarySelection(@NotNull final List<SpectralLibrary> libraries) {
+    this(SpectralLibrarySelectionType.SPECIFIC, libraries.stream().map(SpectralLibrary::getPath).toList());
   }
 
   public List<SpectralLibrary> getMatchingLibraries() {
