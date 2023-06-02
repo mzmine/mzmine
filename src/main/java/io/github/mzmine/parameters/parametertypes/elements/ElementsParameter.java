@@ -112,7 +112,6 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
     String values = xmlElement.getTextContent().replaceAll("\\s", "");
     value = Arrays.stream(values.split(",")).distinct().map(Element::new)
         .toList();
-    value.size();
   }
 
   @Override
