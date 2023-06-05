@@ -79,6 +79,6 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
         .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
 
     setChartCreateImage(chart, GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
-        GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
+        GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }

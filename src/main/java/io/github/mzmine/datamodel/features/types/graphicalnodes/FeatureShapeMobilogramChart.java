@@ -104,6 +104,6 @@ public class FeatureShapeMobilogramChart extends BufferedChartNode {
     chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
 
     setChartCreateImage(chart, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
-        GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
+        GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }
