@@ -179,6 +179,10 @@ public class FeatureListSummaryController {
     BatchQueue queue = new BatchQueue();
 
     for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+      if (item == null) {
+        logger.info("Skipping module ???, cannot find module class. Was it renamed?");
+        continue;
+      }
       if (item.getModule() instanceof MZmineProcessingModule) {
         ParameterSet parameterSet = item.getParameters().cloneParameterSet();
         setSelectionToLastBatchStep(parameterSet);
