@@ -223,8 +223,8 @@ public class TDFUtils {
       return 0L;
     }
 
-    final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
-        .getValue(MZminePreferences.applyTimsPressureCompensation);
+    final Boolean applyPressureComp = false/*MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.applyTimsPressureCompensation)*/;
     int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
 
     if (path.isFile()) {
