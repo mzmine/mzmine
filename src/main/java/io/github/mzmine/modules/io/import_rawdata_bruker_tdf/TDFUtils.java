@@ -223,8 +223,10 @@ public class TDFUtils {
       return 0L;
     }
 
-    final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
-        .getValue(MZminePreferences.applyTimsPressureCompensation);
+    final Boolean applyPressureComp = false;
+    // currently disabled as it's not working as expected ~SteffenHeu
+    /*final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.applyTimsPressureCompensation)*/
     int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
 
     if (path.isFile()) {
