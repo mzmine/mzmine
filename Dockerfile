@@ -1,16 +1,25 @@
-FROM debian:stable-slim
-#FROM ubuntu:latest
+FROM amd64/ubuntu:latest
 LABEL maintainer="Robin Schmid <rschmid1789@gmail.com>"
-COPY /build/jpackage/MZmine /opt/MZmine
-# Run command
-RUN chmod +x /opt/MZmine/bin/MZmine
-ENTRYPOINT ["/opt/MZmine/bin/MZmine"]
+
+#RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN apt-get -y update && \
+    apt-get install -y apt-utils    --no-install-recommends && \
+    apt-get install -y libfreetype6 --no-install-recommends && \
+    apt-get install -y fontconfig   --no-install-recommends && \
+    apt-get install -y fonts-dejavu --no-install-recommends
+
+# optional remove app index for smaller container
+# RUN rm -rf /var/lib/apt/lists/*
+
+# install xdg dependency
+# somehow on WSL xdg needed this directory - otherwise error
+#RUN mkdir /usr/share/desktop-directories/
+#RUN apt-get install -y xdg-utils
+#RUN apt-get install -y libgl1
 
 # needed to download mzmine
 #RUN apt-get install -y wget         --no-install-recommends
 
-# optional remove app index for smaller container
-# RUN rm -rf /var/lib/apt/lists/*
 
 
 # download mzmine-ubuntu artifact for latest build
@@ -21,7 +30,8 @@ ENTRYPOINT ["/opt/MZmine/bin/MZmine"]
 # Install .deb file
 #RUN dpkg -i mzmine-linux-installer_3.4.27.deb
 #COPY mzmine-linux-installer_3.4.27.deb ./
-#RUN apt install -y mzmine-linux-installer_3.4.27.deb
-#RUN rm tmp/
+COPY /build/jpackage/MZmine /opt/MZmine
 
+# Run command
+ENTRYPOINT ["/opt/MZmine/bin/MZmine"]
 #CMD ["/opt/MZmine/bin/MZmine"]

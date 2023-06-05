@@ -2,5 +2,8 @@ version: '1'
 
 services:
   mzmine:
-    build: .
-    image: mzmine:v1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mzmine
+    container_name: mzmine
