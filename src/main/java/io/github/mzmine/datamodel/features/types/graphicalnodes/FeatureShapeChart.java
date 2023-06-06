@@ -64,7 +64,7 @@ public class FeatureShapeChart extends StackPane {
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
-      if(f.getRawDataFile() instanceof ImagingRawDataFile) {
+      if (f.getRawDataFile() instanceof ImagingRawDataFile) {
         continue;
       }
       IonTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
@@ -86,18 +86,21 @@ public class FeatureShapeChart extends StackPane {
     if (bestFeature != null) {
       final Float rt = bestFeature.getRT();
 
-      if (bestFeature.getFWHM() != null && !Float.isNaN(bestFeature.getFWHM())
-          && bestFeature.getFWHM() > 0f) {
-        final Float fwhm = bestFeature.getFWHM();
-        defaultRange = new org.jfree.data.Range(Math.max(rt - 5 * fwhm, 0),
-            Math.min(rt + 5 * fwhm, bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
-
+      var fwhm = bestFeature.getFWHM();
+      var fullWidth = RangeUtils.rangeLength(bestFeature.getRawDataPointsRTRange());
+      var dataRTRange = bestFeature.getRawDataFile().getDataRTRange();
+      var rawMinRt = dataRTRange.lowerEndpoint();
+      var rawMaxRt = dataRTRange.upperEndpoint();
+      // FWHM defines most of the feature / chromatogram
+      if (fwhm != null && !Float.isNaN(fwhm) && fwhm > 0f && fwhm / fullWidth > 0.4) {
+        // zoom on feature
+        defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * fwhm, rawMinRt),
+            Math.min(rt + 3 * fwhm, rawMaxRt));
       } else {
-        final Float length = Math.max(RangeUtils.rangeLength(bestFeature.getRawDataPointsRTRange()),
-            0.001f);
-        defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * length, 0),
-            Math.min(rt + 3 * length,
-                bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
+        // show full RT range
+        final float length = Math.max(fullWidth, 0.001f);
+        defaultRange = new org.jfree.data.Range(Math.max(rt - length * 1.05, rawMinRt),
+            Math.min(rt + length * 1.05, rawMaxRt));
       }
     } else {
       defaultRange = new Range(0, 1);
