@@ -94,8 +94,9 @@ public class FeatureShapeChart extends StackPane {
       // FWHM defines most of the feature / chromatogram
       if (fwhm != null && !Float.isNaN(fwhm) && fwhm > 0f && fwhm / fullWidth > 0.4) {
         // zoom on feature
-        defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * fwhm, rawMinRt),
-            Math.min(rt + 3 * fwhm, rawMaxRt));
+        var window = 5 * fwhm;
+        defaultRange = new org.jfree.data.Range(Math.max(rt - window, rawMinRt),
+            Math.min(rt + window, rawMaxRt));
       } else {
         // show full RT range
         final float length = Math.max(fullWidth, 0.001f);
