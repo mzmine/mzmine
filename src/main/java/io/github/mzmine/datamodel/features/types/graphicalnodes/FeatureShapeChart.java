@@ -43,16 +43,13 @@ import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javafx.application.Platform;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
 
-public class FeatureShapeChart extends StackPane {
-
+public class FeatureShapeChart extends BufferedChartNode {
 
   public FeatureShapeChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
-
+    super(true);
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
@@ -107,13 +104,14 @@ public class FeatureShapeChart extends StackPane {
       defaultRange = new Range(0, 1);
     }
 
-    setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    Platform.runLater(() -> {
-      getChildren().add(chart);
-      chart.addDatasets(datasets);
 
-      chart.getXYPlot().getDomainAxis().setRange(defaultRange);
-      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
-    });
+    chart.addDatasets(datasets);
+    chart.getXYPlot().getDomainAxis().setRange(defaultRange);
+    chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
+
+    var width = GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
+    var height = GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;
+    // set the chart to create a buffered image
+    setChartCreateImage(chart, width, height);
   }
 }

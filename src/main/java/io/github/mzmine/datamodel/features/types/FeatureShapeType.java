@@ -77,7 +77,6 @@ public class FeatureShapeType extends LinkedGraphicalType {
     if (node != null) {
       return node;
     }
-
     StackPane pane = new StackPane();
 
     // TODO stop task if new task is started
@@ -91,7 +90,7 @@ public class FeatureShapeType extends LinkedGraphicalType {
 
   @Override
   public double getColumnWidth() {
-    return DEFAULT_GRAPHICAL_CELL_WIDTH;
+    return LARGE_GRAPHICAL_CELL_WIDTH;
   }
 
   @Nullable
