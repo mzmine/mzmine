@@ -183,6 +183,22 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return clr;
   }
 
+  /**
+   * @param exclusion A color to be visually different from.
+   * @return A visually different color.
+   */
+  public synchronized Color getNextColor(@NotNull final Color exclusion) {
+    final int startNext = next;
+
+    do {
+      var clr = getNextColor();
+      if (ColorUtils.getColorDifference(clr, exclusion) > ColorUtils.MIN_REDMEAN_COLOR_DIFF) {
+        return clr; // this color is different
+      }
+    } while (startNext != next);
+    return getNextColor(); // use the color we should use originally
+  }
+
   public java.awt.Color getNextColorAWT() {
     return FxColorUtil.fxColorToAWT(getNextColor());
   }
