@@ -117,6 +117,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -762,56 +763,66 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
   private void initHandleDoubleClicks() {
     this.setOnMouseClicked(e -> {
-      if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
-        if (getFeatureList() == null) {
+      TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
+      if (focusedCell == null) {
+        return;
+      }
+      TreeTableColumn<ModularFeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
+      if (tableColumn == null) {
+        // double click on header (happens when sorting)
+        return;
+      }
+      handleClickOnCell(focusedCell, tableColumn, e);
+    });
+  }
+
+  private void handleClickOnCell(final TreeTablePosition<ModularFeatureListRow, ?> focusedCell,
+      final TreeTableColumn<ModularFeatureListRow, ?> tableColumn, final MouseEvent e) {
+    logger.fine("Handle click on table cell");
+
+    if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
+      if (getFeatureList() == null) {
+        return;
+      }
+
+      e.consume();
+      logger.finest(() -> "Double click on " + e.getSource());
+
+      Object userData = tableColumn.getUserData();
+      final ObservableValue<?> observableValue = tableColumn.getCellObservableValue(
+          focusedCell.getTreeItem());
+      final Object cellValue = observableValue.getValue();
+
+      if (userData instanceof DataType<?> dataType) {
+        List<RawDataFile> files = new ArrayList<>();
+        ColumnID id = newColumnMap.get(tableColumn);
+        if (id == null) {
           return;
         }
-
-        e.consume();
-        logger.finest(() -> "Double click on " + e.getSource());
-
-        TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
-        TreeTableColumn<ModularFeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
-        if (tableColumn == null) {
-          // double click on header (happens when sorting)
-          return;
+        if (id.getType() == ColumnType.ROW_TYPE) {
+          files.addAll(getFeatureList().getRawDataFiles());
+        } else {
+          RawDataFile file = id.getRaw();
+          if (file != null) {
+            files.add(file);
+          }
         }
-        Object userData = tableColumn.getUserData();
-        final ObservableValue<?> observableValue = tableColumn.getCellObservableValue(
-            focusedCell.getTreeItem());
-        final Object cellValue = observableValue.getValue();
 
-        if (userData instanceof DataType<?> dataType) {
-          List<RawDataFile> files = new ArrayList<>();
-          ColumnID id = newColumnMap.get(tableColumn);
-          if (id == null) {
-            return;
-          }
-          if (id.getType() == ColumnType.ROW_TYPE) {
-            files.addAll(getFeatureList().getRawDataFiles());
-          } else {
-            RawDataFile file = id.getRaw();
-            if (file != null) {
-              files.add(file);
-            }
-          }
+        // if the data type is equal to the super type, it's not a subcolumn. If it's not equal,
+        // it's a subcolumn.
+        final DataType<?> superDataType =
+            id.getDataType().equals(dataType) ? null : id.getDataType();
 
-          // if the data type is equal to the super type, it's not a subcolumn. If it's not equal,
-          // it's a subcolumn.
-          final DataType<?> superDataType =
-              id.getDataType().equals(dataType) ? null : id.getDataType();
-
-          final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
-          final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
-              cellValue));
-          if (runnable != null) {
-            MZmineCore.getTaskController().addTask(
-                new FeatureTableDoubleClickTask(runnable, getFeatureList(),
-                    (DataType<?>) userData));
-          }
+        final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
+        final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
+            cellValue));
+        if (runnable != null) {
+          MZmineCore.getTaskController().addTask(
+              new FeatureTableDoubleClickTask(runnable, getFeatureList(),
+                  (DataType<?>) userData));
         }
       }
-    });
+    }
   }
 
   public List<ModularFeatureListRow> getSelectedRows() {
