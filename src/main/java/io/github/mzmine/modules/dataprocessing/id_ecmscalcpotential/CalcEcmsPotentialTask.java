@@ -43,23 +43,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class CalcEcmsPotentialTask extends AbstractTask {
 
-  /**
-   * tubing length in mm
-   */
-  private final double tubingLength;
-  /**
-   * tubing id in mm
-   */
-  private final double tubingId;
-  /**
-   * flow rate in uL/min
-   */
-  private final double flowRate;
-  /**
-   * potential ramp speed in mV/s
-   */
+
   private final double potentialRampSpeed;
   private final double potentialAssignmentPercentage;
+  private final double delayTimeSeconds;
   private final ModularFeatureList[] flists;
 
   private final ParameterSet parameters;
@@ -74,11 +61,10 @@ public class CalcEcmsPotentialTask extends AbstractTask {
     this.project = project;
 
     flists = parameters.getValue(CalcEcmsPotentialParameters.flists).getMatchingFeatureLists();
-    tubingLength = parameters.getValue(CalcEcmsPotentialParameters.tubingLengthMM);
-    tubingId = parameters.getValue(CalcEcmsPotentialParameters.tubingIdMM);
-    flowRate = parameters.getValue(CalcEcmsPotentialParameters.flowRateMicroLiterPerMin);
+    delayTimeSeconds = parameters.getValue(CalcEcmsPotentialParameters.delayTime);
     potentialRampSpeed = parameters.getValue(CalcEcmsPotentialParameters.potentialRampSpeed);
-    potentialAssignmentPercentage = parameters.getValue(CalcEcmsPotentialParameters.potentialAssignmentIntensityPercentage);
+    potentialAssignmentPercentage = parameters.getValue(
+        CalcEcmsPotentialParameters.potentialAssignmentIntensityPercentage);
     numRows = Arrays.stream(flists).mapToInt(ModularFeatureList::getNumberOfRows).sum();
   }
 
@@ -95,9 +81,6 @@ public class CalcEcmsPotentialTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-
-    final double tubingVolumeMicroL = EcmsUtils.getTubingVolume(tubingLength, tubingId);
-    final double delayTimeSeconds = EcmsUtils.getDelayTime(flowRate / 60d, tubingVolumeMicroL);
 
     for (ModularFeatureList flist : flists) {
       for (FeatureListRow row : flist.getRows()) {
@@ -126,7 +109,7 @@ public class CalcEcmsPotentialTask extends AbstractTask {
             // potential in mV
             final double potential = EcmsUtils.getPotentialAtRt(eic.getRetentionTime(i),
                 delayTimeSeconds, potentialRampSpeed);
-            row.set(PotentialType.class, (float) potential / 1000);
+            row.set(PotentialType.class, (int) potential);
             break;
           }
         }
