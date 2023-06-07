@@ -66,6 +66,7 @@ public class MZmineArgumentParser {
     batch.setRequired(false);
     options.addOption(batch);
 
+    // introduced in MZmine version v3.5.0
     Option input = new Option("i", "input", true, """
         input data files. Either defined in a .txt text file with one file per line
         or by glob pattern matching. To match all .mzML files in a path: -i "D:\\Data\\*.mzML"
