@@ -323,6 +323,8 @@
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
       <MenuItem text="Spectral library batch generation" onAction="#runModule"
         userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
+      <MenuItem text="Export to GNPS batch library submission" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule"/>
       <MenuItem text="FeatureML" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
     </Menu>

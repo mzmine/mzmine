@@ -25,263 +25,186 @@
 
 package io.github.mzmine.modules.io.export_library_gnps_batch;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
-import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
-import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 
 public class GNPSLibraryBatchExportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(GNPSLibraryBatchExportTask.class.getName());
-  private final DecimalFormat scoreFormat = new DecimalFormat("0.000");
-  private final String tab = "\t";
-  private final String nl = "\n";
+  private final String separator = "\t";
 
-  // batch import header
-  // tab separated
-  public static final String HEADER_BATCH =
-      "FILENAME,SEQ,COMPOUND_NAME,MOLECULEMASS,INSTRUMENT,IONSOURCE,EXTRACTSCAN,SMILES,INCHI,INCHIAUX,CHARGE,IONMODE,PUBMED,ACQUISITION,EXACTMASS,DATACOLLECTOR,ADDUCT,INTEREST,LIBQUALITY,GENUS,SPECIES,STRAIN,CASNUMBER,PI";
+  public final List<DBEntryField> columns = List.of(DBEntryField.FILENAME, DBEntryField.PEPTIDE_SEQ,
+      DBEntryField.NAME, DBEntryField.PRECURSOR_MZ, DBEntryField.INSTRUMENT,
+      DBEntryField.ION_SOURCE, DBEntryField.SCAN_NUMBER, DBEntryField.SMILES, DBEntryField.INCHI,
+      DBEntryField.INCHIKEY, DBEntryField.CHARGE, DBEntryField.POLARITY, DBEntryField.PUBMED,
+      DBEntryField.ACQUISITION, DBEntryField.EXACT_MASS, DBEntryField.DATA_COLLECTOR,
+      DBEntryField.ION_TYPE, DBEntryField.CAS, DBEntryField.PRINCIPAL_INVESTIGATOR);
+  // fields that are not captured by MZmine so far
+  public final Map<String, String> constColumns = Map.of("INTEREST", "N/A", "LIBQUALITY", "1",
+      "GENUS", "N/A", "SPECIES", "N/A", "STRAIN", "N/A");
 
+  private final List<SpectralLibrary> libraries;
+  private final File tsvFile;
+  private final File mgfFile;
 
-  private LibraryMethodeMetaDataParameters methodParam;
-  private File outputLibrary;
-  private GnpsResults res;
-  private double minMatchScoreGNPS;
-  private File outputLibraryBatch;
-  private String mgfName;
+  private int totalEntries = 0;
+  private int finishedEntries = 0;
 
-  public GNPSLibraryBatchExportTask(LibraryMethodeMetaDataParameters methodParam, String mgfName,
-      File outputLibrary, GnpsResults res, double minMatchScoreGNPS) {
-    this.methodParam = methodParam;
-    this.mgfName = mgfName;
-    this.outputLibrary = outputLibrary;
-    outputLibraryBatch = FileAndPathUtil.getRealFilePath(outputLibrary, "tsv");
-    this.res = res;
-    this.minMatchScoreGNPS = minMatchScoreGNPS;
+  public GNPSLibraryBatchExportTask(ParameterSet parameters,
+      final @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
+    var file = parameters.getValue(GNPSLibraryBatchExportParameters.filename);
+    this.tsvFile = FileAndPathUtil.getRealFilePath(file, "tsv");
+    this.mgfFile = FileAndPathUtil.getRealFilePath(file, "mgf");
+    libraries = parameters.getValue(GNPSLibraryBatchExportParameters.libraries)
+        .getMatchingLibraries();
   }
 
   @Override
   public String getTaskDescription() {
-    return "json and batch export of GNPS library from FBMNxIIN results";
+    return "Creating files for GNPS batch library submission";
   }
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return totalEntries == 0 ? 0 : finishedEntries / (double) totalEntries;
   }
 
-  /**
-   * Find all IIN with identity (spectral match) and export conneted nodes as new library entries
-   *
-   * @param methodParam
-   *
-   * @param outputLibrary
-   * @param res
-   */
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    Map<Integer, GNPSResultsIdentity> matches = res.getMatches();
-    Map<Integer, DataPoint[]> msmsData = res.getMsmsData();
-    Map<Integer, IonIdentityNetworkResult> nets = res.getNets();
-    AtomicInteger totalNew = new AtomicInteger(0);
-    // create parameters:
-    LibraryMetaDataParameters meta = new LibraryMetaDataParameters(methodParam);
-    String description = meta.getParameter(LibraryMetaDataParameters.DESCRIPTION).getValue();
-    LibrarySubmitIonParameters param = new LibrarySubmitIonParameters();
-    param.getParameter(LibrarySubmitIonParameters.META_PARAM).setValue(meta);
+    totalEntries = libraries.stream().mapToInt(SpectralLibrary::getNumEntries).sum();
 
     try {
-      if (!outputLibrary.getParentFile().exists())
-        outputLibrary.getParentFile().mkdirs();
+      if (!FileAndPathUtil.createDirectory(mgfFile.getParentFile())) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Cannot create directory for file " + mgfFile);
+        return;
+      }
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Cannot create folder " + outputLibrary.getParent(), e);
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Cannot create directory for file " + mgfFile);
+      return;
     }
 
-    boolean writeHeader = !outputLibraryBatch.exists();
-    // open file output
-    try (BufferedWriter json = new BufferedWriter((new FileWriter(outputLibrary, false)));
-        BufferedWriter gnpsBatch = new BufferedWriter(new FileWriter(outputLibraryBatch, true))) {
-      // export batch header only if file does not exist
-      // otherwise append
-      if (writeHeader) {
-        gnpsBatch.write(HEADER_BATCH.replaceAll(",", tab));
-        gnpsBatch.write(nl);
-      }
+    boolean writeTsvHeader = !tsvFile.exists();
 
-      // for all networks
-      for (IonIdentityNetworkResult net : nets.values()) {
-        // has identity
-        GNPSResultsIdentity bestMatch = net.getBestLibraryMatch(matches);
-        // >min match score
-        if (bestMatch != null && bestMatch.getMatchScore() >= minMatchScoreGNPS) {
-          // all possible new library entries of this ion network
-          net.stream().filter(node -> hasMSMS(node, msmsData, 3, 0.001)).forEach(node -> {
-            // export to library
-            int id = toIndex(node);
-            DataPoint[] signals = msmsData.get(id);
-            totalNew.getAndIncrement();
-            logger.log(Level.INFO,
-                "new lib:" + totalNew.get() + "  Exporting node " + id + " with signals="
-                + signals.length + "  for entry: " + bestMatch.getName() + " old->new ("
-                + bestMatch.getResult(ATT.ADDUCT) + "->"
-                + IonIdentityNetworkResult.getIonString(node) + ")");
-
-            // map all parameters
-            createEntryParameters(node, bestMatch, meta, param);
-            // json export
-            exportJsonLibraryEntry(json, param, signals);
-            // GNPS batch library export file:
-            exportGNPSBatchLibraryEntry(gnpsBatch, param, mgfName, toIndex(node));
-
-
-            // reset description as it is changed for every entry
-            meta.getParameter(LibraryMetaDataParameters.DESCRIPTION).setValue(description);
-          });
+    try (BufferedWriter mgfWriter = Files.newBufferedWriter(mgfFile.toPath(),
+        StandardCharsets.UTF_8)) {
+      try (BufferedWriter tsvWriter = Files.newBufferedWriter(tsvFile.toPath(),
+          StandardCharsets.UTF_8)) {
+        // create headers
+        if (writeTsvHeader) {
+          writeHeader(tsvWriter);
         }
-      }
 
-      logger.info(totalNew.get() + " added new entries to " + outputLibrary.getAbsolutePath());
-      // close file output automatically
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Error while writing to " + outputLibrary.getAbsolutePath(), e);
-      e.printStackTrace();
+        // write the files
+        exportLibraries(mgfWriter, tsvWriter);
+      } catch (IOException e) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Error during compound annotations csv export to " + tsvFile);
+        return;
+      }
+    } catch (IOException e) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Error while writing to " + outputLibrary.getAbsolutePath());
+      setErrorMessage("Error during compound annotations csv export to " + mgfFile);
       return;
     }
 
     setStatus(TaskStatus.FINISHED);
   }
 
-  private String exportGNPSBatchLibraryEntry(BufferedWriter writer,
-      LibrarySubmitIonParameters param, String mgfName, int specIndex) {
+  private void writeHeader(final BufferedWriter tsvWriter) throws IOException {
+    var hs1 = columns.stream().map(DBEntryField::getGnpsBatchSubmissionID);
+    var hs2 = constColumns.keySet().stream();
+    var header = Stream.concat(hs1, hs2).collect(Collectors.joining(separator));
+    tsvWriter.append(header).append("\n");
+  }
 
-    // write
-    String batchRow = GnpsLibraryGenerator.generateBatchRow(param, mgfName, specIndex);
+  private void exportLibraries(final BufferedWriter mgfWriter, final BufferedWriter tsvWriter)
+      throws IOException {
+    var ncols = columns.size() + constColumns.size();
+    final String[] values = new String[ncols];
+    // add constant values
+    var cvs = constColumns.values().toArray(String[]::new);
+    System.arraycopy(cvs, 0, values, values.length - cvs.length, cvs.length);
 
-    // write it
-    try {
-      writer.write(batchRow);
-      writer.write(nl);
-    } catch (IOException e) {
-      logger.log(Level.SEVERE, "Error while writing GNPS batch row " + batchRow + " to "
-                               + outputLibraryBatch.getAbsolutePath(), e);
-      e.printStackTrace();
+    List<String> errors = new ArrayList<>();
+
+    for (var library : libraries) {
+      for (var entry : library.getEntries()) {
+        errors.clear();
+        // count up first to start with entry 1
+        finishedEntries++;
+        var mgfEntry = MGFEntryGenerator.createMGFEntry(entry, finishedEntries);
+        mgfWriter.append(mgfEntry).append("\n");
+
+        // write header
+        for (int i = 0; i < columns.size(); i++) {
+          DBEntryField column = columns.get(i);
+          try {
+            values[i] = getValueOrDefaultOrThrow(entry, column);
+          } catch (Exception ex) {
+            errors.add(ex.getMessage());
+          }
+        }
+        if (errors.isEmpty()) {
+          // write line
+          String line = String.join(separator, values);
+          tsvWriter.append(line).append("\n");
+        } else {
+          for (final String error : errors) {
+            logger.info("Error in tsv entry for " + entry + ": " + error);
+          }
+        }
+      }
     }
-    return batchRow;
   }
 
-  private String exportJsonLibraryEntry(BufferedWriter writer, LibrarySubmitIonParameters param,
-      DataPoint[] signals) {
-    // write
-    String json = GnpsLibraryGenerator.generateJSON(param, signals);
-
-    // write it
-    try {
-      writer.write(json);
-      writer.write(nl);
-    } catch (IOException e) {
-      logger.log(Level.SEVERE,
-          "Error while writing " + json + " to " + outputLibrary.getAbsolutePath(), e);
-      e.printStackTrace();
+  private String getValueOrDefaultOrThrow(final SpectralLibraryEntry entry,
+      final DBEntryField field) {
+    if (field == DBEntryField.SCAN_NUMBER) {
+      return String.valueOf(finishedEntries);
     }
-    return json;
+    var value = String.valueOf(entry.getOrElse(field, ""));
+    return value.isBlank() ? getDefaultValueOrThrow(field) : value;
   }
 
   /**
-   * Create the entries parameters for export
-   *
-   * @param node
-   * @param bestMatch
-   * @param meta
-   * @param param is changed and also the return value
-   * @return
+   * @return default GNPS value for field
    */
-  private LibrarySubmitIonParameters createEntryParameters(Node node, GNPSResultsIdentity bestMatch,
-      LibraryMetaDataParameters meta, LibrarySubmitIonParameters param) {
-
-    String description = meta.getParameter(LibraryMetaDataParameters.DESCRIPTION).getValue();
-
-    String combinedDescription =
-        "created by [IIN] (GNPS score=" + scoreFormat.format(bestMatch.getMatchScore()) + ", "
-        + bestMatch.getResult(ATT.ADDUCT) + "), " + description + ", original lib entry: "
-        + bestMatch.getResult(ATT.GNPS_LIBRARY_URL);
-    meta.getParameter(LibraryMetaDataParameters.DESCRIPTION).setValue(combinedDescription);
-
-    // By Library match
-    boolean isMatchedNode = Integer.compare(bestMatch.getNodeID(), toIndex(node)) == 0;
-    String nameAddition = isMatchedNode ? " [IIN-based: Match]"
-        : " [IIN-based on: " + bestMatch.getResult(ATT.SPECTRUM_ID) + "]";
-    String newName = bestMatch.getResult(ATT.COMPOUND_NAME).toString() + nameAddition;
-    meta.getParameter(LibraryMetaDataParameters.COMPOUND_NAME).setValue(newName);
-    meta.getParameter(LibraryMetaDataParameters.SMILES)
-        .setValue(bestMatch.getResult(ATT.SMILES).toString());
-    meta.getParameter(LibraryMetaDataParameters.INCHI)
-        .setValue(bestMatch.getResult(ATT.INCHI).toString());
-    // not given in GNPS output (graphml)
-    meta.getParameter(LibraryMetaDataParameters.FORMULA).setValue("");
-    meta.getParameter(LibraryMetaDataParameters.INCHI_AUX).setValue("");
-    meta.getParameter(LibraryMetaDataParameters.CAS).setValue("");
-    meta.getParameter(LibraryMetaDataParameters.PUBMED).setValue("");
-
-    // by IIN
-    double neutralMass = (double) bestMatch.getResult(ATT.NEUTRAL_M_MASS);
-    meta.getParameter(LibraryMetaDataParameters.EXACT_MASS).setValue(neutralMass);
-    param.getParameter(LibrarySubmitIonParameters.ADDUCT)
-        .setValue(IonIdentityNetworkResult.getIonString(node));
-    param.getParameter(LibrarySubmitIonParameters.MZ)
-        .setValue((double) node.getAttribute(NodeAtt.PRECURSOR_MASS.key));
-    param.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(0);
-    return param;
-  }
-
-
-  /**
-   * Node index was peak list row index
-   *
-   * @param n
-   * @return
-   */
-  private Integer toIndex(Node n) {
-    return Integer.parseInt(n.getId());
-  }
-
-
-  /**
-   * minimum signals above cutOffFromMaxIntensity
-   *
-   * @param n
-   * @param msmsData
-   * @param minSignals
-   * @param cutOffFromMaxIntensity 0.01 is 1 % of max intensity
-   * @return
-   */
-  private boolean hasMSMS(Node n, Map<Integer, DataPoint[]> msmsData, int minSignals,
-      final double cutOffFromMaxIntensity) {
-    DataPoint[] signals = msmsData.get(toIndex(n));
-    if (signals == null)
-      return false;
-    final double max = Arrays.stream(signals).mapToDouble(DataPoint::getIntensity).max().orElse(0);
-    long dp = Arrays.stream(signals).mapToDouble(DataPoint::getIntensity)
-        .filter(intensity -> intensity >= max * cutOffFromMaxIntensity).count();
-    return dp >= minSignals;
-  }
-
-  private boolean hasMSMS(Node n, Map<Integer, DataPoint[]> msmsData, int minSignals) {
-    DataPoint[] signals = msmsData.get(Integer.parseInt(n.getId()));
-    return signals != null && signals.length >= minSignals;
+  public String getDefaultValueOrThrow(DBEntryField field) {
+    return switch (field) {
+      case SCAN_NUMBER -> String.valueOf(finishedEntries);
+      case PEPTIDE_SEQ -> "*..*";
+      case CAS, PUBMED, SMILES, INCHI, INCHIKEY, PRINCIPAL_INVESTIGATOR -> "N/A";
+      case CHARGE, EXACT_MASS -> "0";
+      case POLARITY -> "Positive";
+      case ACQUISITION -> "Crude";
+      case FILENAME -> mgfFile.getName();
+      default -> throw new UnsupportedOperationException(
+          field + " is is a required value but was not set");
+    };
   }
 }

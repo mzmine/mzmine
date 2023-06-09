@@ -45,6 +45,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import org.jetbrains.annotations.Nullable;
 
 public class MGFEntryGenerator {
 
@@ -146,6 +147,15 @@ public class MGFEntryGenerator {
    * Creates a simple MSP nist format DB entry
    */
   public static String createMGFEntry(SpectralLibraryEntry entry) {
+    return createMGFEntry(entry, entry.getOrElse(DBEntryField.SCAN_NUMBER, null));
+  }
+
+  /**
+   * Creates a simple MSP nist format DB entry
+   *
+   * @param scanNumber overwrite the scannumber used for this entry
+   */
+  public static String createMGFEntry(SpectralLibraryEntry entry, @Nullable Integer scanNumber) {
     String br = "\n";
     StringBuilder s = new StringBuilder();
     s.append("BEGIN IONS").append(br);
@@ -156,7 +166,12 @@ public class MGFEntryGenerator {
       if (id == null || id.isBlank()) {
         continue;
       }
-      entry.getField(field).ifPresent(value -> appendValue(s, field, value));
+      if (scanNumber != null && (field == DBEntryField.SCAN_NUMBER
+                                 || field == DBEntryField.FEATURE_ID)) {
+        appendValue(s, field, scanNumber);
+      } else {
+        entry.getField(field).ifPresent(value -> appendValue(s, field, value));
+      }
     }
 
     // num peaks and data
