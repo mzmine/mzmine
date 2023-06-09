@@ -196,8 +196,10 @@ public class ScanUtils {
 
   private static Float extractCollisionEnergy(MassSpectrum spectrum) {
     return switch (spectrum) {
-      case MobilityScan mob -> mob.getMsMsInfo().getActivationEnergy();
-      case Scan scan -> scan.getMsMsInfo().getActivationEnergy();
+      case MobilityScan mob ->
+          mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
+      case Scan scan ->
+          scan.getMsMsInfo() != null ? scan.getMsMsInfo().getActivationEnergy() : null;
       default -> null;
     };
   }
