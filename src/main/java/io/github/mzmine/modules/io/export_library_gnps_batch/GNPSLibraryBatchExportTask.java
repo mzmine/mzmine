@@ -153,6 +153,8 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
 
     List<String> errors = new ArrayList<>();
 
+    int brokenAndSkippedEntries = 0;
+
     for (var library : libraries) {
       for (var entry : library.getEntries()) {
         errors.clear();
@@ -178,8 +180,16 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
           for (final String error : errors) {
             logger.info("Error in tsv entry for " + entry + ": " + error);
           }
+          brokenAndSkippedEntries++;
         }
       }
+    }
+
+    if (brokenAndSkippedEntries > 0) {
+      logger.info("There were %d broken entries - see log. Exported: %d/%d".formatted(
+          brokenAndSkippedEntries, totalEntries - brokenAndSkippedEntries, totalEntries));
+    } else {
+      logger.info("All entries exported successfully. Total=" + totalEntries);
     }
   }
 
