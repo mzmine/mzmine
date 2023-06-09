@@ -441,7 +441,7 @@ public enum DBEntryField {
       case PEPTIDE_SEQ -> "SEQ";
       case NAME -> "COMPOUND_NAME";
       case PRECURSOR_MZ -> "MOLECULEMASS";
-      case INSTRUMENT -> "INSTRUMENT";
+      case INSTRUMENT_TYPE -> "INSTRUMENT";
       case ION_SOURCE -> "IONSOURCE";
       case SCAN_NUMBER -> "EXTRACTSCAN";
       case SMILES -> "SMILES";
@@ -457,7 +457,7 @@ public enum DBEntryField {
       case CAS -> "CASNUMBER";
       case PRINCIPAL_INVESTIGATOR -> "PI";
       //not covered
-      case INSTRUMENT_TYPE -> "INSTRUMENT_TYPE";
+      case INSTRUMENT -> "INSTRUMENT_NAME";
       case RT -> "RTINSECONDS";
       case ENTRY_ID -> "SPECTRUMID";
       case COMMENT -> "COMMENT";

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_library_gnps_batch;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -54,7 +55,7 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
   private final String separator = "\t";
 
   public final List<DBEntryField> columns = List.of(DBEntryField.FILENAME, DBEntryField.PEPTIDE_SEQ,
-      DBEntryField.NAME, DBEntryField.PRECURSOR_MZ, DBEntryField.INSTRUMENT,
+      DBEntryField.NAME, DBEntryField.PRECURSOR_MZ, DBEntryField.INSTRUMENT_TYPE,
       DBEntryField.ION_SOURCE, DBEntryField.SCAN_NUMBER, DBEntryField.SMILES, DBEntryField.INCHI,
       DBEntryField.INCHIKEY, DBEntryField.CHARGE, DBEntryField.POLARITY, DBEntryField.PUBMED,
       DBEntryField.ACQUISITION, DBEntryField.EXACT_MASS, DBEntryField.DATA_COLLECTOR,
@@ -188,7 +189,15 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
       return String.valueOf(finishedEntries);
     }
     var value = String.valueOf(entry.getOrElse(field, ""));
-    return value.isBlank() ? getDefaultValueOrThrow(field) : value;
+    if (value.isBlank()) {
+      return getDefaultValueOrThrow(field);
+    }
+    if (field == DBEntryField.POLARITY) {
+      // ensure polarity
+      return PolarityType.parseFromString(value) == PolarityType.NEGATIVE ? "Negative" : "Positive";
+    }
+    // TODO handle instrument in parameters?
+    return value;
   }
 
   /**
