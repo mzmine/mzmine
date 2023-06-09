@@ -64,9 +64,7 @@ public final class ImagingSpot {
         precursorLists[1][1] = new ArrayList<>();
         precursorLists[1][0] = new ArrayList<>();
       }
-      case default -> {
-        throw new IllegalStateException("Illegal value for Ms2ImagingMode");
-      }
+      default -> throw new IllegalStateException("Illegal value for Ms2ImagingMode");
     }
   }
 

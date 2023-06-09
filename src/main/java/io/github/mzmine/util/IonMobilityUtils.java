@@ -503,7 +503,7 @@ public class IonMobilityUtils {
             j -> frame.getMobilities().getDouble(numScans - j));
         yield numScans - i;
       }
-      case default -> BinarySearch.binarySearch(mobility, true, 0, frame.getNumberOfMobilityScans(),
+      default -> BinarySearch.binarySearch(mobility, true, 0, frame.getNumberOfMobilityScans(),
           i -> frame.getMobilities().getDouble(i));
     };
 

@@ -210,7 +210,7 @@ public class ScanUtils {
       case Scan scan ->
           scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null ? List.of(
               scan.getMsMsInfo().getActivationEnergy()) : List.of();
-      case default -> List.of();
+      default -> List.of();
     };
   }
 
