@@ -31,7 +31,6 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -69,10 +68,12 @@ public class MaldiGroupMS2Parameters extends SimpleParameterSet {
           "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
               + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
               + "MS/MS mobility scans need to be merged together.", 0.01d));
-  public static final OptionalParameter<IntegerParameter> consensusMinSignals = new OptionalParameter<>(
+
+  // disabled for now, messes with project save/load because one ms2 spectrum has more than 1 raw data file.
+  /*  public static final OptionalParameter<IntegerParameter> consensusMinSignals = new OptionalParameter<>(
       new IntegerParameter("Create consensus MS2 with min. signals",
           "If enabled, a consensus MS2 spectrum across all collision energies will be created, with the given minimum signals for each peak.",
-          3));
+          3));*/
   private static final RawDataFilesSelection rawSelection = new RawDataFilesSelection(
       RawDataFilesSelectionType.NAME_PATTERN);
   public static final RawDataFilesParameter files = new RawDataFilesParameter(rawSelection);
@@ -83,7 +84,7 @@ public class MaldiGroupMS2Parameters extends SimpleParameterSet {
 
   public MaldiGroupMS2Parameters() {
     super(new Parameter[]{PEAK_LISTS, files, mzTol, combineTimsMsMs, lockMS2ToFeatureMobilityRange,
-            outputNoiseLevel, outputNoiseLevelRelative, consensusMinSignals},
+            outputNoiseLevel, outputNoiseLevelRelative/*, consensusMinSignals*/},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
   }
 
