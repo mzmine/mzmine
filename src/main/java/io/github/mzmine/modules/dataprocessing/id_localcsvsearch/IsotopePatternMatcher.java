@@ -38,6 +38,7 @@ import smile.math.DoubleArrayList;
  * Currently unused code. Was intended for Isotope pattern alignment but we are using the
  * {@link ScanAlignment} now and regular spectral similarity
  */
+@Deprecated
 public class IsotopePatternMatcher {
 
   IsotopePattern predictedIsotopePattern;

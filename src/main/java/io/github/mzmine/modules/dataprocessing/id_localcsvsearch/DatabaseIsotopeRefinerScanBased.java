@@ -178,18 +178,14 @@ public class DatabaseIsotopeRefinerScanBased {
           key -> getCalculateIsotopePattern(mzTolerance, minIntensity, adductType, ionFormula));
       var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
 
-      var similarity = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0,
-          HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO, mzTolerance, 0,
-          predictedIsotopes, measuredIsotopes);
       // also match with library as ground truth to give more weight to predicted signals
       var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT,
           0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0, predictedIsotopes,
           measuredIsotopes);
 
-      if (similarity != null && similarityLibrary != null) {
-        var score = (float) (similarity.getScore() + similarityLibrary.getScore() * 2) / 3f;
-        annotation.put(IsotopePatternScoreType.class, score);
-        return similarity.getScore();
+      if (similarityLibrary != null) {
+        annotation.put(IsotopePatternScoreType.class, (float)similarityLibrary.getScore());
+        return similarityLibrary.getScore();
       }
       return 0;
     } catch (Exception ex) {
