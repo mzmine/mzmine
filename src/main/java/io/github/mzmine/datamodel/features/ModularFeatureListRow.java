@@ -70,8 +70,8 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -696,17 +696,10 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public IsotopePattern getBestIsotopePattern() {
-    ModularFeature[] features = getFilesFeatures().values().toArray(new ModularFeature[0]);
-    Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
-
-    for (ModularFeature feature : features) {
-      IsotopePattern ip = feature.getIsotopePattern();
-      if (ip != null) {
-        return ip;
-      }
-    }
-
-    return null;
+    return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
+                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+        .max(Comparator.comparingDouble(ModularFeature::getHeight))
+        .map(ModularFeature::getIsotopePattern).orElse(null);
   }
 
 

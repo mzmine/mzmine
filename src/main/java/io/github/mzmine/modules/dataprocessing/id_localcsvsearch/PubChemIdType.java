@@ -34,11 +34,11 @@ import org.jetbrains.annotations.NotNull;
  * Package private id type, so that pubchem ids can be read from a csv, but appear in the feature
  * table as the general {@link DatabaseMatchInfoType}.
  */
-class PubChemIdType extends StringType {
+public class PubChemIdType extends StringType {
 
   private static final Logger logger = Logger.getLogger(PubChemIdType.class.getName());
 
-  PubChemIdType() {
+  public PubChemIdType() {
   }
 
   @Override
