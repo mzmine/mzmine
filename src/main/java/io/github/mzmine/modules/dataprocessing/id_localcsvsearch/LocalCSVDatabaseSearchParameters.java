@@ -34,19 +34,13 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -58,7 +52,6 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -101,9 +94,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
       EmbeddedComponentOptions.VIEW_IN_WINDOW,
       (IonLibraryParameterSet) new IonLibraryParameterSet().cloneParameterSet());
-  public static final OptionalModuleParameter<IsotopePatternMatcherParameterSet> isotopePatternMatcher = new OptionalModuleParameter<>(
-      "Use isotope matcher", "",
-      (IsotopePatternMatcherParameterSet) new IsotopePatternMatcherParameterSet().cloneParameterSet());
+  public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
+      "Use isotope matcher",
+      "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
+      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
   private static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
@@ -124,7 +118,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public LocalCSVDatabaseSearchParameters() {
     super(
         new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance,isotopePatternMatcher, ionLibrary, filterSamples, commentFields},
+            mobTolerance, ccsTolerance, isotopePatternMatcher, ionLibrary, filterSamples,
+            commentFields},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html");
   }
 

@@ -118,7 +118,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String fieldSeparator;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
-  private final IsotopePatternMatcherParameterSet isotopePatternMatcherParameterSet;
+  private final IsotopePatternMatcherParameters isotopePatternMatcherParameters;
   private final MZTolerance isotopeMzTolerance;
   private final double minRelativeIsotopeIntensity;
   private final double minIsotopeScore;
@@ -167,16 +167,16 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final boolean isotopePatternMatcher = parameters.getValue(
         LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
     if(isotopePatternMatcher) {
-      isotopePatternMatcherParameterSet = parameters.getParameter(
+      isotopePatternMatcherParameters = parameters.getParameter(
           LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters();
-      isotopeMzTolerance = isotopePatternMatcherParameterSet.getParameter(
-          IsotopePatternMatcherParameterSet.isotopeMzTolerance).getValue();
-      minRelativeIsotopeIntensity = isotopePatternMatcherParameterSet.getParameter(
-          IsotopePatternMatcherParameterSet.minIntensity).getValue();
-      minIsotopeScore = isotopePatternMatcherParameterSet.getParameter(
-          IsotopePatternMatcherParameterSet.minIsotopeScore).getValue();
+      isotopeMzTolerance = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.isotopeMzTolerance).getValue();
+      minRelativeIsotopeIntensity = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIntensity).getValue();
+      minIsotopeScore = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIsotopeScore).getValue();
     } else {
-      isotopePatternMatcherParameterSet = null;
+      isotopePatternMatcherParameters = null;
       isotopeMzTolerance = null;
       minRelativeIsotopeIntensity = 0d;
       minIsotopeScore = 0d;
@@ -276,7 +276,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           row.setCompoundAnnotations(matches);
         }
       }
-      if(isotopePatternMatcherParameterSet != null) {
+      if(isotopePatternMatcherParameters != null) {
         for (FeatureList flist : featureLists) {
           refineAnnotationsByIsotopes(flist);
         }

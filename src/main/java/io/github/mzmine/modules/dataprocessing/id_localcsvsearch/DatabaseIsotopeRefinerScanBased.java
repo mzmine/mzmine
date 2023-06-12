@@ -176,8 +176,6 @@ public class DatabaseIsotopeRefinerScanBased {
       final IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.computeIfAbsent(
           ionFormula,
           key -> getCalculateIsotopePattern(mzTolerance, minIntensity, adductType, ionFormula));
-//        predictedIsotopePattern = IsotopePatternCalculator.removeDataPointsBelowIntensity(predictedIsotopePattern,
-//            minIntensity);
       var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
 
       var similarity = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0,

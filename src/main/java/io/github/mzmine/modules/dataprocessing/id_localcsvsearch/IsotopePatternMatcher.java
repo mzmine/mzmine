@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -5,12 +30,14 @@ import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import java.util.Arrays;
-import java.util.OptionalDouble;
+import io.github.mzmine.util.scans.ScanAlignment;
 import org.jetbrains.annotations.Nullable;
 import smile.math.DoubleArrayList;
 
+/**
+ * Currently unused code. Was intended for Isotope pattern alignment but we are using the
+ * {@link ScanAlignment} now and regular spectral similarity
+ */
 public class IsotopePatternMatcher {
 
   IsotopePattern predictedIsotopePattern;
@@ -28,7 +55,6 @@ public class IsotopePatternMatcher {
   double[] actualIntensities;
   float newScore;
   float actualScore;
-
 
 
   IsotopePatternMatcher(IsotopePattern isotopePattern, double minIntensity) {
@@ -59,14 +85,14 @@ public class IsotopePatternMatcher {
     // if both matched
     for (int i = 0; i < predictedIsotopePattern.getNumberOfDataPoints(); i++) {
       if (mzTolerance.checkWithinTolerance(measuredMz, predictedIsotopePattern.getMzValue(i))) {
-          allMeasuredMZValues.add(measuredMz);
-          allMeasuredIntensities.add(measuredIntensity);
-          measuredMZValues[i] = measuredMz;
-          measuredIntensities[i] = measuredIntensity;
-          predictedIntensities[i] = (predictedIsotopePattern.getIntensityValue(i));
-          predictedMzs[i] = (predictedIsotopePattern.getMzValue(i));
-          return true;
-        }
+        allMeasuredMZValues.add(measuredMz);
+        allMeasuredIntensities.add(measuredIntensity);
+        measuredMZValues[i] = measuredMz;
+        measuredIntensities[i] = measuredIntensity;
+        predictedIntensities[i] = (predictedIsotopePattern.getIntensityValue(i));
+        predictedMzs[i] = (predictedIsotopePattern.getMzValue(i));
+        return true;
+      }
     }
     return false;
   }
@@ -86,16 +112,16 @@ public class IsotopePatternMatcher {
   }
 
   /**
-   * @return The detected isotope pattern, if all necessary peaks were detected. Otherwise null.
-   * If several signals are found (allMeasuredMZValues.size()>measuredMZValues.length),
-   * checks which one fits best (highest score) and selects this as the detected isotope pattern.
+   * @return The detected isotope pattern, if all necessary peaks were detected. Otherwise null. If
+   * several signals are found (allMeasuredMZValues.size()>measuredMZValues.length), checks which
+   * one fits best (highest score) and selects this as the detected isotope pattern.
    */
   @Nullable
   public IsotopePattern measuredIsotopePattern(MZTolerance mzTolerance) {
     if (!matches()) {
       return null;
     }
-    if (allMeasuredMZValues.size()>measuredMZValues.length) {
+    if (allMeasuredMZValues.size() > measuredMZValues.length) {
       this.actualMZValues = measuredMZValues;
       this.actualIntensities = measuredIntensities;
       for (int i = 0; i < predictedIsotopePattern.getNumberOfDataPoints(); i++) {
@@ -110,8 +136,8 @@ public class IsotopePatternMatcher {
             actualMZValues[i] = allMeasuredMZValues.get(j);
             actualIntensities[i] = allMeasuredIntensities.get(j);
             IsotopePattern newIsotopePattern = new SimpleIsotopePattern(actualMZValues,
-                actualIntensities, predictedIsotopePattern.getCharge(), IsotopePatternStatus.DETECTED,
-                predictedIsotopePattern.getDescription());
+                actualIntensities, predictedIsotopePattern.getCharge(),
+                IsotopePatternStatus.DETECTED, predictedIsotopePattern.getDescription());
             newScore = IsotopePatternScoreCalculator.getSimilarityScore(predictedIsotopePattern,
                 newIsotopePattern, mzTolerance, 300.0);
             if (newScore > actualScore) {
@@ -179,7 +205,7 @@ public class IsotopePatternMatcher {
     return new SimpleIsotopePattern(foundMzs.toArray(), predictedIntensitiesOfFoundMzs.toArray(),
         predictedIsotopePattern.getCharge(), IsotopePatternStatus.PREDICTED,
         predictedIsotopePattern.getDescription());
-    }
+  }
 }
 
 
