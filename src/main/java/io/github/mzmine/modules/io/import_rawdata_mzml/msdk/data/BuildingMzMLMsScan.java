@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.Range;
+import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
@@ -40,10 +41,12 @@ import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
-import io.github.mzmine.modules.io.import_rawdata_mzml.SpectralProcessingUtils;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,7 +55,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javolution.text.CharArray;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,28 +77,21 @@ public class BuildingMzMLMsScan implements MsScan {
   private final @NotNull Integer scanNumber;
   private final int numOfDataPoints;
   private final Logger logger = Logger.getLogger(getClass().getName());
-  private MzMLBinaryDataInfo mzBinaryDataInfo;
-  private MzMLBinaryDataInfo intensityBinaryDataInfo;
   private MsSpectrumType spectrumType;
   private Float tic;
   private Float retentionTime;
   private Range<Double> mzRange;
   private Range<Double> mzScanWindowRange;
 
-  private ParameterSet advancedParameters;
-
-  // intermediate arrays
-  double[] intensitiesTemp;
-  double[] mzValuesTemp;
-
-  SpectralProcessingUtils spectralProcessor;
+  // temporary - set to null after load
+  private MzMLBinaryDataInfo mzBinaryDataInfo;
+  private MzMLBinaryDataInfo intensityBinaryDataInfo;
 
   //Final memory-mapped processed data
   //No intermediate results
   private DoubleBuffer mzValues;
   private DoubleBuffer intensityValues;
 
-  private MemoryMapStorage storage;
 
   /**
    * <p>
@@ -128,32 +123,6 @@ public class BuildingMzMLMsScan implements MsScan {
     this.mzScanWindowRange = null;
     this.mzValues = null;
     this.intensityValues = null;
-  }
-
-  public BuildingMzMLMsScan(MzMLRawDataFile dataFile, String id, Integer scanNumber,
-      int numOfDataPoints, MemoryMapStorage storage, ParameterSet advancedParameters) {
-    this.cvParams = new MzMLCVGroup();
-    this.precursorList = new MzMLPrecursorList();
-    this.productList = new MzMLProductList();
-    this.scanList = new MzMLScanList();
-    this.dataFile = dataFile;
-    this.id = id;
-    this.scanNumber = scanNumber;
-    this.numOfDataPoints = numOfDataPoints;
-    this.mzBinaryDataInfo = null;
-    this.intensityBinaryDataInfo = null;
-    this.spectrumType = null;
-    this.tic = null;
-    this.retentionTime = null;
-    this.mzRange = null;
-    this.mzScanWindowRange = null;
-    this.mzValues = null;
-    this.intensityValues = null;
-    //using memory map storage from AllSpectralDataImport class
-    this.storage = storage;
-    this.spectralProcessor = new SpectralProcessingUtils(this, advancedParameters);
-    this.intensitiesTemp = null;
-    this.mzValuesTemp = null;
   }
 
   /**
@@ -287,48 +256,6 @@ public class BuildingMzMLMsScan implements MsScan {
 
   public DoubleBuffer getDoubleBufferIntensityValues() {
     return this.intensityValues;
-  }
-
-  public void processBinaryScanValues(CharArray xmlBinaryContent,
-      MzMLBinaryDataInfo binaryDataInfo) {
-    if (binaryDataInfo.getArrayLength() != this.numOfDataPoints) {
-      logger.warning(
-          "Binary data array contains an array of different length than the default array length of the scan (#"
-              + getScanNumber() + ")");
-    }
-    try {
-      //todo is array needed
-      double[] array = new double[this.numOfDataPoints];
-      //checks to see when both binary arrays are present and spectral processing can start
-      if (MzMLCV.cvMzArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        mzValuesTemp = MzMLPeaksDecoder.decodeToDouble(xmlBinaryContent, binaryDataInfo,
-            this.storage, array);
-        if (intensitiesTemp != null && advancedParameters != null) {
-          //run spectral processing here
-          this.spectralProcessor.processScan(mzValuesTemp, intensitiesTemp);
-        } else {
-          mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValuesTemp);
-        }
-      }
-      if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        intensitiesTemp = MzMLPeaksDecoder.decodeToDouble(xmlBinaryContent, binaryDataInfo,
-            this.storage, array);
-        if (mzValuesTemp != null && advancedParameters != null) {
-          //run spectral processing here
-          this.spectralProcessor.processScan(mzValuesTemp, intensitiesTemp);
-        } else {
-          intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensitiesTemp);
-        }
-      }
-//      if (intensitiesTemp != null && mzValuesTemp != null && advancedParameters != null) {
-//        //run spectral processing here
-//        SpectralProcessingUtils spectralProcessingUtils = new SpectralProcessingUtils(this,
-//            this.advancedParameters);
-//        spectralProcessingUtils.processScan(mzValuesTemp, intensitiesTemp);
-//      }
-    } catch (Exception e) {
-      throw (new MSDKRuntimeException(e));
-    }
   }
 
   /**
@@ -747,24 +674,43 @@ public class BuildingMzMLMsScan implements MsScan {
     return Optional.ofNullable(null);
   }
 
-  public void setAdvancedParameters(ParameterSet advancedParam) {
-    this.advancedParameters = advancedParam;
-  }
-
-  public void setDoubleBufferMzValues(double[] values) {
-    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(this.storage, values);
-  }
-
-  public void setDoubleBufferIntensities(double[] values) {
-    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(this.storage, values);
-  }
-
   /**
-   * Helper method used to free up the memory after memory-mapping
+   * Called when spectrum end is read. Load, process data points and memory map resulting data to
+   * disk to save RAM.
    */
-  public void setTempValuesToNull() {
-    this.mzValuesTemp = null;
-    this.intensitiesTemp = null;
-    System.gc();
+  public boolean loadProcessMemMapData(final MemoryMapStorage storage,
+      final MsProcessorList spectralProcessor) {
+    try {
+      var specData = loadData();
+      // process and filter - needs metadata so wrap
+      var wrappedScan = new MsdkScanWrapper(this);
+      specData = spectralProcessor.processScan(wrappedScan, specData);
+
+      // memory map
+      this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
+      this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.intensities());
+
+    } catch (MSDKException | IOException e) {
+      logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));
+      return false;
+    }
+    return true;
+  }
+
+  private SimpleSpectralArrays loadData() throws MSDKException, IOException {
+    if (mzBinaryDataInfo.getArrayLength() != intensityBinaryDataInfo.getArrayLength()) {
+      logger.warning(
+          "Binary data array contains an array of different length than the default array length of the scan (#"
+          + getScanNumber() + ")");
+    }
+    //todo is array needed
+    double[] mzs = MzMLPeaksDecoder.decodeToDouble(mzBinaryDataInfo);
+    double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityBinaryDataInfo);
+
+    // set data to null
+    mzBinaryDataInfo = null;
+    intensityBinaryDataInfo = null;
+
+    return new SimpleSpectralArrays(mzs, intensities);
   }
 }

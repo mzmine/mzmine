@@ -50,6 +50,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectW
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -152,13 +153,20 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     RawDataFileImpl newMZmineFile;
     try {
+      // TODO create predicate to filter scans before loading them
+
+
+      // add processor TODO create processors
+      var spectralProcessor = new MsProcessorList(List.of());
 
       if (fis != null) {
-        msdkTask = new MzMLFileImportMethod(fis);
+        msdkTask = new MzMLFileImportMethod(fis, storage, spectralProcessor);
       } else {
 //        msdkTask = new MzMLFileImportMethod(file);
-        msdkTask = new MzMLFileImportMethod(file, storage, advancedParam);
+        msdkTask = new MzMLFileImportMethod(file, storage, spectralProcessor);
       }
+
+
       addTaskStatusListener((task, newStatus, oldStatus) -> {
         if (newStatus == TaskStatus.CANCELED) {
           msdkTask.cancel();

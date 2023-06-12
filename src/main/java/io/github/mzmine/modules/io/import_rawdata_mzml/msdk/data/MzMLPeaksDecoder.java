@@ -28,7 +28,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 import com.google.common.io.LittleEndianDataInputStream;
 import io.github.msdk.MSDKException;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.MSNumpress;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -188,6 +187,19 @@ public class MzMLPeaksDecoder {
    * the original precision was 32 bit, you still get doubles as output.
    *
    * @param binaryDataInfo meta-info about encoded data
+   * @return a double array containing the decoded values
+   * @throws DataFormatException if any.
+   * @throws IOException         if any.
+   * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
+   */
+  public static double[] decodeToDouble(MzMLBinaryDataInfo binaryDataInfo) throws IOException, MSDKException {
+    return decodeToDouble(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo, null);
+  }
+  /**
+   * Converts a base64 encoded mz or intensity string used in mzML files to an array of doubles. If
+   * the original precision was 32 bit, you still get doubles as output.
+   *
+   * @param binaryDataInfo meta-info about encoded data
    * @param data           an array of double.
    * @return a double array containing the decoded values
    * @throws DataFormatException if any.
@@ -195,7 +207,7 @@ public class MzMLPeaksDecoder {
    * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
   public static double[] decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
-      MemoryMapStorage storage, double[] data) throws IOException, MSDKException {
+      double[] data) throws IOException, MSDKException {
 //  public static DoubleBuffer decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
 //      MemoryMapStorage storage, double[] data) throws IOException, MSDKException {
 

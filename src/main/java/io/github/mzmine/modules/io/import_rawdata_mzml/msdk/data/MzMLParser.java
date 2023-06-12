@@ -30,7 +30,7 @@ import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,16 +53,17 @@ import javolution.xml.stream.XMLStreamReader;
  */
 public class MzMLParser {
 
+  private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
+
   private Vars vars;
   private TagTracker tracker;
   private final MzMLRawDataFile newRawFile;
   private final MzMLFileImportMethod importer;
   private int totalScans = 0, parsedScans = 0;
-  private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
-
-  private ParameterSet advancedParameters;
 
   private MemoryMapStorage storage;
+  private MsProcessorList spectralProcessor;
+
 
   /**
    * <p>
@@ -81,14 +82,14 @@ public class MzMLParser {
   }
 
   public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
-      ParameterSet advancedParameters) {
+      MsProcessorList spectralProcessor) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
     this.importer = importer;
     this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
         vars.spectrumList, vars.chromatogramsList);
     this.storage = storage;
-    this.advancedParameters = advancedParameters;
+    this.spectralProcessor = spectralProcessor;
   }
 
   /**
@@ -161,8 +162,7 @@ public class MzMLParser {
             "defaultArrayLength").toInt();
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
         //        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
-        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength,
-            storage, advancedParameters);
+        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
@@ -238,8 +238,7 @@ public class MzMLParser {
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
           //here we obtain the text value of the whole TAG_BINARY
           //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
-          vars.spectrum.processBinaryScanValues(xmlStreamReader.getElementText(),
-              vars.binaryDataInfo);
+          vars.binaryDataInfo.setTextContent(xmlStreamReader.getElementText());
           tracker.exit(tracker.current());
         }
 
@@ -512,25 +511,35 @@ public class MzMLParser {
 
     } else if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
-        if (vars.spectrum.getMzBinaryDataInfo() != null
-            && vars.spectrum.getIntensityBinaryDataInfo() != null && (importer.getMzMLFile() != null
-            || importer.getMsScanPredicate().test(vars.spectrum))) {
-          vars.spectrumList.add(vars.spectrum);
-        }
+        filterProcessFinalizeScan();
       }
 
     } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
         if (vars.chromatogram.getRtBinaryDataInfo() != null
             && vars.chromatogram.getIntensityBinaryDataInfo() != null && (
-            importer.getMzMLFile() != null || importer.getChromatogramPredicate()
-                .test(vars.chromatogram))) {
+                importer.getMzMLFile() != null || importer.getChromatogramPredicate()
+                    .test(vars.chromatogram))) {
           vars.chromatogramsList.add(vars.chromatogram);
         }
       }
 
     }
 
+  }
+
+  /**
+   * Called when spectrum end is read. Check if spectrum is filtered - skip this scan if not in
+   * {@link MzMLFileImportMethod#getMsScanPredicate()}. Then process data points and memory map
+   * resulting data to disk to save RAM.
+   */
+  private void filterProcessFinalizeScan() {
+    var spectrum = vars.spectrum;
+    if (importer.getMsScanPredicate().test(spectrum)) {
+      if (spectrum.loadProcessMemMapData(storage, spectralProcessor)) {
+        vars.spectrumList.add(spectrum);
+      }
+    }
   }
 
   /**
@@ -559,7 +568,7 @@ public class MzMLParser {
             break;
         }
       } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)
-          && importer.getChromatogramPredicate().test(vars.chromatogram)) {
+                 && importer.getChromatogramPredicate().test(vars.chromatogram)) {
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
           case MzMLCV.cvRetentionTimeArray:
             vars.chromatogram.getDoubleRetentionTimes();
@@ -652,7 +661,7 @@ public class MzMLParser {
     if (attrValue == null) {
       throw new IllegalStateException(
           "Tag " + xmlStreamReader.getLocalName() + " must provide an `" + attr
-              + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
+          + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
     }
     return attrValue;
   }

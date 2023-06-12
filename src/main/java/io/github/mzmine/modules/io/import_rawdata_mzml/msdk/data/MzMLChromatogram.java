@@ -412,10 +412,10 @@ class MzMLChromatogram implements Chromatogram {
     try {
       double[] array = new double[this.numOfDataPoints];
       if (MzMLCV.cvRetentionTimeArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.rtValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, storage, array);
+        this.rtValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
       }
       if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, storage, array);
+        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, array);
       }
     } catch (Exception e) {
       throw (new MSDKRuntimeException(e));

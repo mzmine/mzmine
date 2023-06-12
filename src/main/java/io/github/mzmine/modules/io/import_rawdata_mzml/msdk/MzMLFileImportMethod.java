@@ -33,7 +33,7 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.FileMemoryMapper;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
@@ -70,8 +70,8 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
   private Predicate<MsScan> msScanPredicate = s -> true;
   private Predicate<Chromatogram> chromatogramPredicate = c -> true;
 
-  private ParameterSet advancedParameters;
 
+  private final MsProcessorList spectralProcessor;
   private MemoryMapStorage storage;
 
   /**
@@ -138,25 +138,16 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
     this(mzMLFilePath.toFile(), msScanPredicate, chromatogramPredicate);
   }
 
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFile a {@link File File} object instance of the MzML File.
-   */
-  public MzMLFileImportMethod(File mzMLFile) {
-    this(mzMLFile, null, s -> false, c -> false);
-  }
 
   /**
    * <p>
-   *  Constructor for MzMLFileImportMethod that takes storage and advanced parameters to pass into MZMLParser
+   * Constructor for MzMLFileImportMethod that takes storage and advanced parameters to pass into
+   * MZMLParser
    * </p>
    */
-  public MzMLFileImportMethod(File mzMLFile, MemoryMapStorage storage, ParameterSet advancedParameters) {
-    this(mzMLFile, null, s -> false, c -> false);
-    this.advancedParameters = advancedParameters;
+  public MzMLFileImportMethod(File mzMLFile, MemoryMapStorage storage,
+      MsProcessorList spectralProcessor) {
+    this(mzMLFile, null, s -> false, c -> false, spectralProcessor);
     this.storage = storage;
   }
 
@@ -187,8 +178,10 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    *
    * @param inputStream an {@link InputStream InputStream} which contains data in MzML format.
    */
-  public MzMLFileImportMethod(InputStream inputStream) {
-    this(null, inputStream, s -> true, c -> true);
+  public MzMLFileImportMethod(InputStream inputStream, MemoryMapStorage storage,
+      MsProcessorList spectralProcessor) {
+    this(null, inputStream, s -> true, c -> true, spectralProcessor);
+    this.storage = storage;
   }
 
   /**
@@ -208,8 +201,8 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    *                              {@link #getResult() getResult()} method.
    */
   public MzMLFileImportMethod(InputStream inputStream, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(null, inputStream, msScanPredicate, chromatogramPredicate);
+      Predicate<Chromatogram> chromatogramPredicate, MsProcessorList spectralProcessor) {
+    this(null, inputStream, msScanPredicate, chromatogramPredicate, spectralProcessor);
   }
 
   /**
@@ -218,9 +211,11 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * </p>
    */
   private MzMLFileImportMethod(File mzMLFile, InputStream inputStream,
-      Predicate<MsScan> msScanPredicate, Predicate<Chromatogram> chromatogramPredicate) {
+      Predicate<MsScan> msScanPredicate, Predicate<Chromatogram> chromatogramPredicate,
+      MsProcessorList spectralProcessor) {
     this.mzMLFile = mzMLFile;
     this.inputStream = inputStream;
+    this.spectralProcessor = spectralProcessor;
     this.canceled = false;
     this.lastLoggedProgress = 0;
     this.msScanPredicate = this.msScanPredicate.and(msScanPredicate);
@@ -257,7 +252,7 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
       final XMLStreamReaderImpl xmlStreamReader = new XMLStreamReaderImpl();
       xmlStreamReader.setInput(is, "UTF-8");
 
-      this.parser = new MzMLParser(this, storage, advancedParameters);
+      this.parser = new MzMLParser(this, storage, spectralProcessor);
       this.newRawFile = parser.getMzMLRawFile();
 
       lastLoggedProgress = 0;
