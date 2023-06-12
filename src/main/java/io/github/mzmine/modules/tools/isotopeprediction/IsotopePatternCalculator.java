@@ -111,14 +111,16 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
     String isotopeComposition[] = new String[numOfIsotopes];
+    // For each unit of charge, we have to add or remove a mass of a
+    // single electron. If the charge is positive, we remove electron
+    // mass. If the charge is negative, we add it.
+    charge = Math.abs(charge);
+    var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
 
     for (int i = 0; i < numOfIsotopes; i++) {
       IsotopeContainer isotope = pattern.getIsotope(i);
 
-      // For each unit of charge, we have to add or remove a mass of a
-      // single electron. If the charge is positive, we remove electron
-      // mass. If the charge is negative, we add it.
-      double mass = isotope.getMass() + (polarity.getSign() * -1 * charge * ELECTRON_MASS);
+      double mass = isotope.getMass() + electronMass;
 
       if (charge != 0) {
         mass /= charge;

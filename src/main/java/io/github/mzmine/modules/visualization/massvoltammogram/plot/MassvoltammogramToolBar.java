@@ -25,8 +25,12 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
-import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExport;
+import com.google.common.collect.Range;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramAxisParameters;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportParameters;
+import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportTask;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
@@ -36,7 +40,6 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.math.plot.PlotPanel;
 import org.math.plot.canvas.Plot3DCanvas;
 import org.math.plot.canvas.PlotCanvas;
 
@@ -50,17 +53,18 @@ public class MassvoltammogramToolBar extends ToolBar {
   private final Image ROTATE_PLOT_ICON = FxIconUtil.loadImageFromResources(
       "icons/massvoltammogram/btnRotate.png");
   private final Image EXPORT_PLOT_ICON = FxIconUtil.loadImageFromResources("icons/exporticon.png");
-  private final Image EDIT_MZ_RANGE_ICON = FxIconUtil.loadImageFromResources(
-      "icons/massvoltammogram/btnEditMzRange.png");
+  private final Image EDIT_AXIS_RANGES_ICON = FxIconUtil.loadImageFromResources(
+      "icons/massvoltammogram/btnScaleAxis.png");
 
   //The plot.
-  PlotPanel plotPanel;
+  MassvoltammogramPlotPanel plotPanel;
   PlotCanvas plotCanvas;
 
   //The massvoltammogram.
   Massvoltammogram massvoltammogram;
 
-  public MassvoltammogramToolBar(PlotPanel plotPanel, Massvoltammogram massvoltammogram) {
+  public MassvoltammogramToolBar(MassvoltammogramPlotPanel plotPanel,
+      Massvoltammogram massvoltammogram) {
 
     //Setting fields.
     this.plotPanel = plotPanel;
@@ -100,17 +104,56 @@ public class MassvoltammogramToolBar extends ToolBar {
     //Creating a button to export the plot.
     final Button exportButton = new Button(null, new ImageView(EXPORT_PLOT_ICON));
     exportButton.setTooltip(new Tooltip("Export the massvoltammogram."));
-    exportButton.setOnAction(e -> MassvoltammogramExport.exportPlot(massvoltammogram));
+    exportButton.setOnAction(e -> exportMassvoltammogram());
     exportButton.setMinSize(35, 35);
 
     //Creating a button to edit the m/z-range.
-    Button editMzRangeButton = new Button(null, new ImageView(EDIT_MZ_RANGE_ICON));
-    editMzRangeButton.setTooltip(new Tooltip("Edit the massvoltammograms m/z-range."));
-    editMzRangeButton.setOnAction(e -> massvoltammogram.editMzRange());
-    editMzRangeButton.setMinSize(35, 35);
+    final Button editAxisRangesButton = new Button(null, new ImageView(EDIT_AXIS_RANGES_ICON));
+    editAxisRangesButton.setTooltip(new Tooltip("Edit the massvoltammograms axis ranges."));
+    editAxisRangesButton.setOnAction(e -> editAxisRanges());
+    editAxisRangesButton.setMinSize(35, 35);
 
     setOrientation(Orientation.VERTICAL);
-    getItems().addAll(moveButton, rotateButton, resetButton, exportButton, editMzRangeButton);
+    getItems().addAll(moveButton, rotateButton, resetButton, editAxisRangesButton, exportButton);
     setStyle("-fx-background-color: white;");
+  }
+
+  /**
+   * Exports the massvoltammogram to different file formats chosen by the user.
+   */
+  private void exportMassvoltammogram() {
+
+    MassvoltammogramExportParameters exportParameters = new MassvoltammogramExportParameters();
+
+    if (exportParameters.showSetupDialog(true) != ExitCode.OK) {
+      return;
+    }
+
+    new MassvoltammogramExportTask(massvoltammogram, exportParameters);
+  }
+
+  /**
+   * Sets the massvoltammogram-plots axis ranges to values chosen by the user.
+   */
+  private void editAxisRanges() {
+
+    //Getting the input from the user.
+    final MassvoltammogramAxisParameters mzRangeParameter = new MassvoltammogramAxisParameters();
+    if (mzRangeParameter.showSetupDialog(true) != ExitCode.OK) {
+      return;
+    }
+
+    Range<Double> mzRange = mzRangeParameter.getEmbeddedParameterValueIfSelectedOrElse(
+        MassvoltammogramAxisParameters.mzRange, null);
+    Double maxIntensity = mzRangeParameter.getEmbeddedParameterValueIfSelectedOrElse(
+        MassvoltammogramAxisParameters.maxIntensity, null);
+
+    //Editing the massvoltammogram-plots ranges.
+    if (mzRange != null) {
+      massvoltammogram.editMzRange(mzRange);
+    }
+    if (maxIntensity != null) {
+      massvoltammogram.scalePlotsIntensityAxis(maxIntensity);
+    }
   }
 }

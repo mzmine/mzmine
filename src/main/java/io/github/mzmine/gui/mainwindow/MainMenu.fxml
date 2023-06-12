@@ -294,6 +294,8 @@
     <Menu text="Export feature list">
       <MenuItem text="CSV" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
+      <MenuItem text="Export compound annotations to csv" onAction="#runModule"
+                userData="io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule"/>
       <MenuItem text="CSV (legacy MZmine 2)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule"/>
       <MenuItem text="Venn diagram export" onAction="#runModule"
@@ -332,6 +334,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule"/>
       <MenuItem onAction="#runModule" text="Refine fragmentation scans of features"
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule"/>
+      <MenuItem onAction="#runModule" text="Precursor purity checker (chimerity)"
+        userData="io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule"/>
       <MenuItem onAction="#runModule"
         text="Internal reference CCS calibration"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule"/>

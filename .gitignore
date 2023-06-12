@@ -20,3 +20,4 @@ not-bio
 /Ontologies
 /src/test/log*
 /src/test/resources/rawdatafiles/200ngHeLaPASEF_2min_compressed.d
+/.run

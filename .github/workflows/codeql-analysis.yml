@@ -13,10 +13,10 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "jdk20" ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "master" ]
+    branches: [ "master", "jdk20" ]
   schedule:
     - cron: '26 2 * * 4'
 
@@ -43,7 +43,7 @@ jobs:
     - uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: '19.0.1'
+        java-version: '20.0.1'
         cache: gradle
     
     # Initializes the CodeQL tools for scanning.

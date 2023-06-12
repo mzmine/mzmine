@@ -118,6 +118,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String fieldSeparator;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
+  private final IsotopePatternMatcherParameters isotopePatternMatcherParameters;
+  private final MZTolerance isotopeMzTolerance;
+  private final double minRelativeIsotopeIntensity;
+  private final double minIsotopeScore;
   private final ParameterSet parameters;
   private final List<ImportType> importTypes;
   private final IonLibraryParameterSet ionLibraryParameterSet;
@@ -153,12 +157,30 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
         LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
-    sampleHeader = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-        LocalCSVDatabaseSearchParameters.filterSamples, null);
 
     // all raw data files for a name check if selected
     allRawDataFiles = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles)
         .flatMap(Collection::stream).distinct().toList();
+    sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
+        .getEmbeddedParameter().getValue();
+
+    final boolean isotopePatternMatcher = parameters.getValue(
+        LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
+    if(isotopePatternMatcher) {
+      isotopePatternMatcherParameters = parameters.getParameter(
+          LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters();
+      isotopeMzTolerance = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.isotopeMzTolerance).getValue();
+      minRelativeIsotopeIntensity = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIntensity).getValue();
+      minIsotopeScore = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIsotopeScore).getValue();
+    } else {
+      isotopePatternMatcherParameters = null;
+      isotopeMzTolerance = null;
+      minRelativeIsotopeIntensity = 0d;
+      minIsotopeScore = 0d;
+    }
   }
 
   @Override
@@ -254,6 +276,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           row.setCompoundAnnotations(matches);
         }
       }
+      if(isotopePatternMatcherParameters != null) {
+        for (FeatureList flist : featureLists) {
+          refineAnnotationsByIsotopes(flist);
+        }
+      }
+
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
@@ -271,6 +299,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  private void refineAnnotationsByIsotopes(FeatureList flist) {
+      DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopes(flist.getRows(), isotopeMzTolerance,
+          minRelativeIsotopeIntensity, minIsotopeScore);
   }
 
   /**

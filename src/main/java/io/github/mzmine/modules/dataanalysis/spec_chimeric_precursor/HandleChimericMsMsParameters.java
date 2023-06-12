@@ -35,7 +35,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package io.github.mzmine.modules.io.spectraldbsubmit.batch;
+package io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -60,18 +60,17 @@ public class HandleChimericMsMsParameters extends SimpleParameterSet {
       Real isolation window to check MS1 scan for co-isolated signals. This might be greater than
       the actually set m/z window. Especially some TOF-MS instruments isolate more than a unit
       resolution, resulting in co-isolated isotopes.""", 0.4, 0);
-  public static final PercentParameter allowedOtherSignals = new PercentParameter(
-      "Allowed other signal sum (%)",
-      "Only flag spectrum as chimeric if the sum of other signals within precursor "
-          + "isolation tolerance is greater than X% of the main signal.", 0.25);
+  public static final PercentParameter minimumPrecursorPurity = new PercentParameter(
+      "Minimum precursor purity (%)",
+      "Only flag spectrum as chimeric if the precursor main signal intensity is less then X% of the total intensity in the precursor "
+      + "isolation tolerance", 0.75);
 
   public static final ComboParameter<ChimericMsOption> option = new ComboParameter<>(
-      "Chimeric spectra",
-      "Options to handle spectra with multiple signals in the isolation range",
+      "Chimeric spectra", "Options to handle spectra with multiple signals in the isolation range",
       ChimericMsOption.values(), ChimericMsOption.FLAG);
 
   public HandleChimericMsMsParameters() {
-    super(mainMassWindow, isolationWindow, allowedOtherSignals, option);
+    super(mainMassWindow, isolationWindow, minimumPrecursorPurity, option);
   }
 
 
@@ -84,4 +83,8 @@ public class HandleChimericMsMsParameters extends SimpleParameterSet {
     }
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }

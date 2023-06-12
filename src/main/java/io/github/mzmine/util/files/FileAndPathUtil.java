@@ -28,16 +28,20 @@ package io.github.mzmine.util.files;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -575,4 +579,57 @@ public class FileAndPathUtil {
   public static String safePathEncode(String name, String replaceStr) {
     return name.replaceAll("[^a-zA-Z0-9-_()\\.\\s]", replaceStr);
   }
+
+  /**
+   * Three options:
+   * <p>
+   * 1. a string that defines all files separated by lines \n
+   * <p>
+   * 2. a .txt text file with files listed separated by newline \n
+   * <p>
+   * 3. a wildcard path/*.mzML to grab all files
+   *
+   * @return extracted list of files
+   */
+  public static File[] parseFileInputArgument(final String input) throws IOException {
+    if (input.toLowerCase().endsWith(".txt")) {
+      try (var lines = Files.lines(Paths.get(input))) {
+        return lines.map(File::new).toArray(File[]::new);
+      }
+    }
+
+    if (input.contains("*")) {
+      return searchWithGlob(input);
+    }
+
+    // try to just use the input as files separated by newline
+    // matches all new line characters
+    return Arrays.stream(input.split("\\R")).map(File::new).toArray(File[]::new);
+  }
+
+  /**
+   * @param globPath path like path/*.mzML
+   * @return all matching files
+   */
+  public static @NotNull File[] searchWithGlob(String globPath) throws IOException {
+    var path = new File(globPath);
+//    var path = Paths.get(globPath);
+    return searchWithGlob(path.getParentFile().toPath(), path.getName());
+  }
+
+  /**
+   * @param rootDir parent directory
+   * @param pattern pattern like *.mzML
+   * @return all matching files
+   */
+  public static @NotNull File[] searchWithGlob(Path rootDir, String pattern) throws IOException {
+    PathMatcher matcher = FileSystems.getDefault()
+        .getPathMatcher((pattern.startsWith("glob:") ? "" : "glob:") + pattern);
+
+    try (Stream<Path> stream = Files.walk(rootDir, 1)) {
+      return stream.filter(file -> matcher.matches(file.getFileName())).map(Path::toFile)
+          .toArray(File[]::new);
+    }
+  }
+
 }
