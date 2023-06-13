@@ -133,7 +133,7 @@ public class LibraryEntryWrappedScan implements Scan {
   }
 
   @Override
-  public @NotNull RawDataFile getDataFile() {
+  public RawDataFile getDataFile() {
     return dataFile;
   }
 

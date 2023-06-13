@@ -134,7 +134,6 @@ public class StoredMobilityScan implements MobilityScan {
     return tic;
   }
 
-  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return getFrame().getDataFile();

@@ -26,22 +26,18 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk;
 
 import io.github.msdk.MSDKException;
-import io.github.msdk.MSDKMethod;
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.FileMemoryMapper;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.function.Predicate;
+import java.time.Instant;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import javolution.text.CharArray;
@@ -52,86 +48,74 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * <p>
  * This class contains methods which parse data in MzML format from {@link File File},
- * {@link Path Path} or {@link InputStream InputStream} <br> {@link MsScan Scan}s and
- * {@link Chromatogram Chromatogram}s will be parsed, and the values pre-loaded when the
- * {@link Predicate Predicate} is passed. Other {@link MsScan Scan}s and
- * {@link Chromatogram Chromatogram}s can be loaded on demand if the source is a {@link File File},
- * whereas, they will be dropped if the source is an {@link InputStream InputStream}
- * </p>
+ * {@link Path Path} or {@link InputStream InputStream} <br> scans will be parsed, and the values
+ * pre-loaded. Scans can be filtered out.
  */
-public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
+public class MzMLFileImportMethod extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(MzMLFileImportMethod.class.getName());
   private final File mzMLFile;
-
   private final InputStream inputStream;
-  private MzMLRawDataFile newRawFile;
   private MzMLParser parser;
-  private volatile boolean canceled;
-  private Predicate<MsScan> msScanPredicate = s -> true;
-  private ScanSelection scanFilter;
 
-  private MsProcessorList spectralProcessor;
-  private MemoryMapStorage storage;
+  private MzMLRawDataFile newRawFile;
+  private final ScanImportProcessorConfig scanProcessorConfig;
+  private final MemoryMapStorage storage;
 
   /**
-   * <p>
-   * Constructor for MzMLFileImportMethod that takes storage and advanced parameters to pass into
-   * MZMLParser
-   * </p>
+   * Read file
    */
-  public MzMLFileImportMethod(File mzMLFile, MemoryMapStorage storage,
-      MsProcessorList spectralProcessor, ScanSelection scanFilter) {
-    this(mzMLFile, null, storage, spectralProcessor, scanFilter);
+  public MzMLFileImportMethod(@NotNull Instant moduleCallDate, File mzMLFile,
+      MemoryMapStorage storage, ScanImportProcessorConfig scanProcessorConfig) {
+    this(moduleCallDate, mzMLFile, null, storage, scanProcessorConfig);
   }
 
 
   /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
+   * Read stream, e.g., from thermo RAW file parser
    *
    * @param inputStream an {@link InputStream InputStream} which contains data in MzML format.
    */
-  public MzMLFileImportMethod(InputStream inputStream, MemoryMapStorage storage,
-      MsProcessorList spectralProcessor, ScanSelection scanFilter) {
-    this(null, inputStream, storage, spectralProcessor, scanFilter);
+  public MzMLFileImportMethod(@NotNull Instant moduleCallDate, InputStream inputStream,
+      MemoryMapStorage storage, ScanImportProcessorConfig scanProcessorConfig) {
+    this(moduleCallDate, null, inputStream, storage, scanProcessorConfig);
   }
 
 
   /**
-   * <p>
-   * Internal constructor used to initialize instances of this object using other constructors.
-   * </p>
+   * Read file or stream. One is null
    */
-  private MzMLFileImportMethod(File mzMLFile, InputStream inputStream,
-      @Nullable MemoryMapStorage storage, @NotNull MsProcessorList spectralProcessor,
-      @NotNull ScanSelection scanFilter) {
+  private MzMLFileImportMethod(@NotNull Instant moduleCallDate, File mzMLFile,
+      InputStream inputStream, @Nullable MemoryMapStorage storage,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig) {
+    super(storage, moduleCallDate);
     this.mzMLFile = mzMLFile;
     this.inputStream = inputStream;
     this.storage = storage;
-    this.spectralProcessor = spectralProcessor;
-    this.canceled = false;
-    this.msScanPredicate = this.msScanPredicate.and(msScanPredicate);
-    this.scanFilter = scanFilter;
-    // TODO see if we can directly load into a real MZmine scan object instead of MsScan
-    msScanPredicate = scan -> scanFilter.matches(new MsdkScanWrapper(scan));
+    this.scanProcessorConfig = scanProcessorConfig;
+  }
+
+  @Override
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
+    try {
+      parseMzMl();
+    } catch (MSDKException e) {
+      var name = newRawFile == null ? "" : newRawFile.getName();
+      setErrorMessage("Error during parsing of mzML/raw file " + name);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+    setStatus(TaskStatus.FINISHED);
   }
 
   /**
-   * {@inheritDoc}
-   *
-   * <p>
    * Parse the MzML data and return the parsed data
-   * </p>
    *
    * @return a {@link MzMLRawDataFile MzMLRawDataFile} object containing the parsed data
    */
-  @Override
-  public MzMLRawDataFile execute() throws MSDKException {
-
+  public MzMLRawDataFile parseMzMl() throws MSDKException {
     try {
 
       InputStream is = null;
@@ -150,29 +134,28 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
       final XMLStreamReaderImpl xmlStreamReader = new XMLStreamReaderImpl();
       xmlStreamReader.setInput(is, "UTF-8");
 
-      this.parser = new MzMLParser(this, storage, spectralProcessor);
+      this.parser = new MzMLParser(this, storage, scanProcessorConfig);
       this.newRawFile = parser.getMzMLRawFile();
 
       int eventType;
       try {
         do {
           // check if parsing has been cancelled?
-          if (canceled) {
+          if (isCanceled()) {
             return null;
           }
 
           eventType = xmlStreamReader.next();
 
           switch (eventType) {
-            case XMLStreamConstants.START_ELEMENT:
+            case XMLStreamConstants.START_ELEMENT -> {
               final CharArray openingTagName = xmlStreamReader.getLocalName();
-              parser.processOpeningTag(xmlStreamReader, is, openingTagName);
-              break;
-
-            case XMLStreamConstants.END_ELEMENT:
+              parser.processOpeningTag(xmlStreamReader, openingTagName);
+            }
+            case XMLStreamConstants.END_ELEMENT -> {
               final CharArray closingTagName = xmlStreamReader.getLocalName();
               parser.processClosingTag(xmlStreamReader, closingTagName);
-              break;
+            }
 
 //            processCharacters method is not used in the moment
 //            might be returned if new random access xml parser is introduced
@@ -199,56 +182,26 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Float getFinishedPercentage() {
-    if (parser == null) {
-      return null;
-    } else {
-      return parser.getFinishedPercentage();
-    }
+  public String getTaskDescription() {
+    return newRawFile == null ? "" : "Parsing mzML file from " + newRawFile.getName();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RawDataFile getResult() {
+  public MzMLRawDataFile getResult() {
     return newRawFile;
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void cancel() {
-    this.canceled = true;
-  }
-
-  /**
-   * <p>
-   * Getter for the field <code>msScanPredicate</code>.
-   * </p>
-   *
-   * @return {@link Predicate Predicate} specified for {@link MsScan MsScan}s <br> The
-   * {@link Predicate Predicate} evaluates to true always, if it wasn't specified on initialization
-   */
-  public Predicate<MsScan> getMsScanPredicate() {
-    return msScanPredicate;
-  }
-
-  /**
-   * <p>
-   * Getter for the field <code>mzMLFile</code>.
-   * </p>
-   *
    * @return a {@link File File} instance of the MzML source if being read from a file <br> null if
    * the MzML source is an {@link InputStream InputStream}
    */
+  @Nullable
   public File getMzMLFile() {
     return mzMLFile;
   }
 
+  @Override
+  public double getFinishedPercentage() {
+    return parser == null ? 0 : parser.getFinishedPercentage();
+  }
 }

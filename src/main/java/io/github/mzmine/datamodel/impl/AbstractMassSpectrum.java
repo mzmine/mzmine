@@ -29,6 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -124,6 +126,12 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
    */
   @Override
   public MassSpectrumType getSpectrumType() {
+    if (spectrumType == null) {
+      spectrumType = ScanUtils.detectSpectrumType(
+          DataPointUtils.getDoubleBufferAsArray(getMzValues()),
+          DataPointUtils.getDoubleBufferAsArray(getIntensityValues()));
+    }
+
     return spectrumType;
   }
 

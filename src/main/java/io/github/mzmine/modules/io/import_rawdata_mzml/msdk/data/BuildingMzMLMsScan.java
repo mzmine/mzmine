@@ -25,23 +25,25 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.MsScanType;
-import io.github.msdk.datamodel.MsSpectrumType;
-import io.github.msdk.datamodel.PolarityType;
-import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
-import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgorithm;
 import io.github.msdk.util.MsSpectrumUtil;
-import io.github.msdk.util.tolerances.MzTolerance;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
-import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
@@ -49,6 +51,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -64,21 +67,19 @@ import org.jetbrains.annotations.Nullable;
  * MzMLMsScan class.
  * </p>
  */
-public class BuildingMzMLMsScan implements MsScan {
+public class BuildingMzMLMsScan extends MetadataOnlyScan {
 //public class BuildingMzMLMsScan implements Scan {
   //public class MzMLMsScan extends AbstractStorableSpectrum implements MsScan {
 
-  private final @NotNull MzMLRawDataFile dataFile;
   private final MzMLCVGroup cvParams;
   private final MzMLPrecursorList precursorList;
   private final MzMLProductList productList;
   private final MzMLScanList scanList;
   private final @NotNull String id;
-  private final @NotNull Integer scanNumber;
+  private final int scanNumber;
   private final int numOfDataPoints;
   private final Logger logger = Logger.getLogger(getClass().getName());
-  private MsSpectrumType spectrumType;
-  private Float tic;
+  private MassSpectrumType spectrumType;
   private Float retentionTime;
   private Range<Double> mzRange;
   private Range<Double> mzScanWindowRange;
@@ -94,30 +95,21 @@ public class BuildingMzMLMsScan implements MsScan {
 
 
   /**
-   * <p>
-   * Constructor for {@link BuildingMzMLMsScan MzMLMsScan}
-   * </p>
-   *
-   * @param dataFile        a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the
-   *                        data in
    * @param id              the Scan ID
    * @param scanNumber      the Scan Number
    * @param numOfDataPoints the number of data points in the m/z and intensity arrays
    */
-  public BuildingMzMLMsScan(MzMLRawDataFile dataFile, String id, Integer scanNumber,
-      int numOfDataPoints) {
+  public BuildingMzMLMsScan(String id, Integer scanNumber, int numOfDataPoints) {
     this.cvParams = new MzMLCVGroup();
     this.precursorList = new MzMLPrecursorList();
     this.productList = new MzMLProductList();
     this.scanList = new MzMLScanList();
-    this.dataFile = dataFile;
     this.id = id;
     this.scanNumber = scanNumber;
     this.numOfDataPoints = numOfDataPoints;
     this.mzBinaryDataInfo = null;
     this.intensityBinaryDataInfo = null;
     this.spectrumType = null;
-    this.tic = null;
     this.retentionTime = null;
     this.mzRange = null;
     this.mzScanWindowRange = null;
@@ -125,21 +117,12 @@ public class BuildingMzMLMsScan implements MsScan {
     this.intensityValues = null;
   }
 
-  /**
-   * <p>
-   * getCVParams.
-   * </p>
-   *
-   * @return a {@link ArrayList} object.
-   */
   public MzMLCVGroup getCVParams() {
     return cvParams;
   }
 
   /**
-   * <p>
-   * Getter for the field <code>mzBinaryDataInfo</code>.
-   * </p>
+   * Binary data that is loaded only if scan is in selection
    *
    * @return a {@link MzMLBinaryDataInfo} object.
    */
@@ -148,9 +131,7 @@ public class BuildingMzMLMsScan implements MsScan {
   }
 
   /**
-   * <p>
-   * Setter for the field <code>mzBinaryDataInfo</code>.
-   * </p>
+   * Binary data that is loaded only if scan is in selection
    *
    * @param mzBinaryDataInfo a {@link MzMLBinaryDataInfo} object.
    */
@@ -159,9 +140,7 @@ public class BuildingMzMLMsScan implements MsScan {
   }
 
   /**
-   * <p>
-   * Getter for the field <code>intensityBinaryDataInfo</code>.
-   * </p>
+   * Binary data that is loaded only if scan is in selection
    *
    * @return a {@link MzMLBinaryDataInfo} object.
    */
@@ -170,9 +149,7 @@ public class BuildingMzMLMsScan implements MsScan {
   }
 
   /**
-   * <p>
-   * Setter for the field <code>intensityBinaryDataInfo</code>.
-   * </p>
+   * Binary data that is loaded only if scan is in selection
    *
    * @param intensityBinaryDataInfo a {@link MzMLBinaryDataInfo} object.
    */
@@ -180,212 +157,93 @@ public class BuildingMzMLMsScan implements MsScan {
     this.intensityBinaryDataInfo = intensityBinaryDataInfo;
   }
 
-  /**
-   * <p>
-   * getPrecursorList.
-   * </p>
-   *
-   * @return a {@link MzMLPrecursorList} object.
-   */
   public MzMLPrecursorList getPrecursorList() {
     return precursorList;
   }
 
-  /**
-   * <p>
-   * getProductList.
-   * </p>
-   *
-   * @return a {@link MzMLProductList} object.
-   */
   public MzMLProductList getProductList() {
     return productList;
   }
 
-  /**
-   * <p>
-   * getScanList.
-   * </p>
-   *
-   * @return a {@link MzMLScanList} object.
-   */
   public MzMLScanList getScanList() {
     return scanList;
   }
 
-  /**
-   * <p>
-   * Getter for the field <code>id</code>.
-   * </p>
-   *
-   * @return a {@link String} object.
-   */
   public @NotNull String getId() {
     return id;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NotNull Integer getNumberOfDataPoints() {
-    return getMzBinaryDataInfo().getArrayLength();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public double[] getMzValues(double[] array) {
-    throw new UnsupportedOperationException(
-        "This scan was only used for import. Use the DoubleBuffer instead");
-  }
-
   public DoubleBuffer getDoubleBufferMzValues() {
+    if (mzValues == null) {
+      throw new UnsupportedOperationException(
+          "No data yet. Call load method to load data and memory map the scan.");
+    }
     return this.mzValues;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public float[] getIntensityValues(float[] array) {
-    throw new UnsupportedOperationException(
-        "This scan was only used for import. Use the DoubleBuffer instead");
-  }
 
   public DoubleBuffer getDoubleBufferIntensityValues() {
+    if (intensityValues == null) {
+      throw new UnsupportedOperationException(
+          "No data yet. Call load method to load data and memory map the scan.");
+    }
     return this.intensityValues;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public @NotNull MsSpectrumType getSpectrumType() {
-    if (spectrumType == null) {
-      if (getCVValue(MzMLCV.cvCentroidSpectrum).isPresent()) {
-        spectrumType = MsSpectrumType.CENTROIDED;
-      }
-
-      if (getCVValue(MzMLCV.cvProfileSpectrum).isPresent()) {
-        spectrumType = MsSpectrumType.PROFILE;
-      }
-
-      if (spectrumType != null) {
-        return spectrumType;
-      }
-
-      spectrumType = SpectrumTypeDetectionAlgorithm.detectSpectrumType(getMzValues(),
-          getIntensityValues(), numOfDataPoints);
+  public int getNumberOfDataPoints() {
+    if (intensityValues == null) {
+      throw new UnsupportedOperationException(
+          "No data yet. Call load method to load data and memory map the scan.");
     }
+    return intensityValues.limit();
+  }
+
+  @Override
+  public @Nullable Double getTIC() {
+    if (intensityValues == null) {
+      throw new UnsupportedOperationException(
+          "No data yet. Call load method to load data and memory map the scan.");
+    }
+    return Arrays.stream(getIntensityValues(new double[getNumberOfDataPoints()])).sum();
+  }
+
+  @Override
+  public double[] getMzValues(@NotNull final double[] dst) {
+    if (mzValues == null) {
+      throw new UnsupportedOperationException(
+          "No data yet. Call load method to load data and memory map the scan.");
+    }
+    return DataPointUtils.getDoubleBufferAsArray(mzValues);
+  }
+
+  @Override
+  public double[] getIntensityValues(@NotNull final double[] dst) {
+    if (intensityValues == null) {
+      throw new UnsupportedOperationException(
+          "No data yet. Call load method to load data and memory map the scan.");
+    }
+    return DataPointUtils.getDoubleBufferAsArray(intensityValues);
+  }
+
+  @Override
+  public @NotNull MassSpectrumType getSpectrumType() {
+    if (spectrumType != null) {
+      return spectrumType;
+    }
+    if (getCVValue(MzMLCV.cvCentroidSpectrum).isPresent()) {
+      spectrumType = MassSpectrumType.CENTROIDED;
+    }
+
+    if (getCVValue(MzMLCV.cvProfileSpectrum).isPresent()) {
+      spectrumType = MassSpectrumType.PROFILE;
+    }
+    // cannot run on data here as it's not necessarily loaded
     return spectrumType;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public @NotNull Float getTIC() {
-    if (tic == null) {
-      try {
-        tic = MsSpectrumUtil.getTIC(getIntensityValues(), getNumberOfDataPoints());
-      } catch (NumberFormatException e) {
-        throw (new MSDKRuntimeException(
-            "Could not convert TIC value in mzML file to a float\n" + e));
-      }
-    }
-
-    return tic;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Range<Double> getMzRange() {
-    if (mzRange == null) {
-      Optional<String> cvv = getCVValue(MzMLCV.cvLowestMz);
-      Optional<String> cvv1 = getCVValue(MzMLCV.cvHighestMz);
-      if (cvv.isEmpty() || cvv1.isEmpty()) {
-        mzRange = MsSpectrumUtil.getMzRange(
-//            DataPointUtils.getDoubleBufferAsArray(getDoubleBufferMzValues()),
-            DataPointUtils.getDoubleBufferAsArray(mzValues),
-            getMzBinaryDataInfo().getArrayLength());
-        return mzRange;
-      }
-      try {
-        mzRange = Range.closed(Double.valueOf(cvv.get()), Double.valueOf(cvv1.get()));
-      } catch (NumberFormatException e) {
-        throw (new MSDKRuntimeException(
-            "Could not convert mz range value in mzML file to a double\n" + e));
-      }
-    }
-    return mzRange;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RawDataFile getRawDataFile() {
-    return dataFile;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NotNull Integer getScanNumber() {
-    return scanNumber;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getScanDefinition() {
-    Optional<String> scanDefinition = Optional.empty();
-    if (!getScanList().getScans().isEmpty()) {
-      scanDefinition = getCVValue(getScanList().getScans().get(0), MzMLCV.cvScanFilterString);
-    }
-    return scanDefinition.orElse("");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMsFunction() {
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NotNull Integer getMsLevel() {
-    int msLevel = 1;
-    Optional<String> value = getCVValue(MzMLCV.cvMSLevel);
-    if (value.isPresent()) {
-      msLevel = Integer.parseInt(value.get());
-    }
-    return msLevel;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NotNull MsScanType getMsScanType() {
-    return MsScanType.UNKNOWN;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Range<Double> getScanningRange() {
+  public @NotNull Range<Double> getScanningMZRange() {
     if (mzScanWindowRange == null) {
       if (!getScanList().getScans().isEmpty()) {
         Optional<MzMLScanWindowList> scanWindowList = getScanList().getScans().get(0)
@@ -395,27 +253,78 @@ public class BuildingMzMLMsScan implements MsScan {
           Optional<String> cvv = getCVValue(scanWindow, MzMLCV.cvScanWindowLowerLimit);
           Optional<String> cvv1 = getCVValue(scanWindow, MzMLCV.cvScanWindowUpperLimit);
           if (cvv.isEmpty() || cvv1.isEmpty()) {
-            mzScanWindowRange = getMzRange();
-            return mzScanWindowRange;
-          }
-          try {
-            mzScanWindowRange = Range.closed(Double.valueOf(cvv.get()), Double.valueOf(cvv1.get()));
-          } catch (NumberFormatException e) {
-            throw (new MSDKRuntimeException(
-                "Could not convert scan window range value in mzML file to a double\n" + e));
+            mzScanWindowRange = getDataPointMZRange();
+          } else {
+            try {
+              mzScanWindowRange = Range.closed(Double.valueOf(cvv.get()),
+                  Double.valueOf(cvv1.get()));
+            } catch (NumberFormatException e) {
+              throw (new MSDKRuntimeException(
+                  "Could not convert scan window range value in mzML file to a double\n" + e));
+            }
           }
         }
       }
     }
 
-    return mzScanWindowRange;
+    return requireNonNullElse(mzScanWindowRange, Range.all());
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public @NotNull PolarityType getPolarity() {
+  public @NotNull Range<Double> getDataPointMZRange() {
+    if (mzRange == null) {
+      Optional<String> cvv = getCVValue(MzMLCV.cvLowestMz);
+      Optional<String> cvv1 = getCVValue(MzMLCV.cvHighestMz);
+      if (cvv.isEmpty() || cvv1.isEmpty()) {
+        // mz values is null if data was not loaded yet
+        if (mzValues != null) {
+          mzRange = MsSpectrumUtil.getMzRange(DataPointUtils.getDoubleBufferAsArray(mzValues),
+              getMzBinaryDataInfo().getArrayLength());
+        }
+      } else {
+        try {
+          mzRange = Range.closed(Double.valueOf(cvv.get()), Double.valueOf(cvv1.get()));
+        } catch (NumberFormatException e) {
+          throw (new MSDKRuntimeException(
+              "Could not convert mz range value in mzML file to a double\n" + e));
+        }
+      }
+    }
+    return requireNonNullElse(mzRange, Range.all());
+  }
+
+  @Override
+  public RawDataFile getDataFile() {
+    return null;
+  }
+
+  @Override
+  public int getScanNumber() {
+    return scanNumber;
+  }
+
+  @Override
+  public String getScanDefinition() {
+    Optional<String> scanDefinition = Optional.empty();
+    if (!getScanList().getScans().isEmpty()) {
+      scanDefinition = getCVValue(getScanList().getScans().get(0), MzMLCV.cvScanFilterString);
+    }
+    return scanDefinition.orElse("");
+  }
+
+  @Override
+  public int getMSLevel() {
+    int msLevel = 1;
+    Optional<String> value = getCVValue(MzMLCV.cvMSLevel);
+    if (value.isPresent()) {
+      msLevel = Integer.parseInt(value.get());
+    }
+    return msLevel;
+  }
+
+
+  @NotNull
+  public io.github.mzmine.datamodel.PolarityType getPolarity() {
     if (getCVValue(MzMLCV.cvPolarityPositive).isPresent()) {
       return PolarityType.POSITIVE;
     }
@@ -439,18 +348,6 @@ public class BuildingMzMLMsScan implements MsScan {
     return PolarityType.UNKNOWN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ActivationInfo getSourceInducedFragmentation() {
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public @NotNull List<IsolationInfo> getIsolations() {
     if (precursorList.getPrecursorElements().size() == 0) {
       return Collections.emptyList();
@@ -547,11 +444,8 @@ public class BuildingMzMLMsScan implements MsScan {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Float getRetentionTime() {
+  public float getRetentionTime() {
     if (retentionTime != null) {
       return retentionTime;
     }
@@ -564,49 +458,61 @@ public class BuildingMzMLMsScan implements MsScan {
 
         // check accession
         switch (accession) {
-          case MzMLCV.MS_RT_SCAN_START:
-          case MzMLCV.MS_RT_RETENTION_TIME:
-          case MzMLCV.MS_RT_RETENTION_TIME_LOCAL:
-          case MzMLCV.MS_RT_RETENTION_TIME_NORMALIZED:
-            if (!value.isPresent()) {
+          case MzMLCV.MS_RT_SCAN_START, MzMLCV.MS_RT_RETENTION_TIME, MzMLCV.MS_RT_RETENTION_TIME_LOCAL, MzMLCV.MS_RT_RETENTION_TIME_NORMALIZED -> {
+            if (value.isEmpty()) {
               throw new IllegalStateException(
                   "For retention time cvParam the `value` must have been specified");
             }
             if (unitAccession.isPresent()) {
               // there was a time unit defined
-              switch (param.getUnitAccession().get()) {
-                case MzMLCV.cvUnitsMin1:
-                case MzMLCV.cvUnitsMin2:
-                  retentionTime = Float.parseFloat(value.get()) * 60f;
-                  break;
-                case MzMLCV.cvUnitsSec:
-                  retentionTime = Float.parseFloat(value.get());
-                  break;
-
-                default:
-                  throw new IllegalStateException(
-                      "Unknown time unit encountered: [" + unitAccession + "]");
+              switch (param.getUnitAccession().orElse("")) {
+                case MzMLCV.cvUnitsMin1, MzMLCV.cvUnitsMin2 ->
+                    retentionTime = Float.parseFloat(value.get()) * 60f;
+                case MzMLCV.cvUnitsSec -> retentionTime = Float.parseFloat(value.get());
+                default -> throw new IllegalStateException(
+                    "Unknown time unit encountered: [" + unitAccession + "]");
               }
             } else {
               // no time units defined, return the value as is
               retentionTime = Float.parseFloat(value.get());
             }
-            break;
-
-          default:
+          }
+          default -> {
             continue; // not a retention time parameter
+          }
         }
       }
     }
 
-    return retentionTime;
+    return retentionTime == null ? -1 : retentionTime;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public MzTolerance getMzTolerance() {
+  public @Nullable Float getInjectionTime() {
+    try {
+      return getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
+    } catch (Exception ex) {
+      // float parsing error
+      return null;
+    }
+  }
+
+  @Override
+  public @Nullable MsMsInfo getMsMsInfo() {
+    if (!getIsolations().isEmpty()) {
+      IsolationInfo isolationInfo = getIsolations().get(0);
+      ActivationInfo activationInfo = isolationInfo.getActivationInfo();
+      Float energy = activationInfo != null && activationInfo.getActivationEnergy() != null
+          ? activationInfo.getActivationEnergy().floatValue() : null;
+      ActivationMethod activationMethod = activationInfo != null ? ActivationMethod.valueOf(
+          activationInfo.getActivationType().name()) : null;
+
+      return new DDAMsMsInfoImpl(isolationInfo.getPrecursorMz(), isolationInfo.getPrecursorCharge(),
+          energy, this, null, getMSLevel(), activationMethod, null);
+    }
     return null;
   }
 
@@ -650,9 +556,7 @@ public class BuildingMzMLMsScan implements MsScan {
   }
 
   /**
-   * <p>
    * getScanNumber.
-   * </p>
    *
    * @param spectrumId a {@link String} object.
    * @return a {@link Integer} object.
@@ -683,12 +587,12 @@ public class BuildingMzMLMsScan implements MsScan {
     try {
       var specData = loadData();
       // process and filter - needs metadata so wrap
-      var wrappedScan = new MsdkScanWrapper(this);
-      specData = spectralProcessor.processScan(wrappedScan, specData);
+      specData = spectralProcessor.processScan(this, specData);
 
       // memory map
       this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
-      this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.intensities());
+      this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
+          specData.intensities());
 
     } catch (MSDKException | IOException e) {
       logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));

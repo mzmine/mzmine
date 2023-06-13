@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 import io.github.mzmine.datamodel.Scan;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Contains multiple steps to process
@@ -46,5 +47,11 @@ public class MsProcessorList implements MsProcessor {
       spectrum = processor.processScan(scan, spectrum);
     }
     return spectrum;
+  }
+
+  @Override
+  public String description() {
+    return "Processing steps:\n" + processors.stream().map(MsProcessor::description)
+        .collect(Collectors.joining("\n"));
   }
 }

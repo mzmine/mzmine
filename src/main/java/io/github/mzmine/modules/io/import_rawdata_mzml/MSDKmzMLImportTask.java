@@ -29,8 +29,6 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import com.google.common.math.Quantiles;
-import io.github.msdk.datamodel.MsScan;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
@@ -41,21 +39,13 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.CropMzMsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.DenormalizeInjectTimeMsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MassDetectorMsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SortByMzMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -99,13 +89,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private final InputStream fis;
   // advanced processing will apply mass detection directly to the scans
   private final MZmineProject project;
+  private final ScanImportProcessorConfig scanProcessorConfig;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private MzMLFileImportMethod msdkTask = null;
   private int totalScans = 0, parsedScans;
   private String description;
-  private MsProcessorList spectralProcessor;
-  private ScanSelection scanFilter;
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -114,7 +103,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, InputStream fisToOpen,
-      ParameterSet advancedParam, @NotNull final Class<? extends MZmineModule> module,
+      ScanImportProcessorConfig scanProcessorConfig, @NotNull final Class<? extends MZmineModule> module,
       @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
       @Nullable final MemoryMapStorage storage) {
     super(storage, moduleCallDate); // storage in raw data file
@@ -122,46 +111,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
     this.fis = fisToOpen;
     this.project = project;
     description = "Importing raw data file: " + fileToOpen.getName();
+    this.scanProcessorConfig = scanProcessorConfig;
     this.parameters = parameters;
     this.module = module;
-
-    createSpectralProcessors(advancedParam);
   }
-
-  private void createSpectralProcessors(final ParameterSet advanced) {
-    List<MsProcessor> processors = new ArrayList<>();
-    processors.add(new SortByMzMsProcessor());
-
-    if (advanced != null) {
-      MZmineProcessingStep<MassDetector> ms1Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectraImportParameters.msMassDetection, null);
-      MZmineProcessingStep<MassDetector> ms2Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectraImportParameters.ms2MassDetection, null);
-
-      boolean applyMassDetection = ms1Detector != null || ms2Detector != null;
-
-      boolean denormalizeMsn = advanced.getValue(
-          AdvancedSpectraImportParameters.denormalizeMSnScans);
-      var cropMzRange = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectraImportParameters.mzRange, null);
-      // create more steps
-      if (cropMzRange != null) {
-        processors.add(
-            new CropMzMsProcessor(cropMzRange.lowerEndpoint(), cropMzRange.upperEndpoint()));
-      }
-      if (applyMassDetection) {
-        processors.add(new MassDetectorMsProcessor(advanced));
-      }
-      if (denormalizeMsn) {
-        processors.add(new DenormalizeInjectTimeMsProcessor());
-      }
-
-      scanFilter = advanced.getValue(AdvancedSpectraImportParameters.scanFilter);
-    }
-
-    spectralProcessor = new MsProcessorList(processors);
-  }
-
 
   /**
    * @see java.lang.Runnable#run()
@@ -175,10 +128,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       // TODO create predicate to filter scans before loading them
 
       if (fis != null) {
-        msdkTask = new MzMLFileImportMethod(fis, storage, spectralProcessor, scanFilter);
+        msdkTask = new MzMLFileImportMethod(moduleCallDate, fis, storage, scanProcessorConfig);
       } else {
 //        msdkTask = new MzMLFileImportMethod(file);
-        msdkTask = new MzMLFileImportMethod(file, storage, spectralProcessor, scanFilter);
+        msdkTask = new MzMLFileImportMethod(moduleCallDate, file, storage, scanProcessorConfig);
       }
 
       addTaskStatusListener((task, newStatus, oldStatus) -> {
@@ -186,29 +139,28 @@ public class MSDKmzMLImportTask extends AbstractTask {
           msdkTask.cancel();
         }
       });
-      MzMLRawDataFile msdkTaskRes = msdkTask.execute();
-      io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
+      MzMLRawDataFile msdkTaskRes = msdkTask.parseMzMl();
 
       if (isCanceled()) {
         return;
       }
 
-      if (msdkTaskRes == null || msdkFile == null) {
+      if (msdkTaskRes == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("MSDK returned null");
         return;
       }
-      totalScans = msdkFile.getScans().size();
+      totalScans = msdkTaskRes.getScans().size();
 
       var startTimeStamp = DateTimeUtils.parseOrElse(msdkTaskRes.getStartTimeStamp(), null);
-      final boolean isIms = msdkFile.getScans().stream()
+      final boolean isIms = msdkTaskRes.getScans().stream()
           .anyMatch(s -> s instanceof BuildingMzMLMsScan scan && scan.getMobility() != null);
 
       final RawDataFileImpl newMZmineFile;
       if (isIms) {
-        newMZmineFile = buildIonMobilityFile(msdkFile);
+        newMZmineFile = buildIonMobilityFile(msdkTaskRes);
       } else {
-        newMZmineFile = buildLCMSFile(msdkFile);
+        newMZmineFile = buildLCMSFile(msdkTaskRes);
       }
       newMZmineFile.setStartTimeStamp(startTimeStamp);
       newMZmineFile.getAppliedMethods()
@@ -244,16 +196,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
     super.cancel();
   }
 
-  public RawDataFileImpl buildLCMSFile(io.github.msdk.datamodel.RawDataFile file)
-      throws IOException {
-    RawDataFileImpl newMZmineFile = new RawDataFileImpl(this.file.getName(), this.file.getAbsolutePath(), storage);
-    for (MsScan scan : file.getScans()) {
+  public RawDataFileImpl buildLCMSFile(MzMLRawDataFile file) throws IOException {
+    RawDataFileImpl newMZmineFile = new RawDataFileImpl(this.file.getName(),
+        this.file.getAbsolutePath(), storage);
+    for (BuildingMzMLMsScan mzMLScan : file.getScans()) {
       if (isCanceled()) {
         return newMZmineFile;
       }
-      BuildingMzMLMsScan mzMLScan = (BuildingMzMLMsScan) scan;
-
-      Scan newScan;
 
       //todo is wrapper needed?
 //      MsdkScanWrapper wrapper = new MsdkScanWrapper(mzMLScan);
@@ -264,8 +213,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 //          newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
 //              mzIntensities[1], MassSpectrumType.CENTROIDED);
 //
-      newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan,
-          mzMLScan.getDoubleBufferMzValues(), mzMLScan.getDoubleBufferIntensityValues(),
+      Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan,
           MassSpectrumType.CENTROIDED);
       ScanPointerMassList newMassList = new ScanPointerMassList(newScan);
       newScan.addMassList(newMassList);
@@ -279,9 +227,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
     return newMZmineFile;
   }
 
-  public IMSRawDataFileImpl buildIonMobilityFile(io.github.msdk.datamodel.RawDataFile file) throws IOException {
-    IMSRawDataFileImpl newMZmineFile = new IMSRawDataFileImpl(this.file.getName(), this.file.getAbsolutePath(),
-        storage);
+  public IMSRawDataFileImpl buildIonMobilityFile(MzMLRawDataFile file) throws IOException {
+    IMSRawDataFileImpl newImsFile = new IMSRawDataFileImpl(this.file.getName(),
+        this.file.getAbsolutePath(), storage);
 
     int mobilityScanNumberCounter = 0;
     int frameNumber = 1;
@@ -290,7 +238,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<PasefMsMsInfo> finishedImsMsMsInfos;
-    final IMSRawDataFile newImsFile = (IMSRawDataFile) newMZmineFile;
 
     // index ion mobility values first, some manufacturers don't save all scans for all frames if
     // they are empty.
@@ -300,11 +247,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
         .toArray();
 
 //    int previousFunction = 1;
-    for (MsScan scan : file.getScans()) {
+    for (BuildingMzMLMsScan mzMLScan : file.getScans()) {
       if (isCanceled()) {
-        return newMZmineFile;
+        return newImsFile;
       }
-      BuildingMzMLMsScan mzMLScan = (BuildingMzMLMsScan) scan;
       if (mzMLScan.getMobility() == null) {
         continue;
       }
@@ -315,7 +261,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       }
       final Matcher watersMatcher = watersPattern.matcher(mzMLScan.getId());
       if (buildingFrame == null
-          || Float.compare((scan.getRetentionTime() / 60f), buildingFrame.getRetentionTime())
+          || Float.compare((mzMLScan.getRetentionTime() / 60f), buildingFrame.getRetentionTime())
              != 0 /*|| (watersMatcher.matches() && Integer.parseInt(watersMatcher.group(1)) != previousFunction)*/) {
 //        previousFunction = watersMatcher.matches() ? Integer.parseInt(watersMatcher.group(1)) : 1;
 
@@ -328,7 +274,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
             mobilityScanNumberCounter++;
           }
 
-          finishedFrame.setMobilityScans(mobilityScans, applyMassDetection);
+          finishedFrame.setMobilityScans(mobilityScans, scanProcessorConfig.applyMassDetection());
           finishedFrame.setMobilities(mobilities);
           newImsFile.addScan(buildingFrame);
 
@@ -345,11 +291,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
           buildingImsMsMsInfos.clear();
         }
 
-        buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
-            scan.getRetentionTime() / 60f, null, null,
-            ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
-            ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-            scan.getScanningRange(), mzMLScan.getMobility().mobilityType(), null, null);
+        buildingFrame = new SimpleFrame(newImsFile, frameNumber, mzMLScan.getMSLevel(),
+            mzMLScan.getRetentionTime() / 60f, null, null, mzMLScan.getSpectrumType(), mzMLScan.getPolarity(),
+            mzMLScan.getScanDefinition(), mzMLScan.getScanningMZRange(),
+            mzMLScan.getMobility().mobilityType(), null, null);
         frameNumber++;
 
         description =
@@ -371,7 +316,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
       }
 
-      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, scan));
+      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;
@@ -379,16 +324,16 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
 
     // apply mass detection to frames and mobility scans
-    if (advancedParam != null) {
+    if (scanProcessorConfig.applyMassDetection()) {
       logger.warning("""
           Applying the advanced import (with mass detection) to an IMS mzML file only performs mass
            detection on the summed frame level. Better to perform individual steps of mass detection
             to the mobility scans and the summed frames.""");
       MsDataImportAndMassDetectWrapperTask massDetector = new MsDataImportAndMassDetectWrapperTask(
-          storage, newMZmineFile, this, parameters, moduleCallDate);
+          storage, newImsFile, this, scanProcessorConfig, moduleCallDate);
       massDetector.applyMassDetection();
     }
-    return newMZmineFile;
+    return newImsFile;
   }
 
   /**
@@ -400,12 +345,11 @@ public class MSDKmzMLImportTask extends AbstractTask {
    * consecutive mobility values. (tims does not have the same difference between every mobility
    * scan, hence the quarter.)
    */
-  private RangeMap<Double, Integer> indexMobilityValues(io.github.msdk.datamodel.RawDataFile file) {
+  private RangeMap<Double, Integer> indexMobilityValues(MzMLRawDataFile file) {
     final RangeMap<Double, Integer> mobilityCounts = TreeRangeMap.create();
 
     boolean isTims = false;
-    for (MsScan scan : file.getScans()) {
-      BuildingMzMLMsScan mzMLScan = (BuildingMzMLMsScan) scan;
+    for (BuildingMzMLMsScan mzMLScan : file.getScans()) {
       final Matcher matcher = watersPattern.matcher(mzMLScan.getId());
       if (matcher.matches() && !matcher.group(1).equals("1")) {
         continue;
@@ -447,15 +391,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
     return description;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
-    if (msdkTask == null || msdkTask.getFinishedPercentage() == null) {
+    if (msdkTask == null) {
       return 0.0;
     }
-    final double msdkProgress = msdkTask.getFinishedPercentage().doubleValue();
+    final double msdkProgress = msdkTask.getFinishedPercentage();
     final double parsingProgress = totalScans == 0 ? 0.0 : (double) parsedScans / totalScans;
     return (msdkProgress * 0.25) + (parsingProgress * 0.75);
   }

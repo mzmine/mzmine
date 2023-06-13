@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
-import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -44,8 +43,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWi
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Objects;
@@ -114,34 +111,16 @@ public class ConversionUtils {
     };
   }
 
-  /**
-   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
-   *
-   * @param scan the scan
-   * @return a {@link SimpleScan}
-   */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan) {
-    DoubleBuffer mzs = scan.getDoubleBufferMzValues();
-    DoubleBuffer intensities = scan.getDoubleBufferIntensityValues();
-    // we are sorting at this point to make sure mz are sorted, as not all mzML files are sorted
-    // latest converters should also ensure sorting of data points
-    // the other method uses sorted arrays
-    double[][] sorted = DataPointUtils.sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
-    return msdkScanToSimpleScan(rawDataFile, scan, sorted[0], sorted[1]);
+
+  public static Scan msdkScanToSimpleScan(final RawDataFile dataFile,
+      final BuildingMzMLMsScan scan) {
+    return msdkScanToSimpleScan(dataFile, scan, scan.getSpectrumType());
   }
 
-  /**
-   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
-   *
-   * @param scan              the scan
-   * @param sortedMzs         use these mz values instead of the scan data
-   * @param sortedIntensities use these intensity values instead of the scan data
-   * @return a {@link SimpleScan}
-   */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
-      double[] sortedMzs, double[] sortedIntensities) {
-    return msdkScanToSimpleScan(rawDataFile, scan, sortedMzs, sortedIntensities,
-        ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
+  public static Scan msdkScanToSimpleScan(final RawDataFile dataFile, final BuildingMzMLMsScan scan,
+      final MassSpectrumType spectrumType) {
+    return msdkScanToSimpleScan(dataFile, scan, scan.getDoubleBufferMzValues(),
+        scan.getDoubleBufferIntensityValues(), spectrumType);
   }
 
   /**
@@ -154,17 +133,16 @@ public class ConversionUtils {
    * @return a {@link SimpleScan}
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
-      double[] sortedMzs, double[] sortedIntensities, MassSpectrumType spectrumType) {
+      DoubleBuffer mzs, DoubleBuffer intensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
       final var precursorElements = scan.getPrecursorList().getPrecursorElements();
       if (precursorElements.size() == 1) {
-        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMsLevel());
+        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMSLevel());
       } else if (precursorElements.size() > 1) {
-        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMsLevel());
+        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMSLevel());
       }
     }
-
     Float injTime = null;
     try {
       injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
@@ -175,47 +153,18 @@ public class ConversionUtils {
       // float parsing error
     }
 
-    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, info, sortedMzs, sortedIntensities, spectrumType,
-        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-        scan.getScanningRange(), injTime);
+    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMSLevel(),
+        scan.getRetentionTime() / 60, info, mzs, intensities, spectrumType, scan.getPolarity(),
+        scan.getScanDefinition(), scan.getScanningMZRange(), injTime);
 
     return newScan;
   }
 
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
-      DoubleBuffer sortedMzs, DoubleBuffer sortedIntensities, MassSpectrumType spectrumType) {
-    DDAMsMsInfo info = null;
-    if (scan.getPrecursorList() != null) {
-      final var precursorElements = scan.getPrecursorList().getPrecursorElements();
-      if (precursorElements.size() == 1) {
-        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMsLevel());
-      } else if (precursorElements.size() > 1) {
-        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMsLevel());
-      }
-    }
-
-    Float injTime = null;
-    try {
-      injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
-          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
-          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
-          .orElse(null);
-    } catch (Exception e) {
-      // float parsing error
-    }
-
-    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, info, sortedMzs, sortedIntensities, spectrumType,
-        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-        scan.getScanningRange(), injTime);
-
-    return newScan;
-  }
-
-  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum, MsScan scan) {
-    return new BuildingMobilityScan(scannum, scan.getMzValues(),
-        convertFloatsToDoubles(scan.getIntensityValues()));
+  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
+    // TODO make sure memory mapping is not done twice - maybe turn off memory mapping for those scans
+    var dps = scan.getNumberOfDataPoints();
+    return new BuildingMobilityScan(scannum, scan.getMzValues(new double[dps]),
+        scan.getIntensityValues(new double[dps]));
   }
 
   /**
@@ -295,6 +244,7 @@ public class ConversionUtils {
       }
     }
   }
+
 
   /*
    * @Nullable public MzMLMobility getMobility(MsScan scan) { if

@@ -41,4 +41,6 @@ public interface MsProcessor {
    * @return resulting spectral data or input data if on no change
    */
   SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum);
+
+  String description();
 }

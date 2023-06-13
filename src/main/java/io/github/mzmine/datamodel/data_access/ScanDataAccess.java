@@ -318,7 +318,7 @@ public abstract class ScanDataAccess implements Scan {
   }
 
   @Override
-  public @NotNull RawDataFile getDataFile() {
+  public RawDataFile getDataFile() {
     return dataFile;
   }
 

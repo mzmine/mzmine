@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
+import io.github.mzmine.datamodel.Scan;
+
 /**
  * Data structure to represent spectral data in memory
  *
@@ -32,4 +34,8 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
  */
 public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
 
+  public SimpleSpectralArrays(final Scan scan) {
+    this(scan.getMzValues(new double[scan.getNumberOfDataPoints()]),
+        scan.getIntensityValues(new double[scan.getNumberOfDataPoints()]));
+  }
 }

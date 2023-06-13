@@ -218,7 +218,6 @@ public class CachedFrame implements Frame {
         "Not intended. This frame is used for visualisation only");
   }
 
-  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return originalFrame.getDataFile();

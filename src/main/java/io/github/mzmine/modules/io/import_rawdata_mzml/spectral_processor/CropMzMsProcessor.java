@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
 import java.util.Arrays;
 
 public class CropMzMsProcessor implements MsProcessor {
@@ -47,5 +48,11 @@ public class CropMzMsProcessor implements MsProcessor {
     var mzs = Arrays.copyOfRange(spectrum.mzs(), lower, upper);
     var intensities = Arrays.copyOfRange(spectrum.intensities(), lower, upper);
     return new SimpleSpectralArrays(mzs, intensities);
+  }
+
+  @Override
+  public String description() {
+    var format = MZmineCore.getConfiguration().getGuiFormats();
+    return "Crop m/z to " + format.mz(min) + " - " + format.mz(max);
   }
 }

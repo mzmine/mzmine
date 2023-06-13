@@ -73,4 +73,16 @@ public class MassDetectorMsProcessor implements MsProcessor {
     // no mass detection return input
     return spectrum;
   }
+
+  @Override
+  public String description() {
+    StringBuilder b = new StringBuilder("Applying mass detection on scans:");
+    if (ms1Detector != null) {
+      b.append("\n  - MS1: ").append(ms1Detector.getParameterSet().toString());
+    }
+    if (ms2Detector != null) {
+      b.append("\n  - MS2: ").append(ms2Detector.getParameterSet().toString());
+    }
+    return b.toString();
+  }
 }

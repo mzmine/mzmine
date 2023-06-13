@@ -148,7 +148,6 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     return mergingType;
   }
 
-  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return rawDataFile;

@@ -110,7 +110,7 @@ class MzMLChromatogram implements Chromatogram {
   @Override
   @Nullable
   public RawDataFile getRawDataFile() {
-    return dataFile;
+    throw new UnsupportedOperationException("DataFile was changed in type");
   }
 
   /**

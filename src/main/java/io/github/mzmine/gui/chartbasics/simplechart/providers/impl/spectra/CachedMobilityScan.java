@@ -149,7 +149,6 @@ public class CachedMobilityScan implements MobilityScan {
     return tic;
   }
 
-  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return originalMobilityScan.getDataFile();

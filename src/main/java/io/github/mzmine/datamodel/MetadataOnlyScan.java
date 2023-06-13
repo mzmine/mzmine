@@ -41,6 +41,12 @@ public abstract class MetadataOnlyScan implements Scan {
   }
 
   @Override
+  public @Nullable Double getTIC() {
+    throw new UnsupportedOperationException(
+        "This scan contains no data, only metadata and is only used to build a scan while reading data.");
+  }
+
+  @Override
   public double[] getMzValues(@NotNull final double[] dst) {
     throw new UnsupportedOperationException(
         "This scan contains no data, only metadata and is only used to build a scan while reading data.");

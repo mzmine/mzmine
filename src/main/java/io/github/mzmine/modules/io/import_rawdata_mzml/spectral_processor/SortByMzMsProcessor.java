@@ -38,4 +38,9 @@ public class SortByMzMsProcessor implements MsProcessor {
   public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
     return DataPointUtils.sort(spectrum, DataPointSorter.DEFAULT_MZ_ASCENDING);
   }
+
+  @Override
+  public String description() {
+    return "Sort by m/z";
+  }
 }

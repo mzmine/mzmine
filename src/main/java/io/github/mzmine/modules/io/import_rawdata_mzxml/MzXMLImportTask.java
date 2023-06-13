@@ -26,28 +26,23 @@
 package io.github.mzmine.modules.io.import_rawdata_mzxml;
 
 import com.google.common.base.Strings;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
-import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.ByteArrayInputStream;
@@ -55,7 +50,6 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -75,6 +69,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MzXMLImportTask extends AbstractTask {
 
+  private final ScanImportProcessorConfig scanProcessorConfig;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -114,12 +109,6 @@ public class MzXMLImportTask extends AbstractTask {
    */
   private final LinkedList<SimpleScan> parentStack;
 
-
-  // advanced processing will apply mass detection directly to the scans
-  private final boolean applyMassDetection;
-  private MZmineProcessingStep<MassDetector> ms1Detector = null;
-  private MZmineProcessingStep<MassDetector> ms2Detector = null;
-
   /*
    * This variable hold the present scan or fragment, it is send to the stack when another
    * scan/fragment appears as a parser.startElement
@@ -134,10 +123,11 @@ public class MzXMLImportTask extends AbstractTask {
   }
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      AdvancedSpectraImportParameters advancedParam,
+      ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
+    this.scanProcessorConfig = scanProcessorConfig;
     this.parameters = parameters;
     this.module = module;
     // 256 kilo-chars buffer
@@ -146,22 +136,6 @@ public class MzXMLImportTask extends AbstractTask {
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
-
-    if (advancedParam != null) {
-      if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-        this.ms1Detector = advancedParam.getParameter(
-            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
-      }
-      if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-        this.ms2Detector = advancedParam.getParameter(
-            AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
-      }
-      // currently, we do not support injection times from mzXML file format
-//      denormalizeMSnScans = advancedParam.getValue(
-//          AdvancedSpectraImportParameters.denormalizeMSnScans);
-    }
-
-    this.applyMassDetection = ms1Detector != null || ms2Detector != null;
   }
 
   /**
@@ -412,7 +386,6 @@ public class MzXMLImportTask extends AbstractTask {
         // make a data input stream
         DataInputStream peakStream = new DataInputStream(new ByteArrayInputStream(peakBytes));
 
-        DataPoint[] dps = new DataPoint[peaksCount];
         double[] mzValues = new double[peaksCount];
         double[] intensityValues = new double[peaksCount];
 
@@ -431,42 +404,30 @@ public class MzXMLImportTask extends AbstractTask {
             }
 
             // Copy m/z and intensity data
-            dps[i] = new SimpleDataPoint(mz, intensity);
+            mzValues[i] = mz;
+            intensityValues[i] = intensity;
           }
-          // sort because old converters might create unsorted spectral data
-          Arrays.sort(dps, DataPointSorter.DEFAULT_MZ_ASCENDING);
+          // data reading finished, apply data processing like sorting cropping mass detection if selected
+          var processedData = scanProcessorConfig.processor()
+              .processScan(buildingScan, new SimpleSpectralArrays(mzValues, intensityValues));
 
-          for (int i = 0; i < dps.length; i++) {
-            mzValues[i] = dps[i].getMZ();
-            intensityValues[i] = dps[i].getIntensity();
-          }
-
+          mzValues = processedData.mzs();
+          intensityValues = processedData.intensities();
         } catch (IOException eof) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Corrupt mzXML file");
           throw new SAXException("Parsing Cancelled");
         }
 
-        if (applyMassDetection) {
-          // wrap scan
-          double[][] mzIntensities = null;
-
-          // apply mass detection
-          if (ms1Detector != null && msLevel == 1) {
-            mzIntensities = applyMassDetection(ms1Detector, mzValues, intensityValues);
-          } else if (ms2Detector != null && msLevel >= 2) {
-            mzIntensities = applyMassDetection(ms2Detector, mzValues, intensityValues);
-          }
-
-          if (mzIntensities != null) {
+        if (scanProcessorConfig.applyMassDetection()) {
+          if (intensityValues != null) {
             final DDAMsMsInfo info =
                 msLevel != 1 && Double.compare(precursorMz, 0d) != 0 ? new DDAMsMsInfoImpl(
                     precursorMz, precursorCharge, null, null, null, msLevel,
                     ActivationMethod.UNKNOWN, null) : null;
             // Set the centroided / thresholded data points to the scan
             buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
-                mzIntensities[0], mzIntensities[1], MassSpectrumType.CENTROIDED, polarity, scanId,
-                null);
+                mzValues, intensityValues, MassSpectrumType.CENTROIDED, polarity, scanId, null);
 
             // create mass list and scan. Override data points and spectrum type
             ScanPointerMassList newMassList = new ScanPointerMassList(buildingScan);
@@ -491,20 +452,6 @@ public class MzXMLImportTask extends AbstractTask {
       }
     }
 
-    /**
-     * Apply mass detection
-     *
-     * @param msDetector  mass detection module
-     * @param mzs         input values for mass detection
-     * @param intensities input values
-     * @return new mzs: double[0]; new intensities: double[1] arrays
-     */
-    private double[][] applyMassDetection(MZmineProcessingStep<MassDetector> msDetector,
-        double[] mzs, double[] intensities) {
-      // wrap data points in a simple mass spectrum
-      return msDetector.getModule()
-          .getMassValues(new SimpleMassSpectrum(mzs, intensities), msDetector.getParameterSet());
-    }
 
     private void reset() {
       buildingScan = null;

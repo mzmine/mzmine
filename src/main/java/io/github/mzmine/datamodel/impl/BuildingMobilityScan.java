@@ -190,7 +190,6 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @NotNull
   @Override
   public RawDataFile getDataFile() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());

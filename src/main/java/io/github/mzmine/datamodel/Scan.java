@@ -120,7 +120,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return RawDataFile containing this Scan
    */
-  @NotNull RawDataFile getDataFile();
+  RawDataFile getDataFile();
 
   /**
    * @return Scan number

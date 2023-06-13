@@ -30,15 +30,12 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,9 +46,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
   private final RawDataFile newMZmineFile;
   private final AbstractTask importTask;
-  private final Boolean denormalizeMSnScans;
-  private MZmineProcessingStep<MassDetector> ms1Detector = null;
-  private MZmineProcessingStep<MassDetector> ms2Detector = null;
+  private final ScanImportProcessorConfig scanProcessorConfig;
 
   private int totalScans = 1;
   private final int parsedScans = 0;
@@ -61,42 +56,33 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    * detection during data import. This task calls the data import and applies mass detection
    * afterwards.
    *
-   * @param storageMassLists data storage for mass lists (usually different to that of the data
-   *                         file
-   * @param newMZmineFile    the resulting data file
-   * @param importTask       the data import task (that does not support the advanced import option
-   *                         to directly centroid/threshold)
-   * @param advancedParam    advanced parameters to apply mass detection
+   * @param storageMassLists    data storage for mass lists (usually different to that of the data
+   *                            file
+   * @param newMZmineFile       the resulting data file
+   * @param importTask          the data import task (that does not support the advanced import
+   *                            option to directly centroid/threshold)
+   * @param scanProcessorConfig control processing
    */
   public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists,
-      RawDataFile newMZmineFile, AbstractTask importTask, @NotNull ParameterSet advancedParam,
-      @NotNull Instant moduleCallDate) {
+      RawDataFile newMZmineFile, AbstractTask importTask,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig, @NotNull Instant moduleCallDate) {
     super(storageMassLists, moduleCallDate);
     this.newMZmineFile = newMZmineFile;
     this.importTask = importTask;
-
-    if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-      this.ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
-          .getEmbeddedParameter().getValue();
-    }
-    if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-      this.ms2Detector = advancedParam.getParameter(
-          AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
-    }
-    denormalizeMSnScans = advancedParam.getValue(
-        AdvancedSpectraImportParameters.denormalizeMSnScans);
+    this.scanProcessorConfig = scanProcessorConfig;
   }
 
   @Override
   public String getTaskDescription() {
     return importTask.isFinished() || importTask.isCanceled() ? "Applying mass detection on "
-        + newMZmineFile.getName() : importTask.getTaskDescription();
+                                                                + newMZmineFile.getName()
+        : importTask.getTaskDescription();
   }
 
   @Override
   public double getFinishedPercentage() {
     return totalScans > 0 ? (importTask.getFinishedPercentage() + parsedScans / (double) totalScans)
-        / 2d : importTask.getFinishedPercentage() / 2d;
+                            / 2d : importTask.getFinishedPercentage() / 2d;
   }
 
   @Override
@@ -151,22 +137,13 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
       Scan scan = data.nextScan();
 
-      int msLevel = Objects.requireNonNullElse(scan.getMSLevel(), 1);
-      double[][] mzIntensities = null;
-      if (ms1Detector != null && msLevel <= 1) {
-        mzIntensities = ms1Detector.getModule().getMassValues(data, ms1Detector.getParameterSet());
-      } else if (ms2Detector != null && msLevel >= 2) {
-        mzIntensities = ms2Detector.getModule().getMassValues(data, ms2Detector.getParameterSet());
-        if (denormalizeMSnScans) {
-          ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
-              scan.getInjectionTime());
-        }
-      }
+      var processedData = scanProcessorConfig.processor()
+          .processScan(scan, new SimpleSpectralArrays(scan));
 
-      if (mzIntensities != null) {
+      if (scanProcessorConfig.applyMassDetection()) {
         // uses a different storage for mass lists then the one defined for the MS data import
-        SimpleMassList newMassList = new SimpleMassList(storage, mzIntensities[0],
-            mzIntensities[1]);
+        SimpleMassList newMassList = new SimpleMassList(storage, processedData.mzs(),
+            processedData.intensities());
         scan.addMassList(newMassList);
       }
     }

@@ -208,7 +208,7 @@ public class CachedIMSFrame implements Frame {
   }
 
   @Override
-  public @NotNull RawDataFile getDataFile() {
+  public RawDataFile getDataFile() {
     return originalFrame.getDataFile();
   }
 

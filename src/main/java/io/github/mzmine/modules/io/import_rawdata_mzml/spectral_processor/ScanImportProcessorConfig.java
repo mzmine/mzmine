@@ -25,23 +25,31 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.ArrayList;
+import java.util.List;
 
-public class DenormalizeInjectTimeMsProcessor implements MsProcessor {
+/**
+ * Configuration that controls scan filtering and processing during data import
+ *
+ * @param scanFilter
+ * @param processor
+ * @param applyMassDetection
+ */
+public record ScanImportProcessorConfig(ScanSelection scanFilter, MsProcessorList processor,
+                                        boolean applyMassDetection) {
 
-
-  public DenormalizeInjectTimeMsProcessor() {
-  }
-
-  public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
-    ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(spectrum.intensities(),
-        scan.getInjectionTime());
-    return spectrum;
+  public static ScanImportProcessorConfig createDefault() {
+    List<MsProcessor> processors = new ArrayList<>();
+    processors.add(new SortByMzMsProcessor());
+    return new ScanImportProcessorConfig(ScanSelection.ALL_SCANS, new MsProcessorList(processors),
+        false);
   }
 
   @Override
-  public String description() {
-    return "Denormalize MSn scans by multiplying intensities with the injection time (traps only)";
+  public String toString() {
+    return "ScanImportProcessorConfig{scanFilter=%s, applyMassDetection=%s, processor=%s}".formatted(
+        scanFilter, processor.description(), applyMassDetection);
   }
+
 }

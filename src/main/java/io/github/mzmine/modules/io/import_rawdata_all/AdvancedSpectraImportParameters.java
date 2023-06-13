@@ -61,7 +61,7 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getMZFormat()), false);
 
   public AdvancedSpectraImportParameters() {
-    super(msMassDetection, ms2MassDetection, denormalizeMSnScans, mzRange);
+    super(scanFilter, msMassDetection, ms2MassDetection, denormalizeMSnScans, mzRange);
   }
 
 }

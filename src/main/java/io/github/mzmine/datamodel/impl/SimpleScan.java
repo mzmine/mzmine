@@ -56,10 +56,21 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private MsMsInfo msMsInfo;
 
   /**
-   * Clone constructor
+   * clone scan with new data
    */
   public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
+
+    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
+        newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
+        sc.getScanDefinition(), sc.getScanningMZRange(), sc.getInjectionTime());
+  }
+
+  /**
+   * clone scan with new data
+   */
+  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, DoubleBuffer newMzValues,
+      DoubleBuffer newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
         newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
@@ -202,7 +213,6 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @NotNull
   public RawDataFile getDataFile() {
     return dataFile;
   }

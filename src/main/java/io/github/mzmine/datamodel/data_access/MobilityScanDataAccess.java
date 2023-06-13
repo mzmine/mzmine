@@ -117,7 +117,6 @@ public class MobilityScanDataAccess implements MobilityScan {
     return currentMobilityScan;
   }
 
-  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return dataFile;

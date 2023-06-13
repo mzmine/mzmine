@@ -25,12 +25,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,39 +55,23 @@ public class MzMLParser {
 
   private final Vars vars;
   private final TagTracker tracker;
-  private final MzMLRawDataFile newRawFile;
   private final MzMLFileImportMethod importer;
+  private final MemoryMapStorage storage;
+  private final ScanImportProcessorConfig scanProcessorConfig;
+
   private int totalScans = 0, parsedScans = 0;
+  private final MzMLRawDataFile newRawFile;
 
-  private MemoryMapStorage storage;
-  private MsProcessorList spectralProcessor;
-
-
-  /**
-   * <p>
-   * Constructor for {@link MzMLParser MzMLParser}
-   * </p>
-   *
-   * @param importer an instance of an initialized
-   *                 {@link MzMLFileImportMethod MzMLFileImportMethod}
-   */
-  public MzMLParser(MzMLFileImportMethod importer) {
-    this.vars = new Vars();
-    this.tracker = new TagTracker();
-    this.importer = importer;
-    this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
-        vars.spectrumList, vars.chromatogramsList);
-  }
 
   public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
-      MsProcessorList spectralProcessor) {
+      ScanImportProcessorConfig scanProcessorConfig) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
     this.importer = importer;
     this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
         vars.spectrumList, vars.chromatogramsList);
     this.storage = storage;
-    this.spectralProcessor = spectralProcessor;
+    this.scanProcessorConfig = scanProcessorConfig;
   }
 
   /**
@@ -102,9 +84,8 @@ public class MzMLParser {
    * @param is              {@link InputStream InputStream} of the mzML data
    * @param openingTagName  The tag <code>xmlStreamReader</code> entered
    */
-  public void processOpeningTag(XMLStreamReaderImpl xmlStreamReader, InputStream is,
-      CharArray openingTagName)
-      throws XMLStreamException, IOException, DataFormatException, MSDKException {
+  public void processOpeningTag(XMLStreamReaderImpl xmlStreamReader, CharArray openingTagName)
+      throws XMLStreamException, IOException, DataFormatException {
     tracker.enter(openingTagName);
 
     if (tracker.current().contentEquals((MzMLTags.TAG_RUN))) {
@@ -133,7 +114,8 @@ public class MzMLParser {
     if (tracker.current().contentEquals((MzMLTags.TAG_CHROMATOGRAM_LIST))) {
       final CharArray defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
           MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
-      newRawFile.setDefaultDataProcessingChromatogram(defaultDataProcessingRefChromatogram.toString());
+      newRawFile.setDefaultDataProcessingChromatogram(
+          defaultDataProcessingRefChromatogram.toString());
     }
 
     if (openingTagName.contentEquals((MzMLTags.TAG_SPECTRUM_LIST))) {
@@ -157,12 +139,12 @@ public class MzMLParser {
     if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST)) {
       if (openingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
         String id = getRequiredAttribute(xmlStreamReader, "id").toString();
-        Integer index = getRequiredAttribute(xmlStreamReader, "index").toInt();
+        int index = getRequiredAttribute(xmlStreamReader, "index").toInt();
         vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
             "defaultArrayLength").toInt();
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
         //        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
-        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
+        vars.spectrum = new BuildingMzMLMsScan(id, scanNumber, vars.defaultArrayLength);
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
@@ -241,8 +223,6 @@ public class MzMLParser {
           vars.binaryDataInfo.setTextContent(xmlStreamReader.getElementText());
           tracker.exit(tracker.current());
         }
-
-
       } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
         String refValue = getRequiredAttribute(xmlStreamReader, "ref").toString();
         for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
@@ -529,13 +509,12 @@ public class MzMLParser {
 
   /**
    * Called when spectrum end is read. Check if spectrum is filtered - skip this scan if not in
-   * {@link MzMLFileImportMethod#getMsScanPredicate()}. Then process data points and memory map
-   * resulting data to disk to save RAM.
+   * filter. Then process data points and memory map resulting data to disk to save RAM.
    */
   private void filterProcessFinalizeScan() {
     var spectrum = vars.spectrum;
-    if (importer.getMsScanPredicate().test(spectrum)) {
-      if (spectrum.loadProcessMemMapData(storage, spectralProcessor)) {
+    if (scanProcessorConfig.scanFilter().matches(spectrum)) {
+      if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig.processor())) {
         vars.spectrumList.add(spectrum);
       } else {
         logger.warning("Could not load and process spectral data of scan #%d".formatted(
@@ -559,27 +538,15 @@ public class MzMLParser {
   public void processCharacters(XMLStreamReaderImpl xmlStreamReader) {
     if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
-      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && importer.getMsScanPredicate()
-          .test(vars.spectrum)) {
+      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter().matches(vars.spectrum)) {
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvMzArray:
-            vars.spectrum.getDoubleBufferMzValues();
-            break;
-
-          case MzMLCV.cvIntensityArray:
-            vars.spectrum.getDoubleBufferIntensityValues();
-            break;
+          case MzMLCV.cvMzArray -> vars.spectrum.getDoubleBufferMzValues();
+          case MzMLCV.cvIntensityArray -> vars.spectrum.getDoubleBufferIntensityValues();
         }
       } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvRetentionTimeArray:
-            vars.chromatogram.getDoubleRetentionTimes();
-//            vars.chromatogram.getDoubleBufferRetentionTimes();
-            break;
-
-          case MzMLCV.cvIntensityArray:
-            vars.chromatogram.getIntensityBinaryDataInfo();
-            break;
+          case MzMLCV.cvRetentionTimeArray -> vars.chromatogram.getDoubleRetentionTimes();
+          case MzMLCV.cvIntensityArray -> vars.chromatogram.getIntensityBinaryDataInfo();
         }
       }
     }
@@ -633,7 +600,7 @@ public class MzMLParser {
     // So, get the value of the index tag if the scanNumber is not present in the ID
     if (scanNumberFound) {
       Integer scanNumber = Integer.parseInt(matcher.group(1));
-      return Optional.ofNullable(scanNumber);
+      return Optional.of(scanNumber);
     }
 
     // agilent
@@ -642,10 +609,10 @@ public class MzMLParser {
     boolean agilentScanNumberFound = agilentMatcher.find();
     if (agilentScanNumberFound) {
       Integer scanNumber = Integer.parseInt(agilentMatcher.group(1));
-      return Optional.ofNullable(scanNumber);
+      return Optional.of(scanNumber);
     }
 
-    return Optional.ofNullable(null);
+    return Optional.empty();
   }
 
   /**
@@ -682,31 +649,21 @@ public class MzMLParser {
     } else {
       if (binaryInfo.getCompressionType(accession) == MzMLCompressionType.ZLIB) {
         switch (binaryInfo.getCompressionType()) {
-          case NUMPRESS_LINPRED:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
-            break;
-          case NUMPRESS_POSINT:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
-            break;
-          case NUMPRESS_SHLOGF:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
-            break;
-          default:
-            break;
+          case NUMPRESS_LINPRED ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
+          case NUMPRESS_POSINT ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
+          case NUMPRESS_SHLOGF ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
         }
       } else {
         switch (binaryInfo.getCompressionType(accession)) {
-          case NUMPRESS_LINPRED:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
-            break;
-          case NUMPRESS_POSINT:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
-            break;
-          case NUMPRESS_SHLOGF:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
-            break;
-          default:
-            break;
+          case NUMPRESS_LINPRED ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
+          case NUMPRESS_POSINT ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
+          case NUMPRESS_SHLOGF ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
         }
       }
     }
@@ -744,7 +701,7 @@ public class MzMLParser {
     MzMLScanWindowList scanWindowList;
     MzMLScanWindow scanWindow;
     ArrayList<MzMLReferenceableParamGroup> referenceableParamGroupList;
-    List<MsScan> spectrumList;
+    List<BuildingMzMLMsScan> spectrumList;
     List<Chromatogram> chromatogramsList;
     List<String> msFunctionsList;
 
