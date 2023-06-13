@@ -40,10 +40,6 @@ public class MsProcessorList implements MsProcessor {
     this.processors.addAll(processors);
   }
 
-  public List<MsProcessor> getProcessors() {
-    return processors;
-  }
-
   @Override
   public SimpleSpectralArrays processScan(final Scan scan, SimpleSpectralArrays spectrum) {
     for (final MsProcessor processor : processors) {

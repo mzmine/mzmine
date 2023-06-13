@@ -54,21 +54,21 @@ public class MassDetectorMsProcessor implements MsProcessor {
     }
   }
 
-  private double[][] applyMassDetection(MZmineProcessingStep<MassDetector> msDetector, double[] mzs,
-      double[] intensities) {
+  private SimpleSpectralArrays applyMassDetection(MZmineProcessingStep<MassDetector> msDetector,
+      final SimpleSpectralArrays spectrum) {
     // run mass detection on data object
     // [mzs, intensities]
-    return msDetector.getModule().getMassValues(mzs, intensities, msDetector.getParameterSet());
+    var values = msDetector.getModule()
+        .getMassValues(spectrum.mzs(), spectrum.intensities(), msDetector.getParameterSet());
+    return new SimpleSpectralArrays(values[0], values[1]);
   }
 
 
   public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
     if (ms2Detector != null && scan.getMSLevel() > 1) {
-      double[][] values = applyMassDetection(ms2Detector, spectrum.mzs(), spectrum.intensities());
-      return new SimpleSpectralArrays(values[0], values[1]);
+      return applyMassDetection(ms2Detector, spectrum);
     } else if (ms1Detector != null) {
-      double[][] values = applyMassDetection(ms1Detector, spectrum.mzs(), spectrum.intensities());
-      return new SimpleSpectralArrays(values[0], values[1]);
+      return applyMassDetection(ms1Detector, spectrum);
     }
     // no mass detection return input
     return spectrum;

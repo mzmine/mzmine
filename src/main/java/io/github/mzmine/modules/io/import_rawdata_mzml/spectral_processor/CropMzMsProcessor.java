@@ -26,15 +26,26 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
+import java.util.Arrays;
 
-public class CropMsProcessor implements MsProcessor {
+public class CropMzMsProcessor implements MsProcessor {
 
 
-  public CropMsProcessor() {
+  private final double min;
+  private final double max;
+
+  public CropMzMsProcessor(double min, double max) {
+    this.min = min;
+    this.max = max;
   }
 
   public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
-    // TODO
-
+    // returns the index of the value>=min/max
+    // requires sorted values, is ensured as this is always the first step in loading/processing
+    int lower = Math.abs(Arrays.binarySearch(spectrum.mzs(), min));
+    int upper = Math.abs(Arrays.binarySearch(spectrum.mzs(), max));
+    var mzs = Arrays.copyOfRange(spectrum.mzs(), lower, upper);
+    var intensities = Arrays.copyOfRange(spectrum.intensities(), lower, upper);
+    return new SimpleSpectralArrays(mzs, intensities);
   }
 }

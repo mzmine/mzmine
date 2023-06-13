@@ -39,6 +39,7 @@ public class MzMLBinaryDataInfo {
   private @NotNull MzMLCompressionType compressionType;
   private MzMLBitLength bitLength;
   private MzMLArrayType arrayType;
+  // the binary text content
   private CharArray xmlBinaryContent;
 
   /**

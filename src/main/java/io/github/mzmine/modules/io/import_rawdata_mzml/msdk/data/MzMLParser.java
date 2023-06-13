@@ -55,8 +55,8 @@ public class MzMLParser {
 
   private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
-  private Vars vars;
-  private TagTracker tracker;
+  private final Vars vars;
+  private final TagTracker tracker;
   private final MzMLRawDataFile newRawFile;
   private final MzMLFileImportMethod importer;
   private int totalScans = 0, parsedScans = 0;
@@ -133,7 +133,7 @@ public class MzMLParser {
     if (tracker.current().contentEquals((MzMLTags.TAG_CHROMATOGRAM_LIST))) {
       final CharArray defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
           MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
-      newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefChromatogram.toString());
+      newRawFile.setDefaultDataProcessingChromatogram(defaultDataProcessingRefChromatogram.toString());
     }
 
     if (openingTagName.contentEquals((MzMLTags.TAG_SPECTRUM_LIST))) {
@@ -517,9 +517,8 @@ public class MzMLParser {
     } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
         if (vars.chromatogram.getRtBinaryDataInfo() != null
-            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (
-                importer.getMzMLFile() != null || importer.getChromatogramPredicate()
-                    .test(vars.chromatogram))) {
+            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (importer.getMzMLFile()
+                                                                          != null)) {
           vars.chromatogramsList.add(vars.chromatogram);
         }
       }
@@ -538,8 +537,12 @@ public class MzMLParser {
     if (importer.getMsScanPredicate().test(spectrum)) {
       if (spectrum.loadProcessMemMapData(storage, spectralProcessor)) {
         vars.spectrumList.add(spectrum);
+      } else {
+        logger.warning("Could not load and process spectral data of scan #%d".formatted(
+            vars.spectrum.getScanNumber()));
       }
     }
+    vars.spectrum = null;
   }
 
   /**
@@ -567,8 +570,7 @@ public class MzMLParser {
             vars.spectrum.getDoubleBufferIntensityValues();
             break;
         }
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)
-                 && importer.getChromatogramPredicate().test(vars.chromatogram)) {
+      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
           case MzMLCV.cvRetentionTimeArray:
             vars.chromatogram.getDoubleRetentionTimes();

@@ -36,8 +36,6 @@ public class SortByMzMsProcessor implements MsProcessor {
   }
 
   public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
-    var values = DataPointUtils.sort(spectrum.mzs(), spectrum.intensities(),
-        DataPointSorter.DEFAULT_MZ_ASCENDING);
-    return new SimpleSpectralArrays(values[0], values[1]);
+    return DataPointUtils.sort(spectrum, DataPointSorter.DEFAULT_MZ_ASCENDING);
   }
 }

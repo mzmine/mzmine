@@ -30,10 +30,12 @@ import io.github.msdk.MSDKMethod;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.FileMemoryMapper;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +48,8 @@ import javolution.text.CharArray;
 import javolution.xml.internal.stream.XMLStreamReaderImpl;
 import javolution.xml.stream.XMLStreamConstants;
 import javolution.xml.stream.XMLStreamException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -59,85 +63,18 @@ import javolution.xml.stream.XMLStreamException;
  */
 public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
 
+  private static final Logger logger = Logger.getLogger(MzMLFileImportMethod.class.getName());
   private final File mzMLFile;
 
   private final InputStream inputStream;
   private MzMLRawDataFile newRawFile;
   private MzMLParser parser;
   private volatile boolean canceled;
-  private int lastLoggedProgress;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private Predicate<MsScan> msScanPredicate = s -> true;
-  private Predicate<Chromatogram> chromatogramPredicate = c -> true;
+  private ScanSelection scanFilter;
 
-
-  private final MsProcessorList spectralProcessor;
+  private MsProcessorList spectralProcessor;
   private MemoryMapStorage storage;
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath a {@link String String} which contains the absolute path to the MzML File.
-   */
-  public MzMLFileImportMethod(String mzMLFilePath) {
-    this(new File(mzMLFilePath), s -> true, c -> true);
-  }
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath          a {@link String String} which contains the absolute path to the
-   *                              MzML File.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   */
-  public MzMLFileImportMethod(String mzMLFilePath, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(new File(mzMLFilePath), msScanPredicate, chromatogramPredicate);
-  }
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath a {@link Path Path} object which contains the path to the MzML File.
-   */
-  public MzMLFileImportMethod(Path mzMLFilePath) {
-    this(mzMLFilePath.toFile(), s -> false, c -> false);
-  }
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath          a {@link Path Path} object which contains the path to the MzML
-   *                              File.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   */
-  public MzMLFileImportMethod(Path mzMLFilePath, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(mzMLFilePath.toFile(), msScanPredicate, chromatogramPredicate);
-  }
-
 
   /**
    * <p>
@@ -146,30 +83,10 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * </p>
    */
   public MzMLFileImportMethod(File mzMLFile, MemoryMapStorage storage,
-      MsProcessorList spectralProcessor) {
-    this(mzMLFile, null, s -> false, c -> false, spectralProcessor);
-    this.storage = storage;
+      MsProcessorList spectralProcessor, ScanSelection scanFilter) {
+    this(mzMLFile, null, storage, spectralProcessor, scanFilter);
   }
 
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFile              a {@link File File} object instance of the MzML File.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   */
-  public MzMLFileImportMethod(File mzMLFile, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(mzMLFile, null, msScanPredicate, chromatogramPredicate);
-  }
 
   /**
    * <p>
@@ -179,31 +96,10 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * @param inputStream an {@link InputStream InputStream} which contains data in MzML format.
    */
   public MzMLFileImportMethod(InputStream inputStream, MemoryMapStorage storage,
-      MsProcessorList spectralProcessor) {
-    this(null, inputStream, s -> true, c -> true, spectralProcessor);
-    this.storage = storage;
+      MsProcessorList spectralProcessor, ScanSelection scanFilter) {
+    this(null, inputStream, storage, spectralProcessor, scanFilter);
   }
 
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param inputStream           an {@link InputStream InputStream} which contains data in MzML
-   *                              format.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the
-   *                              {@link MzMLRawDataFile RawDataFile} returned by the
-   *                              {@link #getResult() getResult()} method.
-   */
-  public MzMLFileImportMethod(InputStream inputStream, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate, MsProcessorList spectralProcessor) {
-    this(null, inputStream, msScanPredicate, chromatogramPredicate, spectralProcessor);
-  }
 
   /**
    * <p>
@@ -211,15 +107,17 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    * </p>
    */
   private MzMLFileImportMethod(File mzMLFile, InputStream inputStream,
-      Predicate<MsScan> msScanPredicate, Predicate<Chromatogram> chromatogramPredicate,
-      MsProcessorList spectralProcessor) {
+      @Nullable MemoryMapStorage storage, @NotNull MsProcessorList spectralProcessor,
+      @NotNull ScanSelection scanFilter) {
     this.mzMLFile = mzMLFile;
     this.inputStream = inputStream;
+    this.storage = storage;
     this.spectralProcessor = spectralProcessor;
     this.canceled = false;
-    this.lastLoggedProgress = 0;
     this.msScanPredicate = this.msScanPredicate.and(msScanPredicate);
-    this.chromatogramPredicate = this.chromatogramPredicate.and(chromatogramPredicate);
+    this.scanFilter = scanFilter;
+    // TODO see if we can directly load into a real MZmine scan object instead of MsScan
+    msScanPredicate = scan -> scanFilter.matches(new MsdkScanWrapper(scan));
   }
 
   /**
@@ -254,8 +152,6 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
 
       this.parser = new MzMLParser(this, storage, spectralProcessor);
       this.newRawFile = parser.getMzMLRawFile();
-
-      lastLoggedProgress = 0;
 
       int eventType;
       try {
@@ -341,18 +237,6 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
    */
   public Predicate<MsScan> getMsScanPredicate() {
     return msScanPredicate;
-  }
-
-  /**
-   * <p>
-   * Getter for the field <code>chromatogramPredicate</code>.
-   * </p>
-   *
-   * @return {@link Predicate Predicate} specified for {@link Chromatogram Chromatogram}s <br> The
-   * {@link Predicate Predicate} evaluates to true always, if it wasn't specified on initialization
-   */
-  public Predicate<Chromatogram> getChromatogramPredicate() {
-    return chromatogramPredicate;
   }
 
   /**

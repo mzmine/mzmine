@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
+/**
+ * Data structure to represent spectral data in memory
+ *
+ * @param mzs should be sorted by mz ascending
+ */
 public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
 
 }

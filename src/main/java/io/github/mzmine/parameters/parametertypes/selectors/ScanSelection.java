@@ -416,4 +416,5 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
         getScanMobilityRange(), getPolarity(), getSpectrumType(), getMsLevelFilter(),
         getScanDefinition());
   }
+
 }
