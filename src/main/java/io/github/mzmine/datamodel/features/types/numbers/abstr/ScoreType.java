@@ -28,13 +28,28 @@ package io.github.mzmine.datamodel.features.types.numbers.abstr;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class ScoreType extends FloatType {
+/**
+ * Used to export to generic formats. Header is just score
+ */
+public class ScoreType extends FloatType {
 
   public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
 
   public ScoreType() {
     super(DEFAULT);
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "score";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Score";
   }
 
   @Override

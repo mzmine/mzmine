@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new SmilesStructureType(), new InChIStructureType(), new PrecursorMZType(),
       new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(),
-      new DatabaseMatchInfoType());
+      new DatabaseMatchInfoType(), new IsotopePatternScoreType());
+
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
   private static final Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> mapper = Map.ofEntries(
@@ -82,7 +84,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       createEntry(RTType.class, match -> match.get(new RTType())), //
       createEntry(CCSType.class, CompoundDBAnnotation::getCCS),
       createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)),
-      createEntry(CommentType.class, match -> match.get(CommentType.class)));
+      createEntry(CommentType.class, match -> match.get(CommentType.class)),
+      createEntry(IsotopePatternScoreType.class, match -> match.get(IsotopePatternScoreType.class)));
 
   public CompoundDatabaseMatchesType() {
   }

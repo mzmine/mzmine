@@ -240,9 +240,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   default Float toFloat(Object v) {
     return switch (v) {
-      case null, default -> null;
       case Number n -> n.floatValue();
       case String s -> Float.parseFloat(s);
+      default -> null;
     };
   }
 
@@ -257,9 +257,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   default Double toDouble(Object v) {
     return switch (v) {
-      case null, default -> null;
       case Number n -> n.doubleValue();
       case String s -> Double.parseDouble(s);
+      default -> null;
     };
   }
 
@@ -274,9 +274,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   default Integer toInteger(Object v) {
     return switch (v) {
-      case null, default -> null;
       case Number n -> n.intValue();
       case String s -> Integer.parseInt(s);
+      default -> null;
     };
   }
 }

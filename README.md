@@ -25,19 +25,6 @@ the [latest development build](https://github.com/mzmine/mzmine3/releases/tag/De
 which reflects the current state of the master branch and is meant for testing purposes. Download
 options include portable versions and installers for the Window, macOS, and Linux.
 
-### Running on macOS
-
-Currently, MZmine 3 lacks a signature for macOS. While we are working on this, user can allow MZmine
-in the macOS Gatekeeper protection by running the following command in the terminal from the folder
-containing the .app.
-
-```
-sudo xattr -cr MZmine.app
-```
-
-Find a step-by-step guide in the [documentations](https://mzmine.github.io/mzmine_documentation/getting_started.html#on-macos).
-
-
 ## Development
 
 ### Tutorial

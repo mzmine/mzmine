@@ -42,18 +42,21 @@ import org.jetbrains.annotations.NotNull;
 
 public class MassvoltammogramTask extends AbstractTask {
 
+  //Parameter.
   private final ReactionMode reactionMode;
   private final double delayTime; //In s.
   private final double potentialRampSpeed; //In mV/s.
   private final Range<Double> potentialRange;
   private final double stepSize; //In mV.
   private final Range<Double> mzRange;
-  //Raw Data
-  private RawDataFile file;
-  private ModularFeatureList featureList;
-  //Parameter
   private ScanSelection scanSelection;
 
+  //Raw Data.
+  private RawDataFile file;
+  private ModularFeatureList featureList;
+
+  //The massvoltammogram.
+  private Massvoltammogram massvoltammogram;
 
   public MassvoltammogramTask(@NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -81,26 +84,31 @@ public class MassvoltammogramTask extends AbstractTask {
     mzRange = parameters.getValue(MassvoltammogramFromFileParameters.mzRange);
     reactionMode = parameters.getValue(MassvoltammogramFromFileParameters.reactionMode);
     delayTime = parameters.getValue(MassvoltammogramFromFileParameters.delayTime);
-
   }
 
   @Override
   public String getTaskDescription() {
-    return "Creating Massvoltammogram";
+    return "Creating the massvoltammogram.";
   }
 
+  /**
+   * @return Returns the progress from the Massvoltammogram class, returns 0 if the massvoltammogram
+   * is still null.
+   */
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    if (massvoltammogram != null) {
+      return massvoltammogram.getProgress();
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    //Creating the massvoltammogram.
-    Massvoltammogram massvoltammogram;
-
+    //Initializing the massvoltammogram.
     if (file != null) {
 
       massvoltammogram = new Massvoltammogram(file, scanSelection, reactionMode, delayTime,
@@ -117,6 +125,9 @@ public class MassvoltammogramTask extends AbstractTask {
       setErrorMessage("No data source is selected.");
       return;
     }
+
+    //Drawing the massvoltammogram from the entered data.
+    massvoltammogram.draw();
 
     //Adding the massvoltammogram to a new MZmineTab.
     final MassvoltammogramTab mvTab = new MassvoltammogramTab("Massvoltammogram", massvoltammogram);

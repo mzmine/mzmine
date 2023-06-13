@@ -169,7 +169,7 @@ public final class MZmineCore {
         } else {
           logger.log(Level.WARNING,
               "Cannot create or access temp file directory that was set via program argument: "
-                  + tempDirectory.getAbsolutePath());
+              + tempDirectory.getAbsolutePath());
         }
       }
 
@@ -193,6 +193,7 @@ public final class MZmineCore {
 
       // batch mode defined by command line argument
       File batchFile = argsParser.getBatchFile();
+      File[] overrideDataFiles = argsParser.getOverrideDataFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
       // track version use
@@ -226,7 +227,8 @@ public final class MZmineCore {
 
           // run batch file
           getInstance().batchExitCode = BatchModeModule.runBatch(
-              getInstance().projectManager.getCurrentProject(), batchFile, Instant.now());
+              getInstance().projectManager.getCurrentProject(), batchFile, overrideDataFiles,
+              Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished
