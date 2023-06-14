@@ -220,7 +220,8 @@ public class MzMLParser {
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
           //here we obtain the text value of the whole TAG_BINARY
           //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
-          vars.binaryDataInfo.setTextContent(xmlStreamReader.getElementText());
+          var binaryContent = xmlStreamReader.getElementText();
+          vars.binaryDataInfo.setTextContent(binaryContent);
           tracker.exit(tracker.current());
         }
       } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
