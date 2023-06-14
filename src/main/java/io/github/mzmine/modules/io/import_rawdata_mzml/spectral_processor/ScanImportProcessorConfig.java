@@ -48,8 +48,8 @@ public record ScanImportProcessorConfig(ScanSelection scanFilter, MsProcessorLis
 
   @Override
   public String toString() {
-    return "ScanImportProcessorConfig{scanFilter=%s, applyMassDetection=%s, processor=%s}".formatted(
-        scanFilter, processor.description(), applyMassDetection);
+    return "ScanImportProcessorConfig: scanFilter=%s, applyMassDetection=%s".formatted(scanFilter,
+        applyMassDetection) + "\n" + processor.description();
   }
 
 }

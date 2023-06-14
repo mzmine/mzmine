@@ -89,7 +89,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private final InputStream fis;
   // advanced processing will apply mass detection directly to the scans
   private final MZmineProject project;
-  private final ScanImportProcessorConfig scanProcessorConfig;
+  private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private MzMLFileImportMethod msdkTask = null;
@@ -97,15 +97,16 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private String description;
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
-    this(project, fileToOpen, null, null, module, parameters, moduleCallDate, storage);
+    this(project, fileToOpen, null, scanProcessorConfig, module, parameters, moduleCallDate, storage);
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, InputStream fisToOpen,
-      ScanImportProcessorConfig scanProcessorConfig, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
-      @Nullable final MemoryMapStorage storage) {
+      @NotNull ScanImportProcessorConfig scanProcessorConfig,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     super(storage, moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
     this.fis = fisToOpen;
@@ -292,8 +293,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, mzMLScan.getMSLevel(),
-            mzMLScan.getRetentionTime() / 60f, null, null, mzMLScan.getSpectrumType(), mzMLScan.getPolarity(),
-            mzMLScan.getScanDefinition(), mzMLScan.getScanningMZRange(),
+            mzMLScan.getRetentionTime() / 60f, null, null, mzMLScan.getSpectrumType(),
+            mzMLScan.getPolarity(), mzMLScan.getScanDefinition(), mzMLScan.getScanningMZRange(),
             mzMLScan.getMobility().mobilityType(), null, null);
         frameNumber++;
 
@@ -316,7 +317,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
       }
 
-      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
+      mobilityScans.add(
+          ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;

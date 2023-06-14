@@ -117,13 +117,7 @@ public class MzXMLImportTask extends AbstractTask {
 
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
-    this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
-  }
-
-  public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      ScanImportProcessorConfig scanProcessorConfig,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file

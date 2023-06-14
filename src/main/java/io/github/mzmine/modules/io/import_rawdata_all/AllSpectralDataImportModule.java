@@ -317,9 +317,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
       scanFilter = advanced.getValue(AdvancedSpectraImportParameters.scanFilter);
     }
-    var conf = new ScanImportProcessorConfig(scanFilter,
-        new MsProcessorList(processors), applyMassDetection);
-    logger.info("Data import uses advanced direct data processing with these settings:\n"+conf);
+    var conf = new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors),
+        applyMassDetection);
+    logger.info("Data import uses advanced direct data processing with these settings:\n" + conf);
     return conf;
   }
 
@@ -395,9 +395,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               moduleCallDate);
       // MS
       case MZML, MZML_IMS ->
-          new MSDKmzMLImportTask(project, file, module, parameters, moduleCallDate, storage);
+          new MSDKmzMLImportTask(project, file, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
       case MZXML ->
-          new MzXMLImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
+          new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters, moduleCallDate);
       case MZDATA ->
           new MzDataImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case NETCDF ->

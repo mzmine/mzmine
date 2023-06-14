@@ -67,7 +67,7 @@ public class MzMLFileImportMethod extends AbstractTask {
    * Read file
    */
   public MzMLFileImportMethod(@NotNull Instant moduleCallDate, File mzMLFile,
-      MemoryMapStorage storage, ScanImportProcessorConfig scanProcessorConfig) {
+      MemoryMapStorage storage, @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     this(moduleCallDate, mzMLFile, null, storage, scanProcessorConfig);
   }
 
@@ -78,7 +78,7 @@ public class MzMLFileImportMethod extends AbstractTask {
    * @param inputStream an {@link InputStream InputStream} which contains data in MzML format.
    */
   public MzMLFileImportMethod(@NotNull Instant moduleCallDate, InputStream inputStream,
-      MemoryMapStorage storage, ScanImportProcessorConfig scanProcessorConfig) {
+      MemoryMapStorage storage, @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     this(moduleCallDate, null, inputStream, storage, scanProcessorConfig);
   }
 

@@ -102,7 +102,8 @@ public class RawDataFileUtils {
               moduleCallDate);
           break;
         case MZML, MZML_IMS:
-          newTask = new MSDKmzMLImportTask(project, fileName, module, parameters, moduleCallDate,
+          newTask = new MSDKmzMLImportTask(project, fileName,
+              ScanImportProcessorConfig.createDefault(), module, parameters, moduleCallDate,
               storage);
           break;
         case IMZML:
@@ -114,8 +115,8 @@ public class RawDataFileUtils {
         case MZXML:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
               storage);
-          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, module, parameters,
-              moduleCallDate);
+          newTask = new MzXMLImportTask(project, fileName, newMZmineFile,
+              ScanImportProcessorConfig.createDefault(), module, parameters, moduleCallDate);
           break;
         case NETCDF:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
@@ -128,6 +129,7 @@ public class RawDataFileUtils {
               storage);
           newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters,
               moduleCallDate, ScanImportProcessorConfig.createDefault());
+          break;
         case WATERS_RAW:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
               storage);
