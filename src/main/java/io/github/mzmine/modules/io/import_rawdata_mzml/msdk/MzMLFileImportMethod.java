@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import javolution.text.CharArray;
@@ -175,6 +176,7 @@ public class MzMLFileImportMethod extends AbstractTask {
       }
       logger.finest("Parsing Complete");
     } catch (IOException | XMLStreamException e) {
+      logger.log(Level.WARNING, "Error while loading mzML/RAW file " + e.getMessage(), e);
       throw (new MSDKException(e));
     }
 

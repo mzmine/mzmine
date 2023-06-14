@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import javolution.text.CharArray;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,7 +39,7 @@ public class MzMLBinaryDataInfo {
   private MzMLBitLength bitLength;
   private MzMLArrayType arrayType;
   // the binary text content
-  private CharArray xmlBinaryContent;
+  private String xmlBinaryContent;
 
   /**
    * <p>
@@ -291,7 +290,7 @@ public class MzMLBinaryDataInfo {
    *
    * @param xmlBinaryContent the text content
    */
-  public void setTextContent(final CharArray xmlBinaryContent) {
+  public void setTextContent(final String xmlBinaryContent) {
     this.xmlBinaryContent = xmlBinaryContent;
   }
 
@@ -300,7 +299,7 @@ public class MzMLBinaryDataInfo {
    *
    * @return the text content
    */
-  public CharArray getXmlBinaryContent() {
+  public String getXmlBinaryContent() {
     return xmlBinaryContent;
   }
 }

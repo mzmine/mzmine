@@ -206,7 +206,7 @@ public class MzMLPeaksDecoder {
    * @throws IOException         if any.
    * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
-  public static double[] decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
+  public static double[] decodeToDouble(String binaryData, MzMLBinaryDataInfo binaryDataInfo,
       double[] data) throws IOException, MSDKException {
 //  public static DoubleBuffer decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
 //      MemoryMapStorage storage, double[] data) throws IOException, MSDKException {
@@ -216,7 +216,7 @@ public class MzMLPeaksDecoder {
 
     InputStream is;
 
-    InputStream inputStream = new ByteArrayInputStream(binaryData.toString().getBytes());
+    InputStream inputStream = new ByteArrayInputStream(binaryData.getBytes());
 
     is = Base64.getDecoder().wrap(inputStream);
 

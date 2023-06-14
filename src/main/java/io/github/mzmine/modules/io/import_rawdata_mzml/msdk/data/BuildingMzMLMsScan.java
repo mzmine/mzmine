@@ -607,14 +607,15 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
           "Binary data array contains an array of different length than the default array length of the scan (#"
           + getScanNumber() + ")");
     }
-    //todo is array needed
     double[] mzs = MzMLPeaksDecoder.decodeToDouble(mzBinaryDataInfo);
     double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityBinaryDataInfo);
 
-    // set data to null
+    clearUnusedData();
+    return new SimpleSpectralArrays(mzs, intensities);
+  }
+
+  public void clearUnusedData() {
     mzBinaryDataInfo = null;
     intensityBinaryDataInfo = null;
-
-    return new SimpleSpectralArrays(mzs, intensities);
   }
 }

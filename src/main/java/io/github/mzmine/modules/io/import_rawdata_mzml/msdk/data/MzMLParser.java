@@ -220,7 +220,7 @@ public class MzMLParser {
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
           //here we obtain the text value of the whole TAG_BINARY
           //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
-          var binaryContent = xmlStreamReader.getElementText();
+          var binaryContent = xmlStreamReader.getElementText().toString();
           vars.binaryDataInfo.setTextContent(binaryContent);
           tracker.exit(tracker.current());
         }
