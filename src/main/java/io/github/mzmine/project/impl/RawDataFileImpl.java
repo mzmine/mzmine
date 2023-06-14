@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
@@ -44,7 +43,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -123,12 +121,6 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public int getMaxCentroidDataPoints() {
-    return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
-        .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
-  }
-
-  @Override
   public int getMaxRawDataPoints() {
     return maxRawDataPoints;
   }
@@ -136,100 +128,6 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public int getNumOfScans() {
     return scans.size();
-  }
-
-  @Override
-  public int binarySearchClosestScanIndex(final float rt) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int closestIndex = Math.abs(BinarySearch.binarySearch(rt, true, getNumOfScans(),
-        index -> getScan(index).getRetentionTime()));
-    return closestIndex >= getNumOfScans() ? -1 : closestIndex;
-  }
-
-  @Override
-  public int binarySearchClosestScanIndex(float rt, int mslevel) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int indexClosestScan = binarySearchClosestScanIndex(rt);
-    if (indexClosestScan == -1) {
-      return -1;
-    }
-    //matches ms level
-    if (getScan(indexClosestScan).getMSLevel() == mslevel) {
-      return indexClosestScan;
-    }
-
-    // find the closest scan with msLevel around the found scan (might be other level)
-    int before = -1;
-    int after = -1;
-    for (int i = indexClosestScan; i < getNumOfScans(); i++) {
-      if (getScan(i).getMSLevel() == mslevel) {
-        after = i;
-        break;
-      }
-    }
-    for (int i = indexClosestScan - 1; i > 0; i--) {
-      if (getScan(i).getMSLevel() == mslevel) {
-        before = i;
-        break;
-      }
-    }
-    if (after != -1 && before != -1) {
-      if (Math.abs(getScan(after).getRetentionTime() - rt) < Math.abs(
-          getScan(before).getRetentionTime() - rt)) {
-        return after;
-      } else {
-        return before;
-      }
-    } else if (after != -1) {
-      return after;
-    } else {
-      return before;
-    }
-  }
-
-  @Override
-  @Nullable
-  public Scan binarySearchClosestScan(float rt) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int indexClosestScan = binarySearchClosestScanIndex(rt);
-    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
-      return getScan(indexClosestScan);
-    }
-    return null;
-  }
-
-  @Override
-  @Nullable
-  public Scan binarySearchClosestScan(float rt, int mslevel) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int indexClosestScan = binarySearchClosestScanIndex(rt, mslevel);
-    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
-      return getScan(indexClosestScan);
-    }
-    return null;
-  }
-
-  @Override
-  @NotNull
-  public List<Scan> getScanNumbers(int msLevel) {
-    return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
-  }
-
-  @Override
-  public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
-    return scans.stream()
-        .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
-        .toArray(Scan[]::new);
-  }
-
-  @Override
-  @NotNull
-  public int[] getMSLevels() {
-    return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
 
   @Override

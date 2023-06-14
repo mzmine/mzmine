@@ -37,8 +37,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -148,69 +146,6 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public IonType(int molecules, IonType ion) {
     this(molecules, ion.adduct, ion.mod);
-  }
-
-  public static IonType parseFromString(String str) {
-    if (str == null) {
-      return null;
-    }
-
-    // [ 2 M + NH4+H ] 2 +
-    // groups:
-    // 1: [ (opt)
-    // 2: 2 (opt)
-    // 3: M (mandatory)
-    // 4: + (+ or - mandatory)
-    // 5: NH4+H (mandatory)
-    // 6: ] (opt)
-    // 7: 2 (opt)
-    // 8: + (+ or - opt)
-
-    final Pattern pattern = Pattern.compile(
-        "(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]+)([\\]])?([\\d])?([\\+\\-])?");
-    final Matcher matcher = pattern.matcher(str);
-    if (!matcher.matches()) {
-      return null;
-    }
-
-    StringBuilder b = new StringBuilder();
-    for (int i = 0; i < matcher.groupCount(); i++) {
-      b.append("group ").append(i).append(" ").append(matcher.group(i));
-    }
-
-    final int numMolecules = matcher.group(2) == null || matcher.group(2).isBlank() ? 1
-        : Integer.parseInt(matcher.group(2));
-    final int absCharge = matcher.group(7) == null || matcher.group(7).isBlank() ? 1
-        : Integer.parseInt(matcher.group(7));
-
-    final String modification = matcher.group(5);
-    if (modification == null || modification.isBlank()) {
-      return null;
-    }
-
-    final PolarityType pol =
-        matcher.group(8) == null || matcher.group(8).isBlank() ? PolarityType.POSITIVE
-            : PolarityType.fromSingleChar(matcher.group(8));
-
-    IonModification mod = switch (pol) {
-      case POSITIVE -> Arrays.stream(IonModification.DEFAULT_VALUES_POSITIVE)
-          .filter(m -> m.getName().equals(modification) || modification.equals(m.getMolFormula()))
-          .findFirst().orElse(null);
-      case NEGATIVE -> Arrays.stream(IonModification.DEFAULT_VALUES_NEGATIVE)
-          .filter(m -> m.getName().equals(modification) || modification.equals(m.getMolFormula()))
-          .findFirst().orElse(null);
-      default -> null;
-    };
-    if (mod == null) {
-      return null;
-    }
-
-    final IonType ionType = new IonType(numMolecules, mod);
-    if (ionType.getAbsCharge() != absCharge) {
-      return null;
-    }
-
-    return ionType;
   }
 
   /**
@@ -336,8 +271,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
   public String toString(boolean showMass) {
     int absCharge = Math.abs(charge);
-    String z = absCharge > 1 ? absCharge + "" : "";
-    z += (charge < 0 ? "-" : "+");
+    String z = charge < 0 ? "-" : "+";
+    if (absCharge > 1) {
+      z += absCharge;
+    }
     if (charge == 0) {
       z = "";
     }
@@ -422,8 +359,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public boolean isModificationOf(IonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
-        && adduct.equals(parent.adduct) && molecules == parent.molecules
-        && charge == parent.charge)) {
+                        && adduct.equals(parent.adduct) && molecules == parent.molecules
+                        && charge == parent.charge)) {
       return false;
     } else if (!parent.hasMods()) {
       return true;
@@ -458,12 +395,28 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return new IonType(1, IonModification.getUndefinedforCharge(this.charge), mod);
   }
 
+
   /**
    * @return count of modification
    */
   public int getModCount() {
     return mod == null ? 0 : mod.getModCount();
   }
+
+  /**
+   * @return count of adducts
+   */
+  public int getAdductCount() {
+    return adduct == null ? 0 : adduct.getModCount();
+  }
+
+  /**
+   * @return sum of modification and adducts, molecules, charge
+   */
+  public int getTotalPartsCount() {
+    return molecules + charge + getModCount() + getAdductCount();
+  }
+
 
   /**
    * ((mz * charge) - deltaMass) / numberOfMolecules
@@ -582,7 +535,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return result;
   }
 
-  @Override
+
+    @Override
   public boolean equals(final Object obj) {
     if (obj == null || !obj.getClass().equals(this.getClass())
         || !(obj instanceof final IonType a)) {

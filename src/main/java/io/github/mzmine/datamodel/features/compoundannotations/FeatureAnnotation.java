@@ -69,6 +69,10 @@ public interface FeatureAnnotation {
 
   @Nullable String getSmiles();
 
+  @Nullable String getInChI();
+
+  @Nullable String getInChIKey();
+
   @Nullable String getCompoundName();
 
   @Nullable String getFormula();
@@ -93,6 +97,15 @@ public interface FeatureAnnotation {
   }
 
   @Nullable String getDatabase();
+
+  /**
+   * Keep stable as its exported to tools. often the xml key but not always
+   *
+   * @return defining the annotation method
+   */
+  default @NotNull String getAnnotationMethodUniqueId() {
+    return getXmlAttributeKey();
+  }
 
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.

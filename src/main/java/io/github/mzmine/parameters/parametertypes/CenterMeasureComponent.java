@@ -120,6 +120,11 @@ public class CenterMeasureComponent extends FlowPane {
    */
 
   public void setSelectedItem(CenterFunction newValue) {
+    if(newValue==null) {
+      comboCenterMeasure.getSelectionModel().clearSelection();
+      comboTransform.getSelectionModel().clearSelection();
+      return;
+    }
     comboCenterMeasure.getSelectionModel().select(newValue.getMeasure());
     if (comboTransform != null)
       comboTransform.getSelectionModel().select(newValue.getWeightTransform());

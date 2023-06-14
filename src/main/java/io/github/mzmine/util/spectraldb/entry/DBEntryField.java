@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
 import org.apache.commons.lang3.StringUtils;
@@ -80,8 +81,13 @@ public enum DBEntryField {
 
   // Quality measures in wrapper object
   QUALITY, // individual properties
+  // percentage of precursor purity
+  QUALITY_PRECURSOR_PURITY(Float.class), // flag if was chimeric
   QUALITY_CHIMERIC, QUALITY_EXPLAINED_INTENSITY(Float.class), QUALITY_EXPLAINED_SIGNALS(
       Float.class),
+
+  // compound annotation might match to multiple different compounds
+  OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES,
 
   // number of signals
   NUM_PEAKS(Integer.class), // only used for everything that cannot easily be mapped
@@ -96,7 +102,8 @@ public enum DBEntryField {
       MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
       SMILES, NUM_PEAKS, FEATURE_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
-      INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, ACQUISITION, SOFTWARE};
+      INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
+      SOFTWARE};
 
   private final Class clazz;
 
@@ -216,13 +223,16 @@ public enum DBEntryField {
           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
           QUALITY, QUALITY_CHIMERIC, FILENAME, //
-          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS -> StringType.class;
+          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES ->
+          StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
       case CHARGE -> ChargeType.class;
+      // TODO change to float
       case COLLISION_ENERGY, ISOLATION_WINDOW, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS ->
           DoubleType.class;
+      case QUALITY_PRECURSOR_PURITY -> FloatType.class;
       case FORMULA -> FormulaType.class;
       case INCHI -> InChIStructureType.class;
       case INCHIKEY -> InChIKeyStructureType.class;
@@ -292,9 +302,12 @@ public enum DBEntryField {
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
       case QUALITY -> "quality";
+      case QUALITY_PRECURSOR_PURITY -> "precursor_purity";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
       case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
+      case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
       case FILENAME -> "raw_file_name";
       case SIRIUS_MERGED_SCANS -> "merged_scans";
@@ -343,8 +356,11 @@ public enum DBEntryField {
       case QUALITY -> "quality";
       case DATASET_ID -> "dataset_id";
       case QUALITY_CHIMERIC -> "quality_chimeric";
+      case QUALITY_PRECURSOR_PURITY -> "precursor_purity";
       case QUALITY_EXPLAINED_INTENSITY -> "quality_explained_intensity";
       case QUALITY_EXPLAINED_SIGNALS -> "quality_explained_signals";
+      case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
       case FILENAME -> "file_name";
       case SIRIUS_MERGED_SCANS -> "";
@@ -393,10 +409,13 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "ISOLATION_WINDOW";
       case USI -> "USI";
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
+      case QUALITY_PRECURSOR_PURITY -> "PRECURSOR_PURITY";
       case DATASET_ID -> "DATASET_ID";
       case QUALITY -> "QUALITY";
       case QUALITY_EXPLAINED_INTENSITY -> "QUALITY_EXPLAINED_INTENSITY";
       case QUALITY_EXPLAINED_SIGNALS -> "QUALITY_EXPLAINED_SIGNALS";
+      case OTHER_MATCHED_COMPOUNDS_N -> "OTHER_MATCHED_COMPOUNDS";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "OTHER_MATCHED_COMPOUNDS_NAMES";
       case FEATURE_ID -> "FEATURE_ID";
       case FILENAME -> "FILENAME";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
@@ -440,6 +459,8 @@ public enum DBEntryField {
       case PUBCHEM -> "";
       case CHEMSPIDER -> "";
       case MONA_ID, GNPS_ID -> "";
+      case OTHER_MATCHED_COMPOUNDS_N -> "";
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> "";
       case NUM_PEAKS -> "##NPOINTS";
       case RESOLUTION, SYNONYMS, MOLWEIGHT -> "";
       case CCS -> "";
@@ -447,6 +468,7 @@ public enum DBEntryField {
       case MSN_PRECURSOR_MZS -> "";
       case MSN_FRAGMENTATION_METHODS -> "";
       case MSN_ISOLATION_WINDOWS -> "";
+      case QUALITY_PRECURSOR_PURITY -> "";
       case FRAGMENTATION_METHOD -> "";
       case ISOLATION_WINDOW -> "";
       case FILENAME -> "";
@@ -492,7 +514,9 @@ public enum DBEntryField {
           ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, //
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
-          DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC -> value.toString();
+          DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
+          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY ->
+          value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);

@@ -23,19 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.datamodel.features.types;
 
-public enum ReactionMode {
-  OXIDATIVE("Oxidative"), REDUCTIVE("Reductive");
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
-  final String name;
+/**
+ * General DataType that defines a method like the annotation methods
+ */
+public class MethodType extends StringType {
 
-  private ReactionMode(String name) {
-    this.name = name;
+  @Override
+  public @NotNull String getUniqueID() {
+    // never change this unique ID
+    return "method";
   }
 
   @Override
-  public String toString() {
-    return name;
+  public @NotNull String getHeaderString() {
+    return "Method";
   }
 }

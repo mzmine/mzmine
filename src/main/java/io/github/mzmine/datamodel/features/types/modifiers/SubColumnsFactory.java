@@ -25,14 +25,24 @@
 
 package io.github.mzmine.datamodel.features.types.modifiers;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.TreeTableColumn;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 public interface SubColumnsFactory {
 
   Logger logger = Logger.getLogger(SubColumnsFactory.class.getName());
+  String SUB_TYPES_XML_ELEMENT = "subtypes";
 
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
@@ -157,6 +168,79 @@ public interface SubColumnsFactory {
    */
   default <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
       T newValue) {
+  }
+
+
+  @NotNull
+  default SimpleModularDataModel loadSubColumnsFromXML(final @NotNull XMLStreamReader reader,
+      final @NotNull MZmineProject project, final @NotNull ModularFeatureList flist,
+      final @NotNull ModularFeatureListRow row, final @Nullable ModularFeature feature,
+      final @Nullable RawDataFile file) throws XMLStreamException {
+
+    SimpleModularDataModel model = new SimpleModularDataModel();
+    boolean startFound = false;
+
+    while (reader.hasNext()) {
+      int next = reader.next();
+
+      if (next == XMLEvent.START_ELEMENT && reader.getLocalName().equals(SUB_TYPES_XML_ELEMENT)) {
+        startFound = true;
+      }
+
+      if(!startFound) {
+        if (next == XMLEvent.END_ELEMENT) {
+          return model;
+        }
+        continue;
+      }
+
+      if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(SUB_TYPES_XML_ELEMENT)) {
+        break;
+      }
+      if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        DataType type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        Object o = type.loadFromXML(reader, project, flist, row, feature, file);
+        model.set(type, o);
+      }
+    }
+    return model;
+  }
+
+  default void saveSubColumnsToXML(final @NotNull XMLStreamWriter writer,
+      final @NotNull ModularFeatureList flist, final @NotNull ModularFeatureListRow row,
+      final @Nullable ModularFeature feature, final @Nullable RawDataFile file, final Object value)
+      throws XMLStreamException {
+
+    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
+
+    if (value == null) {
+      writer.writeEndElement();
+      return;
+    }
+    var cols = getNumberOfSubColumns();
+    for (int i = 0; i < cols; i++) {
+      DataType sub = getType(i);
+      Object subValue = getSubColValue(sub, value);
+      if (subValue == null) {
+        continue;
+      }
+
+      writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+      writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
+
+      try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
+        sub.saveToXML(writer, subValue, flist, row, feature, file);
+      } catch (XMLStreamException e) {
+        logger.log(Level.WARNING,
+            "Error while writing data type " + sub.getClass().getSimpleName() + " with value "
+            + subValue + " to xml.", e);
+      }
+
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
   }
 
 }

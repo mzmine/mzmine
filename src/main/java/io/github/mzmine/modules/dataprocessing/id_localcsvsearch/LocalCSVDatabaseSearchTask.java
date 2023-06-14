@@ -49,7 +49,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
@@ -70,11 +70,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -120,12 +118,16 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String fieldSeparator;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
+  private final IsotopePatternMatcherParameters isotopePatternMatcherParameters;
+  private final MZTolerance isotopeMzTolerance;
+  private final double minRelativeIsotopeIntensity;
+  private final double minIsotopeScore;
   private final ParameterSet parameters;
   private final List<ImportType> importTypes;
   private final IonLibraryParameterSet ionLibraryParameterSet;
   private final Boolean filterSamples;
   private final String sampleHeader;
-  private final List<RawDataFile> raws;
+  private final List<RawDataFile> allRawDataFiles;
   private IonNetworkLibrary ionNetworkLibrary;
 
   private String[][] databaseValues;
@@ -155,12 +157,30 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
         LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
+
+    // all raw data files for a name check if selected
+    allRawDataFiles = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles)
+        .flatMap(Collection::stream).distinct().toList();
     sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
         .getEmbeddedParameter().getValue();
 
-    // all raw data files for a name check if selected
-    raws = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles).flatMap(Collection::stream)
-        .distinct().toList();
+    final boolean isotopePatternMatcher = parameters.getValue(
+        LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
+    if(isotopePatternMatcher) {
+      isotopePatternMatcherParameters = parameters.getParameter(
+          LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters();
+      isotopeMzTolerance = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.isotopeMzTolerance).getValue();
+      minRelativeIsotopeIntensity = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIntensity).getValue();
+      minIsotopeScore = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIsotopeScore).getValue();
+    } else {
+      isotopePatternMatcherParameters = null;
+      isotopeMzTolerance = null;
+      minRelativeIsotopeIntensity = 0d;
+      minIsotopeScore = 0d;
+    }
   }
 
   @Override
@@ -234,7 +254,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         }
         try {
           String[] currentLine = databaseValues[finishedLines];
-          if (filterSamples && !matchSample(raws, currentLine[sampleColIndex])) {
+          // check already once for all raw data files
+          if (filterSamples && !matchSample(allRawDataFiles, currentLine[sampleColIndex])) {
             // sample mismatch for this line
             continue;
           }
@@ -244,6 +265,23 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           logger.log(Level.FINE, "Exception while processing csv line " + finishedLines, e);
         }
       }
+
+      for (final SortedList<FeatureListRow> flist : mzSortedRows) {
+        for (final FeatureListRow row : flist) {
+          var matches = row.getCompoundAnnotations().stream().sorted()
+              .collect(Collectors.toCollection(ArrayList::new));
+          if (matches.isEmpty()) {
+            continue;
+          }
+          row.setCompoundAnnotations(matches);
+        }
+      }
+      if(isotopePatternMatcherParameters != null) {
+        for (FeatureList flist : featureLists) {
+          refineAnnotationsByIsotopes(flist);
+        }
+      }
+
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
@@ -261,6 +299,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  private void refineAnnotationsByIsotopes(FeatureList flist) {
+      DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopes(flist.getRows(), isotopeMzTolerance,
+          minRelativeIsotopeIntensity, minIsotopeScore);
   }
 
   /**
@@ -288,7 +331,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private boolean matchSample(final List<RawDataFile> raws, final String sample) {
-    return this.raws.stream().anyMatch(raw -> raw.getName().contains(sample));
+    return raws.stream()
+        .anyMatch(raw -> raw.getName().toLowerCase().contains(sample.toLowerCase()));
   }
 
   /**
@@ -312,7 +356,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     // not all feature lists have all samples
     indexStream.forEach(i -> {
       var rawFiles = featureLists[i].getRawDataFiles();
-      //  if active, check sample name contains id
+      //  if active, check sample name contains id - this time for the feature list
       if (!filterSamples || matchSample(rawFiles, values[sampleColIndex])) {
         var sortedRows = mzSortedRows.get(i);
 
@@ -373,8 +417,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         rtTolerance, mobTolerance, percCcsTolerance);
     if (clone != null) {
       row.addCompoundAnnotation(clone);
-      row.getCompoundAnnotations()
-          .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
     }
   }
 
@@ -437,8 +479,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(inchiKey, () -> a.put(inchiKeyType, inchiKey));
     doIfNotNull(lineMZ, () -> a.put(precursorMz, lineMZ));
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
-    doIfNotNull(IonType.parseFromString(lineAdduct),
-        () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
+    a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
     doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
         new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     return a;

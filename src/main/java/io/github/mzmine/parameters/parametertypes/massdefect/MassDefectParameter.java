@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.massdefect;
 import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -109,7 +110,7 @@ public class MassDefectParameter implements UserParameter<MassDefectFilter, Mass
   }
 
   @Override
-  public void setValueToComponent(MassDefectComponent component, MassDefectFilter newValue) {
+  public void setValueToComponent(MassDefectComponent component, @Nullable MassDefectFilter newValue) {
     component.setValue(newValue);
   }
 

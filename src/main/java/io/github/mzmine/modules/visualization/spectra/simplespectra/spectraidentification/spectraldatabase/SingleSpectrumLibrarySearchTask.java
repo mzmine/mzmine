@@ -78,15 +78,14 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
     // add result frame
     MZmineCore.runOnFxThreadAndWait(() -> {
       resultWindow = new SpectraIdentificationResultsWindowFX();
-      resultWindow.show();
+      MZmineCore.getDesktop().addTab(resultWindow);
     });
 
     // do the actual matching
     super.run();
 
-    final int fcount = matches.get();
     MZmineCore.runLater(() -> {
-      resultWindow.setTitle("Matched " + fcount + " compounds for scan#" + scan.getScanNumber());
+      resultWindow.setText("Spectral matches for scan#" + scan.getScanNumber());
       resultWindow.setMatchingFinished();
     });
 

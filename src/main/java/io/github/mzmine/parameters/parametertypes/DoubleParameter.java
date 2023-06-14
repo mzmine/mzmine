@@ -25,10 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
-import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Number parameter. Note that we prefer to use JTextField rather than JFormattedTextField, because
@@ -112,8 +113,8 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   }
 
   @Override
-  public void setValueToComponent(final DoubleComponent component, final Double newValue) {
-    component.setText(format.format(newValue));
+  public void setValueToComponent(final DoubleComponent component, final @Nullable Double newValue) {
+    component.setText(newValue!=null? format.format(newValue) : "");
   }
 
   @Override

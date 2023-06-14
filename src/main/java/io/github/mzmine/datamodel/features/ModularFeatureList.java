@@ -44,7 +44,6 @@ import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
@@ -66,6 +65,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
@@ -135,6 +135,17 @@ public class ModularFeatureList implements FeatureList {
       // check feature data for graphical columns
       DataTypeUtils.applyFeatureSpecificGraphicalTypes((ModularFeature) dataModel);
     });
+
+    // add row bindings automatically
+    featureTypes.addListener(
+        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
+          DataType added = change.getValueAdded();
+          if (added == null) {
+            return;
+          }
+          // add row bindings
+          addRowBinding(added.createDefaultRowBindings());
+        });
   }
 
   @Override
@@ -324,8 +335,6 @@ public class ModularFeatureList implements FeatureList {
       if (!featureTypes.containsKey(type.getClass())) {
         // all {@link ModularFeature} will automatically add a default data map
         featureTypes.put(type.getClass(), type);
-        // add row bindings
-        addRowBinding(type.createDefaultRowBindings());
       }
     }
   }
@@ -499,11 +508,11 @@ public class ModularFeatureList implements FeatureList {
   public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
     List<FeatureListRow> rows = new ArrayList<>();
-    for(var row : getRows()) {
+    for (var row : getRows()) {
       Float rt = row.getAverageRT();
-      if(rt==null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+      if (rt == null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
         rows.add(row);
-      } else if(rt>rtRange.upperEndpoint()) {
+      } else if (rt > rtRange.upperEndpoint()) {
         break;
       }
     }
@@ -702,9 +711,10 @@ public class ModularFeatureList implements FeatureList {
     }
 
     DoubleSummaryStatistics mzStatistics = getRows().stream().map(FeatureListRow::getAverageMZ)
-        .collect(Collectors.summarizingDouble((Double::doubleValue)));
+        .filter(Objects::nonNull).mapToDouble(Double::doubleValue).summaryStatistics();
 
-    return Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
+    return mzStatistics.getCount() == 0 ? Range.singleton(0d)
+        : Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
   }
 
   // TODO: if this method would be called frequently, then store and update whole rt range in
@@ -715,9 +725,12 @@ public class ModularFeatureList implements FeatureList {
       return Range.singleton(0f);
     }
 
-    DoubleSummaryStatistics rtStatistics = getRows().stream()
-        .map(row -> (double) (row).getAverageRT())
-        .collect(Collectors.summarizingDouble((Double::doubleValue)));
+    DoubleSummaryStatistics rtStatistics = getRows().stream().map(FeatureListRow::getAverageRT)
+        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).summaryStatistics();
+
+    if (rtStatistics.getCount() == 0) {
+      return Range.singleton(0f);
+    }
 
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }

@@ -25,12 +25,21 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
@@ -73,4 +82,59 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         SpectralLibraryImportParameters.dataBaseFiles);
   }
 
+  /**
+   * @return true if parameterset is of this class or contains at least the parameters
+   */
+  public static boolean isParameterSetClass(final ParameterSet parameters) {
+    return parameters != null && (
+        parameters.getClass().equals(AllSpectralDataImportParameters.class) || (
+            parameters.hasParameter(advancedImport) && parameters.hasParameter(fileNames)));
+  }
+
+  /**
+   * Get all files in the project that match the file path
+   *
+   * @return a list of already loaded raw data files
+   */
+  public static List<RawDataFile> getLoadedRawDataFiles(MZmineProject project,
+      final ParameterSet parameters) {
+    // all files that should be loaded
+    // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
+    Set<File> loadFileSet = streamValidatedFiles(parameters).map(File::getAbsoluteFile)
+        .collect(Collectors.toSet());
+
+    // the actual files in the list
+    return project.getCurrentRawDataFiles().stream()
+        .filter(raw -> loadFileSet.contains(raw.getAbsoluteFilePath())).toList();
+  }
+
+  /**
+   * Removes already loaded files from the import list
+   *
+   * @return array of files - files that are already loaded
+   */
+  public static File[] skipAlreadyLoadedFiles(MZmineProject project,
+      final ParameterSet parameters) {
+    var loadedFiles = getLoadedRawDataFiles(project, parameters);
+    var loadedAbsFiles = loadedFiles.stream().map(RawDataFile::getAbsoluteFilePath)
+        .collect(Collectors.toSet());
+
+    // compare based on absolute files
+    // skip all files in import that directly match the abs path of another file
+    return streamValidatedFiles(parameters).filter(
+        file -> !loadedAbsFiles.contains(file.getAbsoluteFile())).toArray(File[]::new);
+  }
+
+
+  /**
+   * Applies {@link AllSpectralDataImportModule#validateBrukerPath(File)} to get the actual file
+   * paths. This is done always before import.
+   *
+   * @return stream of files
+   */
+  @NotNull
+  public static Stream<File> streamValidatedFiles(final ParameterSet parameters) {
+    return Arrays.stream(parameters.getValue(fileNames))
+        .map(AllSpectralDataImportModule::validateBrukerPath);
+  }
 }

@@ -60,6 +60,7 @@ import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -202,5 +203,80 @@ public interface SpectralLibraryEntry extends MassList {
     return putIfNotNull(DBEntryField.CHARGE,
         Math.abs(charge) + Objects.requireNonNullElse(polarity, PolarityType.POSITIVE)
             .asSingleChar());
+  }
+
+  /**
+   * Extract MS level from scan
+   */
+  @NotNull
+  default Optional<Integer> getMsLevel() {
+    return getAsInteger(DBEntryField.MS_LEVEL);
+  }
+
+  /**
+   * Extract MS level from scan
+   *
+   * @return null if none provided
+   */
+  @Nullable
+  default Double getPrecursorMz() {
+    return getAsDouble(DBEntryField.PRECURSOR_MZ).orElse(null);
+  }
+
+  @NotNull
+  default PolarityType getPolarity() {
+    return getField(DBEntryField.POLARITY).map(Object::toString).map(PolarityType::parseFromString)
+        .orElse(PolarityType.UNKNOWN);
+  }
+
+  default Optional<Float> getAsFloat(DBEntryField field) {
+    try {
+      return getField(field).map(this::toFloat);
+    } catch (Exception ex) {
+      logger.finest("Cannot convert to float " + field.toString() + " value: " + getField(field));
+      return Optional.empty();
+    }
+  }
+
+  default Float toFloat(Object v) {
+    return switch (v) {
+      case Number n -> n.floatValue();
+      case String s -> Float.parseFloat(s);
+      default -> null;
+    };
+  }
+
+  default Optional<Double> getAsDouble(DBEntryField field) {
+    try {
+      return getField(field).map(this::toDouble);
+    } catch (Exception ex) {
+      logger.finest("Cannot convert to double " + field.toString() + " value: " + getField(field));
+      return Optional.empty();
+    }
+  }
+
+  default Double toDouble(Object v) {
+    return switch (v) {
+      case Number n -> n.doubleValue();
+      case String s -> Double.parseDouble(s);
+      default -> null;
+    };
+  }
+
+  default Optional<Integer> getAsInteger(DBEntryField field) {
+    try {
+      return getField(field).map(this::toInteger);
+    } catch (Exception ex) {
+      logger.finest("Cannot convert to integer " + field.toString() + " value: " + getField(field));
+      return Optional.empty();
+    }
+  }
+
+  default Integer toInteger(Object v) {
+    return switch (v) {
+      case Number n -> n.intValue();
+      case String s -> Integer.parseInt(s);
+      default -> null;
+    };
   }
 }

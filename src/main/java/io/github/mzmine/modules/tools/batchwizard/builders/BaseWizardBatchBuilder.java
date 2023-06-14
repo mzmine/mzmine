@@ -33,6 +33,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters.ChimericMsOption;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -84,7 +86,11 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Advance
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
+import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
@@ -94,8 +100,6 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters;
-import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
@@ -362,6 +366,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       if (exportSirius) {
         makeAndAddSiriusExportStep(q, exportPath);
       }
+      makeAndAddAllAnnotationExportStep(q, exportPath);
     }
   }
 
@@ -404,6 +409,22 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SiriusExportModule.class),
         param));
+  }
+
+  protected static void makeAndAddAllAnnotationExportStep(final BatchQueue q,
+      final File exportPath) {
+    final ParameterSet param = new CompoundAnnotationsCSVExportParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), fileName.getName() + "_annotations.csv");
+
+    param.setParameter(CompoundAnnotationsCSVExportParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(CompoundAnnotationsCSVExportParameters.topNMatches, 10);
+    param.setParameter(CompoundAnnotationsCSVExportParameters.filename, fileName);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(CompoundAnnotationsCSVExportModule.class), param));
   }
 
   protected void makeAndAddDeisotopingStep(final BatchQueue q, final @Nullable RTTolerance rtTol) {
@@ -610,7 +631,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     chimerics.setParameter(HandleChimericMsMsParameters.mainMassWindow, mzTolScans);
     chimerics.setParameter(HandleChimericMsMsParameters.isolationWindow,
         getIsolationToleranceForInstrument(steps));
-    chimerics.setParameter(HandleChimericMsMsParameters.allowedOtherSignals, 0.2);
+    chimerics.setParameter(HandleChimericMsMsParameters.minimumPrecursorPurity, 0.75);
 
     // quality
     var quality = param.getParameter(LibraryBatchGenerationParameters.quality)
@@ -635,6 +656,20 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralLibraryImportModule.class), importParams));
+  }
+
+  /**
+   * convert loaded library to feature list
+   */
+  protected void makeAndAddLibraryToFeatureListStep(final BatchQueue q) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralLibraryToFeatureListModule.class).cloneParameterSet();
+
+    param.setParameter(SpectralLibraryToFeatureListParameters.libraries,
+        new SpectralLibrarySelection());
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(SpectralLibraryToFeatureListModule.class), param));
   }
 
   protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
@@ -776,6 +811,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(MassDetectionParameters.scanSelection,
         new ScanSelection(MsLevelFilter.of(msLevel, true)));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
+    param.setParameter(MassDetectionParameters.denormalizeMSnScans, false);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));

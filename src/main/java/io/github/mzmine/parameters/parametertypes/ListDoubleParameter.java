@@ -25,13 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
-
-import io.github.mzmine.parameters.UserParameter;
 
 // import org.w3c.dom.Element;
 
@@ -95,7 +95,7 @@ public class ListDoubleParameter implements UserParameter<List<Double>, ListDoub
   }
 
   @Override
-  public void setValueToComponent(ListDoubleComponent component, List<Double> newValue) {
+  public void setValueToComponent(ListDoubleComponent component, @Nullable List<Double> newValue) {
     component.setValue(newValue);
   }
 

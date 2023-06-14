@@ -40,6 +40,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchTask;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
+import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -47,6 +50,8 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
@@ -56,7 +61,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -71,6 +78,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -251,13 +259,11 @@ public class MainWindowController {
   public void initialize() {
 
     // do not switch panes by arrows
-    mainTabPane.addEventFilter(
-        KeyEvent.ANY,
-        event -> {
-          if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
-            event.consume();
-          }
-        });
+    mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
+      if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
+        event.consume();
+      }
+    });
 
     rawDataList.setEditable(false);
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -345,7 +351,8 @@ public class MainWindowController {
       MZmineCore.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
               ((MZmineTab) tab).getFeatureLists(), change.getList()))) {
             ((MZmineTab) tab).onFeatureListSelectionChanged(change.getList());
           }
@@ -353,34 +360,36 @@ public class MainWindowController {
       });
     });
 
-    featureListsList.getSelectionModel().getSelectedItems().addListener((ListChangeListener<GroupableListViewEntity>) change -> {
-      while (change.next()) {
-        if (change.getList() == null) {
-          return;
-        }
+    featureListsList.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<GroupableListViewEntity>) change -> {
+          while (change.next()) {
+            if (change.getList() == null) {
+              return;
+            }
 
-        if (featureListsList.getSelectedValues().size() == 1) {
-          openFeatureListMenuItem.setText("Open feature list");
-          showFeatureListSummaryMenuItem.setText("Show feature list summary");
-          featureListsRemoveMenuItem.setText("Remove feature list");
-        } else {
-          openFeatureListMenuItem.setText("Open feature lists");
-          showFeatureListSummaryMenuItem.setText("Show feature lists summary");
-          featureListsRemoveMenuItem.setText("Remove feature lists");
-        }
+            if (featureListsList.getSelectedValues().size() == 1) {
+              openFeatureListMenuItem.setText("Open feature list");
+              showFeatureListSummaryMenuItem.setText("Show feature list summary");
+              featureListsRemoveMenuItem.setText("Remove feature list");
+            } else {
+              openFeatureListMenuItem.setText("Open feature lists");
+              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+              featureListsRemoveMenuItem.setText("Remove feature lists");
+            }
 
-        if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
-          featureListsRenameMenuItem.setDisable(false);
-          if (featureListsList.getSelectionModel().getSelectedItems().get(0) instanceof GroupEntity) {
-            featureListsRenameMenuItem.setText("Rename group");
-          } else {
-            featureListsRenameMenuItem.setText("Rename feature list");
+            if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
+              featureListsRenameMenuItem.setDisable(false);
+              if (featureListsList.getSelectionModel().getSelectedItems()
+                  .get(0) instanceof GroupEntity) {
+                featureListsRenameMenuItem.setText("Rename group");
+              } else {
+                featureListsRenameMenuItem.setText("Rename feature list");
+              }
+            } else {
+              featureListsRenameMenuItem.setDisable(true);
+            }
           }
-        } else {
-          featureListsRenameMenuItem.setDisable(true);
-        }
-      }
-    });
+        });
   }
 
   private void initRawDataList() {
@@ -592,6 +601,16 @@ public class MainWindowController {
     return taskView;
   }
 
+  public void handleLibraryToFeatureList(final ActionEvent actionEvent) {
+    logger.finest("Libraries to feature lists");
+    var libraries = Collections.unmodifiableList(MZmineGUI.getSelectedSpectralLibraryList());
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralLibraryToFeatureListModule.class);
+    parameters.getParameter(SpectralLibraryToFeatureListParameters.libraries)
+        .setValue(new SpectralLibrarySelection(libraries));
+    MZmineCore.runMZmineModule(SpectralLibraryToFeatureListModule.class, parameters);
+  }
+
   public void handleShowChromatogram(Event event) {
     logger.finest("Activated Show chromatogram menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
@@ -615,6 +634,15 @@ public class MainWindowController {
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
             selectedFiles.toArray(new RawDataFile[0]));
     MZmineCore.runMZmineModule(RawDataOverviewModule.class, parameters);
+  }
+
+  public void handleShowRawDataSummary(final ActionEvent actionEvent) {
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(RawDataSummaryModule.class);
+    parameters.getParameter(RawDataSummaryParameters.dataFiles)
+        .setValue(new RawDataFilesSelection(selectedFiles.toArray(new RawDataFile[0])));
+    MZmineCore.setupAndRunModule(RawDataSummaryModule.class);
   }
 
   public void handleShowIMSDataOverview(Event event) {
@@ -999,4 +1027,5 @@ public class MainWindowController {
   public NotificationPane getNotificationPane() {
     return notificationPane;
   }
+
 }

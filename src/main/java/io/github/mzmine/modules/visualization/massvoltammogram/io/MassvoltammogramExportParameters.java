@@ -23,19 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
-public class MassvoltammogramMzRangeParameter extends SimpleParameterSet {
+public class MassvoltammogramExportParameters extends SimpleParameterSet {
 
-  public static final MZRangeParameter mzRange = new MZRangeParameter("m/z Range",
-      "Minimal and maximal m/z");
+  public static final FileNameParameter path = new FileNameParameter("Path",
+      "The path the file will be saved to.", FileSelectionType.SAVE, false);
 
-  public MassvoltammogramMzRangeParameter(){
-    super(new Parameter[]{mzRange});
+  public static final ComboParameter<String> fileFormat = new ComboParameter<>("File Format",
+      "The file format the massvoltammogram will be exported to",
+      new String[]{"CSV", "XLSX", "PNG", "JPG", "EMF", "PDF"}, "CSV");
+
+  public static final BooleanParameter transparency = new BooleanParameter("Transparency",
+      "Set the background transparent for supported graphics formats.");
+
+  public MassvoltammogramExportParameters() {
+    super(new Parameter[]{path, fileFormat, transparency});
+    setModuleNameAttribute("Export the massvoltammogram.");
   }
-
 }

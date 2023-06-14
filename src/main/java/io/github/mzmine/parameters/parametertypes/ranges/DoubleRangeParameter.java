@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -38,9 +39,9 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
   private final String name, description;
   protected final boolean valueRequired;
   private final boolean nonEmptyRequired;
-  private NumberFormat format;
+  private final NumberFormat format;
   private Range<Double> value;
-  private Range<Double> maxAllowedRange;
+  private final Range<Double> maxAllowedRange;
 
   public DoubleRangeParameter(String name, String description, NumberFormat format) {
     this(name, description, format, true, false, null);
@@ -113,7 +114,7 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
   }
 
   @Override
-  public void setValueToComponent(DoubleRangeComponent component, Range<Double> newValue) {
+  public void setValueToComponent(DoubleRangeComponent component, @Nullable Range<Double> newValue) {
     component.setValue(newValue);
   }
 

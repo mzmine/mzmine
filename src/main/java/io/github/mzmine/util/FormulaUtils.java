@@ -28,7 +28,6 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -325,11 +324,21 @@ public class FormulaUtils {
   }
 
   /**
+   * @param formula formula maybe with defined isotopes
+   * @return mono isotopic mass
+   */
+  public static double getMonoisotopicMass(IMolecularFormula formula) {
+    return formula == null ? 0d
+        : MolecularFormulaManipulator.getMass(formula, MolecularFormulaManipulator.MonoIsotopic);
+  }
+
+  /**
    * Creates a formula with the major isotopes (important to use this method for exact mass
    * calculation over the CDK version, which generates formulas without an exact mass)
    *
    * @return the formula or null
    */
+  @Nullable
   public static IMolecularFormula createMajorIsotopeMolFormula(String formula) {
     try {
       // new formula consists of isotopes without exact mass
@@ -362,6 +371,9 @@ public class FormulaUtils {
    */
   public static IMolecularFormula replaceAllIsotopesWithoutExactMass(IMolecularFormula f)
       throws IOException {
+    if (f == null) {
+      return null;
+    }
     for (IIsotope iso : f.isotopes()) {
       // find isotope without exact mass
       if (iso.getExactMass() == null || iso.getExactMass() == 0) {
@@ -430,8 +442,13 @@ public class FormulaUtils {
    * @param minMzValue     the minimum mz value to consider
    * @return list of original formula followed by sub formulas, sorted by ascending mz
    */
+  @Nullable
   public static FormulaWithExactMz[] getAllFormulas(IMolecularFormula inputFormula,
       @Nullable Integer resetAbsCharge, double minMzValue) {
+    if (inputFormula == null) {
+      return null;
+    }
+
     if (resetAbsCharge != null) {
       inputFormula = resetAbsCharge(inputFormula, resetAbsCharge);
     }
@@ -675,9 +692,7 @@ public class FormulaUtils {
     if (formula == null) {
       return null;
     }
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
-        formula, SilentChemObjectBuilder.getInstance());
-    return neutralizeFormulaWithHydrogen(molecularFormula);
+    return neutralizeFormulaWithHydrogen(createMajorIsotopeMolFormula(formula));
   }
 
   /**
@@ -702,7 +717,7 @@ public class FormulaUtils {
 
         logger.finest(
             () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "
-                + charge + ". Adjusting protonation.");
+                  + charge + ". Adjusting protonation.");
 
         final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
             -charge);
@@ -734,23 +749,19 @@ public class FormulaUtils {
    * Creates the ionized formula combining the adduct from the feature annotation
    */
   public static @Nullable IMolecularFormula getIonizedFormula(final FeatureAnnotation annotation) {
-    if (annotation.getFormula() == null) {
+    if (annotation.getFormula() == null || annotation.getFormula().isBlank()) {
       return null;
     }
 
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        annotation.getFormula(), SilentChemObjectBuilder.getInstance());
-
+    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(annotation.getFormula());
+    assert molecularFormula != null;
     try {
-      FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
-    } catch (IOException e) {
+      // ionize formula
+      // considering both 2M etc
+      return annotation.getAdductType().addToFormula(molecularFormula);
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Cannot ionize formula");
       throw new RuntimeException(e);
     }
-
-    final IonType adductType = annotation.getAdductType();
-    if (adductType.getCDKFormula() != null) {
-      molecularFormula.add(adductType.getCDKFormula());
-    }
-    return molecularFormula;
   }
 }

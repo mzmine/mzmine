@@ -101,6 +101,8 @@
                             <items>
                               <MenuItem onAction="#handleShowRawDataOverview"
                                 text="Show raw data overview"/>
+                              <MenuItem onAction="#handleShowRawDataSummary"
+                                text="Show raw data summary"/>
                               <MenuItem onAction="#handleShowIMSDataOverview"
                                 text="Show ion mobility raw data overview"/>
                               <MenuItem onAction="#handleShowImageViewer"
@@ -188,6 +190,8 @@
                         <contextMenu>
                           <ContextMenu fx:id="spectralLibraryContextMenu">
                             <items>
+                              <MenuItem onAction="#handleLibraryToFeatureList"
+                                text="Libraries to feature lists"/>
                               <MenuItem onAction="#handleSpectralLibrarySort"
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleSpectralLibraryRemove"

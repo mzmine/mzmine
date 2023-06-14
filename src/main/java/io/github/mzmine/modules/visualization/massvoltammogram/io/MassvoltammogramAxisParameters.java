@@ -23,23 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.massvoltammogram;
+package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
-import javax.swing.JButton;
-import javax.swing.JToggleButton;
-import org.math.plot.components.PlotToolBar;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import java.text.DecimalFormat;
 
-/**
- * Class used to extend the PlotToolBar so that the old functions can be accessed from the new
- * toolbar created in the MassvoltammogramTab.
- */
-public class ExtendedPlotToolBar extends PlotToolBar {
+public class MassvoltammogramAxisParameters extends SimpleParameterSet {
 
-  final JToggleButton moveButton = buttonCenter;
-  final JToggleButton rotateButton = buttonRotate;
-  final JButton resetPlotButton = buttonReset;
+  public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
+      new MZRangeParameter("m/z Range", "Minimal and maximal m/z"));
 
-  public ExtendedPlotToolBar(ExtendedPlot3DPanel plot) {
-    super(plot);
+  public static final OptionalParameter<DoubleParameter> maxIntensity = new OptionalParameter<>(
+      new DoubleParameter("max. Intensity", "The massvoltammograms intensity axis maximal value",
+          new DecimalFormat("0")));
+
+  public MassvoltammogramAxisParameters() {
+    super(new Parameter[]{maxIntensity, mzRange});
+    setModuleNameAttribute("Set masvoltammograms axis.");
   }
+
 }

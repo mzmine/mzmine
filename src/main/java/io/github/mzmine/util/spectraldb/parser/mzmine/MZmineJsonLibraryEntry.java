@@ -100,6 +100,7 @@ public class MZmineJsonLibraryEntry {
   public String compoundSource, dataCollector, investigator;
   public MSnDefinition multiStageFragmentation;
   public SpectralQuality quality;
+  public Double purity;
   public Integer numSignals;
 
   @JsonDeserialize(using = io.github.mzmine.util.spectraldb.parser.mzmine.SpectrumDeserializer.class)
@@ -174,6 +175,7 @@ public class MZmineJsonLibraryEntry {
       case USI -> usi;
       case SPLASH -> splash;
       case QUALITY -> quality;
+      case QUALITY_PRECURSOR_PURITY -> purity;
       case QUALITY_CHIMERIC -> quality != null ? quality.chimeric() : null;
       case QUALITY_EXPLAINED_INTENSITY -> quality != null ? quality.explainedIntensity() : null;
       case QUALITY_EXPLAINED_SIGNALS -> quality != null ? quality.explainedSignals() : null;
@@ -186,6 +188,8 @@ public class MZmineJsonLibraryEntry {
       case CHEMSPIDER -> null;
       case SIRIUS_MERGED_SCANS -> null;
       case SIRIUS_MERGED_STATS -> null;
+      case OTHER_MATCHED_COMPOUNDS_N -> null;
+      case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
       case FEATURE_ID -> null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;

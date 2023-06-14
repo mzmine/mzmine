@@ -33,6 +33,7 @@ import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -104,7 +105,7 @@ public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboW
   }
 
   @Override
-  public void setValueToComponent(ComboWithInputComponent<EnumType> component, ValueType newValue) {
+  public void setValueToComponent(ComboWithInputComponent<EnumType> component, @Nullable ValueType newValue) {
     component.setValue(newValue);
   }
 

@@ -88,6 +88,10 @@ public abstract class WizardBatchBuilder {
         case SPATIAL_IMAGING -> new WizardBatchBuilderImagingDda(steps);
         case CHROMATOGRAPHY_HARD -> throw unsupportedException;
       };
+      case DIA -> switch (ionInterface.group()) {
+        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDIA(steps);
+        default -> throw unsupportedException;
+      };
       // only used for GC EI
       case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
       case IMAGING -> new WizardBatchBuilderImagingDda(steps);

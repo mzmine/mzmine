@@ -155,7 +155,7 @@ public class PaintScalePaletteComponent extends GridPane {
   }
 
   public void setValue(SimpleColorPalette value) {
-    if (box.getItems().indexOf(value) == -1) {
+    if (!box.getItems().contains(value)) {
       logger.warning("Value of PaintScalePaletteComponent was set to a value not contained "
           + "in the items. This might lead to unexpected behaviour.");
     }

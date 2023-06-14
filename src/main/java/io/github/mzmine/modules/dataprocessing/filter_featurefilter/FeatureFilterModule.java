@@ -43,9 +43,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FeatureFilterModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Peak filter";
-  private static final String MODULE_DESCRIPTION =
-      "This method removes certain peak entries based on given restrictions.";
+  private static final String MODULE_NAME = "Feature filter";
+  private static final String MODULE_DESCRIPTION = "This method removes certain peak entries based on given restrictions.";
 
   @Override
   public @NotNull String getName() {
