@@ -49,7 +49,7 @@ public class MaldiGroupMS2Parameters extends SimpleParameterSet {
           + "m/z assigned to the MS2 scan.", 0.01, 10);
   public static final BooleanParameter combineTimsMsMs = new BooleanParameter(
       "Combine MS/MS spectra (TIMS)",
-      "If checked, all assigned MS/MS spectra with the same collision energy will be merged into a single MS/MS spectrum.",
+      "If checked, all assigned MS/MS spectra with will also be merged into a single MS/MS spectrum.",
       false);
   public static final BooleanParameter lockMS2ToFeatureMobilityRange = new BooleanParameter(
       "Lock to feature mobility range",

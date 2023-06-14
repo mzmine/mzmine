@@ -161,8 +161,11 @@ public class ScanUtils {
         && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
-    if (scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null) {
-      buf.append(" CE: ").append(scan.getMsMsInfo().getActivationEnergy());
+
+    final List<Float> CEs = extractCollisionEnergies(scan);
+    if (!CEs.isEmpty()) {
+      buf.append(", CE: ");
+      buf.append(CEs.stream().sorted().map("%.1f"::formatted).collect(Collectors.joining(", ")));
     }
 
     switch (scan.getSpectrumType()) {
@@ -178,13 +181,8 @@ public class ScanUtils {
       buf.append(" merged ");
       buf.append(((MergedMassSpectrum) scan).getSourceSpectra().size());
       buf.append(" spectra");
-      if (scan instanceof MergedMsMsSpectrum merged) {
-        buf.append(", CE: ");
-        buf.append(merged.getSourceSpectra().stream()
-            .map(spectrum -> "%.1f".formatted(extractCollisionEnergy(spectrum))).distinct()
-            .filter(Objects::nonNull).collect(Collectors.joining(", ")));
-      }
     }
+
 
     /*
      * if ((scan.getScanDefinition() != null) && (scan.getScanDefinition().length() > 0)) {
