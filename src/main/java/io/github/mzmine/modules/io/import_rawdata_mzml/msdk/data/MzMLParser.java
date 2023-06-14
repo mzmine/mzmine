@@ -517,9 +517,6 @@ public class MzMLParser {
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
       if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig.processor())) {
         vars.spectrumList.add(spectrum);
-      } else {
-        logger.warning("Could not load and process spectral data of scan #%d".formatted(
-            vars.spectrum.getScanNumber()));
       }
     }
     vars.spectrum = null;

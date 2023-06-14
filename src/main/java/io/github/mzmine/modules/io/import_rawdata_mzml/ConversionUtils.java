@@ -143,18 +143,11 @@ public class ConversionUtils {
         info = MSnInfoImpl.fromMzML(precursorElements, scan.getMSLevel());
       }
     }
-    Float injTime = null;
-    try {
-      injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
-          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
-          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
-          .orElse(null);
-    } catch (Exception e) {
-      // float parsing error
-    }
+
+    Float injTime = scan.getInjectionTime();
 
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMSLevel(),
-        scan.getRetentionTime() / 60, info, mzs, intensities, spectrumType, scan.getPolarity(),
+        scan.getRetentionTime(), info, mzs, intensities, spectrumType, scan.getPolarity(),
         scan.getScanDefinition(), scan.getScanningMZRange(), injTime);
 
     return newScan;

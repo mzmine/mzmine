@@ -262,7 +262,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       }
       final Matcher watersMatcher = watersPattern.matcher(mzMLScan.getId());
       if (buildingFrame == null
-          || Float.compare((mzMLScan.getRetentionTime() / 60f), buildingFrame.getRetentionTime())
+          || Float.compare((mzMLScan.getRetentionTime()), buildingFrame.getRetentionTime())
              != 0 /*|| (watersMatcher.matches() && Integer.parseInt(watersMatcher.group(1)) != previousFunction)*/) {
 //        previousFunction = watersMatcher.matches() ? Integer.parseInt(watersMatcher.group(1)) : 1;
 
@@ -293,7 +293,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, mzMLScan.getMSLevel(),
-            mzMLScan.getRetentionTime() / 60f, null, null, mzMLScan.getSpectrumType(),
+            mzMLScan.getRetentionTime(), null, null, mzMLScan.getSpectrumType(),
             mzMLScan.getPolarity(), mzMLScan.getScanDefinition(), mzMLScan.getScanningMZRange(),
             mzMLScan.getMobility().mobilityType(), null, null);
         frameNumber++;

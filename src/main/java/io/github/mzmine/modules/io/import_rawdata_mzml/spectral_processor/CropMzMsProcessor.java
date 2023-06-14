@@ -44,7 +44,11 @@ public class CropMzMsProcessor implements MsProcessor {
     // returns the index of the value>=min/max
     // requires sorted values, is ensured as this is always the first step in loading/processing
     int lower = Math.abs(Arrays.binarySearch(spectrum.mzs(), min));
-    int upper = Math.abs(Arrays.binarySearch(spectrum.mzs(), max));
+    int upper = Math.abs(Arrays.binarySearch(spectrum.mzs(), max))-1;
+    if (lower >= upper) {
+      return SimpleSpectralArrays.EMPTY;
+    }
+
     var mzs = Arrays.copyOfRange(spectrum.mzs(), lower, upper);
     var intensities = Arrays.copyOfRange(spectrum.intensities(), lower, upper);
     return new SimpleSpectralArrays(mzs, intensities);

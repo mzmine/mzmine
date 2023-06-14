@@ -467,14 +467,14 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
               // there was a time unit defined
               switch (param.getUnitAccession().orElse("")) {
                 case MzMLCV.cvUnitsMin1, MzMLCV.cvUnitsMin2 ->
-                    retentionTime = Float.parseFloat(value.get()) * 60f;
-                case MzMLCV.cvUnitsSec -> retentionTime = Float.parseFloat(value.get());
+                    retentionTime = Float.parseFloat(value.get());
+                case MzMLCV.cvUnitsSec -> retentionTime = Float.parseFloat(value.get()) / 60f;
                 default -> throw new IllegalStateException(
                     "Unknown time unit encountered: [" + unitAccession + "]");
               }
             } else {
-              // no time units defined, return the value as is
-              retentionTime = Float.parseFloat(value.get());
+              // no time units defined, should be seconds
+              retentionTime = Float.parseFloat(value.get()) / 60f;
             }
           }
           default -> {
@@ -586,6 +586,11 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       final MsProcessorList spectralProcessor) {
     try {
       var specData = loadData();
+      if (specData == null) {
+        // may be null for UV spectra
+        return false;
+      }
+
       // process and filter - needs metadata so wrap
       specData = spectralProcessor.processScan(this, specData);
 
@@ -601,7 +606,13 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return true;
   }
 
-  private SimpleSpectralArrays loadData() throws MSDKException, IOException {
+  private @Nullable SimpleSpectralArrays loadData() throws MSDKException, IOException {
+    if(mzBinaryDataInfo==null) {
+      // maybe UV spectrum
+      clearUnusedData();
+      return null;
+    }
+
     if (mzBinaryDataInfo.getArrayLength() != intensityBinaryDataInfo.getArrayLength()) {
       logger.warning(
           "Binary data array contains an array of different length than the default array length of the scan (#"

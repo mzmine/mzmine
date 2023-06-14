@@ -57,37 +57,43 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
     assert mzValues != null;
     assert intensityValues != null;
-    assert mzValues.capacity() == intensityValues.capacity();
+    assert mzValues.limit() == intensityValues.limit();
 
     totalIonCurrent = 0.0;
 
-    if (mzValues.capacity() == 0) {
+    if (mzValues.limit() == 0) {
       mzRange = null;
       basePeakIndex = null;
       return;
     }
 
-    totalIonCurrent = 0.0;
+    double lastMz = mzValues.get(0);
+    double maxIntensity = intensityValues.get(0);
+    totalIonCurrent = maxIntensity;
     basePeakIndex = 0;
-    mzRange = Range.closed(mzValues.get(0), mzValues.get(mzValues.capacity() - 1));
 
-    for (int i = 0; i < mzValues.capacity() - 1; i++) {
+    // first index was handled
+    for (int i = 1; i < mzValues.limit(); i++) {
 
       // Check the order of the m/z values
-      if ((i < mzValues.capacity() - 1) && (mzValues.get(i) > mzValues.get(i + 1))) {
+      double mz = mzValues.get(i);
+      if (mz<lastMz) {
         throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
       }
+      lastMz = mz;
 
       // Update base peak index
-      if (intensityValues.get(i) > intensityValues.get(basePeakIndex)) {
+      double intensity = intensityValues.get(i);
+      if (intensity > maxIntensity) {
         basePeakIndex = i;
+        maxIntensity = intensity;
       }
 
       // Update TIC
-      totalIonCurrent += intensityValues.get(i);
+      totalIonCurrent += intensity;
     }
-
-    totalIonCurrent += intensityValues.get(intensityValues.capacity() - 1);
+    // set range after checking the order
+    mzRange = Range.closed(mzValues.get(0), mzValues.get(mzValues.limit() - 1));
   }
 
 
@@ -96,7 +102,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
    */
   @Override
   public int getNumberOfDataPoints() {
-    return getMzValues().capacity();
+    return getMzValues().limit();
   }
 
   /**

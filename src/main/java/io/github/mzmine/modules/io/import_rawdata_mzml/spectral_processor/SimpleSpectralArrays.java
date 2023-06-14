@@ -34,8 +34,12 @@ import io.github.mzmine.datamodel.Scan;
  */
 public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
 
+  public static final SimpleSpectralArrays EMPTY = new SimpleSpectralArrays(new double[0],
+      new double[0]);
+
   public SimpleSpectralArrays(final Scan scan) {
     this(scan.getMzValues(new double[scan.getNumberOfDataPoints()]),
         scan.getIntensityValues(new double[scan.getNumberOfDataPoints()]));
   }
+
 }
