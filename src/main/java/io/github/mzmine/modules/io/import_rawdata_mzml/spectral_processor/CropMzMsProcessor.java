@@ -41,11 +41,24 @@ public class CropMzMsProcessor implements MsProcessor {
   }
 
   public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
+    // only crop MS1 scans
+    if (scan.getMSLevel() != 1) {
+      return spectrum;
+    }
+
     // returns the index of the value>=min/max
     // requires sorted values, is ensured as this is always the first step in loading/processing
-    int lower = Math.abs(Arrays.binarySearch(spectrum.mzs(), min));
-    int upper = Math.abs(Arrays.binarySearch(spectrum.mzs(), max))-1;
-    if (lower >= upper) {
+    int lower = Arrays.binarySearch(spectrum.mzs(), min);
+    if (lower < 0) {
+      lower = -lower - 1; // get insertion point
+    }
+    int upper = Arrays.binarySearch(spectrum.mzs(), max);
+    if (upper < 0) {
+      upper = -upper - 1; // get insertion point
+    } else {
+      upper++; // increment on direct match
+    }
+    if (lower > upper) {
       return SimpleSpectralArrays.EMPTY;
     }
 

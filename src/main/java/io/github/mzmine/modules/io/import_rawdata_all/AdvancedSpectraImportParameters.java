@@ -39,6 +39,10 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
 
   public static final ScanSelectionParameter scanFilter = new ScanSelectionParameter();
 
+  public static final OptionalParameter<DoubleRangeParameter> mzRange = new OptionalParameter<>(
+      new DoubleRangeParameter("Crop MS1 m/z", "m/z boundary of the cropped region",
+          MZmineCore.getConfiguration().getMZFormat()), false);
+
   public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection = new OptionalParameter<>(
       new ModuleComboParameter<MassDetector>("MS1 detector (Advanced)",
           "Algorithm to use on MS1 scans for mass detection and its parameters",
@@ -56,9 +60,6 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
       This reduces the intensity differences between spectra acquired with different injection times
       and reverts to "raw" intensities.""", false);
 
-  public static final OptionalParameter<DoubleRangeParameter> mzRange = new OptionalParameter<>(
-      new DoubleRangeParameter("Crop m/z", "m/z boundary of the cropped region",
-          MZmineCore.getConfiguration().getMZFormat()), false);
 
   public AdvancedSpectraImportParameters() {
     super(scanFilter, mzRange, msMassDetection, ms2MassDetection, denormalizeMSnScans);
