@@ -91,7 +91,8 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
       new AdvancedImageMsMsParameters());
 
   public SimsefImagingSchedulerParameters() {
-    super(flists, savePathDir, acquisitionControl, numMsMs, collisionEnergies, minimumDistance,
+    super("https://mzmine.github.io/mzmine_documentation/workflows/simsef/simsef_workflow.html",
+        flists, savePathDir, acquisitionControl, numMsMs, collisionEnergies, minimumDistance,
         minimumIntensity, minimumPurity, advancedParameters, exportOnly);
   }
 
