@@ -80,6 +80,59 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     this.isolationWindow = isolationWindow;
   }
 
+  /**
+   * @param reader          A reader at an {@link PasefMsMsInfoImpl} element.
+   * @param allProjectFiles
+   * @return A loaded {@link PasefMsMsInfoImpl}.
+   */
+  public static PasefMsMsInfoImpl loadFromXML(XMLStreamReader reader, IMSRawDataFile file,
+      List<RawDataFile> allProjectFiles) {
+    if (!reader.isStartElement() && reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)
+        .equals(XML_TYPE_NAME)) {
+      throw new IllegalStateException("Wrong msms info type.");
+    }
+
+    final double precursorMz = Double.parseDouble(
+        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
+
+    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
+
+    final Integer frameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Integer parentFrameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Float collisionEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+
+    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
+
+    Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
+        reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
+
+    final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
+        CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
+
+    // use the correct file if the ms info comes from a different file.
+    if (rawFileName != null && !rawFileName.equals(file != null ? file.getName() : null)) {
+      file = (IMSRawDataFile) allProjectFiles.stream()
+          .filter(f -> f.getName().equals(rawFileName) && f instanceof IMSRawDataFile).findFirst()
+          .orElse(file);
+    }
+
+    // replace by original file so we store the original frames and not the cached ones.
+    if (file instanceof CachedIMSRawDataFile cachedIMSRawDataFile) {
+      file = (IMSRawDataFile) cachedIMSRawDataFile.getOriginalFile();
+    }
+
+    return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
+        parentFrameIndex != null && file != null ? file.getFrame(parentFrameIndex) : null,
+        frameIndex != null && file != null ? file.getFrame(frameIndex) : null, isolationWindow);
+  }
+
   @Override
   public @Nullable Scan getParentScan() {
     return getParentFrame();
@@ -195,59 +248,6 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     writer.writeEndElement();
   }
 
-  /**
-   * @param reader          A reader at an {@link PasefMsMsInfoImpl} element.
-   * @param allProjectFiles
-   * @return A loaded {@link PasefMsMsInfoImpl}.
-   */
-  public static PasefMsMsInfoImpl loadFromXML(XMLStreamReader reader, IMSRawDataFile file,
-      List<RawDataFile> allProjectFiles) {
-    if (!reader.isStartElement() && reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)
-        .equals(XML_TYPE_NAME)) {
-      throw new IllegalStateException("Wrong msms info type.");
-    }
-
-    final double precursorMz = Double.parseDouble(
-        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-
-    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
-
-    final Integer frameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Integer parentFrameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Float collisionEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
-
-    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
-
-    Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
-        reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
-
-    final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
-        CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
-
-    // use the correct file if the ms info comes from a different file.
-    if (rawFileName != null && !rawFileName.equals(file != null ? file.getName() : null)) {
-      file = (IMSRawDataFile) allProjectFiles.stream()
-          .filter(f -> f.getName().equals(rawFileName) && f instanceof IMSRawDataFile).findFirst()
-          .orElse(file);
-    }
-
-    // replace by original file so we store the original frames and not the cached ones.
-    if (file instanceof CachedIMSRawDataFile cachedIMSRawDataFile) {
-      file = (IMSRawDataFile) cachedIMSRawDataFile.getOriginalFile();
-    }
-
-    return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
-        parentFrameIndex != null && file != null ? file.getFrame(parentFrameIndex) : null,
-        frameIndex != null && file != null ? file.getFrame(frameIndex) : null, isolationWindow);
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -274,6 +274,6 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
   @Override
   public MsMsInfo createCopy() {
     return new PasefMsMsInfoImpl(precursorMz, spectrumNumberRange, collisionEnergy, precursorCharge,
-        parentFrame, null, isolationWindow);
+        parentFrame, fragmentFrame, isolationWindow);
   }
 }
