@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,14 +39,14 @@ public final class MaldiTimsPrecursor {
 
   private final Feature feature;
   private final double mz;
-  private final Range<Float> oneOverK0;
+  private final Range<Float> mobility;
   private final Map<Double, Integer> collisionEnergies;
 
-  public MaldiTimsPrecursor(Feature feature, double mz, Range<Float> oneOverK0,
+  public MaldiTimsPrecursor(Feature feature, double mz, Range<Float> mobility,
       Collection<Double> collisionEnergies) {
     this.feature = feature;
     this.mz = mz;
-    this.oneOverK0 = oneOverK0;
+    this.mobility = mobility;
     this.collisionEnergies = new HashMap<>();
     if (collisionEnergies != null) {
       collisionEnergies.forEach(d -> this.collisionEnergies.put(d, 0));
@@ -61,8 +61,8 @@ public final class MaldiTimsPrecursor {
     return mz;
   }
 
-  public Range<Float> oneOverK0() {
-    return oneOverK0;
+  public Range<Float> mobility() {
+    return mobility;
   }
 
   public Map<Double, Integer> collisionEnergies() {
@@ -111,19 +111,19 @@ public final class MaldiTimsPrecursor {
     var that = (MaldiTimsPrecursor) obj;
     return Objects.equals(this.feature, that.feature)
         && Double.doubleToLongBits(this.mz) == Double.doubleToLongBits(that.mz) && Objects.equals(
-        this.oneOverK0, that.oneOverK0) && Objects.equals(this.collisionEnergies,
+        this.mobility, that.mobility) && Objects.equals(this.collisionEnergies,
         that.collisionEnergies);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(feature, mz, oneOverK0, collisionEnergies);
+    return Objects.hash(feature, mz, mobility, collisionEnergies);
   }
 
   @Override
   public String toString() {
     return "MaldiTimsPrecursor[" + "feature=" + feature + ", " + "mz=" + mz + ", " + "oneOverK0="
-        + oneOverK0 + ", " + ", " + "collisionEnergies=" + collisionEnergies + ']';
+        + mobility + ", " + ", " + "collisionEnergies=" + collisionEnergies + ']';
   }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -81,6 +81,15 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     this.scanDefinition = ScanUtils.scanToString(this, true);
   }
 
+  /**
+   * @param reader        The xml reader.
+   * @param file          The file of the MS1 feature in LC-IMS-Ms analysis. In maldi analysis, this
+   *                      is the file of the MS2 spectrum. IF the ms2 spectrum is merged from
+   *                      multiple files, this is a random file the spectrum was merged from.
+   * @param possibleFiles All files currently loaded in the project, to extract the original spectra
+   *                      from.
+   * @return The loaded spectrum.
+   */
   public static SimpleMergedMsMsSpectrum loadFromXML(XMLStreamReader reader, IMSRawDataFile file,
       Collection<RawDataFile> possibleFiles) throws XMLStreamException {
     if (!reader.isStartElement() || !reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)
@@ -110,25 +119,21 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT ->
-            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
-            intensties = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensties = ParsingUtils.stringToDoubleArray(reader.getElementText());
         case CONST.XML_SCAN_LIST_ELEMENT -> {
           final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
           // for old projects assume that the MS2 file is the default file and fall back to that.
           // For new projects it's a random file of the merged MS2 spectra.
           final String finalFileName = fileName != null ? fileName : file.getName();
-          final IMSRawDataFile specificFile = (IMSRawDataFile) possibleFiles.stream()
-              .filter(f -> f.getName().equals(finalFileName) && file instanceof IMSRawDataFile)
+          final IMSRawDataFile specificFile = (IMSRawDataFile) possibleFiles.stream().filter(f -> f.getName().equals(finalFileName) && file instanceof IMSRawDataFile)
               .findFirst().orElse(null);
           if (specificFile == null) {
             throw new IllegalArgumentException(
                 "Raw file with name '%s' not present or is not an IMS file. Cannot load merged MS2 spectrum.".formatted(
                     fileName));
           }
-          final List<MobilityScan> tempScans = ParsingUtils.stringToMobilityScanList(
-              reader.getElementText(), specificFile);
+          final List<MobilityScan> tempScans = ParsingUtils.stringToMobilityScanList(reader.getElementText(), specificFile);
           if (tempScans == null) {
             throw new IllegalStateException(
                 "Could not load MS2 mobility scans in MergedMsMsSpectrum, did not find specified mobility scans.");
@@ -137,8 +142,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         }
         // the file has already been determined before
         case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
-        case SimpleMassList.XML_ELEMENT ->
-            SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
+        case SimpleMassList.XML_ELEMENT -> SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
       }
     }
 

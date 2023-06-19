@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.mainwindow.FeatureListSummaryController;
-import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
@@ -76,7 +75,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class SimsefImagingSchedulerTask extends AbstractTask {
 
-  public static final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
   private static final Logger logger = Logger.getLogger(
       TimsTOFMaldiAcquisitionTask.class.getName());
   public final FeatureList[] flists;
@@ -346,9 +344,6 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
           a -> new ImagingSpot(a.getMaldiSpotInfo(), ms2ImagingMode, collisionEnergy));
       if (spot.addPrecursor(precursor, minMobilityDistance)) {
         spots.add(spot);
-//        logger.finest(
-//            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to new spot "
-//                + spot.spotInfo().spotName());
       }
     }
   }
@@ -384,9 +379,6 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
 
       // check if the entry fits into the precursor ramp at that spot
       if (imagingSpot.addPrecursor(precursor, minMobilityDistance)) {
-//        logger.finest(
-//            "Adding precursor " + formats.mz(precursor.feature().getMZ()) + " to existing spot "
-//                + imagingSpot.spotInfo().spotName());
         spots.add(imagingSpot);
       }
 
@@ -401,7 +393,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     access.jumpToFrame(usedFrame);
 
     final double chimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(precursor.mz(),
-        access, isolationWindow.getToleranceRange(precursor.mz()), precursor.oneOverK0(), true);
+        access, isolationWindow.getToleranceRange(precursor.mz()), precursor.mobility(), true);
     if (chimerityScore < minChimerityScore) {
       return false;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,18 +71,6 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
       allRamps.add(nextRamp);
     }
 
-    /*for (List<MaldiTimsPrecursor> ramp : allRamps) {
-      for (MaldiTimsPrecursor p1 : ramp) {
-        for (MaldiTimsPrecursor p2 : ramp) {
-          if(p1 == p2) {
-            continue;
-          }
-          if(overlaps(p1, p2)) {
-            throw new RuntimeException("Overlapping precursors in ramp");
-          }
-        }
-      }
-    }*/
     return allRamps;
   }
 
@@ -146,12 +134,10 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
 
   public static boolean overlaps(MaldiTimsPrecursor p1, MaldiTimsPrecursor p2,
       final double minDistance) {
-    final float lowerBound = Math.min(p1.oneOverK0().upperEndpoint(),
-        p2.oneOverK0().upperEndpoint());
-    final float upperBound = Math.max(p1.oneOverK0().lowerEndpoint(),
-        p2.oneOverK0().lowerEndpoint());
+    final float lowerBound = Math.min(p1.mobility().upperEndpoint(), p2.mobility().upperEndpoint());
+    final float upperBound = Math.max(p1.mobility().lowerEndpoint(), p2.mobility().lowerEndpoint());
 
-    return p1.oneOverK0().isConnected(p2.oneOverK0())
+    return p1.mobility().isConnected(p2.mobility())
         || Math.abs(lowerBound - upperBound) < minDistance;
   }
 

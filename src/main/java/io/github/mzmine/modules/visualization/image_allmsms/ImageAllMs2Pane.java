@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -73,9 +73,9 @@ import org.jfree.chart.annotations.XYPointerAnnotation;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.data.xy.XYDataset;
 
-public class ImageAllMsMsPane extends BorderPane {
+public class ImageAllMs2Pane extends BorderPane {
 
-  private static final Logger logger = Logger.getLogger(ImageAllMsMsPane.class.getName());
+  private static final Logger logger = Logger.getLogger(ImageAllMs2Pane.class.getName());
   private static final Comparator<Scan> msmsCollisionEnergySorter = Comparator.comparingDouble(
       msms -> {
         final MsMsInfo msMsInfo = msms.getMsMsInfo();
@@ -101,7 +101,7 @@ public class ImageAllMsMsPane extends BorderPane {
   private final Font markerFont = MZmineCore.getConfiguration().getDefaultChartTheme()
       .getRegularFont();
 
-  public ImageAllMsMsPane(@Nullable final Feature feature) {
+  public ImageAllMs2Pane(@Nullable final Feature feature) {
     super();
 
     imageNormalization = MZmineCore.getConfiguration().getImageNormalization();
@@ -173,6 +173,7 @@ public class ImageAllMsMsPane extends BorderPane {
       final Map<Float, Color> ceColor = new HashMap<>();
       final SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette()
           .clone();
+      final BasicStroke stroke = new BasicStroke(3.0f);
 
       for (Scan scan : feature.getAllMS2FragmentScans()) {
         Map<MaldiSpotInfo, MsMsInfo> infoMap = ImagingUtils.getMsMsSpotInfosFromScan(scan);
@@ -190,9 +191,6 @@ public class ImageAllMsMsPane extends BorderPane {
 
             XYPointerAnnotation msMsMarker = new XYPointerAnnotation(String.format("%.0f eV", ce),
                 ms2Coord[0], ms2Coord[1], 315);
-            final BasicStroke stroke = new BasicStroke(3.0f);
-//            msMsMarker.setBaseRadius(0);
-//            msMsMarker.setTipRadius(10);
             msMsMarker.setArrowPaint(clr);
             msMsMarker.setArrowWidth(3d);
             msMsMarker.setArrowStroke(stroke);

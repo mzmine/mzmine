@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -101,12 +101,12 @@ public class TimsTOFAcquisitionUtils {
 //      w.newLine();
 
       // make sure the precursors are sorted
-      precursorList.sort(Comparator.comparingDouble(p -> p.oneOverK0().lowerEndpoint()));
+      precursorList.sort(Comparator.comparingDouble(p -> p.mobility().lowerEndpoint()));
 
       for (final MaldiTimsPrecursor precursor : precursorList) {
         w.write(
-            String.format("%.4f,%.3f,%.3f", precursor.mz(), precursor.oneOverK0().lowerEndpoint(),
-                precursor.oneOverK0().upperEndpoint()));
+            String.format("%.4f,%.3f,%.3f", precursor.mz(), precursor.mobility().lowerEndpoint(),
+                precursor.mobility().upperEndpoint()));
         w.newLine();
       }
 

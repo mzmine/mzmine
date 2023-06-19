@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import org.jetbrains.annotations.NotNull;
 
-public class ImsMsMsRefinementParameters extends SimpleParameterSet {
+public class ImsMs2RefinementParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
@@ -48,7 +48,7 @@ public class ImsMsMsRefinementParameters extends SimpleParameterSet {
       new IntegerParameter("Minimum number of mobility peaks",
           "Minimum number of times a peak has to be detected in mobility dimension to be used in the merged spectrum."));
 
-  public ImsMsMsRefinementParameters() {
+  public ImsMs2RefinementParameters() {
     super(new Parameter[]{flists, noiseLevel, minNumPoints});
   }
 

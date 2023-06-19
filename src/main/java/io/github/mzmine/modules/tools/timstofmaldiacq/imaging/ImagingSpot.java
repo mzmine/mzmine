@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,10 @@ import java.util.Objects;
 
 public final class ImagingSpot {
 
+  /**
+   * Maximum number of 25 precursors in a tims ramp when using the simple ESI-PASEF collision
+   * energies.
+   */
   private static final int MAX_PRECURSORS = 25;
 
   private final MaldiSpotInfo spotInfo;

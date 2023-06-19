@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -360,8 +360,8 @@ public class IonMobilityUtils {
   }
 
   /**
-   * Calculates a spectral chimerity around a specific m/z. The chimerity is calculated as the
-   * quotient of intensities in the isolation window with regard to mobility and m/z. The
+   * Calculates a spectral purity around a specific m/z. The purity is calculated as the quotient of
+   * intensities in the isolation window with regard to mobility and m/z. The
    * {@link MobilityScanDataAccess} must have selected the frame to evaluate. The mobility scan will
    * be set to the first using {@link MobilityScanDataAccess#resetMobilityScan()}. If no data points
    * are found in the isolation window a score of 0 will be returned.
@@ -470,10 +470,15 @@ public class IonMobilityUtils {
       }
     }
 
-    return Double.compare(isolationWindowTIC, 0d) > 0 ? precursorIntensity / isolationWindowTIC
-        : 0d;
+    return isolationWindowTIC > 0d ? precursorIntensity / isolationWindowTIC : 0d;
   }
 
+  /**
+   * @param mobilogram          The mobilogram.
+   * @param normalizationFactor The factor to divide intensities by. null = resulting max intensity
+   *                            will be normalized to 1.
+   * @return The normalized mobilogram.
+   */
   public static SummedIntensityMobilitySeries normalizeMobilogram(
       final SummedIntensityMobilitySeries mobilogram, @Nullable Double normalizationFactor) {
     double[] newIntensities = new double[mobilogram.getNumberOfValues()];

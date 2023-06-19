@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,7 +61,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
@@ -95,22 +94,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private double progress = 0.0;
   private ModularFeatureList newFeatureList;
 
-  public static ModularADAPChromatogramBuilderTask forImaging(MZmineProject project,
-      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
-    var total = parameters.getValue(ImageBuilderParameters.minTotalSignals);
-    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, total, null);
-  }
-
-  public static ModularADAPChromatogramBuilderTask forChromatography(MZmineProject project,
-      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
-    var minGroupIntensity = parameters.getValue(ADAPChromatogramBuilderParameters.minGroupIntensity);
-    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, null, minGroupIntensity);
-  }
-
   /**
    * @param callingModule     {@link ImageBuilderModule} or
    *                          {@link ModularADAPChromatogramBuilderModule}
@@ -143,6 +126,23 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     this.minimumTotalScans = requireNonNullElse(minimumTotalScans, minimumConsecutiveScans);
 
     isImaging = callingModule.equals(ImageBuilderModule.class);
+  }
+
+  public static ModularADAPChromatogramBuilderTask forImaging(MZmineProject project,
+      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
+    var total = parameters.getValue(ImageBuilderParameters.minTotalSignals);
+    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
+        moduleCallDate, callingModule, total, null);
+  }
+
+  public static ModularADAPChromatogramBuilderTask forChromatography(MZmineProject project,
+      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
+    var minGroupIntensity = parameters.getValue(
+        ADAPChromatogramBuilderParameters.minGroupIntensity);
+    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
+        moduleCallDate, callingModule, null, minGroupIntensity);
   }
 
   @Override
@@ -237,7 +237,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     ScanDataAccess scanData = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
         scanSelection);
 
-    final Instant dpExtractionStart = Instant.now();
     progress = 0;
     double progressStep = 0.1 / scanData.getNumberOfScans();
     while (scanData.hasNextScan()) {
@@ -274,19 +273,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       progress += progressStep;
     }
 
-    final Instant dpExtractionEnd = Instant.now();
-    logger.finest(
-        () -> "Extracted %d data points from %d scans in %d ms".formatted(allMzValues.length,
-            scanData.getNumberOfScans(),
-            Duration.between(dpExtractionStart, dpExtractionEnd).toMillis()));
-
-    final Instant dpSortStart = Instant.now();
     // sort data points by intensity
     Arrays.parallelSort(allMzValues,
         new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
-    final Instant dpSortEnd = Instant.now();
-    logger.finest(() -> "Sorted %d data points from %d scans in %d ms".formatted(allMzValues.length,
-        scanData.getNumberOfScans(), Duration.between(dpSortStart, dpSortEnd).toMillis()));
 
     // count starts at 1 since we already have added one with a single point.
     progress = 0.1;

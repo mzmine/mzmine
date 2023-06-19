@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,10 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Schedules MS2 fragmentation events for timsTOF imaging analysis. <a
+ * href="https://chemrxiv.org/engage/chemrxiv/article-details/648060e54f8b1884b7f7a105">pre-print</a>
+ */
 public class SimsefImagingSchedulerModule implements MZmineProcessingModule {
 
   @Override
@@ -54,11 +58,9 @@ public class SimsefImagingSchedulerModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(
-        new SimsefImagingSchedulerTask(null, moduleCallDate, parameters, project, false, false));
+    tasks.add(new SimsefImagingSchedulerTask(null, moduleCallDate, parameters, project, false, false));
     return ExitCode.OK;
   }
 

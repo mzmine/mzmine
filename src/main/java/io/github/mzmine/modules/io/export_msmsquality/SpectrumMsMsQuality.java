@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
-public record SpectrumMsMsQuality(int rowId, float chimerity, MSMSScore score, int numPeaks,
+public record SpectrumMsMsQuality(int rowId, float purity, MSMSScore score, int numPeaks,
                                   float spectralEntropy, float normalizedEntropy,
                                   float weightedEntropy, float normalizedWeightedEntropy,
                                   FeatureAnnotation annotation, @Nullable Double tic,
@@ -42,7 +42,7 @@ public record SpectrumMsMsQuality(int rowId, float chimerity, MSMSScore score, i
                                   List<Float> ce) {
 
   public static String getHeader(CharSequence separator) {
-    return String.join(separator, "row_id", "Compound", "adduct", "chimerity_score",
+    return String.join(separator, "row_id", "compound", "adduct", "purity_score",
         "explained_intensity", "explained_peaks", "num_peaks", "spectral_entropy",
         "normalized_entropy", "weighted_entropy", "normalized_weighted_entropy", "tic_ms2",
         "bpi_ms2", "precursor_intensity", "spots", "mobility_range", "precursor_mz",
@@ -53,7 +53,7 @@ public record SpectrumMsMsQuality(int rowId, float chimerity, MSMSScore score, i
     return Stream.of(Integer.toString(rowId),
             annotation != null ? annotation.getCompoundName() : "",
             annotation != null && annotation.getAdductType() != null ? annotation.getAdductType()
-                .toString(false) : "", Float.toString(chimerity),
+                .toString(false) : "", Float.toString(purity),
             (score.explainedIntensity() >= 0 ? String.valueOf(score.explainedIntensity()) : "0"),
             (score.explainedSignals() >= 0 ? String.valueOf(score.explainedSignals()) : "0"),
             Integer.toString(numPeaks), Float.toString(spectralEntropy),

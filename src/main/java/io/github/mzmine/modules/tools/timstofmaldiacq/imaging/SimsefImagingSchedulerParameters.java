@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,8 +57,10 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
       "Path to where acquired measurements shall be saved.",
       "D:" + File.separator + "Data" + File.separator + "User" + File.separator + "MZmine_3");
   public static final FileNameParameter acquisitionControl = new FileNameParameter(
-      "Path to msmsmaldi.exe", "", List.of(new ExtensionFilter("executable", "*.exe")),
-      FileSelectionType.OPEN);
+      "Path to SIMSEF executable",
+      "Path to the SIMSEF executable to automatically launch MS2 acquisition after scheduling.\n"
+          + "Only launched if 'Export MS/MS lists only' is not ticked.",
+      List.of(new ExtensionFilter("executable", "*.exe")), FileSelectionType.OPEN);
   public static final NumberListParameter collisionEnergies = new NumberListParameter(
       "Collision energies", "List of collision energies separated by ','.", List.of(20d, 30d, 40d),
       new DecimalFormat("0.0"));
@@ -70,10 +72,10 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
       "The minimum distance between two MS/MS spots for a single feature.", 30);
   public static final DoubleParameter minimumPurity = new DoubleParameter("Minimum purity score",
       """
-          Evaluates the chimerity of the isolation window and only selects pixels with low chimerity for fragmentation.
+          Evaluates the purity of the isolation window and only selects pixels with low purity for fragmentation.
           The precursor intensity is divided by the summed intensity in the isolation window.
-          This means that low values (e.g. 0.1) indicate high chimerity and high values (e.g. 0.9) indicate
-          low chimerity.Thereby MS/MS spectra with higher quality are produced.""",
+          This means that low values (e.g. 0.1) indicate high purity and high values (e.g. 0.9) indicate
+          low purity.Thereby MS/MS spectra with higher quality are produced.""",
       new DecimalFormat("0.00"), 0.80, 0d, 1d);
   public static final AbsoluteAndRelativeDoubleParameter minimumIntensity = new AbsoluteAndRelativeDoubleParameter(
       "Minimum MS1 intensity", """
@@ -118,9 +120,10 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Minimum chimerity score", minimumPurity);
+    nameParameterMap.put("Minimum purity score", minimumPurity);
     nameParameterMap.put("Minimum distance of MS/MS spectra", minimumDistance);
     nameParameterMap.put("Number of MS/MS spectra", numMsMs);
+    nameParameterMap.put("Path to msmsmaldi.exe", acquisitionControl);
     return nameParameterMap;
   }
 

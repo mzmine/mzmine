@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ImsMsMsRefinementTask extends AbstractTask {
+public class ImsMs2RefinementTask extends AbstractTask {
 
   private static final MassDetector fol = MassDetectionParameters.factorOfLowest;
   private final FeatureList[] flists;
@@ -67,18 +67,18 @@ public class ImsMsMsRefinementTask extends AbstractTask {
   private final long numRows;
   private int processedRows = 0;
 
-  public ImsMsMsRefinementTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  public ImsMs2RefinementTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       ParameterSet param) {
     super(storage, moduleCallDate);
     this.param = param;
 
-    flists = param.getParameter(ImsMsMsRefinementParameters.flists).getValue()
+    flists = param.getParameter(ImsMs2RefinementParameters.flists).getValue()
         .getMatchingFeatureLists();
-    useMinPoints = param.getParameter(ImsMsMsRefinementParameters.minNumPoints).getValue();
-    minNumPoints = param.getParameter(ImsMsMsRefinementParameters.minNumPoints)
+    useMinPoints = param.getParameter(ImsMs2RefinementParameters.minNumPoints).getValue();
+    minNumPoints = param.getParameter(ImsMs2RefinementParameters.minNumPoints)
         .getEmbeddedParameter().getValue();
-    useFOL = param.getParameter(ImsMsMsRefinementParameters.noiseLevel).getValue();
-    final double folNoiseLevel = param.getParameter(ImsMsMsRefinementParameters.noiseLevel)
+    useFOL = param.getParameter(ImsMs2RefinementParameters.noiseLevel).getValue();
+    final double folNoiseLevel = param.getParameter(ImsMs2RefinementParameters.noiseLevel)
         .getEmbeddedParameter().getValue();
 
     folParam = MZmineCore.getConfiguration().getModuleParameters(FactorOfLowestMassDetector.class)
@@ -124,7 +124,7 @@ public class ImsMsMsRefinementTask extends AbstractTask {
         processedRows++;
       }
       flist.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(ImsMsMsRefinementModule.class, param,
+          new SimpleFeatureListAppliedMethod(ImsMs2RefinementModule.class, param,
               getModuleCallDate()));
       if (isCanceled()) {
         return;

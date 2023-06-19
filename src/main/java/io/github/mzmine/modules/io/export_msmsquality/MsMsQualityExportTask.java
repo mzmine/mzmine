@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -122,7 +122,7 @@ public class MsMsQualityExportTask extends AbstractTask {
       MobilityScanDataAccess mobScanAccess, MergedMsMsSpectrum mergedMsMs, PasefMsMsInfo info,
       Double window) {
     final List<String> spotNames = getSpotNames(mergedMsMs);
-    double isolationChimerityScore = 0d;
+    double isolationPurityScore = 0d;
     int numMs1 = 0;
     if (!spotNames.isEmpty()) {
       for (String spotName : spotNames) {
@@ -130,18 +130,16 @@ public class MsMsQualityExportTask extends AbstractTask {
             f -> f instanceof ImagingFrame img && img.getMaldiSpotInfo() != null
                 && img.getMaldiSpotInfo().spotName().contains(spotName)).findFirst().orElse(null);
         if (ms1Frame != null) {
-          isolationChimerityScore += getChimerityForFrame(feature, mobScanAccess, ms1Frame, info,
-              window);
+          isolationPurityScore += getPurityForFrame(feature, mobScanAccess, ms1Frame, info, window);
           numMs1++;
         }
       }
     } else {
       final Frame ms1Frame = (Frame) feature.getRepresentativeScan();
-      isolationChimerityScore += getChimerityForFrame(feature, mobScanAccess, ms1Frame, info,
-          window);
+      isolationPurityScore += getPurityForFrame(feature, mobScanAccess, ms1Frame, info, window);
       numMs1++;
     }
-    return isolationChimerityScore / numMs1;
+    return isolationPurityScore / numMs1;
   }
 
   @NotNull
@@ -156,13 +154,24 @@ public class MsMsQualityExportTask extends AbstractTask {
     return spotNames;
   }
 
-  private static double getChimerityForFrame(ModularFeature feature,
+  /**
+   * The isolation purity for the feature in the selected frame.
+   *
+   * @param feature       The feature.
+   * @param mobScanAccess A mobility scan data access. Must contain the selected frame.
+   * @param frame         The frame to check.
+   * @param info          The ms2 isolation info
+   * @param window        The window size around the precursor m/z to check.
+   * @return The purity (sum of precursor intensity divided by full intensity in the isolation
+   * window)
+   */
+  private static double getPurityForFrame(ModularFeature feature,
       MobilityScanDataAccess mobScanAccess, Frame frame, PasefMsMsInfo info, Double window) {
     mobScanAccess.jumpToFrame((Frame) frame);
-    final double isolationChimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(
+    final double isolationPurityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(
         feature.getMZ(), mobScanAccess, RangeUtils.rangeAround(feature.getMZ(), window),
         info.getMobilityRange(), true);
-    return isolationChimerityScore;
+    return isolationPurityScore;
   }
 
   @Override

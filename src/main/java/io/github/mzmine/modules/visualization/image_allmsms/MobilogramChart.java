@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,7 +72,7 @@ public class MobilogramChart extends BorderPane {
     }
 
     setCenter(mobilogramChart);
-    mobilogramChart.setMinHeight(250);
+    mobilogramChart.setMinHeight(200);
     this.widthProperty().addListener(
         (observable, oldValue, newValue) -> mobilogramChart.getCanvas().widthProperty()
             .set(newValue.doubleValue()));

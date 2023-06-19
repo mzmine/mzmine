@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,16 +36,16 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ImsMsMsRefinementModule implements MZmineProcessingModule {
+public class ImsMs2RefinementModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "Refine IMS MS/MS spectra";
+    return "Refine IMS-MS2 spectra";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return ImsMsMsRefinementParameters.class;
+    return ImsMs2RefinementParameters.class;
   }
 
   @Override
@@ -58,12 +58,12 @@ public class ImsMsMsRefinementModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new ImsMsMsRefinementTask(null, moduleCallDate, parameters));
+    tasks.add(new ImsMs2RefinementTask(null, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return null;
+    return MZmineModuleCategory.FEATURELISTFILTERING;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -470,16 +470,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS",
         () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllFragmentScans().isEmpty());
-    showAllMSMSItem.setOnAction(e -> {
-      if (selectedFeature != null && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
-          || (selectedRow.getFeatures().size() == 1 && selectedRow.getBestFeature()
-          .getRawDataFile() instanceof ImagingRawDataFile)) {
-        ImageAllMsMsTab.addNewImageAllMsMsTab(table,
-            selectedFeature != null ? selectedFeature : selectedRow.getBestFeature(), true, false);
-      } else {
-        MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0));
-      }
-    });
+    showAllMSMSItem.setOnAction(e -> onShowAllMsMsClicked());
 
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
         () -> selectedFeature != null && selectedFeature.getIsotopePattern() != null);
@@ -520,6 +511,17 @@ public class FeatureTableContextMenu extends ContextMenu {
             showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
             showCompoundDBResults, showSpectralDBResults, showMatchedLipidSignals,
             new SeparatorMenuItem(), showPeakRowSummaryItem);
+  }
+
+  private void onShowAllMsMsClicked() {
+    if (selectedFeature != null && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
+        || (selectedRow.getFeatures().size() == 1 && selectedRow.getBestFeature()
+        .getRawDataFile() instanceof ImagingRawDataFile)) {
+      ImageAllMsMsTab.addNewImageAllMsMsTab(table,
+          selectedFeature != null ? selectedFeature : selectedRow.getBestFeature(), true, false);
+    } else {
+      MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0));
+    }
   }
 
   private void onShown() {

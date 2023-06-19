@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,7 @@ public class ImageAllMsMsTab extends MZmineTab {
       return;
     }
 
-    ImageAllMsMsPane pane = new ImageAllMsMsPane(feature);
+    ImageAllMs2Pane pane = new ImageAllMs2Pane(feature);
     setContent(pane);
 
     var listener = new ChangeListener<TreeItem<ModularFeatureListRow>>() {
