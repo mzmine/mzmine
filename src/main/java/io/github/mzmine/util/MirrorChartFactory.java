@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -29,10 +36,10 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectrumChartFactory;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectraItemLabelGenerator;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectraRenderer;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.scans.ScanAlignment;
@@ -81,9 +88,8 @@ public class MirrorChartFactory {
 
     Scan scan = db.getQueryScan();
     if (scan == null || db.getEntry().getDataPoints() == null) {
-      EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + db.getCompoundName(),
-          0, 0, null, "Library: " + db.getDatabase(),
-          0, 0, null, true, true);
+      EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + db.getCompoundName(), 0,
+          0, null, "Library: " + db.getDatabase(), 0, 0, null, true, true);
       mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
       EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
       theme.apply(mirrorSpecrumPlot.getChart());
@@ -112,7 +118,7 @@ public class MirrorChartFactory {
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{Color.black, // black = filtered
+    final Color[] colors = new Color[]{palette.getNeutralColorAWT(), // grey = filtered
         palette.getNegativeColorAWT(), // unaligned
         palette.getPositiveColorAWT() // aligned
     };
@@ -123,7 +129,7 @@ public class MirrorChartFactory {
     double rtA = scan.getRetentionTime();
 
     Double precursorMZB = db.getEntry().getPrecursorMZ();
-    Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
+    Double rtB = db.getEntry().getField(DBEntryField.RT).map(v -> v instanceof Number n? n.doubleValue() : 0d).orElse(0d);
 
     // create without data
     EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + scan.getScanDefinition(),
@@ -154,8 +160,7 @@ public class MirrorChartFactory {
     // masslist
     for (int i = 0; i < tags.length; i++) {
       DataPointsTag tag = tags[i];
-      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true,
-          "Query " + tag.toRemainderString());
+      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
       for (DataPoint dp : query[i]) {
         // not contained in other
         if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0) {
@@ -163,8 +168,7 @@ public class MirrorChartFactory {
         }
       }
 
-      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true,
-          "Library " + tag.toRemainderString());
+      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
       for (DataPoint dp : library[i]) {
         if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0) {
           ldata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseDB * 100d, null);
@@ -180,6 +184,7 @@ public class MirrorChartFactory {
 
       libraryPlot.setDataset(i, ldata);
       libraryPlot.setRenderer(i, renderer2);
+      renderer2.setDefaultSeriesVisibleInLegend(false, false);
     }
 
     // add legend
@@ -203,6 +208,7 @@ public class MirrorChartFactory {
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(mirrorSpecrumPlot.getChart());
+    mirrorSpecrumPlot.getChart().getLegend().setVisible(true);
 
     return mirrorSpecrumPlot;
   }
@@ -246,7 +252,7 @@ public class MirrorChartFactory {
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{Color.black, // unaligned
+    final Color[] colors = new Color[]{palette.getNeutralColorAWT(), // unaligned
         palette.getNegativeColorAWT(), // modified
         palette.getPositiveColorAWT() // aligned
     };
@@ -391,7 +397,7 @@ public class MirrorChartFactory {
     return legend;
   }
 
-  private static boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {
+  private static boolean notInSubsequentMassList(DataPoint dp, DataPoint[][]query, int current) {
     for (int i = current + 1; i < query.length; i++) {
       for (DataPoint b : query[i]) {
         if (Double.compare(dp.getMZ(), b.getMZ()) == 0

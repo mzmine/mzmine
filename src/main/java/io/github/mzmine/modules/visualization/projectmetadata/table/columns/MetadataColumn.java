@@ -1,27 +1,34 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import java.util.Objects;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Abstract parameter column sealed class, afterwards it will be inherited by the specific
@@ -31,6 +38,9 @@ import javax.validation.constraints.NotNull;
  */
 public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, DoubleMetadataColumn,
     DateMetadataColumn {
+
+  public static final String FILENAME_HEADER = "Filename";
+  public static final String DATE_HEADER = "run_date";
 
   /**
    * Title (name) of the parameter.
@@ -53,21 +63,28 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
   }
 
   /**
+   * Factory method for creating the MetadataColumn instances according to their type and name.
+   *
+   * @param type        type of the parameter
+   * @param name        name of the parameter
+   * @param description description of the parameter
+   * @return instance of the MetadataColumn
+   */
+  public static MetadataColumn forType(AvailableTypes type, String name, String description) {
+    return switch (type) {
+      case TEXT -> new StringMetadataColumn(name, description);
+      case NUMBER -> new DoubleMetadataColumn(name, description);
+      case DATETIME -> new DateMetadataColumn(name, description);
+    };
+  }
+
+  /**
    * Get the project parameter title.
    *
    * @return project parameter title
    */
-  public String getTitle() {
+  public @NotNull String getTitle() {
     return title;
-  }
-
-  /**
-   * Get the project parameter description.
-   *
-   * @return project parameter description.
-   */
-  public String getDescription() {
-    return description;
   }
 
   /**
@@ -97,29 +114,31 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
   }
 
   /**
-   * Factory method for creating the MetadataColumn instances according to their type and name.
+   * Get the project parameter description.
    *
-   * @param type        type of the parameter
-   * @param name        name of the parameter
-   * @param description description of the parameter
-   * @return instance of the MetadataColumn
+   * @return project parameter description.
    */
-  public static MetadataColumn forType(AvailableTypes type, String name, String description) {
-    return switch (type) {
-      case TEXT -> new StringMetadataColumn(name, description);
-      case DOUBLE -> new DoubleMetadataColumn(name, description);
-      case DATETIME -> new DateMetadataColumn(name, description);
-    };
+  public @NotNull String getDescription() {
+    return description;
   }
 
   /**
    * Convert input string to the specific type of the parameter.
    *
-   * @param input input string
+   * @param input        input string
+   * @param defaultValue default value if input is null or fails to cast
    * @return converted value of the specific type
    */
   @Nullable
-  public abstract T convert(@Nullable String input, @Nullable T defaultValue);
+  public abstract T convertOrElse(@Nullable String input, @Nullable T defaultValue);
+
+  /**
+   * Convert input string to the specific type of the parameter.
+   *
+   * @param input input string
+   * @return converted value of the specific type or error
+   */
+  public abstract T convertOrThrow(@NotNull String input);
 
   /**
    * Returns the default value for the columns of such type.
@@ -140,10 +159,9 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
     if (this == o) {
       return true;
     }
-    if (!(o instanceof MetadataColumn)) {
+    if (!(o instanceof MetadataColumn<?> that)) {
       return false;
     }
-    MetadataColumn<?> that = (MetadataColumn<?>) o;
     return title.equals(that.title) && description.equals(that.description);
   }
 

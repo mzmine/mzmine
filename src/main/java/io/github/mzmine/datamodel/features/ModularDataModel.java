@@ -1,25 +1,34 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +47,7 @@ public interface ModularDataModel {
    *
    * @return
    */
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes();
+  ObservableMap<Class<? extends DataType>, DataType> getTypes();
 
   /**
    * The map containing all mappings to the types defined in getTypes
@@ -46,7 +55,7 @@ public interface ModularDataModel {
    * @param
    * @return
    */
-  public ObservableMap<DataType, Object> getMap();
+  ObservableMap<DataType, Object> getMap();
 
   /**
    * Get DataType column of this DataModel
@@ -120,6 +129,52 @@ public interface ModularDataModel {
     return (T) getMap().get(type);
   }
 
+
+  /**
+   * Value for this datatype or default value if no value was mapped. So only returns default if
+   * there was no mapping
+   *
+   * @return
+   */
+  @Nullable
+  default <T> T getOrDefault(Class<? extends DataType<T>> tclass, T defaultValue) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getOrDefault(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped. So only returns default if
+   * there was no mapping
+   *
+   * @return
+   */
+  @Nullable
+  default <T> T getOrDefault(DataType<T> type, T defaultValue) {
+    return (T) getMap().getOrDefault(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped or the mapped value was null
+   *
+   * @return
+   */
+  @NotNull
+  default <T> T getNonNullElse(Class<? extends DataType<T>> tclass, @NotNull T defaultValue) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getNonNullElse(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped or the mapped value was null
+   *
+   * @return
+   */
+  @NotNull
+  default <T> T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
+    return (T) requireNonNullElse(getMap().getOrDefault(type, null), defaultValue);
+  }
+
+
   /**
    * @param type
    * @return true if value is not null
@@ -127,6 +182,15 @@ public interface ModularDataModel {
   @Nullable
   default <T extends Object> boolean hasValueFor(DataType<T> type) {
     return getMap().get(type) != null;
+  }
+
+  /**
+   * @param typeClass the type class
+   * @return true if value is not null
+   */
+  @Nullable
+  default <T> boolean hasValueFor(Class<? extends DataType<T>> typeClass) {
+    return get(typeClass) != null;
   }
 
   /**
@@ -173,10 +237,8 @@ public interface ModularDataModel {
    * @return true if the new value is different than the old
    */
   default <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      throw new TypeColumnUndefinedException(this, tclass);
-    }
+    // automatically add columns if new
+    getTypes().computeIfAbsent(tclass, key -> DataTypes.get(tclass));
 
     DataType<T> realType = getTypeColumn(tclass);
     Object old = getMap().put(realType, value);

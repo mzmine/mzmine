@@ -1,23 +1,31 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
@@ -30,7 +38,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.logging.Logger;
@@ -41,16 +48,17 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 
   private final OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private ModularFeatureList originalFeatureList, normalizedFeatureList;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final ModularFeatureList originalFeatureList;
+  private ModularFeatureList normalizedFeatureList;
 
   private int processedRows, totalRows;
 
-  private String suffix;
-  private StandardUsageType normalizationType;
-  private FeatureMeasurementType featureMeasurementType;
-  private double MZvsRTBalance;
-  private FeatureListRow[] standardRows;
+  private final String suffix;
+  private final StandardUsageType normalizationType;
+  private final AbundanceMeasure abundanceMeasure;
+  private final double MZvsRTBalance;
+  private final FeatureListRow[] standardRows;
   private ParameterSet parameters;
 
   public StandardCompoundNormalizerTask(MZmineProject project, FeatureList featureList,
@@ -64,7 +72,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
     normalizationType = parameters.getParameter(
         StandardCompoundNormalizerParameters.standardUsageType).getValue();
-    featureMeasurementType = parameters.getParameter(
+    abundanceMeasure = parameters.getParameter(
         StandardCompoundNormalizerParameters.featureMeasurementType).getValue();
     MZvsRTBalance = parameters.getParameter(StandardCompoundNormalizerParameters.MZvsRTBalance)
         .getValue();
@@ -90,7 +98,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     logger.finest("Starting standard compound normalization of " + originalFeatureList + " using "
-                  + normalizationType + " (total " + standardRows.length + " standard features)");
+        + normalizationType + " (total " + standardRows.length + " standard features)");
 
     // Check if we have standards
     if (standardRows.length == 0) {
@@ -131,8 +139,8 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
       // Loop through all raw data files
       for (RawDataFile file : normalizedFeatureList.getRawDataFiles()) {
 
-        double normalizationFactors[] = null;
-        double normalizationFactorWeights[] = null;
+        double[] normalizationFactors = null;
+        double[] normalizationFactorWeights = null;
 
         if (normalizationType == StandardUsageType.Nearest) {
 
@@ -164,7 +172,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
             // What to do if standard feature is not available?
             normalizationFactors[0] = 1.0;
           } else {
-            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
+            if (abundanceMeasure == AbundanceMeasure.Height) {
               normalizationFactors[0] = standardFeature.getHeight();
             } else {
               normalizationFactors[0] = standardFeature.getArea();
@@ -172,7 +180,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
           }
           logger.finest(
               "Normalizing row #" + row.getID() + " using standard feature " + standardFeature
-              + ", factor " + normalizationFactors[0]);
+                  + ", factor " + normalizationFactors[0]);
           normalizationFactorWeights[0] = 1.0f;
 
         }
@@ -197,7 +205,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
               normalizationFactors[standardRowIndex] = 1.0;
               normalizationFactorWeights[standardRowIndex] = 0.0;
             } else {
-              if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
+              if (abundanceMeasure == AbundanceMeasure.Height) {
                 normalizationFactors[standardRowIndex] = standardFeature.getHeight();
               } else {
                 normalizationFactors[standardRowIndex] = standardFeature.getArea();
@@ -226,7 +234,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
         normalizationFactor = normalizationFactor / 100.0f;
 
         logger.finest("Normalizing row #" + row.getID() + "[" + file + "] using factor "
-                      + normalizationFactor);
+            + normalizationFactor);
 
         // How to handle zero normalization factor?
         if (normalizationFactor == 0.0) {

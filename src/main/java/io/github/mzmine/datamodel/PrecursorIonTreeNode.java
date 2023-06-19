@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
@@ -23,6 +30,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -205,13 +213,25 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
 
   @Override
   public String toString() {
-    final String mz = MZmineCore.getConfiguration().getMZFormat().format(precursorMZ);
-    final String scans = " (" + countSpectra() + ")";
     if (parent == null) {
-      return "m/z " + mz + scans;
+      return "m/z " + getFormatted();
     } else {
-      return parent + " ↦ " + mz + scans;
+      return parent + " ↦ " + getFormatted();
     }
+  }
+
+  public String getFormatted() {
+    return MZmineCore.getConfiguration().getMZFormat().format(precursorMZ) + " (" + countSpectra()
+        + ")";
+  }
+
+  /**
+   * Formatted fragment path form start to this precursor
+   *
+   * @return formatted stings for each precursor mz and the number of scans
+   */
+  public String[] getFragmentPath() {
+    return streamParents().map(PrecursorIonTreeNode::getFormatted).toArray(String[]::new);
   }
 
   public int countPrecursors() {
@@ -245,16 +265,8 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
    */
   @NotNull
   public List<Scan> getAllFragmentScans() {
-    List<Scan> scans = new ArrayList<>(getFragmentScans());
-    int level = 1;
-    while (true) {
-      final List<Scan> list = getFragmentScans(level);
-      if (list.isEmpty()) {
-        return scans;
-      }
-      scans.addAll(list);
-      level++;
-    }
+    return streamWholeTree().map(PrecursorIonTreeNode::getFragmentScans).flatMap(Collection::stream)
+        .toList();
   }
 
   public int getMaxMSLevel() {

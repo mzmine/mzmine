@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
@@ -58,22 +65,25 @@ import org.jfree.chart.ui.TextAnchor;
  * Task for identifying peaks by searching on-line databases.
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
  */
+@Deprecated
 public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private int finishedItems = 0, numItems;
 
-  private MZmineProcessingStep<OnlineDatabases> db;
+  private final MZmineProcessingStep<OnlineDatabases> db;
   private double searchedMass;
-  private double noiseLevel;
-  private MZTolerance mzTolerance;
-  private Scan currentScan;
-  private SpectraPlot spectraPlot;
-  private IonizationType ionType;
+  private final double noiseLevel;
+  private final MZTolerance mzTolerance;
+  private final Scan currentScan;
+  private final SpectraPlot spectraPlot;
+  private final IonizationType ionType;
   private DBGateway gateway;
 
   /**
@@ -108,8 +118,9 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (numItems == 0)
+    if (numItems == 0) {
       return 0;
+    }
     return ((double) finishedItems) / numItems;
   }
 
@@ -157,18 +168,20 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
       searchedMass = massList[0][i] - ionType.getAddedMass();
       try {
         // find candidate compounds
-        String compoundIDs[] =
-            gateway.findCompounds(searchedMass, mzTolerance, 1, db.getParameterSet());
+        String[] compoundIDs = gateway.findCompounds(searchedMass, mzTolerance, 1,
+            db.getParameterSet());
         // Combine strings
         String annotation = "";
         // max number of compounds to top three for visualization
         int counter = 0;
         for (int j = 0; !isCanceled() && j < compoundIDs.length; j++) {
-          final CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[j], db.getParameterSet());
+          final CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[j],
+              db.getParameterSet());
 
           // In case we failed to retrieve data, skip this compound
-          if (compound == null)
+          if (compound == null) {
             continue;
+          }
           if (counter < 3) {
             int number = counter + 1;
             annotation = annotation + " " + number + ". " + compound.getCompoundName();
@@ -194,16 +207,17 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
     massListAnnotated.toArray(annotatedMassList);
     String[] annotations = new String[annotatedMassList.length];
     allCompoundIDs.toArray(annotations);
-    DataPointsDataSet detectedCompoundsDataset =
-        new DataPointsDataSet("Detected compounds", annotatedMassList);
+    DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet("Detected compounds",
+        annotatedMassList);
     // Add label generator for the dataset
-    SpectraDatabaseSearchLabelGenerator labelGenerator =
-        new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
+    SpectraDatabaseSearchLabelGenerator labelGenerator = new SpectraDatabaseSearchLabelGenerator(
+        annotations, spectraPlot);
     spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator, true);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
-    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
-        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER, 0.0), true);
+    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(
+        new ItemLabelPosition(ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER,
+            0.0), true);
     setStatus(TaskStatus.FINISHED);
 
   }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.msms;
@@ -30,7 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
 import org.jetbrains.annotations.Nullable;
@@ -38,9 +45,9 @@ import org.jfree.chart.util.SortOrder;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
-  private MsMsDataProvider dataProvider;
-  private ColoredXYZDataset dataset;
-  private ColoredXYZDotRenderer renderer;
+  private final MsMsDataProvider dataProvider;
+  private final ColoredXYZDataset dataset;
+  private final ColoredXYZDotRenderer renderer;
   private SortOrder zOrder;
 
   public MsMsChart(ParameterSet parameters) {
@@ -76,11 +83,12 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
         return;
       }
 
-      MsMsDataPoint clickedDataPoint = dataProvider.getDataPoint(getCursorPosition().getValueIndex());
+      MsMsDataPoint clickedDataPoint = dataProvider.getDataPoint(
+          getCursorPosition().getValueIndex());
 
       // Run spectrum module
-      ParameterSet spectrumParameters =
-          MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+      ParameterSet spectrumParameters = MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraVisualizerModule.class);
       spectrumParameters.getParameter(SpectraVisualizerParameters.dataFiles)
           .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, dataFiles);
       spectrumParameters.getParameter(SpectraVisualizerParameters.scanNumber)
@@ -139,7 +147,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     dataset.fireDatasetChanged();
   }
 
-  public SimpleObjectProperty<TaskStatus> datasetStatusProperty() {
+  public Property<TaskStatus> datasetStatusProperty() {
     return dataset.statusProperty();
   }
 

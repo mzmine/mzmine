@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -30,6 +37,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -39,9 +47,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Memory efficient storage of {@link MobilityScan}s. Methods return an instance of {@link
- * StoredMobilityScan} or {@link StoredMobilityScanMassList} which is garbage collected if not used
- * anymore.
+ * Memory efficient storage of {@link MobilityScan}s. Methods return an instance of
+ * {@link StoredMobilityScan} or {@link StoredMobilityScanMassList} which is garbage collected if
+ * not used anymore.
  *
  * @author https://github.com/steffenheu
  */
@@ -115,7 +123,8 @@ public class MobilityScanStorage {
    * @param massDetectorParameters The parameters for the mass detector.
    */
   public void generateAndAddMobilityScanMassLists(@Nullable MemoryMapStorage storage,
-      @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters) {
+      @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters,
+      boolean denormalizeMSnScans) {
 
     if (massDetector instanceof CentroidMassDetector &&
         Double.compare(massDetectorParameters.getValue(CentroidMassDetectorParameters.noiseLevel),
@@ -134,9 +143,24 @@ public class MobilityScanStorage {
 
     for (MobilityScan mobilityScan : getMobilityScans()) {
       double[][] mzIntensity = massDetector.getMassValues(mobilityScan, massDetectorParameters);
+      if (denormalizeMSnScans && frame.getMSLevel() > 1) {
+        ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensity[1],
+            frame.getInjectionTime());
+      }
       data.add(mzIntensity);
     }
 
+    setMassLists(storage, data);
+  }
+
+  /**
+   * Sets the new masslists
+   *
+   * @param storage memory storage for masslists
+   * @param data    the masslists as [0,1] as [mzs, intensities] arrays, one for each MobilityScan
+   *                in this frame
+   */
+  public void setMassLists(final @Nullable MemoryMapStorage storage, final List<double[][]> data) {
     AtomicInteger biggestOffset = new AtomicInteger(0);
     final int[] massListStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
     this.massListStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage,

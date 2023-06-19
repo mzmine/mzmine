@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
@@ -22,9 +29,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -77,7 +85,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   private final NumberFormat mobilityFormat;
 
   private MZTolerance mzTolerance;
-  private ScanSelection scanSelection;
+  private MsLevelFilter scanSelection;
   private Float rtWidth;
   private Integer binWidth;
   private ListView<Range<Double>> mobilogramRangesList;
@@ -85,9 +93,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
   private DoubleRangeComponent mobilogramRangeComp;
+  private MsLevelFilterParameter msLevelFilterParameter;
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
-      double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection,
+      double mobilityScanNoiseLevel, MZTolerance mzTolerance, MsLevelFilter scanSelection,
       Float rtWidth, Integer binWidth) {
     this.pane = pane;
     this.frameNoiseLevel = frameNoiseLevel;
@@ -113,8 +122,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     MZToleranceComponent mzToleranceComponent = new MZToleranceComponent();
     mzToleranceComponent.setValue(mzTolerance);
     DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat, 2d);
-    ScanSelectionComponent scanSelectionComponent = new ScanSelectionComponent();
-    scanSelectionComponent.setValue(scanSelection);
+
+    msLevelFilterParameter = new MsLevelFilterParameter(TOOLTIP_SCANSEL,
+        new Options[]{Options.MS1, Options.MS2}, scanSelection);
+    var scanSelectionComponent = msLevelFilterParameter.createEditingComponent();
     IntegerComponent binWidthComponent = new IntegerComponent(100, 1, 10);
     binWidthComponent.setText(binWidth.toString());
 
@@ -191,12 +202,13 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
         rtWidth = Float.parseFloat(rtWidthComponent.getText());
         rtWidthComponent.setText(rtFormat.format(rtWidth));
-        scanSelection = scanSelectionComponent.getValue();
+        msLevelFilterParameter.setValueFromComponent(scanSelectionComponent);
+        scanSelection = msLevelFilterParameter.getValue();
         mzTolerance = mzToleranceComponent.getValue();
         binWidth = Integer.parseInt(binWidthComponent.getText());
 
         pane.setMzTolerance(mzTolerance);
-        pane.setScanSelection(scanSelection);
+        pane.setMsLevelFilter(scanSelection);
         pane.setFrameNoiseLevel(frameNoiseLevel);
         pane.setMobilityScanNoiseLevel(mobilityScanNoiseLevel);
         pane.setRtWidth(rtWidth);
@@ -257,11 +269,11 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     this.mzTolerance = mzTolerance;
   }
 
-  public ScanSelection getScanSelection() {
+  public MsLevelFilter getMsLevelFilter() {
     return scanSelection;
   }
 
-  public void setScanSelection(ScanSelection scanSelection) {
+  public void setMsLevelFilter(MsLevelFilter scanSelection) {
     this.scanSelection = scanSelection;
   }
 

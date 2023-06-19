@@ -1,23 +1,31 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -37,15 +45,18 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -65,9 +76,12 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   public static final String XML_ATTR = "simple_compound_db_annotation";
 
-
   private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
-  protected final Map<DataType<?>, Object> data = new HashMap<>();
+  /**
+   * sort map by order in {@link DBEntryField} then natural order of data types
+   */
+  protected final Map<DataType, Object> data = new TreeMap<>(
+      Comparator.comparing(DBEntryField::fromDataType).thenComparing(DataType::compareTo));
 
   public SimpleCompoundDBAnnotation() {
   }
@@ -83,7 +97,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    */
   public SimpleCompoundDBAnnotation(final OnlineDatabases db, final String id, final String name,
       final String formula, final URL urlDb, final URL url2d, final URL url3d) {
-
+    this(formula);
     putIfNotNull(DatabaseNameType.class, db != null ? db.name() : null);
     putIfNotNull(CompoundNameType.class, name);
 
@@ -99,6 +113,18 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       put(Structure3dUrlType.class, new UrlShortName(url3d.toString(), "3D Structure"));
     }
 
+  }
+
+  public SimpleCompoundDBAnnotation(final String formula) {
+    setFormula(formula);
+  }
+
+  /**
+   * Calculate neutral mass if not already present. then keep the original.
+   *
+   * @param formula molecular formula
+   */
+  public void setFormula(final String formula) {
     putIfNotNull(FormulaType.class, formula);
 
     final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
@@ -108,8 +134,10 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     }
   }
 
-  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException {
+
+  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader,
+      @NotNull final MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row)
+      throws XMLStreamException {
     final String startElementName = reader.getLocalName();
     final String startElementAttrValue = Objects.requireNonNullElse(
         reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE_OLD),
@@ -135,11 +163,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         continue;
       }
 
-      final DataType<?> typeForId = DataTypes.getTypeForId(
+      final DataType typeForId = DataTypes.getTypeForId(
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
-        Object o = typeForId.loadFromXML(reader, flist, row, null, null);
-        id.put((DataType) typeForId, o);
+        Object o = typeForId.loadFromXML(reader, project, flist, row, null, null);
+        id.put(typeForId, o);
       }
       i++;
 
@@ -195,7 +223,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   }
 
   @Override
-  public Set<DataType<?>> getTypes() {
+  public Set<DataType> getTypes() {
     return data.keySet();
   }
 
@@ -211,8 +239,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     writeOpeningTag(writer);
     writer.writeAttribute(CompoundDBAnnotation.XML_NUM_ENTRIES_ATTR, String.valueOf(data.size()));
 
-    for (Entry<DataType<?>, Object> entry : data.entrySet()) {
-      final DataType<?> key = entry.getKey();
+    for (Entry<DataType, Object> entry : data.entrySet()) {
+      final DataType key = entry.getKey();
       final Object value = entry.getValue();
 
       try {
@@ -244,98 +272,54 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float rt = getRT();
-    if (rtTolerance != null && rt != null && (row.getAverageRT() == null
+    if (rtTolerance != null && rt != null && rt > 0 && (row.getAverageRT() == null
         || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float mobility = getMobility();
-    if (mobilityTolerance != null && mobility != null && (row.getAverageMobility() == null
-        || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
+    if (mobilityTolerance != null && mobility != null && mobility > 0 && (
+        row.getAverageMobility() == null || !mobilityTolerance.checkWithinTolerance(mobility,
+            row.getAverageMobility()))) {
       return false;
     }
 
+    // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float ccs = getCCS();
-    return percentCCSTolerance == null || ccs == null || (row.getAverageCCS() != null && !(
-        Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
-  }
-
-  public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
-      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance) {
-    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
-      return null;
-    }
-
-    int scorers = 0;
-
-    float score = 0f;
-    final Double exactMass = getPrecursorMZ();
-    // values are "matched" if the given value exists in this class and falls within the tolerance.
-    if (mzTolerance != null && exactMass != null && !(row.getAverageMZ() == null
-        || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
-      score += 1 - ((float) ((Math.abs(row.getAverageMZ() - exactMass)) / (
-          RangeUtils.rangeLength(mzTolerance.getToleranceRange(exactMass)) / 2)));
-      scorers++;
-    }
-
-    final Float rt = getRT();
-    if (rtTolerance != null && rt != null && !(row.getAverageRT() == null
-        || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
-      score += 1 - ((Math.abs(row.getAverageRT() - rt)) / (
-          RangeUtils.rangeLength(rtTolerance.getToleranceRange(rt)) / 2));
-      scorers++;
-    }
-
-    final Float mobility = getMobility();
-    if (mobilityTolerance != null && mobility != null && !(row.getAverageMobility() == null
-        || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
-      score += 1 - ((Math.abs(row.getAverageMobility() - mobility)) / (
-          RangeUtils.rangeLength(mobilityTolerance.getToleranceRange(mobility)) / 2));
-      scorers++;
-    }
-
-    final Float ccs = getCCS();
-    if (percentCCSTolerance != null && ccs != null && !(row.getAverageCCS() == null
-        || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
-      score += 1 - ((float) (Math.abs(1 - (row.getAverageCCS() / ccs)) / percentCCSTolerance));
-      scorers++;
-    }
-
-    if (scorers == 0) {
-      return null;
-    }
-
-    return score / scorers;
+    return percentCCSTolerance == null || ccs == null || ccs <= 0 || (row.getAverageCCS() != null
+        && !(Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
   @Override
-  public Map<DataType<?>, Object> getReadOnlyMap() {
+  public Map<DataType, Object> getReadOnlyMap() {
     return Collections.unmodifiableMap(data);
   }
 
   @Override
   public CompoundDBAnnotation clone() {
     SimpleCompoundDBAnnotation clone = new SimpleCompoundDBAnnotation();
-    data.forEach((key, value) -> clone.put((DataType) key, value));
+    data.forEach((key, value) -> clone.put(key, value));
     return clone;
   }
 
   @Override
   public String toString() {
-    return getCompoundName();
+    return Stream.of(getCompoundName(), getAdductType(), getScoreString()).filter(Objects::nonNull)
+        .map(Objects::toString).collect(Collectors.joining(": "));
   }
+
 
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof SimpleCompoundDBAnnotation)) {
+    if (!(o instanceof SimpleCompoundDBAnnotation that)) {
       return false;
     }
-    SimpleCompoundDBAnnotation that = (SimpleCompoundDBAnnotation) o;
     return Objects.equals(data, that.data);
   }
 

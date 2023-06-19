@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.taskcontrol.impl;
@@ -46,22 +53,21 @@ public class TaskControllerImpl implements TaskController, Runnable {
    * Update the task progress window every 300 ms
    */
   private final int TASKCONTROLLER_THREAD_SLEEP = 300;
-  ArrayList<TaskControlListener> listeners = new ArrayList<>();
-  private Thread taskControllerThread;
 
-  private TaskQueue taskQueue;
+  private static final TaskControllerImpl INSTANCE = new TaskControllerImpl();
+  private final ArrayList<TaskControlListener> listeners = new ArrayList<>();
+  private final Thread taskControllerThread;
+
+  private final TaskQueue taskQueue;
 
   /**
    * This vector contains references to all running threads of NORMAL priority. Maximum number of
    * concurrent threads is specified in the preferences dialog.
    */
-  private Vector<WorkerThread> runningThreads;
+  private final Vector<WorkerThread> runningThreads;
 
-  /**
-   * Initialize the task controller
-   */
-  public void initModule() {
 
+  private TaskControllerImpl() {
     logger.finest("Starting task controller thread");
     taskQueue = new TaskQueue();
 
@@ -72,7 +78,10 @@ public class TaskControllerImpl implements TaskController, Runnable {
     taskControllerThread = new Thread(this, "Task controller thread");
     taskControllerThread.setPriority(Thread.MIN_PRIORITY);
     taskControllerThread.start();
+  }
 
+  public static TaskControllerImpl getInstance() {
+    return INSTANCE;
   }
 
   @Override
@@ -254,7 +263,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
     if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
       desktop.getTasksView().refresh();
     }
-
   }
 
   @Override

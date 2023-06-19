@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
@@ -40,7 +47,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -220,6 +227,11 @@ public class MirrorScanWindowController {
 
   public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
       DataPoint[] dpsB) {
+    setScans(precursorMZA, dpsA, precursorMZB, dpsB, "", "");
+  }
+
+  public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB, DataPoint[] dpsB,
+      String labelA, String labelB) {
     this.precursorMZA = precursorMZA;
     this.dpsA = dpsA;
     this.precursorMZB = precursorMZB;
@@ -227,7 +239,7 @@ public class MirrorScanWindowController {
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     String precursorString = MessageFormat.format(": {0}↔{1}; top↔bottom",
-        mzFormat.format(precursorMZA), mzFormat.format(precursorMZB));
+        mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
     pnMirror.getChildren().removeAll();
     pnNLMirror.getChildren().removeAll();
@@ -243,8 +255,7 @@ public class MirrorScanWindowController {
     if (precursorMZA > 0 && precursorMZB > 0) {
       lbTitleNL.setText("Neutral loss mirror" + precursorString);
       neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
-          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
-          ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
+          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA, ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
       pnNLMirror.setCenter(neutralLossMirrorSpecrumPlot);
 
       //
@@ -429,8 +440,8 @@ public class MirrorScanWindowController {
 
   private void loadGnpsLibrary(String id1, String id2) {
     try {
-      final SpectralDBEntry top = GNPSUtils.accessLibraryOrUSISpectrum(id1);
-      final SpectralDBEntry bottom = GNPSUtils.accessLibraryOrUSISpectrum(id2);
+      final SpectralLibraryEntry top = GNPSUtils.accessLibraryOrUSISpectrum(id1);
+      final SpectralLibraryEntry bottom = GNPSUtils.accessLibraryOrUSISpectrum(id2);
 
       setScans(top.getPrecursorMZ(), top.getDataPoints(), bottom.getPrecursorMZ(),
           bottom.getDataPoints());

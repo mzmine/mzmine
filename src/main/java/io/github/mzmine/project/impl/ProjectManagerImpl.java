@@ -1,18 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.project.impl;
@@ -25,33 +33,36 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Project manager implementation
  */
 public class ProjectManagerImpl implements ProjectManager {
 
-  private static ProjectManagerImpl myInstance;
+  private static final Logger logger = Logger.getLogger(ProjectManagerImpl.class.getName());
+  private static final ProjectManagerImpl myInstance = new ProjectManagerImpl();
 
-  MZmineProject currentProject;
+  private MZmineProject currentProject;
+
+  private ProjectManagerImpl() {
+    this.currentProject = new MZmineProjectImpl();
+  }
 
   public static ProjectManagerImpl getInstance() {
     return myInstance;
   }
 
-  public void initModule() {
-    currentProject = new MZmineProjectImpl();
-    myInstance = this;
-  }
-
   @Override
-  public MZmineProject getCurrentProject() {
+  public @NotNull MZmineProject getCurrentProject() {
     return currentProject;
   }
 
   @Override
-  public void setCurrentProject(MZmineProject project) {
+  public void setCurrentProject(@NotNull MZmineProject project) {
 
     if (project == currentProject) {
       return;
@@ -59,7 +70,7 @@ public class ProjectManagerImpl implements ProjectManager {
 
     // Close previous data files
     if (currentProject != null) {
-      RawDataFile prevDataFiles[] = currentProject.getDataFiles();
+      RawDataFile[] prevDataFiles = currentProject.getDataFiles();
       for (RawDataFile prevDataFile : prevDataFiles) {
         prevDataFile.close();
       }
@@ -72,8 +83,8 @@ public class ProjectManagerImpl implements ProjectManager {
     // project)
     if (project.getProjectFile() != null) {
       File projectFile = project.getProjectFile();
-      ParameterSet loaderParams =
-          MZmineCore.getConfiguration().getModuleParameters(ProjectLoadModule.class);
+      ParameterSet loaderParams = MZmineCore.getConfiguration()
+          .getModuleParameters(ProjectLoadModule.class);
       loaderParams.getParameter(ProjectLoaderParameters.projectFile).setValue(projectFile);
     }
 
@@ -81,6 +92,17 @@ public class ProjectManagerImpl implements ProjectManager {
     if (!MZmineCore.isHeadLessMode()) {
       MZmineGUI.activateProject(project);
     }
+  }
+
+  @Override
+  public void clearProject() {
+    // Create a new, empty project
+    MZmineProject old = getCurrentProject();
+    setCurrentProject(new MZmineProjectImpl());
+    // keep libraries
+    currentProject.addSpectralLibrary(
+        old.getCurrentSpectralLibraries().toArray(new SpectralLibrary[0]));
+    logger.info("Project cleared");
   }
 
 }

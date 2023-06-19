@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.mainwindow;
@@ -25,22 +32,18 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -151,31 +154,8 @@ public class MainMenuController {
       MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
       return;
     }
-
-    MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
-
-    if (module == null) {
-      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
-      return;
-    }
-
-    ParameterSet moduleParameters = MZmineCore.getConfiguration()
-        .getModuleParameters(moduleJavaClass);
-
-    logger.info("Setting parameters for module " + module.getName());
-
-    try {
-      ExitCode exitCode = moduleParameters.showSetupDialog(true);
-      if (exitCode != ExitCode.OK) {
-        return;
-      }
-    } catch (Exception e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-    }
-
-    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
-    MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+    // show setup dialog and run
+    MZmineCore.setupAndRunModule(moduleJavaClass);
   }
 
   public void fillRecentProjects(Event event) {

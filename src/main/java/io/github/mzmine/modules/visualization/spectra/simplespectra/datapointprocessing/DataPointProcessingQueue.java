@@ -1,54 +1,54 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Vector;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.XMLUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Vector;
+import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
-public class DataPointProcessingQueue
-    extends Vector<MZmineProcessingStep<DataPointProcessingModule>> {
+public class DataPointProcessingQueue extends
+    Vector<MZmineProcessingStep<DataPointProcessingModule>> {
 
   private static final long serialVersionUID = 1L;
 
@@ -74,8 +74,8 @@ public class DataPointProcessingQueue
       logger.finest("loading method " + methodName);
 
       for (MZmineModule module : allModules) {
-        if (module instanceof DataPointProcessingModule
-            && module.getClass().getName().equals(methodName)) {
+        if (module instanceof DataPointProcessingModule && module.getClass().getName()
+            .equals(methodName)) {
 
           // since the same module can be used in different ms levels,
           // we need to clone the
@@ -99,8 +99,7 @@ public class DataPointProcessingQueue
 
   public static @NotNull DataPointProcessingQueue loadFromFile(@NotNull File file) {
     try {
-      Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-          .getDocumentElement();
+      Element element = XMLUtils.load(file).getDocumentElement();
       return loadfromXML(element);
     } catch (SAXException | IOException | ParserConfigurationException e) {
       e.printStackTrace();
@@ -138,69 +137,53 @@ public class DataPointProcessingQueue
       // Serialize batch queue.
       this.saveToXML(element);
 
-      // Create transformer.
-      final Transformer transformer = TransformerFactory.newInstance().newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-      // Write to file and transform.
-      transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
+      XMLUtils.saveToFile(file, document);
 
       logger.finest("Saved " + this.size() + " processing step(s) to " + file.getName());
 
-    } catch (ParserConfigurationException | TransformerFactoryConfigurationError
-        | FileNotFoundException | TransformerException e) {
+    } catch (ParserConfigurationException | TransformerFactoryConfigurationError |
+             TransformerException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return;
     }
 
   }
 
   /**
-   * 
    * @return Returns true if the module list is initialized and > 0.
    */
   public boolean stepsValid() {
-    if (!this.isEmpty())
-      return true;
-    return false;
+    return !this.isEmpty();
   }
 
   /**
-   * 
    * @param current A pointer to the current module.
    * @return Returns true if there is one or more steps, false if not.
    */
   public boolean hasNextStep(MZmineProcessingStep<DataPointProcessingModule> current) {
     if (this.contains(current)) {
       int index = this.indexOf(current);
-      if (index + 1 < this.size()) {
-        return true;
-      }
+      return index + 1 < this.size();
     }
     return false;
   }
 
   /**
-   * 
    * @param current A pointer to the current module.
    * @return Returns the next module in this PlotModuleCombo. If this pmc has no next module the
-   *         return is null. Use hasNextModule to check beforehand.
+   * return is null. Use hasNextModule to check beforehand.
    */
   public @Nullable MZmineProcessingStep<DataPointProcessingModule> getNextStep(
       @NotNull MZmineProcessingStep<DataPointProcessingModule> current) {
-    if (hasNextStep(current))
+    if (hasNextStep(current)) {
       return this.get(this.indexOf(current) + 1);
+    }
     return null;
   }
 
   /**
-   * 
    * @return Returns the first module in this PlotModuleCombo. If the list of steps is not
-   *         initialised, the return is null.
+   * initialised, the return is null.
    */
   public @Nullable MZmineProcessingStep<DataPointProcessingModule> getFirstStep() {
     if (this.size() > 0) {

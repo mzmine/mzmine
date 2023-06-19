@@ -1,25 +1,31 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.scan_histogram.chart;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -64,9 +70,8 @@ public class ScanHistogramTab extends MZmineTab {
   private final double binWidth;
   private final ScanHistogramType valueType;
   private final Range<Double> intensityRange;
-  private final Boolean useIntensityRange;
   private final MassDefectFilter massDefectFilter;
-  private final Boolean useMassDefect;
+  private final ScanDataType scanDataType;
   protected HistogramPanel histo;
   private RawDataFile[] dataFiles;
   // scan counter
@@ -84,16 +89,16 @@ public class ScanHistogramTab extends MZmineTab {
 
     this.dataFiles = dataFile;
     scanSelection = parameters.getValue(ScanHistogramParameters.scanSelection);
-    mzRange = parameters.getValue(ScanHistogramParameters.mzRange);
+    mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(ScanHistogramParameters.mzRange,
+        Range.all());
     binWidth = parameters.getValue(ScanHistogramParameters.binWidth);
     useMobilityScans = parameters.getValue(ScanHistogramParameters.useMobilityScans);
-    useIntensityRange = parameters.getValue(ScanHistogramParameters.heightRange);
-    intensityRange = parameters.getParameter(ScanHistogramParameters.heightRange)
-        .getEmbeddedParameter().getValue();
-    useMassDefect = parameters.getValue(ScanHistogramParameters.massDefect);
-    massDefectFilter = parameters.getParameter(ScanHistogramParameters.massDefect)
-        .getEmbeddedParameter().getValue();
+    intensityRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ScanHistogramParameters.heightRange, Range.all());
+    massDefectFilter = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ScanHistogramParameters.massDefect, MassDefectFilter.ALL);
     valueType = parameters.getValue(ScanHistogramParameters.type);
+    scanDataType = parameters.getValue(ScanHistogramParameters.scanDataType);
 
     data = buildHistogramData(dataFile);
 
@@ -106,6 +111,11 @@ public class ScanHistogramTab extends MZmineTab {
 
     histo = new HistogramPanel(valueType.toString(), data, binWidth);
 
+    var chartPanel = histo.getChartPanel();
+    if (chartPanel != null && chartPanel.getChart() != null && chartPanel.getChart().getLegend() != null) {
+      chartPanel.getChart().getLegend().setVisible(false);
+    }
+
     //setMinWidth(1050);
     //setMinHeight(700);
     //setScene(mainScene);
@@ -116,6 +126,13 @@ public class ScanHistogramTab extends MZmineTab {
     // Add the Windows menu
     //WindowsMenu.addWindowsMenu(mainScene);
     //addKeyBindings();
+  }
+
+  /**
+   * The main pane that contains all the controls and the histogram
+   */
+  public BorderPane getMainPane() {
+    return mainPane;
   }
 
   private HistogramData buildHistogramData(RawDataFile... dataFiles) {
@@ -136,8 +153,7 @@ public class ScanHistogramTab extends MZmineTab {
           }
         }
       } else {
-        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
-            scanSelection);
+        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, scanDataType, scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextScan() != null) {
           addAllDataPoints(scanAccess, data);
@@ -146,12 +162,12 @@ public class ScanHistogramTab extends MZmineTab {
       }
     }
 
-    if (!data.isEmpty()) {
-      // to array
-      return new HistogramData(data.toDoubleArray());
-    } else {
-      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
-    }
+    return new HistogramData(data.toDoubleArray());
+//    if (!data.isEmpty()) {
+    // to array
+//    } else {
+//      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
+//    }
   }
 
   private void addAllDataPoints(Scan scan, DoubleArrayList data) {
@@ -160,8 +176,8 @@ public class ScanHistogramTab extends MZmineTab {
     for (int i = 0; i < n; i++) {
       double mz = scan.getMzValue(i);
       double intensity = scan.getIntensityValue(i);
-      if (mzRange.contains(mz) && (!useIntensityRange || intensityRange.contains(intensity)) && (
-          !useMassDefect || massDefectFilter.contains(mz))) {
+      if (mzRange.contains(mz) && intensityRange.contains(intensity) && massDefectFilter.contains(
+          mz)) {
         double val = switch (valueType) {
           case MZ -> mz;
           case INTENSITY -> intensity;
@@ -218,16 +234,19 @@ public class ScanHistogramTab extends MZmineTab {
   }
 
   @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    if (rawDataFiles == null || rawDataFiles.isEmpty() || CollectionUtils.isEqualCollection(
-        rawDataFiles, getRawDataFiles())) {
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> dataFiles) {
+    setDataFiles(dataFiles);
+  }
+
+  public void setDataFiles(final Collection<? extends RawDataFile> dataFiles) {
+    if (dataFiles == null || dataFiles.isEmpty() || CollectionUtils.isEqualCollection(dataFiles,
+        getRawDataFiles())) {
       return;
     }
-
-    RawDataFile[] newFiles = rawDataFiles.toArray(RawDataFile[]::new);
+    RawDataFile[] newFiles = dataFiles.toArray(RawDataFile[]::new);
     HistogramData newData = buildHistogramData(newFiles);
-    histo.setData(newData, binWidth);
-    dataFiles = newFiles;
+    histo.setData(newData);
+    this.dataFiles = newFiles;
 
     data = newData;
   }

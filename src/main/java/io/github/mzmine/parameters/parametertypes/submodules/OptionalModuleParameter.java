@@ -1,54 +1,75 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
-import io.github.mzmine.modules.io.projectsave.RawDataSavingUtils;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
  * Parameter represented by check box with additional sub-module
  */
 public class OptionalModuleParameter<T extends ParameterSet> implements
-    UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer, EmbeddedParameterSet {
+    UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer,
+    EmbeddedParameterSet<T, Boolean> {
 
-  private String name, description;
+  private final String name;
+  private final String description;
+  private final EmbeddedComponentOptions componentViewOption;
   private T embeddedParameters;
-  private Boolean value;
+  private boolean value;
+
+  public OptionalModuleParameter(String name, String description, T embeddedParameters) {
+    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters);
+  }
+
+  public OptionalModuleParameter(String name, String description,
+      EmbeddedComponentOptions componentViewOption, T embeddedParameters) {
+    this(name, description, componentViewOption, embeddedParameters, false);
+  }
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters,
       boolean defaultVal) {
-    this.name = name;
-    this.description = description;
-    this.embeddedParameters = embeddedParameters;
-    value = defaultVal;
+    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters, defaultVal);
   }
 
-  public OptionalModuleParameter(String name, String description, T embeddedParameters) {
-    this(name, description, embeddedParameters, false);
+  public OptionalModuleParameter(String name, String description,
+      EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal) {
+    this.name = name;
+    this.description = description;
+    this.componentViewOption = componentViewOption;
+    this.embeddedParameters = embeddedParameters;
+    value = defaultVal;
   }
 
   public T getEmbeddedParameters() {
@@ -56,7 +77,12 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   }
 
   public void setEmbeddedParameters(T embeddedParameters) {
-    this.embeddedParameters = embeddedParameters;
+    if (this.embeddedParameters == null) {
+      this.embeddedParameters = embeddedParameters;
+    } else {
+      // copy parameters over. Just in case if there is already a component showing those parameters
+      ParameterUtils.copyParameters(embeddedParameters, this.embeddedParameters);
+    }
   }
 
   @Override
@@ -71,49 +97,36 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(embeddedParameters);
+    return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value);
   }
 
   @Override
   public Boolean getValue() {
-    // If the option is selected, first check that the module has all
-    // parameters set
-    if ((value != null) && (value)) {
-      for (Parameter<?> p : embeddedParameters.getParameters()) {
-        if (p instanceof UserParameter) {
-          UserParameter<?, ?> up = (UserParameter<?, ?>) p;
-          Object upValue = up.getValue();
-          if (upValue == null) {
-            return null;
-          }
-        }
-      }
-    }
     return value;
   }
 
   @Override
-  public void setValue(@NotNull Boolean value) {
+  public void setValue(Boolean value) {
     this.value = Objects.requireNonNullElse(value, false);
   }
 
   @Override
   public OptionalModuleParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
-    final OptionalModuleParameter<T> copy = new OptionalModuleParameter<>(name, description,
-        embeddedParametersClone);
-    copy.setValue(this.getValue());
-    return copy;
+    return new OptionalModuleParameter<>(name, description, componentViewOption,
+        embeddedParametersClone, getValue());
   }
 
   @Override
   public void setValueFromComponent(OptionalModuleComponent component) {
     this.value = component.isSelected();
+    component.updateParameterSetFromComponents();
   }
 
   @Override
-  public void setValueToComponent(OptionalModuleComponent component, Boolean newValue) {
+  public void setValueToComponent(OptionalModuleComponent component, @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
+    component.setParameterValuesToComponents();
   }
 
   @Override
@@ -125,20 +138,14 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null) {
-      xmlElement.setAttribute("selected", value.toString());
-    }
+    xmlElement.setAttribute("selected", String.valueOf(value));
     embeddedParameters.saveValuesToXML(xmlElement);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(name + " is not set properly");
-      return false;
-    }
-    if (value == true) {
-      return embeddedParameters.checkParameterValues(errorMessages);
+    if (value) {
+      return checkEmbeddedValues(errorMessages);
     }
     return true;
   }
@@ -159,7 +166,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
       return false;
     }
 
-    return RawDataSavingUtils
-        .parameterSetsEqual(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(), false, false);
+    return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
+        false, false);
   }
 }

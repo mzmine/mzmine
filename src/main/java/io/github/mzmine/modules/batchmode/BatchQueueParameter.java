@@ -1,33 +1,40 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Priority;
 import org.w3c.dom.Element;
 
 /**
@@ -68,6 +75,11 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
     }
 
     return new AnchorPane();
+  }
+
+  @Override
+  public Priority getComponentVgrowPriority() {
+    return Priority.ALWAYS;
   }
 
   @Override
@@ -115,23 +127,25 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
     } else {
 
+      List<String> newErrors = new ArrayList<>();
       // Check each step.
       for (final MZmineProcessingStep<?> batchStep : value) {
 
         // Check step's parameters.
         final ParameterSet params = batchStep.getParameterSet();
-        if (params == null)
+        if (params == null) {
           continue;
+        }
 
-        for (final Parameter<?> parameter : params.getParameters()) {
+        if (!params.checkParameterValues(newErrors, true)) {
+          allParamsOK = false;
+        }
 
-          // Ignore the raw data files and feature lists parameters
-          if (!(parameter instanceof RawDataFilesParameter)
-              && !(parameter instanceof FeatureListsParameter)
-              && !parameter.checkValue(errorMessages)) {
-            allParamsOK = false;
-
-          }
+        if (!newErrors.isEmpty()) {
+          // add module name and
+          errorMessages.add("\n%s:".formatted(batchStep.getModule().getName()));
+          errorMessages.addAll(newErrors);
+          newErrors.clear();
         }
       }
     }
@@ -141,7 +155,9 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
   @Override
   public void loadValueFromXML(final Element xmlElement) {
-    value = BatchQueue.loadFromXml(xmlElement);
+    List<String> errorMessages = new ArrayList<>();
+    value = BatchQueue.loadFromXml(xmlElement, errorMessages);
+    // do not log warnings here it's called on startup of mzmine
   }
 
   @Override

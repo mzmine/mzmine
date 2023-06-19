@@ -1,29 +1,38 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.javafx.TableViewUitls;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.TableViewUtils;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,6 +46,7 @@ import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class RawDataFileInfoPaneController {
 
@@ -64,7 +74,7 @@ public class RawDataFileInfoPaneController {
   private TableColumn<Scan, Integer> msLevelColumn;
 
   @FXML
-  private TableColumn<Scan, Double> precursorMzColumn;
+  private TableColumn<Scan, String> precursorMzColumn;
 
   @FXML
   private TableColumn<Scan, Range<Double>> mzRangeColumn;
@@ -79,6 +89,9 @@ public class RawDataFileInfoPaneController {
 
   @FXML
   private TableColumn<Scan, String> definitionColumn;
+
+  @FXML
+  private TableColumn<Scan, FontIcon> massDetectionColumn;
 
   @FXML
   private Label lblNumScans;
@@ -97,6 +110,10 @@ public class RawDataFileInfoPaneController {
 
   @FXML
   public void initialize() {
+    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    NumberFormat itFormat = MZmineCore.getConfiguration().getIntensityFormat();
+
     scanColumn.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getScanNumber()));
     rtColumn.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getRetentionTime()));
     msLevelColumn.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getMSLevel()));
@@ -105,7 +122,7 @@ public class RawDataFileInfoPaneController {
     basePeakIntensityColumn.setCellValueFactory(
         p -> new SimpleObjectProperty<>(p.getValue().getBasePeakIntensity()));
     precursorMzColumn.setCellValueFactory(
-        p -> new SimpleObjectProperty<>(p.getValue().getPrecursorMz()));
+        p -> new SimpleStringProperty(getPrecursorString(p.getValue(), mzFormat)));
     mzRangeColumn.setCellValueFactory(
         p -> new SimpleObjectProperty<>(p.getValue().getScanningMZRange()));
     scanTypeColumn.setCellValueFactory(
@@ -116,19 +133,17 @@ public class RawDataFileInfoPaneController {
         p -> new SimpleObjectProperty<>(p.getValue().getInjectionTime()));
     definitionColumn.setCellValueFactory(
         p -> new SimpleStringProperty(p.getValue().getScanDefinition()));
+    massDetectionColumn.setCellValueFactory(
+        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(FxIconUtil.getCheckedIcon())
+            : new SimpleObjectProperty<>(FxIconUtil.getUncheckedIcon()));
 
-    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-    NumberFormat itFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    TableViewUtils.setFormattedCellFactory(basePeakColumn, mzFormat);
+    TableViewUtils.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
+    TableViewUtils.setFormattedCellFactory(rtColumn, rtFormat);
+    TableViewUtils.setFormattedCellFactory(injectTimeColumn, rtFormat);
+    TableViewUtils.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
 
-    TableViewUitls.setFormattedCellFactory(precursorMzColumn, mzFormat);
-    TableViewUitls.setFormattedCellFactory(basePeakColumn, mzFormat);
-    TableViewUitls.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
-    TableViewUitls.setFormattedCellFactory(rtColumn, rtFormat);
-    TableViewUitls.setFormattedCellFactory(injectTimeColumn, rtFormat);
-    TableViewUitls.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
-
-    TableViewUitls.autoFitLastColumn(rawDataTableView);
+    TableViewUtils.autoFitLastColumn(rawDataTableView);
   }
 
   /**
@@ -232,4 +247,18 @@ public class RawDataFileInfoPaneController {
     return rawDataTableView;
   }
 
+  private String getPrecursorString(Scan scan, NumberFormat mzFormat) {
+    if (scan == null) {
+      return null;
+    }
+
+    if (scan instanceof Frame f && !f.getImsMsMsInfos().isEmpty()) {
+      // IMS Frames may have multiple precursor m/zs in acquisition modes such as PASEF.
+      return String.join("; ",
+          f.getImsMsMsInfos().stream().map(info -> mzFormat.format(info.getIsolationMz()))
+              .toList());
+    }
+    final Double precursorMz = scan.getPrecursorMz();
+    return precursorMz != null ? mzFormat.format(scan.getPrecursorMz()) : null;
+  }
 }

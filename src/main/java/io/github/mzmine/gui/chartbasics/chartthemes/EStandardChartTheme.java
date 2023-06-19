@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
@@ -38,10 +45,12 @@ import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -49,9 +58,6 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
-/*
-import io.github.mzmine.util.MirrorChartFactory;
-*/
 
 /**
  * More options for the StandardChartTheme
@@ -73,7 +79,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected Font masterFont;
   protected Color masterFontColor;
   // Chart appearance
-  protected boolean isAntiAliased = true;
+  protected boolean isAntiAliased;
   protected boolean showTitle = false;
   protected boolean showLegend = true;
   // orientation : 0 - 2 (90 CW)
@@ -216,11 +222,19 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     // to get the correct font specified in this theme by the item label font, we need to reapply
     // it. (the normal theme sets the default font, too)
-    final XYPlot plot = chart.getXYPlot();
-    if (plot != null) {
-      int rendererCount = plot.getRendererCount();
+
+    if (chart.getPlot() instanceof XYPlot xyPlot) {
+      int rendererCount = xyPlot.getRendererCount();
       for (int i = 0; i < rendererCount; i++) {
-        XYItemRenderer r = plot.getRenderer(i);
+        XYItemRenderer r = xyPlot.getRenderer(i);
+        if (r instanceof AbstractRenderer renderer) {
+          applyToAbstractRenderer(renderer);
+        }
+      }
+    } else if (chart.getPlot() instanceof CategoryPlot categoryPlot) {
+      int rendererCount = categoryPlot.getRendererCount();
+      for (int i = 0; i < rendererCount; i++) {
+        CategoryItemRenderer r = categoryPlot.getRenderer(i);
         if (r instanceof AbstractRenderer renderer) {
           applyToAbstractRenderer(renderer);
         }

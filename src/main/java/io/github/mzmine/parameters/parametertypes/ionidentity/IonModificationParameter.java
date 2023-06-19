@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
@@ -27,7 +34,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -40,8 +50,8 @@ import org.w3c.dom.NodeList;
  * @author $Author$
  * @version $Revision$
  */
-public class IonModificationParameter
-    implements UserParameter<IonModification[][], IonModificationComponent> {
+public class IonModificationParameter implements
+    UserParameter<IonModification[][], IonModificationComponent> {
 
   // Logger.
   private static final Logger logger = Logger.getLogger(IonModificationParameter.class.getName());
@@ -65,7 +75,7 @@ public class IonModificationParameter
   /**
    * Create the parameter.
    *
-   * @param name name of the parameter.
+   * @param name        name of the parameter.
    * @param description description of the parameter.
    */
   public IonModificationParameter(final String name, final String description) {
@@ -77,7 +87,8 @@ public class IonModificationParameter
 
   @Override
   public IonModificationComponent createEditingComponent() {
-    comp = new IonModificationComponent(List.of(adducts.getChoices()), List.of(modification.getChoices()));
+    comp = new IonModificationComponent(List.of(adducts.getChoices()),
+        List.of(modification.getChoices()));
     return comp;
   }
 
@@ -111,8 +122,8 @@ public class IonModificationParameter
       // adduct or modification
       if (a.getNodeName().equals(TAG)) {
         // is selected?
-        boolean selectedNode =
-            Boolean.parseBoolean(a.getAttributes().getNamedItem(SELECTED_ATTRIBUTE).getNodeValue());
+        boolean selectedNode = Boolean.parseBoolean(
+            a.getAttributes().getNamedItem(SELECTED_ATTRIBUTE).getNodeValue());
 
         // sub adduct types that define the total adducttype
         NodeList childs = a.getChildNodes();
@@ -154,10 +165,9 @@ public class IonModificationParameter
         IonModification adduct = null;
         if (adducts.size() == 1) {
           adduct = adducts.get(0);
-        } else
-          adduct =
-              CombinedIonModification.create(adducts);
-
+        } else {
+          adduct = CombinedIonModification.create(adducts);
+        }
 
         // A new choice?
         if (!newChoices.contains(adduct)) {
@@ -184,8 +194,8 @@ public class IonModificationParameter
     for (int i = 0; i < 2; i++) {
       final IonModification[] choices = i == 0 ? adducts.getChoices() : modification.getChoices();
       final IonModification[] value = i == 0 ? adducts.getValue() : modification.getValue();
-      final List<IonModification> selections =
-          Arrays.asList(value == null ? new IonModification[0] : value);
+      final List<IonModification> selections = Arrays.asList(
+          value == null ? new IonModification[0] : value);
 
       if (choices != null) {
         final Document parent = xmlElement.getOwnerDocument();
@@ -200,7 +210,7 @@ public class IonModificationParameter
 
   /**
    * Save all
-   * 
+   *
    * @param parent
    * @param parentElement
    * @param selections
@@ -228,7 +238,7 @@ public class IonModificationParameter
     return copy;
   }
 
-  private void setChoices(IonModification[] ad, IonModification[] mods) {
+  public void setChoices(IonModification[] ad, IonModification[] mods) {
     adducts.setChoices(ad);
     modification.setChoices(mods);
   }
@@ -272,12 +282,35 @@ public class IonModificationParameter
 
   @Override
   public void setValue(IonModification[][] newValue) {
-    adducts.setValue(newValue[0]);
-    modification.setValue(newValue[1]);
+    var selectedAdducts = newValue[0];
+    var selectedMods = newValue[1];
+
+    // make sure all choices are available
+    ensureAllChoices(adducts, selectedAdducts);
+    ensureAllChoices(modification, selectedMods);
+
+    adducts.setValue(selectedAdducts);
+    modification.setValue(selectedMods);
+  }
+
+  private void ensureAllChoices(final MultiChoiceParameter<IonModification> param,
+      final IonModification[] selected) {
+    if (selected == null) {
+      return;
+    }
+    var choices = param.getChoices();
+    if (choices == null) {
+      choices = selected;
+    } else if (!Set.of(choices).containsAll(List.of(selected))) {
+      choices = Stream.of(selected, choices).flatMap(Arrays::stream).distinct()
+          .toArray(IonModification[]::new);
+    }
+    param.setChoices(choices);
   }
 
   @Override
-  public void setValueToComponent(IonModificationComponent component, IonModification[][] newValue) {
+  public void setValueToComponent(IonModificationComponent component,
+      @Nullable IonModification[][] newValue) {
     component.setValue(newValue);
   }
 }

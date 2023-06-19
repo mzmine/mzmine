@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
@@ -58,6 +65,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
@@ -127,6 +135,17 @@ public class ModularFeatureList implements FeatureList {
       // check feature data for graphical columns
       DataTypeUtils.applyFeatureSpecificGraphicalTypes((ModularFeature) dataModel);
     });
+
+    // add row bindings automatically
+    featureTypes.addListener(
+        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
+          DataType added = change.getValueAdded();
+          if (added == null) {
+            return;
+          }
+          // add row bindings
+          addRowBinding(added.createDefaultRowBindings());
+        });
   }
 
   @Override
@@ -316,8 +335,6 @@ public class ModularFeatureList implements FeatureList {
       if (!featureTypes.containsKey(type.getClass())) {
         // all {@link ModularFeature} will automatically add a default data map
         featureTypes.put(type.getClass(), type);
-        // add row bindings
-        addRowBinding(type.createDefaultRowBindings());
       }
     }
   }
@@ -490,10 +507,16 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
-    // TODO handle if mz or rt is not present
-    return modularStream().filter(
-            row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    List<FeatureListRow> rows = new ArrayList<>();
+    for (var row : getRows()) {
+      Float rt = row.getAverageRT();
+      if (rt == null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+        rows.add(row);
+      } else if (rt > rtRange.upperEndpoint()) {
+        break;
+      }
+    }
+    return rows;
   }
 
   @Override
@@ -688,9 +711,10 @@ public class ModularFeatureList implements FeatureList {
     }
 
     DoubleSummaryStatistics mzStatistics = getRows().stream().map(FeatureListRow::getAverageMZ)
-        .collect(Collectors.summarizingDouble((Double::doubleValue)));
+        .filter(Objects::nonNull).mapToDouble(Double::doubleValue).summaryStatistics();
 
-    return Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
+    return mzStatistics.getCount() == 0 ? Range.singleton(0d)
+        : Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
   }
 
   // TODO: if this method would be called frequently, then store and update whole rt range in
@@ -701,9 +725,12 @@ public class ModularFeatureList implements FeatureList {
       return Range.singleton(0f);
     }
 
-    DoubleSummaryStatistics rtStatistics = getRows().stream()
-        .map(row -> (double) (row).getAverageRT())
-        .collect(Collectors.summarizingDouble((Double::doubleValue)));
+    DoubleSummaryStatistics rtStatistics = getRows().stream().map(FeatureListRow::getAverageRT)
+        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).summaryStatistics();
+
+    if (rtStatistics.getCount() == 0) {
+      return Range.singleton(0f);
+    }
 
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }

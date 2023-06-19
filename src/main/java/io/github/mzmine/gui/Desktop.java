@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui;
@@ -33,11 +40,14 @@ import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface represents the application GUI
  */
 public interface Desktop extends MZmineModule {
+
+  void handleShowTaskView();
 
   /**
    * Returns a reference to main application window. May return null if MZmine is running in
@@ -52,7 +62,10 @@ public interface Desktop extends MZmineModule {
    *
    * @param text Text to show
    */
-  void setStatusBarText(String text);
+  default void setStatusBarText(@Nullable String text) {
+    setStatusBarText(text, null);
+  }
+
 
   /**
    * Displays a given text on the application status bar in a given color
@@ -60,7 +73,19 @@ public interface Desktop extends MZmineModule {
    * @param text      Text to show
    * @param textColor Text color
    */
-  void setStatusBarText(String text, Color textColor);
+  default void setStatusBarText(@Nullable String text, @Nullable Color textColor) {
+    setStatusBarText(text, textColor, null);
+  }
+
+  /**
+   * Displays a given text on the application status bar in a given color
+   *
+   * @param text      Text to show
+   * @param textColor Text color
+   * @param url       to open on click
+   */
+  void setStatusBarText(@Nullable String text, @Nullable Color textColor, @Nullable String url);
+
 
   /**
    * Displays a message box with a given text
@@ -77,6 +102,15 @@ public interface Desktop extends MZmineModule {
    * @param msg   Text to show
    */
   void displayMessage(String title, String msg);
+
+  /**
+   * Displays a message box with a given text
+   *
+   * @param title Message box title
+   * @param msg   Text to show
+   * @[param url url to open
+   */
+  void displayMessage(String title, String msg, String url);
 
   /**
    * Displays an error message box with a given text

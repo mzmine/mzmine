@@ -1,71 +1,58 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
+import static java.util.Objects.requireNonNullElse;
+
+import io.github.mzmine.parameters.OptionalParameterContainer;
 import io.github.mzmine.parameters.Parameter;
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.scene.Node;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Parameter represented by check box with an additional sub-parameter
- *
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>>
-    implements UserParameter<Boolean, OptionalParameterComponent<?>> {
+public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>> extends
+    EmbeddedParameter<Boolean, EmbeddedParameterType, OptionalParameterComponent<?>> implements
+    OptionalParameterContainer {
 
-  private EmbeddedParameterType embeddedParameter;
-
-  // It is important to set default value here, otherwise the embedded value
-  // is not shown in the parameter setup dialog
-  private Boolean value = false;
+  private boolean value;
 
   public OptionalParameter(EmbeddedParameterType embeddedParameter) {
-    this.embeddedParameter = embeddedParameter;
+    this(embeddedParameter, false);
   }
 
   public OptionalParameter(EmbeddedParameterType embeddedParameter, boolean defaultValue) {
-    this.embeddedParameter = embeddedParameter;
-    value = defaultValue;
+    super(defaultValue, embeddedParameter);
   }
 
-  public EmbeddedParameterType getEmbeddedParameter() {
-    return embeddedParameter;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return embeddedParameter.getName();
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return embeddedParameter.getDescription();
-  }
 
   @Override
   public OptionalParameterComponent<?> createEditingComponent() {
@@ -78,16 +65,23 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
+  public boolean isSelected() {
+    return value;
+  }
+
+  @Override
+  public void setSelected(boolean state) {
+    value = state;
+  }
+
+  @Override
   public void setValue(Boolean value) {
-    this.value = value;
+    this.value = requireNonNullElse(value, false);
   }
 
   @Override
   public OptionalParameter cloneParameter() {
-    final UserParameter<?, ?> embeddedParameterClone = embeddedParameter.cloneParameter();
-    final OptionalParameter copy = new OptionalParameter(embeddedParameterClone);
-    copy.setValue(this.getValue());
-    return copy;
+    return new OptionalParameter(embeddedParameter.cloneParameter(), this.getValue());
   }
 
   @Override
@@ -100,8 +94,8 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void setValueToComponent(OptionalParameterComponent<?> component, Boolean newValue) {
-    component.setSelected(newValue);
+  public void setValueToComponent(OptionalParameterComponent<?> component, @Nullable Boolean newValue) {
+    component.setSelected(requireNonNullElse(newValue, false));
     if (embeddedParameter.getValue() != null) {
       ((UserParameter) this.embeddedParameter).setValueToComponent(component.getEmbeddedComponent(),
           embeddedParameter.getValue());
@@ -117,33 +111,29 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null)
-      xmlElement.setAttribute("selected", value.toString());
+    xmlElement.setAttribute("selected", String.valueOf(value));
     embeddedParameter.saveValueToXML(xmlElement);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(getName() + " is not set properly");
-      return false;
+    if (!value) {
+      return true;
     }
-    if (value == true) {
-      return embeddedParameter.checkValue(errorMessages);
-    }
-    return true;
+    return embeddedParameter.checkValue(errorMessages);
   }
 
   @Override
   public boolean valueEquals(Parameter<?> that) {
-    if(!(that instanceof OptionalParameter thatOpt)) {
+    if (!(that instanceof OptionalParameter thatOpt)) {
       return false;
     }
 
-    if(value != thatOpt.getValue()) {
+    if (value != thatOpt.getValue()) {
       return false;
     }
 
-    return getEmbeddedParameter().valueEquals(((OptionalParameter<?>) that).embeddedParameter);
+    return getEmbeddedParameter().valueEquals(thatOpt.embeddedParameter);
   }
+
 }

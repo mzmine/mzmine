@@ -1,25 +1,41 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.geom.Ellipse2D;
+import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.List;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
@@ -29,18 +45,17 @@ import org.jfree.data.function.Function2D;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.List;
-
 public class ChartUtils {
+
+  public static final BasicStroke DEFAULT_2P_STROKE = new BasicStroke(2.0f);
+
   public static double calculateRSquared(XYDataItem[] items, Function2D trend) {
     double yMean = Arrays.stream(items).mapToDouble(item -> item.getYValue()).average().orElse(0);
-    double ssTot = Arrays.stream(items).mapToDouble(item -> Math.pow(item.getYValue() - yMean, 2)).sum();
-    double ssRes = Arrays.stream(items).
-            mapToDouble(item -> Math.pow(item.getYValue() - trend.getValue(item.getXValue()), 2)).sum();
+    double ssTot = Arrays.stream(items).mapToDouble(item -> Math.pow(item.getYValue() - yMean, 2))
+        .sum();
+    double ssRes = Arrays.stream(items)
+        .mapToDouble(item -> Math.pow(item.getYValue() - trend.getValue(item.getXValue()), 2))
+        .sum();
     double rSquared = 1 - ssRes / ssTot;
     return rSquared;
   }
@@ -75,22 +90,23 @@ public class ChartUtils {
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     NumberFormat ppmFormat = MZmineCore.getConfiguration().getPPMFormat();
-    String tooltipText = String.format("Measured-matched m/z: %s-%s" +
-                    "\nMeasured-matched RT: %s-%s" +
-                    "\nMass error: %s %s" +
-                    "\nMass peak intensity: %s" +
-                    "\nScan number: %s",
-            mzFormat.format(match.getMeasuredMzRatio()), mzFormat.format(match.getMatchedMzRatio()),
-            rtFormat.format(match.getMeasuredRetentionTime()),
-            match.getMatchedRetentionTime() == -1 ? "none" : rtFormat.format(match.getMatchedRetentionTime()),
-            ppmFormat.format(match.getMzError()), match.getMzErrorType(),
-            intensityFormat.format(match.getMeasuredDataPoint().getIntensity()), match.getScan());
+    String tooltipText = String.format(
+        "Measured-matched m/z: %s-%s" + "\nMeasured-matched RT: %s-%s" + "\nMass error: %s %s"
+            + "\nMass peak intensity: %s" + "\nScan number: %s",
+        mzFormat.format(match.getMeasuredMzRatio()), mzFormat.format(match.getMatchedMzRatio()),
+        rtFormat.format(match.getMeasuredRetentionTime()),
+        match.getMatchedRetentionTime() == -1 ? "none"
+            : rtFormat.format(match.getMatchedRetentionTime()),
+        ppmFormat.format(match.getMzError()), match.getMzErrorType(),
+        intensityFormat.format(match.getMeasuredDataPoint().getIntensity()), match.getScan());
     StringBuilder tooltipTextBuilder = new StringBuilder(tooltipText);
     if (match.getMatchedCalibrant().getMolecularFormula() != null) {
-      tooltipTextBuilder.append("\nIon formula: " + match.getMatchedCalibrant().getMolecularFormula());
+      tooltipTextBuilder.append(
+          "\nIon formula: " + match.getMatchedCalibrant().getMolecularFormula());
     }
     if (match.getMatchedCalibrant().getName() != null) {
-      tooltipTextBuilder.append("\nMatched calibrant name: " + match.getMatchedCalibrant().getName());
+      tooltipTextBuilder.append(
+          "\nMatched calibrant name: " + match.getMatchedCalibrant().getName());
     }
     return tooltipTextBuilder.toString();
   }

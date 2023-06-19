@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
@@ -33,15 +40,15 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 /**
  * Constructs an ion trace with a given mz and rt range from a raw data file. This trace is freshly
- * calculated from the raw data. If a dataset has already been calculated in a {@link
- * io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the {@link
- * IonTimeSeriesToXYProvider} instead.
+ * calculated from the raw data. If a dataset has already been calculated in a
+ * {@link io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the
+ * {@link IonTimeSeriesToXYProvider} instead.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -62,9 +69,9 @@ public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider,
 
   /**
    * Constructs an ion trace with a given mz and rt range from a raw data file. This trace is
-   * freshly calculated from the raw data. If a dataset has already been calculated in a {@link
-   * io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the {@link
-   * IonMobilogramTimeSeriesToRtMobilityHeatmapProvider} instead.
+   * freshly calculated from the raw data. If a dataset has already been calculated in a
+   * {@link io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the
+   * {@link IonMobilogramTimeSeriesToRtMobilityHeatmapProvider} instead.
    *
    * @author https://github.com/SteffenHeu
    */
@@ -83,19 +90,19 @@ public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider,
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
     Collection<? extends Frame> eligibleFrames = rawDataFile.getFrames(1, rtRange);
     int num = 0;
     int numFrames = eligibleFrames.size();
     for (Frame frame : eligibleFrames) {
-      if (status.get() == TaskStatus.CANCELED) {
+      if (status.getValue() == TaskStatus.CANCELED) {
         return;
       }
       // todo mobilityscandataaccess
       for (MobilityScan scan : frame.getMobilityScans()) {
-        DataPoint[] dps =
-            ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange);
+        DataPoint[] dps = ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan),
+            mzRange);
         if (dps.length == 0) {
           continue;
         }

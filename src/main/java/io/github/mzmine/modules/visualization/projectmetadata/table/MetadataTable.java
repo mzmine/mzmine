@@ -1,24 +1,35 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.projectmetadata.table;
 
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
+
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.io.TableIOUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.File;
@@ -37,7 +48,7 @@ public class MetadataTable {
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
   // use GoF "State" pattern where the state will interpret the table format (either long or wide)
-  private TableExportUtility tableExportUtility = new WideTableExportUtility(this);
+  private TableIOUtils tableIOUtils = new WideTableIOUtils(this);
 
   public MetadataTable() {
     this.data = new HashMap<>();
@@ -79,14 +90,17 @@ public class MetadataTable {
   /**
    * Add file to the table and try to set the date column
    *
-   * @param newFile
+   * @param newFile file to be added
    */
   public void addFile(RawDataFile newFile) {
     // try to set a value of a start time stamp parameter for a sample
     try {
       // is usually saved as ZonedDateTime with 2022-06-01T18:36:09Z where the Z stands for UTC
-      setValue(new DateMetadataColumn("run_date", "Run start time stamp of the sample"), newFile,
-          newFile.getStartTimeStamp());
+      MetadataColumn dateCol = getColumnByName(DATE_HEADER);
+      if (dateCol == null) {
+        dateCol = new DateMetadataColumn(DATE_HEADER, "Run start time stamp of the sample");
+      }
+      setValue(dateCol, newFile, newFile.getStartTimeStamp());
     } catch (Exception ignored) {
       logger.warning("Cannot set date " + newFile.getStartTimeStamp().toString());
     }
@@ -188,28 +202,36 @@ public class MetadataTable {
    * @return was the export successful?
    */
   public boolean exportMetadata(File file) {
-    return tableExportUtility.exportTo(file);
+    return tableIOUtils.exportTo(file);
   }
 
   /**
    * Import the metadata depending on the table format (state).
    *
-   * @param file       from which the metadata will be exported
-   * @param appendMode whether the new metadata should be appended or they should replace the old
-   *                   metadata
+   * @param file           from which the metadata will be exported
+   * @param skipColOnError
    * @return was the import successful?
    */
-  public boolean importMetadata(File file, boolean appendMode) {
-    return tableExportUtility.importFrom(file, appendMode);
+  public boolean importMetadata(File file, final boolean skipColOnError) {
+    return tableIOUtils.importFrom(file, skipColOnError);
   }
 
   /**
    * Update the state of the tableExportUtility.
    *
-   * @param tableExportUtility the new state which represents the new table format.
+   * @param tableIOUtils the new state which represents the new table format.
    */
-  public void setTableExportUtility(TableExportUtility tableExportUtility) {
-    this.tableExportUtility = tableExportUtility;
+  public void setTableExportUtility(TableIOUtils tableIOUtils) {
+    this.tableIOUtils = tableIOUtils;
+  }
+
+  /**
+   * Column titles
+   *
+   * @return array of column titles
+   */
+  public String[] getColumnTitles() {
+    return getColumns().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
   }
 
   // define the header fields names of the file with imported metadata

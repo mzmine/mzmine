@@ -1,25 +1,31 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import com.google.common.collect.Lists;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -28,6 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -71,6 +78,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private final FeatureListRowsFilter filter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
+
+  private final NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
 
@@ -151,7 +160,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(featureLists)
-           + " to CSV file(s) (legacy MZmine 2 format)";
+        + " to CSV file(s) (legacy MZmine 2 format)";
   }
 
   @Override
@@ -195,10 +204,10 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
 
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Error during mgf export to " + curFile);
+        setErrorMessage("Error during legacy csv export to " + curFile);
         logger.log(Level.WARNING,
             "Error during MZmine 2 legacy csv export of feature list: " + featureList.getName()
-            + ": " + e.getMessage(), e);
+                + ": " + e.getMessage(), e);
         return;
       }
 
@@ -215,8 +224,9 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
 
   }
 
-  private void exportFeatureList(FeatureList featureList, BufferedWriter writer) throws IOException {
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+  private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
+      throws IOException {
+    final NumberFormat mzForm = formats.mzFormat();
     RawDataFile[] rawDataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Buffer for writing
@@ -349,8 +359,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         if (feature != null) {
           switch (dataFileElements[i]) {
             case FEATURE_STATUS -> line.append(feature.getFeatureStatus()).append(fieldSeparator);
-            case FEATURE_NAME -> line.append(FeatureUtils.featureToString(feature))
-                .append(fieldSeparator);
+            case FEATURE_NAME ->
+                line.append(FeatureUtils.featureToString(feature)).append(fieldSeparator);
             case FEATURE_MZ -> line.append(feature.getMZ()).append(fieldSeparator);
             case FEATURE_RT -> append(line, feature.getRT());
             case FEATURE_ION_MOBILITY -> append(line, feature.getMobility());
@@ -360,27 +370,30 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
                 .append(fieldSeparator);
             case FEATURE_RT_END -> line.append(feature.getRawDataPointsRTRange().upperEndpoint())
                 .append(fieldSeparator);
-            case FEATURE_DURATION -> line.append(
-                RangeUtils.rangeLength(feature.getRawDataPointsRTRange())).append(fieldSeparator);
+            case FEATURE_DURATION ->
+                line.append(RangeUtils.rangeLength(feature.getRawDataPointsRTRange()))
+                    .append(fieldSeparator);
             case FEATURE_HEIGHT -> line.append(feature.getHeight()).append(fieldSeparator);
             case FEATURE_AREA -> line.append(feature.getArea()).append(fieldSeparator);
             case FEATURE_CHARGE -> line.append(feature.getCharge()).append(fieldSeparator);
-            case FEATURE_DATAPOINTS -> line.append(feature.getScanNumbers().size())
-                .append(fieldSeparator);
+            case FEATURE_DATAPOINTS ->
+                line.append(feature.getScanNumbers().size()).append(fieldSeparator);
             case FEATURE_FWHM -> line.append(feature.getFWHM()).append(fieldSeparator);
-            case FEATURE_TAILINGFACTOR -> line.append(feature.getTailingFactor())
-                .append(fieldSeparator);
-            case FEATURE_ASYMMETRYFACTOR -> line.append(feature.getAsymmetryFactor())
-                .append(fieldSeparator);
+            case FEATURE_TAILINGFACTOR ->
+                line.append(feature.getTailingFactor()).append(fieldSeparator);
+            case FEATURE_ASYMMETRYFACTOR ->
+                line.append(feature.getAsymmetryFactor()).append(fieldSeparator);
             case FEATURE_MZMIN -> line.append(feature.getRawDataPointsMZRange().lowerEndpoint())
                 .append(fieldSeparator);
             case FEATURE_MZMAX -> line.append(feature.getRawDataPointsMZRange().upperEndpoint())
                 .append(fieldSeparator);
           }
         } else {
-          switch (dataFileElements[i]) {
-            case FEATURE_STATUS -> line.append(FeatureStatus.UNKNOWN).append(fieldSeparator);
-            default -> line.append("0").append(fieldSeparator);
+          if (Objects.requireNonNull(dataFileElements[i])
+              == LegacyExportRowDataFileElement.FEATURE_STATUS) {
+            line.append(FeatureStatus.UNKNOWN).append(fieldSeparator);
+          } else {
+            line.append("0").append(fieldSeparator);
           }
         }
       }
@@ -423,24 +436,24 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           break;
         case ROW_IDENTITY:
           // Identity elements
-          FeatureIdentity featureId = featureListRow.getPreferredFeatureIdentity();
-          if (featureId == null) {
+          var preferredAnnotation = featureListRow.getPreferredAnnotation();
+          if (preferredAnnotation == null) {
             line.append(fieldSeparator);
             break;
           }
-          String propertyValue = featureId.toString();
+          String propertyValue = preferredAnnotation.toString();
           propertyValue = escapeStringForCSV(propertyValue);
           line.append(propertyValue).append(fieldSeparator);
           break;
         case ROW_IDENTITY_ALL:
           // Identity elements
-          propertyValue = featureListRow.getPeakIdentities().stream().filter(Objects::nonNull)
+          propertyValue = featureListRow.streamAllFeatureAnnotations().filter(Objects::nonNull)
               .map(Object::toString).collect(Collectors.joining(idSeparator));
           propertyValue = escapeStringForCSV(propertyValue);
           line.append(propertyValue).append(fieldSeparator);
           break;
         case ROW_IDENTITY_DETAILS:
-          featureId = featureListRow.getPreferredFeatureIdentity();
+          var featureId = featureListRow.getPreferredFeatureIdentity();
           if (featureId == null) {
             line.append(fieldSeparator);
             break;

@@ -1,23 +1,31 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 
@@ -38,6 +46,7 @@ public enum MobilityType {
    * Mixed types in row bindings - aligned samples from different instruments
    */
   MIXED("none", "none", "mixed"), //
+  OTHER("none", "none", "other IMS"), //
   TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
   DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
   TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
@@ -55,10 +64,8 @@ public enum MobilityType {
 
   public String getAxisLabel() {
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
-    StringBuilder sb = new StringBuilder("Mobility (");
-    sb.append(axisLabel);
-    sb.append(")");
-    return uf.format(sb.toString(), getUnit());
+    final String sb = "Mobility (" + axisLabel + ")";
+    return uf.format(sb, getUnit());
   }
 
   public String getUnit() {
@@ -70,4 +77,36 @@ public enum MobilityType {
   public String toString() {
     return name;
   }
+
+  /**
+   * Check if the mobility type of feature matches this type. Only if this feature is actually an
+   * IMS feature so usually after IMS expanding
+   *
+   * @param f the tested feature
+   * @return true if the types match and the feature is an IMS feature
+   */
+  public boolean isTypeOf(final Feature f) {
+    return f.getMobilityUnit() == this;
+  }
+
+  /**
+   * Check if the mobility type of raw data file matches this type
+   *
+   * @param raw the tested file
+   * @return true if the types match
+   */
+  public boolean isTypeOf(final RawDataFile raw) {
+    return raw instanceof IMSRawDataFile imsfile && imsfile.getMobilityType() == this;
+  }
+
+  /**
+   * Check if the mobility type of feature or its raw data file matches this type
+   *
+   * @param f the tested feature and its raw data file
+   * @return true if the types match in the feature or the underlying {@link RawDataFile}
+   */
+  public boolean isTypeOfBackingRawData(final Feature f) {
+    return isTypeOf(f) || isTypeOf(f.getRawDataFile());
+  }
+
 }

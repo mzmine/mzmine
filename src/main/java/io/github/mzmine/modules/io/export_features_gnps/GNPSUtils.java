@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_features_gnps;
@@ -23,8 +30,8 @@ import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParam
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.parser.GnpsJsonParser;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import io.github.mzmine.util.web.RequestResponse;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -83,7 +90,8 @@ public class GNPSUtils {
    * @param libIDorUSI GNPS library ID
    * @return library spectrum or null
    */
-  public static SpectralDBEntry accessLibraryOrUSISpectrum(String libIDorUSI) throws IOException {
+  public static SpectralLibraryEntry accessLibraryOrUSISpectrum(String libIDorUSI)
+      throws IOException {
     if (isGnpsLibID(libIDorUSI)) {
       return accessLibrarySpectrum(libIDorUSI);
     } else {
@@ -99,7 +107,7 @@ public class GNPSUtils {
    * @param libraryID GNPS library ID
    * @return library spectrum or null
    */
-  public static SpectralDBEntry accessLibrarySpectrum(String libraryID) throws IOException {
+  public static SpectralLibraryEntry accessLibrarySpectrum(String libraryID) throws IOException {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpGet httpGet = new HttpGet(ACCESS_LIBRARY_SPECTRUM + libraryID);
       logger.info("Retrieving library spectrum " + httpGet.getRequestLine());
@@ -129,7 +137,7 @@ public class GNPSUtils {
    * @param usi universal spectrum identifier
    * @return library spectrum or null
    */
-  public static SpectralDBEntry accessUSISpectrum(String usi) throws IOException {
+  public static SpectralLibraryEntry accessUSISpectrum(String usi) throws IOException {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpGet httpGet = new HttpGet(ACCESS_USI_SPECTRUM + usi);
       logger.info("Retrieving USI spectrum " + httpGet.getRequestLine());
@@ -156,7 +164,7 @@ public class GNPSUtils {
   }
 
   @NotNull
-  private static SpectralDBEntry parseJsonToSpectrum(String jsonSpec) {
+  private static SpectralLibraryEntry parseJsonToSpectrum(String jsonSpec) {
     try (JsonReader reader = Json.createReader(new StringReader(jsonSpec))) {
       JsonObject json = reader.readObject();
       // GNPS has different json return types just try to read the first one which is used for USI
@@ -164,24 +172,24 @@ public class GNPSUtils {
       if (json.containsKey("peaks")) {
         // https://metabolomics-usi.ucsd.edu/json/?usi1=mzspec%3AGNPS%3AGNPS-LIBRARY%3Aaccession%3ACCMSLIB00000579622
         JsonArray peaks = json.getJsonArray("peaks");
-        DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(peaks);
+        DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(peaks);
         final double precursorMz = json.getJsonNumber("precursor_mz").doubleValue();
         final int charge = json.getJsonNumber("precursor_charge").intValue();
-        return new SpectralDBEntry(precursorMz, charge, spectrum);
+        return SpectralLibraryEntry.create(null, precursorMz, charge, spectrum);
       } else {
         // https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737
         // library ID
         final JsonObject info = json.getJsonObject("spectruminfo");
         final String spectrumString = info.getJsonString("peaks_json").getString();
         try (JsonReader specReader = Json.createReader(new StringReader(spectrumString))) {
-          final DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(
+          final DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(
               specReader.readArray());
 
           // precursor mz
           final JsonObject annotations = json.getJsonArray("annotations").getJsonObject(0);
           final double precursorMz = Double.parseDouble(
               annotations.getJsonString("Precursor_MZ").getString());
-          return new SpectralDBEntry(precursorMz, spectrum);
+          return SpectralLibraryEntry.create(null, precursorMz, spectrum);
         }
       }
     }

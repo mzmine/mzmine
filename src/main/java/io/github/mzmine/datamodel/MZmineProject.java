@@ -1,29 +1,36 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.project.impl.ProjectChangeListener;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.Hashtable;
@@ -160,10 +167,10 @@ public interface MZmineProject {
 
   /**
    * Enables/disables usage of {@link CachedIMSRawDataFile}s for {@link IMSRawDataFile}s in the
-   * project. Cached files are used during feature list import to avoid multiple copies of {@link
-   * io.github.mzmine.datamodel.MobilityScan}s, since the main implementation ({@link
-   * io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on demand and passed through
-   * data types.
+   * project. Cached files are used during feature list import to avoid multiple copies of
+   * {@link io.github.mzmine.datamodel.MobilityScan}s, since the main implementation
+   * ({@link io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on demand and passed
+   * through data types.
    * <p></p>
    * After the project import, the files have to be replaced to lower ram consumption and allow
    * further processing.
@@ -196,15 +203,6 @@ public interface MZmineProject {
   int getNumberOfLibraries();
 
   /**
-   * Finds and sets a unique name for a data file
-   *
-   * @param raw  the target data file thats renamed
-   * @param name the new name candidate
-   * @return the unique name that was set
-   */
-  String setUniqueDataFileName(RawDataFile raw, String name);
-
-  /**
    * Finds and sets a unique name for a feature list
    *
    * @param featureList the target feature list thats renamed
@@ -221,7 +219,13 @@ public interface MZmineProject {
 
   int getNumberOfDataFiles();
 
-  MetadataTable getProjectMetadata();
+  @NotNull MetadataTable getProjectMetadata();
 
-  void setProjectMetadata(MetadataTable metadata);
+  /**
+   * find data file by name. Acquires read lock on files for synchronization.
+   *
+   * @param name name of the file, compared with ignore case
+   * @return the RawDataFile or null if the name was null or no such file exists
+   */
+  @Nullable RawDataFile getDataFileByName(@Nullable String name);
 }

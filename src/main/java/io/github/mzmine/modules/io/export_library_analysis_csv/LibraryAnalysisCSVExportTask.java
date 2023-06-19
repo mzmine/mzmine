@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_library_analysis_csv;
@@ -35,8 +42,8 @@ import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -153,7 +160,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     List<FilteredSpec> spectra = new ArrayList<>();
     // prepare the spectra
     for (var lib : libraries) {
-      for (SpectralDBEntry entry : lib.getEntries()) {
+      for (SpectralLibraryEntry entry : lib.getEntries()) {
         final Double mz = entry.getPrecursorMZ();
         if (mz == null) {
           noMz++;
@@ -301,14 +308,14 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
       // data
       for (var spec : spectra) {
         StringBuilder line = new StringBuilder();
-        final SpectralDBEntry ea = spec.entry();
+        final SpectralLibraryEntry ea = spec.entry();
         append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
         append(line, ea.getOrElse(DBEntryField.NAME, ""));
-        append(line, ea.getField(DBEntryField.MZ).map(Object::toString).orElse(""));
+        append(line, ea.getField(DBEntryField.PRECURSOR_MZ).map(Object::toString).orElse(""));
         append(line, ea.getField(DBEntryField.EXACT_MASS).map(Object::toString).orElse(""));
         append(line, ea.getOrElse(DBEntryField.ION_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.FORMULA, ""));
-        append(line, ea.getOrElse(DBEntryField.ION_MODE, ""));
+        append(line, ea.getOrElse(DBEntryField.POLARITY, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.SMILES, ""));
@@ -343,8 +350,8 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
 
     StringBuilder line = new StringBuilder();
     // add library specifics
-    final SpectralDBEntry ea = a.entry();
-    final SpectralDBEntry eb = b.entry();
+    final SpectralLibraryEntry ea = a.entry();
+    final SpectralLibraryEntry eb = b.entry();
 
     append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
     append(line, eb.getOrElse(DBEntryField.ENTRY_ID, ""));
@@ -418,17 +425,13 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
         .sorted((a, b) -> Double.compare(b, a)).map(format::format).limit(4)
         .collect(Collectors.joining(";"));
 
-    StringBuilder line = new StringBuilder();
-    line.append(matched).append(fieldSeparator);
-    line.append(format.format(matchedRel)).append(fieldSeparator);
-    line.append(format.format(explainedIntensity)).append(fieldSeparator);
-    line.append(format.format(explainedIntensityA)).append(fieldSeparator);
-    line.append(format.format(explainedIntensityB)).append(fieldSeparator);
-    line.append(format.format(cosine)).append(fieldSeparator);
-    line.append(format.format(maxContribution)).append(fieldSeparator);
-    line.append(contributionString).append(fieldSeparator);
-    line.append(format.format(signalsGr0_05));
-    return line.toString();
+    final String line =
+        matched + fieldSeparator + format.format(matchedRel) + fieldSeparator + format.format(
+            explainedIntensity) + fieldSeparator + format.format(explainedIntensityA)
+            + fieldSeparator + format.format(explainedIntensityB) + fieldSeparator + format.format(
+            cosine) + fieldSeparator + format.format(maxContribution) + fieldSeparator
+            + contributionString + fieldSeparator + format.format(signalsGr0_05);
+    return line;
   }
 
   /**

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.kovats;
@@ -38,12 +45,11 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICSumDataSet;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.EmptyParameterSetupDialogBase;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
@@ -81,15 +87,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.controlsfx.control.CheckListView;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 
-public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
+public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -133,11 +141,13 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   private final Label lbCurrentAlkane;
   // for direct selection of mz by alkane buttons
   private KovatsIndex currentAlkane;
+  private final @NotNull GridPane parameterPane;
 
 
   public KovatsIndexExtractionDialog(ParameterSet parameters) {
     this(parameters, null);
   }
+
 
   /**
    * @param parameters
@@ -149,6 +159,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     // paramsPane.getChildren().clear();
     // paramsPane.getParent().remove(paramsPane);
+    parameterPane = createParameterPane(parameters.getParameters());
 
     ddlKovats = new DelayedDocumentListener(e -> updateKovatsList());
     DelayedDocumentListener ddlUpdateChart = new DelayedDocumentListener(e -> updateChart());
@@ -187,7 +198,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     BorderPane pnKovatsSelect = new BorderPane();
     west.setCenter(pnKovatsSelect);
     comboKovats = getComponentForParameter(KovatsIndexExtractionParameters.kovats);
-    // comboKovats.addValueChangeListener(() -> handleKovatsSelectionChange());
+//     comboKovats.addValueChangeListener(() -> handleKovatsSelectionChange());
     pnKovatsSelect.setCenter(comboKovats);
 
     // center: Chart and parameters
@@ -238,10 +249,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     // add combo for raw data file
 
-    comboDataFileName = new ComboBox<>(FXCollections.observableList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
-    comboDataFileName2 = new ComboBox<>(FXCollections.observableList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+    var rawFiles = FXCollections.observableList(MZmineCore.getProject().getCurrentRawDataFiles());
+    comboDataFileName = new ComboBox<>(rawFiles);
+    comboDataFileName2 = new ComboBox<>(rawFiles);
     cbSecondRaw = new CheckBox();
     initRawDataFileSelection();
 
@@ -315,50 +325,34 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    * Init raw data selection to last used raw data file or "kovats" or "dro"
    */
   private void initRawDataFileSelection() {
+    RawDataFile[] selectedFiles = parameterSet.getValue(KovatsIndexExtractionParameters.dataFiles)
+        .getMatchingRawDataFiles();
 
-    var dataFiles = MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles();
-
-    if (dataFiles == null || dataFiles.isEmpty()) {
-      return;
-    }
-
-    RawDataFilesSelection select = parameterSet.getParameter(
-        KovatsIndexExtractionParameters.dataFiles).getValue();
-    RawDataFile[] raw = null;
-    // set to parameters files - if they exist in this project
-    if (select != null && select.getMatchingRawDataFiles().length > 0) {
-      RawDataFile[] exists = Arrays.stream(select.getMatchingRawDataFiles())
-          .filter(r -> dataFiles.stream().anyMatch(d -> r.getName().equals(d.getName())))
-          .toArray(RawDataFile[]::new);
-      if (exists.length > 0) {
-        raw = exists;
-      }
-    }
-
-    if (raw == null) {
+    if (selectedFiles == null) {
       // find kovats or dro file
       // first use all kovats named files and then dro (max 2)
-      RawDataFile[] kovats = dataFiles.stream()
+      var allFiles = MZmineCore.getProject().getCurrentRawDataFiles();
+      RawDataFile[] kovats = allFiles.stream()
           .filter(d -> d.getName().toLowerCase().contains("kovats")).toArray(RawDataFile[]::new);
-      RawDataFile[] dro = dataFiles.stream().filter(d -> d.getName().toLowerCase().contains("dro"))
+      RawDataFile[] dro = allFiles.stream().filter(d -> d.getName().toLowerCase().contains("dro"))
           .toArray(RawDataFile[]::new);
 
       // maximum of two files are chosen (0,1,2)
       int size = Math.min(2, kovats.length + dro.length);
-      raw = new RawDataFile[size];
-      for (int i = 0; i < raw.length; i++) {
+      selectedFiles = new RawDataFile[size];
+      for (int i = 0; i < size; i++) {
         if (i < kovats.length) {
-          raw[i] = kovats[i];
+          selectedFiles[i] = kovats[i];
         } else {
-          raw[i] = dro[i - kovats.length];
+          selectedFiles[i] = dro[i - kovats.length];
         }
       }
     }
 
-    if (raw.length > 0) {
-      selectedDataFile = raw;
+    if (selectedFiles != null && selectedFiles.length > 0) {
+      selectedDataFile = selectedFiles;
       comboDataFileName.getSelectionModel().select(selectedDataFile[0]);
-      if (raw.length > 1) {
+      if (selectedFiles.length > 1) {
         comboDataFileName2.getSelectionModel().select(selectedDataFile[1]);
       }
     }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
@@ -42,7 +49,7 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,25 +62,28 @@ public class ResolvedPeak implements PlotXYDataProvider {
   private SimpleFeatureInformation peakInfo;
 
   // Data file of this chromatogram
-  private RawDataFile dataFile;
+  private final RawDataFile dataFile;
 
   // Chromatogram m/z, RT, height, area
-  private double mz, rt, height, area;
-  private Double fwhm = null, tf = null, af = null;
-
+  private final double mz;
+  private final Double tf = null;
+  private final Double af = null;
   // Scan numbers
-  private Scan scanNumbers[];
-
+  private final Scan[] scanNumbers;
   // We store the values of data points as double[] arrays in order to save
   // memory, which would be wasted by keeping a lot of instances of
   // SimpleDataPoint (each instance takes 16 or 32 bytes of extra memory)
-  private double dataPointMZValues[], dataPointIntensityValues[];
+  private final double[] dataPointMZValues;
+  private final double[] dataPointIntensityValues;
+  // All MS2 fragment scan numbers
+  private final List<Scan> allMS2FragmentScanNumbers;
+  private final javafx.scene.paint.Color color;
+  private double rt;
+  private double height;
 
   // Top intensity scan, fragment scan
   private Scan representativeScan;
-
-  // All MS2 fragment scan numbers
-  private List<Scan> allMS2FragmentScanNumbers;
+  private double area;
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
@@ -90,8 +100,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
   // chromatogram deconvolution method.
   private Integer parentChromatogramRowID = null;
   private FeatureList peakList;
-
-  private javafx.scene.paint.Color color;
+  private Double fwhm = null;
 
   /**
    * Initializes this peak using data points from a given chromatogram - regionStart marks the index
@@ -112,7 +121,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     // Make an array of scan numbers of this peak
     scanNumbers = new Scan[regionEnd - regionStart + 1];
 
-    Scan chromatogramScanNumbers[] = chromatogram.getScanNumbers().stream().toArray(Scan[]::new);
+    Scan[] chromatogramScanNumbers = chromatogram.getScanNumbers().stream().toArray(Scan[]::new);
 
     System.arraycopy(chromatogramScanNumbers, regionStart, scanNumbers, 0,
         regionEnd - regionStart + 1);
@@ -219,8 +228,8 @@ public class ResolvedPeak implements PlotXYDataProvider {
     if (!allMS2FragmentScanNumbers.isEmpty()) {
       Scan fragmentScan = allMS2FragmentScanNumbers.get(0);
       int precursorCharge = fragmentScan.getMsMsInfo() != null
-                            && fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda
-                            && dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : 0;
+          && fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda
+          && dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : 0;
       if (precursorCharge > 0) {
         this.charge = precursorCharge;
       }
@@ -408,7 +417,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     // nothing to compute
   }
 

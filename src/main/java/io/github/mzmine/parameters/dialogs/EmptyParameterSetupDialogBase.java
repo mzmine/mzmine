@@ -1,32 +1,46 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
+import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
@@ -54,6 +68,9 @@ public class EmptyParameterSetupDialogBase extends Stage {
   protected BorderPane centerPane;
   protected Map<String, Node> parametersAndComponents;
   protected ParameterSet parameterSet;
+  // this value is incremented after a sub parmaeterset was expanded
+  protected int widthExpandedBySubParameters;
+  protected DoubleProperty maxExtraWidthExpanded = new SimpleDoubleProperty(0);
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
@@ -84,6 +101,11 @@ public class EmptyParameterSetupDialogBase extends Stage {
       }
 
       @Override
+      protected void callCheckParametersButton() {
+        checkParameterValues(true, true);
+      }
+
+      @Override
       protected void callCancelButton() {
         closeDialog(ExitCode.CANCEL);
       }
@@ -100,6 +122,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
     parameterSet = paramPane.getParameterSet();
 
     mainPane = new BorderPane(paramPane);
+    mainPane.setMaxHeight(calcMaxHeight());
     Scene scene = new Scene(mainPane);
 
     // Use main CSS
@@ -107,11 +130,56 @@ public class EmptyParameterSetupDialogBase extends Stage {
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(scene);
 
-    setTitle("Please set the parameters");
+    setTitle(parameterSet.getModuleNameAttribute());
+
     setMinWidth(500.0);
     setMinHeight(400.0);
 
     centerOnScreen();
+  }
+
+  /**
+   * Adds a button to check the parameter
+   */
+  public void addCheckParametersButton() {
+    if (paramPane == null) {
+      return;
+    }
+    paramPane.addCheckParametersButton();
+  }
+
+  private static double calcMaxHeight() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getHeight() * 0.95;
+  }
+
+  private static double calcMaxWidth() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getWidth() * 0.95;
+  }
+
+  private void addSizeChangeListeners(final Map<String, Node> parametersAndComponents) {
+    parametersAndComponents.values().forEach(node -> {
+      if (node instanceof EstimatedComponentHeightProvider sizePropertyProvider) {
+        sizePropertyProvider.estimatedHeightProperty()
+            .addListener((observable, oldHeight, newHeight) -> {
+              double heightDiff = newHeight.doubleValue() - oldHeight.doubleValue();
+              // just an estimate to increase height of dialog
+              setHeight(Math.min(calcMaxHeight(), getHeight() + heightDiff));
+            });
+      }
+    });
+
+    // bind extra width to MAX of all widths
+    var widthProperties = parametersAndComponents.values().stream()
+        .filter(n -> n instanceof EstimatedComponentWidthProvider)
+        .map(n -> ((EstimatedComponentWidthProvider) n).estimatedWidthProperty())
+        .toArray(DoubleProperty[]::new);
+    maxExtraWidthExpanded.bind(Bindings.createDoubleBinding(
+        (() -> Arrays.stream(widthProperties).mapToDouble(DoubleProperty::get).max().orElse(0d)),
+        widthProperties));
+    maxExtraWidthExpanded.addListener((observable, oldValue, newValue) -> {
+      double widthDiff = newValue.doubleValue() - oldValue.doubleValue();
+      setWidth(Math.min(calcMaxWidth(), getWidth() + widthDiff));
+    });
   }
 
   @Override
@@ -143,7 +211,10 @@ public class EmptyParameterSetupDialogBase extends Stage {
    */
   @NotNull
   public GridPane createParameterPane(@NotNull Parameter<?>[] parameters) {
-    return paramPane.createParameterPane(parameters);
+    var pane = paramPane.createParameterPane(parameters);
+    // see if sizes change within components
+    addSizeChangeListeners(parametersAndComponents);
+    return pane;
   }
 
   public <ComponentType extends Node> ComponentType getComponentForParameter(
@@ -163,7 +234,6 @@ public class EmptyParameterSetupDialogBase extends Stage {
     return paramPane.getNumberOfParameters();
   }
 
-
   public ButtonBar getButtonBar() {
     return paramPane.getButtonBar();
   }
@@ -173,27 +243,47 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * double-click by user
    */
   public void closeDialog(ExitCode exitCode) {
+    boolean closeWindow = true;
     if (exitCode == ExitCode.OK) {
       // commit the changes to the parameter set
       updateParameterSetFromComponents();
 
-      if (isValueCheckRequired()) {
-        ArrayList<String> messages = new ArrayList<>();
-        boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+      // ok? only close if value check not required or successful
+      closeWindow = !isValueCheckRequired() || checkParameterValues(false, false);
+    }
+    if (closeWindow) {
+      this.exitCode = exitCode;
+      hide();
+    }
+  }
 
-        if (!allParametersOK) {
-          StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-          for (String m : messages) {
-            message.append(m);
-            message.append("\n");
-          }
-          MZmineCore.getDesktop().displayMessage(null, message.toString());
-          return;
+  /**
+   * @return false if parameters are set incorrectly
+   */
+  public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog) {
+    // commit the changes to the parameter set
+    if (updateParametersFirst) {
+      updateParameterSetFromComponents();
+    }
+
+    if (isValueCheckRequired()) {
+      ArrayList<String> messages = new ArrayList<>();
+      boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+
+      if (!allParametersOK) {
+        StringBuilder message = new StringBuilder("Please check the parameter settings:\n");
+        for (String m : messages) {
+          message.append(m).append("\n");
         }
+        MZmineCore.getDesktop().displayMessage(null, message.toString());
+        return false;
+      }
+      if (showSuccessDialog) {
+        DialogLoggerUtil.showMessageDialogForTime("All parameter checks succeed.",
+            "All parameters are set correctly", 3500);
       }
     }
-    this.exitCode = exitCode;
-    hide();
+    return true;
   }
 
   /**

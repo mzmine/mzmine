@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_nist;
@@ -46,6 +53,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -97,8 +105,8 @@ public class NistMsSearchTask extends AbstractTask {
   private static final String SEARCH_METHOD = "NIST MS Search";
 
   // Regular expressions for matching header and hit lines in results.
-  private static final Pattern SEARCH_REGEX = Pattern
-      .compile("^Unknown:\\s*" + SPECTRUM_NAME_PREFIX + "(\\d+).*");
+  private static final Pattern SEARCH_REGEX = Pattern.compile(
+      "^Unknown:\\s*" + SPECTRUM_NAME_PREFIX + "(\\d+).*");
   private static final Pattern RI_REGEX = Pattern.compile("RI:\\s*(\\d+)");
   private static final Pattern MF_REGEX = Pattern.compile("MF:\\s*(\\d+)");
   private static final Pattern RMF_REGEX = Pattern.compile("RMF:\\s*(\\d+)");
@@ -301,8 +309,8 @@ public class NistMsSearchTask extends AbstractTask {
             }
             // Merge multiple MSn fragment spectra.
             if (mergeParameters != null) {
-              MsMsSpectraMergeModule merger = MZmineCore
-                  .getModuleInstance(MsMsSpectraMergeModule.class);
+              MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
+                  MsMsSpectraMergeModule.class);
               assert merger != null;
               MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
               if (spectrum != null) {
@@ -462,8 +470,8 @@ public class NistMsSearchTask extends AbstractTask {
                 id = idMatcher.group(1);
               }
               if (libMatcher.find()) {
-                lib = "Library: " + libMatcher.group(1) + "\n" +
-                "NIST results only viewable in NIST MS Search";
+                lib = "Library: " + libMatcher.group(1) + "\n"
+                    + "NIST results only viewable in NIST MS Search";
               }
 
               // Compound ion_type is combined with name field for LC-MS/MS field.
@@ -473,13 +481,14 @@ public class NistMsSearchTask extends AbstractTask {
                 ion = ionMatcher.group(1);
               }
 
-              Map<DBEntryField, Object> map = Map
-                  .of(DBEntryField.ENTRY_ID, id, DBEntryField.NAME, name, DBEntryField.FORMULA,
-                      formula, DBEntryField.ION_TYPE, ion, DBEntryField.CAS, casNumber,
-                      DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib,
-                      DBEntryField.SOFTWARE, SEARCH_METHOD);
+              Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, id, DBEntryField.NAME,
+                  name, DBEntryField.FORMULA, formula, DBEntryField.ION_TYPE, ion, DBEntryField.CAS,
+                  casNumber, DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib,
+                  DBEntryField.SOFTWARE, SEARCH_METHOD);
 
-              SpectralDBEntry entry = new SpectralDBEntry(map, null);
+              // Use empty spectrum for now as NIST search does not provide the spectrum
+              SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
+                  map);
 
               SpectralSimilarity similarity = new SpectralSimilarity("Cosine Dot Product",
                   dotProduct, 100, Double.NaN);

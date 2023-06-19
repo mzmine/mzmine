@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
@@ -29,6 +36,7 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -41,7 +49,6 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.FeatureMeasurementType;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -65,9 +72,9 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       "CSV export",
       "Either the new comprehensive export of MZmine 3 or the legacy export from MZmine 2",
       FeatureTableExportType.values(), FeatureTableExportType.SIMPLE);
-  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY = new ComboParameter<>(
+  public static final ComboParameter<AbundanceMeasure> FEATURE_INTENSITY = new ComboParameter<>(
       "Feature intensity", "Intensity in the quantification table (csv).",
-      FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
+      AbundanceMeasure.values(), AbundanceMeasure.Area);
   private static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("MGF mascot file (spectra)", "*.mgf"), //
       new ExtensionFilter("All files", "*.*") //
@@ -82,7 +89,8 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
   public GnpsFbmnExportAndSubmitParameters() {
     super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY,
-        CSV_TYPE, SUBMIT, OPEN_FOLDER}, "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
+            CSV_TYPE, SUBMIT, OPEN_FOLDER},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
   }
 
   @Override
@@ -104,5 +112,10 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }

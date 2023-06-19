@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
@@ -36,6 +43,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -47,6 +55,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -100,10 +109,12 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
-  private Double minCount;
+  private final AbsoluteAndRelativeInt minSamples;
+  private final boolean removeRedundantIsotopeRows;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
+
 
   /**
    * Create the task.
@@ -142,8 +153,8 @@ public class RowsFilterTask extends AbstractTask {
     filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
     filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
-    minCount = parameters.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT)
-        .getEmbeddedParameter().getValue();
+    minSamples = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        RowsFilterParameters.MIN_FEATURE_COUNT, null);
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
     filterByMassDefect = parameters.getValue(RowsFilterParameters.massDefect);
     massDefectFilter = filterByMassDefect ? parameters.getParameter(RowsFilterParameters.massDefect)
@@ -187,6 +198,8 @@ public class RowsFilterTask extends AbstractTask {
     filter13CIsotopes = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
     isotope13CFilter = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C)
         .getEmbeddedParameters().createFilter();
+
+    removeRedundantIsotopeRows = parameters.getValue(RowsFilterParameters.removeRedundantRows);
   }
 
   @Override
@@ -278,12 +291,7 @@ public class RowsFilterTask extends AbstractTask {
     // otherwise we remove those that match all criteria
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
-    // Handle < 1 values for minFeatureCount
-    if ((minCount == null) || (minCount < 1)) {
-      minCount = 1.0;
-    }
-    // Round value down to nearest hole number
-    int intMinCount = minCount.intValue();
+    final int totalSamples = featureList.getRawDataFiles().size();
 
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
@@ -302,7 +310,7 @@ public class RowsFilterTask extends AbstractTask {
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2)
-          || isFilterRowCriteriaFailed(intMinCount, row, hasMS2) != removeFailed;
+          || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
       if (processInCurrentList) {
         if (keepRow) {
           rowsCount++;
@@ -325,7 +333,8 @@ public class RowsFilterTask extends AbstractTask {
     return newFeatureList;
   }
 
-  private boolean isFilterRowCriteriaFailed(int intMinCount, FeatureListRow row, boolean hasMS2) {
+  private boolean isFilterRowCriteriaFailed(final int totalSamples, FeatureListRow row,
+      boolean hasMS2) {
 
     // Check ms2 filter .
     if (filterByMS2 && !hasMS2) {
@@ -335,7 +344,7 @@ public class RowsFilterTask extends AbstractTask {
     // Check number of features.
     final int featureCount = getFeatureCount(row, groupingParameter);
     if (filterByMinFeatureCount) {
-      if (featureCount < intMinCount) {
+      if (!minSamples.checkGreaterEqualMax(totalSamples, featureCount)) {
         return true;
       }
     }
@@ -513,10 +522,12 @@ public class RowsFilterTask extends AbstractTask {
       }
     }
 
-    if (filterByMassDefect) {
-      return !massDefectFilter.contains(row.getAverageMZ());
+    if (filterByMassDefect && !massDefectFilter.contains(row.getAverageMZ())) {
+      return true;
     }
-    return false;
+
+    return removeRedundantIsotopeRows && isRowRedundantDueToIsotopePattern(row,
+        row.getBestIsotopePattern());
   }
 
   private int getFeatureCount(FeatureListRow row, String groupingParameter) {
@@ -556,5 +567,21 @@ public class RowsFilterTask extends AbstractTask {
     } else {
       return row.getNumberOfFeatures();
     }
+  }
+
+  /**
+   * @param row     The row
+   * @param pattern An isotope pattern of that row
+   * @return True if the row is not the most intense or first signal in that isotope pattern.
+   */
+  private boolean isRowRedundantDueToIsotopePattern(@NotNull FeatureListRow row,
+      @Nullable final IsotopePattern pattern) {
+    if (!removeRedundantIsotopeRows || pattern == null) {
+      return false;
+    }
+    final int featureDpIndex = pattern.binarySearch(row.getAverageMZ(), true);
+
+    return featureDpIndex != 0 && featureDpIndex != Objects.requireNonNullElse(
+        pattern.getBasePeakIndex(), -1);
   }
 }

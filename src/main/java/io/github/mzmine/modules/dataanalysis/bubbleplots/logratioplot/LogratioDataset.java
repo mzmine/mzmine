@@ -1,35 +1,42 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
-import java.util.Vector;
-import java.util.logging.Logger;
-import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.primitives.Doubles;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZDataset;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MathUtils;
+import java.util.Vector;
+import java.util.logging.Logger;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
 
@@ -38,7 +45,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
    */
   private static final long serialVersionUID = 1L;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private double[] xCoords = new double[0];
   private double[] yCoords = new double[0];
@@ -50,22 +57,23 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
   public LogratioDataset(FeatureList alignedFeatureList, ParameterSet parameters) {
     int numOfRows = alignedFeatureList.getNumberOfRows();
 
-    RawDataFile groupOneFiles[] =
-        parameters.getParameter(LogratioParameters.groupOneFiles).getValue();
-    RawDataFile groupTwoFiles[] =
-        parameters.getParameter(LogratioParameters.groupTwoFiles).getValue();
-    FeatureMeasurementType measurementType =
-        parameters.getParameter(LogratioParameters.measurementType).getValue();
+    RawDataFile[] groupOneFiles = parameters.getParameter(LogratioParameters.groupOneFiles)
+        .getValue();
+    RawDataFile[] groupTwoFiles = parameters.getParameter(LogratioParameters.groupTwoFiles)
+        .getValue();
+    AbundanceMeasure measurementType = parameters.getParameter(LogratioParameters.measurementType)
+        .getValue();
 
     // Generate title for the dataset
     datasetTitle = "Logratio analysis";
     datasetTitle = datasetTitle.concat(" (");
-    if (measurementType == FeatureMeasurementType.AREA)
+    if (measurementType == AbundanceMeasure.Area) {
       datasetTitle = datasetTitle.concat("Logratio of average feature areas");
-    else
+    } else {
       datasetTitle = datasetTitle.concat("Logratio of average feature heights");
-    datasetTitle = datasetTitle
-        .concat(" in " + groupOneFiles.length + " vs. " + groupTwoFiles.length + " files");
+    }
+    datasetTitle = datasetTitle.concat(
+        " in " + groupOneFiles.length + " vs. " + groupTwoFiles.length + " files");
     datasetTitle = datasetTitle.concat(")");
     logger.finest("Computing: " + datasetTitle);
 
@@ -83,20 +91,22 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
       for (int fileIndex = 0; fileIndex < groupOneFiles.length; fileIndex++) {
         Feature p = row.getFeature(groupOneFiles[fileIndex]);
         if (p != null) {
-          if (measurementType == FeatureMeasurementType.AREA)
+          if (measurementType == AbundanceMeasure.Area) {
             groupOneFeatureIntensities.add((double) p.getArea());
-          else
+          } else {
             groupOneFeatureIntensities.add((double) p.getHeight());
+          }
         }
       }
       Vector<Double> groupTwoFeatureIntensities = new Vector<Double>();
       for (int fileIndex = 0; fileIndex < groupTwoFiles.length; fileIndex++) {
         Feature p = row.getFeature(groupTwoFiles[fileIndex]);
         if (p != null) {
-          if (measurementType == FeatureMeasurementType.AREA)
+          if (measurementType == AbundanceMeasure.Area) {
             groupTwoFeatureIntensities.add((double) p.getArea());
-          else
+          } else {
             groupTwoFeatureIntensities.add((double) p.getHeight());
+          }
         }
       }
 
@@ -109,8 +119,9 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
         double[] groupTwoInts = Doubles.toArray(groupTwoFeatureIntensities);
         double groupTwoAvg = MathUtils.calcAvg(groupTwoInts);
         double logratio = Double.NaN;
-        if (groupTwoAvg != 0.0)
+        if (groupTwoAvg != 0.0) {
           logratio = Math.log(groupOneAvg / groupTwoAvg) / Math.log(2.0);
+        }
 
         Double rt = (double) row.getAverageRT();
         Double mz = row.getAverageMZ();
@@ -144,18 +155,21 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
 
   @Override
   public Comparable<?> getSeriesKey(int series) {
-    if (series == 0)
+    if (series == 0) {
       return 1;
-    else
+    } else {
       return null;
+    }
   }
 
   @Override
   public Number getZ(int series, int item) {
-    if (series != 0)
+    if (series != 0) {
       return null;
-    if ((colorCoords.length - 1) < item)
+    }
+    if ((colorCoords.length - 1) < item) {
       return null;
+    }
     return colorCoords[item];
   }
 
@@ -166,19 +180,23 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
 
   @Override
   public Number getX(int series, int item) {
-    if (series != 0)
+    if (series != 0) {
       return null;
-    if ((xCoords.length - 1) < item)
+    }
+    if ((xCoords.length - 1) < item) {
       return null;
+    }
     return xCoords[item];
   }
 
   @Override
   public Number getY(int series, int item) {
-    if (series != 0)
+    if (series != 0) {
       return null;
-    if ((yCoords.length - 1) < item)
+    }
+    if ((yCoords.length - 1) < item) {
       return null;
+    }
     return yCoords[item];
   }
 

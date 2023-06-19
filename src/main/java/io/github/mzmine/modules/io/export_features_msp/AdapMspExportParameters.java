@@ -1,23 +1,29 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.io.export_features_msp;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -43,29 +49,25 @@ public class AdapMspExportParameters extends SimpleParameterSet {
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the output MSP file. "
-      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.msp\" would become \"blahSourceFeatureListNameblah.msp\"). "
-      + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
+          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+          + "(i.e. \"blah{}blah.msp\" would become \"blahSourceFeatureListNameblah.msp\"). "
+          + "If the file already exists, it will be overwritten.", extensions,
+      FileSelectionType.SAVE);
 
-  public static final OptionalParameter<StringParameter> ADD_RET_TIME =
-      new OptionalParameter<>(
-          new StringParameter("Add retention time",
-              "If selected, each MSP record will contain the feature's retention time", "RT"),
-          true);
+  public static final OptionalParameter<StringParameter> ADD_RET_TIME = new OptionalParameter<>(
+      new StringParameter("Add retention time",
+          "If selected, each MSP record will contain the feature's retention time", "RT"), true);
 
-  public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE =
-      new OptionalParameter<>(new StringParameter("Add ANOVA p-value (if calculated)",
+  public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE = new OptionalParameter<>(
+      new StringParameter("Add ANOVA p-value (if calculated)",
           "If selected, each MSP record will contain the One-way ANOVA p-value (if calculated)",
           "ANOVA_P_VALUE"), true);
 
-  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ =
-      new OptionalParameter<>(
-          new ComboParameter<IntegerMode>("Integer m/z",
-              "Merging mode for fractional m/z to unit mass", IntegerMode.values()),
-          false);
+  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ = new OptionalParameter<>(
+      new ComboParameter<IntegerMode>("Integer m/z", "Merging mode for fractional m/z to unit mass",
+          IntegerMode.values()), false);
 
   public AdapMspExportParameters() {
-    super(new Parameter[] {FEATURE_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ});
+    super(FEATURE_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ);
   }
 }

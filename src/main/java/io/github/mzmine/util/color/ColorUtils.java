@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.color;
@@ -22,6 +29,12 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.scene.paint.Color;
 
 public class ColorUtils {
+
+  /**
+   * Basic value to use as minimum. The value is arbitrary now and not tested. might change in the
+   * future.
+   */
+  public static double MIN_REDMEAN_COLOR_DIFF = 65;
 
   /**
    * Returns tinted version of the given color.
@@ -41,8 +54,8 @@ public class ColorUtils {
    * colors.
    */
   public static double getColorDistance(Color color1, Color color2) {
-    return Math.abs(color1.getRed() - color2.getRed()) + Math
-        .abs(color1.getGreen() - color2.getGreen()) + Math.abs(color1.getBlue() - color2.getBlue());
+    return Math.abs(color1.getRed() - color2.getRed()) + Math.abs(
+        color1.getGreen() - color2.getGreen()) + Math.abs(color1.getBlue() - color2.getBlue());
   }
 
   /**
@@ -61,14 +74,27 @@ public class ColorUtils {
     return getContrastPaletteColor(FxColorUtil.awtColorToFX(color), palette);
   }
 
-  public static java.awt.Color getContrastPaletteColorAWT(java.awt.Color color, SimpleColorPalette palette) {
-    return FxColorUtil
-        .fxColorToAWT(getContrastPaletteColor(FxColorUtil.awtColorToFX(color), palette));
+  public static java.awt.Color getContrastPaletteColorAWT(java.awt.Color color,
+      SimpleColorPalette palette) {
+    return FxColorUtil.fxColorToAWT(
+        getContrastPaletteColor(FxColorUtil.awtColorToFX(color), palette));
   }
 
   public static java.awt.Color getContrastPaletteColorAWT(Color color, SimpleColorPalette palette) {
-    return FxColorUtil
-        .fxColorToAWT(getContrastPaletteColor(color, palette));
+    return FxColorUtil.fxColorToAWT(getContrastPaletteColor(color, palette));
   }
 
+  /**
+   * @return The "red mean" color difference.
+   */
+  public static double getColorDifference(Color clr1, Color clr2) {
+
+    final double rmean = 255 * 0.5 * (clr1.getRed() + clr2.getRed());
+    final double rterm = (2 + rmean / 256) * Math.pow(255 * (clr1.getRed() - clr2.getRed()), 2);
+    final double gterm = 4 * Math.pow(255 * (clr1.getGreen() - clr2.getGreen()), 2);
+    final double bterm =
+        (2 + (255 - rmean) / 256) * +Math.pow(+255 * (clr1.getBlue() - clr2.getBlue()), 2);
+
+    return Math.sqrt(rterm + gterm + bterm);
+  }
 }

@@ -1,25 +1,36 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package util;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
@@ -92,5 +103,54 @@ public class FormulaUtilsTest {
 
     Assertions.assertEquals((float) 225.0345531,
         (float) FormulaUtils.calculateMzRatio(molecularFormula));
+  }
+
+  @Test
+  void testGetAllSubformulas() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula);
+    assert all.length == 293;
+  }
+
+  @Test
+  void testGetAllSubformulasGreater50() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 50);
+    assert all.length == 191;
+  }
+
+  @Test
+  void testGetAllSubformulasDoubleCharge() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+2");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 1, 10);
+    assert all.length == 287;
+  }
+
+  @Test
+  void testGetAllSubformulasGreater200() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H3O+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 200);
+    assert all.length == 0;
+  }
+
+  @Test
+  void testFindMzInFormula() {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H4O2N+");
+    FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 40);
+    assert FormulaUtils.getClosestIndexOfFormula(25, all) == 0;
+    assert FormulaUtils.getClosestIndexOfFormula(55, all) == 32;
+    assert FormulaUtils.getClosestIndexOfFormula(250, all) == all.length - 1;
+  }
+
+  @Test
+  void ionizeFormulaTest() {
+    var adduct = new IonType(IonModification.M_PLUS);
+    var annotation = new SimpleCompoundDBAnnotation("C");
+    var annotationPlus = new SimpleCompoundDBAnnotation("CH+");
+    var ion1 = annotation.ionize(adduct);
+    // will remove one H+ to neutralize
+    var ion2 = annotationPlus.ionize(adduct);
+
+    Assertions.assertEquals(ion1.getPrecursorMZ(), ion2.getPrecursorMZ());
   }
 }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
@@ -26,6 +33,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.TextUtils;
 import java.text.DecimalFormat;
@@ -33,44 +41,44 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.NotNull;
 
-@Immutable
-public class ScanSelection {
+public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
+                            Range<Double> scanRTRange, Range<Double> scanMobilityRange,
+                            @NotNull PolarityType polarity, @NotNull MassSpectrumType spectrumType,
+                            @NotNull MsLevelFilter msLevel, String scanDefinition) {
 
-  private final Range<Integer> scanNumberRange;
-  private final Range<Double> scanMobilityRange;
-  private final Range<Float> scanRTRange;
-  private final PolarityType polarity;
-  private final MassSpectrumType spectrumType;
-  private final Integer msLevel;
-  private Integer baseFilteringInteger;
-  private String scanDefinition;
+  /**
+   * Includes all scans
+   */
+  public static final ScanSelection ALL_SCANS = new ScanSelection(MsLevelFilter.ALL_LEVELS);
+  public static final ScanSelection MS1 = new ScanSelection(1);
 
+  /**
+   * Uses MS level 1 only
+   */
   public ScanSelection() {
     this(1);
   }
 
-  public ScanSelection(int msLevel) {
-    this(null, null, null, null, null, null, msLevel, null);
+  public ScanSelection(MsLevelFilter msLevelFilter) {
+    this(null, null, null, null, PolarityType.ANY, MassSpectrumType.ANY, msLevelFilter, null);
   }
 
-  public ScanSelection(Range<Float> scanRTRange, int msLevel) {
-    this(null, null, scanRTRange, null, null, null, msLevel, null);
+  public ScanSelection(Integer msLevel) {
+    this(MsLevelFilter.of(msLevel));
   }
 
-  public ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
-      Range<Float> scanRTRange, Range<Double> scanMobilityRange, PolarityType polarity,
-      MassSpectrumType spectrumType, Integer msLevel, String scanDefinition) {
-    this.scanNumberRange = scanNumberRange;
-    this.baseFilteringInteger = baseFilteringInteger;
-    this.scanRTRange = scanRTRange;
-    this.scanMobilityRange = scanMobilityRange;
-    this.polarity = polarity;
-    this.spectrumType = spectrumType;
-    this.msLevel = msLevel;
-    this.scanDefinition = scanDefinition;
+  public ScanSelection(Range<Double> scanRTRange, Integer msLevel) {
+    this(null, null, scanRTRange, null, PolarityType.ANY, MassSpectrumType.ANY,
+        MsLevelFilter.of(msLevel), null);
+  }
+
+  public ScanSelection(final int msLevel, final Range<Float> scanRTRange) {
+    this(null, null, scanRTRange == null ? null : RangeUtils.toDoubleRange(scanRTRange), null,
+        PolarityType.ANY, MassSpectrumType.ANY, MsLevelFilter.of(msLevel), null);
   }
 
   public Range<Integer> getScanNumberRange() {
@@ -81,8 +89,12 @@ public class ScanSelection {
     return baseFilteringInteger;
   }
 
-  public Range<Float> getScanRTRange() {
+  public Range<Double> getScanRTRange() {
     return scanRTRange;
+  }
+
+  public Range<Float> getScanRTRangeFloat() {
+    return RangeUtils.toFloatRange(scanRTRange);
   }
 
   public Range<Double> getScanMobilityRange() {
@@ -97,7 +109,7 @@ public class ScanSelection {
     return spectrumType;
   }
 
-  public Integer getMsLevel() {
+  public MsLevelFilter getMsLevelFilter() {
     return msLevel;
   }
 
@@ -121,6 +133,35 @@ public class ScanSelection {
 
   public Scan[] getMatchingScans(RawDataFile dataFile) {
     return streamMatchingScans(dataFile).toArray(Scan[]::new);
+  }
+
+  /**
+   * Returns the closest scan to the given retention time matching this scan selection.
+   *
+   * @param file          The raw data file.
+   * @param retentionTime The retention time of the wanted scan.
+   * @return
+   */
+  public Scan getScanAtRt(RawDataFile file, float retentionTime) {
+
+    if (retentionTime > file.getDataRTRange().upperEndpoint()) {
+      return null;
+    }
+
+    Scan[] matchingScans = getMatchingScans(file);
+    double minDiff = 10E6;
+
+    for (int i = 0; i < matchingScans.length; i++) {
+      Scan scan = matchingScans[i];
+      double diff = Math.abs(retentionTime - scan.getRetentionTime());
+
+      if (diff < minDiff) {
+        minDiff = diff;
+      } else if (diff > minDiff) {
+        return matchingScans[i - 1];
+      }
+    }
+    return null;
   }
 
   /**
@@ -156,15 +197,15 @@ public class ScanSelection {
    * @return
    */
   public boolean matches(Scan scan, int scanNumberOffset) {
-    if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel()))) {
+    if (!msLevel.accept(scan)) {
       return false;
     }
 
-    if ((polarity != null) && (!polarity.equals(scan.getPolarity()))) {
+    if (polarity != PolarityType.ANY && polarity != scan.getPolarity()) {
       return false;
     }
 
-    if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType()))) {
+    if (spectrumType != MassSpectrumType.ANY && spectrumType != scan.getSpectrumType()) {
       return false;
     }
 
@@ -177,7 +218,7 @@ public class ScanSelection {
       return false;
     }
 
-    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime()))) {
+    if ((scanRTRange != null) && (!scanRTRange.contains((double) scan.getRetentionTime()))) {
       return false;
     }
 
@@ -202,9 +243,7 @@ public class ScanSelection {
 
       final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
 
-      if (!actualScanDefinition.matches(regex)) {
-        return false;
-      }
+      return actualScanDefinition.matches(regex);
     }
     return true;
   }
@@ -233,7 +272,7 @@ public class ScanSelection {
    * @return
    */
   public boolean matches(MobilityScan scan, int scanNumberOffset) {
-    if ((msLevel != null) && (!msLevel.equals(scan.getFrame().getMSLevel()))) {
+    if (msLevel != null && !msLevel.accept(scan)) {
       return false;
     }
 
@@ -254,7 +293,7 @@ public class ScanSelection {
       return false;
     }
 
-    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime()))) {
+    if ((scanRTRange != null) && (!scanRTRange.contains((double) scan.getRetentionTime()))) {
       return false;
     }
 
@@ -272,9 +311,7 @@ public class ScanSelection {
 
       final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
 
-      if (!actualScanDefinition.matches(regex)) {
-        return false;
-      }
+      return actualScanDefinition.matches(regex);
     }
     return true;
   }
@@ -291,8 +328,8 @@ public class ScanSelection {
     return Objects.equals(getScanNumberRange(), that.getScanNumberRange()) && Objects.equals(
         getScanMobilityRange(), that.getScanMobilityRange()) && Objects.equals(getScanRTRange(),
         that.getScanRTRange()) && getPolarity() == that.getPolarity()
-        && getSpectrumType() == that.getSpectrumType() && Objects.equals(getMsLevel(),
-        that.getMsLevel()) && Objects.equals(getBaseFilteringInteger(),
+        && getSpectrumType() == that.getSpectrumType() && Objects.equals(getMsLevelFilter(),
+        that.getMsLevelFilter()) && Objects.equals(getBaseFilteringInteger(),
         that.getBaseFilteringInteger()) && Objects.equals(getScanDefinition(),
         that.getScanDefinition());
   }
@@ -300,7 +337,7 @@ public class ScanSelection {
   @Override
   public int hashCode() {
     return Objects.hash(getScanNumberRange(), getScanMobilityRange(), getScanRTRange(),
-        getPolarity(), getSpectrumType(), getMsLevel(), getBaseFilteringInteger(),
+        getPolarity(), getSpectrumType(), getMsLevelFilter(), getBaseFilteringInteger(),
         getScanDefinition());
   }
 
@@ -310,7 +347,7 @@ public class ScanSelection {
     DecimalFormat threeDecimals = new DecimalFormat("0.000");
 
     if (msLevel != null) {
-      b.append("MS level (").append(msLevel).append("), ");
+      b.append(msLevel).append(", ");
     }
     if (scanNumberRange != null) {
       b.append("Scan (#").append(scanNumberRange.lowerEndpoint()).append(" - ")
@@ -338,5 +375,45 @@ public class ScanSelection {
     }
 
     return b.toString();
+  }
+
+
+  /**
+   * @return short version of filter string used in interfaces
+   */
+  public String toShortDescription() {
+    DecimalFormat threeDecimals = new DecimalFormat("0.000");
+
+    List<String> parts = new ArrayList<>();
+    parts.add(msLevel.getFilterString());
+    if (scanNumberRange != null) {
+      parts.add("Scan numbers " + scanNumberRange);
+    }
+    if (scanRTRange != null) {
+      parts.add("RT " + RangeUtils.formatRange(scanRTRange, threeDecimals, true, true));
+    }
+    if (scanMobilityRange != null) {
+      parts.add("Mobility " + RangeUtils.formatRange(scanMobilityRange, threeDecimals, true, true));
+    }
+    if (polarity != PolarityType.ANY) {
+      parts.add("Polarity=" + polarity.asSingleChar());
+    }
+    if (spectrumType != MassSpectrumType.ANY) {
+      parts.add("Scan type=" + spectrumType);
+    }
+    if (baseFilteringInteger != null) {
+      parts.add("Base filter=" + baseFilteringInteger);
+    }
+    if (scanDefinition != null && !scanDefinition.isBlank()) {
+      parts.add("Definition contains '" + scanDefinition + "'");
+    }
+
+    return parts.stream().filter(s -> !s.isBlank()).collect(Collectors.joining(", "));
+  }
+
+  public ScanSelection cloneWithNewRtRange(Range<Double> rtRange) {
+    return new ScanSelection(getScanNumberRange(), getBaseFilteringInteger(), rtRange,
+        getScanMobilityRange(), getPolarity(), getSpectrumType(), getMsLevelFilter(),
+        getScanDefinition());
   }
 }

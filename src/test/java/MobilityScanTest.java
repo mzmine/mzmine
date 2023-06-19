@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 import com.google.common.collect.Range;
@@ -52,7 +59,7 @@ import org.junit.jupiter.api.Test;
 
 public class MobilityScanTest {
 
-  private static Logger logger = Logger.getLogger(MobilityScanTest.class.getName());
+  private static final Logger logger = Logger.getLogger(MobilityScanTest.class.getName());
 
   @Test
   public void doubleBufferTest() {
@@ -88,8 +95,8 @@ public class MobilityScanTest {
 
     for (int i = 0; i < numScans; i++) {
       int numDataPoints = (int) (rnd.nextFloat() * 200);
-      double mzs[] = new double[numDataPoints];
-      double intensities[] = new double[numDataPoints];
+      double[] mzs = new double[numDataPoints];
+      double[] intensities = new double[numDataPoints];
       for (int j = 0; j < numDataPoints; j++) {
         mzs[j] = rnd.nextDouble();
         intensities[j] = rnd.nextDouble();
@@ -247,8 +254,8 @@ public class MobilityScanTest {
     final List<Frame> frames = makeSomeFrames(file, 300);
     for (Frame frame : frames) {
       file.addScan(frame);
-      ((SimpleFrame) frame).getMobilityScanStorage()
-          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, param);
+      frame.getMobilityScanStorage()
+          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, param, false);
 
       for (MobilityScan mobilityScan : frame.getMobilityScans()) {
         final double[][] massValues = centroidMassDetector.getMassValues(mobilityScan, param);
@@ -310,7 +317,7 @@ public class MobilityScanTest {
     Assertions.assertEquals(mobilityScan.getMobilityScanNumber(), access.getMobilityScanNumber());
     Assertions.assertEquals(mobilityScan.getNumberOfDataPoints(), access.getNumberOfDataPoints());
 
-    for(int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
+    for (int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
       Assertions.assertEquals(mobilityScan.getIntensityValue(i), access.getIntensityValue(i));
       Assertions.assertEquals(mobilityScan.getMzValue(i), access.getMzValue(i));
     }

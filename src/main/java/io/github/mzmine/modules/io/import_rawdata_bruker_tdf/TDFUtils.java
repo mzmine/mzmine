@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
@@ -50,6 +57,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,9 +76,11 @@ public class TDFUtils {
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
   private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
+  private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private final int numThreads;
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
+
 
   /**
    * the handle of the currently opened file
@@ -212,15 +222,32 @@ public class TDFUtils {
           + "library could not be initialised.");
       return 0L;
     }
+
+    final Boolean applyPressureComp = false;
+    // currently disabled as it's not working as expected ~SteffenHeu
+    /*final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.applyTimsPressureCompensation)*/
+    int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
+
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
@@ -317,9 +344,6 @@ public class TDFUtils {
       }
       Arrays.fill(buffer, (byte) 0);
     }
-    if (dataPoints.get(0)[0].length != 0) {
-      logger.finest("data");
-    }
     return dataPoints;
   }
 
@@ -387,7 +411,7 @@ public class TDFUtils {
     final CentroidData data = new CentroidData();
 
     synchronized (tdfLib) {
-      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame(handle, frameId,
+      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId,
           startScanNum, endScanNum, data, Pointer.NULL);
 
       if (error == 0) {
@@ -665,7 +689,6 @@ public class TDFUtils {
     } else {
       return false;
     }
-
   }
 
   public void setNumThreads(int numThreads) {

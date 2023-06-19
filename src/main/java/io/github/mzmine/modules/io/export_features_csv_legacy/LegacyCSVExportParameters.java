@@ -1,25 +1,31 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -33,34 +39,31 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class LegacyCSVExportParameters extends SimpleParameterSet {
 
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("comma-separated values", "*.csv"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
+  public static final MultiChoiceParameter<LegacyExportRowCommonElement> exportCommonItems = new MultiChoiceParameter<>(
+      "Export common elements", "Selection of row's elements to export",
+      LegacyExportRowCommonElement.values());
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
-
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Name of the output CSV file. "
-      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-      + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
+  public static final MultiChoiceParameter<LegacyExportRowDataFileElement> exportDataFileItems = new MultiChoiceParameter<>(
+      "Export data file elements", "Selection of feature's elements to export",
+      LegacyExportRowDataFileElement.values());
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the exported file", ",");
-
-  public static final MultiChoiceParameter<LegacyExportRowCommonElement> exportCommonItems =
-      new MultiChoiceParameter<>("Export common elements",
-          "Selection of row's elements to export", LegacyExportRowCommonElement.values());
-
-  public static final MultiChoiceParameter<LegacyExportRowDataFileElement> exportDataFileItems =
-      new MultiChoiceParameter<>("Export data file elements",
-          "Selection of feature's elements to export", LegacyExportRowDataFileElement.values());
-
-  public static final BooleanParameter exportAllFeatureInfo =
-      new BooleanParameter("Export quantitation results and other information",
-          "If checked, all feature-information results for a feature will be exported. ", false);
+  public static final BooleanParameter exportAllFeatureInfo = new BooleanParameter(
+      "Export quantitation results and other information",
+      "If checked, all feature-information results for a feature will be exported. ", false);
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv"), //
+      new ExtensionFilter("tab-separated values", "*.tsv"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+  public static final FileNameParameter filename = new FileNameParameter("Filename",
+      "Name of the output CSV file. "
+          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+          + "If the file already exists, it will be overwritten.", extensions,
+      FileSelectionType.SAVE);
 
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate identification results in the exported file", ";");
@@ -70,8 +73,8 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
       FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
 
   public LegacyCSVExportParameters() {
-    super(new Parameter[]{featureLists, filename, fieldSeparator, exportCommonItems,
-        exportDataFileItems, exportAllFeatureInfo, idSeparator, filter});
+    super(featureLists, filename, fieldSeparator, exportCommonItems, exportDataFileItems,
+        exportAllFeatureInfo, idSeparator, filter);
   }
 
 }

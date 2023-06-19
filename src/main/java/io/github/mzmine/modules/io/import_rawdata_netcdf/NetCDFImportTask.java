@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_netcdf;
@@ -34,7 +41,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +57,7 @@ import ucar.nc2.Variable;
  */
 public class NetCDFImportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private NetcdfFile inputFile;
 
@@ -61,9 +67,9 @@ public class NetCDFImportTask extends AbstractTask {
   private Hashtable<Integer, Integer[]> scansIndex;
   private Hashtable<Integer, Double> scansRetentionTimes;
 
-  private File file;
-  private MZmineProject project;
-  private RawDataFile newMZmineFile;
+  private final File file;
+  private final MZmineProject project;
+  private final RawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
 
@@ -74,7 +80,8 @@ public class NetCDFImportTask extends AbstractTask {
   private double intensityValueScaleFactor = 1;
 
   public NetCDFImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
@@ -122,7 +129,8 @@ public class NetCDFImportTask extends AbstractTask {
 
       // Close file
       this.finishReading();
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -294,7 +302,7 @@ public class NetCDFImportTask extends AbstractTask {
         if (scanStartPositions[i] < 0) {
           // Yes, find nearest present scan
           int nearestI = Integer.MAX_VALUE;
-          for (int j = 1; 1 < 2; j++) {
+          for (int j = 1; (i + j) < totalScans || (i - j) >= 0; j++) {
             if ((i + j) < totalScans) {
               if (scanStartPositions[i + j] >= 0) {
                 nearestI = i + j;
@@ -303,14 +311,9 @@ public class NetCDFImportTask extends AbstractTask {
             }
             if ((i - j) >= 0) {
               if (scanStartPositions[i - j] >= 0) {
-                nearestI = i + j;
+                nearestI = i - j;
                 break;
               }
-            }
-
-            // Out of bounds?
-            if (((i + j) >= totalScans) && ((i - j) < 0)) {
-              break;
             }
           }
 
@@ -423,8 +426,8 @@ public class NetCDFImportTask extends AbstractTask {
 
     int arrayLength = massValueArray.getShape()[0];
 
-    double mzValues[] = new double[arrayLength];
-    double intensityValues[] = new double[arrayLength];
+    double[] mzValues = new double[arrayLength];
+    double[] intensityValues = new double[arrayLength];
 
     for (int j = 0; j < arrayLength; j++) {
       Index massIndex0 = massValuesIndex.set0(j);

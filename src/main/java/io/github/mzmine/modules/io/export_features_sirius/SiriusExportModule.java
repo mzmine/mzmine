@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 /*
@@ -30,12 +37,9 @@
 
 package io.github.mzmine.modules.io.export_features_sirius;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -43,11 +47,17 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.ExitCode;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class SiriusExportModule implements MZmineProcessingModule {
+
   private static final String MODULE_NAME = "Export for SIRIUS";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports a MGF file that contains for each feature, (1) the deconvoluted MS1 isotopic pattern, and (2) the MS/MS spectrum (highest precursor ion intensity). This file can be open and processed with Sirius, https://bio.informatik.uni-jena.de/software/sirius/.";
+  private static final String MODULE_DESCRIPTION = "This method exports a MGF file that contains for each feature, (1) the deconvoluted MS1 isotopic pattern, and (2) the MS/MS spectrum (highest precursor ion intensity). This file can be open and processed with Sirius, https://bio.informatik.uni-jena.de/software/sirius/.";
 
   @Override
   public @NotNull String getName() {
@@ -71,16 +81,21 @@ public class SiriusExportModule implements MZmineProcessingModule {
 
   public static void exportSingleFeatureList(FeatureListRow row, @NotNull Instant moduleCallDate) {
 
-    try {
-      ParameterSet parameters =
-          MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(SiriusExportModule.class);
 
-      ExitCode exitCode = parameters.showSetupDialog(true);
-      if (exitCode != ExitCode.OK)
-        return;
-      // Open file
-      final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
-      task.runSingleRow(row);
+    ExitCode exitCode = parameters.showSetupDialog(true);
+    if (exitCode != ExitCode.OK) {
+      return;
+    }
+
+    final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
+    final ModularFeatureList flist = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
+        .getMatchingFeatureLists()[0];
+    final File fileForFeatureList = task.getFileForFeatureList(task.isSubstitute(), flist);
+
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileForFeatureList))) {
+      task.exportRow(writer, row);
     } catch (Exception e) {
       e.printStackTrace();
       MZmineCore.getDesktop().displayErrorMessage(
@@ -89,17 +104,26 @@ public class SiriusExportModule implements MZmineProcessingModule {
 
   }
 
-  public static void exportSingleRows(FeatureListRow[] row, @NotNull Instant moduleCallDate) {
+  public static void exportSingleRows(FeatureListRow[] rows, @NotNull Instant moduleCallDate) {
     try {
-      ParameterSet parameters =
-          MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);
+      ParameterSet parameters = MZmineCore.getConfiguration()
+          .getModuleParameters(SiriusExportModule.class);
 
       ExitCode exitCode = parameters.showSetupDialog(true);
-      if (exitCode != ExitCode.OK)
+      if (exitCode != ExitCode.OK) {
         return;
+      }
       // Open file
       final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
-      task.runSingleRows(row);
+      final ModularFeatureList flist = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
+          .getMatchingFeatureLists()[0];
+      final File fileForFeatureList = task.getFileForFeatureList(task.isSubstitute(), flist);
+
+      try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileForFeatureList))) {
+        for (FeatureListRow row : rows) {
+          task.exportRow(writer, row);
+        }
+      }
     } catch (Exception e) {
       e.printStackTrace();
       MZmineCore.getDesktop().displayErrorMessage(
