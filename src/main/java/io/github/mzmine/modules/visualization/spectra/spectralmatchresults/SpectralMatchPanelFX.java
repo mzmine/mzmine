@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -118,16 +118,16 @@ public class SpectralMatchPanelFX extends GridPane {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final EChartViewer mirrorChart;
   private final SpectralDBAnnotation hit;
+  private final BorderPane mirrorChartWrapper;
+  private final EStandardChartTheme theme;
   private boolean setCoupleZoomY;
   private XYPlot queryPlot;
   private XYPlot libraryPlot;
   private VBox metaDataPanel;
   private ScrollPane metaDataScroll;
   private GridPane pnExport;
-  private final BorderPane mirrorChartWrapper;
   private Label lblScore;
   private Label lblHit;
-  private final EStandardChartTheme theme;
   private SpectralMatchPanel swingPanel;
 
   public SpectralMatchPanelFX(SpectralDBAnnotation hit) {
@@ -291,10 +291,11 @@ public class SpectralMatchPanelFX extends GridPane {
         DBEntryField.DATABASE_FIELDS);
     BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
         DBEntryField.OTHER_FIELDS);
+    BorderPane pnLib = extractLibraryPanel(hit.getEntry());
 
     var leftBox = new VBox(4, pnCompounds);
     leftBox.setPadding(Insets.EMPTY);
-    var rightBox = new VBox(4, panelInstrument, pnOther, pnDB);
+    var rightBox = new VBox(4, panelInstrument, pnOther, pnDB, pnLib);
     rightBox.setPadding(new Insets(0, 0, 0, 15));
     g1.add(leftBox, 0, 0);
     g1.add(rightBox, 1, 0);
@@ -315,6 +316,11 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataScroll.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
 
     return metaDataScroll;
+  }
+
+  private BorderPane extractLibraryPanel(SpectralLibraryEntry entry) {
+    final Label library = new Label("Spectral library: " + entry.getLibraryName());
+    return new BorderPane(library);
   }
 
   private IAtomContainer parseStructure(final SpectralDBAnnotation hit) {
