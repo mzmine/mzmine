@@ -42,7 +42,6 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +53,7 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
   public static final DirectoryParameter savePathDir = new DirectoryParameter("Data location",
-      "Path to where acquired measurements shall be saved.",
-      "D:" + File.separator + "Data" + File.separator + "User" + File.separator + "MZmine_3");
+      "Path to where acquired measurements shall be saved.");
   public static final FileNameParameter acquisitionControl = new FileNameParameter(
       "Path to SIMSEF executable",
       "Path to the SIMSEF executable to automatically launch MS2 acquisition after scheduling.\n"

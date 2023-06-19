@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,7 +43,6 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -71,8 +70,7 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
       new DecimalFormat("0.000"), 0.04);
 
   public static final DirectoryParameter savePathDir = new DirectoryParameter("Data location",
-      "Path to where acquired measurements shall be saved.",
-      "D:" + File.separator + "Data" + File.separator + "User" + File.separator + "MZmine_3");
+      "Path to where acquired measurements shall be saved.");
 
   public static final IntegerParameter initialOffsetY = new IntegerParameter(
       "Initial y offset / µm", """
