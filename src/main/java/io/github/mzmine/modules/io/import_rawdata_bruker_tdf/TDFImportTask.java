@@ -259,7 +259,7 @@ public class TDFImportTask extends AbstractTask {
     final TDFUtils tdfUtils = new TDFUtils();
     logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
     final long handle = tdfUtils.openFile(tdfBin);
-    newMZmineFile.setName(rawDataFileName);
+//    newMZmineFile.setName(rawDataFileName);
     if (handle == 0L) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");

@@ -203,15 +203,6 @@ public interface MZmineProject {
   int getNumberOfLibraries();
 
   /**
-   * Finds and sets a unique name for a data file
-   *
-   * @param raw  the target data file thats renamed
-   * @param name the new name candidate
-   * @return the unique name that was set
-   */
-  String setUniqueDataFileName(RawDataFile raw, String name);
-
-  /**
    * Finds and sets a unique name for a feature list
    *
    * @param featureList the target feature list thats renamed

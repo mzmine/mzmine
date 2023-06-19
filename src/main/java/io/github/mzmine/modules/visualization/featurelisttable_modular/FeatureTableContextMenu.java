@@ -103,8 +103,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -339,13 +341,13 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
         () -> !selectedRows.isEmpty() && selectedFeature != null
-            && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
+              && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
     showIMSFeatureItem.setOnAction(
         e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
 
     final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
         () -> !selectedRows.isEmpty() && selectedFeature != null
-            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
     showImageFeatureItem.setOnAction(e -> {
       ParameterSet params = MZmineCore.getConfiguration()
           .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
@@ -377,7 +379,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
         "Show m/z ranges in IMS raw data overview",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-            && !selectedFeatures.isEmpty());
+              && !selectedFeatures.isEmpty());
     showInIMSRawDataOverviewItem.setOnAction(
         e -> IMSRawDataOverviewModule.openIMSVisualizerTabWithFeatures(
             getFeaturesFromSelectedRaw(selectedFeatures)));
@@ -412,13 +414,13 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
-            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
         IonMobilityUtils.getBestMobilityScan(selectedFeature)));
 
     final MenuItem extractSumSpectrumFromMobScans = new ConditionalMenuItem(
         "Extract spectrum from mobility FWHM", () -> selectedFeature != null
-        && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+                                                     && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     extractSumSpectrumFromMobScans.setOnAction(e -> {
       Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
           ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
@@ -435,7 +437,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
         () -> (selectedRow != null && getNumberOfFeaturesWithFragmentScans(selectedRow) >= 1) || (
             selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) || (
-            selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
+                  selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
     showMSMSItem.setOnAction(e -> {
       if (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
@@ -449,14 +451,14 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ion shapes",
         () -> selectedFeature != null
-            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
     showDiaIons.setOnAction(e -> showDiaMsMsIons());
 
     final MenuItem showDiaMirror = new ConditionalMenuItem(
         "DIA spectral mirror: Correlated-to-all signals",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
-            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
+              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
     showDiaMirror.setOnAction(e -> showDiaMirror());
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
@@ -473,10 +475,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     showAllMSMSItem.setOnAction(e -> onShowAllMsMsClicked());
 
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
-        () -> selectedFeature != null && selectedFeature.getIsotopePattern() != null);
-    showIsotopePatternItem.setOnAction(
-        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
-            selectedFeature.getRepresentativeScan(), selectedFeature.getIsotopePattern()));
+        () -> getSelectedFeatureWithIsotopePattern().isPresent());
+    showIsotopePatternItem.setOnAction(e -> {
+      getSelectedFeatureWithIsotopePattern().ifPresent(bestFeature -> {
+        SpectraVisualizerModule.addNewSpectrumTab(bestFeature.getRawDataFile(),
+            bestFeature.getRepresentativeScan(), bestFeature.getIsotopePattern());
+      });
+    });
 
     final MenuItem showCompoundDBResults = new ConditionalMenuItem("Compound DB search results",
         () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
@@ -522,6 +527,25 @@ public class FeatureTableContextMenu extends ContextMenu {
     } else {
       MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0));
     }
+  }
+
+  /**
+   * Selected feature if it has an isotope pattern. Or the best isotope pattern if performed on
+   * selected row.
+   *
+   * @return feature or empty if the feature has no isotope pattern
+   */
+  @NotNull
+  private Optional<ModularFeature> getSelectedFeatureWithIsotopePattern() {
+    if (selectedFeature != null) {
+      var ip = selectedFeature.getIsotopePattern();
+      return ip != null ? Optional.of(selectedFeature) : Optional.empty();
+    }
+    // get best isotope pattern feature
+    return selectedRow.streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
+                                                    && f.getFeatureStatus()
+                                                       != FeatureStatus.UNKNOWN)
+        .max(Comparator.comparingDouble(ModularFeature::getHeight));
   }
 
   private void onShown() {
