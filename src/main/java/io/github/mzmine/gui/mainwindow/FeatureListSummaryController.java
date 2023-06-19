@@ -85,6 +85,32 @@ public class FeatureListSummaryController {
   @FXML
   public Button exportfeature;
 
+  public static String parameterToString(Parameter<?> parameter) {
+    String name = parameter.getName();
+    Object value = parameter.getValue();
+    StringBuilder sb = new StringBuilder(name);
+    sb.append(":\t");
+    if (value == null) {
+      sb.append("<not set>");
+    } else if (value.getClass().isArray()) {
+      sb.append(Arrays.toString((Object[]) value));
+    } else {
+      sb.append(value.toString());
+    }
+    if (parameter instanceof EmbeddedParameterSet embedded) {
+      ParameterSet parameterSet = embedded.getEmbeddedParameters();
+      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
+        sb.append("\n\t");
+        sb.append(parameterToString(parameter1));
+      }
+    }
+    if (parameter instanceof OptionalParameter) {
+      sb.append("\t(");
+      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
+      sb.append(")");
+    }
+    return sb.toString();
+  }
 
   @FXML
   public void initialize() {
@@ -139,33 +165,6 @@ public class FeatureListSummaryController {
     tvParameterValues.setText("");
   }
 
-  private String parameterToString(Parameter<?> parameter) {
-    String name = parameter.getName();
-    Object value = parameter.getValue();
-    StringBuilder sb = new StringBuilder(name);
-    sb.append(":\t");
-    if (value == null) {
-      sb.append("<not set>");
-    } else if (value.getClass().isArray()) {
-      sb.append(Arrays.toString((Object[]) value));
-    } else {
-      sb.append(value.toString());
-    }
-    if (parameter instanceof EmbeddedParameterSet embedded) {
-      ParameterSet parameterSet = embedded.getEmbeddedParameters();
-      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
-        sb.append("\n\t");
-        sb.append(parameterToString(parameter1));
-      }
-    }
-    if (parameter instanceof OptionalParameter) {
-      sb.append("\t(");
-      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
-      sb.append(")");
-    }
-    return sb.toString();
-  }
-
   @FXML
   void setAsBatchQueue() {
 
@@ -180,6 +179,10 @@ public class FeatureListSummaryController {
     BatchQueue queue = new BatchQueue();
 
     for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+      if (item == null) {
+        logger.info("Skipping module ???, cannot find module class. Was it renamed?");
+        continue;
+      }
       if (item.getModule() instanceof MZmineProcessingModule) {
         ParameterSet parameterSet = item.getParameters().cloneParameterSet();
         setSelectionToLastBatchStep(parameterSet);

@@ -68,7 +68,7 @@ public class ImsExpanderTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ImsExpanderTask.class.getName());
   private static final int NUM_THREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
-  private static final String SUFFIX = " expanded ";
+  private static final String SUFFIX = " expanded";
   protected final ParameterSet parameters;
   protected final ModularFeatureList flist;
   final List<AbstractTask> tasks = new ArrayList<>();

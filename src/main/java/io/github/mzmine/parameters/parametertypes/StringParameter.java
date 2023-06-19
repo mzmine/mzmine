@@ -87,8 +87,6 @@ public class StringParameter implements UserParameter<String, TextField> {
   public TextField createEditingComponent() {
     TextField stringComponent = new TextField();
     stringComponent.setPrefColumnCount(inputsize);
-    // stringComponent.setBorder(BorderFactory.createCompoundBorder(stringComponent.getBorder(),
-    // BorderFactory.createEmptyBorder(0, 4, 0, 0)));
     return stringComponent;
   }
 

@@ -78,15 +78,16 @@ public class ImageChart extends BufferedChartNode {
     axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralWidth()));
     axis.setVisible(!hideAxes);
 
+    chart.setLegendVisible(!hideAxes);
+
     final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class).getParameter(
-            FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+        .getModuleParameters(FeatureTableFXModule.class)
+        .getParameter(FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
     ImagingParameters param = imagingFile.getImagingParam();
 
-    final double width = lockOnAspectRatio ?
-        Math.min(
-            GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT / (float) param.getMaxNumberOfPixelY()
-                * param.getMaxNumberOfPixelX(), GraphicalColumType.MAXIMUM_GRAPHICAL_CELL_WIDTH)
+    final double width = lockOnAspectRatio ? Math.min(
+        GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT / (float) param.getMaxNumberOfPixelY()
+            * param.getMaxNumberOfPixelX(), GraphicalColumType.MAXIMUM_GRAPHICAL_CELL_WIDTH)
         : GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
 
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);

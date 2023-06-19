@@ -64,13 +64,12 @@ public class SimpleParameterSet implements ParameterSet {
 
   public static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
-
-  private String moduleNameAttribute;
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
-  private boolean skipSensitiveParameters = false;
   protected String helpUrl = null;
+  private String moduleNameAttribute;
+  private boolean skipSensitiveParameters = false;
 
   public SimpleParameterSet() {
     this(new Parameter<?>[0], null);
@@ -78,6 +77,11 @@ public class SimpleParameterSet implements ParameterSet {
 
   public SimpleParameterSet(Parameter<?>... parameters) {
     this(parameters, null);
+  }
+
+  public SimpleParameterSet(String onlineHelpUrl, Parameter<?>... parameters) {
+    this.helpUrl = onlineHelpUrl;
+    this.parameters = parameters;
   }
 
   public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {

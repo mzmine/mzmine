@@ -30,12 +30,15 @@ import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
+import org.jetbrains.annotations.Nullable;
 
 
 public class SimpleImagingScan extends SimpleScan implements ImagingScan {
 
   private Coordinates coordinates;
+  private MaldiSpotInfo maldiSpotInfo = null;
 
   public SimpleImagingScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
       double precursorMZ, int precursorCharge, double mzValues[], double intensityValues[],
@@ -65,4 +68,13 @@ public class SimpleImagingScan extends SimpleScan implements ImagingScan {
     this.coordinates = coordinates;
   }
 
+  @Override
+  public @Nullable MaldiSpotInfo getMaldiSpotInfo() {
+    return maldiSpotInfo;
+  }
+
+  @Override
+  public void setMaldiSpotInfo(@Nullable MaldiSpotInfo info) {
+    this.maldiSpotInfo = info;
+  }
 }
