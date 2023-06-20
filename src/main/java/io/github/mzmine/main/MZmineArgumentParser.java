@@ -58,6 +58,7 @@ public class MZmineArgumentParser {
   private boolean loadTdfPseudoProfile = false;
   private boolean loadTsfProfile = false;
   private KeepInMemory isKeepInMemory = null;
+  private String numCores;
 
   public void parse(String[] args) {
     Options options = new Options();
@@ -200,6 +201,8 @@ public class MZmineArgumentParser {
                           + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
       }
 
+      this.numCores = cmd.getOptionValue(numCores.getLongOpt());
+
       if (cmd.hasOption(loadTdfPseudoProfile.getOpt())) {
         this.loadTdfPseudoProfile = true;
       }
@@ -212,6 +215,10 @@ public class MZmineArgumentParser {
       formatter.printHelp("MZmine", options);
       System.exit(1);
     }
+  }
+
+  public String getNumCores() {
+    return numCores;
   }
 
   /**
