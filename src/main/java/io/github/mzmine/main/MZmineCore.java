@@ -194,6 +194,7 @@ public final class MZmineCore {
       // batch mode defined by command line argument
       File batchFile = argsParser.getBatchFile();
       File[] overrideDataFiles = argsParser.getOverrideDataFiles();
+      File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
       // track version use
@@ -228,7 +229,7 @@ public final class MZmineCore {
           // run batch file
           getInstance().batchExitCode = BatchModeModule.runBatch(
               getInstance().projectManager.getCurrentProject(), batchFile, overrideDataFiles,
-              Instant.now());
+              overrideSpectralLibraryFiles, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished
