@@ -62,6 +62,14 @@ public class MZmineArgumentParser {
     Options options = new Options();
 
     // -b  or --batch
+    Option help = new Option("h", "help", false, "print help");
+    help.setRequired(false);
+    options.addOption(help);
+
+    Option version = new Option("v", "version", false, "print version of MZmine and exit");
+    version.setRequired(false);
+    options.addOption(version);
+
     Option batch = new Option("b", "batch", true, "batch mode file");
     batch.setRequired(false);
     options.addOption(batch);
@@ -108,6 +116,16 @@ public class MZmineArgumentParser {
 
     try {
       cmd = parser.parse(options, args);
+
+      if (cmd.hasOption(help.getOpt())) {
+        formatter.printHelp("MZmine", options);
+        System.exit(0);
+      }
+
+      if (cmd.hasOption(version.getOpt())) {
+        logger.info("MZmine version:"+MZmineCore.getMZmineVersion());
+        System.exit(0);
+      }
 
       String sbatch = cmd.getOptionValue(batch.getLongOpt());
       if (sbatch != null) {
@@ -165,7 +183,7 @@ public class MZmineArgumentParser {
 
     } catch (ParseException e) {
       logger.log(Level.SEVERE, "Wrong command line arguments. " + e.getMessage(), e);
-      formatter.printHelp("utility-name", options);
+      formatter.printHelp("MZmine", options);
       System.exit(1);
     }
   }
