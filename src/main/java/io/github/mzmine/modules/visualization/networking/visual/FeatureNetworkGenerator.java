@@ -502,7 +502,7 @@ public class FeatureNetworkGenerator {
     return "Row" + row.getID();
   }
 
-  private Node getRowNode(FeatureListRow row, boolean addMissing) {
+  public Node getRowNode(FeatureListRow row, boolean addMissing) {
     Node node = graph.getNode(toNodeName(row));
     if (addMissing && node == null) {
       node = getRowNode(row, null);

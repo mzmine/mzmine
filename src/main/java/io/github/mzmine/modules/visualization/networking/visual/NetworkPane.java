@@ -27,20 +27,17 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.util.files.FileAndPathUtil;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -82,7 +79,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class NetworkPane extends BorderPane {
 
-  public static final String DEFAULT_STYLE_FILE = "/themes/graph_network_style.css";
+  public static final String DEFAULT_STYLE_FILE = "themes/graph_network_style.css";
 
   public static final String STYLE_SHEET = """
       graph {
@@ -181,12 +178,13 @@ public class NetworkPane extends BorderPane {
 //      + "node.NEUTRAL{fill-color: violet;}";
   public static final String EXPORT_STYLE_SHEET =
       "edge {fill-color: rgb(25,85,25); stroke-color: rgb(50,100,50); stroke-width: 2px;}  node {text-size: 16; fill-color: black; size: 16px; stroke-mode: plain; stroke-color: rgb(50,100,50); stroke-width: 2px;} "
-          + "node.important{fill-color: red;} node.big{size: 20px;} node.MOL{fill-color: cyan; size: 20px;}  node.NEUTRAL{fill-color: violet; }"
-          + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 5px;}";
+      + "node.important{fill-color: red;} node.big{size: 20px;} node.MOL{fill-color: cyan; size: 20px;}  node.NEUTRAL{fill-color: violet; }"
+      + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 5px;}";
   private static final Logger LOG = Logger.getLogger(NetworkPane.class.getName());
   private final HBox pnSettings;
   // selected node
-  private final List<Node> selectedNodes;
+  private final ObservableList<Node> selectedNodes = FXCollections.observableArrayList();
+  private final ObservableList<Edge> selectedEdges = FXCollections.observableArrayList();
   protected FilteredGraph graph;
   private final Label lbTitle;
   private final FileChooser saveDialog;
@@ -210,8 +208,6 @@ public class NetworkPane extends BorderPane {
   protected Viewer viewer;
   protected FxViewPanel view;
   protected Node mouseClickedNode;
-
-  protected Edge mouseClickedEdge;
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
@@ -260,13 +256,12 @@ public class NetworkPane extends BorderPane {
     this.setTop(pn);
     setShowTitle(showTitle);
     graph = new FilteredGraph(title);
-    selectedNodes = new ArrayList<>();
     setStyleSheet(this.styleSheet);
     graph.setAutoCreate(true);
     graph.setStrict(false);
 
     viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-    viewer.enableAutoLayout();
+    viewer.disableAutoLayout();
     graph.setAttribute("Layout.frozen"); //Block the layout algorithm
     view = (FxViewPanel) viewer.addDefaultView(false);
     // wrap in stackpane to make sure coordinates work properly.
@@ -332,11 +327,11 @@ public class NetworkPane extends BorderPane {
           } else {
             double delta = 0;
 
-              if (event.isShiftDown()) {
-                  delta = camera.getGraphDimension() * 0.1f;
-              } else {
-                  delta = camera.getGraphDimension() * 0.01f;
-              }
+            if (event.isShiftDown()) {
+              delta = camera.getGraphDimension() * 0.1f;
+            } else {
+              delta = camera.getGraphDimension() * 0.01f;
+            }
 
             delta *= camera.getViewPercent();
 
@@ -350,11 +345,11 @@ public class NetworkPane extends BorderPane {
           } else {
             double delta = 0;
 
-              if (event.isShiftDown()) {
-                  delta = camera.getGraphDimension() * 0.1f;
-              } else {
-                  delta = camera.getGraphDimension() * 0.01f;
-              }
+            if (event.isShiftDown()) {
+              delta = camera.getGraphDimension() * 0.1f;
+            } else {
+              delta = camera.getGraphDimension() * 0.01f;
+            }
 
             delta *= camera.getViewPercent();
 
@@ -364,11 +359,11 @@ public class NetworkPane extends BorderPane {
         } else if (event.getCode() == KeyCode.UP) {
           double delta = 0;
 
-            if (event.isShiftDown()) {
-                delta = camera.getGraphDimension() * 0.1f;
-            } else {
-                delta = camera.getGraphDimension() * 0.01f;
-            }
+          if (event.isShiftDown()) {
+            delta = camera.getGraphDimension() * 0.1f;
+          } else {
+            delta = camera.getGraphDimension() * 0.01f;
+          }
 
           delta *= camera.getViewPercent();
 
@@ -377,11 +372,11 @@ public class NetworkPane extends BorderPane {
         } else if (event.getCode() == KeyCode.DOWN) {
           double delta = 0;
 
-            if (event.isShiftDown()) {
-                delta = camera.getGraphDimension() * 0.1f;
-            } else {
-                delta = camera.getGraphDimension() * 0.01f;
-            }
+          if (event.isShiftDown()) {
+            delta = camera.getGraphDimension() * 0.1f;
+          } else {
+            delta = camera.getGraphDimension() * 0.01f;
+          }
 
           delta *= camera.getViewPercent();
 
@@ -406,12 +401,11 @@ public class NetworkPane extends BorderPane {
           mouseClickedNode = (Node) view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)),
               e.getX(), e.getY()); //for retrieving mouse-clicked node
           setCenter(e.getX(), e.getY());
-          mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
+          var mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
               view.getViewer().getGraphicGraph(), e.getX(),
               e.getY()); //for retrieving mouse-clicked edge
-          if (mouseClickedEdge != null) {
-            showMSMSMirrorScanModule();
-          }
+          setSelectedEdge(mouseClickedEdge);
+          setSelectedNode(mouseClickedNode);
         }
       } else if (e.getButton() == MouseButton.SECONDARY) {
         if (rightClickMenu.isShowing()) {
@@ -425,6 +419,7 @@ public class NetworkPane extends BorderPane {
     });
   }
 
+
   private void setZoomOnMouseScroll(ScrollEvent e) {
     if (e.getDeltaY() < 0) {
       double new_view_percent = view.getCamera().getViewPercent() + 0.05;
@@ -437,19 +432,12 @@ public class NetworkPane extends BorderPane {
     }
   }
 
-  /**
-   * Run the MSMS-MirrorScan module whenever user clicks on edges
-   */
+  public ObservableList<Node> getSelectedNodes() {
+    return selectedNodes;
+  }
 
-  public void showMSMSMirrorScanModule() {
-    Node a = mouseClickedEdge.getNode0();
-    Node b = mouseClickedEdge.getNode1();
-    MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
-    FeatureListRow Row1 = (FeatureListRow) a.getAttribute(a.toString());
-    FeatureListRow Row2 = (FeatureListRow) b.getAttribute(b.toString());
-    mirrorScanTab.getController()
-        .setScans(Row1.getMostIntenseFragmentScan(), Row2.getMostIntenseFragmentScan());
-    mirrorScanTab.show();
+  public ObservableList<Edge> getSelectedEdges() {
+    return selectedEdges;
   }
 
   /**
@@ -459,7 +447,7 @@ public class NetworkPane extends BorderPane {
    */
   private String loadDefaultStyle() {
     try {
-      File file = new File(getClass().getResource(DEFAULT_STYLE_FILE).toExternalForm());
+      File file = new File(getClass().getClassLoader().getResource(DEFAULT_STYLE_FILE).getFile());
       String style = Files.readLines(file, Charsets.UTF_8).stream()
           .collect(Collectors.joining(" "));
       LOG.info("Default style from file: " + style);
@@ -485,11 +473,11 @@ public class NetworkPane extends BorderPane {
           f = FileAndPathUtil.getRealFilePath(f, "png");
           saveToFile(savePNG, f);
         } else if (saveDialog.getSelectedExtensionFilter().equals(svgExt)
-            || FileAndPathUtil.getExtension(f).equalsIgnoreCase("svg")) {
+                   || FileAndPathUtil.getExtension(f).equalsIgnoreCase("svg")) {
           f = FileAndPathUtil.getRealFilePath(f, "svg");
           saveToFile(saveSVG, f);
         } else if (saveDialog.getSelectedExtensionFilter().equals(graphmlExt)
-            || FileAndPathUtil.getExtension(f).equalsIgnoreCase("graphml")) {
+                   || FileAndPathUtil.getExtension(f).equalsIgnoreCase("graphml")) {
           f = FileAndPathUtil.getRealFilePath(f, "graphml");
           saveToFile(saveGraphML, f);
         }
@@ -585,22 +573,54 @@ public class NetworkPane extends BorderPane {
    * @param node target node
    */
   public void setSelectedNode(Node node) {
-    clearSelections();
+    clearSelections(selectedNodes);
     addSelection(node);
   }
 
-  public void addSelection(Node node) {
-    if (node != null) {
-      node.setAttribute("ui.class", "big, important");
+  /**
+   * Combines clear and add selection
+   *
+   * @param nodes target node
+   */
+  public void setSelectedNodes(List<Node> nodes) {
+    clearNodeSelections();
+    nodes.forEach(n -> n.setAttribute("ui.clicked"));
+    selectedNodes.setAll(nodes);
+  }
+
+  private void setSelectedEdge(final Edge edge) {
+    clearSelections(selectedEdges);
+    addSelection(edge);
+  }
+
+
+  public void addSelection(Element element) {
+    if (element instanceof Node node) {
+      node.setAttribute("ui.clicked");
+//      node.setAttribute("ui.class", "big, important");
       selectedNodes.add(node);
+    }
+    if (element instanceof Edge edge) {
+      edge.setAttribute("ui.clicked");
+      selectedEdges.add(edge);
+      setSelectedNodes(List.of(edge.getNode0(), edge.getNode1()));
     }
   }
 
-  public void clearSelections() {
-    for (Node n : selectedNodes) {
-      n.removeAttribute("ui.class");
+  public void clearNodeSelections() {
+    clearSelections(selectedNodes);
+  }
+
+  public void clearEdgeSelections() {
+    clearSelections(selectedEdges);
+  }
+
+  public void clearSelections(List<? extends Element> list) {
+    for (Element n : list) {
+      n.removeAttribute("ui.clicked");
+//      n.removeAttribute("ui.class");
     }
-    selectedNodes.clear();
+    list.clear();
   }
 
   public void setCenter(double x, double y) {

@@ -27,9 +27,11 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.Collection;
 import java.util.List;
 import javafx.scene.control.CheckMenuItem;
@@ -41,10 +43,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class FeatureNetworkTab extends MZmineTab {
 
-  private FeatureNetworkPane contentPane;
+  private FeatureNetworkPane networkPane;
   private final CheckMenuItem toggleCollapseIons;
   private final Desktop desktop;
   private final BorderPane mainPane;
+
 
   /**
    * Create the frame.
@@ -69,14 +72,14 @@ public class FeatureNetworkTab extends MZmineTab {
 
     toggleCollapseIons = new CheckMenuItem("Collapse ions");
     toggleCollapseIons.selectedProperty().addListener(
-        (object, old, value) -> contentPane.collapseIonNodes(toggleCollapseIons.isSelected()));
+        (object, old, value) -> networkPane.collapseIonNodes(toggleCollapseIons.isSelected()));
 
     menu.getItems().add(toggleCollapseIons);
     menuBar.getMenus().add(menu);
 
     // create a VBox
-    contentPane = new FeatureNetworkPane();
-    VBox vbox = new VBox(menuBar, contentPane);
+    networkPane = new FeatureNetworkPane();
+    VBox vbox = new VBox(menuBar, networkPane);
     mainPane.setCenter(vbox);
 
     // create a scene
@@ -86,10 +89,15 @@ public class FeatureNetworkTab extends MZmineTab {
   }
 
 
-  public FeatureNetworkTab(FeatureList featureList) {
+  public FeatureNetworkTab(final FeatureTableFX table, FeatureListRow selected) {
     this();
     // last, as it recreates the graph
-    contentPane.setFeatureList(featureList);
+    networkPane.setFeatureList(table.getFeatureList());
+
+    networkPane.linkToFeatureTable(table);
+    if (selected != null) {
+      networkPane.filterRowNeighbors(selected, 2);
+    }
   }
 
   public FeatureNetworkTab(FeatureList featureList, boolean collapseNodes,
@@ -97,13 +105,18 @@ public class FeatureNetworkTab extends MZmineTab {
       boolean onlyBest, boolean ms2SimEdges, boolean ms1FeatureShapeEdges) {
     this();
     toggleCollapseIons.setSelected(collapseNodes);
-    contentPane.collapseIonNodes(collapseNodes);
-    contentPane.setConnectByNetRelations(connectByNetRelations);
-    contentPane.setOnlyBest(onlyBest);
-    contentPane.setShowMs2SimEdges(ms2SimEdges);
-    contentPane.setUseMs1FeatureShapeEdges(ms1FeatureShapeEdges);
+    networkPane.collapseIonNodes(collapseNodes);
+    networkPane.setConnectByNetRelations(connectByNetRelations);
+    networkPane.setOnlyBest(onlyBest);
+    networkPane.setShowMs2SimEdges(ms2SimEdges);
+    networkPane.setUseMs1FeatureShapeEdges(ms1FeatureShapeEdges);
     // last, as it recreates the graph
-    contentPane.setFeatureList(featureList);
+    networkPane.setFeatureList(featureList);
+  }
+
+
+  public FeatureNetworkPane getNetworkPane() {
+    return networkPane;
   }
 
   @NotNull
@@ -115,13 +128,13 @@ public class FeatureNetworkTab extends MZmineTab {
   @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return List.of(contentPane.getFeatureList());
+    return List.of(networkPane.getFeatureList());
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return List.of(contentPane.getFeatureList());
+    return List.of(networkPane.getFeatureList());
   }
 
   @Override

@@ -78,7 +78,6 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
       SpectraIdentificationResultsWindowFX.class.getName());
 
   // link row selection to results
-  private final FeatureTableFX table;
   private final Font headerFont = new Font("Dialog Bold", 16);
   private final ObservableList<SpectralDBAnnotation> totalMatches;
   private final ObservableList<SpectralDBAnnotation> visibleMatches;
@@ -100,7 +99,6 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
 
   public SpectraIdentificationResultsWindowFX(@Nullable final FeatureTableFX table) {
     super("Spectral matches", false, false);
-    this.table = table;
     addRowSelectionListener(table);
 
     totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));

@@ -78,7 +78,6 @@ import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVi
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkTab;
-import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkTab;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
@@ -525,8 +524,15 @@ public class FeatureTableContextMenu extends ContextMenu {
             new SeparatorMenuItem(), showPeakRowSummaryItem, showNetworkVisualizerItem);
   }
 
+  /**
+   * Open molecular network and center on node
+   */
   private void showNetworkVisualizer() {
-    FeatureNetworkTab fnt = new FeatureNetworkTab(selectedRows.get(0).getFeatureList());
+    var selectedRow = selectedRows.get(0);
+    if (selectedRow == null) {
+      return;
+    }
+    FeatureNetworkTab fnt = new FeatureNetworkTab(table, selectedRow);
     MZmineCore.getDesktop().addTab(fnt);
   }
 
