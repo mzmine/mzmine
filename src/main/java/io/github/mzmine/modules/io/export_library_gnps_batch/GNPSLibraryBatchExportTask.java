@@ -109,16 +109,11 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
       return;
     }
 
-    boolean writeTsvHeader = !tsvFile.exists();
-
     try (BufferedWriter mgfWriter = Files.newBufferedWriter(mgfFile.toPath(),
         StandardCharsets.UTF_8)) {
       try (BufferedWriter tsvWriter = Files.newBufferedWriter(tsvFile.toPath(),
           StandardCharsets.UTF_8)) {
-        // create headers
-        if (writeTsvHeader) {
-          writeHeader(tsvWriter);
-        }
+        writeHeader(tsvWriter);
 
         // write the files
         exportLibraries(mgfWriter, tsvWriter);

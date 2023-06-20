@@ -42,7 +42,7 @@ public class PeptideSequenceType extends StringType implements EditableColumnTyp
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "peptide";
+    return "peptide_sequence";
   }
 
   @Override
