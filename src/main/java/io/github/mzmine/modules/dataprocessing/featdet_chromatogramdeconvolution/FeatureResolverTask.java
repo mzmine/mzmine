@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -278,6 +279,9 @@ public class FeatureResolverTask extends AbstractTask {
         }
         if (originalFeature.get(ImageType.class) != null) {
           f.set(ImageType.class, true);
+        }
+        if(originalFeature.get(MaldiSpotType.class) != null) {
+          f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
         }
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);

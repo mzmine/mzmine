@@ -32,6 +32,17 @@ import java.util.Comparator;
  */
 public class Comparators {
 
+  /**
+   * Comparing doubles scores: descending with nulls last usage:
+   * stream.sorted(Comparator.comparing(..., Comparators.scoreDescending())
+   *
+   * @return Comparator for scores
+   */
+  public static <T extends Comparable<? super T>> Comparator<T> scoreDescending() {
+    return Comparator.nullsLast(Comparator.reverseOrder());
+  }
+
+
   public static Comparator<Float> COMPARE_ABS_FLOAT = (a, b) -> {
     if (a == b) {
       return 0;

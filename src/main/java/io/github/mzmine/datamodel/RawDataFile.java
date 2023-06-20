@@ -39,7 +39,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -52,19 +51,6 @@ public interface RawDataFile {
    * file name)
    */
   @NotNull String getName();
-
-  /**
-   * Change the name of this data file.
-   * <p></p>
-   * Setting the name of a file via this function is not reproducible in MZmine projects if the name
-   * is not predetermined in by a parameter. In that case,
-   * {@link
-   * io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
-   * String)} should be used.
-   *
-   * @return the actually set name after checking restricted symbols and for duplicate names
-   */
-  String setName(@NotNull String name);
 
   /**
    * @return The absolute path this file was loaded from. Null if the file does not exist on the
@@ -308,9 +294,6 @@ public interface RawDataFile {
 
   void addScan(Scan newScan) throws IOException;
 
-
-  String setNameNoChecks(@NotNull String name);
-
   @NotNull ObservableList<Scan> getScans();
 
   default @NotNull Stream<Scan> stream() {
@@ -348,11 +331,6 @@ public interface RawDataFile {
   }
 
   @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods();
-
-  /**
-   * JavaFX safe copy of the name
-   */
-  StringProperty nameProperty();
 
   /**
    * Get the start time stamp of the sample.

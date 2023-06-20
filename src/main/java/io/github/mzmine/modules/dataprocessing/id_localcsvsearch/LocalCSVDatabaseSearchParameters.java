@@ -94,6 +94,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
       EmbeddedComponentOptions.VIEW_IN_WINDOW,
       (IonLibraryParameterSet) new IonLibraryParameterSet().cloneParameterSet());
+  public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
+      "Use isotope matcher",
+      "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
+      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
   private static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
@@ -107,13 +111,15 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonAdductType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()));
+
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
 
   public LocalCSVDatabaseSearchParameters() {
     super(
         new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance, ionLibrary, filterSamples, commentFields},
+            mobTolerance, ccsTolerance, isotopePatternMatcher, ionLibrary, filterSamples,
+            commentFields},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html");
   }
 

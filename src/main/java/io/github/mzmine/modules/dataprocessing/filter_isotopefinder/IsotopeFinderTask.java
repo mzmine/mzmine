@@ -379,5 +379,4 @@ class IsotopeFinderTask extends AbstractTask {
   private boolean checkRetentionTime(Scan scan, float maxRT, Float fwhmDiff) {
     return scan != null && Math.abs(scan.getRetentionTime() - maxRT) <= fwhmDiff;
   }
-
 }

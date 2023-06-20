@@ -28,7 +28,6 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -693,9 +692,7 @@ public class FormulaUtils {
     if (formula == null) {
       return null;
     }
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
-        formula, SilentChemObjectBuilder.getInstance());
-    return neutralizeFormulaWithHydrogen(molecularFormula);
+    return neutralizeFormulaWithHydrogen(createMajorIsotopeMolFormula(formula));
   }
 
   /**
@@ -756,19 +753,15 @@ public class FormulaUtils {
       return null;
     }
 
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        annotation.getFormula(), SilentChemObjectBuilder.getInstance());
-
+    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(annotation.getFormula());
+    assert molecularFormula != null;
     try {
-      FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
-    } catch (IOException e) {
+      // ionize formula
+      // considering both 2M etc
+      return annotation.getAdductType().addToFormula(molecularFormula);
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Cannot ionize formula");
       throw new RuntimeException(e);
     }
-
-    final IonType adductType = annotation.getAdductType();
-    if (adductType.getCDKFormula() != null) {
-      molecularFormula.add(adductType.getCDKFormula());
-    }
-    return molecularFormula;
   }
 }

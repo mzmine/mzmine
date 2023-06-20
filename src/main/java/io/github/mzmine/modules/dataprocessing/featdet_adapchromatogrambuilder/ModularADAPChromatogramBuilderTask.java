@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
@@ -61,9 +62,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -94,22 +93,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private final boolean isImaging;
   private double progress = 0.0;
   private ModularFeatureList newFeatureList;
-
-  public static ModularADAPChromatogramBuilderTask forImaging(MZmineProject project,
-      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
-    var total = parameters.getValue(ImageBuilderParameters.minTotalSignals);
-    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, total, null);
-  }
-
-  public static ModularADAPChromatogramBuilderTask forChromatography(MZmineProject project,
-      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
-    var minGroupIntensity = parameters.getValue(ADAPChromatogramBuilderParameters.minGroupIntensity);
-    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, null, minGroupIntensity);
-  }
 
   /**
    * @param callingModule     {@link ImageBuilderModule} or
@@ -143,6 +126,23 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     this.minimumTotalScans = requireNonNullElse(minimumTotalScans, minimumConsecutiveScans);
 
     isImaging = callingModule.equals(ImageBuilderModule.class);
+  }
+
+  public static ModularADAPChromatogramBuilderTask forImaging(MZmineProject project,
+      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
+    var total = parameters.getValue(ImageBuilderParameters.minTotalSignals);
+    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
+        moduleCallDate, callingModule, total, null);
+  }
+
+  public static ModularADAPChromatogramBuilderTask forChromatography(MZmineProject project,
+      RawDataFile dataFile, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
+    var minGroupIntensity = parameters.getValue(
+        ADAPChromatogramBuilderParameters.minGroupIntensity);
+    return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
+        moduleCallDate, callingModule, null, minGroupIntensity);
   }
 
   @Override
@@ -227,11 +227,18 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     RangeMap<Double, ADAPChromatogram> rangeToChromMap = TreeRangeMap.create();
 
     // make a list of all the data points
-    List<ExpandedDataPoint> allMzValues = new ArrayList<>();
+
+    final int totalDps = Arrays.stream(scans).map(Scan::getMassList)
+        .mapToInt(MassSpectrum::getNumberOfDataPoints).sum();
+    int dpCounter = 0;
+
+    ExpandedDataPoint[] allMzValues = new ExpandedDataPoint[totalDps];
 
     ScanDataAccess scanData = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
         scanSelection);
 
+    progress = 0;
+    double progressStep = 0.1 / scanData.getNumberOfScans();
     while (scanData.hasNextScan()) {
       if (isCanceled()) {
         return;
@@ -260,16 +267,19 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       for (int i = 0; i < dps; i++) {
         ExpandedDataPoint curDatP = new ExpandedDataPoint(scanData.getMzValue(i),
             scanData.getIntensityValue(i), scan);
-        allMzValues.add(curDatP);
+        allMzValues[dpCounter] = curDatP;
+        dpCounter++;
       }
+      progress += progressStep;
     }
 
     // sort data points by intensity
-    allMzValues.sort(new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+    Arrays.parallelSort(allMzValues,
+        new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
     // count starts at 1 since we already have added one with a single point.
-    progress = 0.0;
-    double progressStep = (allMzValues.size() > 0) ? 0.5 / allMzValues.size() : 0.0;
+    progress = 0.1;
+    progressStep = (allMzValues.length > 0) ? 0.45 / allMzValues.length : 0.0;
 
     for (ExpandedDataPoint mzFeature : allMzValues) {
 
@@ -303,7 +313,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     final Map<Range<Double>, ADAPChromatogram> finalRangeMap = rangeToChromMap.asMapOfRanges();
 
     int numChromatograms = finalRangeMap.size();
-    progressStep = numChromatograms > 0 ? 0.5 / numChromatograms : 0.0;
+    progressStep = numChromatograms > 0 ? 0.45 / numChromatograms : 0.0;
 
     // Create new feature list
     newFeatureList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(),

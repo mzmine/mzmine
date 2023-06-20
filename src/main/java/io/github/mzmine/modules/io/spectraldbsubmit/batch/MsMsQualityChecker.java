@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -55,7 +56,8 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
    */
   public boolean matchesName(final FeatureAnnotation annotation, FeatureList flist) {
     return !exportFlistNameMatchOnly || (annotation.getCompoundName() != null && flist.getName()
-        .contains(annotation.getCompoundName()));
+        .contains(FileAndPathUtil.safePathEncode(
+            annotation.getCompoundName()))); // in case the name contained unsage characters, it was replaced for the feature lsit name.
   }
 
   /**

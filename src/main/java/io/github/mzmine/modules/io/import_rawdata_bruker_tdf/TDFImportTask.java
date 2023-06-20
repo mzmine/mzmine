@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
@@ -44,6 +45,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParam
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.PrmFrameTargetTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameTable;
@@ -257,7 +259,7 @@ public class TDFImportTask extends AbstractTask {
     final TDFUtils tdfUtils = new TDFUtils();
     logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
     final long handle = tdfUtils.openFile(tdfBin);
-    newMZmineFile.setName(rawDataFileName);
+//    newMZmineFile.setName(rawDataFileName);
     if (handle == 0L) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
@@ -298,6 +300,12 @@ public class TDFImportTask extends AbstractTask {
           frame.addMassList(new ScanPointerMassList(frame));
         }
 
+        if (isMaldi && frame instanceof ImagingFrame imgFrame) {
+          final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo(
+              frame.getFrameId());
+          imgFrame.setMaldiSpotInfo(maldiSpotInfo);
+        }
+
         newMZmineFile.addScan(frame);
         frames.add(frame);
         loadedFrames++;
@@ -311,7 +319,14 @@ public class TDFImportTask extends AbstractTask {
     }
 
     // extract mobility scans
-    appendScansFromTimsSegment(tdfUtils, frameTable, frames);
+    try {
+      appendScansFromTimsSegment(tdfUtils, frameTable, frames);
+    } catch (IndexOutOfBoundsException e) {
+      // happens on corrupt data
+      logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
