@@ -159,7 +159,7 @@ public class ThermoRawImportTask extends AbstractTask {
           return;
         }
 
-        Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, scan);
+        Scan newScan = ConversionUtils.mzmlScanToSimpleScan(newMZmineFile, scan);
 
         newMZmineFile.addScan(newScan);
         parsedScans++;

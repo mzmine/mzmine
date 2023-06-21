@@ -214,7 +214,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 //          newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
 //              mzIntensities[1], MassSpectrumType.CENTROIDED);
 //
-      Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan,
+      Scan newScan = ConversionUtils.mzmlScanToSimpleScan(newMZmineFile, mzMLScan,
           MassSpectrumType.CENTROIDED);
       ScanPointerMassList newMassList = new ScanPointerMassList(newScan);
       newScan.addMassList(newMassList);
@@ -318,7 +318,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       }
 
       mobilityScans.add(
-          ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
+          ConversionUtils.mzmlScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;

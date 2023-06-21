@@ -27,8 +27,6 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
@@ -49,7 +47,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
   private final ScanImportProcessorConfig scanProcessorConfig;
 
   private int totalScans = 1;
-  private final int parsedScans = 0;
+  private int parsedScans = 0;
 
   /**
    * This import task wraps other data import tasks that do not support application of mass
@@ -124,20 +122,13 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    * @return true if succeed and false if cancelled
    */
   public boolean applyMassDetection() {
-    // uses only a single array for each (mz and intensity) to loop over all scans
-    ScanDataAccess data = EfficientDataAccess.of(newMZmineFile,
-        EfficientDataAccess.ScanDataType.RAW);
-    totalScans = data.getNumberOfScans();
+    totalScans = newMZmineFile.getNumOfScans();
 
-    // all scans
-    while (data.hasNextScan()) {
+    for (Scan scan : newMZmineFile.getScans()) {
       if (isCanceled() || (importTask != null && importTask.isCanceled())) {
         return false;
       }
-
-      Scan scan = data.nextScan();
-
-      var processedData = scanProcessorConfig.processor()
+      SimpleSpectralArrays processedData = scanProcessorConfig.processor()
           .processScan(scan, new SimpleSpectralArrays(scan));
 
       if (scanProcessorConfig.applyMassDetection()) {
@@ -146,6 +137,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
             processedData.intensities());
         scan.addMassList(newMassList);
       }
+      parsedScans++;
     }
     return true;
   }

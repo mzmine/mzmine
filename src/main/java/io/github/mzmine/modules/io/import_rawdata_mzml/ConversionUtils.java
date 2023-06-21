@@ -112,14 +112,14 @@ public class ConversionUtils {
   }
 
 
-  public static Scan msdkScanToSimpleScan(final RawDataFile dataFile,
+  public static Scan mzmlScanToSimpleScan(final RawDataFile dataFile,
       final BuildingMzMLMsScan scan) {
-    return msdkScanToSimpleScan(dataFile, scan, scan.getSpectrumType());
+    return mzmlScanToSimpleScan(dataFile, scan, scan.getSpectrumType());
   }
 
-  public static Scan msdkScanToSimpleScan(final RawDataFile dataFile, final BuildingMzMLMsScan scan,
+  public static Scan mzmlScanToSimpleScan(final RawDataFile dataFile, final BuildingMzMLMsScan scan,
       final MassSpectrumType spectrumType) {
-    return msdkScanToSimpleScan(dataFile, scan, scan.getDoubleBufferMzValues(),
+    return mzmlScanToSimpleScan(dataFile, scan, scan.getDoubleBufferMzValues(),
         scan.getDoubleBufferIntensityValues(), spectrumType);
   }
 
@@ -132,7 +132,7 @@ public class ConversionUtils {
    * @param spectrumType override spectrum type
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
+  public static Scan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
       DoubleBuffer mzs, DoubleBuffer intensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
@@ -153,7 +153,7 @@ public class ConversionUtils {
     return newScan;
   }
 
-  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
+  public static BuildingMobilityScan mzmlScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
     // TODO make sure memory mapping is not done twice - maybe turn off memory mapping for those scans
     var dps = scan.getNumberOfDataPoints();
     return new BuildingMobilityScan(scannum, scan.getMzValues(new double[dps]),
