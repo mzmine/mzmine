@@ -23,11 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
+
+import io.github.mzmine.datamodel.DataPoint;
+import java.util.List;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum SignalAlignmentAnnotation {
-  MATCH, MODIFIED, FILTERED, NONE;
+public record CosinePairContributions(List<DataPoint[]> pairs, double[] contributions,
+                                      SignalAlignmentAnnotation[] match) {
+
+
+  public int size() {
+    return pairs.size();
+  }
 }

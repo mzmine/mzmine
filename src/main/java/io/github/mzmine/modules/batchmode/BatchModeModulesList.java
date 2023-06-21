@@ -85,7 +85,7 @@ import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
@@ -293,7 +293,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
        */
       CorrelateGroupingModule.class, //
-      MS2SimilarityModule.class, //
+      SpectralNetworkingModule.class, //
       AnnotateIsomersModule.class, //
 
       /*
