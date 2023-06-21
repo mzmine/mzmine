@@ -188,12 +188,16 @@ public final class MZmineCore {
             .getParameter(MZminePreferences.memoryOption).getValue();
       }
 
+      String numCores = argsParser.getNumCores();
+      setNumThreadsOverride(numCores);
+
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
 
       // batch mode defined by command line argument
       File batchFile = argsParser.getBatchFile();
       File[] overrideDataFiles = argsParser.getOverrideDataFiles();
+      File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
       // track version use
@@ -228,7 +232,7 @@ public final class MZmineCore {
           // run batch file
           getInstance().batchExitCode = BatchModeModule.runBatch(
               getInstance().projectManager.getCurrentProject(), batchFile, overrideDataFiles,
-              Instant.now());
+              overrideSpectralLibraryFiles, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished
@@ -240,6 +244,30 @@ public final class MZmineCore {
     } catch (Exception ex) {
       logger.log(Level.SEVERE, "Error during MZmine start up", ex);
       exit();
+    }
+  }
+
+  /**
+   * Set number of cores to automatic or to fixed number
+   *
+   * @param numCores "auto" for automatic or integer
+   */
+  public static void setNumThreadsOverride(@Nullable final String numCores) {
+    if (numCores != null) {
+      // set to preferences
+      var parameter = getInstance().configuration.getPreferences()
+          .getParameter(MZminePreferences.numOfThreads);
+      if (numCores.equalsIgnoreCase("auto") || numCores.equalsIgnoreCase("automatic")) {
+        parameter.setAutomatic(true);
+      } else {
+        try {
+          parameter.setValue(Integer.parseInt(numCores));
+        } catch (Exception ex) {
+          logger.log(Level.SEVERE,
+              "Cannot parse command line argument threads (int) set to " + numCores);
+          throw new IllegalArgumentException("numCores was set to " + numCores, ex);
+        }
+      }
     }
   }
 
