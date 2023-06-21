@@ -109,7 +109,7 @@ public class MZmineArgumentParser {
     keepInMemory.setRequired(false);
     options.addOption(keepInMemory);
 
-    Option numCores = new Option("c", "threads", true,
+    Option numCores = new Option(null, "threads", true,
         "the number of threads to use during processing, or 'auto' to automatically detect available resources. "
         + "threads overwrites the specified value in the preference.");
     numCores.setRequired(false);

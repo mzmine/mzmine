@@ -189,22 +189,7 @@ public final class MZmineCore {
       }
 
       String numCores = argsParser.getNumCores();
-      if (numCores != null) {
-        // set to preferences
-        var parameter = getInstance().configuration.getPreferences()
-            .getParameter(MZminePreferences.numOfThreads);
-        if (numCores.equalsIgnoreCase("auto") || numCores.equalsIgnoreCase("automatic")) {
-          parameter.setAutomatic(true);
-        } else {
-          try {
-            parameter.setValue(Integer.parseInt(numCores));
-          } catch (Exception ex) {
-            logger.log(Level.SEVERE,
-                "Cannot parse command line argument threads (int) set to " + numCores);
-            throw ex;
-          }
-        }
-      }
+      setNumThreadsOverride(numCores);
 
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
@@ -259,6 +244,30 @@ public final class MZmineCore {
     } catch (Exception ex) {
       logger.log(Level.SEVERE, "Error during MZmine start up", ex);
       exit();
+    }
+  }
+
+  /**
+   * Set number of cores to automatic or to fixed number
+   *
+   * @param numCores "auto" for automatic or integer
+   */
+  public static void setNumThreadsOverride(@Nullable final String numCores) {
+    if (numCores != null) {
+      // set to preferences
+      var parameter = getInstance().configuration.getPreferences()
+          .getParameter(MZminePreferences.numOfThreads);
+      if (numCores.equalsIgnoreCase("auto") || numCores.equalsIgnoreCase("automatic")) {
+        parameter.setAutomatic(true);
+      } else {
+        try {
+          parameter.setValue(Integer.parseInt(numCores));
+        } catch (Exception ex) {
+          logger.log(Level.SEVERE,
+              "Cannot parse command line argument threads (int) set to " + numCores);
+          throw new IllegalArgumentException("numCores was set to " + numCores, ex);
+        }
+      }
     }
   }
 
