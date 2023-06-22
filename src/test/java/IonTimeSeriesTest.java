@@ -34,13 +34,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.IntensitySortedSeries;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
@@ -328,12 +328,11 @@ class IonTimeSeriesTest {
         new BinningMobilogramDataAccess(file, 1));
   }
 
-  private static void testSortedSeries(SimpleIonTimeSeries i0,
-      IntensitySortedSeries<SimpleIonTimeSeries> s0) {
-    int prev = s0.next();
-    while (s0.hasNext()) {
-      int index = s0.next();
-      Assertions.assertTrue(i0.getIntensity(prev) > i0.getIntensity(index));
+  private static void testSortedSeries(int[] indices, IonTimeSeries<?> series) {
+    for (int i = 1; i < series.getNumberOfValues(); i++) {
+      final double i1 = series.getIntensity(indices[i - 1]);
+      final double i2 = series.getIntensity(indices[i]);
+      Assertions.assertTrue(i1 >= i2);
     }
   }
 
@@ -368,7 +367,8 @@ class IonTimeSeriesTest {
     final List<Scan> scans = makeSomeScans(file, 10);
     final double[] intensities0 = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
     final double[] intensities1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    final double[] intensities2 = {0, 9, 2, 5, 4, 7, 6, 2, 8, 1};
+//    final double[] intensities2 = {0, 9, 3, 5, 4, 7, 2, 6, 8, 1};
+    final double[] intensities2 = {0, 9, 3, 5, 7, 8, 2, 4, 6, 1};
     final double[] mzs = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     final SimpleIonTimeSeries i0 = new SimpleIonTimeSeries(null, mzs, intensities0, scans);
@@ -377,15 +377,11 @@ class IonTimeSeriesTest {
     final SimpleIonTimeSeries i3 = new SimpleIonTimeSeries(null, intensities, intensities,
         makeSomeScans(file, intensities.length));
 
-    final IntensitySortedSeries<SimpleIonTimeSeries> s0 = new IntensitySortedSeries<>(i0);
-    final IntensitySortedSeries<SimpleIonTimeSeries> s1 = new IntensitySortedSeries<>(i1);
-    final IntensitySortedSeries<SimpleIonTimeSeries> s2 = new IntensitySortedSeries<>(i2);
-    final IntensitySortedSeries<SimpleIonTimeSeries> s3 = new IntensitySortedSeries<>(i3);
-
-    testSortedSeries(i0, s0);
-    testSortedSeries(i1, s1);
-    testSortedSeries(i2, s2);
-    testSortedSeries(i3, s3);
+    testSortedSeries(IonTimeSeriesUtils.getIntensitySortedIndices(i0), i0);
+    testSortedSeries(IonTimeSeriesUtils.getIntensitySortedIndices(i1), i1);
+    final int[] intensitySortedIndices = IonTimeSeriesUtils.getIntensitySortedIndices(i2);
+    testSortedSeries(intensitySortedIndices, i2);
+    testSortedSeries(IonTimeSeriesUtils.getIntensitySortedIndices(i3), i3);
   }
 
   public List<Scan> makeSomeScans(RawDataFile file, int numFrames) {

@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -303,14 +304,14 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
       IonTimeSeries<? extends ImagingFrame> imagingData, MaldiTimsPrecursor precursor, int numMsMs,
       Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance, double minChimerityScore,
       final double minMobilityDistance) {
-    final IntensitySortedSeries<IonTimeSeries<? extends ImagingFrame>> imagingSorted = new IntensitySortedSeries<>(
-        imagingData);
+
+    final int[] intensitySortedIndices = IonTimeSeriesUtils.getIntensitySortedIndices(imagingData);
     final List<ImagingSpot> spots = featureSpotMap.computeIfAbsent(precursor.feature(),
         f -> new ArrayList<>());
 
-    while (imagingSorted.hasNext() && precursor.getTotalMsMs() < totalMsMsPerFeature) {
-
-      final Integer nextIndex = imagingSorted.next();
+    for (int i = 0;
+        i < intensitySortedIndices.length && precursor.getTotalMsMs() < totalMsMsPerFeature; i++) {
+      final int nextIndex = intensitySortedIndices[i];
       final ImagingFrame frame = imagingData.getSpectrum(nextIndex);
 
       if (spotMap.containsKey(frame)) {
@@ -336,7 +337,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
         continue;
       }
 
-      if (!checkChimerityScore(access, precursor, minChimerityScore, frame)) {
+      if (!checkPurityScore(access, precursor, minChimerityScore, frame)) {
         continue;
       }
 
@@ -373,7 +374,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
         continue;
       }
 
-      if (!checkChimerityScore(access, precursor, minChimerityScore, usedFrame)) {
+      if (!checkPurityScore(access, precursor, minChimerityScore, usedFrame)) {
         continue;
       }
 
@@ -388,13 +389,13 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     }
   }
 
-  private boolean checkChimerityScore(MobilityScanDataAccess access, MaldiTimsPrecursor precursor,
-      double minChimerityScore, ImagingFrame usedFrame) {
+  private boolean checkPurityScore(MobilityScanDataAccess access, MaldiTimsPrecursor precursor,
+      double minPurityScore, ImagingFrame usedFrame) {
     access.jumpToFrame(usedFrame);
 
-    final double chimerityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(precursor.mz(),
+    final double purityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(precursor.mz(),
         access, isolationWindow.getToleranceRange(precursor.mz()), precursor.mobility(), true);
-    if (chimerityScore < minChimerityScore) {
+    if (purityScore < minPurityScore) {
       return false;
     }
     return true;

@@ -26,34 +26,25 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.stream.IntStream;
 
-public class IntensitySortedSeries<T extends IonTimeSeries<?>> implements Iterator<Integer> {
+public class IntensitySortedIterator<T extends IonTimeSeries<?>> implements Iterator<Integer> {
 
-  private final Integer[] indices;
-  T series;
+  private final int[] indices;
   int index = -1;
 
-  public IntensitySortedSeries(T series) {
-    this.series = series;
+  public IntensitySortedIterator(T series) {
     final double[] intensities;
     intensities = new double[series.getNumberOfValues()];
     series.getIntensityValues(intensities);
 
-    indices = new Integer[series.getNumberOfValues()];
-
-    for (int i = 0; i < indices.length; i++) {
-      indices[i] = i;
-    }
-
-    /*final int[] indices = IntStream.range(0, series.getNumberOfValues())
-        .mapToObj(i -> new IndexedValue(i, series.getIntensity(i)))
-        .sorted(Comparator.comparingDouble(IndexedValue::value).reversed())
-        .mapToInt(IndexedValue::index).toArray();*/
-
     // sort by descending intensity
-    Arrays.sort(this.indices, (i1, i2) -> -1 * Double.compare(intensities[i1], intensities[i2]));
+    indices = IntStream.range(0, series.getNumberOfValues())
+        .mapToObj(i -> new IndexedValue(i, series.getIntensity(i)))
+        .sorted(Comparator.comparingDouble(IndexedValue::intensity).reversed())
+        .mapToInt(IndexedValue::index).toArray();
   }
 
 
@@ -68,9 +59,7 @@ public class IntensitySortedSeries<T extends IonTimeSeries<?>> implements Iterat
     return indices[index];
   }
 
-  private record IndexedValue(int index, double value) {
+  private record IndexedValue(int index, double intensity) {
 
   }
-
-  ;
 }
