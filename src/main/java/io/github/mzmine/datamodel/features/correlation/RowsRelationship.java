@@ -137,7 +137,7 @@ public interface RowsRelationship {
       return switch (this) {
         case MS1_FEATURE_CORR -> "MS1 feature correlation";
         case ION_IDENTITY_NET -> "Ion identity network";
-        case MS2_COSINE_SIM -> "MS2 cosine similarity";
+        case MS2_COSINE_SIM -> "modified MS2 cosine similarity";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine similarity";
         case MS2_GNPS_COSINE_SIM -> "MS2 modified cosine similarity (GNPS)";
       };

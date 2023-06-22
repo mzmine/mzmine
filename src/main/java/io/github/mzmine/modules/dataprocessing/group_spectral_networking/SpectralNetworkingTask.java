@@ -376,6 +376,12 @@ public class SpectralNetworkingTask extends AbstractTask {
         featureList.addRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
         featureList.addRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
       }
+
+      logger.info("Added %d edges for %s".formatted(mapCosineSim.size(), Type.MS2_COSINE_SIM));
+      if (checkNeutralLoss) {
+        logger.info("Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
+      }
+
       setStatus(TaskStatus.FINISHED);
 
     } catch (MissingMassListException e) {
