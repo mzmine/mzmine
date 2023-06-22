@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -32,11 +33,11 @@ public class IntensitySortedSeries<T extends IonTimeSeries<?>> implements Iterat
 
   private final Integer[] indices;
   T series;
-  final double[] intensities;
   int index = -1;
 
   public IntensitySortedSeries(T series) {
     this.series = series;
+    final double[] intensities;
     intensities = new double[series.getNumberOfValues()];
     series.getIntensityValues(intensities);
 
@@ -46,8 +47,13 @@ public class IntensitySortedSeries<T extends IonTimeSeries<?>> implements Iterat
       indices[i] = i;
     }
 
+    /*final int[] indices = IntStream.range(0, series.getNumberOfValues())
+        .mapToObj(i -> new IndexedValue(i, series.getIntensity(i)))
+        .sorted(Comparator.comparingDouble(IndexedValue::value).reversed())
+        .mapToInt(IndexedValue::index).toArray();*/
+
     // sort by descending intensity
-    Arrays.sort(indices, (i1, i2) -> -1 * Double.compare(intensities[i1], intensities[i2]));
+    Arrays.sort(this.indices, (i1, i2) -> -1 * Double.compare(intensities[i1], intensities[i2]));
   }
 
 
@@ -61,4 +67,10 @@ public class IntensitySortedSeries<T extends IonTimeSeries<?>> implements Iterat
     ++index;
     return indices[index];
   }
+
+  private record IndexedValue(int index, double value) {
+
+  }
+
+  ;
 }
