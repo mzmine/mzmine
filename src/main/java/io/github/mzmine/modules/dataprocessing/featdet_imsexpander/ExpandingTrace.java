@@ -55,9 +55,15 @@ public class ExpandingTrace {
 
   private final Map<MobilityScan, DataPoint> dataPoints = new HashMap<>();
 
-  ExpandingTrace(@NotNull final ModularFeatureListRow f, Range<Double> mzRange) {
+  public ExpandingTrace(@NotNull final ModularFeatureListRow f, Range<Double> mzRange) {
     this.f = f;
     rtRange = f.getBestFeature().getRawDataPointsRTRange();
+    this.mzRange = mzRange;
+  }
+
+  public ExpandingTrace(@NotNull final ModularFeatureListRow f, Range<Double> mzRange, Range<Float> rtRange) {
+    this.f = f;
+    this.rtRange = rtRange;
     this.mzRange = mzRange;
   }
 

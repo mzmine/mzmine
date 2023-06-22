@@ -197,7 +197,6 @@ public class RawImageProvider implements PlotXYZDataProvider {
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }
 
-
   @NotNull
   private SimpleIonTimeSeries extractIonTimeSeries() {
     if (useMobility && raw instanceof IMSRawDataFile imsRaw) {
@@ -314,6 +313,4 @@ public class RawImageProvider implements PlotXYZDataProvider {
     finishedPercentage = 1;
     return new SimpleIonTimeSeries(null, mzs.toDoubleArray(), intensities.toDoubleArray(), scans);
   }
-
-
 }

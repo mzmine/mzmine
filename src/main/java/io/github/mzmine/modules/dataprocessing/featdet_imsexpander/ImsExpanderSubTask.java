@@ -89,6 +89,7 @@ public class ImsExpanderSubTask extends AbstractTask {
         expandingTraces.get(expandingTraces.size() - 1).getMzRange().upperEndpoint())
         : Range.singleton(0d);
 
+    totalFrames = frames.size();
     desc = flist.getName() + ": expanding traces for frame " + processedFrames.get() + "/"
         + totalFrames + " m/z range: " + RangeUtils.formatRange(traceMzRange,
         MZmineCore.getConfiguration().getMZFormat());
@@ -108,7 +109,7 @@ public class ImsExpanderSubTask extends AbstractTask {
       return 1.0d;
     }
     return (processedFrames.get() / (double) totalFrames) * 0.5
-        + createdRows / (double) expandingTraces.size();
+        + createdRows / (double) expandingTraces.size() * 0.5;
   }
 
   @Override
@@ -118,7 +119,6 @@ public class ImsExpanderSubTask extends AbstractTask {
     final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
         useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.CENTROID, frames);
 
-    totalFrames = access.getNumberOfScans();
     final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
     final int numTraces = expandingTraces.size();

@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
-import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -60,7 +59,6 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +70,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -122,8 +119,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    // precheck first
-    File[] selectedFiles = parameters.getValue(AllSpectralDataImportParameters.fileNames);
+    // precheck first, make sure all
+    File[] selectedFiles = Arrays.stream(
+            parameters.getValue(AllSpectralDataImportParameters.fileNames))
+        .map(AllSpectralDataImportModule::validateBrukerPath).toArray(File[]::new);
     // check for duplicates in the input files
     if (containsDuplicateFiles(selectedFiles, "raw data file names in the import list.")) {
       return ExitCode.ERROR;
@@ -136,7 +135,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // for bruker files path might point to D:\datafile.d\datafile.d  where the first is a folder
     // change to the folder
     // skip files that are already loaded
-    final File[] fileNames = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(project, parameters);
+    final File[] fileNames = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(project,
+        parameters);
 
     // after skipping already loaded
     if (checkDuplicateFilesInImportListAndProject(project, fileNames)) {
@@ -171,9 +171,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       }
     }
 
-    // Find common prefix in raw file names if in GUI mode
-    String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
-
     // one storage for all files imported in the same task as they are typically analyzed together
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
@@ -199,13 +196,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         .count();
     if (numTdf > 0) {
       TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-                                               .getParameter(MZminePreferences.numOfThreads)
-                                               .getValue() / numTdf));
+          .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
     }
     if (numTsf > 0) {
       TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-                                               .getParameter(MZminePreferences.numOfThreads)
-                                               .getValue() / numTsf));
+          .getParameter(MZminePreferences.numOfThreads).getValue() / numTsf));
     }
 
     for (int i = 0; i < fileNames.length; i++) {
@@ -217,21 +212,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         return ExitCode.ERROR;
       }
 
-      // Set the new name by removing the common prefix
-      String newName;
-      if (!Strings.isNullOrEmpty(commonPrefix)) {
-        final String regex = "^" + Pattern.quote(commonPrefix);
-        newName = fileName.getName().replaceFirst(regex, "");
-      } else {
-        newName = fileName.getName();
-      }
-
       final RawDataFileType fileType = fileTypes.get(i);
       logger.finest("File " + fileName + " type detected as " + fileType);
 
       try {
-        RawDataFile newMZmineFile = createDataFile(fileType, fileName.getAbsolutePath(), newName,
-            storage);
+        RawDataFile newMZmineFile = createDataFile(fileType, fileName.getAbsolutePath(),
+            fileName.getName(), storage);
 
         final AbstractTask newTask =
             useAdvancedOptions && advancedParam != null ? createAdvancedTask(fileType, project,
@@ -309,7 +295,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return the valid bruker file path for bruker .d files or the input file
    */
   public static File validateBrukerPath(File f) {
-    if (f.getName().endsWith(".d") && f.getParent().endsWith(".d")) {
+    if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
+        || f.getName().endsWith(".tsf"))) {
       return f.getParentFile();
     } else {
       return f;
@@ -397,7 +384,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-                   + " and file " + file.getAbsolutePath());
+        + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, module, parameters, moduleCallDate,

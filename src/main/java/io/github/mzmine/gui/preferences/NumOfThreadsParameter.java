@@ -34,8 +34,7 @@ import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation
- * 
- * 
+ *
  */
 public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThreadsEditor> {
 
@@ -50,17 +49,11 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
     this.automatic = true;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
@@ -82,10 +75,15 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
     return automatic;
   }
 
+  public void setAutomatic(final boolean automatic) {
+    this.automatic = automatic;
+  }
+
   @Override
   public void setValue(Integer value) {
     assert value != null;
     this.value = value;
+    automatic = false;
   }
 
   @Override

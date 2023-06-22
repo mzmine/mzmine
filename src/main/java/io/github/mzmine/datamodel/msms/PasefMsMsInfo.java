@@ -79,7 +79,7 @@ public interface PasefMsMsInfo extends DDAMsMsInfo {
         spectrumNumberRange.lowerEndpoint());
     final double upper = msMsFrame.getMobilityForMobilityScanNumber(
         spectrumNumberRange.upperEndpoint());
-    return Range.closed((float) lower, (float) upper);
+    return Range.closed((float) Math.min(lower, upper), (float) Math.max(lower, upper));
   }
 
   void writeToXML(XMLStreamWriter writer) throws XMLStreamException;

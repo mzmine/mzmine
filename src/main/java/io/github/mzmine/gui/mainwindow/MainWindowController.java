@@ -42,7 +42,6 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
-import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -136,7 +135,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
 import org.jetbrains.annotations.NotNull;
@@ -161,10 +159,6 @@ public class MainWindowController {
   public MenuItem rawDataGroupMenuItem;
   @FXML
   public MenuItem rawDataRemoveMenuItem;
-  @FXML
-  public MenuItem rawDataRenameMenuItem;
-  @FXML
-  public MenuItem rawDataRemoveExtensionMenuItem;
   @FXML
   public Menu rawDataSetColorMenu;
   @FXML
@@ -415,8 +409,6 @@ public class MainWindowController {
 
             RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
             setText(rawDataFile.getName());
-            rawDataFile.nameProperty()
-                .addListener((observable, oldValue, newValue) -> setText(newValue));
             setGraphic(getRawGraphic(rawDataFile));
 
             rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
@@ -434,9 +426,6 @@ public class MainWindowController {
             if (item instanceof GroupEntity) {
               return;
             }
-
-            RawDataFileRenameModule.renameFile(((ValueEntity<RawDataFile>) item).getValue(),
-                getText());
           }
         });
 
@@ -501,26 +490,6 @@ public class MainWindowController {
 
             // Setting color should be enabled only if files are selected
             rawDataSetColorMenu.setDisable(rawDataList.getSelectedValues().size() <= 0);
-
-            if (rawDataList.getSelectedValues().size() == 1) {
-              rawDataRemoveMenuItem.setText("Remove file");
-              rawDataRemoveExtensionMenuItem.setText("Remove file extension");
-            } else {
-              rawDataRemoveMenuItem.setText("Remove files");
-              rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
-            }
-
-            if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
-              rawDataRenameMenuItem.setDisable(false);
-              if (rawDataList.getSelectionModel().getSelectedItems()
-                  .get(0) instanceof GroupEntity) {
-                rawDataRenameMenuItem.setText("Rename group");
-              } else {
-                rawDataRenameMenuItem.setText("Rename file");
-              }
-            } else {
-              rawDataRenameMenuItem.setDisable(true);
-            }
           }
         });
 
@@ -776,28 +745,7 @@ public class MainWindowController {
     featureListsList.sortSelectedItems();
   }
 
-  public void handleRemoveFileExtension(Event event) {
-    for (RawDataFile file : rawDataList.getSelectedValues()) {
-      RawDataFileRenameModule.renameFile(file, FilenameUtils.removeExtension(file.getName()));
-    }
-    rawDataList.refresh();
-  }
-
   public void handleExportFile(Event event) {
-  }
-
-  public void handleRenameRawData(Event event) {
-    if (rawDataList.getSelectionModel() == null) {
-      return;
-    }
-
-    // Only one file must be selected
-    if (rawDataList.getSelectionModel().getSelectedIndices().size() != 1) {
-      return;
-    }
-
-    rawDataList.setEditable(true);
-    rawDataList.edit(rawDataList.getSelectionModel().getSelectedIndex());
   }
 
   @SuppressWarnings("unchecked")

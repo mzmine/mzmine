@@ -27,7 +27,6 @@ package io.github.mzmine.project.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -49,8 +48,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
@@ -75,7 +72,6 @@ public class RawDataFileImpl implements RawDataFile {
   protected final ObservableList<Scan> scans;
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods = FXCollections.observableArrayList();
   // for ease of use we have a javafx safe copy of name
-  private final StringProperty nameProperty = new SimpleStringProperty("");
   private final Map<Integer, Range<Double>> dataMZRange = new HashMap<>();
   private final Map<Integer, Range<Float>> dataRTRange = new HashMap<>();
   private final Int2DoubleOpenHashMap dataMaxBasePeakIntensity = new Int2DoubleOpenHashMap(2);
@@ -86,7 +82,7 @@ public class RawDataFileImpl implements RawDataFile {
   // maximum number of data points and centroid data points in all scans
   protected int maxRawDataPoints = -1;
   // Name of this raw data file - may be changed by the user
-  private String name = "";
+  private final String name;
   // track if file contains zero intensity as this might originate from wrong conversion
   // msconvert needs to have the peak picker as first step / not even title maker before that
   private boolean containsZeroIntensity;
@@ -105,7 +101,7 @@ public class RawDataFileImpl implements RawDataFile {
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage, @NotNull Color color) {
-    setName(dataFileName);
+    this.name = dataFileName;
     this.storageMemoryMap = storage;
     this.absolutePath = absolutePath;
 
@@ -375,42 +371,9 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public String setName(@NotNull String name) {
-    if (name.isBlank() || name.equals(getName())) {
-      // keep old name
-      return getName();
-    }
-
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
-
-    if (project != null) {
-      project.setUniqueDataFileName(this, name);
-    } else {
-      // path safe encode
-      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
-    }
-
-    return this.name;
-  }
-
-
-  @Override
-  public String setNameNoChecks(@NotNull String name) {
-    this.name = name;
-
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
-    if (project != null) {
-      project.fireDataFilesChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
-    }
-    MZmineCore.runLater(() -> nameProperty.set(this.name));
-    return name;
-  }
-
-  @Override
   public String toString() {
     return name;
   }
-
 
   @Override
   public @NotNull ObservableList<Scan> getScans() {
@@ -421,11 +384,6 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return appliedMethods;
-  }
-
-  @Override
-  public StringProperty nameProperty() {
-    return nameProperty;
   }
 
   @Override

@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
@@ -58,13 +58,13 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
   private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-  private final ModularFeature f;
+  private final Feature f;
   private final IonMobilogramTimeSeries featureData;
   private SummedIntensityMobilitySeries rawMobilogram;
   private final Range<Double> mzRange;
   private double percentage = 0d;
 
-  public FeatureRawMobilogramProvider(@NotNull final ModularFeature f,
+  public FeatureRawMobilogramProvider(@NotNull final Feature f,
       @NotNull final Range<Double> mzRange) {
     this.f = f;
     this.mzRange = mzRange;

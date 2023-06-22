@@ -23,21 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.rawfilerename;
+package io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
+import io.github.mzmine.parameters.ParameterSet;
+import java.io.File;
+import java.util.List;
+import java.util.function.BooleanSupplier;
 
-public class RawDataFileRenameParameters extends SimpleParameterSet {
+public interface MaldiMs2AcqusitionWriter extends MZmineModule {
 
-  public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
-
-  public static final StringParameter newName = new StringParameter("New name",
-      "The new name of the raw data file");
-
-  public RawDataFileRenameParameters() {
-    super(new Parameter[]{files, newName});
-  }
+  boolean writeAcqusitionFile(File acquisitionFile, List<ImagingSpot> spots,
+      CeSteppingTables ceTables, ParameterSet parameters, BooleanSupplier isCanceled,
+      File savePathDir);
 }

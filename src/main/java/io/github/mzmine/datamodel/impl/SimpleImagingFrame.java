@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleImagingFrame extends SimpleFrame implements ImagingFrame {
 
   private Coordinates coordinates;
+  private MaldiSpotInfo maldiSpotInfo = null;
 
   public SimpleImagingFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double[] mzValues, double[] intensityValues,
@@ -59,5 +61,15 @@ public class SimpleImagingFrame extends SimpleFrame implements ImagingFrame {
   @Override
   public void setCoordinates(@Nullable Coordinates coordinates) {
     this.coordinates = coordinates;
+  }
+
+  @Override
+  public @Nullable MaldiSpotInfo getMaldiSpotInfo() {
+    return maldiSpotInfo;
+  }
+
+  @Override
+  public void setMaldiSpotInfo(@Nullable MaldiSpotInfo info) {
+    this.maldiSpotInfo = info;
   }
 }

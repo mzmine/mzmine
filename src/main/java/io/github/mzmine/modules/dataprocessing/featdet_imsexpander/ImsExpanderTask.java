@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,7 +68,7 @@ public class ImsExpanderTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ImsExpanderTask.class.getName());
   private static final int NUM_THREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
-  private static final String SUFFIX = " expanded ";
+  private static final String SUFFIX = " expanded";
   protected final ParameterSet parameters;
   protected final ModularFeatureList flist;
   final List<AbstractTask> tasks = new ArrayList<>();
@@ -168,7 +168,8 @@ public class ImsExpanderTask extends AbstractTask {
     // we partition the traces (sorted by rt) so we can start and end at specific frames. By splitting
     // the traces and not frames, we can also directly store the raw data on the SSD/HDD as soon as
     // a thread finishes. Thereby we can reduce the memory consumption, especially in images.
-    final int tracesPerList = Math.min(expandingTraces.size() / NUM_THREADS, maxNumTraces);
+    final int tracesPerList = Math.max(1,
+        Math.min(expandingTraces.size() / NUM_THREADS, maxNumTraces));
     expandingTraces.sort(
         (a, b) -> Float.compare(a.getRtRange().lowerEndpoint(), b.getRtRange().lowerEndpoint()));
     final List<List<ExpandingTrace>> subLists = Lists.partition(expandingTraces, tracesPerList);
