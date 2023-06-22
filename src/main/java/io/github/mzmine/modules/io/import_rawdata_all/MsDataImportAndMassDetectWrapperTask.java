@@ -128,10 +128,10 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
       if (isCanceled() || (importTask != null && importTask.isCanceled())) {
         return false;
       }
-      SimpleSpectralArrays processedData = scanProcessorConfig.processor()
-          .processScan(scan, new SimpleSpectralArrays(scan));
 
       if (scanProcessorConfig.applyMassDetection()) {
+        SimpleSpectralArrays processedData = scanProcessorConfig.processor()
+            .processScan(scan, new SimpleSpectralArrays(scan));
         // uses a different storage for mass lists then the one defined for the MS data import
         SimpleMassList newMassList = new SimpleMassList(storage, processedData.mzs(),
             processedData.intensities());

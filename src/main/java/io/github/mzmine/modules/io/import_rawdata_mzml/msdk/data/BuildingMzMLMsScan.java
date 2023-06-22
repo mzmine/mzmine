@@ -585,7 +585,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   public boolean loadProcessMemMapData(final MemoryMapStorage storage,
       final MsProcessorList spectralProcessor) {
     try {
-      var specData = loadData();
+      SimpleSpectralArrays specData = loadData();
       if (specData == null) {
         // may be null for UV spectra
         return false;

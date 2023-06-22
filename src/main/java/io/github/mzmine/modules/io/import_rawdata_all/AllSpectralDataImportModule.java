@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_all;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -160,7 +161,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         useAdvancedOptions ? parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
             .getEmbeddedParameters() : null;
 
-    var scanProcessorConfig = createSpectralProcessors(advancedParam);
+    ScanImportProcessorConfig scanProcessorConfig = createSpectralProcessors(advancedParam);
 
     // start importing spectral libraries first
     final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
@@ -301,7 +302,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
       boolean denormalizeMsn = advanced.getValue(
           AdvancedSpectraImportParameters.denormalizeMSnScans);
-      var cropMzRange = advanced.getEmbeddedParameterValueIfSelectedOrElse(
+      Range<Double> cropMzRange = advanced.getEmbeddedParameterValueIfSelectedOrElse(
           AdvancedSpectraImportParameters.mzRange, null);
       // create more steps
       if (cropMzRange != null) {
