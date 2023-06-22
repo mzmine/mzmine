@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,19 +22,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
+package io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters;
 
-import io.github.mzmine.datamodel.DataPoint;
-import java.util.List;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-/**
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-public record CosinePairContributions(List<DataPoint[]> pairs, double[] contributions,
-                                      SignalAlignmentAnnotation[] match) {
+public class TripleSpotMs2Parameters extends SimpleParameterSet {
 
+  public static final IntegerParameter stageOffsetX = new IntegerParameter("Stage offset X / µm",
+      """
+          Offset that is added for every acquisition of a precursor list.
+          Recommended = laser spot size
+          """, 50);
+  public static final IntegerParameter stageOffsetY = new IntegerParameter("Stage offset Y / µm",
+      "Initial offset that is added when moving to a spot.", 0);
 
-  public int size() {
-    return pairs.size();
+  public TripleSpotMs2Parameters() {
+    super(new Parameter[]{stageOffsetX, stageOffsetY});
   }
 }

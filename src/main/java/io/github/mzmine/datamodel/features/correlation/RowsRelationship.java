@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import org.jetbrains.annotations.NotNull;
@@ -120,11 +120,11 @@ public interface RowsRelationship {
      */
     ION_IDENTITY_NET,
     /**
-     * MS2 spectral similarity, see {@link MS2SimilarityTask}
+     * MS2 spectral similarity, see {@link SpectralNetworkingTask}
      */
     MS2_COSINE_SIM,
     /**
-     * MS2 similarity of neutral losses see {@link MS2SimilarityTask}
+     * MS2 similarity of neutral losses see {@link SpectralNetworkingTask}
      */
     MS2_NEUTRAL_LOSS_SIM,
     /**
@@ -137,7 +137,7 @@ public interface RowsRelationship {
       return switch (this) {
         case MS1_FEATURE_CORR -> "MS1 feature correlation";
         case ION_IDENTITY_NET -> "Ion identity network";
-        case MS2_COSINE_SIM -> "MS2 cosine similarity";
+        case MS2_COSINE_SIM -> "modified MS2 cosine similarity";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine similarity";
         case MS2_GNPS_COSINE_SIM -> "MS2 modified cosine similarity (GNPS)";
       };

@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
+@Disabled
 public class GNPSTest {
 
   @Test

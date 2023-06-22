@@ -35,8 +35,8 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParam
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.CollectionUtils;
 import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
@@ -235,16 +235,22 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    * Replace all import files in the {@link AllSpectralDataImportModule} - which needs to be the
    * first step in batch
    *
-   * @param allFiles replaces import files
+   * @param allDataFiles replaces import files
    * @return true if success, false if not. e.g., if there was no data import step in the batch file
    */
-  public boolean setImportFiles(final File[] allFiles) throws IllegalStateException {
+  public boolean setImportFiles(final File[] allDataFiles, final File[] allLibraryFiles)
+      throws IllegalStateException {
     MZmineProcessingStep<?> currentStep = get(0);
     ParameterSet importParameters = currentStep.getParameterSet();
     try {
-      FileNamesParameter importParam = importParameters.getParameter(
-          AllSpectralDataImportParameters.fileNames);
-      importParam.setValue(allFiles);
+      if (allDataFiles != null) {
+        importParameters.getParameter(AllSpectralDataImportParameters.fileNames)
+            .setValue(allDataFiles);
+      }
+      if (allLibraryFiles != null) {
+        importParameters.getParameter(SpectralLibraryImportParameters.dataBaseFiles)
+            .setValue(allLibraryFiles);
+      }
       return true;
     } catch (Exception ex) {
       logger.log(Level.WARNING,

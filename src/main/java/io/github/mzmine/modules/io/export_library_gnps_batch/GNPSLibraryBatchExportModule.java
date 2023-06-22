@@ -23,10 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
+package io.github.mzmine.modules.io.export_library_gnps_batch;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -36,42 +35,42 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class MS2SimilarityModule implements MZmineProcessingModule {
+/**
+ * Module to export a spectral library for GNPS batch submission
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public class GNPSLibraryBatchExportModule implements MZmineProcessingModule {
 
-  private static final String NAME = "MS/MS spectral networking (Molecular networking)";
-
-  private static final String DESCRIPTION = "Checks MS2 similarity of all rows within the groups or on all networks and between networks";
+  private static final String MODULE_NAME = "Export to GNPS library batch submission";
+  private static final String MODULE_DESCRIPTION = "Export mgf and tsv files for GNPS library batch submission";
 
   @Override
   public @NotNull String getName() {
-    return NAME;
+    return MODULE_NAME;
   }
 
   @Override
   public @NotNull String getDescription() {
-    return DESCRIPTION;
-  }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURE_GROUPING;
-  }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return MS2SimilarityParameters.class;
+    return MODULE_DESCRIPTION;
   }
 
   @Override
   @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
-      @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-
-    ModularFeatureList[] featureLists = parameters.getParameter(
-        MS2SimilarityParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
-    for (ModularFeatureList pkl : featureLists) {
-      tasks.add(new MS2SimilarityTask(parameters, pkl, pkl.getRows(), moduleCallDate));
-    }
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+    GNPSLibraryBatchExportTask task = new GNPSLibraryBatchExportTask(parameters,
+        moduleCallDate);
+    tasks.add(task);
     return ExitCode.OK;
+  }
+
+  @Override
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.SPECLIBEXPORT;
+  }
+
+  @Override
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return GNPSLibraryBatchExportParameters.class;
   }
 }

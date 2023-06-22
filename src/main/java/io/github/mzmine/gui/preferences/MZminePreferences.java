@@ -98,7 +98,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
       "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
-      FileSelectionType.OPEN);
+      FileSelectionType.OPEN, true);
 
   public static final BooleanParameter sendStatistics = new BooleanParameter(
       "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",

@@ -105,7 +105,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
               new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
               new RTTolerance(0.1f, Unit.MINUTES), 4, 5.0, Range.closed(0.001, 0.06));
       // parameters for imaging
-      case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25);
+      case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25, false);
       //
       case DIRECT_INFUSION, FLOW_INJECT ->
           new IonInterfaceDirectAndFlowInjectWizardParameters(this, 5);

@@ -23,17 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
@@ -41,7 +42,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class MS2SimilarityParameters extends SimpleParameterSet {
+public class SpectralNetworkingParameters extends SimpleParameterSet {
 
   // NOT INCLUDED in sub
   // General parameters
@@ -53,38 +54,34 @@ public class MS2SimilarityParameters extends SimpleParameterSet {
       "Tolerance value of the m/z difference between MS2 signals (add absolute tolerance to cover small neutral losses (5 ppm on m=18 is insufficient))",
       0.003, 10);
 
-  public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height (in MS2)",
-      "Minimum height of signal", MZmineCore.getConfiguration().getIntensityFormat(), 0d);
-
   public static final DoubleParameter MIN_COSINE_SIMILARITY = new DoubleParameter(
       "Min cosine similarity", "Minimum spectral cosine similarity",
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0d, 1d);
 
-  public static final BooleanParameter MODIFICATION_AWARE_COSINE = new BooleanParameter(
-      "Modification aware similarity",
-      "Allows the difference between the precursor m/z of the compared scans during signal matching. "
-      + "A signal has to have the same m/z or be shifted by the same difference to be matched.",
-      true);
-
   public static final BooleanParameter ONLY_BEST_MS2_SCAN = new BooleanParameter(
       "Only best MS2 scan", "Compares only the best MS2 scan (or all MS2 scans)", true);
 
-  public static final IntegerParameter MIN_DP = new IntegerParameter("Minimum data points (DP)",
-      "Minimum data points in MS2 scan mass list", 3);
-
   public static final IntegerParameter MIN_MATCH = new IntegerParameter("Minimum matched signals",
-      "Minimum matched signals or neutral losses (m/z differences)", 3);
+      "Minimum matched signals or neutral losses (m/z differences)", 4);
 
   public static final OptionalModuleParameter<NeutralLossSimilarityParameters> CHECK_NEUTRAL_LOSS_SIMILARITY = new OptionalModuleParameter<>(
       "Check MS2 neutral loss similarity",
       "Generates a list of m/z differences and calculates cosine similarity",
       new NeutralLossSimilarityParameters(), false);
 
-  public MS2SimilarityParameters() {
-    super(
-        new Parameter[]{FEATURE_LISTS, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MIN_HEIGHT, MIN_DP,
-            MIN_MATCH, MIN_COSINE_SIMILARITY, MODIFICATION_AWARE_COSINE,
-            CHECK_NEUTRAL_LOSS_SIMILARITY});
+  public static final OptionalParameter<DoubleParameter> MAX_MZ_DELTA = new OptionalParameter<>(
+      new DoubleParameter("Max precursor m/z delta",
+          "Maximum allowed m/z delta between precursor ions to be tested. This can speed up the process",
+          MZmineCore.getConfiguration().getMZFormat(), 500d), true);
+
+  public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
+      "Signal filters", """
+      Signal filters to limit the number of signals etc.
+      """, new SignalFiltersParameters());
+
+  public SpectralNetworkingParameters() {
+    super(FEATURE_LISTS, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH,
+        MIN_COSINE_SIMILARITY, CHECK_NEUTRAL_LOSS_SIMILARITY, signalFilters);
   }
 
 }

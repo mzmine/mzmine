@@ -32,9 +32,9 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.framework.FormattedTableCell;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.CosinePairContributions;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.SignalAlignmentAnnotation;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
@@ -289,7 +289,7 @@ public class MirrorScanWindowController {
     // needs to be sorted
     Arrays.sort(dpsA, DataPointSorter.DEFAULT_INTENSITY);
     Arrays.sort(dpsB, DataPointSorter.DEFAULT_INTENSITY);
-    SpectralSimilarity cosine = MS2SimilarityTask.createMS2Sim(mzTol, dpsA, dpsB, 2, weights);
+    SpectralSimilarity cosine = SpectralNetworkingTask.createMS2Sim(mzTol, dpsA, dpsB, 2, weights);
 
     if (cosine != null) {
       lbMirrorStats.setText(String.format(
@@ -302,8 +302,8 @@ public class MirrorScanWindowController {
     }
 
     //modified cosine
-    cosine = MS2SimilarityTask.createMS2SimModificationAware(mzTol, weights, dpsA, dpsB, 2,
-        MS2SimilarityTask.SIZE_OVERLAP, precursorMZA, precursorMZB);
+    cosine = SpectralNetworkingTask.createMS2SimModificationAware(mzTol, weights, dpsA, dpsB, 2,
+        SpectralNetworkingTask.SIZE_OVERLAP, precursorMZA, precursorMZB);
     if (cosine != null) {
       lbMirrorModifiedStats.setText(String.format(
           "modified=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
@@ -312,7 +312,7 @@ public class MirrorScanWindowController {
           cosine.overlap() / (double) cosine.sizeA()));
 
       // get contributions of all data points
-      final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
+      final CosinePairContributions contributions = SpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
           mzTol, weights, dpsA, dpsB, precursorMZA, precursorMZB);
 
       if (contributions != null) {
@@ -341,7 +341,7 @@ public class MirrorScanWindowController {
     Arrays.sort(nlA, DataPointSorter.DEFAULT_INTENSITY);
     Arrays.sort(nlB, DataPointSorter.DEFAULT_INTENSITY);
 
-    cosine = MS2SimilarityTask.createMS2Sim(mzTol, nlA, nlB, 2, weights);
+    cosine = SpectralNetworkingTask.createMS2Sim(mzTol, nlA, nlB, 2, weights);
     if (cosine != null) {
       lbNeutralLossStats.setText(String.format(
           "cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
@@ -350,7 +350,7 @@ public class MirrorScanWindowController {
           cosine.overlap() / (double) cosine.sizeA()));
 
       // get contributions of all data points
-      final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
+      final CosinePairContributions contributions = SpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
           mzTol, weights, nlA, nlB, -1, -1);
 
       if (contributions != null) {

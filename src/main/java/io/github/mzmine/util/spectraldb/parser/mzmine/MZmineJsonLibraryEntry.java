@@ -88,7 +88,7 @@ public class MZmineJsonLibraryEntry {
   public Double exactMass;
   public Double rt, ccs;
   public String cas, splash;
-  public String formula, smiles, inchi, inchikey;
+  public String formula, smiles, inchi, inchikey, peptideSequence;
   public Double fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
@@ -141,6 +141,7 @@ public class MZmineJsonLibraryEntry {
       case INCHI -> inchi;
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
+      case PEPTIDE_SEQ -> peptideSequence;
       case CAS -> cas;
       case MS_LEVEL -> msLevel;
       case RT -> rt;

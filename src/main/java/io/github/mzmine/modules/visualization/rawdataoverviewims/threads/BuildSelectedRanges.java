@@ -100,7 +100,8 @@ public class BuildSelectedRanges implements Runnable {
       binning.setMobilogram(mobilograms);
       final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
       SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
-          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true);
+          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, false, true,
+          null);
       dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
       mobilogramConsumer.accept(dataset);
     }
