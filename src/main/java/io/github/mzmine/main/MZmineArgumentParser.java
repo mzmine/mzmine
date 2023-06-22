@@ -51,17 +51,27 @@ public class MZmineArgumentParser {
 
   private File batchFile;
   private @Nullable File[] overrideDataFiles;
+  private @Nullable File[] overrideSpectralLibrariesFiles;
   private File preferencesFile;
   private File tempDirectory;
   private boolean isKeepRunningAfterBatch = false;
   private boolean loadTdfPseudoProfile = false;
   private boolean loadTsfProfile = false;
   private KeepInMemory isKeepInMemory = null;
+  private String numCores;
 
   public void parse(String[] args) {
     Options options = new Options();
 
     // -b  or --batch
+    Option help = new Option("h", "help", false, "print help");
+    help.setRequired(false);
+    options.addOption(help);
+
+    Option version = new Option("v", "version", false, "print version of MZmine and exit");
+    version.setRequired(false);
+    options.addOption(version);
+
     Option batch = new Option("b", "batch", true, "batch mode file");
     batch.setRequired(false);
     options.addOption(batch);
@@ -73,6 +83,13 @@ public class MZmineArgumentParser {
         """);
     input.setRequired(false);
     options.addOption(input);
+    // introduced in v3.6.0
+    Option libraries = new Option("l", "libraries", true, """
+        spectral library files. Either defined in a .txt text file with one file per line
+        or by glob pattern matching. To match all .json or .mgf files in a path: -l "D:\\Data\\*.json"
+        """);
+    libraries.setRequired(false);
+    options.addOption(libraries);
 
     Option pref = new Option("p", "pref", true, "preferences file");
     pref.setRequired(false);
@@ -92,6 +109,12 @@ public class MZmineArgumentParser {
     keepInMemory.setRequired(false);
     options.addOption(keepInMemory);
 
+    Option numCores = new Option(null, "threads", true,
+        "the number of threads to use during processing, or 'auto' to automatically detect available resources. "
+        + "threads overwrites the specified value in the preference.");
+    numCores.setRequired(false);
+    options.addOption(numCores);
+
     Option loadTdfPseudoProfile = new Option("tdfpseudoprofile", false,
         "Loads pseudo-profile frame spectra for tdf files instead of centroided spectra.");
     loadTdfPseudoProfile.setRequired(false);
@@ -109,6 +132,16 @@ public class MZmineArgumentParser {
     try {
       cmd = parser.parse(options, args);
 
+      if (cmd.hasOption(help.getOpt())) {
+        formatter.printHelp("MZmine", options);
+        System.exit(0);
+      }
+
+      if (cmd.hasOption(version.getOpt())) {
+        logger.info("MZmine version:" + MZmineCore.getMZmineVersion());
+        System.exit(0);
+      }
+
       String sbatch = cmd.getOptionValue(batch.getLongOpt());
       if (sbatch != null) {
         logger.info(() -> "Batch file set by command line: " + sbatch);
@@ -124,6 +157,18 @@ public class MZmineArgumentParser {
         } catch (IOException e) {
           logger.log(Level.SEVERE,
               "Could not read the list of input data files. Either provide a string \"mypath/*.mzML\" or a text file that contains all files delimited by a new line.");
+          throw new RuntimeException(e);
+        }
+      }
+      String slibraries = cmd.getOptionValue(libraries.getLongOpt());
+      if (slibraries != null) {
+        logger.info(() -> "Spectral library files were set to: " + slibraries);
+        // search for files
+        try {
+          overrideSpectralLibrariesFiles = FileAndPathUtil.parseFileInputArgument(slibraries);
+        } catch (IOException e) {
+          logger.log(Level.SEVERE,
+              "Could not read the list of spectral library files. Either provide a string \"mypath/*.json\" or a text file that contains all files delimited by a new line.");
           throw new RuntimeException(e);
         }
       }
@@ -156,6 +201,8 @@ public class MZmineArgumentParser {
                           + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
       }
 
+      this.numCores = cmd.getOptionValue(numCores.getLongOpt());
+
       if (cmd.hasOption(loadTdfPseudoProfile.getOpt())) {
         this.loadTdfPseudoProfile = true;
       }
@@ -165,9 +212,13 @@ public class MZmineArgumentParser {
 
     } catch (ParseException e) {
       logger.log(Level.SEVERE, "Wrong command line arguments. " + e.getMessage(), e);
-      formatter.printHelp("utility-name", options);
+      formatter.printHelp("MZmine", options);
       System.exit(1);
     }
+  }
+
+  public String getNumCores() {
+    return numCores;
   }
 
   /**
@@ -227,6 +278,17 @@ public class MZmineArgumentParser {
   @Nullable
   public File[] getOverrideDataFiles() {
     return overrideDataFiles;
+  }
+
+  /**
+   * Defines spectral library files that will be used in headless mode. Those files will replace the input files
+   * in the {@link AllSpectralDataImportModule}
+   *
+   * @return spectral library files if specified as argument else null
+   */
+  @Nullable
+  public File[] getOverrideSpectralLibrariesFiles() {
+    return overrideSpectralLibrariesFiles;
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorChecker;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorFlag;
@@ -99,6 +100,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final ModularFeatureList[] flists;
   private final File outFile;
   private final SpectralLibraryExportFormats format;
+  private final ParameterSet parameters;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
   private final FragmentScanSelection selection;
@@ -106,19 +108,20 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final MZTolerance mzTolMerging;
   private final boolean enableMsnMerge;
   private final MsLevelFilter postMergingMsLevelFilter;
+  public long totalRows = 0;
+  public AtomicInteger finishedRows = new AtomicInteger(0);
+  public AtomicInteger exported = new AtomicInteger(0);
   private double minimumPrecursorPurity = 0d;
   private MZTolerance chimericsMainIonMzTol;
   private MZTolerance chimericsIsolationMzTol;
   private ChimericMsOption handleChimericsOption;
-  public long totalRows = 0;
-  public AtomicInteger finishedRows = new AtomicInteger(0);
-  public AtomicInteger exported = new AtomicInteger(0);
   private String description = "Batch exporting spectral library";
 
   public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
+    this.parameters = parameters;
     String exportFormat = format.getExtension();
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);
     outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
@@ -174,6 +177,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
           processRow(writer, row);
           finishedRows.incrementAndGet();
         }
+        flist.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(LibraryBatchGenerationModule.class, parameters,
+                getModuleCallDate()));
       }
       //
       logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
