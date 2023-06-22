@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
@@ -57,12 +58,6 @@ public class SpectralNetworkingParameters extends SimpleParameterSet {
       "Min cosine similarity", "Minimum spectral cosine similarity",
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0d, 1d);
 
-  public static final BooleanParameter MODIFICATION_AWARE_COSINE = new BooleanParameter(
-      "Modification aware similarity",
-      "Allows the difference between the precursor m/z of the compared scans during signal matching. "
-      + "A signal has to have the same m/z or be shifted by the same difference to be matched. i.e. direct matches or neutral loss matches.",
-      true);
-
   public static final BooleanParameter ONLY_BEST_MS2_SCAN = new BooleanParameter(
       "Only best MS2 scan", "Compares only the best MS2 scan (or all MS2 scans)", true);
 
@@ -74,19 +69,19 @@ public class SpectralNetworkingParameters extends SimpleParameterSet {
       "Generates a list of m/z differences and calculates cosine similarity",
       new NeutralLossSimilarityParameters(), false);
 
-  public static final OptionalParameter<DoubleParameter> REMOVE_PRECURSOR = new OptionalParameter<>(
-      new DoubleParameter("Remove residual precursor m/z",
-          "This is strongly recommended to remove signals around the precursor as they will always match between spectra. This should include isotope signals. The default is m/z 10, this should not include meaningful signals.",
-          MZmineCore.getConfiguration().getMZFormat(), 10d, 0d, null), true);
-
   public static final OptionalParameter<DoubleParameter> MAX_MZ_DELTA = new OptionalParameter<>(
       new DoubleParameter("Max precursor m/z delta",
           "Maximum allowed m/z delta between precursor ions to be tested. This can speed up the process",
           MZmineCore.getConfiguration().getMZFormat(), 500d), true);
 
+  public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
+      "Signal filters", """
+      Signal filters to limit the number of signals etc.
+      """, new SignalFiltersParameters());
+
   public SpectralNetworkingParameters() {
-    super(FEATURE_LISTS, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, REMOVE_PRECURSOR, MAX_MZ_DELTA,
-        MIN_MATCH, MIN_COSINE_SIMILARITY, MODIFICATION_AWARE_COSINE, CHECK_NEUTRAL_LOSS_SIMILARITY);
+    super(FEATURE_LISTS, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH,
+        MIN_COSINE_SIMILARITY, CHECK_NEUTRAL_LOSS_SIMILARITY, signalFilters);
   }
 
 }

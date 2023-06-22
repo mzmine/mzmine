@@ -85,33 +85,26 @@ public class SpectralNetworkingTask extends AbstractTask {
   private final ModularFeatureList featureList;
   // target
   private final boolean checkNeutralLoss;
-  private final boolean useModAwareCosine; // TODO mod aware
   private List<FeatureListRow> rows;
   private final boolean isRemovePrecursor;
   private final double removePrecursorMz;
-  private final boolean useMaxMzDelta;
   private final double maxMzDelta;
 
   // use a maximum
-  private final int signalThresholdForTargetIntensityPercent = 50;
-  private final double targetIntensityPercentage = 0.98;
+  private final int signalThresholdForTargetIntensityPercent;
+  private final double targetIntensityPercentage;
   // hard cut off of noisy spectra
-  private final int cropAfterSignalsCount = 500;
+  private final int cropAfterSignalsCount;
 
   public SpectralNetworkingTask(final ParameterSet params, @Nullable ModularFeatureList featureList,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureList = featureList;
     mzTolerance = params.getValue(SpectralNetworkingParameters.MZ_TOLERANCE);
-    isRemovePrecursor = params.getValue(SpectralNetworkingParameters.REMOVE_PRECURSOR);
-    removePrecursorMz = params.getEmbeddedParameterValueIfSelectedOrElse(
-        SpectralNetworkingParameters.REMOVE_PRECURSOR, 0d);
-    useMaxMzDelta = params.getValue(SpectralNetworkingParameters.MAX_MZ_DELTA);
     maxMzDelta = params.getEmbeddedParameterValueIfSelectedOrElse(
         SpectralNetworkingParameters.MAX_MZ_DELTA, Double.MAX_VALUE);
 
     minMatch = params.getValue(SpectralNetworkingParameters.MIN_MATCH);
-    useModAwareCosine = params.getValue(SpectralNetworkingParameters.MODIFICATION_AWARE_COSINE);
     minCosineSimilarity = params.getValue(SpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
     onlyBestMS2Scan = params.getValue(SpectralNetworkingParameters.ONLY_BEST_MS2_SCAN);
     stageProgress = new AtomicDouble(0);
@@ -124,6 +117,17 @@ public class SpectralNetworkingTask extends AbstractTask {
     } else {
       maxDPForDiff = 0;
     }
+    // embedded signal filters
+    var filterParams = params.getValue(SpectralNetworkingParameters.signalFilters);
+
+    isRemovePrecursor = filterParams.getValue(SignalFiltersParameters.removePrecursor);
+    removePrecursorMz = filterParams.getEmbeddedParameterValueIfSelectedOrElse(
+        SignalFiltersParameters.removePrecursor, 0d);
+    cropAfterSignalsCount = filterParams.getValue(SignalFiltersParameters.cropToMaxSignals);
+    signalThresholdForTargetIntensityPercent = filterParams.getValue(
+        SignalFiltersParameters.signalThresholdIntensityFilter);
+    targetIntensityPercentage = filterParams.getValue(
+        SignalFiltersParameters.intensityPercentFilter);
   }
 
   /**
@@ -360,7 +364,7 @@ public class SpectralNetworkingTask extends AbstractTask {
     final R2RMap<RowsRelationship> mapNeutralLoss = new R2RMap<>();
     try {
       if (onlyBestMS2Scan) {
-        checkRowsBest(mapCosineSim, mapNeutralLoss, rows);
+        checkRowsBestMs2(mapCosineSim, mapNeutralLoss, rows);
       } else {
         checkAllFeatures(mapCosineSim, mapNeutralLoss, rows);
       }
@@ -389,9 +393,54 @@ public class SpectralNetworkingTask extends AbstractTask {
    * @param mapNeutralLoss map for all neutral loss MS2 edges
    * @param rows           match rows
    */
-  public void checkRowsBest(R2RMap<RowsRelationship> mapSimilarity,
+  public void checkRowsBestMs2(R2RMap<RowsRelationship> mapSimilarity,
       R2RMap<RowsRelationship> mapNeutralLoss, List<FeatureListRow> rows)
       throws MissingMassListException {
+    List<FilteredRowData> filteredRows = prepareRowBestSpectrum(rows);
+    int numRows = filteredRows.size();
+    logger.log(Level.INFO, MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
+    // run in parallel
+    IntStream.range(0, numRows - 1).parallel().forEach(i -> {
+      if (!isCanceled()) {
+        for (int j = i + 1; j < numRows; j++) {
+          if (isCanceled()) {
+            break;
+          }
+          FilteredRowData b = filteredRows.get(j);
+          FilteredRowData a = filteredRows.get(i);
+          double deltaMz = Math.abs(a.row().getAverageMZ() - b.row().getAverageMZ());
+          if (deltaMz > maxMzDelta) {
+            continue;
+          }
+          checkSpectralPair(a, b, mapSimilarity, mapNeutralLoss);
+        }
+      }
+      if (stageProgress != null) {
+        stageProgress.getAndAdd(1d / numRows);
+      }
+    });
+  }
+
+  private void checkSpectralPair(final FilteredRowData a, final FilteredRowData b, final R2RMap<RowsRelationship> mapSimilarity,
+      final R2RMap<RowsRelationship> mapNeutralLoss) {
+    checkR2RMs2Similarity(mapSimilarity, a.row(), b.row(), a.data(), b.data(),
+        Type.MS2_COSINE_SIM);
+
+    // check neutral loss similarity
+    if (checkNeutralLoss) {
+      // create mass diff array
+      DataPoint[] massDiffA = ScanMZDiffConverter.getAllMZDiff(a.data(), mzTolerance, -1,
+          maxDPForDiff);
+      DataPoint[] massDiffB = ScanMZDiffConverter.getAllMZDiff(b.data(), mzTolerance, -1,
+          maxDPForDiff);
+
+      checkR2RMs2Similarity(mapNeutralLoss, a.row(), b.row(), massDiffA, massDiffB,
+          Type.MS2_NEUTRAL_LOSS_SIM);
+    }
+  }
+
+  @NotNull
+  private List<FilteredRowData> prepareRowBestSpectrum(final List<FeatureListRow> rows) {
     // prefilter rows: has MS2 and in case only best MS2 is considered - check minDP
     // and prepare data points
     List<FilteredRowData> filteredRows = new ArrayList<>();
@@ -402,37 +451,7 @@ public class SpectralNetworkingTask extends AbstractTask {
         filteredRows.add(data);
       }
     }
-    int numRows = filteredRows.size();
-    logger.log(Level.INFO,
-        () -> MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
-    // run in parallel
-    IntStream.range(0, numRows - 1).parallel().forEach(i -> {
-      if (!isCanceled()) {
-        for (int j = i + 1; j < numRows; j++) {
-          if (!isCanceled()) {
-            FilteredRowData a = filteredRows.get(i);
-            FilteredRowData b = filteredRows.get(j);
-            checkR2RMs2Similarity(mapSimilarity, a.row(), b.row(), a.data(), b.data(),
-                Type.MS2_COSINE_SIM);
-
-            // check neutral loss similarity
-            if (checkNeutralLoss) {
-              // create mass diff array
-              DataPoint[] massDiffA = ScanMZDiffConverter.getAllMZDiff(a.data(), mzTolerance, -1,
-                  maxDPForDiff);
-              DataPoint[] massDiffB = ScanMZDiffConverter.getAllMZDiff(b.data(), mzTolerance, -1,
-                  maxDPForDiff);
-
-              checkR2RMs2Similarity(mapNeutralLoss, a.row(), b.row(), massDiffA, massDiffB,
-                  Type.MS2_NEUTRAL_LOSS_SIM);
-            }
-          }
-        }
-      }
-      if (stageProgress != null) {
-        stageProgress.getAndAdd(1d / numRows);
-      }
-    });
+    return filteredRows;
   }
 
   /**
