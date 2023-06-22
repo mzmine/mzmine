@@ -25,6 +25,9 @@
 
 package io.github.mzmine.util;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.util.Arrays;
@@ -33,6 +36,28 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class DataPointUtilsTest {
+
+  @Test
+  void filterDataByIntensityPercent() {
+    DataPoint[] dps = new DataPoint[10];
+    for (int i = 0; i < dps.length; i++) {
+      // sorted by intensity
+      dps[i] = new SimpleDataPoint(i, 10-i);
+    }
+    DataPoint[] resF08 = new DataPoint[6];
+    for (int i = 0; i < resF08.length; i++) {
+      // sorted by intensity
+      resF08[i] = new SimpleDataPoint(i, 10-i);
+    }
+    var f08 = DataPointUtils.filterDataByIntensityPercent(dps, 0.8, 100);
+    assertArrayEquals(resF08, f08);
+
+    var f1 = DataPointUtils.filterDataByIntensityPercent(dps, 1, 100);
+    assertEquals(10, f1.length);
+
+    var filtered = DataPointUtils.filterDataByIntensityPercent(dps, 0.95, 5);
+    assertEquals(5, filtered.length);
+  }
 
   @Test
   void removePrecursorMz() {

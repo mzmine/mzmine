@@ -532,8 +532,10 @@ public class SpectralNetworkingTask extends AbstractTask {
    * Checks the minimum requirements for a row to be matched by MS2 similarity (minimum number of
    * data points and MS2 data availability)
    *
-   * @param row   the test row
-   * @param minDP minimum number of data points in mass list
+   * @param row         the test row
+   * @param ms2         the scan with data
+   * @param precursorMz the precursor mz is used to remove signals within range
+   * @param minDP       minimum number of data points in mass list
    * @return the filtered data for a row or null if minimum criteria not met
    */
   @Nullable
@@ -593,8 +595,7 @@ public class SpectralNetworkingTask extends AbstractTask {
 
       Scan ms2 = feature.getMostIntenseFragmentScan();
       if (ms2 != null) {
-        FilteredRowData data = getDataAndFilter(row, ms2,
-            row.getAverageMZ(), minMatch);
+        FilteredRowData data = getDataAndFilter(row, ms2, row.getAverageMZ(), minMatch);
         mapFeatureData.put(feature, data);
         result = true;
       }

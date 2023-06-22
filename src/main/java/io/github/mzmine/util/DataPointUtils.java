@@ -280,6 +280,13 @@ public class DataPointUtils {
         : intensitySorted;
   }
 
+  /**
+   * Remove all signals that fall within precursorMZ +- removePrecursorMz
+   * @param mzSorted sorted by mz ascending
+   * @param precursorMz center of the signals to be removed
+   * @param removePrecursorMz +-delta to remove signals
+   * @return the filtered list
+   */
   public static DataPoint[] removePrecursorMz(final DataPoint[] mzSorted, final double precursorMz,
       final double removePrecursorMz) {
     var numDps = mzSorted.length;
