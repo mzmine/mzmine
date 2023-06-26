@@ -374,7 +374,7 @@ public class SpectralNetworkingTask extends AbstractTask {
         checkAllFeatures(mapCosineSim, mapNeutralLoss, rows);
       }
       logger.info(MessageFormat.format(
-          "MS2 similarity check on rows done. MS2 cosine similarity={0}, MS2 neutral loss={1}",
+          "MS2 similarity check on rows done. MS2 modified cosine similarity edges={0}, MS2 neutral loss edges={1}",
           mapCosineSim.size(), mapNeutralLoss.size()));
 
       if (featureList != null) {
