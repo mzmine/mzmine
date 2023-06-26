@@ -39,10 +39,12 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Window;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
+import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -146,9 +148,70 @@ public class IsotopePatternCalculator implements MZmineModule {
     }
   }
 
+  public static HashMap <Double, IsotopePattern> calculateIsotopePatternForResolutions(IMolecularFormula cdkFormula,
+      double minAbundance, double[] resolutions, int charge, PolarityType polarity,
+      boolean storeFormula) {
+    // TODO: check if the formula is not too big (>100 of a single atom?).
+    // if so, just cancel the prediction
+
+    // Set the minimum abundance of isotope
+    // TODO: in the CDK minAbundance is now called minIntensity and refers
+    // to the relative intensity
+    // in the isotope pattern, should change it here, too
+    HashMap <Double, IsotopePattern> calculatedIsotopePatternForResolutions = new HashMap<>();
+    IsotopePatternGenerator generator = new IsotopePatternGenerator(minAbundance);
+    for (double resolution : resolutions) {
+      generator.setMinResolution(resolution);
+      generator.setStoreFormulas(storeFormula);
+      org.openscience.cdk.formula.IsotopePattern pattern = generator.getIsotopes(cdkFormula);
+      int numOfIsotopes = pattern.getNumberOfIsotopes();
+
+      DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
+      String isotopeComposition[] = new String[numOfIsotopes];
+      // For each unit of charge, we have to add or remove a mass of a
+      // single electron. If the charge is positive, we remove electron
+      // mass. If the charge is negative, we add it.
+      charge = Math.abs(charge);
+      var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
+
+      for (int j = 0; j < numOfIsotopes; j++) {
+        IsotopeContainer isotope = pattern.getIsotope(j);
+
+        double mass = isotope.getMass() + electronMass;
+
+        if (charge != 0) {
+          mass /= charge;
+        }
+
+        double intensity = isotope.getIntensity();
+
+        dataPoints[j] = new SimpleDataPoint(mass, intensity);
+
+        if (storeFormula) {
+          isotopeComposition[j] = formatCDKString(isotope.toString());
+        }
+      }
+
+      String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
+
+      if (storeFormula) {
+        calculatedIsotopePatternForResolutions.put(resolution,
+            new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
+                formulaString, isotopeComposition));
+      } else {
+        calculatedIsotopePatternForResolutions.put(resolution,
+            new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
+                formulaString));
+      }
+    }
+  return calculatedIsotopePatternForResolutions;
+  }
+
+
+
+
   public static IsotopePattern removeDataPointsBelowIntensity(IsotopePattern pattern,
       double minIntensity) {
-
     DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
     for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
       if (dp[i].getIntensity() < minIntensity) {
