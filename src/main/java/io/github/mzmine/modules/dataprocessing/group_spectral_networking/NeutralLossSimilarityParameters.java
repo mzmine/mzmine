@@ -23,14 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
+
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 /**
- * @author Robin Schmid (https://github.com/robinschmid)
+ * MS/MS similarity check based on difference and signal comparison
+ *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-record TableData(Double mzA, Double intensityA, Double mzB, Double intensityB,
-                 SignalAlignmentAnnotation match, Double contribution) {
+public class NeutralLossSimilarityParameters extends SimpleParameterSet {
+
+  public static final IntegerParameter MAX_DP_FOR_DIFF = new IntegerParameter(
+      "Maximum DP for differences matching",
+      "Difference (neutral loss) matching is done on a maximum of n MS2 signals per scan. All differences between these signals are calculated and matched between spectra.",
+      25);
+
+  public NeutralLossSimilarityParameters() {
+    super(
+        new Parameter[]{MAX_DP_FOR_DIFF});
+  }
 
 }

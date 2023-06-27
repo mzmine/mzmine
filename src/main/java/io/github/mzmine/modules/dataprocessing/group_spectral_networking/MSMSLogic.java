@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -37,12 +37,8 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class MSMSLogic {
-
-  // Logger.
-  private static final Logger LOG = Logger.getLogger(MSMSLogic.class.getName());
 
   /**
    * Checks the MSMS scan for matches of x-mers to the x-mer precursorMZ

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -36,7 +36,7 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class MS2SimilarityModule implements MZmineProcessingModule {
+public class SpectralNetworkingModule implements MZmineProcessingModule {
 
   private static final String NAME = "MS/MS spectral networking (Molecular networking)";
 
@@ -59,7 +59,7 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return MS2SimilarityParameters.class;
+    return SpectralNetworkingParameters.class;
   }
 
   @Override
@@ -68,9 +68,9 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
       @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] featureLists = parameters.getParameter(
-        MS2SimilarityParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
+        SpectralNetworkingParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
     for (ModularFeatureList pkl : featureLists) {
-      tasks.add(new MS2SimilarityTask(parameters, pkl, pkl.getRows(), moduleCallDate));
+      tasks.add(new SpectralNetworkingTask(parameters, pkl, pkl.getRows(), moduleCallDate));
     }
     return ExitCode.OK;
   }
