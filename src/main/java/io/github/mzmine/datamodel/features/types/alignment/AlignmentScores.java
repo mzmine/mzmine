@@ -25,7 +25,12 @@
 
 package io.github.mzmine.datamodel.features.types.alignment;
 
+import static java.util.Objects.requireNonNullElse;
+
+import io.github.mzmine.datamodel.features.ModularDataRecord;
+import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
@@ -33,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.scores.RateType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.WeightedDistanceScore;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -47,14 +53,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures,
                               Float weightedDistanceScore, Float mzPpmDelta, Double mzDelta,
-                              Float rtDelta, Float mobilityDelta) {
+                              Float rtDelta, Float mobilityDelta) implements
+    ModularDataRecord {
 
-  // Unmodifiable list of all subtypes
-  public static final List<DataType> subTypes = List.of(new RateType(), new AlignedFeaturesNType(),
-      new AlignExtraFeaturesType(), new WeightedDistanceScore(), new MzPpmDifferenceType(),
-      new MzAbsoluteDifferenceType(), new RtAbsoluteDifferenceType(),
-      new MobilityAbsoluteDifferenceType());
-
+  @SuppressWarnings("rawtypes")
+  public static List<DataType> getSubTypes() {
+    return DataTypes.getList(RateType.class, AlignedFeaturesNType.class,
+        AlignExtraFeaturesType.class, WeightedDistanceScore.class, MzPpmDifferenceType.class,
+        MzAbsoluteDifferenceType.class, RtAbsoluteDifferenceType.class,
+        MobilityAbsoluteDifferenceType.class);
+  }
 
   public AlignmentScores {
   }
@@ -63,12 +71,28 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     this(0, 0, 0, null, null, null, null, null);
   }
 
+  public static AlignmentScores create(final @NotNull SimpleModularDataModel values) {
+    var rate = requireNonNullElse(values.get(RateType.class), -1f);
+    int alignedFeatures = requireNonNullElse(values.get(AlignedFeaturesNType.class), -1);
+    var extraFeatures = requireNonNullElse(values.get(AlignExtraFeaturesType.class), -1);
+    var weightedDistanceScore = requireNonNullElse(values.get(WeightedDistanceScore.class), -1f);
+    var mzPpmDelta = requireNonNullElse(values.get(MzPpmDifferenceType.class), -1f);
+    var mzDelta = requireNonNullElse(values.get(MzAbsoluteDifferenceType.class), -1d);
+    var rtDelta = requireNonNullElse(values.get(RtAbsoluteDifferenceType.class), -1f);
+    var mobilityDelta = requireNonNullElse(values.get(MobilityAbsoluteDifferenceType.class), -1f);
+
+    return new AlignmentScores(rate, alignedFeatures, extraFeatures, weightedDistanceScore,
+        mzPpmDelta, mzDelta, rtDelta, mobilityDelta);
+  }
+
+
   /**
    * Provides data for data types
    *
    * @param sub data column
    * @return the score for this column
    */
+  @Override
   public Object getValue(final DataType sub) {
     return switch (sub) {
       case RateType ignored -> rate;

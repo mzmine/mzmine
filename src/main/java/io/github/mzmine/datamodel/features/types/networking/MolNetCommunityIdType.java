@@ -23,59 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.alignment;
+package io.github.mzmine.datamodel.features.types.networking;
 
-import io.github.mzmine.datamodel.features.SimpleModularDataModel;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import java.util.List;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Main type that holds alignment scores
  */
-public class AlignmentMainType extends SimpleSubColumnsType<AlignmentScores> implements
-    SubColumnsFactory, AnnotationType {
+public class MolNetCommunityIdType extends IntegerType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "alignment_scores";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Alignment";
+    return "net_community_id";
   }
 
   @Override
-  public @NotNull List<DataType> getSubDataTypes() {
-    return AlignmentScores.getSubTypes();
+  public @NotNull String getHeaderString() {
+    return "Community ID";
   }
 
-  @Override
-  public Property<AlignmentScores> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  protected AlignmentScores createRecord(final SimpleModularDataModel model) {
-    return AlignmentScores.create(model);
-  }
-
-  @Override
-  public Class<AlignmentScores> getValueClass() {
-    return AlignmentScores.class;
-  }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return false;
-  }
 }

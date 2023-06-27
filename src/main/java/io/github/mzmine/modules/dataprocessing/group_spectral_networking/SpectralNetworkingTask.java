@@ -26,7 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
-import com.google.common.util.concurrent.AtomicDouble;
+import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.COMMUNITY_ID;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
@@ -39,19 +41,28 @@ import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarityList
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
+import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
+import io.github.mzmine.modules.visualization.networking.visual.NodeAtt;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.maths.Combinatorics;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanMZDiffConverter;
 import io.github.mzmine.util.scans.similarity.Weights;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -59,10 +70,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.graphstream.algorithm.Toolkit;
+import org.graphstream.algorithm.community.EpidemicCommunityAlgorithm;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +95,7 @@ public class SpectralNetworkingTask extends AbstractTask {
       list, 0, 1);
   public final static Function<List<DataPoint[]>, Integer> SIZE_OVERLAP = SpectralNetworkingTask::calcOverlap;
   // Logger.
-  private final AtomicDouble stageProgress;
+  private final AtomicLong processedPairs = new AtomicLong(0);
   private final int minMatch;
   private final MZTolerance mzTolerance;
   private final double minCosineSimilarity;
@@ -96,6 +115,8 @@ public class SpectralNetworkingTask extends AbstractTask {
   // hard cut off of noisy spectra
   private final int cropAfterSignalsCount;
 
+  private long totalMaxPairs = 0;
+
   public SpectralNetworkingTask(final ParameterSet params, @Nullable ModularFeatureList featureList,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -107,7 +128,6 @@ public class SpectralNetworkingTask extends AbstractTask {
     minMatch = params.getValue(SpectralNetworkingParameters.MIN_MATCH);
     minCosineSimilarity = params.getValue(SpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
     onlyBestMS2Scan = params.getValue(SpectralNetworkingParameters.ONLY_BEST_MS2_SCAN);
-    stageProgress = new AtomicDouble(0);
     // check neutral loss similarity?
     checkNeutralLoss = params.getValue(SpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY);
     if (checkNeutralLoss) {
@@ -186,6 +206,7 @@ public class SpectralNetworkingTask extends AbstractTask {
     return createMS2SimModificationAware(mzTol, weights, sortedA, sortedB, minMatch, SIZE_OVERLAP,
         -1d, -1d);
   }
+
 
   /**
    * Make sure to use arrays sorted by intensity
@@ -369,17 +390,21 @@ public class SpectralNetworkingTask extends AbstractTask {
         checkAllFeatures(mapCosineSim, mapNeutralLoss, rows);
       }
       logger.info(MessageFormat.format(
-          "MS2 similarity check on rows done. MS2 cosine similarity={0}, MS2 neutral loss={1}",
+          "MS2 similarity check on rows done. MS2 modified cosine similarity edges={0}, MS2 neutral loss edges={1}",
           mapCosineSim.size(), mapNeutralLoss.size()));
 
       if (featureList != null) {
         featureList.addRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
         featureList.addRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
+
+        addNetworkStatisticsToRows();
+
       }
 
       logger.info("Added %d edges for %s".formatted(mapCosineSim.size(), Type.MS2_COSINE_SIM));
       if (checkNeutralLoss) {
-        logger.info("Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
+        logger.info(
+            "Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
       }
 
       setStatus(TaskStatus.FINISHED);
@@ -390,6 +415,52 @@ public class SpectralNetworkingTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
+  }
+
+  private void addNetworkStatisticsToRows() {
+    // create graph from Type.MS2_COSINE_SIM
+    // set community and cluster_index
+    FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
+    var graph = new MultiGraph("molnet");
+    var fullCosineMap = Map.of(Type.MS2_COSINE_SIM,
+        Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
+    generator.createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new), graph, true,
+        fullCosineMap, false);
+    detectCommunities(graph);
+
+    Object2IntMap<Object> communitySizes = new Object2IntOpenHashMap<>();
+    graph.nodes().forEach(node -> {
+      Object communityId = node.getAttribute(COMMUNITY_ID.toString());
+      if (communityId != null) {
+        communitySizes.computeInt(communityId,
+            (key, communitySize) -> communitySize == null ? 1 : communitySize + 1);
+      }
+    });
+
+    AtomicInteger clusterId = new AtomicInteger(0);
+    Toolkit.getMaximalCliqueIterator(graph).forEachRemaining(cluster -> {
+      clusterId.incrementAndGet();
+      // for each node in cluster
+      for (Node node : cluster) {
+        if (node.getAttribute(NodeAtt.ROW.toString()) instanceof FeatureListRow row) {
+          Object communityKey = node.getAttribute(COMMUNITY_ID.toString());
+          int communityId = (int) requireNonNullElse(communityKey, -1);
+          int communitySize = communitySizes.getInt(communityKey);
+
+          var stats = new NetworkStats(clusterId.get(), communityId, (int) node.edges().count(),
+              cluster.size(), communitySize);
+          row.set(NetworkStatsType.class, stats);
+        }
+      }
+    });
+  }
+
+  private static void detectCommunities(final MultiGraph graph) {
+    // detect communitites
+    EpidemicCommunityAlgorithm detector = new EpidemicCommunityAlgorithm(graph,
+        COMMUNITY_ID.toString());
+    detector.setRandom(new Random(1789));
+    detector.compute();
   }
 
   /**
@@ -403,34 +474,40 @@ public class SpectralNetworkingTask extends AbstractTask {
       R2RMap<RowsRelationship> mapNeutralLoss, List<FeatureListRow> rows)
       throws MissingMassListException {
     List<FilteredRowData> filteredRows = prepareRowBestSpectrum(rows);
-    int numRows = filteredRows.size();
+    final int numRows = filteredRows.size();
+    totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
     logger.log(Level.INFO, MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
-    // run in parallel
-    IntStream.range(0, numRows - 1).parallel().forEach(i -> {
-      if (!isCanceled()) {
-        for (int j = i + 1; j < numRows; j++) {
+    // try map multi for all pairs
+    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
+        .<Pair<FilteredRowData, FilteredRowData>>mapMulti((i, consumer) -> {
           if (isCanceled()) {
-            break;
+            return;
           }
-          FilteredRowData b = filteredRows.get(j);
           FilteredRowData a = filteredRows.get(i);
-          double deltaMz = Math.abs(a.row().getAverageMZ() - b.row().getAverageMZ());
-          if (deltaMz > maxMzDelta) {
-            continue;
+          var mzA = a.row().getAverageMZ();
+          for (int j = i + 1; j < numRows; j++) {
+            FilteredRowData b = filteredRows.get(j);
+            double deltaMz = b.row().getAverageMZ() - mzA;
+            if (deltaMz > maxMzDelta) {
+              return; // out of range so stop searching
+            }
+            // within range so add to queue
+            consumer.accept(Pair.of(a, b));
           }
-          checkSpectralPair(a, b, mapSimilarity, mapNeutralLoss);
-        }
-      }
-      if (stageProgress != null) {
-        stageProgress.getAndAdd(1d / numRows);
-      }
-    });
+        }).parallel().mapToLong(pair -> {
+          // need to map to ensure thread is waiting for completion
+          checkSpectralPair(pair.left(), pair.right(), mapSimilarity, mapNeutralLoss);
+          // count comparisons
+          processedPairs.incrementAndGet();
+          return 1;
+        }).sum();
+
+    logger.info("Spectral networking: Performed %d pairwise comparisons.".formatted(comparedPairs));
   }
 
-  private void checkSpectralPair(final FilteredRowData a, final FilteredRowData b, final R2RMap<RowsRelationship> mapSimilarity,
-      final R2RMap<RowsRelationship> mapNeutralLoss) {
-    checkR2RMs2Similarity(mapSimilarity, a.row(), b.row(), a.data(), b.data(),
-        Type.MS2_COSINE_SIM);
+  private void checkSpectralPair(final FilteredRowData a, final FilteredRowData b,
+      final R2RMap<RowsRelationship> mapSimilarity, final R2RMap<RowsRelationship> mapNeutralLoss) {
+    checkR2RMs2Similarity(mapSimilarity, a.row(), b.row(), a.data(), b.data(), Type.MS2_COSINE_SIM);
 
     // check neutral loss similarity
     if (checkNeutralLoss) {
@@ -447,6 +524,8 @@ public class SpectralNetworkingTask extends AbstractTask {
 
   @NotNull
   private List<FilteredRowData> prepareRowBestSpectrum(final List<FeatureListRow> rows) {
+    // required
+    rows.sort(FeatureListRowSorter.MZ_ASCENDING);
     // prefilter rows: has MS2 and in case only best MS2 is considered - check minDP
     // and prepare data points
     List<FilteredRowData> filteredRows = new ArrayList<>();
@@ -480,24 +559,39 @@ public class SpectralNetworkingTask extends AbstractTask {
       }
     }
     int numRows = filteredRows.size();
+    totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
     logger.log(Level.INFO,
         () -> MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
-    // run in parallel
-    IntStream.range(0, numRows - 1).parallel().forEach(i -> {
-      if (!isCanceled()) {
-        for (int j = i + 1; j < numRows; j++) {
-          if (!isCanceled()) {
-            FeatureListRow a = filteredRows.get(i);
-            FeatureListRow b = filteredRows.get(j);
 
-            checkR2RAllFeaturesMs2Similarity(mapFeatureData, a, b, mapSimilarity, mapNeutralLoss);
+    // try map multi for all pairs
+    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
+        .<Pair<FeatureListRow, FeatureListRow>>mapMulti((i, consumer) -> {
+          if (isCanceled()) {
+            return;
           }
-        }
-      }
-      if (stageProgress != null) {
-        stageProgress.getAndAdd(1d / numRows);
-      }
-    });
+          FeatureListRow a = filteredRows.get(i);
+          var mzA = a.getAverageMZ();
+
+          for (int j = i + 1; j < numRows; j++) {
+            FeatureListRow b = filteredRows.get(j);
+            double deltaMz = b.getAverageMZ() - mzA;
+            if (deltaMz > maxMzDelta) {
+              return; // out of range so stop searching
+            }
+            // within range so add to queue
+            consumer.accept(Pair.of(a, b));
+          }
+        }).parallel().mapToLong(pair -> {
+          // need to map to ensure thread is waiting for completion
+          checkR2RAllFeaturesMs2Similarity(mapFeatureData, pair.left(), pair.right(), mapSimilarity,
+              mapNeutralLoss);
+          // count comparisons
+          processedPairs.incrementAndGet();
+          return 1;
+        }).sum();
+
+    logger.info(
+        "Spectral networking: Performed %d pairwise comparisons of rows.".formatted(comparedPairs));
   }
 
   private void checkR2RAllFeaturesMs2Similarity(Map<Feature, FilteredRowData> mapFeatureData,
@@ -651,7 +745,7 @@ public class SpectralNetworkingTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return stageProgress.get();
+    return totalMaxPairs == 0 ? 0 : processedPairs.get() / (double) totalMaxPairs;
   }
 
   @Override
