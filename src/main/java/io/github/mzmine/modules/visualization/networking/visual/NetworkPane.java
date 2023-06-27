@@ -126,7 +126,7 @@ public class NetworkPane extends BorderPane {
        node {
          shape: circle;
          text-visibility-mode: under-zoom;
-         text-visibility: 0.3;
+         text-visibility: 3;
          text-alignment: at-right;
          text-offset: 2;
          text-size: 12;

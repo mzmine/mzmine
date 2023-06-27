@@ -29,7 +29,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.networking.MolNetCommunityIdType;
+import io.github.mzmine.datamodel.features.types.networking.MolNetCommunitySizeType;
 import io.github.mzmine.datamodel.features.types.networking.MolNetIdType;
+import io.github.mzmine.datamodel.features.types.networking.MolNetSizeType;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -47,7 +49,7 @@ import java.util.List;
 public enum NodeAtt {
 
   NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA,
-  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID,
+  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE,
   SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY;
 
 
@@ -61,7 +63,7 @@ public enum NodeAtt {
       case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, SPECTRAL_LIB_MATCH,
           SPECTRAL_LIB_MATCH_SUMMARY -> false;
       case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE,
-          NET_ID, GROUP_ID,CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY -> true;
+          NET_ID, GROUP_ID,CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY,CLUSTER_SIZE, COMMUNITY_SIZE -> true;
     };
   }
 
@@ -98,6 +100,8 @@ public enum NodeAtt {
       case GROUP_ID -> row.getGroupID();
       case COMMUNITY_ID -> getNetworkStatsOrElse(MolNetCommunityIdType.class, row, -1);
       case CLUSTER_ID -> getNetworkStatsOrElse(MolNetIdType.class, row, -1);
+      case COMMUNITY_SIZE -> getNetworkStatsOrElse(MolNetCommunitySizeType.class, row, -1);
+      case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetSizeType.class, row, -1);
       case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
           .map(SpectralDBAnnotation::getCompoundName).findFirst().orElse(null);
       case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
@@ -179,6 +183,8 @@ public enum NodeAtt {
       }
       case CLUSTER_ID -> getNetworkStatsString(MolNetIdType.class, row);
       case COMMUNITY_ID -> getNetworkStatsString(MolNetCommunityIdType.class, row);
+      case COMMUNITY_SIZE -> getNetworkStatsString(MolNetCommunitySizeType.class, row);
+      case CLUSTER_SIZE -> getNetworkStatsString(MolNetSizeType.class, row);
       case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
           .map(SpectralDBAnnotation::getCompoundName).findFirst()
           .orElse("");

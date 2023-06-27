@@ -566,6 +566,11 @@ public class FeatureNetworkGenerator {
             scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
       }
 
+      node.setAttribute(NodeAtt.CLUSTER_ID.toString(), NodeAtt.CLUSTER_ID.getValue(row));
+      node.setAttribute(NodeAtt.COMMUNITY_ID.toString(), NodeAtt.COMMUNITY_ID.getValue(row));
+      node.setAttribute(NodeAtt.CLUSTER_SIZE.toString(), NodeAtt.CLUSTER_SIZE.getValue(row));
+      node.setAttribute(NodeAtt.COMMUNITY_SIZE.toString(), NodeAtt.CLUSTER_SIZE.getValue(row));
+
       if (esi != null) {
         // undefined is not represented by a neutral M node
         if (esi.getIonType().isUndefinedAdduct()) {

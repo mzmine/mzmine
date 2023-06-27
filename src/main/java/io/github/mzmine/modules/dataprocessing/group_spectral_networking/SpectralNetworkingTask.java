@@ -26,8 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
+import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.CLUSTER_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.CLUSTER_SIZE;
 import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.COMMUNITY_ID;
-import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -52,6 +53,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -62,7 +64,6 @@ import io.github.mzmine.util.scans.ScanMZDiffConverter;
 import io.github.mzmine.util.scans.similarity.Weights;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -71,16 +72,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import org.graphstream.algorithm.Toolkit;
-import org.graphstream.algorithm.community.EpidemicCommunityAlgorithm;
-import org.graphstream.graph.Node;
+import org.graphstream.algorithm.community.Community;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -398,7 +395,6 @@ public class SpectralNetworkingTask extends AbstractTask {
         featureList.addRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
 
         addNetworkStatisticsToRows();
-
       }
 
       logger.info("Added %d edges for %s".formatted(mapCosineSim.size(), Type.MS2_COSINE_SIM));
@@ -426,41 +422,27 @@ public class SpectralNetworkingTask extends AbstractTask {
         Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
     generator.createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new), graph, true,
         fullCosineMap, false);
-    detectCommunities(graph);
+    GraphStreamUtils.detectCommunities(graph);
 
-    Object2IntMap<Object> communitySizes = new Object2IntOpenHashMap<>();
+    Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);
+    // add cluster id
+    GraphStreamUtils.detectClusters(graph, true);
+
+    // for each node in cluster
     graph.nodes().forEach(node -> {
-      Object communityId = node.getAttribute(COMMUNITY_ID.toString());
-      if (communityId != null) {
-        communitySizes.computeInt(communityId,
-            (key, communitySize) -> communitySize == null ? 1 : communitySize + 1);
+      if (node.getAttribute(NodeAtt.ROW.toString()) instanceof FeatureListRow row) {
+        Object communityKey = node.getAttribute(COMMUNITY_ID.toString());
+
+        int communityId = communityKey instanceof Community com ? com.id() : -1;
+        int communitySize = communitySizes.getOrDefault(communityKey, 0);
+        int clusterId = (int) node.getAttribute(CLUSTER_ID.toString());
+        int clusterSize = (int) node.getAttribute(CLUSTER_SIZE.toString());
+
+        var stats = new NetworkStats(clusterId, communityId, (int) node.edges().count(),
+            clusterSize, communitySize);
+        row.set(NetworkStatsType.class, stats);
       }
     });
-
-    AtomicInteger clusterId = new AtomicInteger(0);
-    Toolkit.getMaximalCliqueIterator(graph).forEachRemaining(cluster -> {
-      clusterId.incrementAndGet();
-      // for each node in cluster
-      for (Node node : cluster) {
-        if (node.getAttribute(NodeAtt.ROW.toString()) instanceof FeatureListRow row) {
-          Object communityKey = node.getAttribute(COMMUNITY_ID.toString());
-          int communityId = (int) requireNonNullElse(communityKey, -1);
-          int communitySize = communitySizes.getInt(communityKey);
-
-          var stats = new NetworkStats(clusterId.get(), communityId, (int) node.edges().count(),
-              cluster.size(), communitySize);
-          row.set(NetworkStatsType.class, stats);
-        }
-      }
-    });
-  }
-
-  private static void detectCommunities(final MultiGraph graph) {
-    // detect communitites
-    EpidemicCommunityAlgorithm detector = new EpidemicCommunityAlgorithm(graph,
-        COMMUNITY_ID.toString());
-    detector.setRandom(new Random(1789));
-    detector.compute();
   }
 
   /**

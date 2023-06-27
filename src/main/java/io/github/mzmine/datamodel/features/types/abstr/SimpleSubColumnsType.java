@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
@@ -181,11 +180,11 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
   public @Nullable Object getSubColValue(DataType sub, Object value) {
     if (value == null) {
       return null;
-    } else if (value instanceof AlignmentScores scores) {
-      return scores.getValue(sub);
+    } else if (value instanceof ModularDataRecord record) {
+      return record.getValue(sub);
     } else {
       throw new IllegalArgumentException(
-          String.format("value of type %s needs to be of type AlignmentScores",
+          String.format("value of type %s needs to be of type ModularDataRecord",
               value.getClass().getName()));
     }
   }
