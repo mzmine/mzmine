@@ -51,6 +51,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormu
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
@@ -71,6 +72,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +86,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
+@SuppressWarnings("rawtypes")
 public class DataTypes {
 
   private static final Logger logger = Logger.getLogger(DataTypes.class.getName());
@@ -169,9 +172,10 @@ public class DataTypes {
         MasstUrlType.class, GNPSLibraryUrlType.class, GNPSNetworkUrlType.class,
         GNPSClusterUrlType.class, CompoundDatabaseMatchesType.class, CommentType.class,
         // combined types with sub columns
-        AlignmentMainType.class, IonIdentityListType.class, SpectralLibraryMatchesType.class,
-        CompoundDatabaseMatchesType.class, LipidMatchListType.class, ConsensusFormulaListType.class,
-        SimpleFormulaListType.class, FormulaListType.class, ManualAnnotationType.class,
+        AlignmentMainType.class, NetworkStatsType.class, IonIdentityListType.class,
+        SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
+        LipidMatchListType.class, ConsensusFormulaListType.class, SimpleFormulaListType.class,
+        FormulaListType.class, ManualAnnotationType.class,
         // graphical columns
         FeatureShapeType.class, FeatureShapeMobilogramType.class,
         FeatureShapeIonMobilityRetentionTimeHeatMapType.class, ImageType.class);
@@ -182,5 +186,9 @@ public class DataTypes {
       prioMap.put(DataTypes.get(aClass), i++);
     }
     return prioMap;
+  }
+
+  public static List<DataType> getList(final Class... classes) {
+    return Arrays.stream(classes).map(c -> TYPES.get(c)).toList();
   }
 }

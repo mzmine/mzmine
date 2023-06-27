@@ -26,6 +26,12 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.networking.MolNetCommunityIdType;
+import io.github.mzmine.datamodel.features.types.networking.MolNetIdType;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -41,8 +47,9 @@ import java.util.List;
 public enum NodeAtt {
 
   NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA,
-  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID,
+  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID,
   SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY;
+
 
   @Override
   public String toString() {
@@ -54,7 +61,7 @@ public enum NodeAtt {
       case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, SPECTRAL_LIB_MATCH,
           SPECTRAL_LIB_MATCH_SUMMARY -> false;
       case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE,
-          NET_ID, GROUP_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY -> true;
+          NET_ID, GROUP_ID,CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY -> true;
     };
   }
 
@@ -89,6 +96,8 @@ public enum NodeAtt {
         yield ion == null ? null : ion.getNetID();
       }
       case GROUP_ID -> row.getGroupID();
+      case COMMUNITY_ID -> getNetworkStatsOrElse(MolNetCommunityIdType.class, row, -1);
+      case CLUSTER_ID -> getNetworkStatsOrElse(MolNetIdType.class, row, -1);
       case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
           .map(SpectralDBAnnotation::getCompoundName).findFirst().orElse(null);
       case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
@@ -100,6 +109,36 @@ public enum NodeAtt {
           .map(match -> match.getSimilarity().getExplainedLibraryIntensity()).findFirst()
           .orElse(null);
     };
+  }
+
+  /**
+   * Extract from {@link NetworkStatsType}
+   * @param type sub type
+   * @param row the row
+   * @param defaultValue default value if value is null
+   * @return the value or defaultValue if value was not present or null
+   */
+  public <T> T getNetworkStatsOrElse(Class<? extends DataType<T>>  type, FeatureListRow row, T defaultValue) {
+    NetworkStats stats = row.get(NetworkStatsType.class);
+    if (stats == null) {
+      return defaultValue;
+    }
+    return stats.getOrElse(type, defaultValue);
+  }
+  /**
+   * Extract from {@link NetworkStatsType}
+   * @param clazz sub type
+   * @param row the row
+   * @return the value or defaultValue if value was not present or null
+   */
+  public <T> String getNetworkStatsString(Class<? extends DataType<T>>  clazz, FeatureListRow row) {
+    NetworkStats stats = row.get(NetworkStatsType.class);
+    if (stats == null) {
+      return null;
+    }
+    var type = DataTypes.get(clazz);
+    T value = stats.getValue(clazz);
+    return type.getFormattedString(value, false);
   }
 
   /**
@@ -138,6 +177,8 @@ public enum NodeAtt {
         int i = row.getGroupID();
         yield i > -1 ? String.valueOf(i) : "";
       }
+      case CLUSTER_ID -> getNetworkStatsString(MolNetIdType.class, row);
+      case COMMUNITY_ID -> getNetworkStatsString(MolNetCommunityIdType.class, row);
       case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
           .map(SpectralDBAnnotation::getCompoundName).findFirst()
           .orElse("");

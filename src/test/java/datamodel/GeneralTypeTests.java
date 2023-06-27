@@ -89,7 +89,8 @@ public class GeneralTypeTests {
   void alignmentScoreSubTypesTest() {
     AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f,
         0.43213f);
-    for (final DataType su : AlignmentScores.subTypes) {
+    var subTypes = AlignmentScores.getSubTypes();
+    for (final DataType su : subTypes) {
       assert value.getValue(su) != null;
     }
   }
