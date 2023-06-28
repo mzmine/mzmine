@@ -47,6 +47,7 @@ public interface MobilityScan extends Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
+  @NotNull
   RawDataFile getDataFile();
 
   /**

@@ -25,22 +25,18 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
-import static java.util.Objects.requireNonNullElse;
-
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Iterator;
+
+import static java.util.Objects.requireNonNullElse;
 
 /**
  * Wraps an {@link SpectralLibraryEntry} to form a Scan
@@ -133,7 +129,7 @@ public class LibraryEntryWrappedScan implements Scan {
   }
 
   @Override
-  public RawDataFile getDataFile() {
+  public @NotNull RawDataFile getDataFile() {
     return dataFile;
   }
 
