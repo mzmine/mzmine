@@ -23,19 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
+package io.github.mzmine.util.maths;
 
-import io.github.mzmine.datamodel.DataPoint;
-import java.util.List;
+import java.util.Collection;
 
-/**
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-public record CosinePairContributions(List<DataPoint[]> pairs, double[] contributions,
-                                      SignalAlignmentAnnotation[] match) {
+public class Combinatorics {
 
 
-  public int size() {
-    return pairs.size();
+  /**
+   * Number of unique pairs in a list where AA is not considered and AB==BA (ignore order)
+   *
+   * @param list elements
+   * @return number of unique pairs in list
+   */
+  public static long uniquePairs(Collection<?> list) {
+    return uniquePairs(list.size());
   }
+
+  /**
+   * Number of unique pairs in a list where AA is not considered and AB==BA (ignore order)
+   *
+   * @param n number of elements
+   * @return number of unique pairs in list
+   */
+  public static long uniquePairs(int n) {
+    return (n * (long) (n - 1)) / 2;
+  }
+
 }

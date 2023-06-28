@@ -30,11 +30,13 @@ import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.util.collections.BinarySearch;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.IntToDoubleFunction;
 
 public class DataPointUtils {
 
@@ -249,4 +251,101 @@ public class DataPointUtils {
     }
     return new double[][]{mzs, intensities};
   }
+
+
+  /**
+   * Apply intensityPercentage filter so that the returned array contains all data points that make
+   * X % of the total intensity. The result is further cropped to a maxNumSignals.
+   *
+   * @param intensitySorted           sorted by intensity descending
+   * @param targetIntensityPercentage intensity percentage,e.g., 0.99
+   * @param maxNumSignals             maximum signals to crop to
+   * @return filtered data points array that make either >=X% of intensity or have reached the
+   * maxNumSignals
+   */
+  public static DataPoint[] filterDataByIntensityPercent(final DataPoint[] intensitySorted,
+      double targetIntensityPercentage, int maxNumSignals) {
+    double total = 0;
+    for (final DataPoint dp : intensitySorted) {
+      total += dp.getIntensity();
+    }
+
+    double sum = 0;
+    for (int i = 0; i < intensitySorted.length; i++) {
+      if (i >= maxNumSignals - 1) {
+        // max signals reached
+        return Arrays.copyOf(intensitySorted, maxNumSignals);
+      }
+      sum += intensitySorted[i].getIntensity();
+      if (sum / total >= targetIntensityPercentage) {
+        // intensity percentage reached
+        return Arrays.copyOf(intensitySorted, Math.min(i + 1, maxNumSignals));
+      }
+    }
+    // percent not reached - should not happen
+    return intensitySorted.length > maxNumSignals ? Arrays.copyOf(intensitySorted, maxNumSignals)
+        : intensitySorted;
+  }
+
+  /**
+   * Remove all signals that fall within precursorMZ +- removePrecursorMz
+   * @param mzSorted sorted by mz ascending
+   * @param precursorMz center of the signals to be removed
+   * @param removePrecursorMz +-delta to remove signals
+   * @return the filtered list
+   */
+  public static DataPoint[] removePrecursorMz(final DataPoint[] mzSorted, final double precursorMz,
+      final double removePrecursorMz) {
+    var numDps = mzSorted.length;
+    if (numDps == 0) {
+      return mzSorted;
+    }
+
+    IntToDoubleFunction mzExtractor = index -> mzSorted[index].getMZ();
+    // might be higher or lower or -1
+    final double lowerMzBound = precursorMz - removePrecursorMz;
+    int lower = BinarySearch.binarySearch(lowerMzBound, true, numDps, mzExtractor);
+    if (lower == -1) {
+      // no signal found
+      return mzSorted;
+    }
+    double lowerMz = mzSorted[lower].getMZ();
+
+    final double upperMzBound = precursorMz + removePrecursorMz;
+    if (lowerMz < lowerMzBound) {
+      lower++; // increment to be within mz range or higher
+      if (lower >= numDps) {
+        return mzSorted;
+      }
+      lowerMz = mzSorted[lower].getMZ();
+    }
+    if (lowerMz > upperMzBound) {
+      // nothing in range
+      return mzSorted;
+    }
+
+    int upper = BinarySearch.binarySearch(upperMzBound, true, numDps, mzExtractor);
+    double upperMz = mzSorted[upper].getMZ();
+    if (upperMz <= upperMzBound) {
+      upper = Math.min(numDps, upper + 1); // increment to be above mz range
+    }
+
+    // all the last signals are within range
+    if (upper == numDps) {
+      return Arrays.copyOf(mzSorted, lower); // lower points to the first index within range
+    } else {
+      // concat ranges
+      var upperLength = numDps - upper;
+      DataPoint[] results = new DataPoint[lower + upperLength];
+      System.arraycopy(mzSorted, 0, results, 0, lower);
+      System.arraycopy(mzSorted, upper, results, lower, upperLength);
+      return results;
+    }
+  }
+
+  public static boolean inRange(final double tested, final double center, final double delta) {
+    return tested >= center - delta && tested <= center + delta;
+  }
+
+
 }
