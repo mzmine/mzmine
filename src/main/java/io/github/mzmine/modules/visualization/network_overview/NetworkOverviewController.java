@@ -32,11 +32,11 @@ import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
-import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkPane;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -144,20 +144,20 @@ public class NetworkOverviewController {
   }
 
   protected void handleSelectedNodesChanged(final Change<? extends Node> change) {
-    var selectedRows = FeatureNetworkPane.getRowsFromNodes(change.getList());
+    var selectedRows = networkController.getNetworkPane().getRowsFromNodes(change.getList());
     if (selectedRows.size() >= 1) {
-      showAnnotations(selectedRows.get(0));
+      showAnnotations(selectedRows);
     }
     if (selectedRows.size() >= 2) {
       showSimilarityMirror(selectedRows.get(0), selectedRows.get(1));
     }
   }
 
-  public void showAnnotations(final FeatureListRow row) {
-    spectralMatchesController.setMatches(row.getSpectralLibraryMatches());
-    if (row instanceof ModularFeatureListRow mod) {
-      compoundMatchController.setFeatureRow(mod);
-    }
+  public void showAnnotations(final List<FeatureListRow> rows) {
+    var spectralMatches = rows.stream().map(FeatureListRow::getSpectralLibraryMatches)
+        .flatMap(Collection::stream).toList();
+    spectralMatchesController.setMatches(spectralMatches);
+    compoundMatchController.setFeatureRows(rows);
   }
 
   /**

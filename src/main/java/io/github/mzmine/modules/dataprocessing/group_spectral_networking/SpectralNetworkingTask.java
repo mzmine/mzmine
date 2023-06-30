@@ -78,7 +78,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import org.graphstream.algorithm.community.Community;
-import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -417,10 +416,9 @@ public class SpectralNetworkingTask extends AbstractTask {
     // create graph from Type.MS2_COSINE_SIM
     // set community and cluster_index
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-    var graph = new MultiGraph("molnet");
     var fullCosineMap = Map.of(Type.MS2_COSINE_SIM,
         Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
-    generator.createNewGraph(featureList.getRows(), true, fullCosineMap, false);
+    var graph = generator.createNewGraph(featureList.getRows(), true, fullCosineMap, false);
     GraphStreamUtils.detectCommunities(graph);
 
     Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);

@@ -387,8 +387,19 @@ public class MirrorScanWindowController {
    * Set scan and mirror scan and create chart
    */
   public void setScans(Scan scan, Scan mirror) {
+    if (scan == null || mirror == null) {
+      clearScans();
+      return;
+    }
     setScans(scan.getPrecursorMz(), ScanUtils.extractDataPoints(scan.getMassList()),
         mirror.getPrecursorMz(), ScanUtils.extractDataPoints(mirror.getMassList()));
+  }
+
+  public void clearScans() {
+    tableMirror.getItems().clear();
+    tableNLMIrror.getItems().clear();
+    pnMirror.getChildren().removeAll();
+    pnNLMirror.getChildren().removeAll();
   }
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {

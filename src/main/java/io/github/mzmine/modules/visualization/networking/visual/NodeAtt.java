@@ -48,9 +48,7 @@ import java.util.List;
  */
 public enum NodeAtt {
 
-  NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA,
-  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE,
-  SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY;
+  NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA, NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY;
 
 
   @Override
@@ -60,10 +58,10 @@ public enum NodeAtt {
 
   public boolean isNumber() {
     return switch (this) {
-      case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, SPECTRAL_LIB_MATCH,
-          SPECTRAL_LIB_MATCH_SUMMARY -> false;
-      case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE,
-          NET_ID, GROUP_ID,CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY,CLUSTER_SIZE, COMMUNITY_SIZE -> true;
+      case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_MATCH_SUMMARY ->
+          false;
+      case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE ->
+          true;
     };
   }
 
@@ -102,13 +100,14 @@ public enum NodeAtt {
       case CLUSTER_ID -> getNetworkStatsOrElse(MolNetIdType.class, row, -1);
       case COMMUNITY_SIZE -> getNetworkStatsOrElse(MolNetCommunitySizeType.class, row, -1);
       case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetSizeType.class, row, -1);
-      case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
-          .map(SpectralDBAnnotation::getCompoundName).findFirst().orElse(null);
-      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
-          match -> match.getEntry().getOrElse(DBEntryField.NAME, (String) null)).findFirst()
+      case SPECTRAL_LIB_MATCH_SUMMARY ->
+          row.getAllFeatureAnnotations().stream().findFirst().map(Object::toString).orElse(null);
+      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream()
+          .map(match -> match.getEntry().getOrElse(DBEntryField.NAME, (String) null)).findFirst()
           .orElse(null);
-      case SPECTRAL_LIB_SCORE -> row.getSpectralLibraryMatches().stream()
-          .map(match -> match.getSimilarity().getScore()).findFirst().orElse(null);
+      case SPECTRAL_LIB_SCORE ->
+          row.getSpectralLibraryMatches().stream().map(match -> match.getSimilarity().getScore())
+              .findFirst().orElse(null);
       case SPECTRAL_LIB_EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream()
           .map(match -> match.getSimilarity().getExplainedLibraryIntensity()).findFirst()
           .orElse(null);
@@ -117,25 +116,29 @@ public enum NodeAtt {
 
   /**
    * Extract from {@link NetworkStatsType}
-   * @param type sub type
-   * @param row the row
+   *
+   * @param type         sub type
+   * @param row          the row
    * @param defaultValue default value if value is null
    * @return the value or defaultValue if value was not present or null
    */
-  public <T> T getNetworkStatsOrElse(Class<? extends DataType<T>>  type, FeatureListRow row, T defaultValue) {
+  public <T> T getNetworkStatsOrElse(Class<? extends DataType<T>> type, FeatureListRow row,
+      T defaultValue) {
     NetworkStats stats = row.get(NetworkStatsType.class);
     if (stats == null) {
       return defaultValue;
     }
     return stats.getOrElse(type, defaultValue);
   }
+
   /**
    * Extract from {@link NetworkStatsType}
+   *
    * @param clazz sub type
-   * @param row the row
+   * @param row   the row
    * @return the value or defaultValue if value was not present or null
    */
-  public <T> String getNetworkStatsString(Class<? extends DataType<T>>  clazz, FeatureListRow row) {
+  public <T> String getNetworkStatsString(Class<? extends DataType<T>> clazz, FeatureListRow row) {
     NetworkStats stats = row.get(NetworkStatsType.class);
     if (stats == null) {
       return null;
@@ -165,8 +168,8 @@ public enum NodeAtt {
       case RT -> MZmineCore.getConfiguration().getRTFormat().format(row.getAverageRT());
       case MZ -> MZmineCore.getConfiguration().getMZFormat().format(getValue(row));
       case ID -> String.valueOf(row.getID());
-      case MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY -> MZmineCore.getConfiguration()
-          .getIntensityFormat().format(getValue(row));
+      case MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY ->
+          MZmineCore.getConfiguration().getIntensityFormat().format(getValue(row));
       case NEUTRAL_MASS -> {
         IonIdentity ion = row.getBestIonIdentity();
         yield ion == null ? ""
@@ -185,16 +188,15 @@ public enum NodeAtt {
       case COMMUNITY_ID -> getNetworkStatsString(MolNetCommunityIdType.class, row);
       case COMMUNITY_SIZE -> getNetworkStatsString(MolNetCommunitySizeType.class, row);
       case CLUSTER_SIZE -> getNetworkStatsString(MolNetSizeType.class, row);
-      case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
-          .map(SpectralDBAnnotation::getCompoundName).findFirst()
-          .orElse("");
-      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
-          match -> match.getEntry().getOrElse(DBEntryField.NAME, "")).findFirst().orElse("");
+      case SPECTRAL_LIB_MATCH_SUMMARY ->
+          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getCompoundName)
+              .findFirst().orElse("");
+      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream()
+          .map(match -> match.getEntry().getOrElse(DBEntryField.NAME, "")).findFirst().orElse("");
       case SPECTRAL_LIB_SCORE -> row.getSpectralLibraryMatches().stream()
           .map(match -> String.format("%1.2G", match.getSimilarity().getScore())).findFirst()
           .orElse("");
-      case SPECTRAL_LIB_EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream()
-          .map(
+      case SPECTRAL_LIB_EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream().map(
               match -> String.format("%1.2G", match.getSimilarity().getExplainedLibraryIntensity()))
           .findFirst().orElse("");
     };

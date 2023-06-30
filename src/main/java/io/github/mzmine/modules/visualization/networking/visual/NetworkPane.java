@@ -69,7 +69,10 @@ import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.fx_viewer.util.FxShortcutManager;
 import org.graphstream.ui.geom.Point3;
+import org.graphstream.ui.graphicGraph.GraphicEdge;
+import org.graphstream.ui.graphicGraph.GraphicElement;
 import org.graphstream.ui.graphicGraph.GraphicGraph;
+import org.graphstream.ui.graphicGraph.GraphicNode;
 import org.graphstream.ui.javafx.util.FxFileSinkImages;
 import org.graphstream.ui.view.View;
 import org.graphstream.ui.view.Viewer;
@@ -210,7 +213,7 @@ public class NetworkPane extends BorderPane {
   // visual
   protected Viewer viewer;
   protected FxViewPanel view;
-  protected Node mouseClickedNode;
+  protected GraphicNode mouseClickedNode;
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
@@ -404,14 +407,15 @@ public class NetworkPane extends BorderPane {
           resetZoom();
           e.consume();
         } else if (e.getClickCount() == 1) {
-          mouseClickedNode = (Node) view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)),
-              e.getX(), e.getY()); //for retrieving mouse-clicked node
-          setCenter(e.getX(), e.getY());
-          var mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
+          mouseClickedNode = (GraphicNode) view.findGraphicElementAt(
+              (EnumSet.of(InteractiveElement.NODE)), e.getX(),
+              e.getY()); //for retrieving mouse-clicked node
+          GraphicEdge mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
               view.getViewer().getGraphicGraph(), e.getX(),
               e.getY()); //for retrieving mouse-clicked edge
 
-          onGraphClicked(e, mouseClickedNode, mouseClickedEdge);
+          onGraphClicked(e, mouseClickedNode, mouseClickedEdge,
+              mapGraphicObjectToGraph(mouseClickedNode), mapGraphicObjectToGraph(mouseClickedEdge));
         }
       } else if (e.getButton() == MouseButton.SECONDARY) {
         if (rightClickMenu.isShowing()) {
@@ -425,15 +429,58 @@ public class NetworkPane extends BorderPane {
     });
   }
 
-  protected void onGraphClicked(final @NotNull MouseEvent e, final @Nullable Node node, final @Nullable Edge edge) {
-    setSelectedEdge(edge);
-
-    // shift - add to selection
-    if (e.isShiftDown()) {
-      addSelection(node);
+  /**
+   * Graphics objects that were clicked. might need to be mapped to real objects
+   *
+   * @param e
+   * @param goNode
+   * @param goEdge
+   */
+  protected void onGraphClicked(final @NotNull MouseEvent e, final @Nullable GraphicNode goNode,
+      final @Nullable GraphicEdge goEdge, final @Nullable Node node, final @Nullable Edge edge) {
+    // convert to real edge
+    if (node != null) {
+      // shift - add to selection
+      if (e.isShiftDown()) {
+        addSelection(node);
+      } else {
+        setSelectedNode(node);
+      }
+    } else if(edge!=null) {
+      setSelectedEdge(edge);
     } else {
-      setSelectedNode(node);
+      // nothing clicked - keep selection
+      setCenter(e.getX(), e.getY());
     }
+  }
+
+  protected Edge mapGraphicObjectToGraph(@Nullable Edge edge) {
+    return edge == null ? null : graph.getFullGraph().getEdge(edge.getId());
+  }
+
+  protected Node mapGraphicObjectToGraph(@Nullable Node node) {
+    return node == null ? null : graph.getFullGraph().getNode(node.getId());
+  }
+
+  protected GraphicElement mapElementToGraphicObject(@Nullable Element element) {
+    return switch (element) {
+      case Edge e -> (GraphicElement) getGraphicGraph().getEdge(e.getId());
+      case Node n -> (GraphicElement) getGraphicGraph().getNode(n.getId());
+      case null -> null;
+      default -> throw new IllegalStateException("Unexpected value: " + element);
+    };
+  }
+
+  protected GraphicEdge mapElementToGraphicObject(@Nullable Edge edge) {
+    return edge == null ? null : (GraphicEdge) getGraphicGraph().getEdge(edge.getId());
+  }
+
+  protected GraphicNode mapElementToGraphicObject(@Nullable Node node) {
+    return node == null ? null : (GraphicNode) getGraphicGraph().getNode(node.getId());
+  }
+
+  public GraphicGraph getGraphicGraph() {
+    return viewer.getGraphicGraph();
   }
 
   /**
@@ -460,8 +507,12 @@ public class NetworkPane extends BorderPane {
    * @param change change event
    */
   protected void handleSelectedElementsChanged(final Change<? extends Element> change) {
-    change.getRemoved().forEach(e -> e.removeAttribute("ui.clicked"));
-    change.getAddedSubList().forEach(e -> e.setAttribute("ui.clicked"));
+    while (change.next()) {
+      change.getRemoved().stream().map(this::mapElementToGraphicObject).filter(Objects::nonNull)
+          .forEach(e -> e.removeAttribute("ui.clicked"));
+      change.getAddedSubList().stream().map(this::mapElementToGraphicObject).filter(Objects::nonNull)
+          .forEach(e -> e.setAttribute("ui.clicked"));
+    }
   }
 
 
@@ -631,6 +682,7 @@ public class NetworkPane extends BorderPane {
       return;
     }
     selectedEdges.setAll(List.of(edge));
+    selectedNodes.setAll(List.of(edge.getNode0(), edge.getNode1()));
   }
 
 

@@ -37,10 +37,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.graphstream.algorithm.community.EpidemicCommunityAlgorithm;
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
@@ -197,5 +201,60 @@ public class GraphStreamUtils {
       }
     });
     return communitySizes;
+  }
+
+
+  public static double getDoubleOrElse(Element e, Object attribute, double defaultValue) {
+    try {
+      var value = e.getAttribute(attribute.toString());
+      return Double.parseDouble(value.toString());
+    } catch (Exception ex) {
+      return defaultValue;
+    }
+  }
+
+  public static OptionalDouble getDoubleValue(Element e, Object attribute) {
+    try {
+      var value = e.getAttribute(attribute.toString());
+      return OptionalDouble.of(Double.parseDouble(value.toString()));
+    } catch (Exception ex) {
+      return OptionalDouble.empty();
+    }
+  }
+
+  public static float getFloatOrElse(Element e, Object attribute, float defaultValue) {
+    try {
+      var value = e.getAttribute(attribute.toString());
+      return Float.parseFloat(value.toString());
+    } catch (Exception ex) {
+      return defaultValue;
+    }
+  }
+
+  public static Optional<Float> getFloatValue(Element e, Object attribute) {
+    try {
+      var value = e.getAttribute(attribute.toString());
+      return Optional.of(Float.parseFloat(value.toString()));
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
+  public static int getIntegerOrElse(Element e, Object attribute, int defaultValue) {
+    try {
+      var value = e.getAttribute(attribute.toString());
+      return Integer.parseInt(value.toString());
+    } catch (Exception ex) {
+      return defaultValue;
+    }
+  }
+
+  public static OptionalInt getIntegerValue(Element e, Object attribute) {
+    try {
+      var value = e.getAttribute(attribute.toString());
+      return OptionalInt.of(Integer.parseInt(value.toString()));
+    } catch (Exception ex) {
+      return OptionalInt.empty();
+    }
   }
 }

@@ -30,6 +30,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
+import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.RangeUtils;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -37,25 +39,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.ui.graphicGraph.GraphicEdge;
+import org.graphstream.ui.graphicGraph.GraphicNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,7 +69,7 @@ public class FeatureNetworkPane extends NetworkPane {
   private final EnumMap<GraphStyleAttribute, EdgeAtt> dynamicEdgeStyle = new EnumMap<>(
       GraphStyleAttribute.class);
   // style values need to be set as float - double crashes in the javafx thread for graphstream
-  private final Map<NodeAtt, Range<Float>> attributeRanges = new HashMap<>();
+  private final Map<Object, Range<Float>> attributeRanges = new HashMap<>();
   // for non numeric values: store all objects and provide indexes
   private final Map<NodeAtt, Map<String, Integer>> attributeCategoryValuesMap = new HashMap<>();
 
@@ -109,10 +104,8 @@ public class FeatureNetworkPane extends NetworkPane {
     this.focussedRows = focussedRows;
     this.generator = generator;
     this.neighborDistance = neighborDistance;
-    addMenu();
     focussedRows.addListener(this::handleFocussedRowsChanged);
     annotationsFilter = new NodeAnnotationsFilter(this);
-
   }
 
   /**
@@ -128,6 +121,8 @@ public class FeatureNetworkPane extends NetworkPane {
   }
 
   private void showNodesNeighbors(final List<Node> selected) {
+    logger.fine(() -> "Showing neighboring nodes distance %d of selected nodes %d".formatted(
+        neighborDistance.get(), selected.size()));
     if (selected.isEmpty()) {
       return;
     }
@@ -137,10 +132,10 @@ public class FeatureNetworkPane extends NetworkPane {
 
 
   @Override
-  protected void onGraphClicked(final @NotNull MouseEvent e, final @Nullable Node node,
-      final @Nullable Edge edge) {
-    super.onGraphClicked(e, node, edge);
-    if (!selectedNodes.isEmpty()) {
+  protected void onGraphClicked(final @NotNull MouseEvent e, final @Nullable GraphicNode goNode,
+      final @Nullable GraphicEdge goEdge, final @Nullable Node node, final @Nullable Edge edge) {
+    super.onGraphClicked(e, goNode, goEdge, node, edge);
+    if (!selectedNodes.isEmpty() && e.isShortcutDown()) {
       focusSelectedNodes();
     }
   }
@@ -184,141 +179,13 @@ public class FeatureNetworkPane extends NetworkPane {
 //  }
 
 
-  public static FeatureListRow getRowFromNode(final Node a) {
+  public FeatureListRow getRowFromNode(final Node a) {
     return (FeatureListRow) a.getAttribute(NodeAtt.ROW.toString());
   }
 
-  public static List<FeatureListRow> getRowsFromNodes(final List<? extends Node> nodes) {
-    return nodes.stream().map(FeatureNetworkPane::getRowFromNode).toList();
+  public List<FeatureListRow> getRowsFromNodes(final List<? extends Node> nodes) {
+    return nodes.stream().map(super::mapGraphicObjectToGraph).map(this::getRowFromNode).toList();
   }
-
-  private void addMenu() {
-    Pane menu = getPnSettings();
-    menu.setVisible(true);
-
-    showEdgeLabels = false;
-    showNodeLabels = true;
-    collapse = true;
-
-    // defaults
-    dynamicNodeStyle.put(GraphStyleAttribute.COLOR, NodeAtt.RT);
-    dynamicNodeStyle.put(GraphStyleAttribute.SIZE, NodeAtt.LOG10_SUM_INTENSITY);
-    dynamicNodeStyle.put(GraphStyleAttribute.LABEL, NodeAtt.LABEL);
-    dynamicNodeStyle.put(GraphStyleAttribute.CLASS, null);
-
-    menu.getChildren().add(new Label("Color:"));
-    ComboBox<NodeAtt> comboNodeColor = new ComboBox<>(
-        FXCollections.observableArrayList(NodeAtt.values()));
-    comboNodeColor.setTooltip(new Tooltip("Node color"));
-    comboNodeColor.getSelectionModel().select(NodeAtt.RT);
-    menu.getChildren().add(comboNodeColor);
-    comboNodeColor.setOnAction(e -> {
-      NodeAtt selectedItem = comboNodeColor.getSelectionModel().getSelectedItem();
-      setAttributeForAllNodes(GraphStyleAttribute.COLOR, selectedItem);
-    });
-
-    menu.getChildren().add(new Label("Size:"));
-    ComboBox<NodeAtt> comboNodeSize = new ComboBox<>(
-        FXCollections.observableArrayList(NodeAtt.values()));
-    comboNodeSize.setTooltip(new Tooltip("Node size"));
-    comboNodeSize.getSelectionModel().select(NodeAtt.LOG10_SUM_INTENSITY);
-    menu.getChildren().add(comboNodeSize);
-    comboNodeSize.setOnAction(e -> {
-      NodeAtt selectedItem = comboNodeSize.getSelectionModel().getSelectedItem();
-      setAttributeForAllNodes(GraphStyleAttribute.SIZE, selectedItem);
-    });
-
-    menu.getChildren().add(new Label("Label:"));
-    ComboBox<NodeAtt> comboNodeLabel = new ComboBox<>(
-        FXCollections.observableArrayList(NodeAtt.values()));
-    comboNodeLabel.setTooltip(new Tooltip("Node label"));
-    comboNodeLabel.getSelectionModel().select(NodeAtt.LABEL);
-    menu.getChildren().add(comboNodeLabel);
-    comboNodeLabel.setOnAction(e -> {
-      NodeAtt selectedItem = comboNodeLabel.getSelectionModel().getSelectedItem();
-      setAttributeForAllNodes(GraphStyleAttribute.LABEL, selectedItem);
-    });
-
-    menu.getChildren().add(new Label("Edge:"));
-    ComboBox<EdgeAtt> comboEdgeLabel = new ComboBox<>(
-        FXCollections.observableArrayList(EdgeAtt.values()));
-    comboEdgeLabel.setTooltip(new Tooltip("Edge label"));
-    comboEdgeLabel.getSelectionModel().select(EdgeAtt.LABEL);
-    menu.getChildren().add(comboEdgeLabel);
-    comboEdgeLabel.setOnAction(e -> {
-      EdgeAtt selectedItem = comboEdgeLabel.getSelectionModel().getSelectedItem();
-      setAttributeForAllEdges(GraphStyleAttribute.LABEL, selectedItem);
-    });
-
-    menu.setStyle("-fx-padding: 15; -fx-spacing: 15;");
-
-    // #######################################################
-    // add buttons
-    ToggleButton toggleCollapseIons = new ToggleButton("Collapse ions");
-    toggleCollapseIons.setMaxWidth(Double.MAX_VALUE);
-    toggleCollapseIons.setSelected(collapse);
-    toggleCollapseIons.selectedProperty()
-        .addListener((o, old, value) -> collapseIonNodes(toggleCollapseIons.isSelected()));
-
-    ToggleButton toggleShowMS2SimEdges = new ToggleButton("Show MS2 sim");
-    toggleShowMS2SimEdges.setMaxWidth(Double.MAX_VALUE);
-    toggleShowMS2SimEdges.setSelected(true);
-    toggleShowMS2SimEdges.selectedProperty()
-        .addListener((o, old, value) -> setShowMs2SimEdges(toggleShowMS2SimEdges.isSelected()));
-
-    ToggleButton toggleShowRelations = new ToggleButton("Show relational edges");
-    toggleShowRelations.setMaxWidth(Double.MAX_VALUE);
-    toggleShowRelations.setSelected(true);
-    toggleShowRelations.selectedProperty()
-        .addListener((o, old, value) -> setConnectByNetRelations(toggleShowRelations.isSelected()));
-
-    ToggleButton toggleShowIonIdentityEdges = new ToggleButton("Show ion edges");
-    toggleShowIonIdentityEdges.setMaxWidth(Double.MAX_VALUE);
-    toggleShowIonIdentityEdges.setSelected(true);
-    toggleShowIonIdentityEdges.selectedProperty().addListener(
-        (o, old, value) -> showIonIdentityEdges(toggleShowIonIdentityEdges.isSelected()));
-
-    ToggleButton toggleShowEdgeLabel = new ToggleButton("Show edge label");
-    toggleShowEdgeLabel.setMaxWidth(Double.MAX_VALUE);
-    toggleShowEdgeLabel.setSelected(showEdgeLabels);
-    toggleShowEdgeLabel.selectedProperty()
-        .addListener((o, old, value) -> showEdgeLabels(toggleShowEdgeLabel.isSelected()));
-
-    ToggleButton toggleShowNodeLabel = new ToggleButton("Show node label");
-    toggleShowNodeLabel.setMaxWidth(Double.MAX_VALUE);
-    toggleShowNodeLabel.setSelected(showNodeLabels);
-    toggleShowNodeLabel.selectedProperty()
-        .addListener((o, old, value) -> showNodeLabels(toggleShowNodeLabel.isSelected()));
-
-    Button showGNPSMatches = new Button("GNPS matches");
-    showGNPSMatches.setMaxWidth(Double.MAX_VALUE);
-    showGNPSMatches.setOnAction(e -> showGNPSMatches());
-
-    Button showLibraryMatches = new Button("Library matches");
-    showLibraryMatches.setMaxWidth(Double.MAX_VALUE);
-    showLibraryMatches.setOnAction(e -> showLibraryMatches());
-
-    Spinner<Integer> nodeNeighbours = new Spinner<>(1, Integer.MAX_VALUE, 3, 1);
-    Label l = new Label("No. of node neighbours:");
-    neighborDistance.bind(nodeNeighbours.valueProperty());
-
-    Button updateGraphButton = new Button("Update graph");
-    updateGraphButton.setMaxWidth(Double.MAX_VALUE);
-    updateGraphButton.setOnAction(e -> updateGraph());
-
-    Button showOnlyConnectedNodesButton = new Button("Show only connected nodes");
-    showOnlyConnectedNodesButton.setMaxWidth(Double.MAX_VALUE);
-    showOnlyConnectedNodesButton.setOnAction(e -> visualizeConnectedNodesOnly());
-
-    // finally add buttons
-    VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
-        toggleShowIonIdentityEdges, toggleShowEdgeLabel, toggleShowNodeLabel, showGNPSMatches,
-        showLibraryMatches, l, nodeNeighbours, updateGraphButton, showOnlyConnectedNodesButton);
-    pnRightMenu.setSpacing(10);
-    pnRightMenu.setPadding(new Insets(0, 20, 10, 20));
-    this.setRight(pnRightMenu);
-  }
-
 
   public void setAttributeForAllElements(GraphObject go, GraphStyleAttribute attribute,
       Object prop) {
@@ -342,7 +209,7 @@ public class FeatureNetworkPane extends NetworkPane {
     switch (attribute) {
       case COLOR -> applyNodeColorStyle();
       case LABEL -> applyLabelStyle(GraphObject.EDGE);
-      case SIZE -> applyNodeSizeStyle();
+      case SIZE -> applyEdgeSizeStyle();
     }
   }
 
@@ -394,7 +261,7 @@ public class FeatureNetworkPane extends NetworkPane {
   /**
    * Show spectral library matches
    */
-  private void showLibraryMatches() {
+  public void showLibraryMatches() {
     int n = 0;
     for (Node node : graph) {
       String name = (String) node.getAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString());
@@ -463,7 +330,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     // edges
     applyLabelStyle(GraphObject.EDGE);
-
+    applyEdgeSizeStyle();
   }
 
   private void applyNodeSizeStyle() {
@@ -563,6 +430,69 @@ public class FeatureNetworkPane extends NetworkPane {
     });
   }
 
+  private void applyEdgeSizeStyle() {
+    logger.info("Edges sizes");
+    // min / max values of the specific attributes
+    var attribute = EdgeAtt.SCORE;
+    final @Nullable Range<Float> sizeValueRange = attributeRanges.computeIfAbsent(attribute,
+        attr -> computeValueRange(graph.edges(), attribute));
+
+    // non numerical - remove sizes
+    boolean fixedWidth = sizeValueRange == null;
+    final float scoreDelta = sizeValueRange==null? 0 : RangeUtils.rangeLength(sizeValueRange);
+
+    // for non-numeric values - give each Object an index
+    float minWidth = 0.5f;
+    float maxWidth = 7;
+    float delta = maxWidth - minWidth;
+    float defaultWidth = 2f;
+    var graphicGraph = getGraphicGraph();
+    graph.getFullGraph().edges().forEach(edge -> {
+      if (fixedWidth || scoreDelta<=0) {
+        edge.setAttribute("ui.size", defaultWidth);
+      } else {
+        float ewidth = GraphStreamUtils.getFloatValue(edge, attribute).map(score -> Math.min(maxWidth, minWidth+delta*(score-sizeValueRange.lowerEndpoint())/scoreDelta)).orElse(defaultWidth);
+        edge.setAttribute("ui.size", ewidth);
+//        edge.setAttribute("ui.size-mode", "dyn-size");
+//        var graphEdge = graphicGraph.getEdge(edge.getId());
+//        if (graphEdge != null) {
+//          graphEdge.setAttribute("ui.size", ewidth+"px");
+//          graphEdge.setAttribute("ui.size-mode", "dyn-size");
+//          edge.setAttribute("ui.style", "size: "+ewidth+"gu");
+//          graphEdge.setAttribute("ui.style", "size: "+ewidth+"gu");
+//        }
+      }
+    });
+//    for (Node node : graph) {
+//      NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
+//      if (type == NodeType.NEUTRAL_M || type == NodeType.NEUTRAL_LOSS_CENTER) {
+//        continue;
+//      }
+//      // set size
+//      try {
+//        Object sizeValue = node.getAttribute(nodeAttSize.toString());
+//        if (sizeValue != null) {
+//          // differentiate between numeric values and a list of discrete values
+//          float size = 0;
+//          if (sizeValueRange != null) {
+//            size = interpolateIntensity(Float.parseFloat(sizeValue.toString()),
+//                sizeValueRange.lowerEndpoint(), sizeValueRange.upperEndpoint());
+//          } else if (sizeValueMap != null) {
+//            // non numeric values - use index
+//            int index = sizeValueMap.getOrDefault(sizeValue.toString(), 0);
+//            size = index / (float) numSizeValues;
+//          }
+//          size = Math.max(MIN_NODE_WIDTH_GU, size * MAX_NODE_WIDTH_GU);
+//          // set as graphical units for zoom effect
+//          // otherwise use fixed number of pixels
+//          node.setAttribute("ui.size", size + "gu");
+//        }
+//      } catch (Exception ex) {
+//        logger.log(Level.WARNING, "Error while setting size attribute. " + ex.getMessage(), ex);
+//      }
+//    }
+  }
+
   /**
    * Get style attribute
    *
@@ -651,6 +581,23 @@ public class FeatureNetworkPane extends NetworkPane {
       max = 1;
     }
     return Range.closed(min, max);
+  }
+
+  @Nullable
+  private Range<Float> computeValueRange(Stream<Edge> edges, EdgeAtt attribute) {
+    var summary = edges.map(e -> e.getAttribute(attribute.toString())).map(value -> {
+      try {
+        return value == null ? null : Double.parseDouble(value.toString());
+      } catch (Exception ex) {
+        logger.fine(attribute + " attribute value cannot be parsed as double: " + value);
+        return null;
+      }
+    }).filter(Objects::nonNull).mapToDouble(Double::doubleValue).summaryStatistics();
+    if (summary.getCount() == 0) {
+      return null;
+    }
+
+    return Range.closed((float) summary.getMin(), (float) summary.getMax());
   }
 
   /**

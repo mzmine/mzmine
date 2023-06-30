@@ -6,36 +6,37 @@ edge {
   text-visibility-mode: under-zoom;
   text-visibility: 0.3;
   text-alignment: along;
-  fill-mode: none;
-  stroke-color: rgb(108, 108, 108);
-  stroke-width: 1px;
-  stroke-mode: plain;
+  fill-mode: plain;
+  fill-color: rgb(108, 108, 108);
+  /*stroke-width: 1px;*/
+  stroke-mode: none;
 }
 
 edge.medium {
-  stroke-color: rgb(108, 108, 108);
+  fill-color: rgb(108, 108, 108);
   stroke-width: 2.5px;
 }
 edge.IIN {
-  stroke-color: rgb(227, 116, 30);
+  fill-color: rgb(227, 116, 30);
   stroke-width: 1.5px;
   stroke-mode: dashes;
 }
 edge.FEATURECORR {
-  stroke-color: rgb(151, 124, 70);
+  fill-color: rgb(151, 124, 70);
   stroke-width: 1px;
 }
 edge.COSINE {
-  stroke-color: rgb(30, 86, 227);
+  fill-color: rgb(30, 86, 227);
   size-mode: dyn-size;
 }
 edge.GNPS {
-  stroke-color: rgb(77, 108, 187);
+  fill-color: rgb(77, 108, 187);
   size-mode: dyn-size;
+  size: 2.5px;
 }
 
 edge.IINREL {
-  stroke-color: rgb(31, 173, 152);
+  fill-color: rgb(31, 173, 152);
   stroke-mode: dots;
 }
 
@@ -55,7 +56,9 @@ node {
 }
 
 node:clicked {
-  fill-color: #f8ec02;
+  /*fill-color: #f8ec02;*/
+  stroke-color: #0d3549;
+  stroke-width: 3px;
 }
 
 /* node.setAttribute("ui.class", "big, important"); */
