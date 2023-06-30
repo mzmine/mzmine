@@ -30,7 +30,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane prefHeight="650.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
+<BorderPane fx:id="mainPane" prefHeight="650.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
    <center>
       <GridPane BorderPane.alignment="CENTER">
          <children>

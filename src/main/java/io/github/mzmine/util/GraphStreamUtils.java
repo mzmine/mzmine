@@ -50,12 +50,31 @@ public class GraphStreamUtils {
   /**
    * Unique list of node neighbors within edge distance
    *
+   * @param nodes        nodes to visit and all their neighbors
+   * @param edgeDistance number of consecutive edges connecting neighbors
+   * @return set of all neighbors + the initial node
+   */
+  public static Set<Node> getNodeNeighbors(List<Node> nodes, int edgeDistance) {
+    Object2IntMap<Node> visited = new Object2IntOpenHashMap<>();
+    for (final Node node : nodes) {
+      visited.put(node, edgeDistance);
+    }
+    for (final Node node : nodes) {
+      // after adding all initial nodes we add the rest
+      addNodeNeighbors(visited, node, edgeDistance);
+    }
+    return visited.keySet();
+  }
+
+  /**
+   * Unique list of node neighbors within edge distance
+   *
    * @param node         node to visit and all its neighbors
    * @param edgeDistance number of consecutive edges connecting neighbors
-   * @return list of all neighbors + the initial node
+   * @return set of all neighbors + the initial node
    */
   public static Set<Node> getNodeNeighbors(Node node, int edgeDistance) {
-    Object2IntOpenHashMap<Node> visited = new Object2IntOpenHashMap<>();
+    Object2IntMap<Node> visited = new Object2IntOpenHashMap<>();
     visited.put(node, edgeDistance);
     addNodeNeighbors(visited, node, edgeDistance);
     return visited.keySet();
@@ -66,11 +85,10 @@ public class GraphStreamUtils {
    * neighbors
    *
    * @param visited      map that tracks visited nodes and their edgeDistance
-   * @param node
-   * @param edgeDistance
+   * @param node         current node to visit
+   * @param edgeDistance remaining edge distance
    */
-  private static void addNodeNeighbors(Object2IntOpenHashMap<Node> visited, Node node,
-      int edgeDistance) {
+  private static void addNodeNeighbors(Object2IntMap<Node> visited, Node node, int edgeDistance) {
     final int nextDistance = edgeDistance - 1;
     node.neighborNodes().forEach(neighbor -> {
       if (visited.getOrDefault(neighbor, -1) < edgeDistance) {
@@ -165,6 +183,7 @@ public class GraphStreamUtils {
 
   /**
    * Community sizes are counted, grouping by COMMUNITY_ID
+   *
    * @return map of community to size
    */
   @NotNull

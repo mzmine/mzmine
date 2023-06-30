@@ -420,8 +420,7 @@ public class SpectralNetworkingTask extends AbstractTask {
     var graph = new MultiGraph("molnet");
     var fullCosineMap = Map.of(Type.MS2_COSINE_SIM,
         Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
-    generator.createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new), graph, true,
-        fullCosineMap, false);
+    generator.createNewGraph(featureList.getRows(), true, fullCosineMap, false);
     GraphStreamUtils.detectCommunities(graph);
 
     Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);

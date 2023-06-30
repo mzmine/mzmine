@@ -97,8 +97,15 @@ public class FeatureTableTab extends MZmineTab {
     });
   }
 
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
   public FeatureList getFeatureList() {
     return controller.getFeatureList();
+  }
+  public FeatureTableFX getFeatureTable() {
+    return controller.getFeatureTable();
   }
 
   @NotNull

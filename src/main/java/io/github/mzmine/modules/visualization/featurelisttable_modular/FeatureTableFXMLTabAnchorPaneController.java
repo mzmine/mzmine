@@ -137,6 +137,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
         .addListener(((obs, o, n) -> selectedRowChanged()));
   }
 
+  public FeatureTableFX getFeatureTable() {
+    return featureTable;
+  }
+
   private void filterRows() {
     // Parse input text fields
     Range<Double> mzFilter = parseNumericFilter(mzSearchField, 5e-5);

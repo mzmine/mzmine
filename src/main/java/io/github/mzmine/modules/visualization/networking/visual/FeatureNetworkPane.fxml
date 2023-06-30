@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import org.controlsfx.control.CheckComboBox?>
+<?import org.controlsfx.control.SearchableComboBox?>
+<?import org.controlsfx.control.ToggleSwitch?>
+
+<?import javafx.scene.control.TextField?><BorderPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
+fx:id="mainPane"
+fx:controller="io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController">
+   <top>
+      <Accordion BorderPane.alignment="CENTER">
+        <panes>
+          <TitledPane animated="false" text="Visuals">
+               <content>
+                  <FlowPane hgap="4.0" vgap="4.0">
+                     <children>
+                        <Label text="Color" />
+                        <SearchableComboBox fx:id="comboNodeColor" />
+                        <SearchableComboBox fx:id="comboNodeSize" />
+                        <SearchableComboBox fx:id="comboNodeLabel" />
+                        <SearchableComboBox fx:id="comboEdgeLabel" />
+                     </children>
+                  </FlowPane>
+               </content>
+            </TitledPane>
+            <TitledPane animated="false" text="Filters">
+               <content>
+                  <FlowPane hgap="4.0" vgap="4.0">
+                     <children>
+                        <ToggleSwitch fx:id="cbCollapseIons" graphicTextGap="2.0" selected="true" text="Collapse ions" />
+                        <CheckComboBox fx:id="cbComboVisibleEdgeTypes" showCheckedCount="true" />
+                        <Spinner fx:id="spinnerNodeNeighbors">
+                        </Spinner>
+                        <Button mnemonicParsing="false" onAction="#onFocusSelectedNodes" text="Focus selected nodes" />
+                        <TextField fx:id="txtFilterAnnotations"/>
+                        <Button fx:id="btnFocusFilteredNodes" mnemonicParsing="false" onAction="#onFocusFilteredNodes" text="Focus" />
+                     </children>
+                  </FlowPane>
+               </content>
+            </TitledPane>
+        </panes>
+      </Accordion>
+   </top>
+</BorderPane>

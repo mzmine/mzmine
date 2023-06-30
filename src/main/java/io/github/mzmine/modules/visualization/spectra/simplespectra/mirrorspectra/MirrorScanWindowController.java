@@ -92,6 +92,7 @@ public class MirrorScanWindowController {
   public Label lbTitleNL;
   @FXML
   public TitledPane pnParams;
+  public BorderPane mainPane;
   // components
   @FXML
   private BorderPane pnMirror;
@@ -208,6 +209,10 @@ public class MirrorScanWindowController {
       }
     };
     pnParams.setContent(parameterSetupPane);
+  }
+
+  public BorderPane getMainPane() {
+    return mainPane;
   }
 
   private void updateAll() {

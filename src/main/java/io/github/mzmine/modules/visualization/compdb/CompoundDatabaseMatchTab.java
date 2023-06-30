@@ -76,6 +76,10 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
     if(selectedRow == null) {
       return;
     }
+    setFeatureRow(selectedRow);
+  }
+
+  public void setFeatureRow(final ModularFeatureListRow selectedRow) {
     GridPane pane = new GridPane();
 
     final List<CompoundDBAnnotation> compoundAnnotations = FeatureUtils.extractAllCompoundAnnotations(

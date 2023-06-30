@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,7 +78,7 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkTab;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
@@ -528,12 +528,12 @@ public class FeatureTableContextMenu extends ContextMenu {
    * Open molecular network and center on node
    */
   private void showNetworkVisualizer() {
-    var selectedRow = selectedRows.get(0);
-    if (selectedRow == null) {
+    var featureList = table.getFeatureList();
+    if (selectedRows.isEmpty() || featureList==null) {
       return;
     }
-    FeatureNetworkTab fnt = new FeatureNetworkTab(table, selectedRow);
-    MZmineCore.getDesktop().addTab(fnt);
+    NetworkOverviewWindow networks = new NetworkOverviewWindow(featureList, table, selectedRows);
+    networks.show();
   }
 
   private void onShowAllMsMsClicked() {

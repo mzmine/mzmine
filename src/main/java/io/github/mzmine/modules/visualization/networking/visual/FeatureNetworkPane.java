@@ -29,13 +29,7 @@ package io.github.mzmine.modules.visualization.networking.visual;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
-import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
-import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -43,10 +37,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
@@ -57,19 +50,23 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureNetworkPane extends NetworkPane {
 
+  private static final Logger logger = Logger.getLogger(FeatureNetworkPane.class.getName());
   /**
    * Max width in graph units. 1 is the distance between nodes
    */
   public static final float MAX_NODE_WIDTH_GU = 0.3f;
   public static final float MIN_NODE_WIDTH_GU = 0.02f;
-  private static final Logger logger = Logger.getLogger(FeatureNetworkPane.class.getName());
 
   // currently set dynamic node styles like color, size, label
   private final EnumMap<GraphStyleAttribute, NodeAtt> dynamicNodeStyle = new EnumMap<>(
@@ -81,73 +78,118 @@ public class FeatureNetworkPane extends NetworkPane {
   // for non numeric values: store all objects and provide indexes
   private final Map<NodeAtt, Map<String, Integer>> attributeCategoryValuesMap = new HashMap<>();
 
+  // store all node annotations here for quick selections
+  private final NodeAnnotationsFilter annotationsFilter;
+
   // the network generator
-  private final FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
+  private final FeatureNetworkGenerator generator;
+  private final FeatureNetworkController controller;
   // data
-  private FeatureList featureList;
-  private FeatureListRow[] rows;
-  private Map<Type, R2RMap<RowsRelationship>> relationMaps;
+  private final FeatureList featureList;
+  private final List<FeatureListRow> rows; // might be a filtered subset
 
-  // currently set values
-  private boolean onlyBest;
-
-  private final IntegerProperty bNeighbors = new SimpleIntegerProperty(2);
+  // those rows are focussed - usually showing its neighbors
+  private final @NotNull ObservableList<FeatureListRow> focussedRows;
+  private final @NotNull ObjectProperty<Integer> neighborDistance;
   private boolean showNetRelationsEdges;
   private boolean collapse = true;
   private boolean showIonEdges = true;
   private boolean showMs2SimEdges;
   private boolean ms1FeatureShapeEdges = false;
-  private final MirrorScanWindowFXML mirrorScanTab;
+
+  public FeatureNetworkPane(final FeatureNetworkController controller,
+      final @NotNull FeatureList featureList,
+      final @NotNull ObservableList<FeatureListRow> focussedRows,
+      @NotNull ObjectProperty<Integer> neighborDistance,
+      final @NotNull FeatureNetworkGenerator generator, final @NotNull MultiGraph fullGraph) {
+    super("Molecular Networks", false, fullGraph);
+    this.controller = controller;
+    this.featureList = featureList;
+    this.rows = featureList.getRows();
+    this.focussedRows = focussedRows;
+    this.generator = generator;
+    this.neighborDistance = neighborDistance;
+    addMenu();
+    focussedRows.addListener(this::handleFocussedRowsChanged);
+    annotationsFilter = new NodeAnnotationsFilter(this);
+
+  }
 
   /**
-   * Create the panel.
+   * Called by changes to {@link #focussedRows}.
+   *
+   * @param c change
    */
-  public FeatureNetworkPane() {
-    this(false);
+  private void handleFocussedRowsChanged(final Change<? extends FeatureListRow> c) {
+    //select nodes
+    var nodes = getNodes(c.getList());
+    selectedNodes.setAll(nodes);
+    showNodesNeighbors(nodes);
   }
 
-  public FeatureNetworkPane(boolean showTitle) {
-    super("Ion identity networks (IINs)", showTitle);
-    addMenu();
-    addSelectionListeners();
-    mirrorScanTab = new MirrorScanWindowFXML();
-    mirrorScanTab.show();
-  }
-
-  private void addSelectionListeners() {
-    var selectedNodes = getSelectedNodes();
-    selectedNodes.addListener((ListChangeListener<? super Node>) event -> {
-      handleSelectedNodes(event.getList());
-    });
-  }
-
-  private void handleSelectedNodes(final ObservableList<? extends Node> selected) {
+  private void showNodesNeighbors(final List<Node> selected) {
     if (selected.isEmpty()) {
       return;
     }
-    filterRowNeighbors(selected.get(0), 1);
+    filterNodeNeighbors(selected, neighborDistance.get());
     applyDynamicStyles();
-    showMSMSMirrorScanModule(selected);
   }
 
 
-  /**
-   * Run the MSMS-MirrorScan module whenever user clicks on edges
-   */
-  public void showMSMSMirrorScanModule(ObservableList<? extends Node> selected) {
-    if (selected.size()<2) {
-      return;
+  @Override
+  protected void onGraphClicked(final @NotNull MouseEvent e, final @Nullable Node node,
+      final @Nullable Edge edge) {
+    super.onGraphClicked(e, node, edge);
+    if (!selectedNodes.isEmpty()) {
+      focusSelectedNodes();
     }
-    Node a = selected.get(0);
-    Node b = selected.get(1);
-    FeatureListRow rowA = getRowFromNode(a);
-    FeatureListRow rowB = getRowFromNode(b);
-    mirrorScanTab.getController()
-        .setScans(rowA.getMostIntenseFragmentScan(), rowB.getMostIntenseFragmentScan());
   }
 
-  private static FeatureListRow getRowFromNode(final Node a) {
+  public @NotNull ObservableList<FeatureListRow> getFocussedRows() {
+    return focussedRows;
+  }
+
+  public @NotNull ObjectProperty<Integer> neighborDistanceProperty() {
+    return neighborDistance;
+  }
+
+  @Nullable
+  public Node getNode(FeatureListRow row) {
+    return generator.getRowNode(row, false);
+  }
+
+  @NotNull
+  public List<Node> getNodes(List<? extends FeatureListRow> rows) {
+    return rows.stream().map(this::getNode).filter(Objects::nonNull).toList();
+  }
+
+//  public void createNewGraph(List<FeatureListRow> rows) {
+//    this.rows = rows;
+//    attributeRanges.clear();
+//    attributeCategoryValuesMap.clear();
+//    clear();
+//    generator.createNewGraph(rows, graph.getFullGraph(), onlyBest, relationMaps,
+//        ms1FeatureShapeEdges);
+//
+//    clearNodeSelections();
+//    showEdgeLabels(showEdgeLabels);
+//    showNodeLabels(showNodeLabels);
+//
+//    // last state
+//    collapseIonNodes(collapse);
+//
+//    // apply dynamic style
+//    applyDynamicStyles();
+//    graph.setFullGraph(graph.getFullGraph());
+//  }
+
+
+  public static FeatureListRow getRowFromNode(final Node a) {
     return (FeatureListRow) a.getAttribute(NodeAtt.ROW.toString());
+  }
+
+  public static List<FeatureListRow> getRowsFromNodes(final List<? extends Node> nodes) {
+    return nodes.stream().map(FeatureNetworkPane::getRowFromNode).toList();
   }
 
   private void addMenu() {
@@ -258,7 +300,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
     Spinner<Integer> nodeNeighbours = new Spinner<>(1, Integer.MAX_VALUE, 3, 1);
     Label l = new Label("No. of node neighbours:");
-    bNeighbors.bind(nodeNeighbours.valueProperty());
+    neighborDistance.bind(nodeNeighbours.valueProperty());
 
     Button updateGraphButton = new Button("Update graph");
     updateGraphButton.setMaxWidth(Double.MAX_VALUE);
@@ -277,7 +319,16 @@ public class FeatureNetworkPane extends NetworkPane {
     this.setRight(pnRightMenu);
   }
 
-  private void setAttributeForAllNodes(GraphStyleAttribute attribute, NodeAtt prop) {
+
+  public void setAttributeForAllElements(GraphObject go, GraphStyleAttribute attribute,
+      Object prop) {
+    switch (go) {
+      case NODE -> setAttributeForAllNodes(attribute, (NodeAtt) prop);
+      case EDGE -> setAttributeForAllEdges(attribute, (EdgeAtt) prop);
+    }
+  }
+
+  public void setAttributeForAllNodes(GraphStyleAttribute attribute, NodeAtt prop) {
     dynamicNodeStyle.put(attribute, prop);
     switch (attribute) {
       case COLOR -> applyNodeColorStyle();
@@ -286,7 +337,7 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
-  private void setAttributeForAllEdges(GraphStyleAttribute attribute, EdgeAtt prop) {
+  public void setAttributeForAllEdges(GraphStyleAttribute attribute, EdgeAtt prop) {
     dynamicEdgeStyle.put(attribute, prop);
     switch (attribute) {
       case COLOR -> applyNodeColorStyle();
@@ -295,20 +346,21 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
-  private void updateGraph() {
+  public void updateGraph() {
     if (getMouseClickedNode() == null) {
       Alert alert = new Alert(AlertType.INFORMATION);
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
     } else {
-      filterRowNeighbors(getMouseClickedNode(), bNeighbors.get());
+      filterNodeNeighbors(List.of(getMouseClickedNode()), neighborDistance.get());
     }
   }
 
-  public void filterRowNeighbors(final FeatureListRow center, final int distance) {
-    filterRowNeighbors(generator.getRowNode(center, true), distance);
+  public void filterRowNeighbors(final List<FeatureListRow> center, final int distance) {
+    filterNodeNeighbors(getNodes(center), distance);
   }
-  private void filterRowNeighbors(final Node center, final int distance) {
+
+  private void filterNodeNeighbors(final List<Node> center, final int distance) {
     graph.setNodeNeighborFilter(center, distance);
     resetZoom();
   }
@@ -383,19 +435,12 @@ public class FeatureNetworkPane extends NetworkPane {
       EdgeType type = (EdgeType) edge.getAttribute(EdgeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
-          case ION_IDENTITY:
-            setVisible(edge, !collapse && showIonEdges);
-            break;
-          case MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE:
-          case MS2_SIMILARITY_NEUTRAL_M:
-          case MS2_SIMILARITY:
-            setVisible(edge, showMs2SimEdges);
-            break;
-          case NETWORK_RELATIONS:
-            setVisible(edge, showNetRelationsEdges);
-            break;
-          default:
-            break;
+          case ION_IDENTITY -> setVisible(edge, !collapse && showIonEdges);
+          case MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE, MS2_SIMILARITY_NEUTRAL_M, MS2_SIMILARITY ->
+              setVisible(edge, showMs2SimEdges);
+          case NETWORK_RELATIONS -> setVisible(edge, showNetRelationsEdges);
+          default -> {
+          }
         }
       }
       // only if both nodes are visible
@@ -410,23 +455,6 @@ public class FeatureNetworkPane extends NetworkPane {
     super.clear();
   }
 
-  public void createNewGraph(FeatureListRow[] rows) {
-    this.rows = rows;
-    attributeRanges.clear();
-    attributeCategoryValuesMap.clear();
-    clear();
-    generator.createNewGraph(rows, graph.getFullGraph(), onlyBest, relationMaps, ms1FeatureShapeEdges);
-    clearNodeSelections();
-    showEdgeLabels(showEdgeLabels);
-    showNodeLabels(showNodeLabels);
-
-    // last state
-    collapseIonNodes(collapse);
-
-    // apply dynamic style
-    applyDynamicStyles();
-    graph.setFullGraph(graph.getFullGraph());
-  }
 
   private void applyDynamicStyles() {
     applyNodeSizeStyle();
@@ -559,6 +587,14 @@ public class FeatureNetworkPane extends NetworkPane {
     };
   }
 
+  public EnumMap<GraphStyleAttribute, NodeAtt> getDynamicNodeStyle() {
+    return dynamicNodeStyle;
+  }
+
+  public EnumMap<GraphStyleAttribute, EdgeAtt> getDynamicEdgeStyle() {
+    return dynamicEdgeStyle;
+  }
+
   /**
    * Index all objects found in all rows for an attribute
    *
@@ -586,7 +622,7 @@ public class FeatureNetworkPane extends NetworkPane {
     return map;
   }
 
-  private Range<Float> computeValueRange(FeatureListRow[] rows, NodeAtt attribute) {
+  private Range<Float> computeValueRange(List<FeatureListRow> rows, NodeAtt attribute) {
     float min = Float.POSITIVE_INFINITY;
     float max = Float.NEGATIVE_INFINITY;
 
@@ -632,10 +668,6 @@ public class FeatureNetworkPane extends NetworkPane {
     collapseIonNodes(collapse);
   }
 
-  public void setOnlyBest(boolean onlyBest) {
-    this.onlyBest = onlyBest;
-  }
-
   public void dispose() {
     graph.clear();
   }
@@ -649,49 +681,19 @@ public class FeatureNetworkPane extends NetworkPane {
     return featureList;
   }
 
-  /**
-   * All the peaklist
-   */
-  public void setFeatureList(FeatureList featureList) {
-    this.featureList = featureList;
-    if (featureList != null) {
-      relationMaps = featureList.getRowMaps();
-      createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new));
-      setFeatureListOnNodes(featureList.getRows().toArray(FeatureListRow[]::new));
-    } else {
-      clear();
-    }
-  }
-
-  public void setFeatureListOnNodes(FeatureListRow[] rows) {
-    int n = 0;
-    for (Node node : graph) {
-      node.setAttribute(generator.toNodeName(rows[n]), rows[n]);
-      if (n == rows.length) {
-        break;
-      } else {
-        n++;
-      }
-    }
-  }
-
-
   public void setUseMs1FeatureShapeEdges(boolean ms1FeatureShapeEdges) {
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
   }
 
-  public void linkToFeatureTable(final FeatureTableFX table) {
-    if (table == null) {
-      return;
-    }
-    table.getSelectedTableRows()
-        .addListener((ListChangeListener<? super TreeItem<ModularFeatureListRow>>) c -> {
-          var rows = c.getList().stream().map(TreeItem::getValue).toList();
-
-          var selected = rows.stream().map(row -> generator.getRowNode(row, false))
-              .filter(Objects::nonNull).toList();
-          setSelectedNodes(selected);
-        });
+  public void focusSelectedNodes() {
+    // will automatically trigger an update
+    focussedRows.setAll(getRowsFromNodes(selectedNodes));
   }
 
+  public void selectNodesByAnnotation(final String annotationFilter) {
+    List<Node> nodes = annotationsFilter.findNodes(annotationFilter);
+    logger.fine(
+        "Selecting %d nodes by annotations filter: %s".formatted(nodes.size(), annotationFilter));
+    selectedNodes.setAll(nodes);
+  }
 }

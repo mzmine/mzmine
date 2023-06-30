@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import org.controlsfx.control.ToggleSwitch?>
+
+<BorderPane prefHeight="646.0" prefWidth="908.0" xmlns="http://javafx.com/javafx/16"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.visualization.network_overview.NetworkOverviewController">
+   <center>
+      <SplitPane dividerPositions="0.66" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
+        <items>
+            <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0">
+              <items>
+                  <BorderPane fx:id="pnNetwork" />
+                  <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
+                    <tabs>
+                      <Tab fx:id="tabAnnotations" closable="false" text="Annotations">
+                           <content>
+                              <ScrollPane fitToHeight="true" fitToWidth="true">
+                                 <content>
+                                    <GridPane fx:id="gridAnnotations">
+                                       <columnConstraints>
+                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="150" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                          <RowConstraints vgrow="SOMETIMES" />
+                                          <RowConstraints vgrow="SOMETIMES" />
+                                       </rowConstraints>
+                                    </GridPane>
+                                 </content>
+                              </ScrollPane>
+                           </content></Tab>
+                      <Tab fx:id="tabSimilarity" closable="false" text="Similarity" />
+                        <Tab fx:id="tabFeatureChrom" closable="false" text="Features" />
+                    </tabs>
+                  </TabPane>
+              </items>
+            </SplitPane>
+            <TabPane prefHeight="308.0" prefWidth="702.0" side="LEFT" tabClosingPolicy="UNAVAILABLE">
+              <tabs>
+                <Tab fx:id="tabNodes" text="Nodes" />
+                <Tab fx:id="tabEdges" text="Edges" />
+              </tabs>
+            </TabPane>
+        </items>
+      </SplitPane>
+   </center>
+   <top>
+      <Accordion BorderPane.alignment="CENTER">
+        <panes>
+          <TitledPane animated="false" text="Parameters">
+               <content>
+                  <BorderPane prefHeight="200.0" prefWidth="200.0">
+                     <center>
+                        <FlowPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                           <children>
+                              <ToggleSwitch fx:id="cbUpdateOnSelection" text="Update on selection change" />
+                           </children>
+                        </FlowPane>
+                     </center>
+                  </BorderPane>
+               </content>
+            </TitledPane>
+        </panes>
+      </Accordion>
+   </top>
+</BorderPane>

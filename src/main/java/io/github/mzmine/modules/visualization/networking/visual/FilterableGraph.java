@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.util.GraphStreamUtils;
+import java.util.List;
 import java.util.Set;
 import org.graphstream.algorithm.Toolkit;
 import org.graphstream.graph.Edge;
@@ -37,13 +38,18 @@ import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FilteredGraph extends MultiGraph {
+public class FilterableGraph extends MultiGraph {
 
-  private MultiGraph fullGraph;
+  private final MultiGraph fullGraph;
 
-  public FilteredGraph(String id) {
+  public FilterableGraph(String id, final MultiGraph fullGraph, boolean showFullNetwork) {
     super(id);
-    this.fullGraph = new MultiGraph(id);
+    this.fullGraph = fullGraph;
+    setAutoCreate(true);
+    setStrict(false);
+    if (showFullNetwork) {
+      showFullNetwork();
+    }
   }
 
   @Override
@@ -64,12 +70,7 @@ public class FilteredGraph extends MultiGraph {
     fullGraph.setAutoCreate(on);
   }
 
-  public void setFullGraph(MultiGraph graph) {
-    this.fullGraph = graph;
-  }
-
   public MultiGraph getFullGraph() {
-    // TODO apply changes
     return fullGraph;
   }
 
@@ -89,7 +90,14 @@ public class FilteredGraph extends MultiGraph {
     copyNetwork(gl, this);
   }
 
-  private void copyNetwork(final MultiGraph source, final FilteredGraph target) {
+  /**
+   * show full network without filters
+   */
+  public void showFullNetwork() {
+    copyNetwork(fullGraph, this);
+  }
+
+  private void copyNetwork(final MultiGraph source, final FilterableGraph target) {
     source.nodes().forEach(n -> {
       addCopy(target, n);
     });
@@ -118,13 +126,6 @@ public class FilteredGraph extends MultiGraph {
         }
       });
     }
-
-//    gl.addSink(layout);
-//    layout.addAttributeSink(gl);
-    // iterate the compute() method a number of times
-//    while (layout.getStabilization() < 0.8) {
-//      layout.compute();
-//    }
 
     Toolkit.computeLayout(gl, layout, 0.75);
 
@@ -168,8 +169,9 @@ public class FilteredGraph extends MultiGraph {
   }
 
 
-  public void setNodeNeighborFilter(final Node central, final int distance) {
-    setNodeFilter(GraphStreamUtils.getNodeNeighbors(fullGraph.getNode(central.getId()), distance),
-        central);
+  public void setNodeNeighborFilter(final List<Node> central, final int distance) {
+    // make sure the correct nodes are selected from full graph
+    List<Node> correctNodes = central.stream().map(Element::getId).map(fullGraph::getNode).toList();
+    setNodeFilter(GraphStreamUtils.getNodeNeighbors(correctNodes, distance), correctNodes.get(0));
   }
 }

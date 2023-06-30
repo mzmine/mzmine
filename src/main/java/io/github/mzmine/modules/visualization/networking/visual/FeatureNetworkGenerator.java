@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -43,7 +44,6 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -54,8 +54,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
 
 public class FeatureNetworkGenerator {
 
@@ -65,22 +65,25 @@ public class FeatureNetworkGenerator {
   private final NumberFormat scoreForm = MZmineCore.getConfiguration().getScoreFormat();
   private final NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
 
-  private Graph graph;
-  private Map<Type, R2RMap<RowsRelationship>> relationsMaps;
+  private MultiGraph graph;
   private Node neutralNode;
   private boolean ms1FeatureShapeEdges;
 
 
-  public void createNewGraph(FeatureListRow[] rows, Graph graph, boolean onlyBestNetworks,
+  public MultiGraph createNewGraph(FeatureList flist, boolean onlyBestNetworks,
+      boolean ms1FeatureShapeEdges) {
+    return createNewGraph(flist.getRows(), onlyBestNetworks, flist.getRowMaps(), ms1FeatureShapeEdges);
+  }
+
+  public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean onlyBestNetworks,
       Map<Type, R2RMap<RowsRelationship>> relationsMaps, boolean ms1FeatureShapeEdges) {
-    this.relationsMaps = relationsMaps;
-    this.graph = graph;
+    this.graph = new MultiGraph("molnet");
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
     logger.info("Adding all annotations to a network");
     if (rows != null) {
       // ion identity networks are currently not covered in the relations maps
       // add all IIN
-      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(Arrays.asList(rows), onlyBestNetworks);
+      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(rows, onlyBestNetworks);
 
       AtomicInteger added = new AtomicInteger(0);
       for (IonNetwork net : nets) {
@@ -95,7 +98,7 @@ public class FeatureNetworkGenerator {
       addRelationshipEdges(relationsMaps);
 
       // connect representative edges to neutral molecule nodes from IINs
-      addConsensusEdgesToMoleculeNodes(relationsMaps);
+      addConsensusEdgesToMoleculeNodes();
 
       // add gnps library matches to nodes
       addGNPSLibraryMatchesToNodes(rows);
@@ -116,15 +119,14 @@ public class FeatureNetworkGenerator {
       }
       logger.info("Added " + added.get() + " connections");
     }
+    return graph;
   }
 
 
   /**
    * Last step to add consensus edges for each EdgeType to the neutral molecule node of each IIN.
-   *
-   * @param relationsMaps
    */
-  private void addConsensusEdgesToMoleculeNodes(Map<Type, R2RMap<RowsRelationship>> relationsMaps) {
+  private void addConsensusEdgesToMoleculeNodes() {
     HashSet<IonNetwork> finalizedNetworks = new HashSet<>();
     List<ConsensusEdge> consensusEdges = new ArrayList<>();
 
@@ -142,7 +144,7 @@ public class FeatureNetworkGenerator {
         //
         for (FeatureListRow row : net.keySet()) {
           Node rowNode = getRowNode(row, false);
-          rowNode.setAttribute("FeatureListNode",row);
+          rowNode.setAttribute("FeatureListNode", row);
           rowNode.edges().forEach(edge -> {
             EdgeType edgeType = edge.getAttribute(EdgeAtt.TYPE.toString(), EdgeType.class);
             if (edgeType != null && edgeType != EdgeType.ION_IDENTITY) {
@@ -241,7 +243,7 @@ public class FeatureNetworkGenerator {
     }
   }
 
-  private void addGNPSLibraryMatchesToNodes(FeatureListRow[] rows) {
+  private void addGNPSLibraryMatchesToNodes(List<FeatureListRow> rows) {
     int n = 0;
     for (FeatureListRow r : rows) {
       final List<GNPSLibraryMatch> matches = r.get(GNPSSpectralLibraryMatchesType.class);
@@ -264,8 +266,6 @@ public class FeatureNetworkGenerator {
 
   /**
    * Add all row-2-row relationship edges. (e.g., MS2 cosine similarity edges)
-   *
-   * @param relationsMaps
    */
   private void addRelationshipEdges(Map<Type, R2RMap<RowsRelationship>> relationsMaps) {
     if (relationsMaps == null || relationsMaps.isEmpty()) {
@@ -322,24 +322,20 @@ public class FeatureNetworkGenerator {
 
   /**
    * Adds all relational edges between networks
-   *
-   * @param nets
    */
   private void addNetworkRelationsEdges(IonNetwork[] nets) {
     for (IonNetwork net : nets) {
       if (net.getRelations() != null) {
 
-        net.getRelations().entrySet().stream().map(Entry::getValue)
+        net.getRelations().values().stream()
             // only do it once
-            .filter(rel -> rel.isLowestIDNetwork(net)).forEach(rel -> addRelationEdges(rel));
+            .filter(rel -> rel.isLowestIDNetwork(net)).forEach(this::addRelationEdges);
       }
     }
   }
 
   /**
    * Adds all the edges of an relation between the networks
-   *
-   * @param rel
    */
   private void addRelationEdges(IonNetworkRelation rel) {
     IonNetwork[] nets = rel.getAllNetworks();
@@ -379,24 +375,23 @@ public class FeatureNetworkGenerator {
     Node neutralNode = getNeutralLossNode();
 
     // add center neutral M
-    net.entrySet().stream().forEach(e -> {
-      Node node = getRowNode(e.getKey(), e.getValue());
+    net.forEach((key, value) -> {
+      Node node = getRowNode(key, value);
 
-      if (e.getValue().getIonType().isModifiedUndefinedAdduct()) {
+      if (value.getIonType().isModifiedUndefinedAdduct()) {
         // neutral
         addNewEdge(neutralNode, node, EdgeType.ION_IDENTITY, "", false, 0);
-      } else if (!e.getValue().getIonType().isUndefinedAdduct() && mnode != null) {
+      } else if (!value.getIonType().isUndefinedAdduct() && mnode != null) {
         addNewDeltaMZEdge(node, mnode, EdgeType.ION_IDENTITY,
-            Math.abs(net.getNeutralMass() - e.getKey().getAverageMZ()));
+            Math.abs(net.getNeutralMass() - key.getAverageMZ()));
       }
       added.incrementAndGet();
     });
     // add all edges between ions
-    net.entrySet().stream().forEach(e -> {
-      FeatureListRow row = e.getKey();
-      Node rowNode = getRowNode(row, e.getValue());
+    net.forEach((row, value) -> {
+      Node rowNode = getRowNode(row, value);
 
-      e.getValue().getPartner().entrySet().stream().filter(Objects::nonNull).forEach(partner -> {
+      value.getPartner().entrySet().stream().filter(Objects::nonNull).forEach(partner -> {
         FeatureListRow prow = partner.getKey();
         IonIdentity link = partner.getValue();
         // do only once (for row with smaller index)
@@ -411,7 +406,7 @@ public class FeatureNetworkGenerator {
           }
           // add directed edge
           addNewDeltaMZEdge(node1, node2, EdgeType.ION_IDENTITY,
-              Math.abs(e.getKey().getAverageMZ() - prow.getAverageMZ()));
+              Math.abs(row.getAverageMZ() - prow.getAverageMZ()));
           added.incrementAndGet();
         }
       });
@@ -430,9 +425,6 @@ public class FeatureNetworkGenerator {
 
   /**
    * Creates or gets the neutral mol node of this net
-   *
-   * @param net
-   * @return
    */
   private Node getNeutralMolNode(IonNetwork net, boolean createNew) {
     if (net == null) {
@@ -511,9 +503,9 @@ public class FeatureNetworkGenerator {
   }
 
   /**
-   * @param row
+   * @param row feature list row
    * @param esi only adds ion type info if given as parameter
-   * @return
+   * @return the old or new node
    */
   private Node getRowNode(FeatureListRow row, IonIdentity esi) {
     Node node = graph.getNode(toNodeName(row));
@@ -600,7 +592,7 @@ public class FeatureNetworkGenerator {
   }
 
   private Edge addNewDeltaMZEdge(Node node1, Node node2, EdgeType type, double dmz) {
-    return addNewEdge(node1, node2, type, "\u0394 " + mzForm.format(dmz), true, dmz);
+    return addNewEdge(node1, node2, type, "Δ" + mzForm.format(dmz), true, dmz);
   }
 
   public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label, boolean directed,

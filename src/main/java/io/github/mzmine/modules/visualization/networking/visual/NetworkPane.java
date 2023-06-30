@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
@@ -45,6 +46,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -55,6 +57,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.stream.file.FileSink;
 import org.graphstream.stream.file.FileSinkGraphML;
 import org.graphstream.stream.file.FileSinkImages;
@@ -183,9 +186,9 @@ public class NetworkPane extends BorderPane {
   private static final Logger LOG = Logger.getLogger(NetworkPane.class.getName());
   private final HBox pnSettings;
   // selected node
-  private final ObservableList<Node> selectedNodes = FXCollections.observableArrayList();
-  private final ObservableList<Edge> selectedEdges = FXCollections.observableArrayList();
-  protected FilteredGraph graph;
+  protected final ObservableList<Node> selectedNodes = FXCollections.observableArrayList();
+  protected final ObservableList<Edge> selectedEdges = FXCollections.observableArrayList();
+  protected final FilterableGraph graph;
   private final Label lbTitle;
   private final FileChooser saveDialog;
 
@@ -216,15 +219,19 @@ public class NetworkPane extends BorderPane {
   /**
    * Create the panel.
    */
-  public NetworkPane(String title, boolean showTitle) {
-    this(title, "", showTitle);
+  public NetworkPane(String title, boolean showTitle, MultiGraph fullGraph) {
+    this(title, "", showTitle, fullGraph);
   }
 
-  public NetworkPane(String title, String styleSheet2, boolean showTitle) {
+  public NetworkPane(String title, String styleSheet2, boolean showTitle, MultiGraph fullGraph) {
     System.setProperty("org.graphstream.ui", "javafx");
 //    System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 //    System.setProperty("org.graphstream.ui.renderer",
 //        "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+
+    // when selection changes, add / remove attributes
+    selectedNodes.addListener(this::handleSelectedNodesChanged);
+    selectedEdges.addListener(this::handleSelectedEdgesChanged);
 
     saveDialog = new FileChooser();
 
@@ -255,10 +262,8 @@ public class NetworkPane extends BorderPane {
     HBox pn = new HBox(lbTitle);
     this.setTop(pn);
     setShowTitle(showTitle);
-    graph = new FilteredGraph(title);
+    graph = new FilterableGraph(title, fullGraph, false);
     setStyleSheet(this.styleSheet);
-    graph.setAutoCreate(true);
-    graph.setStrict(false);
 
     viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
     viewer.disableAutoLayout();
@@ -267,7 +272,7 @@ public class NetworkPane extends BorderPane {
     // wrap in stackpane to make sure coordinates work properly.
     // Might be confused by other components in the same pane
     StackPane graphpane = new StackPane(view);
-    graphpane.setStyle("-fx-border-color: black");
+//    graphpane.setStyle("-fx-border-color: black");
     this.setCenter(graphpane);
 
     // enable selection of edges by mouse
@@ -394,6 +399,7 @@ public class NetworkPane extends BorderPane {
 
     view.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY) {
+        mouseClickedNode = null;
         if (e.getClickCount() == 2) {
           resetZoom();
           e.consume();
@@ -404,8 +410,8 @@ public class NetworkPane extends BorderPane {
           var mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
               view.getViewer().getGraphicGraph(), e.getX(),
               e.getY()); //for retrieving mouse-clicked edge
-          setSelectedEdge(mouseClickedEdge);
-          setSelectedNode(mouseClickedNode);
+
+          onGraphClicked(e, mouseClickedNode, mouseClickedEdge);
         }
       } else if (e.getButton() == MouseButton.SECONDARY) {
         if (rightClickMenu.isShowing()) {
@@ -417,6 +423,45 @@ public class NetworkPane extends BorderPane {
         }
       }
     });
+  }
+
+  protected void onGraphClicked(final @NotNull MouseEvent e, final @Nullable Node node, final @Nullable Edge edge) {
+    setSelectedEdge(edge);
+
+    // shift - add to selection
+    if (e.isShiftDown()) {
+      addSelection(node);
+    } else {
+      setSelectedNode(node);
+    }
+  }
+
+  /**
+   * Changes are triggered on {@link #selectedNodes}
+   *
+   * @param change change event
+   */
+  protected void handleSelectedNodesChanged(final Change<? extends Node> change) {
+    handleSelectedElementsChanged(change);
+  }
+
+  /**
+   * Changes are triggered on  {@link #selectedEdges}
+   *
+   * @param change change event
+   */
+  protected void handleSelectedEdgesChanged(final Change<? extends Edge> change) {
+    handleSelectedElementsChanged(change);
+  }
+
+  /**
+   * Changes are triggered on {@link #selectedNodes} and {@link #selectedEdges}
+   *
+   * @param change change event
+   */
+  protected void handleSelectedElementsChanged(final Change<? extends Element> change) {
+    change.getRemoved().forEach(e -> e.removeAttribute("ui.clicked"));
+    change.getAddedSubList().forEach(e -> e.setAttribute("ui.clicked"));
   }
 
 
@@ -573,24 +618,19 @@ public class NetworkPane extends BorderPane {
    * @param node target node
    */
   public void setSelectedNode(Node node) {
-    clearSelections(selectedNodes);
-    addSelection(node);
+    if (node == null) {
+      selectedNodes.clear();
+      return;
+    }
+    selectedNodes.setAll(List.of(node));
   }
 
-  /**
-   * Combines clear and add selection
-   *
-   * @param nodes target node
-   */
-  public void setSelectedNodes(List<Node> nodes) {
-    clearNodeSelections();
-    nodes.forEach(n -> n.setAttribute("ui.clicked"));
-    selectedNodes.setAll(nodes);
-  }
-
-  private void setSelectedEdge(final Edge edge) {
-    clearSelections(selectedEdges);
-    addSelection(edge);
+  public void setSelectedEdge(final Edge edge) {
+    if (edge == null) {
+      selectedEdges.clear();
+      return;
+    }
+    selectedEdges.setAll(List.of(edge));
   }
 
 
@@ -603,24 +643,8 @@ public class NetworkPane extends BorderPane {
     if (element instanceof Edge edge) {
       edge.setAttribute("ui.clicked");
       selectedEdges.add(edge);
-      setSelectedNodes(List.of(edge.getNode0(), edge.getNode1()));
+      selectedNodes.setAll(List.of(edge.getNode0(), edge.getNode1()));
     }
-  }
-
-  public void clearNodeSelections() {
-    clearSelections(selectedNodes);
-  }
-
-  public void clearEdgeSelections() {
-    clearSelections(selectedEdges);
-  }
-
-  public void clearSelections(List<? extends Element> list) {
-    for (Element n : list) {
-      n.removeAttribute("ui.clicked");
-//      n.removeAttribute("ui.class");
-    }
-    list.clear();
   }
 
   public void setCenter(double x, double y) {
