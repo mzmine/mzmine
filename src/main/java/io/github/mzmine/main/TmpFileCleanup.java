@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class TmpFileCleanup implements Runnable {
     logger.fine("Checking for old temporary files...");
     try {
       // Find all temporary files with the mask mzmine*.scans
-      File tempDir = new File(System.getProperty("java.io.tmpdir"));
+      File tempDir = FileAndPathUtil.getTempDir();
       File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {

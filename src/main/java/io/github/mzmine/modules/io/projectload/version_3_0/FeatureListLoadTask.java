@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,11 +44,11 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -146,7 +146,7 @@ public class FeatureListLoadTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     try {
-      Path tempDirectory = Files.createTempDirectory(TEMP_FLIST_DATA_FOLDER);
+      Path tempDirectory = FileAndPathUtil.createTempDirectory(TEMP_FLIST_DATA_FOLDER);
 
       logger.info(() -> "Unzipping feature lists of project to " + tempDirectory.toString());
       ZipUtils.unzipDirectory(FeatureListSaveTask.FLIST_FOLDER, zip, tempDirectory.toFile());

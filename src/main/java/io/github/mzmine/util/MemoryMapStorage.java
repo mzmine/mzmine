@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -75,13 +76,21 @@ public class MemoryMapStorage {
    * single MappedByteBuffer. 1 GB per file seems like a good start.
    */
   private static final long STORAGE_FILE_CAPACITY = 1_000_000_000L;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final Set<File> temporaryFiles = new HashSet<>();
-  private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
-
   private static boolean storeFeaturesInRam = false;
   private static boolean storeRawFilesInRam = false;
   private static boolean storeMassListsInRam = false;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Set<File> temporaryFiles = new HashSet<>();
+  private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
+  /**
+   * The file that we are currently writing into.
+   */
+  private MappedByteBuffer currentMappedFile = null;
+
+  private MemoryMapStorage() {
+    // register this storage to MZmineCore, so we can delete all temp files later.
+    MZmineCore.registerStorage(this);
+  }
 
   /**
    * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
@@ -112,15 +121,40 @@ public class MemoryMapStorage {
     return new MemoryMapStorage();
   }
 
-  private MemoryMapStorage() {
-    // register this storage to MZmineCore, so we can delete all temp files later.
-    MZmineCore.registerStorage(this);
+  public static boolean isStoreFeaturesInRam() {
+    return storeFeaturesInRam;
+  }
+
+  public static void setStoreFeaturesInRam(boolean storeFeaturesInRam) {
+    MemoryMapStorage.storeFeaturesInRam = storeFeaturesInRam;
+  }
+
+  public static boolean isStoreRawFilesInRam() {
+    return storeRawFilesInRam;
+  }
+
+  public static void setStoreRawFilesInRam(boolean storeRawFilesInRam) {
+    MemoryMapStorage.storeRawFilesInRam = storeRawFilesInRam;
+  }
+
+  public static boolean isStoreMassListsInRam() {
+    return storeMassListsInRam;
+  }
+
+  public static void setStoreMassListsInRam(boolean storeMassListsInRam) {
+    MemoryMapStorage.storeMassListsInRam = storeMassListsInRam;
   }
 
   /**
-   * The file that we are currently writing into.
+   * Store everything in RAM instead of using MemoryMapStorage
+   *
+   * @param state true to keep all objects in RAM
    */
-  private MappedByteBuffer currentMappedFile = null;
+  public static void setStoreAllInRam(boolean state) {
+    storeFeaturesInRam = state;
+    storeMassListsInRam = state;
+    storeRawFilesInRam = state;
+  }
 
   /**
    * Creates a new temporary file, maps it into memory, and returns the corresponding
@@ -132,7 +166,7 @@ public class MemoryMapStorage {
   private MappedByteBuffer createNewMappedFile() throws IOException {
 
     // Create the temporary storage file
-    File storageFileName = File.createTempFile("mzmine", ".tmp");
+    File storageFileName = FileAndPathUtil.createTempFile("mzmine", ".tmp");
     temporaryFiles.add(storageFileName);
     logger.finest("Created a temporary file " + storageFileName);
 
@@ -345,40 +379,5 @@ public class MemoryMapStorage {
 
     temporaryFiles.clear();
     currentMappedFile = null;
-  }
-
-
-  public static boolean isStoreFeaturesInRam() {
-    return storeFeaturesInRam;
-  }
-
-  public static void setStoreFeaturesInRam(boolean storeFeaturesInRam) {
-    MemoryMapStorage.storeFeaturesInRam = storeFeaturesInRam;
-  }
-
-  public static boolean isStoreRawFilesInRam() {
-    return storeRawFilesInRam;
-  }
-
-  public static void setStoreRawFilesInRam(boolean storeRawFilesInRam) {
-    MemoryMapStorage.storeRawFilesInRam = storeRawFilesInRam;
-  }
-
-  public static boolean isStoreMassListsInRam() {
-    return storeMassListsInRam;
-  }
-
-  public static void setStoreMassListsInRam(boolean storeMassListsInRam) {
-    MemoryMapStorage.storeMassListsInRam = storeMassListsInRam;
-  }
-  /**
-   * Store everything in RAM instead of using MemoryMapStorage
-   *
-   * @param state true to keep all objects in RAM
-   */
-  public static void setStoreAllInRam(boolean state) {
-    storeFeaturesInRam = state;
-    storeMassListsInRam = state;
-    storeRawFilesInRam = state;
   }
 }

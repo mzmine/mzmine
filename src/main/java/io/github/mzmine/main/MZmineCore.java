@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -169,7 +169,7 @@ public final class MZmineCore {
         } else {
           logger.log(Level.WARNING,
               "Cannot create or access temp file directory that was set via program argument: "
-              + tempDirectory.getAbsolutePath());
+                  + tempDirectory.getAbsolutePath());
         }
       }
 
@@ -532,6 +532,7 @@ public final class MZmineCore {
     }
 
     if (tempDir.isDirectory()) {
+      FileAndPathUtil.setTempDir(tempDir.getAbsoluteFile());
       System.setProperty("java.io.tmpdir", tempDir.getAbsolutePath());
       logger.finest(() -> "Working temporary directory is " + System.getProperty("java.io.tmpdir"));
       // check the new temp dir for old files.
