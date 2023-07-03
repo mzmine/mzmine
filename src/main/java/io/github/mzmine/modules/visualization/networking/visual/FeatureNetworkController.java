@@ -144,18 +144,12 @@ public class FeatureNetworkController {
 
   private void addMenuOptions() {
     // defaults
-//    var dynamicNodeStyle = networkPane.getDynamicNodeStyle();
-//    dynamicNodeStyle.put(COLOR, NodeAtt.RT);
-//    dynamicNodeStyle.put(SIZE, NodeAtt.LOG10_SUM_INTENSITY);
-//    dynamicNodeStyle.put(LABEL, NodeAtt.LABEL);
-//    dynamicNodeStyle.put(CLASS, null);
-
-    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.RT);
+    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.MZ);
     addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.LABEL);
     addComboOptions(comboNodeSize, SIZE, NodeAtt.values(), NodeAtt.LOG10_SUM_INTENSITY);
     addComboOptions(comboEdgeColor, COLOR, EdgeAtt.values(), EdgeAtt.NEIGHBOR_DISTANCE);
     addComboOptions(comboEdgeSize, SIZE, EdgeAtt.values(), EdgeAtt.SCORE);
-    addComboOptions(comboEdgeLabel, LABEL, EdgeAtt.values(), EdgeAtt.SCORE);
+    addComboOptions(comboEdgeLabel, LABEL, EdgeAtt.values(), EdgeAtt.DELTA_MZ);
 
     cbCollapseIons.selectedProperty()
         .addListener((observable, oldValue, newValue) -> networkPane.collapseIonNodes(newValue));
