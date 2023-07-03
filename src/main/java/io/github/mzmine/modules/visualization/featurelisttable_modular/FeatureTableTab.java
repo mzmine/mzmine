@@ -97,6 +97,10 @@ public class FeatureTableTab extends MZmineTab {
     });
   }
 
+  public FeatureTableFXMLTabAnchorPaneController getController() {
+    return controller;
+  }
+
   public BorderPane getMainPane() {
     return mainPane;
   }

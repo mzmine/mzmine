@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
-import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.CLUSTER_ID;
-import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.CLUSTER_SIZE;
-import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.COMMUNITY_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_SIZE;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -45,7 +45,7 @@ import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
-import io.github.mzmine.modules.visualization.networking.visual.NodeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;

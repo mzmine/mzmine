@@ -23,25 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
-
-import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 /**
- * Edge types for the network visualizer and export to graphml
+ * Graphstream style attributes
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum EdgeType {
+public enum GraphStyleAttribute {
+  COLOR, SIZE, LABEL, CLASS;
 
-  FEATURE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_SIMILARITY, MS2_SIMILARITY_NEUTRAL_M,
-  MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE, MS2_GNPS_COSINE_SIM;
-
-  public static EdgeType of(Type type) {
-    return switch (type) {
-      case MS1_FEATURE_CORR -> FEATURE_CORRELATION;
-      case ION_IDENTITY_NET -> ION_IDENTITY;
-      case MS2_COSINE_SIM -> MS2_SIMILARITY;
-      case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
-      case MS2_GNPS_COSINE_SIM -> MS2_GNPS_COSINE_SIM;
+  /**
+   * UI attribute String to access or set the attribute in graph stream
+   *
+   * @return
+   */
+  public String getUIString() {
+    return switch (this) {
+      case COLOR -> "ui.color";
+      case SIZE -> "ui.size";
+      case LABEL -> "ui.label";
+      case CLASS -> "ui.class";
     };
   }
 }

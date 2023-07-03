@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -46,9 +46,9 @@ import java.util.List;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum NodeAtt {
+public enum NodeAtt implements GraphElementAttr {
 
-  NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA, NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY;
+  NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA, NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY, NEIGHBOR_DISTANCE;
 
 
   @Override
@@ -60,9 +60,24 @@ public enum NodeAtt {
     return switch (this) {
       case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_MATCH_SUMMARY ->
           false;
-      case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE ->
+      case NEIGHBOR_DISTANCE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE ->
           true;
     };
+  }
+
+  @Override
+  public boolean isReversed() {
+    return this == NEIGHBOR_DISTANCE;
+  }
+
+  @Override
+  public GraphObject getGraphObject() {
+    return GraphObject.NODE;
+  }
+
+  @Override
+  public boolean isChangingDynamically() {
+    return NEIGHBOR_DISTANCE == this;
   }
 
   /**
@@ -74,7 +89,7 @@ public enum NodeAtt {
   public Object getValue(FeatureListRow row) {
     return switch (this) {
       case ROW -> row;
-      case NONE, TYPE, LABEL, MS2_VERIFICATION -> null;
+      case NONE, TYPE, LABEL, MS2_VERIFICATION, NEIGHBOR_DISTANCE -> null;
       case FORMULA -> {
         List<ResultFormula> formulas = row.getFormulas();
         yield formulas == null || formulas.isEmpty() ? null : formulas.get(0);
@@ -156,7 +171,7 @@ public enum NodeAtt {
    */
   public String getValueString(FeatureListRow row) {
     return switch (this) {
-      case NONE, ROW, TYPE, LABEL, MS2_VERIFICATION -> "";
+      case NONE, ROW, TYPE, LABEL, MS2_VERIFICATION, NEIGHBOR_DISTANCE -> "";
       case FORMULA -> {
         List<ResultFormula> formulas = row.getFormulas();
         yield formulas == null || formulas.isEmpty() ? "" : formulas.get(0).toString();

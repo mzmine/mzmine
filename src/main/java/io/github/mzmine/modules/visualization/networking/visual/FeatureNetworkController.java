@@ -26,13 +26,17 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
-import static io.github.mzmine.modules.visualization.networking.visual.GraphStyleAttribute.CLASS;
-import static io.github.mzmine.modules.visualization.networking.visual.GraphStyleAttribute.COLOR;
-import static io.github.mzmine.modules.visualization.networking.visual.GraphStyleAttribute.LABEL;
-import static io.github.mzmine.modules.visualization.networking.visual.GraphStyleAttribute.SIZE;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.GraphStyleAttribute.COLOR;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.GraphStyleAttribute.LABEL;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.GraphStyleAttribute.SIZE;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.GraphElementAttr;
+import io.github.mzmine.modules.visualization.networking.visual.enums.GraphObject;
+import io.github.mzmine.modules.visualization.networking.visual.enums.GraphStyleAttribute;
+import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Logger;
@@ -69,6 +73,8 @@ public class FeatureNetworkController {
   public SearchableComboBox<NodeAtt> comboNodeColor;
   public SearchableComboBox<NodeAtt> comboNodeSize;
   public SearchableComboBox<NodeAtt> comboNodeLabel;
+  public SearchableComboBox<EdgeAtt> comboEdgeColor;
+  public SearchableComboBox<EdgeAtt> comboEdgeSize;
   public SearchableComboBox<EdgeAtt> comboEdgeLabel;
   public ToggleSwitch cbCollapseIons;
   public CheckComboBox<String> cbComboVisibleEdgeTypes;
@@ -112,8 +118,8 @@ public class FeatureNetworkController {
     // create graph and add to center
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
     var fullGraph = generator.createNewGraph(flist, false, false);
-    networkPane = new FeatureNetworkPane(this, flist, focussedRows,
-        neighborDistanceProperty(), generator, fullGraph);
+    networkPane = new FeatureNetworkPane(this, flist, focussedRows, neighborDistanceProperty(),
+        generator, fullGraph);
     mainPane.setCenter(networkPane);
 
     addMenuOptions();
@@ -145,25 +151,23 @@ public class FeatureNetworkController {
 
   private void addMenuOptions() {
     // defaults
-    var dynamicNodeStyle = networkPane.getDynamicNodeStyle();
-    dynamicNodeStyle.put(COLOR, NodeAtt.RT);
-    dynamicNodeStyle.put(SIZE, NodeAtt.LOG10_SUM_INTENSITY);
-    dynamicNodeStyle.put(LABEL, NodeAtt.LABEL);
-    dynamicNodeStyle.put(CLASS, null);
+//    var dynamicNodeStyle = networkPane.getDynamicNodeStyle();
+//    dynamicNodeStyle.put(COLOR, NodeAtt.RT);
+//    dynamicNodeStyle.put(SIZE, NodeAtt.LOG10_SUM_INTENSITY);
+//    dynamicNodeStyle.put(LABEL, NodeAtt.LABEL);
+//    dynamicNodeStyle.put(CLASS, null);
 
-    addComboOptions(comboNodeColor, GraphObject.NODE, COLOR, NodeAtt.values(), NodeAtt.RT);
-    addComboOptions(comboNodeLabel, GraphObject.NODE, LABEL, NodeAtt.values(), NodeAtt.LABEL);
-    addComboOptions(comboNodeSize, GraphObject.NODE, SIZE, NodeAtt.values(),
-        NodeAtt.LOG10_SUM_INTENSITY);
-    addComboOptions(comboEdgeLabel, GraphObject.EDGE, LABEL, EdgeAtt.values(), EdgeAtt.SCORE);
+    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.RT);
+    addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.LABEL);
+    addComboOptions(comboNodeSize, SIZE, NodeAtt.values(), NodeAtt.LOG10_SUM_INTENSITY);
+    addComboOptions(comboEdgeColor, COLOR, EdgeAtt.values(), EdgeAtt.NEIGHBOR_DISTANCE);
+    addComboOptions(comboEdgeSize, SIZE, EdgeAtt.values(), EdgeAtt.SCORE);
+    addComboOptions(comboEdgeLabel, LABEL, EdgeAtt.values(), EdgeAtt.SCORE);
 
+    cbCollapseIons.selectedProperty()
+        .addListener((observable, oldValue, newValue) -> networkPane.collapseIonNodes(newValue));
     // #######################################################
     // add buttons
-//    ToggleButton toggleCollapseIons = new ToggleButton("Collapse ions");
-//    toggleCollapseIons.setMaxWidth(Double.MAX_VALUE);
-//    toggleCollapseIons.setSelected(collapse);
-//    toggleCollapseIons.selectedProperty()
-//        .addListener((o, old, value) -> collapseIonNodes(toggleCollapseIons.isSelected()));
 //
 //    ToggleButton toggleShowMS2SimEdges = new ToggleButton("Show MS2 sim");
 //    toggleShowMS2SimEdges.setMaxWidth(Double.MAX_VALUE);
@@ -220,8 +224,8 @@ public class FeatureNetworkController {
 //    this.setRight(pnRightMenu);
   }
 
-  private <T> void addComboOptions(final SearchableComboBox<T> combo, final GraphObject go,
-      final GraphStyleAttribute attribute, final T[] values, final T selectedValue) {
+  private <T extends GraphElementAttr> void addComboOptions(final SearchableComboBox<T> combo,
+      final GraphStyleAttribute attribute, final T[] values, @NotNull final T selectedValue) {
     combo.setItems(FXCollections.observableArrayList(values));
     combo.setButtonCell(new ListCell<>() {
       @Override
@@ -232,7 +236,10 @@ public class FeatureNetworkController {
         }
       }
     });
-    combo.setOnAction(e -> networkPane.setAttributeForAllElements(go, attribute, combo.getValue()));
+    combo.valueProperty().addListener((observable, oldValue, newValue) -> {
+        networkPane.setAttributeForAllElements(attribute, newValue);
+    });
+    GraphObject go = selectedValue.getGraphObject();
     combo.setTooltip(new Tooltip(go + " " + attribute)); // e.g., Node color
     combo.getSelectionModel().select(selectedValue);
   }

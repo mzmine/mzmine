@@ -26,13 +26,16 @@ edge.FEATURECORR {
   stroke-width: 1px;
 }
 edge.COSINE {
-  fill-color: rgb(30, 86, 227);
   size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #8be4ff, #008eff, #19475d, #0d3549;
 }
 edge.GNPS {
   fill-color: rgb(77, 108, 187);
   size-mode: dyn-size;
   size: 2.5px;
+  fill-mode: dyn-plain;
+  fill-color: #8be4ff, #008eff, #19475d, #0d3549;
 }
 
 edge.IINREL {
@@ -66,6 +69,9 @@ node:clicked {
 node.important {
   fill-color: red;
 }
+node.annotated {
+  shape: diamond;
+}
 
 node.big {
   size: 15px;
@@ -83,7 +89,8 @@ node.NEUTRAL {
 }
 
 /* add gradient to node: node1.setAttribute("ui.color", 0); from 0 - 1 */
-node.GRADIENT {
+node.FEATURE {
   fill-mode: dyn-plain;
-  fill-color: yellow, orange, #c10000;
+  fill-color: #ffffe6, yellow, orange, #c10000,
+  #570025, black;
 }

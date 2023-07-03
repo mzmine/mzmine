@@ -26,17 +26,21 @@
 package io.github.mzmine.util;
 
 
-import static io.github.mzmine.modules.visualization.networking.visual.NodeAtt.COMMUNITY_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
 
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.NetworkCluster;
-import io.github.mzmine.modules.visualization.networking.visual.NodeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.ElementType;
+import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -44,7 +48,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.graphstream.algorithm.community.EpidemicCommunityAlgorithm;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
+import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
@@ -54,34 +60,40 @@ public class GraphStreamUtils {
   /**
    * Unique list of node neighbors within edge distance
    *
-   * @param nodes        nodes to visit and all their neighbors
-   * @param edgeDistance number of consecutive edges connecting neighbors
+   * @param nodes       nodes to visit and all their neighbors
+   * @param maxDistance number of consecutive edges connecting neighbors
    * @return set of all neighbors + the initial node
    */
-  public static Set<Node> getNodeNeighbors(List<Node> nodes, int edgeDistance) {
-    Object2IntMap<Node> visited = new Object2IntOpenHashMap<>();
+  public static Set<Node> getNodeNeighbors(Graph graph, List<Node> nodes, int maxDistance) {
+    // clear
+    graph.edges().forEach(e -> e.removeAttribute(EdgeAtt.NEIGHBOR_DISTANCE.toString()));
+    graph.nodes().forEach(n -> n.removeAttribute(NodeAtt.NEIGHBOR_DISTANCE.toString()));
+
+    // retain insert order
+    Set<Node> visited = new LinkedHashSet<>();
     for (final Node node : nodes) {
-      visited.put(node, edgeDistance);
+      node.setAttribute(NodeAtt.NEIGHBOR_DISTANCE.toString(), 0);
+      visited.add(node);
+    }
+    if (maxDistance == 0) {
+      return visited;
     }
     for (final Node node : nodes) {
       // after adding all initial nodes we add the rest
-      addNodeNeighbors(visited, node, edgeDistance);
+      addNodeNeighbors(visited, node, 1, maxDistance);
     }
-    return visited.keySet();
+    return visited;
   }
 
   /**
    * Unique list of node neighbors within edge distance
    *
-   * @param node         node to visit and all its neighbors
-   * @param edgeDistance number of consecutive edges connecting neighbors
+   * @param node        node to visit and all its neighbors
+   * @param maxDistance number of consecutive edges connecting neighbors
    * @return set of all neighbors + the initial node
    */
-  public static Set<Node> getNodeNeighbors(Node node, int edgeDistance) {
-    Object2IntMap<Node> visited = new Object2IntOpenHashMap<>();
-    visited.put(node, edgeDistance);
-    addNodeNeighbors(visited, node, edgeDistance);
-    return visited.keySet();
+  public static Set<Node> getNodeNeighbors(Graph graph, Node node, int maxDistance) {
+    return getNodeNeighbors(graph, List.of(node), maxDistance);
   }
 
   /**
@@ -90,19 +102,34 @@ public class GraphStreamUtils {
    *
    * @param visited      map that tracks visited nodes and their edgeDistance
    * @param node         current node to visit
-   * @param edgeDistance remaining edge distance
+   * @param edgeDistance current distance from nodes
    */
-  private static void addNodeNeighbors(Object2IntMap<Node> visited, Node node, int edgeDistance) {
-    final int nextDistance = edgeDistance - 1;
-    node.neighborNodes().forEach(neighbor -> {
-      if (visited.getOrDefault(neighbor, -1) < edgeDistance) {
-        // was never visited or was visited with lower edgeDistance - visit this time
-        visited.put(neighbor, nextDistance);
-        if (edgeDistance > 1) {
-          addNodeNeighbors(visited, neighbor, nextDistance);
+  private static void addNodeNeighbors(Set<Node> visited, Node node, int edgeDistance,
+      int maxDistance) {
+    String eDistAttr = EdgeAtt.NEIGHBOR_DISTANCE.toString();
+    String nDistAttr = NodeAtt.NEIGHBOR_DISTANCE.toString();
+    List<Node> checkNeighbors = new ArrayList<>();
+    node.edges().forEach(edge -> {
+      int currentEdgeDist = GraphStreamUtils.getIntegerOrElse(edge, eDistAttr, Integer.MAX_VALUE);
+      if (currentEdgeDist > edgeDistance) {
+        edge.setAttribute(eDistAttr, edgeDistance);
+        var opposite = edge.getOpposite(node);
+        int opDist = GraphStreamUtils.getIntegerOrElse(opposite, nDistAttr, Integer.MAX_VALUE);
+        if (opDist > edgeDistance) {
+          // refresh node distance
+          opposite.setAttribute(nDistAttr, edgeDistance);
+          checkNeighbors.add(opposite);
+          visited.add(opposite);
         }
       }
     });
+
+    int nextDistance = edgeDistance + 1;
+    if (nextDistance <= maxDistance) {
+      for (var neighbor : checkNeighbors) {
+        addNodeNeighbors(visited, neighbor, nextDistance, maxDistance);
+      }
+    }
   }
 
 
@@ -257,4 +284,36 @@ public class GraphStreamUtils {
       return OptionalInt.empty();
     }
   }
+
+  public static String getStringOrElse(Element e, final Object attribute,
+      final String defaultValue) {
+    return Objects.requireNonNullElse(e.getAttribute(attribute.toString()), defaultValue)
+        .toString();
+  }
+
+  public static Optional<ElementType> getElementType(final Element element) {
+    var o =  switch (element) {
+      case Node __ -> getAttribute(element, NodeAtt.TYPE);
+      case Edge __ -> getAttribute(element, EdgeAtt.TYPE);
+      default -> throw new IllegalStateException("Unexpected value: " + element);
+    };
+    if(o.isPresent() && o.get() instanceof ElementType etype) {
+      return Optional.of(etype);
+    }
+    return Optional.empty();
+  }
+
+  /**
+   * UI class of node or edge
+   * @param element node or edge
+   * @return ui class or empty
+   */
+  public static Optional<String> getUiClass(final Element element) {
+    return getElementType(element).flatMap(ElementType::getUiClass);
+  }
+
+  private static Optional<Object> getAttribute(final Element element, final Object attribute) {
+    return Optional.ofNullable(element.getAttribute(attribute.toString()));
+  }
+
 }

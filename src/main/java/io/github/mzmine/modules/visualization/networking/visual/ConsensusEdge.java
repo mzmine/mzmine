@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 

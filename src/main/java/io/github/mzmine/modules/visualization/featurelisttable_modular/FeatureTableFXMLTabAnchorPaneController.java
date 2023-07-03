@@ -38,8 +38,11 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -68,14 +71,12 @@ public class FeatureTableFXMLTabAnchorPaneController {
   private SplitPane pnTablePreviewSplit;
   @FXML
   private FeatureTableFX featureTable;
+  private TextField idSearchField;
   private TextField mzSearchField;
   private TextField rtSearchField;
   private TextField anySearchField;
   private ComboBox<DataType> typeComboBox;
 
-  public void setFeatureTable(FeatureTableFX featureTable) {
-    this.featureTable = featureTable;
-  }
 
   public void initialize() {
     param = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
@@ -91,17 +92,19 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     // Search fields
     mzSearchField = new TextField();
-    //mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
     rtSearchField = new TextField();
-    // Add filter text fields listeners to filter on air
+    idSearchField = new TextField();
     mzSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     rtSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
+    idSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     HBox mzFilter = new HBox(new Label("m/z: "), mzSearchField);
     mzFilter.setAlignment(filtersRow.getAlignment());
     HBox rtFilter = new HBox(new Label("RT: "), rtSearchField);
     rtFilter.setAlignment(filtersRow.getAlignment());
+    HBox idFilter = new HBox(new Label("ID: "), idSearchField);
+    idFilter.setAlignment(filtersRow.getAlignment());
 
-    filtersRow.getChildren().addAll(filterIcon, mzFilter, separator, rtFilter);
+    filtersRow.getChildren().addAll(filterIcon, idFilter, mzFilter, separator, rtFilter);
 
     typeComboBox = new ComboBox<>();
     /*typeComboBox.setConverter(new StringConverter<>() {
@@ -143,6 +146,8 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
   private void filterRows() {
     // Parse input text fields
+    Set<String> idFilter = Arrays.stream(idSearchField.getText().split(","))
+        .filter(s -> !s.isBlank()).collect(Collectors.toSet());
     Range<Double> mzFilter = parseNumericFilter(mzSearchField, 5e-5);
     Range<Double> rtFilter = parseNumericFilter(rtSearchField, 5e-3);
 
@@ -164,6 +169,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
         anyFilterOk = value != null && type.getFormattedStringCheckType(value).toLowerCase().trim()
             .contains(anyFilterString);
       }
+      if (idFilter.size() > 0 && !idFilter.contains(String.valueOf(row.getID()))) {
+        return false;
+      }
 
       Double mz = row.getAverageMZ();
       Float rt = row.getAverageRT();
@@ -174,6 +182,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
     // Update rows in feature table
     featureTable.getRoot().getChildren().clear();
     featureTable.getRoot().getChildren().addAll(featureTable.getFilteredRowItems());
+  }
+
+  public TextField getIdSearchField() {
+    return idSearchField;
   }
 
   /**

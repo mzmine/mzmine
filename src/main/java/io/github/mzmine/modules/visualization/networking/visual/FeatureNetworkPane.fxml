@@ -11,7 +11,7 @@
 <?import org.controlsfx.control.SearchableComboBox?>
 <?import org.controlsfx.control.ToggleSwitch?>
 
-<?import javafx.scene.control.TextField?><BorderPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
+<?import javafx.scene.control.TextField?><?import javafx.scene.layout.HBox?><?import javafx.scene.layout.VBox?><BorderPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
 fx:id="mainPane"
 fx:controller="io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController">
    <top>
@@ -19,15 +19,20 @@ fx:controller="io.github.mzmine.modules.visualization.networking.visual.FeatureN
         <panes>
           <TitledPane animated="false" text="Visuals">
                <content>
-                  <FlowPane hgap="4.0" vgap="4.0">
-                     <children>
-                        <Label text="Color" />
+                  <VBox>
+                  <FlowPane hgap="4.0" vgap="0">
+                        <Label text="Node" />
                         <SearchableComboBox fx:id="comboNodeColor" />
                         <SearchableComboBox fx:id="comboNodeSize" />
                         <SearchableComboBox fx:id="comboNodeLabel" />
-                        <SearchableComboBox fx:id="comboEdgeLabel" />
-                     </children>
                   </FlowPane>
+                  <FlowPane hgap="4.0" vgap="0">
+                        <Label text="Edge" />
+                        <SearchableComboBox fx:id="comboEdgeColor" />
+                        <SearchableComboBox fx:id="comboEdgeSize" />
+                        <SearchableComboBox fx:id="comboEdgeLabel" />
+                  </FlowPane>
+                  </VBox>
                </content>
             </TitledPane>
             <TitledPane animated="false" text="Filters">

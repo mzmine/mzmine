@@ -39,8 +39,16 @@ import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
+import io.github.mzmine.modules.visualization.networking.visual.enums.ElementType;
+import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.NodeType;
+import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -65,6 +73,7 @@ public class FeatureNetworkGenerator {
   private final NumberFormat scoreForm = MZmineCore.getConfiguration().getScoreFormat();
   private final NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
 
+  private Object2IntMap<ElementType> elementsOfType = new Object2IntOpenHashMap<>();
   private MultiGraph graph;
   private Node neutralNode;
   private boolean ms1FeatureShapeEdges;
@@ -72,7 +81,8 @@ public class FeatureNetworkGenerator {
 
   public MultiGraph createNewGraph(FeatureList flist, boolean onlyBestNetworks,
       boolean ms1FeatureShapeEdges) {
-    return createNewGraph(flist.getRows(), onlyBestNetworks, flist.getRowMaps(), ms1FeatureShapeEdges);
+    return createNewGraph(flist.getRows(), onlyBestNetworks, flist.getRowMaps(),
+        ms1FeatureShapeEdges);
   }
 
   public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean onlyBestNetworks,
@@ -105,12 +115,9 @@ public class FeatureNetworkGenerator {
 
       // add id name
       for (Node node : graph) {
-        if (node.getId().startsWith("Net")) {
-          node.setAttribute("ui.class", "MOL");
-        }
-        if (node.getId().equals("NEUTRAL LOSSES")) {
-          node.setAttribute("ui.class", "NEUTRAL");
-        }
+        GraphStreamUtils.getUiClass(node).ifPresent(uiClass -> {
+          node.setAttribute("ui.class", uiClass);
+        });
 
         String l = (String) node.getAttribute(NodeAtt.LABEL.toString());
         if (l != null) {
@@ -298,7 +305,7 @@ public class FeatureNetworkGenerator {
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
     edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
     switch (type) {
-      case MS2_SIMILARITY, MS2_GNPS_COSINE_SIM ->
+      case MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
       case FEATURE_CORRELATION ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
@@ -307,17 +314,6 @@ public class FeatureNetworkGenerator {
 
   private double deltaMZ(FeatureListRow a, FeatureListRow b) {
     return Math.abs(a.getAverageMZ() - b.getAverageMZ());
-  }
-
-  private String getUIClass(EdgeType type) {
-    return switch (type) {
-      case ION_IDENTITY -> "IIN";
-      case MS2_SIMILARITY, MS2_SIMILARITY_NEUTRAL_M, MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE ->
-          "COSINE";
-      case MS2_GNPS_COSINE_SIM -> "GNPS";
-      case FEATURE_CORRELATION -> "FEATURECORR";
-      case NETWORK_RELATIONS -> "IINREL";
-    };
   }
 
   /**
@@ -417,10 +413,29 @@ public class FeatureNetworkGenerator {
   private Node getNeutralLossNode() {
     if (neutralNode == null) {
       neutralNode = graph.addNode("NEUTRAL LOSSES");
-      neutralNode.setAttribute("ui.class", "NEUTRAL");
-      neutralNode.setAttribute(NodeAtt.TYPE.toString(), NodeType.NEUTRAL_LOSS_CENTER);
+      var type = NodeType.NEUTRAL_LOSS_CENTER;
+      neutralNode.setAttribute("ui.class", type.getUiClass().orElse(""));
+      neutralNode.setAttribute(NodeAtt.TYPE.toString(), type);
     }
     return neutralNode;
+  }
+
+  private Node createNode(NodeType type) {
+    return createNode(type, type.toString() + getNextIndex(type));
+  }
+
+  private Node createNode(NodeType type, String id) {
+    Node node = graph.addNode(id);
+    node.setAttribute(NodeAtt.TYPE.toString(), type);
+    String uiClass = type.getUiClass().orElse(null);
+    if (uiClass != null) {
+      node.setAttribute("ui.class", uiClass);
+    }
+    return node;
+  }
+
+  private int getNextIndex(final NodeType type) {
+    return elementsOfType.computeInt(type, (t, count) -> count == null ? 0 : count + 1);
   }
 
   /**
@@ -597,7 +612,7 @@ public class FeatureNetworkGenerator {
 
   public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label, boolean directed,
       double dmz) {
-    String uiClass = getUIClass(type);
+    String uiClass = type.getUiClass().orElse(null);
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
     e.setAttribute(EdgeAtt.DELTA_MZ.toString(), mzForm.format(dmz));
@@ -605,7 +620,7 @@ public class FeatureNetworkGenerator {
   }
 
   public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label, boolean directed) {
-    String uiClass = getUIClass(type);
+    String uiClass = type.getUiClass().orElse(null);
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
     return e;
@@ -620,7 +635,7 @@ public class FeatureNetworkGenerator {
     }
     e.setAttribute("ui.label", label);
     e.setAttribute(EdgeAtt.LABEL.toString(), label);
-    if (uiClass != null && !uiClass.isEmpty()) {
+    if (uiClass != null && !uiClass.isBlank()) {
       e.setAttribute("ui.class", uiClass);
     }
     return e;

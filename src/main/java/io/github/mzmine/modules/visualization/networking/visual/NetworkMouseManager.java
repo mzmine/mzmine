@@ -193,8 +193,8 @@ public class NetworkMouseManager extends FxMouseManager {
 
   protected void mouseOverElement(GraphicElement element) {
     element.setAttribute("ui.mouseOver", true);
-    element.setAttribute("ui.class",
-        "mouseOver"); //I defined a class/type for edges in the CSS styling sheet that is calles "mouseOver"
+//    element.setAttribute("ui.class",
+//        "mouseOver"); //I defined a class/type for edges in the CSS styling sheet that is calles "mouseOver"
 
     if (element instanceof GraphicEdge) {
       mouseOverEdge((GraphicEdge) element);

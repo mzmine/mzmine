@@ -1118,4 +1118,5 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
     return columns;
   }
+
 }

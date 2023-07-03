@@ -23,30 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
-import java.util.stream.Stream;
-import org.graphstream.graph.Element;
-import org.graphstream.graph.Graph;
+public enum EdgeAtt implements GraphElementAttr {
 
-/**
- * Defines access to different objects in the graph
- *
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-public enum GraphObject {
-  NODE, EDGE;
+  NONE, SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES, NEIGHBOR_DISTANCE;
 
-  /**
-   * Stream all elements in graph of this type
-   *
-   * @param graph the target graph
-   * @return a stream of nodes or edges
-   */
-  public Stream<? extends Element> stream(Graph graph) {
+  @Override
+  public String toString() {
+    return super.toString().replaceAll("_", " ");
+  }
+
+  public boolean isNumber() {
     return switch (this) {
-      case NODE -> graph.nodes();
-      case EDGE -> graph.edges();
+      case TYPE, LABEL, NONE -> false;
+      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES, NEIGHBOR_DISTANCE ->
+          true;
     };
+  }
+
+  @Override
+  public boolean isReversed() {
+    return this==NEIGHBOR_DISTANCE;
+  }
+
+  @Override
+  public boolean isChangingDynamically() {
+    return NEIGHBOR_DISTANCE == this;
+  }
+
+  @Override
+  public GraphObject getGraphObject() {
+    return GraphObject.EDGE;
   }
 }

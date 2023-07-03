@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
@@ -85,13 +86,12 @@ public class NetworkOverviewController {
     }
     setUpCalled = true;
 
-    // create internal table
-    FeatureTableTab tempTab = new FeatureTableTab(featureList);
-    internalTable = tempTab.getFeatureTable();
-
     // create network
     networkController = FeatureNetworkController.create(featureList, this.focussedRows);
     pnNetwork.setCenter(networkController.getMainPane());
+
+    // create internal table
+    createInternalTable(featureList);
     linkFeatureTableSelections(internalTable, externalTable);
 
     // create edges
@@ -107,7 +107,6 @@ public class NetworkOverviewController {
     mirrorScanController = mirrorScanTab.getController();
 
     // set content to panes
-    tabNodes.setContent(tempTab.getMainPane());
     // tabEdges.
 
     tabSimilarity.setContent(mirrorScanController.getMainPane());
@@ -121,6 +120,22 @@ public class NetworkOverviewController {
     if (focussedRows != null) {
       this.focussedRows.setAll(focussedRows);
     }
+  }
+
+  @NotNull
+  private void createInternalTable(final @NotNull ModularFeatureList featureList) {
+    FeatureTableTab tempTab = new FeatureTableTab(featureList);
+    internalTable = tempTab.getFeatureTable();
+    tabNodes.setContent(tempTab.getMainPane());
+
+    var tabController = tempTab.getController();
+    networkController.getNetworkPane().getVisibleRows()
+        .addListener((ListChangeListener<? super FeatureListRow>) c -> {
+          ObservableList<? extends FeatureListRow> visible = c.getList();
+          tabController.getIdSearchField().setText(
+              visible.stream().map(FeatureListRow::getID).map(Object::toString)
+                  .collect(Collectors.joining(",")));
+        });
   }
 
 
