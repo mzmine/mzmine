@@ -59,7 +59,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -98,7 +97,7 @@ public class FeatureNetworkPane extends NetworkPane {
   /**
    * Max width in graph units. 1 is the distance between nodes
    */
-  private List<GraphStyler> graphStylers = List.of(
+  private final List<GraphStyler> graphStylers = List.of(
       new GraphSizeStyler(NODE, GraphUnits.gu, 0.02f, 0.3f, 0.1f),
       new GraphSizeStyler(EDGE, GraphUnits.px, 0.5f, 7f, 2f),
       // labels
@@ -108,31 +107,20 @@ public class FeatureNetworkPane extends NetworkPane {
 
   // data
   private final FeatureList featureList;
-  private final List<FeatureListRow> rows; // might be a filtered subset
 
   // those rows are focussed - usually showing its neighbors
   private final @NotNull ObservableList<Node> visibleNodes = FXCollections.observableArrayList();
   private final @NotNull ObservableList<FeatureListRow> visibleRows = FXCollections.observableArrayList();
   private final @NotNull ObservableList<FeatureListRow> focussedRows;
-  private final @NotNull ObjectProperty<Integer> neighborDistance;
-  private boolean showNetRelationsEdges;
-  private boolean collapse = true;
-  private boolean showIonEdges = true;
-  private boolean showMs2SimEdges;
-  private boolean ms1FeatureShapeEdges = false;
 
   public FeatureNetworkPane(final FeatureNetworkController controller,
       final @NotNull FeatureList featureList,
-      final @NotNull ObservableList<FeatureListRow> focussedRows,
-      @NotNull ObjectProperty<Integer> neighborDistance,
-      final @NotNull FeatureNetworkGenerator generator, final @NotNull MultiGraph fullGraph) {
+      final @NotNull ObservableList<FeatureListRow> focussedRows, final @NotNull FeatureNetworkGenerator generator, final @NotNull MultiGraph fullGraph) {
     super("Molecular Networks", false, fullGraph);
     this.controller = controller;
     this.featureList = featureList;
-    this.rows = featureList.getRows();
     this.focussedRows = focussedRows;
     this.generator = generator;
-    this.neighborDistance = neighborDistance;
     focussedRows.addListener(this::handleFocussedRowsChanged);
     annotationsFilter = new NodeAnnotationsFilter(this);
 
@@ -149,7 +137,7 @@ public class FeatureNetworkPane extends NetworkPane {
     collapseIonNodes(controller.cbCollapseIons.isSelected());
   }
 
-  public ObservableList<FeatureListRow> getVisibleRows() {
+  public @NotNull ObservableList<FeatureListRow> getVisibleRows() {
     return visibleRows;
   }
 
@@ -167,11 +155,11 @@ public class FeatureNetworkPane extends NetworkPane {
 
   private void showNodesNeighbors(final List<Node> selected) {
     logger.fine(() -> "Showing neighboring nodes distance %d of selected nodes %d".formatted(
-        neighborDistance.get(), selected.size()));
+        getNeighborDistance(), selected.size()));
     if (selected.isEmpty()) {
       return;
     }
-    filterNodeNeighbors(selected, neighborDistance.get());
+    filterNodeNeighbors(selected, getNeighborDistance());
   }
 
 
@@ -188,8 +176,8 @@ public class FeatureNetworkPane extends NetworkPane {
     return focussedRows;
   }
 
-  public @NotNull ObjectProperty<Integer> neighborDistanceProperty() {
-    return neighborDistance;
+  public int getNeighborDistance() {
+    return controller.neighborDistanceProperty().getValue();
   }
 
   @Nullable
@@ -286,12 +274,8 @@ public class FeatureNetworkPane extends NetworkPane {
       alert.setContentText("Please click on any node First!!");
       alert.showAndWait();
     } else {
-      filterNodeNeighbors(List.of(getMouseClickedNode()), neighborDistance.get());
+      filterNodeNeighbors(List.of(getMouseClickedNode()), getNeighborDistance());
     }
-  }
-
-  public void filterRowNeighbors(final List<FeatureListRow> center, final int distance) {
-    filterNodeNeighbors(getNodes(center), distance);
   }
 
   private void filterNodeNeighbors(final List<Node> center, final int distance) {
@@ -353,13 +337,7 @@ public class FeatureNetworkPane extends NetworkPane {
     logger.info("Show " + n + " spectral library matches");
   }
 
-  private void showIonIdentityEdges(boolean selected) {
-    showIonEdges = selected;
-    collapseIonNodes(collapse);
-  }
-
   public void collapseIonNodes(boolean collapse) {
-    this.collapse = collapse;
     for (Node node : graph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
       if (type != null) {
@@ -382,7 +360,7 @@ public class FeatureNetworkPane extends NetworkPane {
       EdgeType type = (EdgeType) edge.getAttribute(EdgeAtt.TYPE.toString());
       if (type != null) {
         switch (type) {
-          case ION_IDENTITY -> setVisible(edge, !collapse && showIonEdges);
+          case ION_IDENTITY -> setVisible(edge, !collapse);
           case MODIFIED_COSINE_NEUTRAL_M_TO_FEATURE, MODIFIED_COSINE_NEUTRAL_M, MODIFIED_COSINE, NETWORK_RELATIONS ->
               setVisible(edge, true);
           default -> {
@@ -511,26 +489,12 @@ public class FeatureNetworkPane extends NetworkPane {
   }
 
 
-  public void setConnectByNetRelations(boolean connectByNetRelations) {
-    this.showNetRelationsEdges = connectByNetRelations;
-    collapseIonNodes(collapse);
-  }
-
   public void dispose() {
     graph.clear();
   }
 
-  public void setShowMs2SimEdges(boolean ms2SimEdges) {
-    this.showMs2SimEdges = ms2SimEdges;
-    collapseIonNodes(collapse);
-  }
-
   public FeatureList getFeatureList() {
     return featureList;
-  }
-
-  public void setUseMs1FeatureShapeEdges(boolean ms1FeatureShapeEdges) {
-    this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
   }
 
   public void focusSelectedNodes() {

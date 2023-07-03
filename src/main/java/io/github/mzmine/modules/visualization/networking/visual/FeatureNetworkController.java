@@ -82,11 +82,6 @@ public class FeatureNetworkController {
   public BorderPane mainPane;
   public TextField txtFilterAnnotations;
   public Button btnFocusFilteredNodes;
-  private boolean showNetRelationsEdges;
-  private boolean collapse = true;
-  private boolean showIonEdges = true;
-  private boolean showMs2SimEdges;
-  private boolean ms1FeatureShapeEdges = false;
 
   private FeatureNetworkPane networkPane;
 
@@ -118,8 +113,7 @@ public class FeatureNetworkController {
     // create graph and add to center
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
     var fullGraph = generator.createNewGraph(flist, false, false);
-    networkPane = new FeatureNetworkPane(this, flist, focussedRows, neighborDistanceProperty(),
-        generator, fullGraph);
+    networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
 
     addMenuOptions();
@@ -135,9 +129,8 @@ public class FeatureNetworkController {
       // finally filter and select nodes
       networkPane.selectNodesByAnnotation(txtFilterAnnotations.getText());
     });
-    txtFilterAnnotations.textProperty().addListener((observable, oldValue, newValue) -> {
-      delayedFilter.playFromStart();
-    });
+    txtFilterAnnotations.textProperty()
+        .addListener((observable, oldValue, newValue) -> delayedFilter.playFromStart());
   }
 
   public ObservableList<FeatureListRow> getFocussedRows() {
@@ -237,7 +230,7 @@ public class FeatureNetworkController {
       }
     });
     combo.valueProperty().addListener((observable, oldValue, newValue) -> {
-        networkPane.setAttributeForAllElements(attribute, newValue);
+      networkPane.setAttributeForAllElements(attribute, newValue);
     });
     GraphObject go = selectedValue.getGraphObject();
     combo.setTooltip(new Tooltip(go + " " + attribute)); // e.g., Node color
