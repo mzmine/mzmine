@@ -281,19 +281,12 @@ public class MirrorScanWindowController {
 
     parameterSetupPane.updateParameterSetFromComponents();
     final MZTolerance mzTol = parameters.getValue(MirrorScanParameters.mzTol);
-    boolean removePrecursor = parameters.getValue(MirrorScanParameters.removePrecursor);
+    var signalFilters = parameters.getValue(MirrorScanParameters.signalFilters).createFilter();
     Weights weights = parameters.getValue(MirrorScanParameters.weight);
 
-    if (removePrecursor) {
-      MZTolerance removePrecursorMzTol = parameters.getParameter(
-          MirrorScanParameters.removePrecursor).getEmbeddedParameter().getValue();
-      dpsA = ScanUtils.removeSignals(dpsA, precursorMZA, removePrecursorMzTol);
-      dpsB = ScanUtils.removeSignals(dpsB, precursorMZB, removePrecursorMzTol);
-    }
+    dpsA = signalFilters.applyFilterAndSortByIntensity(dpsA, precursorMZA);
+    dpsB = signalFilters.applyFilterAndSortByIntensity(dpsB, precursorMZB);
 
-    // needs to be sorted
-    Arrays.sort(dpsA, DataPointSorter.DEFAULT_INTENSITY);
-    Arrays.sort(dpsB, DataPointSorter.DEFAULT_INTENSITY);
     SpectralSimilarity cosine = SpectralNetworkingTask.createMS2Sim(mzTol, dpsA, dpsB, 2, weights);
 
     if (cosine != null) {

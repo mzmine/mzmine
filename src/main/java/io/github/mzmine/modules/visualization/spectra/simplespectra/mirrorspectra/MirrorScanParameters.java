@@ -25,10 +25,11 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.scans.similarity.Weights;
 
@@ -40,9 +41,10 @@ public class MirrorScanParameters extends SimpleParameterSet {
   public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
       "Weights for m/z and intensity", Weights.VALUES, Weights.SQRT);
 
-  public static final OptionalParameter<MZToleranceParameter> removePrecursor = new OptionalParameter<>(
-      new MZToleranceParameter("Remove m/z around precursor", "Removes residual precursor signals",
-          10, 0));
+  public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
+      "Signal filters", """
+      Signal filters to limit the number of signals etc.
+      """, new SignalFiltersParameters());
 
   /**
    * Windows size and position
@@ -50,7 +52,12 @@ public class MirrorScanParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public MirrorScanParameters() {
-    super(mzTol, weight, removePrecursor, windowSettings);
+    super(mzTol, weight, signalFilters, windowSettings);
   }
 
+  @Override
+  public int getVersion() {
+    // changed to signal filters for version 2
+    return 2;
+  }
 }

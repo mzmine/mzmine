@@ -31,7 +31,6 @@ import static io.github.mzmine.modules.visualization.networking.visual.enums.Nod
 import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -51,11 +50,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.GraphStreamUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
 import io.github.mzmine.util.maths.similarity.Similarity;
@@ -85,8 +81,6 @@ public class SpectralNetworkingTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(SpectralNetworkingTask.class.getName());
 
-  public static final DataPointSorter dpSorter = new DataPointSorter(SortingProperty.Intensity,
-      SortingDirection.Descending);
   public final static Function<List<DataPoint[]>, Integer> DIFF_OVERLAP = list -> ScanMZDiffConverter.getOverlapOfAlignedDiff(
       list, 0, 1);
   public final static Function<List<DataPoint[]>, Integer> SIZE_OVERLAP = SpectralNetworkingTask::calcOverlap;
@@ -100,16 +94,9 @@ public class SpectralNetworkingTask extends AbstractTask {
   private final ModularFeatureList featureList;
   // target
   private final boolean checkNeutralLoss;
+  private final SpectralSignalFilter signalFilter;
   private List<FeatureListRow> rows;
-  private final boolean isRemovePrecursor;
-  private final double removePrecursorMz;
   private final double maxMzDelta;
-
-  // use a maximum
-  private final int signalThresholdForTargetIntensityPercent;
-  private final double targetIntensityPercentage;
-  // hard cut off of noisy spectra
-  private final int cropAfterSignalsCount;
 
   private long totalMaxPairs = 0;
 
@@ -134,16 +121,7 @@ public class SpectralNetworkingTask extends AbstractTask {
       maxDPForDiff = 0;
     }
     // embedded signal filters
-    var filterParams = params.getValue(SpectralNetworkingParameters.signalFilters);
-
-    isRemovePrecursor = filterParams.getValue(SignalFiltersParameters.removePrecursor);
-    removePrecursorMz = filterParams.getEmbeddedParameterValueIfSelectedOrElse(
-        SignalFiltersParameters.removePrecursor, 0d);
-    cropAfterSignalsCount = filterParams.getValue(SignalFiltersParameters.cropToMaxSignals);
-    signalThresholdForTargetIntensityPercent = filterParams.getValue(
-        SignalFiltersParameters.signalThresholdIntensityFilter);
-    targetIntensityPercentage = filterParams.getValue(
-        SignalFiltersParameters.intensityPercentFilter);
+    signalFilter = params.getValue(SpectralNetworkingParameters.signalFilters).createFilter();
   }
 
   /**
@@ -590,7 +568,7 @@ public class SpectralNetworkingTask extends AbstractTask {
         // create mass diff array
         if (checkNeutralLoss) {
           massDiffA = ScanMZDiffConverter.getAllMZDiff(dpa, mzTolerance, -1, maxDPForDiff);
-          Arrays.sort(massDiffA, dpSorter);
+          Arrays.sort(massDiffA, DataPointSorter.DEFAULT_INTENSITY);
         }
         for (Feature fb : b.getFeatures()) {
           DataPoint[] dpb = mapFeatureData.get(fb).data();
@@ -605,7 +583,7 @@ public class SpectralNetworkingTask extends AbstractTask {
             // alignment and sim of neutral losses
             if (checkNeutralLoss) {
               massDiffB = ScanMZDiffConverter.getAllMZDiff(dpb, mzTolerance, maxDPForDiff);
-              Arrays.sort(massDiffB, dpSorter);
+              Arrays.sort(massDiffB, DataPointSorter.DEFAULT_INTENSITY);
               SpectralSimilarity massDiffSim = createMS2Sim(mzTolerance, massDiffA, massDiffB,
                   minMatch, DIFF_OVERLAP);
 
@@ -642,35 +620,9 @@ public class SpectralNetworkingTask extends AbstractTask {
     if (ms2 == null) {
       return null;
     }
-    MassList masses = ms2.getMassList();
-    if (masses == null) {
-      throw new MissingMassListException(ms2);
-    }
-    if (masses.getNumberOfDataPoints() < minDP) {
-      return null;
-    }
-    DataPoint[] dps = masses.getDataPoints();
     // remove precursor signals
-    if (isRemovePrecursor && removePrecursorMz > 0) {
-      dps = DataPointUtils.removePrecursorMz(dps, precursorMz, removePrecursorMz);
-      if (dps.length < minDP) {
-        return null;
-      }
-    }
-
-    // sort by intensity
-    Arrays.sort(dps, dpSorter);
-
-    // apply some filters to avoid noisy spectra with too many signals
-    if (dps.length > signalThresholdForTargetIntensityPercent) {
-      dps = DataPointUtils.filterDataByIntensityPercent(dps, targetIntensityPercentage,
-          cropAfterSignalsCount);
-    }
-
-    if (dps.length < minDP) {
-      return null;
-    }
-    return new FilteredRowData(row, dps);
+    DataPoint[] dps = signalFilter.applyFilterAndSortByIntensity(ms2, precursorMz, minDP);
+    return dps != null ? new FilteredRowData(row, dps) : null;
   }
 
 
