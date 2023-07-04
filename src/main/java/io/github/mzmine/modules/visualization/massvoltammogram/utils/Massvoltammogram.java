@@ -323,8 +323,7 @@ public class Massvoltammogram {
     MassvoltammogramUtils.addZerosToCentroidData(rawScansInMzRange);
 
     //Aligning the scans to all start and end at the same mz-value.
-    MassvoltammogramUtils.alignScans(rawScansInMzRange, userInputMzRange,
-        MassvoltammogramUtils.getMzRange(rawScans));
+    MassvoltammogramUtils.alignScans(rawScansInMzRange, userInputMzRange, getRawDataMzRange());
   }
 
   /**
@@ -370,7 +369,7 @@ public class Massvoltammogram {
 
     //Adding the empty line plots to the plot panel only if the mz-range is contained by the raw data.
     //Otherwise, showing an empty plot.
-    if (rawDataContainsMzRange(userInputMzRange)) {
+    if (rawDataOverlapsWithMzRange(userInputMzRange)) {
       for (MassvoltammogramScan scan : rawScansInMzRange) {
         plot.addLinePlot("Spectrum at " + scan.getPotential() + " mV.", Color.black, scan.getMzs(),
             scan.getPotentialAsArray(), scan.getIntensities());
@@ -414,16 +413,47 @@ public class Massvoltammogram {
   }
 
   /**
-   * Checks weather a given mz-range is contained in the raw data's mz-range.
+   * Checks weather a given mz-range is overlaps with the raw data's mz-range.
    *
    * @param mzRange The mz-range to be checked.
-   * @return Returns true if the given mz-range is contained in the raw data's mz-range.
+   * @return Returns true if the given mz-range overlaps with the raw data's mz-range.
    */
-  private boolean rawDataContainsMzRange(Range<Double> mzRange) {
+  private boolean rawDataOverlapsWithMzRange(Range<Double> mzRange) {
 
-    Range<Double> rawDataMzRange = MassvoltammogramUtils.getMzRange(rawScans);
-    return rawDataMzRange.contains(mzRange.lowerEndpoint()) && rawDataMzRange.contains(
+    Range<Double> rawDataMzRange = getRawDataMzRange();
+    return rawDataMzRange.contains(mzRange.lowerEndpoint()) || rawDataMzRange.contains(
         mzRange.upperEndpoint());
+  }
+
+  /**
+   * @return Returns the mz-range of the raw data file or feature list used for the
+   * massvoltammogram.
+   */
+  private Range<Double> getRawDataMzRange() {
+
+    //Creating an empty range.
+    Range<Double> rawDataMzRange = null;
+
+    //Setting the mz-range to the raw data files mz-range if a raw data file is used.
+    if (file != null) {
+      rawDataMzRange = file.getDataMZRange(0);
+
+      //Setting the mz-range to the feature lists mz-range if a feature list is used instead.
+    } else if (featureList != null) {
+
+      //Setting the range to the first feature lists mz-range.
+      List<RawDataFile> files = featureList.getRawDataFiles();
+      rawDataMzRange = files.get(0).getDataMZRange(0);
+
+      //Spanning the mz-range around all feature lists if multiple feature lists are used.
+      if (files.size() > 1) {
+
+        for (int i = 1; i < files.size(); i++) {
+          rawDataMzRange = rawDataMzRange.span(files.get(i).getDataMZRange());
+        }
+      }
+    }
+    return rawDataMzRange;
   }
 
   /**

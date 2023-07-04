@@ -263,32 +263,6 @@ public class MassvoltammogramUtils {
   }
 
   /**
-   * Method to get the m/z-range of a list of MassvoltammogramScans.
-   *
-   * @param scans The list of MassvoltammogramScans whose m/z-range will be determined.
-   * @return Returns the m/z-range of the list of MassvoltammogramScans. Returns null if all
-   * MassvoltammogramScans in the list are empty.
-   */
-  public static Range<Double> getMzRange(List<MassvoltammogramScan> scans) {
-
-    Range<Double> mzRange = null;
-
-    //Going over all scans in the list and creating a range, that encloses all single scan mz-ranges.
-    for (MassvoltammogramScan scan : scans) {
-
-      Range<Double> currentMzRange = scan.getMzRange();
-
-      if (mzRange == null) {
-        mzRange = currentMzRange;
-
-      } else if (currentMzRange != null) {
-        mzRange = mzRange.span(currentMzRange);
-      }
-    }
-    return mzRange;
-  }
-
-  /**
    * Finds the maximal intensity in a set of MassvoltammogramScans.
    *
    * @param scans The list of MassvoltammogramScans the maximal intensity will be extracted from.
