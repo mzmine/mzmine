@@ -47,6 +47,7 @@ import java.util.OptionalInt;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 import org.graphstream.algorithm.community.EpidemicCommunityAlgorithm;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
@@ -57,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphStreamUtils {
 
+  private static final Logger logger = Logger.getLogger(GraphStreamUtils.class.getName());
   /**
    * Unique list of node neighbors within edge distance
    *
@@ -174,7 +176,11 @@ public class GraphStreamUtils {
         id = nextClusterId.getAndIncrement();
         clusterIds.put(node, id);
         // check all connected nodes
-        addAllNodeNeighbors(clusterIds, node, id);
+        try {
+          addAllNodeNeighbors(clusterIds, node, id);
+        } catch (StackOverflowError ex) {
+          logger.fine("Failed to nubmer clusters correctly. Networks were too large.");
+        } 
       }
     });
 
