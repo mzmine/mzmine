@@ -115,7 +115,8 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public FeatureNetworkPane(final FeatureNetworkController controller,
       final @NotNull FeatureList featureList,
-      final @NotNull ObservableList<FeatureListRow> focussedRows, final @NotNull FeatureNetworkGenerator generator, final @NotNull MultiGraph fullGraph) {
+      final @NotNull ObservableList<FeatureListRow> focussedRows,
+      final @NotNull FeatureNetworkGenerator generator, final @NotNull MultiGraph fullGraph) {
     super("Molecular Networks", false, fullGraph);
     this.controller = controller;
     this.featureList = featureList;
@@ -216,7 +217,8 @@ public class FeatureNetworkPane extends NetworkPane {
   }
 
   public List<FeatureListRow> getRowsFromNodes(final List<? extends Node> nodes) {
-    return nodes.stream().map(super::mapGraphicObjectToGraph).map(this::getRowFromNode).toList();
+    return nodes.stream().map(super::mapGraphicObjectToGraph).map(this::getRowFromNode)
+        .filter(Objects::nonNull).toList();
   }
 
   public void setAttributeForAllElements(GraphStyleAttribute gsa, GraphElementAttr attribute) {
@@ -328,7 +330,7 @@ public class FeatureNetworkPane extends NetworkPane {
   public void showLibraryMatches() {
     int n = 0;
     for (Node node : graph) {
-      String name = (String) node.getAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString());
+      String name = (String) node.getAttribute(NodeAtt.LIB_MATCH.toString());
       if (name != null) {
         node.setAttribute("ui.label", name);
         n++;

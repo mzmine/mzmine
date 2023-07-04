@@ -178,7 +178,6 @@ public class FeatureNetworkGenerator {
         for (ConsensusEdge e : consensusEdges) {
           Edge edge = addNewEdge(e.getA(), e.getB(), e.getType(), e.getAnnotation(), false);
           edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(e.getScore()));
-          edge.setAttribute(EdgeAtt.NUMBER_OF_COLLAPSED_EDGES.toString(), e.getNumberOfEdges());
         }
         // set network as finalized
         finalizedNetworks.add(net);
@@ -455,7 +454,7 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.TYPE.toString(), NodeType.NEUTRAL_M);
       node.setAttribute(NodeAtt.LABEL.toString(), name);
       node.setAttribute("ui.label", name);
-      node.setAttribute(NodeAtt.NET_ID.toString(), net.getID());
+      node.setAttribute(NodeAtt.IIN_ID.toString(), net.getID());
       node.setAttribute(NodeAtt.RT.toString(), rtForm.format(net.getAvgRT()));
       node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), mzForm.format(net.getNeutralMass()));
       node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), intensityForm.format(net.getHeightSum()));
@@ -465,12 +464,12 @@ public class FeatureNetworkGenerator {
           .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
+        node.setAttribute(NodeAtt.LIB_MATCH.toString(),
             bestMatch.getCompoundName());
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(),
+        node.setAttribute(NodeAtt.COMPOUND_NAME.toString(),
             bestMatch.getEntry().getOrElse(DBEntryField.NAME, ""));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
+        node.setAttribute(NodeAtt.ANNOTATION_SCORE.toString(), scoreForm.format(score));
+        node.setAttribute(NodeAtt.EXPLAINED_INTENSITY.toString(),
             scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
       }
 
@@ -558,18 +557,18 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.SUM_INTENSITY.toString(), intensityForm.format(sumIntensity));
       node.setAttribute(NodeAtt.LOG10_SUM_INTENSITY.toString(), Math.log10(sumIntensity));
       node.setAttribute(NodeAtt.CHARGE.toString(), row.getRowCharge());
-      node.setAttribute(NodeAtt.GROUP_ID.toString(), row.getGroupID());
+      node.setAttribute(NodeAtt.CORR_ID.toString(), row.getGroupID());
 
       final SpectralDBAnnotation bestMatch = row.getSpectralLibraryMatches().stream()
           .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
+        node.setAttribute(NodeAtt.LIB_MATCH.toString(),
             bestMatch.getCompoundName());
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(),
+        node.setAttribute(NodeAtt.COMPOUND_NAME.toString(),
             bestMatch.getEntry().getOrElse(DBEntryField.NAME, ""));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
+        node.setAttribute(NodeAtt.ANNOTATION_SCORE.toString(), scoreForm.format(score));
+        node.setAttribute(NodeAtt.EXPLAINED_INTENSITY.toString(),
             scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
       }
 
@@ -587,7 +586,7 @@ public class FeatureNetworkGenerator {
         node.setAttribute(NodeAtt.ION_TYPE.toString(), esi.getIonType().toString(false));
         node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(),
             mzForm.format(esi.getIonType().getMass(row.getAverageMZ())));
-        node.setAttribute(NodeAtt.NET_ID.toString(), esi.getNetID());
+        node.setAttribute(NodeAtt.IIN_ID.toString(), esi.getNetID());
         String ms2Veri =
             (esi.getMSMSMultimerCount() > 0 ? "xmer_verified" : "") + (esi.getMSMSModVerify() > 0
                 ? " modification_verified" : "");

@@ -27,7 +27,7 @@ package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 public enum EdgeAtt implements GraphElementAttr {
 
-  NONE, SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES, NEIGHBOR_DISTANCE;
+  NONE, ID1, ID2, LABEL, SCORE, MATCHED_SIGNALS, EXPLAINED_INTENSITY, TYPE, DELTA_MZ, NEIGHBOR_DISTANCE;
 
   @Override
   public String toString() {
@@ -37,14 +37,14 @@ public enum EdgeAtt implements GraphElementAttr {
   public boolean isNumber() {
     return switch (this) {
       case TYPE, LABEL, NONE -> false;
-      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES, NEIGHBOR_DISTANCE ->
+      case ID1, ID2, SCORE, DELTA_MZ, NEIGHBOR_DISTANCE, MATCHED_SIGNALS, EXPLAINED_INTENSITY ->
           true;
     };
   }
 
   @Override
   public boolean isReversed() {
-    return this==NEIGHBOR_DISTANCE;
+    return this == NEIGHBOR_DISTANCE;
   }
 
   @Override

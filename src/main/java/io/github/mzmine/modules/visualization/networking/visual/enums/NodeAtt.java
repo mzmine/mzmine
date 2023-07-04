@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.networking.visual.enums;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -48,7 +50,11 @@ import java.util.List;
  */
 public enum NodeAtt implements GraphElementAttr {
 
-  NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA, NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY, NEIGHBOR_DISTANCE;
+  NONE, LABEL, ROW, TYPE, RT, MZ, ID, //
+  LOG10_SUM_INTENSITY, MAX_INTENSITY, SUM_INTENSITY, //
+  ION_TYPE, FORMULA, NEUTRAL_MASS, CHARGE, MS2_VERIFICATION, // networking
+  IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, NEIGHBOR_DISTANCE, // annotations
+  ANNOTATION, ANNOTATION_SCORE, LIB_MATCH, COMPOUND_NAME, MATCHED_SIGNALS, EXPLAINED_INTENSITY;
 
 
   @Override
@@ -58,10 +64,11 @@ public enum NodeAtt implements GraphElementAttr {
 
   public boolean isNumber() {
     return switch (this) {
-      case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_MATCH_SUMMARY ->
-          false;
-      case NEIGHBOR_DISTANCE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE, NET_ID, GROUP_ID, CLUSTER_ID, COMMUNITY_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE ->
-          true;
+      case NONE, ROW, ANNOTATION, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
+          LIB_MATCH -> false;
+      case NEIGHBOR_DISTANCE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, //
+          NEUTRAL_MASS, CHARGE, IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, ANNOTATION_SCORE, //
+          EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS -> true;
     };
   }
 
@@ -106,25 +113,31 @@ public enum NodeAtt implements GraphElementAttr {
         yield ion == null ? null : ion.getNetwork().getNeutralMass();
       }
       case CHARGE -> row.getRowCharge();
-      case NET_ID -> {
+      case IIN_ID -> {
         IonIdentity ion = row.getBestIonIdentity();
         yield ion == null ? null : ion.getNetID();
       }
-      case GROUP_ID -> row.getGroupID();
+      case CORR_ID -> row.getGroupID();
       case COMMUNITY_ID -> getNetworkStatsOrElse(MolNetCommunityIdType.class, row, -1);
       case CLUSTER_ID -> getNetworkStatsOrElse(MolNetIdType.class, row, -1);
       case COMMUNITY_SIZE -> getNetworkStatsOrElse(MolNetCommunitySizeType.class, row, -1);
       case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetSizeType.class, row, -1);
-      case SPECTRAL_LIB_MATCH_SUMMARY ->
+      case ANNOTATION ->
           row.getAllFeatureAnnotations().stream().findFirst().map(Object::toString).orElse(null);
-      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream()
+      case LIB_MATCH ->
+          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::toString).findFirst()
+              .orElse(null);
+      case COMPOUND_NAME -> row.getSpectralLibraryMatches().stream()
           .map(match -> match.getEntry().getOrElse(DBEntryField.NAME, (String) null)).findFirst()
           .orElse(null);
-      case SPECTRAL_LIB_SCORE ->
+      case ANNOTATION_SCORE ->
           row.getSpectralLibraryMatches().stream().map(match -> match.getSimilarity().getScore())
               .findFirst().orElse(null);
-      case SPECTRAL_LIB_EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream()
+      case EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream()
           .map(match -> match.getSimilarity().getExplainedLibraryIntensity()).findFirst()
+          .orElse(null);
+      case MATCHED_SIGNALS -> row.getSpectralLibraryMatches().stream()
+          .map(match -> match.getSimilarity().getAlignedDataPoints().length).findFirst()
           .orElse(null);
     };
   }
@@ -191,11 +204,11 @@ public enum NodeAtt implements GraphElementAttr {
             : MZmineCore.getConfiguration().getMZFormat().format(ion.getNetwork().getNeutralMass());
       }
       case CHARGE -> String.valueOf(row.getRowCharge());
-      case NET_ID -> {
+      case IIN_ID -> {
         IonIdentity ion = row.getBestIonIdentity();
         yield ion == null ? "" : String.valueOf(ion.getNetID());
       }
-      case GROUP_ID -> {
+      case CORR_ID -> {
         int i = row.getGroupID();
         yield i > -1 ? String.valueOf(i) : "";
       }
@@ -203,17 +216,21 @@ public enum NodeAtt implements GraphElementAttr {
       case COMMUNITY_ID -> getNetworkStatsString(MolNetCommunityIdType.class, row);
       case COMMUNITY_SIZE -> getNetworkStatsString(MolNetCommunitySizeType.class, row);
       case CLUSTER_SIZE -> getNetworkStatsString(MolNetSizeType.class, row);
-      case SPECTRAL_LIB_MATCH_SUMMARY ->
+      case LIB_MATCH ->
           row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getCompoundName)
               .findFirst().orElse("");
-      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream()
+      case COMPOUND_NAME -> row.getSpectralLibraryMatches().stream()
           .map(match -> match.getEntry().getOrElse(DBEntryField.NAME, "")).findFirst().orElse("");
-      case SPECTRAL_LIB_SCORE -> row.getSpectralLibraryMatches().stream()
+      case ANNOTATION -> requireNonNullElse(getValue(row), "").toString();
+      case ANNOTATION_SCORE -> row.getSpectralLibraryMatches().stream()
           .map(match -> String.format("%1.2G", match.getSimilarity().getScore())).findFirst()
           .orElse("");
-      case SPECTRAL_LIB_EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream().map(
+      case EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream().map(
               match -> String.format("%1.2G", match.getSimilarity().getExplainedLibraryIntensity()))
           .findFirst().orElse("");
+      case MATCHED_SIGNALS -> row.getSpectralLibraryMatches().stream()
+          .map(match -> String.valueOf(match.getSimilarity().getAlignedDataPoints().length)).findFirst()
+          .orElse("");
     };
 
   }
