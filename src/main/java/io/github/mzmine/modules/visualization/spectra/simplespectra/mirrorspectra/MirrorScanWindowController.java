@@ -243,7 +243,7 @@ public class MirrorScanWindowController {
     this.dpsB = dpsB;
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    String precursorString = MessageFormat.format(": {0}↔{1}; top↔bottom",
+    String precursorString = MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
         mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
     pnMirror.getChildren().removeAll();
@@ -298,7 +298,7 @@ public class MirrorScanWindowController {
 
     if (cosine != null) {
       lbMirrorStats.setText(String.format(
-          "    cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          "    cosine=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
           cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
           cosine.overlap() / (double) cosine.sizeA()));
@@ -311,7 +311,7 @@ public class MirrorScanWindowController {
         SpectralNetworkingTask.SIZE_OVERLAP, precursorMZA, precursorMZB);
     if (cosine != null) {
       lbMirrorModifiedStats.setText(String.format(
-          "modified=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          "modified=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
           cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
           cosine.overlap() / (double) cosine.sizeA()));
@@ -349,7 +349,7 @@ public class MirrorScanWindowController {
     cosine = SpectralNetworkingTask.createMS2Sim(mzTol, nlA, nlB, 2, weights);
     if (cosine != null) {
       lbNeutralLossStats.setText(String.format(
-          "cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          "cosine=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
           cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
           cosine.overlap() / (double) cosine.sizeA()));

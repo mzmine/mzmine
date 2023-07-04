@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -39,11 +38,11 @@ public class MirrorScanParameters extends SimpleParameterSet {
       "Tolerance to match signals in both scans", 0.0025, 20);
 
   public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
-      "Weights for m/z and intensity", Weights.VALUES, Weights.MASSBANK);
+      "Weights for m/z and intensity", Weights.VALUES, Weights.SQRT);
 
   public static final OptionalParameter<MZToleranceParameter> removePrecursor = new OptionalParameter<>(
       new MZToleranceParameter("Remove m/z around precursor", "Removes residual precursor signals",
-          5, 0));
+          10, 0));
 
   /**
    * Windows size and position
@@ -51,7 +50,7 @@ public class MirrorScanParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public MirrorScanParameters() {
-    super(new Parameter[]{mzTol, weight, removePrecursor, windowSettings});
+    super(mzTol, weight, removePrecursor, windowSettings);
   }
 
 }
