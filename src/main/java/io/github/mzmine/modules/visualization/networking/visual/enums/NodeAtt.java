@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.visualization.networking.visual.enums;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -39,9 +37,13 @@ import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Graphstream node attributes
@@ -52,7 +54,7 @@ public enum NodeAtt implements GraphElementAttr {
 
   NONE, LABEL, ROW, TYPE, RT, MZ, ID, //
   LOG10_SUM_INTENSITY, MAX_INTENSITY, SUM_INTENSITY, //
-  ION_TYPE, FORMULA, NEUTRAL_MASS, CHARGE, MS2_VERIFICATION, // networking
+  ADDUCT, FORMULA, NEUTRAL_MASS, CHARGE, MS2_VERIFICATION, // networking
   IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, NEIGHBOR_DISTANCE, // annotations
   ANNOTATION, ANNOTATION_SCORE, LIB_MATCH, COMPOUND_NAME, MATCHED_SIGNALS, EXPLAINED_INTENSITY;
 
@@ -64,7 +66,7 @@ public enum NodeAtt implements GraphElementAttr {
 
   public boolean isNumber() {
     return switch (this) {
-      case NONE, ROW, ANNOTATION, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
+      case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
           LIB_MATCH -> false;
       case NEIGHBOR_DISTANCE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, //
           NEUTRAL_MASS, CHARGE, IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, ANNOTATION_SCORE, //
@@ -95,13 +97,21 @@ public enum NodeAtt implements GraphElementAttr {
    */
   public Object getValue(FeatureListRow row) {
     return switch (this) {
+      case NONE, MS2_VERIFICATION, NEIGHBOR_DISTANCE -> null;
+      case LABEL -> Stream.of(ID.getValue(row), MZ.getFormattedValue(row, false),
+              ADDUCT.getFormattedValue(row, false), COMPOUND_NAME.getFormattedValue(row, false))
+          .filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(", "));
+      case TYPE -> {
+        IonIdentity ion = row.getBestIonIdentity();
+        yield ion != null && !ion.getIonType().isUndefinedAdduct() ? NodeType.ION_FEATURE
+            : NodeType.SINGLE_FEATURE;
+      }
       case ROW -> row;
-      case NONE, TYPE, LABEL, MS2_VERIFICATION, NEIGHBOR_DISTANCE -> null;
       case FORMULA -> {
         List<ResultFormula> formulas = row.getFormulas();
         yield formulas == null || formulas.isEmpty() ? null : formulas.get(0);
       }
-      case ION_TYPE -> row.getBestIonIdentity();
+      case ADDUCT -> row.getBestIonIdentity();
       case RT -> row.getAverageRT();
       case MZ -> row.getAverageMZ();
       case ID -> row.getID();
@@ -123,13 +133,11 @@ public enum NodeAtt implements GraphElementAttr {
       case COMMUNITY_SIZE -> getNetworkStatsOrElse(MolNetCommunitySizeType.class, row, -1);
       case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetSizeType.class, row, -1);
       case ANNOTATION ->
-          row.getAllFeatureAnnotations().stream().findFirst().map(Object::toString).orElse(null);
+          row.streamAllFeatureAnnotations().findFirst().map(Object::toString).orElse(null);
+      case COMPOUND_NAME -> row.getPreferredAnnotationName();
       case LIB_MATCH ->
           row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::toString).findFirst()
               .orElse(null);
-      case COMPOUND_NAME -> row.getSpectralLibraryMatches().stream()
-          .map(match -> match.getEntry().getOrElse(DBEntryField.NAME, (String) null)).findFirst()
-          .orElse(null);
       case ANNOTATION_SCORE ->
           row.getSpectralLibraryMatches().stream().map(match -> match.getSimilarity().getScore())
               .findFirst().orElse(null);
@@ -177,61 +185,39 @@ public enum NodeAtt implements GraphElementAttr {
   }
 
   /**
-   * Formatted string
+   * Number formats for export or GUI
+   *
+   * @param export export or GUI
+   * @return the format or null if it does not exist
+   */
+  @Nullable
+  public NumberFormat getNumberFormat(boolean export) {
+    return switch (this) {
+      case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
+          LIB_MATCH,
+          // int
+          NEIGHBOR_DISTANCE, ID, CHARGE, IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS ->
+          null;
+      case RT -> MZmineCore.getConfiguration().getFormats(export).rtFormat();
+      case MZ, NEUTRAL_MASS -> MZmineCore.getConfiguration().getFormats(export).mzFormat();
+      case MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, EXPLAINED_INTENSITY ->
+          MZmineCore.getConfiguration().getFormats(export).intensityFormat();
+      case ANNOTATION_SCORE -> MZmineCore.getConfiguration().getFormats(export).scoreFormat();
+    };
+  }
+
+  /**
+   * Numbers are formatted. Other values might still be values. This is added to nodes
    *
    * @param row the row to extract the data from
-   * @return the formatted string or null
+   * @return the formatted string or the value itself
    */
-  public String getValueString(FeatureListRow row) {
-    return switch (this) {
-      case NONE, ROW, TYPE, LABEL, MS2_VERIFICATION, NEIGHBOR_DISTANCE -> "";
-      case FORMULA -> {
-        List<ResultFormula> formulas = row.getFormulas();
-        yield formulas == null || formulas.isEmpty() ? "" : formulas.get(0).toString();
-      }
-      case ION_TYPE -> {
-        IonIdentity ion = row.getBestIonIdentity();
-        yield ion == null ? "" : ion.toString();
-      }
-      case RT -> MZmineCore.getConfiguration().getRTFormat().format(row.getAverageRT());
-      case MZ -> MZmineCore.getConfiguration().getMZFormat().format(getValue(row));
-      case ID -> String.valueOf(row.getID());
-      case MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY ->
-          MZmineCore.getConfiguration().getIntensityFormat().format(getValue(row));
-      case NEUTRAL_MASS -> {
-        IonIdentity ion = row.getBestIonIdentity();
-        yield ion == null ? ""
-            : MZmineCore.getConfiguration().getMZFormat().format(ion.getNetwork().getNeutralMass());
-      }
-      case CHARGE -> String.valueOf(row.getRowCharge());
-      case IIN_ID -> {
-        IonIdentity ion = row.getBestIonIdentity();
-        yield ion == null ? "" : String.valueOf(ion.getNetID());
-      }
-      case CORR_ID -> {
-        int i = row.getGroupID();
-        yield i > -1 ? String.valueOf(i) : "";
-      }
-      case CLUSTER_ID -> getNetworkStatsString(MolNetIdType.class, row);
-      case COMMUNITY_ID -> getNetworkStatsString(MolNetCommunityIdType.class, row);
-      case COMMUNITY_SIZE -> getNetworkStatsString(MolNetCommunitySizeType.class, row);
-      case CLUSTER_SIZE -> getNetworkStatsString(MolNetSizeType.class, row);
-      case LIB_MATCH ->
-          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getCompoundName)
-              .findFirst().orElse("");
-      case COMPOUND_NAME -> row.getSpectralLibraryMatches().stream()
-          .map(match -> match.getEntry().getOrElse(DBEntryField.NAME, "")).findFirst().orElse("");
-      case ANNOTATION -> requireNonNullElse(getValue(row), "").toString();
-      case ANNOTATION_SCORE -> row.getSpectralLibraryMatches().stream()
-          .map(match -> String.format("%1.2G", match.getSimilarity().getScore())).findFirst()
-          .orElse("");
-      case EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream().map(
-              match -> String.format("%1.2G", match.getSimilarity().getExplainedLibraryIntensity()))
-          .findFirst().orElse("");
-      case MATCHED_SIGNALS -> row.getSpectralLibraryMatches().stream()
-          .map(match -> String.valueOf(match.getSimilarity().getAlignedDataPoints().length)).findFirst()
-          .orElse("");
-    };
-
+  public Object getFormattedValue(FeatureListRow row, boolean export) {
+    final Object value = getValue(row);
+    if (value == null) {
+      return null;
+    }
+    NumberFormat numberFormat = getNumberFormat(export);
+    return numberFormat == null ? value : numberFormat.format(value);
   }
 }

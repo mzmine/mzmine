@@ -371,7 +371,7 @@ public class FeatureNetworkGenerator {
 
     // add center neutral M
     net.forEach((key, value) -> {
-      Node node = getRowNode(key, value);
+      Node node = getRowNode(key);
 
       if (value.getIonType().isModifiedUndefinedAdduct()) {
         // neutral
@@ -384,7 +384,7 @@ public class FeatureNetworkGenerator {
     });
     // add all edges between ions
     net.forEach((row, value) -> {
-      Node rowNode = getRowNode(row, value);
+      Node rowNode = getRowNode(row);
 
       value.getPartner().entrySet().stream().filter(Objects::nonNull).forEach(partner -> {
         FeatureListRow prow = partner.getKey();
@@ -392,7 +392,7 @@ public class FeatureNetworkGenerator {
         // do only once (for row with smaller index)
         if (prow != null && link != null && row.getID() < prow.getID()) {
           Node node1 = rowNode;
-          Node node2 = getRowNode(prow, link);
+          Node node2 = getRowNode(prow);
           // node2 has to have higher mass (directed edge)
           if (row.getAverageMZ() > prow.getAverageMZ()) {
             Node tmp = node1;
@@ -464,8 +464,7 @@ public class FeatureNetworkGenerator {
           .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.LIB_MATCH.toString(),
-            bestMatch.getCompoundName());
+        node.setAttribute(NodeAtt.LIB_MATCH.toString(), bestMatch.getCompoundName());
         node.setAttribute(NodeAtt.COMPOUND_NAME.toString(),
             bestMatch.getEntry().getOrElse(DBEntryField.NAME, ""));
         node.setAttribute(NodeAtt.ANNOTATION_SCORE.toString(), scoreForm.format(score));
@@ -511,97 +510,29 @@ public class FeatureNetworkGenerator {
   public Node getRowNode(FeatureListRow row, boolean addMissing) {
     Node node = graph.getNode(toNodeName(row));
     if (addMissing && node == null) {
-      node = getRowNode(row, null);
+      node = getRowNode(row);
     }
     return node;
   }
 
   /**
    * @param row feature list row
-   * @param esi only adds ion type info if given as parameter
    * @return the old or new node
    */
-  private Node getRowNode(FeatureListRow row, IonIdentity esi) {
+  private Node getRowNode(FeatureListRow row) {
     Node node = graph.getNode(toNodeName(row));
     if (node != null) {
       return node;
-    } else {
-      String id = "";
-      if (esi != null) {
-        id = esi.getAdduct();
+    }
+    node = graph.addNode(toNodeName(row));
 
-        // id += " by n=" + esi.getPartnerRowsID().length;
-        //
-        // if (esi.getNetID() != -1)
-        // id += " (Net" + esi.getNetIDString() + ")";
-      }
-      String label = MessageFormat.format("{0} (mz={1}) {2}", row.getID(),
-          mzForm.format(row.getAverageMZ()), id);
-
-      node = graph.addNode(toNodeName(row));
-      node.setAttribute(NodeAtt.LABEL.toString(), label);
-      node.setAttribute(NodeAtt.ROW.toString(), row);
-      node.setAttribute("ui.label", label);
-      node.setAttribute(NodeAtt.TYPE.toString(),
-          esi != null ? NodeType.ION_FEATURE : NodeType.SINGLE_FEATURE);
-      node.setAttribute(NodeAtt.ID.toString(), row.getID());
-      if (row.getAverageRT() != null) {
-        node.setAttribute(NodeAtt.RT.toString(), rtForm.format(row.getAverageRT()));
-      }
-      if (row.getAverageMZ() != null) {
-        node.setAttribute(NodeAtt.MZ.toString(), mzForm.format(row.getAverageMZ()));
-      }
-      node.setAttribute(NodeAtt.MAX_INTENSITY.toString(),
-          intensityForm.format(row.getBestFeature().getHeight()));
-      final double sumIntensity = row.getSumIntensity();
-      node.setAttribute(NodeAtt.SUM_INTENSITY.toString(), intensityForm.format(sumIntensity));
-      node.setAttribute(NodeAtt.LOG10_SUM_INTENSITY.toString(), Math.log10(sumIntensity));
-      node.setAttribute(NodeAtt.CHARGE.toString(), row.getRowCharge());
-      node.setAttribute(NodeAtt.CORR_ID.toString(), row.getGroupID());
-
-      final SpectralDBAnnotation bestMatch = row.getSpectralLibraryMatches().stream()
-          .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
-      if (bestMatch != null) {
-        double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.LIB_MATCH.toString(),
-            bestMatch.getCompoundName());
-        node.setAttribute(NodeAtt.COMPOUND_NAME.toString(),
-            bestMatch.getEntry().getOrElse(DBEntryField.NAME, ""));
-        node.setAttribute(NodeAtt.ANNOTATION_SCORE.toString(), scoreForm.format(score));
-        node.setAttribute(NodeAtt.EXPLAINED_INTENSITY.toString(),
-            scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
-      }
-
-      node.setAttribute(NodeAtt.CLUSTER_ID.toString(), NodeAtt.CLUSTER_ID.getValue(row));
-      node.setAttribute(NodeAtt.COMMUNITY_ID.toString(), NodeAtt.COMMUNITY_ID.getValue(row));
-      node.setAttribute(NodeAtt.CLUSTER_SIZE.toString(), NodeAtt.CLUSTER_SIZE.getValue(row));
-      node.setAttribute(NodeAtt.COMMUNITY_SIZE.toString(), NodeAtt.CLUSTER_SIZE.getValue(row));
-
-      if (esi != null) {
-        // undefined is not represented by a neutral M node
-        if (esi.getIonType().isUndefinedAdduct()) {
-          node.setAttribute(NodeAtt.TYPE.toString(), NodeType.SINGLE_FEATURE);
-        }
-
-        node.setAttribute(NodeAtt.ION_TYPE.toString(), esi.getIonType().toString(false));
-        node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(),
-            mzForm.format(esi.getIonType().getMass(row.getAverageMZ())));
-        node.setAttribute(NodeAtt.IIN_ID.toString(), esi.getNetID());
-        String ms2Veri =
-            (esi.getMSMSMultimerCount() > 0 ? "xmer_verified" : "") + (esi.getMSMSModVerify() > 0
-                ? " modification_verified" : "");
-        node.setAttribute(NodeAtt.MS2_VERIFICATION.toString(), ms2Veri);
-
-        MolecularFormulaIdentity formula = esi.getBestMolFormula();
-        if (esi.getNetwork() != null) {
-          formula = esi.getNetwork().getBestMolFormula();
-        }
-        if (formula != null) {
-          node.setAttribute(NodeAtt.FORMULA.toString(), formula.getFormulaAsString());
-        }
+    for (final NodeAtt att : NodeAtt.values()) {
+      Object value = att.getFormattedValue(row, false);
+      if (value != null) {
+        node.setAttribute(att.toString(), value);
       }
     }
-
+    node.setAttribute("ui.label", node.getAttribute(NodeAtt.LABEL.toString()));
     return node;
   }
 

@@ -22,12 +22,13 @@
         <panes>
           <TitledPane animated="false" text="Visuals">
                <content>
-                  <GridPane hgap="2.0" vgap="2.0">
+                  <GridPane hgap="4.0" vgap="4.0">
                      <columnConstraints>
                         <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
                         <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
                         <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
                         <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="0.0" />
                      </columnConstraints>
                      <rowConstraints>
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
