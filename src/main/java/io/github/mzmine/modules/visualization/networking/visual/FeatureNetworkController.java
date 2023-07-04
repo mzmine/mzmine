@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -60,6 +61,7 @@ import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
+import org.graphstream.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -81,7 +83,7 @@ public class FeatureNetworkController {
   public Spinner<Integer> spinnerNodeNeighbors;
   public BorderPane mainPane;
   public TextField txtFilterAnnotations;
-  public Button btnFocusFilteredNodes;
+  public Button btnFocusSelectedNodes;
 
   private FeatureNetworkPane networkPane;
 
@@ -118,6 +120,13 @@ public class FeatureNetworkController {
 
     addMenuOptions();
     addAnnotationFilterOptions(flist);
+    addBindings();
+  }
+
+  private void addBindings() {
+    getSelectedNodes().addListener(
+        (ListChangeListener<? super Node>) c -> btnFocusSelectedNodes.setText(
+            "Focus %d nodes".formatted(c.getList().size())));
   }
 
   private void addAnnotationFilterOptions(final FeatureList flist) {
@@ -137,6 +146,10 @@ public class FeatureNetworkController {
     return networkPane.getFocussedRows();
   }
 
+  public ObservableList<Node> getSelectedNodes() {
+    return networkPane.getSelectedNodes();
+  }
+
   public ObjectProperty<Integer> neighborDistanceProperty() {
     return spinnerNodeNeighbors.getValueFactory().valueProperty();
   }
@@ -153,6 +166,10 @@ public class FeatureNetworkController {
 
     cbCollapseIons.selectedProperty()
         .addListener((observable, oldValue, newValue) -> networkPane.collapseIonNodes(newValue));
+
+    cbComboVisibleEdgeTypes.getItems().addAll(networkPane.getUniqueEdgeTypes());
+    // TODO check all and bind visibility
+
     // #######################################################
     // add buttons
 //
@@ -247,7 +264,4 @@ public class FeatureNetworkController {
     networkPane.focusSelectedNodes();
   }
 
-  public void onFocusFilteredNodes(final ActionEvent e) {
-
-  }
 }

@@ -48,6 +48,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.graphstream.algorithm.community.EpidemicCommunityAlgorithm;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
@@ -59,6 +60,7 @@ import org.jetbrains.annotations.NotNull;
 public class GraphStreamUtils {
 
   private static final Logger logger = Logger.getLogger(GraphStreamUtils.class.getName());
+
   /**
    * Unique list of node neighbors within edge distance
    *
@@ -180,7 +182,7 @@ public class GraphStreamUtils {
           addAllNodeNeighbors(clusterIds, node, id);
         } catch (StackOverflowError ex) {
           logger.fine("Failed to nubmer clusters correctly. Networks were too large.");
-        } 
+        }
       }
     });
 
@@ -298,12 +300,12 @@ public class GraphStreamUtils {
   }
 
   public static Optional<ElementType> getElementType(final Element element) {
-    var o =  switch (element) {
+    var o = switch (element) {
       case Node __ -> getAttribute(element, NodeAtt.TYPE);
       case Edge __ -> getAttribute(element, EdgeAtt.TYPE);
       default -> throw new IllegalStateException("Unexpected value: " + element);
     };
-    if(o.isPresent() && o.get() instanceof ElementType etype) {
+    if (o.isPresent() && o.get() instanceof ElementType etype) {
       return Optional.of(etype);
     }
     return Optional.empty();
@@ -311,6 +313,7 @@ public class GraphStreamUtils {
 
   /**
    * UI class of node or edge
+   *
    * @param element node or edge
    * @return ui class or empty
    */
@@ -322,4 +325,14 @@ public class GraphStreamUtils {
     return Optional.ofNullable(element.getAttribute(attribute.toString()));
   }
 
+  /**
+   * All unique values of EdgeAtt.Type
+   *
+   * @param graph full graph
+   * @return set of unique values
+   */
+  public static Set<String> getUniqueEdgeTypes(final MultiGraph graph) {
+    return graph.edges().map(e -> getStringOrElse(e, EdgeAtt.TYPE, "NONE"))
+        .collect(Collectors.toUnmodifiableSet());
+  }
 }

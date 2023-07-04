@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalDouble;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -90,6 +91,7 @@ public class FeatureNetworkPane extends NetworkPane {
 
   // store all node annotations here for quick selections
   private final NodeAnnotationsFilter annotationsFilter;
+  private final Set<String> uniqueEdgeTypes;
 
   // the network generator
   private final FeatureNetworkGenerator generator;
@@ -122,9 +124,11 @@ public class FeatureNetworkPane extends NetworkPane {
     this.featureList = featureList;
     this.focussedRows = focussedRows;
     this.generator = generator;
+
+    uniqueEdgeTypes = GraphStreamUtils.getUniqueEdgeTypes(fullGraph);
+
     focussedRows.addListener(this::handleFocussedRowsChanged);
     annotationsFilter = new NodeAnnotationsFilter(this);
-
     graph.addGraphChangeListener(this::graphChanged);
   }
 
@@ -509,5 +513,9 @@ public class FeatureNetworkPane extends NetworkPane {
     logger.fine(
         "Selecting %d nodes by annotations filter: %s".formatted(nodes.size(), annotationFilter));
     selectedNodes.setAll(nodes);
+  }
+
+  public Set<String> getUniqueEdgeTypes() {
+    return uniqueEdgeTypes;
   }
 }
