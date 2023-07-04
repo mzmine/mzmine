@@ -28,10 +28,10 @@ package io.github.mzmine.modules.visualization.networking.visual.enums;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.networking.MolNetClusterIdType;
+import io.github.mzmine.datamodel.features.types.networking.MolNetClusterSizeType;
 import io.github.mzmine.datamodel.features.types.networking.MolNetCommunityIdType;
 import io.github.mzmine.datamodel.features.types.networking.MolNetCommunitySizeType;
-import io.github.mzmine.datamodel.features.types.networking.MolNetIdType;
-import io.github.mzmine.datamodel.features.types.networking.MolNetSizeType;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -129,9 +129,9 @@ public enum NodeAtt implements GraphElementAttr {
       }
       case CORR_ID -> row.getGroupID();
       case COMMUNITY_ID -> getNetworkStatsOrElse(MolNetCommunityIdType.class, row, -1);
-      case CLUSTER_ID -> getNetworkStatsOrElse(MolNetIdType.class, row, -1);
+      case CLUSTER_ID -> getNetworkStatsOrElse(MolNetClusterIdType.class, row, -1);
       case COMMUNITY_SIZE -> getNetworkStatsOrElse(MolNetCommunitySizeType.class, row, -1);
-      case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetSizeType.class, row, -1);
+      case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetClusterSizeType.class, row, -1);
       case ANNOTATION ->
           row.streamAllFeatureAnnotations().findFirst().map(Object::toString).orElse(null);
       case COMPOUND_NAME -> row.getPreferredAnnotationName();

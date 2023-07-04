@@ -39,16 +39,16 @@ public record NetworkStats(int clusterId, int communityId, int edges, int cluste
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
-    return DataTypes.getList(MolNetIdType.class, MolNetCommunityIdType.class, MolNetEdgesType.class,
-        MolNetSizeType.class, MolNetCommunitySizeType.class);
+    return DataTypes.getList(MolNetClusterIdType.class, MolNetCommunityIdType.class, MolNetNumEdgesType.class,
+        MolNetClusterSizeType.class, MolNetCommunitySizeType.class);
   }
 
   public static NetworkStats create(final @NotNull SimpleModularDataModel values) {
-    int clusterId = requireNonNullElse(values.get(MolNetIdType.class), -1);
-    int communityId = requireNonNullElse(values.get(MolNetIdType.class), -1);
-    int edges = requireNonNullElse(values.get(MolNetIdType.class), 0);
-    int clusterSize = requireNonNullElse(values.get(MolNetIdType.class), 0);
-    int communitySize = requireNonNullElse(values.get(MolNetIdType.class), 0);
+    int clusterId = requireNonNullElse(values.get(MolNetClusterIdType.class), -1);
+    int communityId = requireNonNullElse(values.get(MolNetCommunityIdType.class), -1);
+    int edges = requireNonNullElse(values.get(MolNetNumEdgesType.class), 0);
+    int clusterSize = requireNonNullElse(values.get(MolNetClusterSizeType.class), 0);
+    int communitySize = requireNonNullElse(values.get(MolNetCommunitySizeType.class), 0);
 
     return new NetworkStats(clusterId, communityId, edges, clusterSize, communitySize);
   }
@@ -62,10 +62,10 @@ public record NetworkStats(int clusterId, int communityId, int edges, int cluste
   @Override
   public Object getValue(final @NotNull DataType<?> sub) {
     return switch (sub) {
-      case MolNetIdType __ -> clusterId;
+      case MolNetClusterIdType __ -> clusterId;
       case MolNetCommunityIdType __ -> communityId;
-      case MolNetEdgesType __ -> edges;
-      case MolNetSizeType __ -> clusterSize;
+      case MolNetNumEdgesType __ -> edges;
+      case MolNetClusterSizeType __ -> clusterSize;
       case MolNetCommunitySizeType __ -> communitySize;
       default -> throw new IllegalStateException("Unexpected value: " + sub);
     };

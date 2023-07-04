@@ -87,101 +87,6 @@ public class NetworkPane extends BorderPane {
 
   public static final String DEFAULT_STYLE_FILE = "themes/graph_network_style.css";
 
-  public static final String STYLE_SHEET = """
-      graph {
-         fill-color: white;
-       }
-       
-       edge {
-         text-visibility-mode: under-zoom;
-         text-visibility: 0.3;
-         text-alignment: along;
-         fill-mode: none;
-         stroke-color: rgb(108, 108, 108);
-         stroke-width: 1px;
-         stroke-mode: plain;
-       }
-       
-       edge.medium {
-         stroke-color: rgb(108, 108, 108);
-         stroke-width: 2.5px;
-       }
-       edge.IIN {
-         stroke-color: rgb(227, 116, 30);
-         stroke-width: 1.5px;
-         stroke-mode: dashes;
-       }
-       edge.FEATURECORR {
-         stroke-color: rgb(151, 124, 70);
-         stroke-width: 1px;
-       }
-       edge.COSINE {
-         stroke-color: rgb(30, 86, 227);
-         size-mode: dyn-size;
-       }
-       edge.GNPS {
-         stroke-color: rgb(77, 108, 187);
-         size-mode: dyn-size;
-       }
-       
-       edge.IINREL {
-         stroke-color: rgb(31, 173, 152);
-         stroke-mode: dots;
-       }
-       
-       node {
-         shape: circle;
-         text-visibility-mode: under-zoom;
-         text-visibility: 3;
-         text-alignment: at-right;
-         text-offset: 2;
-         text-size: 12;
-         fill-color: #636363;
-         size-mode: dyn-size;
-         size: 11px;
-         stroke-mode: plain;
-         stroke-color: #636363;
-         stroke-width: 1px;
-       }
-       
-       node:clicked {
-         fill-color: #f8ec02;
-       }
-       
-       /* node.setAttribute("ui.class", "big, important"); */
-       /* node.removeAttribute("ui.class"); // go back to default */
-       node.important {
-         fill-color: red;
-       }
-       
-       node.big {
-         size: 15px;
-       }
-       
-       node.MOL {
-         text-visibility-mode: under-zoom;
-         text-visibility: 0.99;
-         fill-color: cyan;
-         size: 15px;
-       }
-       
-       node.NEUTRAL {
-         fill-color: violet;
-       }
-       
-       /* add gradient to node: node1.setAttribute("ui.color", 0); from 0 - 1 */
-       node.GRADIENT {
-         fill-mode: dyn-plain;
-         fill-color: yellow, orange, #c10000;
-       }
-      """;
-  //      "edge {text-visibility-mode: under-zoom; text-visibility: 0.3; fill-color: rgb(100,160,100); stroke-color: rgb(50,100,50); stroke-width: 1px; text-alignment: along;} "
-//      + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 2.5px;} "
-//      + "node {text-visibility-mode: under-zoom; text-visibility: 0.3; text-alignment: at-right; text-offset: 2; text-size: 12; fill-color: black; "
-//      + "size: 11px; stroke-mode: plain; stroke-color: rgb(50,100,50); stroke-width: 1px;} "
-//      + "node.important{fill-color: red;} node.big{size: 15px;} "
-//      + "node.MOL{text-visibility-mode: under-zoom; text-visibility: 0.99; fill-color: cyan; size: 15px;} "
-//      + "node.NEUTRAL{fill-color: violet;}";
   public static final String EXPORT_STYLE_SHEET =
       "edge {fill-color: rgb(25,85,25); stroke-color: rgb(50,100,50); stroke-width: 2px;}  node {text-size: 16; fill-color: black; size: 16px; stroke-mode: plain; stroke-color: rgb(50,100,50); stroke-width: 2px;} "
       + "node.important{fill-color: red;} node.big{size: 20px;} node.MOL{fill-color: cyan; size: 20px;}  node.NEUTRAL{fill-color: violet; }"
@@ -249,11 +154,6 @@ public class NetworkPane extends BorderPane {
       this.styleSheet = loadDefaultStyle();
     } else {
       this.styleSheet = styleSheet2;
-    }
-
-    // set default in this class
-    if (styleSheet == null || styleSheet.isEmpty()) {
-      this.styleSheet = STYLE_SHEET;
     }
 
     // add settings
@@ -564,7 +464,7 @@ public class NetworkPane extends BorderPane {
           savePNG.setResolution(2500, 2500);
           savePNG.setOutputType(OutputType.png);
           savePNG.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE);
-          savePNG.setStyleSheet(EXPORT_STYLE_SHEET);
+          savePNG.setStyleSheet(styleSheet);
           savePNG.setQuality(Quality.HIGH);
           f = FileAndPathUtil.getRealFilePath(f, "png");
           saveToFile(savePNG, f);

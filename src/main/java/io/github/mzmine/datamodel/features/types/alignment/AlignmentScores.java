@@ -75,11 +75,11 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     var rate = requireNonNullElse(values.get(RateType.class), -1f);
     int alignedFeatures = requireNonNullElse(values.get(AlignedFeaturesNType.class), -1);
     var extraFeatures = requireNonNullElse(values.get(AlignExtraFeaturesType.class), -1);
-    var weightedDistanceScore = requireNonNullElse(values.get(WeightedDistanceScore.class), -1f);
-    var mzPpmDelta = requireNonNullElse(values.get(MzPpmDifferenceType.class), -1f);
-    var mzDelta = requireNonNullElse(values.get(MzAbsoluteDifferenceType.class), -1d);
-    var rtDelta = requireNonNullElse(values.get(RtAbsoluteDifferenceType.class), -1f);
-    var mobilityDelta = requireNonNullElse(values.get(MobilityAbsoluteDifferenceType.class), -1f);
+    var weightedDistanceScore = values.get(WeightedDistanceScore.class);
+    var mzPpmDelta = values.get(MzPpmDifferenceType.class);
+    var mzDelta = values.get(MzAbsoluteDifferenceType.class);
+    var rtDelta = values.get(RtAbsoluteDifferenceType.class);
+    var mobilityDelta = values.get(MobilityAbsoluteDifferenceType.class);
 
     return new AlignmentScores(rate, alignedFeatures, extraFeatures, weightedDistanceScore,
         mzPpmDelta, mzDelta, rtDelta, mobilityDelta);

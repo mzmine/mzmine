@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
@@ -44,7 +43,6 @@ import javafx.scene.control.TreeTableColumn;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +69,9 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
     if (!(value instanceof ModularDataRecord record)) {
+      writer.writeEndElement();
       return;
     }
     List<DataType> subTypes = getSubDataTypes();
@@ -95,28 +95,17 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
         writer.writeEndElement();
       }
     }
+    // end outer element for sub types
+    writer.writeEndElement();
   }
 
   @Override
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    SimpleModularDataModel model = new SimpleModularDataModel();
-    while (reader.hasNext()) {
-      int next = reader.next();
-
-      if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
-          .equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        break;
-      }
-      if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        DataType type = DataTypes.getTypeForId(
-            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-        Object o = type.loadFromXML(reader, project, flist, row, feature, file);
-        model.set(type, o);
-      }
-    }
-    return createRecord(model);
+    SimpleModularDataModel model = SubColumnsFactory.super.loadSubColumnsFromXML(reader, project,
+        flist, row, feature, file);
+    return model.isEmpty()? null : createRecord(model);
   }
 
   @Override
@@ -154,7 +143,7 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
 
   @Override
   public @Nullable String getUniqueID(int subcolumn) {
-   return getType(subcolumn).getUniqueID();
+    return getType(subcolumn).getUniqueID();
   }
 
 
@@ -163,8 +152,7 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
     var list = getSubDataTypes();
     if (index < 0 || index >= list.size()) {
       throw new IndexOutOfBoundsException(
-          String.format("Sub column index %d is out of bounds %d", index,
-              list.size()));
+          String.format("Sub column index %d is out of bounds %d", index, list.size()));
     }
     return list.get(index);
   }

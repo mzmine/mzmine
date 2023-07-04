@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  */
-public class MolNetSizeType extends IntegerType {
+public class MolNetClusterSizeType extends IntegerType {
 
   @NotNull
   @Override

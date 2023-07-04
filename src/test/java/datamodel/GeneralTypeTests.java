@@ -38,6 +38,8 @@ import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
@@ -64,6 +66,13 @@ public class GeneralTypeTests {
         new double[]{1.0, 0.5, 0.11}, 1, IsotopePatternStatus.DETECTED, "Save load test");
 
     simpleDataTypeSaveLoadTest(type, pattern);
+  }
+
+  @Test
+  @DisplayName("NetworkStats save load")
+  void networkStatsTest() {
+    NetworkStatsType type = new NetworkStatsType();
+    simpleDataTypeSaveLoadTest(type, new NetworkStats(2, 2, 2, 5, 2));
   }
 
   @Test

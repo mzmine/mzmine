@@ -29,19 +29,20 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * number of edges to this node
  */
-public class MolNetIdType extends IntegerType {
+public class MolNetNumEdgesType extends IntegerType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "net_cluster_id";
+    return "edges";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Cluster ID";
+    return "Edges";
   }
 
 }
