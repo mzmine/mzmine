@@ -303,6 +303,7 @@ public class FeatureNetworkGenerator {
     Edge edge = addNewEdge(a, b, type, sim.getAnnotation(), false, dmz);
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
     edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
+    edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
     switch (type) {
       case MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
@@ -562,6 +563,8 @@ public class FeatureNetworkGenerator {
     Edge e = graph.getEdge(edge);
     if (e == null) {
       e = graph.addEdge(edge, node1, node2, directed);
+      e.setAttribute(EdgeAtt.ID1.toString(), node1.getAttribute(NodeAtt.ID.toString()));
+      e.setAttribute(EdgeAtt.ID2.toString(), node2.getAttribute(NodeAtt.ID.toString()));
     }
     e.setAttribute("ui.label", label);
     e.setAttribute(EdgeAtt.LABEL.toString(), label);

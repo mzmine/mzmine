@@ -646,4 +646,8 @@ public class NetworkPane extends BorderPane {
     return attribute == null ? defaultValue
         : Objects.toString(target.getAttribute(attribute), defaultValue);
   }
+
+  public FilterableGraph getGraph() {
+    return graph;
+  }
 }

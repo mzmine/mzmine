@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -248,12 +246,12 @@ public class GraphStreamUtils {
     }
   }
 
-  public static OptionalDouble getDoubleValue(Element e, Object attribute) {
+  public static Optional<Double> getDoubleValue(Element e, Object attribute) {
     try {
       var value = e.getAttribute(attribute.toString());
-      return OptionalDouble.of(Double.parseDouble(value.toString()));
+      return Optional.of(Double.parseDouble(value.toString()));
     } catch (Exception ex) {
-      return OptionalDouble.empty();
+      return Optional.empty();
     }
   }
 
@@ -284,12 +282,12 @@ public class GraphStreamUtils {
     }
   }
 
-  public static OptionalInt getIntegerValue(Element e, Object attribute) {
+  public static Optional<Integer> getIntegerValue(Element e, Object attribute) {
     try {
       var value = e.getAttribute(attribute.toString());
-      return OptionalInt.of(Integer.parseInt(value.toString()));
+      return Optional.of(Integer.parseInt(value.toString()));
     } catch (Exception ex) {
-      return OptionalInt.empty();
+      return Optional.empty();
     }
   }
 

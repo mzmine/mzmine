@@ -34,13 +34,22 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Network statistics
+ *
+ * @param clusterId     cluster ID of all connected nodes
+ * @param communityId   community ID with latest community detection
+ * @param edges         number of edges
+ * @param clusterSize   cluster size, number of nodes
+ * @param communitySize community size, number of nodes
+ */
 public record NetworkStats(int clusterId, int communityId, int edges, int clusterSize,
                            int communitySize) implements ModularDataRecord {
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
-    return DataTypes.getList(MolNetClusterIdType.class, MolNetCommunityIdType.class, MolNetNumEdgesType.class,
-        MolNetClusterSizeType.class, MolNetCommunitySizeType.class);
+    return DataTypes.getList(MolNetClusterIdType.class, MolNetCommunityIdType.class,
+        MolNetNumEdgesType.class, MolNetClusterSizeType.class, MolNetCommunitySizeType.class);
   }
 
   public static NetworkStats create(final @NotNull SimpleModularDataModel values) {
