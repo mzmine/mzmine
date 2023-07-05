@@ -54,7 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalDouble;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -144,6 +144,10 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public @NotNull ObservableList<FeatureListRow> getVisibleRows() {
     return visibleRows;
+  }
+
+  public @NotNull ObservableList<Node> getVisibleNodes() {
+    return visibleNodes;
   }
 
   /**
@@ -485,8 +489,7 @@ public class FeatureNetworkPane extends NetworkPane {
   private Range<Float> computeValueRange(GraphElementAttr attribute) {
     GraphObject go = attribute.getGraphObject();
     var summary = go.stream(graph(FULL)).map(e -> GraphStreamUtils.getDoubleValue(e, attribute))
-        .filter(OptionalDouble::isPresent).mapToDouble(OptionalDouble::getAsDouble)
-        .summaryStatistics();
+        .filter(Optional::isPresent).mapToDouble(Optional::get).summaryStatistics();
     if (summary.getCount() == 0) {
       return null;
     }

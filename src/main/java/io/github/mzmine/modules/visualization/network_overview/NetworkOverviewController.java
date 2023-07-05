@@ -38,12 +38,14 @@ import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.Spect
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
@@ -57,6 +59,7 @@ public class NetworkOverviewController {
 
   private static final Logger logger = Logger.getLogger(NetworkOverviewController.class.getName());
   private final ObservableList<FeatureListRow> focussedRows;
+  public ToggleSwitch cbBindToExternalTable;
   private boolean setUpCalled = false;
 
   private FeatureNetworkController networkController;
@@ -71,8 +74,8 @@ public class NetworkOverviewController {
   public Tab tabFeatureChrom;
   public Tab tabNodes;
   public Tab tabEdges;
-  public ToggleSwitch cbUpdateOnSelection;
   public GridPane gridAnnotations;
+  private EdgeTableController edgeTableController;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
@@ -89,6 +92,10 @@ public class NetworkOverviewController {
     // create network
     networkController = FeatureNetworkController.create(featureList, this.focussedRows);
     pnNetwork.setCenter(networkController.getMainPane());
+
+    // create edge table
+    createEdgeTable();
+
 
     // create internal table
     createInternalTable(featureList);
@@ -122,6 +129,20 @@ public class NetworkOverviewController {
     }
   }
 
+  private void createEdgeTable() {
+    try {
+      // Load the window FXML
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("EdgeTable.fxml"));
+      BorderPane rootPane = loader.load();
+      edgeTableController = loader.getController();
+      edgeTableController.setGraph(networkController.getNetworkPane().getGraph());
+
+      tabEdges.setContent(rootPane);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Could not load EdgeTable.fxml " + ex.getMessage(), ex);
+    }
+  }
+
   @NotNull
   private void createInternalTable(final @NotNull ModularFeatureList featureList) {
     FeatureTableTab tempTab = new FeatureTableTab(featureList);
@@ -152,8 +173,10 @@ public class NetworkOverviewController {
     if (external != null) {
       external.getSelectedTableRows()
           .addListener((ListChangeListener<? super TreeItem<ModularFeatureListRow>>) c -> {
-            var list = c.getList().stream().map(TreeItem::getValue).toList();
-            focussedRows.setAll(list);
+            if (cbBindToExternalTable.isSelected()) {
+              var list = c.getList().stream().map(TreeItem::getValue).toList();
+              focussedRows.setAll(list);
+            }
           });
     }
   }
