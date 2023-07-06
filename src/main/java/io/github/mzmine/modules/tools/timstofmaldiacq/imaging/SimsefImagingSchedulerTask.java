@@ -92,7 +92,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
   private final AbsoluteAndRelativeDouble minMsMsIntensity;
   private final int minDistance;
 
-  private final double minChimerityScore;
+  private final double minPurityScore;
   private final boolean scheduleOnly;
   private final int[] spotsFeatureCounter;
 
@@ -132,7 +132,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     collisionEnergies = parameters.getValue(SimsefImagingSchedulerParameters.collisionEnergies);
     minMsMsIntensity = parameters.getValue(SimsefImagingSchedulerParameters.minimumIntensity);
     minDistance = parameters.getValue(SimsefImagingSchedulerParameters.minimumDistance);
-    minChimerityScore = parameters.getValue(SimsefImagingSchedulerParameters.minimumPurity);
+    minPurityScore = parameters.getValue(SimsefImagingSchedulerParameters.minimumPurity);
     this.scheduleOnly = scheduleOnly;
     isolationWindow = new MZTolerance((isolationWidth * 1.3) / 2,
         0d); // isolation window typically wider than set
@@ -228,7 +228,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
 
       // check existing msms spots first
       addEntriesToExistingSpots(access, minFeatureIntensity, frameSpotMap, precursor, imagingData,
-          numMsMs, featureSpotMap, minDistance, minChimerityScore, minMobilityDistance);
+          numMsMs, featureSpotMap, minDistance, minPurityScore, minMobilityDistance);
 
       // we have all needed entries
       if (precursor.getLowestMsMsCountForCollisionEnergies() >= numMsMs) {
@@ -243,7 +243,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
 
       // find new entries
       createNewMsMsSpots(access, frameSpotMap, minFeatureIntensity, imagingData, precursor, numMsMs,
-          featureSpotMap, minDistance, minChimerityScore, minMobilityDistance);
+          featureSpotMap, minDistance, minPurityScore, minMobilityDistance);
 
       spotsFeatureCounter[precursor.getTotalMsMs()]++;
     }
@@ -302,7 +302,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
   private void createNewMsMsSpots(MobilityScanDataAccess access,
       Map<ImagingFrame, ImagingSpot> spotMap, double minMsMsIntensity,
       IonTimeSeries<? extends ImagingFrame> imagingData, MaldiTimsPrecursor precursor, int numMsMs,
-      Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance, double minChimerityScore,
+      Map<Feature, List<ImagingSpot>> featureSpotMap, double minDistance, double minPurityScore,
       final double minMobilityDistance) {
 
     final int[] intensitySortedIndices = IonTimeSeriesUtils.getIntensitySortedIndices(imagingData);
@@ -337,7 +337,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
         continue;
       }
 
-      if (!checkPurityScore(access, precursor, minChimerityScore, frame)) {
+      if (!checkPurityScore(access, precursor, minPurityScore, frame)) {
         continue;
       }
 
