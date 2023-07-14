@@ -34,6 +34,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
+import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerPane;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import java.io.IOException;
 import java.util.Collection;
@@ -71,11 +72,12 @@ public class NetworkOverviewController {
   public BorderPane pnNetwork;
   public Tab tabAnnotations;
   public Tab tabSimilarity;
-  public Tab tabFeatureChrom;
+  public Tab tabAllMs2;
   public Tab tabNodes;
   public Tab tabEdges;
   public GridPane gridAnnotations;
   private EdgeTableController edgeTableController;
+  private SpectraStackVisualizerPane allMs2Pane;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
@@ -101,7 +103,8 @@ public class NetworkOverviewController {
     createInternalTable(featureList);
     linkFeatureTableSelections(internalTable, externalTable);
 
-    // create edges
+    // all MS2
+    allMs2Pane = new SpectraStackVisualizerPane();
 
     // create annotations tab
     spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
@@ -118,6 +121,7 @@ public class NetworkOverviewController {
 
     tabSimilarity.setContent(mirrorScanController.getMainPane());
     tabAnnotations.setContent(gridAnnotations);
+    tabAllMs2.setContent(allMs2Pane);
 
     // add callbacks
     networkController.getNetworkPane().getSelectedNodes()
@@ -183,12 +187,17 @@ public class NetworkOverviewController {
 
   protected void handleSelectedNodesChanged(final Change<? extends Node> change) {
     var selectedRows = networkController.getNetworkPane().getRowsFromNodes(change.getList());
-    if (selectedRows.size() >= 1) {
       showAnnotations(selectedRows);
-    }
+    showAllMs2(selectedRows);
     if (selectedRows.size() >= 2) {
       showSimilarityMirror(selectedRows.get(0), selectedRows.get(1));
+    } else {
+      mirrorScanController.clearScans();
     }
+  }
+
+  private void showAllMs2(final List<FeatureListRow> rows) {
+    allMs2Pane.setData(rows, false);
   }
 
   public void showAnnotations(final List<FeatureListRow> rows) {
