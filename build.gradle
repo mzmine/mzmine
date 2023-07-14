@@ -109,7 +109,7 @@ repositories {
     // local libraries
     maven { url = "file://" + projectDir + "/src/main/lib" }
     // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
-    maven { url = "https://lifstools.jfrog.io/artifactory/ebi-tools/" }
+    maven { url = "https://m.lifs-tools.org/artifactory/libs-release" }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
     // For SIRIUS ID modules
