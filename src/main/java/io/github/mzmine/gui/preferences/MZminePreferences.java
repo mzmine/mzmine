@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,8 @@ import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePalettePa
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
 import javafx.application.Platform;
@@ -250,6 +252,14 @@ public class MZminePreferences extends SimpleParameterSet {
     }
 
     updateGuiFormat();
+
+    final File tempDir = getValue(MZminePreferences.tempDirectory);
+    if (tempDir != null && tempDir.isDirectory()) {
+      if (!tempDir.exists()) {
+        tempDir.mkdirs();
+      }
+      FileAndPathUtil.setTempDir(tempDir);
+    }
 
     return retVal;
   }

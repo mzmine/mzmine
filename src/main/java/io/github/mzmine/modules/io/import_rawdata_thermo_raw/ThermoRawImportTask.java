@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,13 +42,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.time.Instant;
-import java.util.Date;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
@@ -61,14 +60,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ThermoRawImportTask extends AbstractTask {
 
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private File fileToOpen;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
-  private final ParameterSet parameters;
-  private final Class<? extends MZmineModule> module;
-
   private Process dumper = null;
 
   private String taskDescription;
@@ -244,7 +241,8 @@ public class ThermoRawImportTask extends AbstractTask {
     // In case the folder already exists, unzip to a different folder
     if (thermoRawFileParserFolder.exists()) {
       logger.finest("Folder " + thermoRawFileParserFolder + " exists, creating a new one");
-      thermoRawFileParserFolder = Files.createTempDirectory("mzmine_thermo_raw_parser").toFile();
+      thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory("mzmine_thermo_raw_parser")
+          .toFile();
     }
 
     logger.finest("Unpacking ThermoRawFileParser to folder " + thermoRawFileParserFolder);
