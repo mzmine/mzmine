@@ -69,15 +69,13 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
     if (!(value instanceof ModularDataRecord record)) {
-      writer.writeEndElement();
       return;
     }
+    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
     List<DataType> subTypes = getSubDataTypes();
 
-    for (int i = 0; i < subTypes.size(); i++) {
-      DataType sub = subTypes.get(i);
+    for (DataType<?> sub : subTypes) {
       Object subValue = record.getValue(sub);
       if (subValue != null) {
         writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
@@ -91,7 +89,7 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
               "Error while writing data type " + sub.getClass().getSimpleName() + " with value "
               + subValue + " to xml.  " + e.getMessage(), e);
         }
-
+        // end sub parameter
         writer.writeEndElement();
       }
     }
