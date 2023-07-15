@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -36,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.IsomericSmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
@@ -67,7 +70,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,8 +81,8 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
-    Comparable<CompoundDBAnnotation> {
+public sealed interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
+    Comparable<CompoundDBAnnotation> permits SimpleCompoundDBAnnotation {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
@@ -196,6 +198,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return calcMzForAdduct(this, adduct);
   }
 
+  void addDatabaseMatchInfo(DatabaseMatchInfo dbInfo);
+
   <T> T get(@NotNull DataType<T> key);
 
   <T> T get(Class<? extends DataType<T>> key);
@@ -239,15 +243,15 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
-  @Nullable
-  default DatabaseMatchInfo getDatabaseMatchInfo() {
-    return get(DatabaseMatchInfoType.class);
+  @Override
+  @NotNull
+  default List<DatabaseMatchInfo> getDatabaseMatchInfo() {
+    return requireNonNullElse(get(DatabaseMatchInfoType.class), List.of());
   }
 
   @Nullable
   default String getDatabaseUrl() {
-    final DatabaseMatchInfo databaseMatchInfo = getDatabaseMatchInfo();
-    return databaseMatchInfo == null ? null : databaseMatchInfo.url();
+    return getDatabaseMatchInfo().stream().findFirst().map(DatabaseMatchInfo::url).orElse(null);
   }
 
   @Override
@@ -256,9 +260,15 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(PrecursorMZType.class);
   }
 
+  @Override
   @Nullable
   default String getSmiles() {
     return get(SmilesStructureType.class);
+  }
+
+  @Override
+  default @Nullable String getIsomericSmiles() {
+    return get(IsomericSmilesStructureType.class);
   }
 
   @Nullable
@@ -385,7 +395,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     final CompoundDBAnnotation clone = clone();
     clone.put(CompoundAnnotationScoreType.class, score);
     clone.put(MzPpmDifferenceType.class,
-        (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
+        (float) MathUtils.getPpmDiff(requireNonNullElse(clone.getPrecursorMZ(), 0d),
             row.getAverageMZ()));
 
     // if the compound entry contained <=0 for RT or mobility

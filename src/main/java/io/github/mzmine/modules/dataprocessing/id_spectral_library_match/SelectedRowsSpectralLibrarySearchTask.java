@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.main.MZmineCore;
@@ -34,7 +35,6 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
@@ -52,7 +53,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedReader;

@@ -88,7 +88,7 @@ public class MZmineJsonLibraryEntry {
   public Double exactMass;
   public Double rt, ccs;
   public String cas, splash;
-  public String formula, smiles, inchi, inchikey, peptideSequence;
+  public String formula, smiles, isomericSmiles, inchi, inchikey, peptideSequence;
   public Double fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
@@ -141,6 +141,7 @@ public class MZmineJsonLibraryEntry {
       case INCHI -> inchi;
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
+      case ISOMERIC_SMILES -> isomericSmiles;
       case PEPTIDE_SEQ -> peptideSequence;
       case CAS -> cas;
       case MS_LEVEL -> msLevel;
@@ -193,7 +194,7 @@ public class MZmineJsonLibraryEntry {
       case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
       case FEATURE_ID -> null;
       case SCAN_NUMBER -> scanNumber;
-      case UNSPECIFIED -> null;
+      case UNSPECIFIED, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL -> null;
     };
   }
 

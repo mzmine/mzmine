@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 // import io.github.mzmine.util.swing.IconUtil;
 // import io.github.mzmine.util.swing.SwingExportUtil;
 
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
@@ -43,7 +44,6 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;

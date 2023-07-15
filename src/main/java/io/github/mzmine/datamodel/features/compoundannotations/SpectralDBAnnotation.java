@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.spectraldb.entry;
+package io.github.mzmine.datamodel.features.compoundannotations;
 
 import static java.util.Objects.requireNonNullElse;
 
@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -41,8 +40,13 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -52,7 +56,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<SpectralDBAnnotation> {
+public final class SpectralDBAnnotation implements FeatureAnnotation, Comparable<SpectralDBAnnotation> {
 
   public static final String XML_ATTR = "spectral_library_annotation";
   private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
@@ -133,6 +137,17 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     writeClosingTag(writer);
   }
 
+  @Override
+  public @NotNull List<DatabaseMatchInfo> getDatabaseMatchInfo() {
+    return Arrays.stream(DBEntryField.DATABASE_FIELDS).map(f -> {
+      Object id = entry.getOrElse(f, null);
+      if (id != null) {
+        return new DatabaseMatchInfo(Database.forField(f), id.toString());
+      }
+      return null;
+    }).filter(Objects::nonNull).toList();
+  }
+
   @Nullable
   public Scan getQueryScan() {
     return queryScan;
@@ -190,6 +205,11 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   @Override
   public @Nullable String getSmiles() {
     return entry.getOrElse(DBEntryField.SMILES, null);
+  }
+
+  @Override
+  public @Nullable String getIsomericSmiles() {
+    return entry.getOrElse(DBEntryField.ISOMERIC_SMILES, null);
   }
 
   @Override
@@ -283,6 +303,11 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ATTR;
+  }
+
+  @Override
+  public String createComment() {
+    return "spectral match: score: "+getScoreString();
   }
 
   @Override

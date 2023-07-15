@@ -28,6 +28,7 @@ package io.github.mzmine.util.spectraldb.entry;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -59,11 +60,11 @@ import org.jetbrains.annotations.NotNull;
 public enum DBEntryField {
   // Compound specific
   ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
-      Double.class),
-  // structure
-  FORMULA, INCHI, INCHIKEY, SMILES, PEPTIDE_SEQ,
+      Double.class), // structure
+  FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, PEPTIDE_SEQ,
+
   // identifier
-  CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER, FEATURE_ID,
+  CAS, PUBMED, PUBCHEM, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, GNPS_ID, MONA_ID, CHEMSPIDER, FEATURE_ID,
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
@@ -102,7 +103,7 @@ public enum DBEntryField {
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
       DATA_COLLECTOR, ENTRY_ID, COMMENT};
   public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{PUBMED, PUBCHEM, MONA_ID,
-      CHEMSPIDER, CAS};
+      CHEMSPIDER, CAS, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
       MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
       SMILES, NUM_PEAKS, FEATURE_ID};
@@ -224,12 +225,14 @@ public enum DBEntryField {
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case UNSPECIFIED, ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
+      case UNSPECIFIED, ACQUISITION, SOFTWARE, CAS, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
+          CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, //
           QUALITY, QUALITY_CHIMERIC, FILENAME, //
           SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES ->
           StringType.class;
+      case COMMENT -> CommentType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
@@ -245,6 +248,7 @@ public enum DBEntryField {
       case NAME -> CompoundNameType.class;
       case RT -> RTType.class;
       case SMILES -> SmilesStructureType.class;
+      case ISOMERIC_SMILES -> SmilesStructureType.class;
       case PEPTIDE_SEQ -> PeptideSequenceType.class;
       case CCS -> CCSType.class;
       case DATASET_ID -> DatasetIdType.class;
@@ -289,12 +293,15 @@ public enum DBEntryField {
       case PUBMED -> "pubmed";
       case RT -> "rt";
       case SMILES -> "smiles";
+      case ISOMERIC_SMILES -> "isomeric_smiles";
       case MS_LEVEL -> "ms_level";
       case PUBCHEM -> "pubchem";
       case CHEMSPIDER -> "chemspider";
       case MONA_ID -> "mona_id";
       case GNPS_ID -> "gnps_id";
       case CCS -> "ccs";
+      case CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL ->
+          name().toLowerCase();
       case NUM_PEAKS -> "num_peaks";
       case ENTRY_ID -> "lib_id";
       case RESOLUTION -> "mass_resolution";
@@ -351,8 +358,9 @@ public enum DBEntryField {
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
       case SMILES -> "SMILES";
+      case ISOMERIC_SMILES -> "isomeric_SMILES";
       case INCHI -> "INCHI";
-      case ACQUISITION, GNPS_ID, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
+      case ACQUISITION, GNPS_ID, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL ->
           toString();
       case PEPTIDE_SEQ -> "peptide_sequence";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
@@ -408,7 +416,8 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
       case ACQUISITION, NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
-          MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> toString();
+          MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, ISOMERIC_SMILES ->
+          toString();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
@@ -432,6 +441,7 @@ public enum DBEntryField {
       case UNSPECIFIED -> "";
     };
   }
+
   /**
    * @return The mgf format (used by GNPS)
    */
@@ -467,8 +477,9 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
-      case  NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
-          MOLWEIGHT, SOFTWARE, COLLISION_ENERGY -> toString();
+      case NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
+          MOLWEIGHT, SOFTWARE, COLLISION_ENERGY, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, ISOMERIC_SMILES ->
+          toString();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
@@ -496,19 +507,15 @@ public enum DBEntryField {
    */
   public String getJdxID() {
     return switch (this) {
-      case SCAN_NUMBER -> "";
-      case MERGED_SPEC_TYPE -> "";
-      case ENTRY_ID -> "";
-      case ACQUISITION -> "";
-      case SOFTWARE -> "";
+      case SCAN_NUMBER, ENTRY_ID, MERGED_SPEC_TYPE, ACQUISITION, SOFTWARE, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, COLLISION_ENERGY, ISOMERIC_SMILES, CHARGE, COMMENT, DESCRIPTION ->
+          "";
       case CAS -> "##CAS REGISTRY NO";
-      case CHARGE -> "";
-      case COLLISION_ENERGY -> "";
-      case COMMENT -> "";
-      case DESCRIPTION -> "";
-      case DATA_COLLECTOR -> "";
       case EXACT_MASS -> "##MW";
       case FORMULA -> "##MOLFORM";
+      case NAME -> "##TITLE";
+      case NUM_PEAKS -> "##NPOINTS";
+      case RT -> "RT";
+      case DATA_COLLECTOR -> "";
       case INCHI -> "";
       case INCHIKEY -> "";
       case INSTRUMENT -> "";
@@ -518,10 +525,8 @@ public enum DBEntryField {
       case ION_SOURCE -> "";
       case PRECURSOR_MZ -> "";
       case PEPTIDE_SEQ -> "";
-      case NAME -> "##TITLE";
       case PRINCIPAL_INVESTIGATOR -> "";
       case PUBMED -> "";
-      case RT -> "RT";
       case SMILES -> "";
       case MS_LEVEL -> "";
       case PUBCHEM -> "";
@@ -529,7 +534,6 @@ public enum DBEntryField {
       case MONA_ID, GNPS_ID -> "";
       case OTHER_MATCHED_COMPOUNDS_N -> "";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "";
-      case NUM_PEAKS -> "##NPOINTS";
       case RESOLUTION, SYNONYMS, MOLWEIGHT -> "";
       case CCS -> "";
       case MSN_COLLISION_ENERGIES -> "";
@@ -578,13 +582,13 @@ public enum DBEntryField {
       case UNSPECIFIED, QUALITY, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS, GNPS_ID, //
           PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, //
           MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
-          COMMENT, DESCRIPTION, MOLWEIGHT, EXACT_MASS, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, //
+          COMMENT, DESCRIPTION, MOLWEIGHT, EXACT_MASS, FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, CAS, CCS, //
           ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, //
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
-          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ ->
-          value.toString();
+          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
+          CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL -> value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);

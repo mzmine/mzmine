@@ -25,30 +25,73 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
+import static io.github.mzmine.util.ParsingUtils.readNullableString;
+
+import io.github.mzmine.util.ParsingUtils;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.Nullable;
 
-public record DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nullable String id,
+public record DatabaseMatchInfo(@Nullable Database database, @Nullable String id,
                                 @Nullable String url) {
 
-  public DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nullable String id) {
-    this(onlineDatabase, id, onlineDatabase != null ? onlineDatabase.getCompoundUrl(id) : null);
+  public static final String XML_ELEMENT = "database_match_info";
+
+  public DatabaseMatchInfo(@Nullable Database database, @Nullable String id) {
+    this(database, id, database!=null? database.getUrl(id) : null);
   }
 
   @Override
   public String toString() {
     StringBuilder b = new StringBuilder();
-    if (onlineDatabase != null) {
-      b.append(onlineDatabase.getName()).append(" ");
+    if (database != null) {
+      b.append(database).append(": ");
     } else {
-      b.append("N/A ");
+      b.append("N/A: ");
     }
 
-    if(id != null) {
+    if (id != null) {
       b.append(id);
     } else {
       b.append("no id");
     }
     return b.toString();
   }
+
+  public void saveToXML(final XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    writer.writeAttribute("database_id", ParsingUtils.parseNullableString(id()));
+    writer.writeAttribute("database_url", ParsingUtils.parseNullableString(url()));
+
+    if (database != null) {
+      database.saveToXML(writer);
+    }
+
+    writer.writeEndElement(); // this entry
+  }
+
+  public static DatabaseMatchInfo loadFromXML(final XMLStreamReader reader)
+      throws XMLStreamException {
+    final String id = readNullableString(reader.getAttributeValue(null, "database_id"));
+    final String dbName = readNullableString(reader.getAttributeValue(null, "database_name"));
+    final String dbUrl = readNullableString(reader.getAttributeValue(null, "database_url"));
+    Database db = null;
+
+    // load new List of infos
+    while (reader.hasNext() && !reader.isEndElement()) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(Database.XML_ELEMENT)) {
+        db = Database.loadFromXML(reader);
+        break;
+      }
+    }
+    return new DatabaseMatchInfo(db, id, dbUrl);
+  }
+
 }

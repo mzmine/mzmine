@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
@@ -40,7 +41,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;

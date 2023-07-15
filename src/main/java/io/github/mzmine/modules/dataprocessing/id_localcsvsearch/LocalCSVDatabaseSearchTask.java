@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.Database;
 import io.github.mzmine.datamodel.features.compoundannotations.DatabaseMatchInfo;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -41,7 +42,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -51,7 +52,6 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
@@ -166,7 +166,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     final boolean isotopePatternMatcher = parameters.getValue(
         LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
-    if(isotopePatternMatcher) {
+    if (isotopePatternMatcher) {
       isotopePatternMatcherParameters = parameters.getParameter(
           LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters();
       isotopeMzTolerance = isotopePatternMatcherParameters.getParameter(
@@ -276,7 +276,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           row.setCompoundAnnotations(matches);
         }
       }
-      if(isotopePatternMatcherParameters != null) {
+      if (isotopePatternMatcherParameters != null) {
         for (FeatureList flist : featureLists) {
           refineAnnotationsByIsotopes(flist);
         }
@@ -302,8 +302,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private void refineAnnotationsByIsotopes(FeatureList flist) {
-      DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopes(flist.getRows(), isotopeMzTolerance,
-          minRelativeIsotopeIntensity, minIsotopeScore);
+    DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopes(flist.getRows(), isotopeMzTolerance,
+        minRelativeIsotopeIntensity, minIsotopeScore);
   }
 
   /**
@@ -480,8 +480,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(lineMZ, () -> a.put(precursorMz, lineMZ));
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
     a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
-    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
-        new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
+    doIfNotNull(pubchemId,
+        () -> a.addDatabaseMatchInfo(new DatabaseMatchInfo(Database.PUBCHEM, pubchemId)));
     return a;
   }
 

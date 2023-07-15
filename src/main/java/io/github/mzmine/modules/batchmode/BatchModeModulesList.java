@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -132,6 +132,7 @@ import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
+import io.github.mzmine.modules.io.export_repo_rt.RepoRtAnnotationsExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
 import io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule;
 import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
@@ -357,6 +358,7 @@ public class BatchModeModulesList {
       GNPSLibraryBatchExportModule.class, //
       FeatureMLExportModularModule.class, //
       MsMsQualityExportModule.class, //
+      RepoRtAnnotationsExportModule.class, //
 
       /*
        * needed in batch mode?

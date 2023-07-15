@@ -26,11 +26,11 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

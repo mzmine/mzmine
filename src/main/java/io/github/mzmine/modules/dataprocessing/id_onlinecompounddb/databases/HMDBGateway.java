@@ -27,9 +27,9 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.Database;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.InetUtils;
@@ -145,7 +145,7 @@ public class HMDBGateway implements DBGateway {
     final URL structure3DURL = new URL(hmdbStructureAddress + ID + ".pdb");
     final URL entryURL = new URL(hmdbEntryAddress + ID);
 
-    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.HMDB, ID, compoundName, compoundFormula,
+    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(Database.HMDB, ID, compoundName, compoundFormula,
         entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

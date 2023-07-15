@@ -27,9 +27,9 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.Database;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.InetUtils;
@@ -112,7 +112,7 @@ public class LipidMapsGateway implements DBGateway {
     URL structure3DURL = null;
     URL databaseURL = new URL(lipidMapsDetailsAddress + ID);
 
-    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.LIPIDMAPS, ID, compoundName,
+    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(Database.LIPID_MAPS, ID, compoundName,
         compoundFormula, databaseURL, structure2DURL, structure3DURL);
 
     return newCompound;

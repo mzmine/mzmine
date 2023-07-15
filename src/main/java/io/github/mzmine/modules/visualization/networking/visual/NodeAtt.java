@@ -26,11 +26,11 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.List;
 
 /**

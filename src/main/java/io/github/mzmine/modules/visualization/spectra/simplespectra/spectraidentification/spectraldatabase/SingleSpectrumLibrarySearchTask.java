@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.RowsSpectralMatchTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -38,7 +39,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.awt.Color;
 import java.time.Instant;
 import java.util.List;

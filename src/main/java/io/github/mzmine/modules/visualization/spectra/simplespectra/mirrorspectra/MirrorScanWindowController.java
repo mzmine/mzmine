@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspect
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.framework.FormattedTableCell;
@@ -46,7 +47,6 @@ import io.github.mzmine.util.components.ColorTableCell.Style;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.IOException;
 import java.text.MessageFormat;

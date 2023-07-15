@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -47,8 +46,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -69,7 +70,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
  * carry a flexible amount of data while providing a set of minimum defined entries.
  */
-public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
+public non-sealed class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   // TODO remove all references to this in next release
   public static final String XML_TYPE_NAME_OLD = "simplecompounddbannotation";
@@ -87,7 +88,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   }
 
   /**
-   * @param db      the database the compound is from.
+   * @param dbName  the database the compound is from.
    * @param id      the compound's ID in the database.
    * @param name    the compound's formula.
    * @param formula the compound's name.
@@ -95,16 +96,21 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    * @param url2d   the URL of the compound's 2D structure.
    * @param url3d   the URL of the compound's 3D structure.
    */
-  public SimpleCompoundDBAnnotation(final OnlineDatabases db, final String id, final String name,
+  public SimpleCompoundDBAnnotation(final String dbName, final String id, final String name,
+      final String formula, final URL urlDb, final URL url2d, final URL url3d) {
+    this(Database.getForShortName(dbName), id, name, formula, urlDb, url2d, url3d);
+  }
+
+  public SimpleCompoundDBAnnotation(final @Nullable Database db, final String id, final String name,
       final String formula, final URL urlDb, final URL url2d, final URL url3d) {
     this(formula);
-    putIfNotNull(DatabaseNameType.class, db != null ? db.name() : null);
-    putIfNotNull(CompoundNameType.class, name);
-
-    if (id != null && db != null) {
-      put(DatabaseMatchInfoType.class,
-          new DatabaseMatchInfo(db, id, urlDb != null ? urlDb.toString() : db.getCompoundUrl(id)));
+    putIfNotNull(DatabaseNameType.class, db.shortName());
+    if (id != null) {
+      DatabaseMatchInfo dbInfo = urlDb != null ? new DatabaseMatchInfo(db, id, urlDb.toString())
+          : new DatabaseMatchInfo(db, id);
+      addDatabaseMatchInfo(dbInfo);
     }
+    putIfNotNull(CompoundNameType.class, name);
 
     if (url2d != null) {
       put(Structure2dUrlType.class, new UrlShortName(url2d.toString(), "2D Structure"));
@@ -115,9 +121,17 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   }
 
+  @Override
+  public void addDatabaseMatchInfo(final DatabaseMatchInfo dbInfo) {
+    List<DatabaseMatchInfo> list = new ArrayList<>(getDatabaseMatchInfo());
+    list.add(dbInfo);
+    put(DatabaseMatchInfoType.class, list);
+  }
+
   public SimpleCompoundDBAnnotation(final String formula) {
     setFormula(formula);
   }
+
 
   /**
    * Calculate neutral mass if not already present. then keep the original.
@@ -144,9 +158,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         reader.getAttributeValue(null, XML_TYPE_ATTR));
 
     if (!((reader.isStartElement() && startElementName.equals(XML_ELEMENT_OLD) // old case
-        && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
-        || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
-        && startElementAttrValue.equals(XML_ATTR)))) {
+           && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
+          || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
+              && startElementAttrValue.equals(XML_ATTR)))) {
       throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
     }
 
@@ -252,13 +266,14 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         final Object finalVal = value;
         logger.warning(
             () -> "Error while writing data type " + key.getClass().getSimpleName() + " with value "
-                + finalVal + " to xml.");
+                  + finalVal + " to xml.");
         e.printStackTrace();
       }
     }
 
     writeClosingTag(writer);
   }
+
 
   @Override
   public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
@@ -268,14 +283,16 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     final Double exactMass = getPrecursorMZ();
     // values are "matched" if the given value exists in this class and falls within the tolerance.
     if (mzTolerance != null && exactMass != null && (row.getAverageMZ() == null
-        || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
+                                                     || !mzTolerance.checkWithinTolerance(
+        row.getAverageMZ(), exactMass))) {
       return false;
     }
 
     // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float rt = getRT();
     if (rtTolerance != null && rt != null && rt > 0 && (row.getAverageRT() == null
-        || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
+                                                        || !rtTolerance.checkWithinTolerance(
+        row.getAverageRT(), rt))) {
       return false;
     }
 
@@ -290,7 +307,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float ccs = getCCS();
     return percentCCSTolerance == null || ccs == null || ccs <= 0 || (row.getAverageCCS() != null
-        && !(Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
+                                                                      && !(
+        Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
   @Override
@@ -326,6 +344,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ATTR;
+  }
+
+  @Override
+  public String createComment() {
+    return "compound annotation";
   }
 
   @Override
