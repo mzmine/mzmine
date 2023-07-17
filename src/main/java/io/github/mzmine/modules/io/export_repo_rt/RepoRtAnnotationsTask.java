@@ -94,6 +94,10 @@ public class RepoRtAnnotationsTask extends AbstractTask {
     // Open file
     try (BufferedWriter writer = Files.newBufferedWriter(fileName.toPath(),
         StandardCharsets.UTF_8)) {
+      // write header to file
+      String header = String.join(separator, reportColumns.getHeaders());
+      writer.append(header).append("\n");
+
       // Process feature lists
       for (FeatureList featureList : featureLists) {
         // Cancel?
@@ -120,10 +124,7 @@ public class RepoRtAnnotationsTask extends AbstractTask {
       throws IOException {
     try {
       // Create a list of columns
-      List<DBEntryField> columns = RepoRtColumns.createColumns();
-      String header = String.join(separator, RepoRtColumns.getHeaders());
-      // write header to file
-      writer.append(header).append("\n");
+      List<DBEntryField> columns = reportColumns.getColumns();
 
       var methodCounter = new Object2IntOpenHashMap<String>(4);
       // loop through all rows in the feature list

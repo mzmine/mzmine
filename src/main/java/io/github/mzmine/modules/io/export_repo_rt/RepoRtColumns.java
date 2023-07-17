@@ -40,6 +40,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class RepoRtColumns {
 
+  private final List<DBEntryField> columns = List.of(DBEntryField.ENTRY_ID, DBEntryField.NAME,
+      DBEntryField.FORMULA, DBEntryField.RT, DBEntryField.PUBCHEM, DBEntryField.ISOMERIC_SMILES,
+      DBEntryField.SMILES, DBEntryField.INCHI, DBEntryField.INCHIKEY, DBEntryField.CHEBI,
+      DBEntryField.HMDB, DBEntryField.LIPIDMAPS, DBEntryField.KEGG, DBEntryField.COMMENT);
+  private final List<String> headers = getColumns().stream().map(RepoRtColumns::getHeader).toList();
+
   private final NumberFormat rtFormat = new DecimalFormat("0.0000");
   private final NumberFormat idFormat = new DecimalFormat("000000");
   private final String datasetId;
@@ -50,15 +56,12 @@ public class RepoRtColumns {
     this.compoundCounter = compoundCounterStart;
   }
 
-  public static List<DBEntryField> createColumns() {
-    return List.of(DBEntryField.ENTRY_ID, DBEntryField.NAME, DBEntryField.FORMULA, DBEntryField.RT,
-        DBEntryField.PUBCHEM, DBEntryField.ISOMERIC_SMILES, DBEntryField.SMILES, DBEntryField.INCHI,
-        DBEntryField.INCHIKEY, DBEntryField.CHEBI, DBEntryField.HMDB, DBEntryField.LIPIDMAPS,
-        DBEntryField.KEGG, DBEntryField.COMMENT);
+  public List<DBEntryField> getColumns() {
+    return columns;
   }
 
-  public static List<String> getHeaders() {
-    return createColumns().stream().map(RepoRtColumns::getHeader).toList();
+  public List<String> getHeaders() {
+    return headers;
   }
 
   public static String getHeader(DBEntryField field) {
