@@ -32,7 +32,6 @@ import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
@@ -41,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
@@ -62,18 +62,14 @@ public class TmpFileCleanup implements Runnable {
       // Find all temporary files with the mask mzmine*.scans
       File[] tempDir = {FileAndPathUtil.getTempDir(),
           new File(System.getProperty("java.io.tmpdir"))};
-      File remainingTmpFiles[] = Arrays.stream(tempDir)
-          .flatMap(f -> Arrays.stream(f.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-              if (name.matches("mzmine.*\\.tmp") || name.matches(
-                  "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*")
-                  || name.matches("(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*")) {
-                return true;
-              }
-              return false;
-            }
-          }))).toArray(File[]::new);
+      File[] remainingTmpFiles = Arrays.stream(tempDir).map(f -> f.listFiles((dir, name) -> {
+        if (name.matches("mzmine.*\\.tmp") || name.matches(
+            "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*") || name.matches(
+            "(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*")) {
+          return true;
+        }
+        return false;
+      })).filter(Objects::nonNull).flatMap(Arrays::stream).toArray(File[]::new);
 
       if (remainingTmpFiles != null) {
         for (File remainingTmpFile : remainingTmpFiles) {
