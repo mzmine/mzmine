@@ -533,8 +533,9 @@ public final class MZmineCore {
 
     if (tempDir.isDirectory()) {
       FileAndPathUtil.setTempDir(tempDir.getAbsoluteFile());
-      System.setProperty("java.io.tmpdir", tempDir.getAbsolutePath());
-      logger.finest(() -> "Working temporary directory is " + System.getProperty("java.io.tmpdir"));
+      logger.finest(() -> "Default temporary directory is " + System.getProperty("java.io.tmpdir"));
+      logger.finest(
+          () -> "Working temporary directory is " + FileAndPathUtil.getTempDir().toString());
       // check the new temp dir for old files.
       Thread cleanupThread2 = new Thread(new TmpFileCleanup());
       cleanupThread2.setPriority(Thread.MIN_PRIORITY);
