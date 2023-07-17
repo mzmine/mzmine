@@ -92,6 +92,7 @@ public class MirrorScanWindowController {
   public Label lbTitleNL;
   @FXML
   public TitledPane pnParams;
+  public BorderPane mainPane;
   // components
   @FXML
   private BorderPane pnMirror;
@@ -210,6 +211,10 @@ public class MirrorScanWindowController {
     pnParams.setContent(parameterSetupPane);
   }
 
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
   private void updateAll() {
     if (dpsA != null) {
       setScans(precursorMZA, dpsA, precursorMZB, dpsB);
@@ -238,7 +243,7 @@ public class MirrorScanWindowController {
     this.dpsB = dpsB;
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    String precursorString = MessageFormat.format(": {0}↔{1}; top↔bottom",
+    String precursorString = MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
         mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
     pnMirror.getChildren().removeAll();
@@ -276,24 +281,17 @@ public class MirrorScanWindowController {
 
     parameterSetupPane.updateParameterSetFromComponents();
     final MZTolerance mzTol = parameters.getValue(MirrorScanParameters.mzTol);
-    boolean removePrecursor = parameters.getValue(MirrorScanParameters.removePrecursor);
+    var signalFilters = parameters.getValue(MirrorScanParameters.signalFilters).createFilter();
     Weights weights = parameters.getValue(MirrorScanParameters.weight);
 
-    if (removePrecursor) {
-      MZTolerance removePrecursorMzTol = parameters.getParameter(
-          MirrorScanParameters.removePrecursor).getEmbeddedParameter().getValue();
-      dpsA = ScanUtils.removeSignals(dpsA, precursorMZA, removePrecursorMzTol);
-      dpsB = ScanUtils.removeSignals(dpsB, precursorMZB, removePrecursorMzTol);
-    }
+    dpsA = signalFilters.applyFilterAndSortByIntensity(dpsA, precursorMZA);
+    dpsB = signalFilters.applyFilterAndSortByIntensity(dpsB, precursorMZB);
 
-    // needs to be sorted
-    Arrays.sort(dpsA, DataPointSorter.DEFAULT_INTENSITY);
-    Arrays.sort(dpsB, DataPointSorter.DEFAULT_INTENSITY);
     SpectralSimilarity cosine = SpectralNetworkingTask.createMS2Sim(mzTol, dpsA, dpsB, 2, weights);
 
     if (cosine != null) {
       lbMirrorStats.setText(String.format(
-          "    cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          "    cosine=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
           cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
           cosine.overlap() / (double) cosine.sizeA()));
@@ -306,7 +304,7 @@ public class MirrorScanWindowController {
         SpectralNetworkingTask.SIZE_OVERLAP, precursorMZA, precursorMZB);
     if (cosine != null) {
       lbMirrorModifiedStats.setText(String.format(
-          "modified=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          "modified=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
           cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
           cosine.overlap() / (double) cosine.sizeA()));
@@ -344,7 +342,7 @@ public class MirrorScanWindowController {
     cosine = SpectralNetworkingTask.createMS2Sim(mzTol, nlA, nlB, 2, weights);
     if (cosine != null) {
       lbNeutralLossStats.setText(String.format(
-          "cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          "cosine=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
           cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
           cosine.overlap() / (double) cosine.sizeA()));
@@ -382,8 +380,19 @@ public class MirrorScanWindowController {
    * Set scan and mirror scan and create chart
    */
   public void setScans(Scan scan, Scan mirror) {
+    if (scan == null || mirror == null) {
+      clearScans();
+      return;
+    }
     setScans(scan.getPrecursorMz(), ScanUtils.extractDataPoints(scan.getMassList()),
         mirror.getPrecursorMz(), ScanUtils.extractDataPoints(mirror.getMassList()));
+  }
+
+  public void clearScans() {
+    tableMirror.getItems().clear();
+    tableNLMIrror.getItems().clear();
+    pnMirror.getChildren().removeAll();
+    pnNLMirror.getChildren().removeAll();
   }
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {

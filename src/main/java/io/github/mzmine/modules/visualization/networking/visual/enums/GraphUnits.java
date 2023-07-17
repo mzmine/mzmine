@@ -23,21 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
-public enum EdgeAtt {
-
-  SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES;
-
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
-  }
-
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, LABEL -> false;
-      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES -> true;
-    };
-  }
+/**
+ * size units in graphs
+ */
+public enum GraphUnits {
+  gu, px;
 }

@@ -23,8 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
-public enum NodeType {
-  NEUTRAL_M, ION_FEATURE, SINGLE_FEATURE, NEUTRAL_LOSS_CENTER
+public enum EdgeAtt implements GraphElementAttr {
+
+  NONE, ID1, ID2, LABEL, SCORE, MATCHED_SIGNALS, EXPLAINED_INTENSITY, TYPE, DELTA_MZ, NEIGHBOR_DISTANCE;
+
+  @Override
+  public String toString() {
+    return super.toString().replaceAll("_", " ");
+  }
+
+  public boolean isNumber() {
+    return switch (this) {
+      case TYPE, LABEL, NONE -> false;
+      case ID1, ID2, SCORE, DELTA_MZ, NEIGHBOR_DISTANCE, MATCHED_SIGNALS, EXPLAINED_INTENSITY ->
+          true;
+    };
+  }
+
+  @Override
+  public boolean isReversed() {
+    return this == NEIGHBOR_DISTANCE;
+  }
+
+  @Override
+  public boolean isChangingDynamically() {
+    return NEIGHBOR_DISTANCE == this;
+  }
+
+  @Override
+  public GraphObject getGraphObject() {
+    return GraphObject.EDGE;
+  }
 }

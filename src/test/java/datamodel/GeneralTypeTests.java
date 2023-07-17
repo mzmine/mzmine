@@ -38,6 +38,8 @@ import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
@@ -67,6 +69,13 @@ public class GeneralTypeTests {
   }
 
   @Test
+  @DisplayName("NetworkStats save load")
+  void networkStatsTest() {
+    NetworkStatsType type = new NetworkStatsType();
+    simpleDataTypeSaveLoadTest(type, new NetworkStats(2, 2, 2, 5, 2));
+  }
+
+  @Test
   @DisplayName("AlignmentScore save load")
   void alignmentScoreTest() {
     AlignmentMainType type = new AlignmentMainType();
@@ -89,7 +98,8 @@ public class GeneralTypeTests {
   void alignmentScoreSubTypesTest() {
     AlignmentScores value = new AlignmentScores(0.9f, 12, 46, 0.999f, 5.1f, 0.000123, 0.12f,
         0.43213f);
-    for (final DataType su : AlignmentScores.subTypes) {
+    var subTypes = AlignmentScores.getSubTypes();
+    for (final DataType su : subTypes) {
       assert value.getValue(su) != null;
     }
   }
