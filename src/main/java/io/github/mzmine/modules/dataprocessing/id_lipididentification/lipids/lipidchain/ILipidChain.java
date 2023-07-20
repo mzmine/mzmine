@@ -41,6 +41,8 @@ public interface ILipidChain {
 
   LipidChainType getLipidChainType();
 
+  int getNumberOfOxygens();
+
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
 }

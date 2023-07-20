@@ -25,14 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.util.FormulaUtils;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.util.FormulaUtils;
 
 public class AlkylLipidChain implements ILipidChain {
 
@@ -42,12 +41,14 @@ public class AlkylLipidChain implements ILipidChain {
   private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
   private static final String XML_CHAIN_TYPE = "chaintype";
+  private static final String XML_NUMBER_OF_OXYGENS = "numberofoxygens";
 
   private final String chainAnnotation;
   private final IMolecularFormula molecularFormula;
   private final int numberOfCarbons;
   private final int numberOfDBEs;
   private static final LipidChainType LIPID_CHAIN_TYPE = LipidChainType.ALKYL_CHAIN;
+  private final int numberOfOxygens;
 
   public AlkylLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
       int numberOfCarbons, int numberOfDBEs) {
@@ -55,6 +56,16 @@ public class AlkylLipidChain implements ILipidChain {
     this.molecularFormula = molecularFormula;
     this.numberOfCarbons = numberOfCarbons;
     this.numberOfDBEs = numberOfDBEs;
+    numberOfOxygens = 0;
+  }
+
+  public AlkylLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
+      int numberOfCarbons, int numberOfDBEs, int numberOfOxygens) {
+    this.chainAnnotation = chainAnnotation;
+    this.molecularFormula = molecularFormula;
+    this.numberOfCarbons = numberOfCarbons;
+    this.numberOfDBEs = numberOfDBEs;
+    this.numberOfOxygens = numberOfOxygens;
   }
 
   public int getNumberOfCarbons() {
@@ -78,6 +89,10 @@ public class AlkylLipidChain implements ILipidChain {
     return LIPID_CHAIN_TYPE;
   }
 
+  public int getNumberOfOxygens() {
+    return numberOfOxygens;
+  }
+
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer.writeStartElement(XML_CHAIN_ANNOTATION);
@@ -95,6 +110,9 @@ public class AlkylLipidChain implements ILipidChain {
     writer.writeStartElement(XML_CHAIN_TYPE);
     writer.writeCharacters(LIPID_CHAIN_TYPE.name());
     writer.writeEndElement();
+    writer.writeStartElement(XML_NUMBER_OF_OXYGENS);
+    writer.writeCharacters(String.valueOf(numberOfOxygens));
+    writer.writeEndElement();
     writer.writeEndElement();
   }
 
@@ -109,6 +127,7 @@ public class AlkylLipidChain implements ILipidChain {
     Integer numberOfCarbons = null;
     Integer numberOfDBEs = null;
     LipidChainType lipidChainType = null;
+    Integer numberOfOxygens = null;
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
@@ -130,7 +149,11 @@ public class AlkylLipidChain implements ILipidChain {
           numberOfDBEs = Integer.parseInt(reader.getElementText());
           break;
         case XML_CHAIN_TYPE:
-          lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
+          lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(
+              reader.getElementText());
+          break;
+        case XML_NUMBER_OF_OXYGENS:
+          numberOfOxygens = Integer.parseInt(reader.getElementText());
           break;
         default:
           break;

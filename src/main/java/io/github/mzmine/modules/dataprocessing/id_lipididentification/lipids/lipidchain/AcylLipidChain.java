@@ -42,12 +42,14 @@ public class AcylLipidChain implements ILipidChain {
   private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
   private static final String XML_CHAIN_TYPE = "chaintype";
+  private static final String XML_NUMBER_OF_OXYGENS = "numberofoxygens";
 
   private final String chainAnnotation;
   private final IMolecularFormula molecularFormula;
   private final int numberOfCarbons;
   private final int numberOfDBEs;
   private static final LipidChainType LIPID_CHAIN_TYPE = LipidChainType.ACYL_CHAIN;
+  private final int numberOfOxygens;
 
   public AcylLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
       int numberOfCarbons, int numberOfDBEs) {
@@ -55,6 +57,16 @@ public class AcylLipidChain implements ILipidChain {
     this.molecularFormula = molecularFormula;
     this.numberOfCarbons = numberOfCarbons;
     this.numberOfDBEs = numberOfDBEs;
+    numberOfOxygens = 0;
+  }
+
+  public AcylLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
+      int numberOfCarbons, int numberOfDBEs, int numberOfOxygens) {
+    this.chainAnnotation = chainAnnotation;
+    this.molecularFormula = molecularFormula;
+    this.numberOfCarbons = numberOfCarbons;
+    this.numberOfDBEs = numberOfDBEs;
+    this.numberOfOxygens= numberOfOxygens;
   }
 
   public String getChainAnnotation() {
@@ -81,6 +93,11 @@ public class AcylLipidChain implements ILipidChain {
     return LIPID_CHAIN_TYPE;
   }
 
+
+  public int getNumberOfOxygens() {
+    return numberOfOxygens;
+  }
+
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer.writeStartElement(XML_CHAIN_ANNOTATION);
@@ -98,6 +115,9 @@ public class AcylLipidChain implements ILipidChain {
     writer.writeStartElement(XML_CHAIN_TYPE);
     writer.writeCharacters(LIPID_CHAIN_TYPE.name());
     writer.writeEndElement();
+    writer.writeStartElement(XML_NUMBER_OF_OXYGENS);
+    writer.writeCharacters(String.valueOf(numberOfOxygens));
+    writer.writeEndElement();
     writer.writeEndElement();
   }
 
@@ -112,6 +132,7 @@ public class AcylLipidChain implements ILipidChain {
     Integer numberOfCarbons = null;
     Integer numberOfDBEs = null;
     LipidChainType lipidChainType = null;
+    Integer numberOfOxygens = null;
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
@@ -135,12 +156,15 @@ public class AcylLipidChain implements ILipidChain {
         case XML_CHAIN_TYPE:
           lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
           break;
+        case XML_NUMBER_OF_OXYGENS:
+          numberOfOxygens = Integer.parseInt(reader.getElementText());
+          break;
         default:
           break;
       }
     }
     if (lipidChainType != null && lipidChainType.equals(LipidChainType.ACYL_CHAIN)) {
-      return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs);
+      return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs, numberOfOxygens);
     }
     return null;
   }
