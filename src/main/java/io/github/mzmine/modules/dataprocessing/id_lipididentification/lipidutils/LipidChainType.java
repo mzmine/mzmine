@@ -28,9 +28,15 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutil
 public enum LipidChainType {
 
   ACYL_CHAIN("Acyl chain"), //
-  ALKYL_CHAIN("Alkyl chain");
+  ACYL_MONO_HYDROXY_CHAIN("Acyl mono hydroxy chain"),
+  ALKYL_CHAIN("Alkyl chain"),//
+  AMID_CHAIN("Amid chain"), //
+  AMID_MONO_HYDROXY_CHAIN("Amid mono hydroxy chain"), //
+  SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN("Shpingolipid mono hydroxy backbone chain"), //
+  SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN("Shpingolipid di hydroxy backbone chain"), //
+  SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN("Shpingolipid tri hydroxy backbone chain");// ;
 
-  private String name;
+  private final String name;
 
   LipidChainType(String name) {
     this.name = name;
