@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.Lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidMainClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 
 public class LipidParsingUtils {
 

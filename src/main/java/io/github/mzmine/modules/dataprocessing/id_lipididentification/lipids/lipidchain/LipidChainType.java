@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain;
 
 public enum LipidChainType {
 

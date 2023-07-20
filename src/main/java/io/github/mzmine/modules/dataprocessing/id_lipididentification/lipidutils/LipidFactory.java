@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import java.util.ArrayList;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;

@@ -35,7 +35,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 
 public class CustomLipidClass implements ILipidClass {
 
@@ -47,11 +47,11 @@ public class CustomLipidClass implements ILipidClass {
   private static final String XML_LIPID_CLASS_FRAGMENTATION_RULES = "lipidclassfragmentationrules";
 
 
-  private String name;
-  private String abbr;
-  private String backBoneFormula;
-  private LipidChainType[] chainTypes;
-  private LipidFragmentationRule[] fragmentationRules;
+  private final String name;
+  private final String abbr;
+  private final String backBoneFormula;
+  private final LipidChainType[] chainTypes;
+  private final LipidFragmentationRule[] fragmentationRules;
 
   public CustomLipidClass(String name, String abbr, String backBoneFormula,
       LipidChainType[] chainTypes, LipidFragmentationRule[] fragmentationRules) {

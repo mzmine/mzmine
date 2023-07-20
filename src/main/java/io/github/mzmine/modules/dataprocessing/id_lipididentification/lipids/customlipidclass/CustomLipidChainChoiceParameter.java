@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Arrays;

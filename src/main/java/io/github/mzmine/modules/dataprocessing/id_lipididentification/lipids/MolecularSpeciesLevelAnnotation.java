@@ -39,7 +39,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.cus
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AcylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AlkylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
 
 public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
@@ -55,7 +55,7 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
   private String annotation;
   private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL =
       LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL;
-  private IMolecularFormula molecularFormula;
+  private final IMolecularFormula molecularFormula;
   private List<ILipidChain> lipidChains;
 
   public MolecularSpeciesLevelAnnotation(ILipidClass lipidClass, String annotation,
@@ -128,11 +128,9 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     } else if (!annotation.equals(other.annotation))
       return false;
     if (lipidChains == null) {
-      if (other.lipidChains != null)
-        return false;
-    } else if (!lipidChains.equals(other.lipidChains))
-      return false;
-    return true;
+      return other.lipidChains == null;
+    } else
+      return lipidChains.equals(other.lipidChains);
   }
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {

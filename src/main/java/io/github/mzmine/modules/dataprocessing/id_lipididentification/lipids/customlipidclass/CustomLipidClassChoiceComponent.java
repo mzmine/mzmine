@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.cu
 import com.google.gson.Gson;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -228,8 +228,8 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
         "Add Lipid Chains", "Add Lipid Chains", new LipidChainType[0]);
 
     public AddCustomLipidClassParameters() {
-      super(new Parameter[]{name, abbr, backBoneFormula, lipidChainTypes,
-          customLipidClassFragmentationRules});
+      super(name, abbr, backBoneFormula, lipidChainTypes,
+          customLipidClassFragmentationRules);
     }
   }
 

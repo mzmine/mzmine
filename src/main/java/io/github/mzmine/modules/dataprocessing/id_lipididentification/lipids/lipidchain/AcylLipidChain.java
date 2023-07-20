@@ -32,7 +32,6 @@ import javax.xml.stream.XMLStreamWriter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
 
 public class AcylLipidChain implements ILipidChain {
@@ -44,10 +43,10 @@ public class AcylLipidChain implements ILipidChain {
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
   private static final String XML_CHAIN_TYPE = "chaintype";
 
-  private String chainAnnotation;
-  private IMolecularFormula molecularFormula;
-  private int numberOfCarbons;
-  private int numberOfDBEs;
+  private final String chainAnnotation;
+  private final IMolecularFormula molecularFormula;
+  private final int numberOfCarbons;
+  private final int numberOfDBEs;
   private static final LipidChainType LIPID_CHAIN_TYPE = LipidChainType.ACYL_CHAIN;
 
   public AcylLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,

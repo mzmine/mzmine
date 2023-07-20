@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.li
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 
 public interface ILipidChain {
 

@@ -37,7 +37,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 
 public class LipidFragment {
@@ -53,15 +53,15 @@ public class LipidFragment {
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
   private static final String XML_LIPID_CHAIN_TYPE = "lipidchaintype";
 
-  private LipidFragmentationRuleType ruleType;
-  private LipidAnnotationLevel lipidFragmentInformationLevelType;
-  private Double mzExact;
-  private DataPoint dataPoint;
-  private ILipidClass lipidClass;
-  private Integer chainLength;
-  private Integer numberOfDBEs;
-  private LipidChainType lipidChainType;
-  private Scan msMsScan;
+  private final LipidFragmentationRuleType ruleType;
+  private final LipidAnnotationLevel lipidFragmentInformationLevelType;
+  private final Double mzExact;
+  private final DataPoint dataPoint;
+  private final ILipidClass lipidClass;
+  private final Integer chainLength;
+  private final Integer numberOfDBEs;
+  private final LipidChainType lipidChainType;
+  private final Scan msMsScan;
 
   public LipidFragment(LipidFragmentationRuleType ruleType,
       LipidAnnotationLevel lipidFragmentInformationLevelType, Double mzExact, DataPoint dataPoint,

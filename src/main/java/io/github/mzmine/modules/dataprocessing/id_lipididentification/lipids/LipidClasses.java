@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 
 /**
@@ -684,13 +684,13 @@ public enum LipidClasses implements ILipidClass {
   private static final String XML_LIPID_CLASS_CHAIN_TYPE = "lipidclasschaintypes";
   private static final String XML_LIPID_CLASS_FRAGMENTATION_RULES = "lipidclassfragmentationrules";
 
-  private String name;
-  private String abbr;
-  private LipidCategories coreClass;
-  private LipidMainClasses mainClass;
-  private String backBoneFormula;
-  private LipidChainType[] chainTypes;
-  private LipidFragmentationRule[] fragmentationRules;
+  private final String name;
+  private final String abbr;
+  private final LipidCategories coreClass;
+  private final LipidMainClasses mainClass;
+  private final String backBoneFormula;
+  private final LipidChainType[] chainTypes;
+  private final LipidFragmentationRule[] fragmentationRules;
 
   LipidClasses(String name, String abbr, LipidCategories coreClass, LipidMainClasses mainClass,
       String backBoneFormula, LipidChainType[] chainTypes,
