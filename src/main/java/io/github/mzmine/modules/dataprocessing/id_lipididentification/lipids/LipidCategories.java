@@ -31,19 +31,30 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public enum LipidCategories {
-  FATTYACYLS("Fatty Acyls"), //
-  GLYCEROLIPIDS("Glycerolipids"), //
-  GLYCEROPHOSPHOLIPIDS("Glycerophospholipids"), //
-  SPHINGOLIPIDS("Sphingolipids");//
+  FATTYACYLS("Fatty Acyls","FA"), //
+  GLYCEROLIPIDS("Glycerolipids","GL"), //
+  GLYCEROPHOSPHOLIPIDS("Glycerophospholipids","GP"), //
+  SPHINGOLIPIDS("Sphingolipids","SP"),//
+  STEROLLIPIDS("Sterol Lipids","ST"),//
+  PRENOLLIPIDS("Prenol Lipids","PR"),//
+  SACCHAROLIPIDS("Saccharolipids","SL"),//
+  POLYKETIDES("Polyketides","PK");//
 
-  private String name;
 
-  LipidCategories(String name) {
-    this.name = name;
+  private final String name;
+
+  private final String abbreviation;
+
+  LipidCategories(String name, String abbreviation) {
+    this.name = name;this.abbreviation=abbreviation;
   }
 
   public String getName() {
     return name;
+  }
+
+  public String getAbbreviation() {
+    return abbreviation;
   }
 
   @Override
