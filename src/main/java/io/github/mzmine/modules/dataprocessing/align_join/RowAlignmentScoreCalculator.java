@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import static io.github.mzmine.datamodel.features.types.alignment.AlignmentScores.max;
+import static io.github.mzmine.datamodel.features.types.alignment.AlignmentScores.min;
 import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
 
 import com.google.common.collect.Range;
@@ -98,9 +100,13 @@ public class RowAlignmentScoreCalculator {
 
     // calculate difference
     int testedAlignedFeatures = 0;
-    double mzDiff = 0;
-    float rtDiff = 0;
-    float mobilityDiff = 0;
+    Double maxMz = null;
+    Double minMz = null;
+    Float maxRt = null;
+    Float maxMobility = null;
+    Float minRt = null;
+    Float minMobility = null;
+
     double alignmentScore = 0;
     // extra features more than the aligned
     int sumExtra = 0;
@@ -118,13 +124,19 @@ public class RowAlignmentScoreCalculator {
       if (feature != null) {
         testedAlignedFeatures++;
         if (mz != null && feature.getMZ() != null) {
-          mzDiff += Math.abs(feature.getMZ() - mz);
+          var featureMz = feature.getMZ();
+          minMz = min(featureMz, minMz);
+          maxMz = max(featureMz, maxMz);
         }
         if (rt != null && feature.getRT() != null) {
-          rtDiff += Math.abs(feature.getRT() - rt);
+          var featureRt = feature.getRT();
+          minRt = min(featureRt, minRt);
+          maxRt = max(featureRt, maxRt);
         }
         if (mobility != null && feature.getMobility() != null) {
-          mobilityDiff += Math.abs(feature.getMobility() - mobility);
+          var featureMobility = feature.getMobility();
+          minMobility = min(featureMobility, minMobility);
+          maxMobility = max(featureMobility, maxMobility);
         }
         alignmentScore += FeatureListUtils.getAlignmentScore(feature, mzRange, rtRange, null,
             mobilityRange, mzWeight, rtWeight, mobilityWeight, 1);
@@ -132,14 +144,16 @@ public class RowAlignmentScoreCalculator {
     }
 
     // rows
-    mobilityDiff = mobilityDiff / testedAlignedFeatures;
     alignmentScore = alignmentScore / testedAlignedFeatures;
-    rtDiff = rtDiff / testedAlignedFeatures;
-    mzDiff = mzDiff / testedAlignedFeatures;
-    float ppm = (float) (mzDiff / mz * 1_000_000f);
     float rate = testedAlignedFeatures / (float) totalSamples;
 
+    float rtDelta = minRt == null ? 0 : maxRt - minRt;
+    float mobilityDelta = minMobility == null ? 0 : maxMobility - minMobility;
+    double mzDelta = minMz == null ? 0 : maxMz - minMz;
+
+    float ppm = (float) (mzDelta/mz * 1_000_000f);
+
     return new AlignmentScores(rate, testedAlignedFeatures, sumExtra, (float) alignmentScore, ppm,
-        mzDiff, rt != null ? rtDiff : null, mobility != null ? mobilityDiff : null);
+        mzDelta, rtDelta, mobilityDelta);
   }
 }

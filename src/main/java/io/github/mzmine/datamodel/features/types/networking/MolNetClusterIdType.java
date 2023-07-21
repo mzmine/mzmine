@@ -23,21 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.datamodel.features.types.networking;
 
-public enum EdgeAtt {
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
-  SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES;
+/**
+ */
+public class MolNetClusterIdType extends IntegerType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "net_cluster_id";
+  }
 
   @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
+  public @NotNull String getHeaderString() {
+    return "Cluster ID";
   }
 
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, LABEL -> false;
-      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES -> true;
-    };
-  }
 }

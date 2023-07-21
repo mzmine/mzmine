@@ -44,7 +44,9 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.ui.TextAnchor;
 
 public class SpectrumChartFactory {
 
@@ -112,7 +114,7 @@ public class SpectrumChartFactory {
     if (precursorMZ == 0) {
       title = "RT=" + mzForm.format(precursorMZ);
     } else {
-      title = MessageFormat.format("MSMS for m/z={0} RT={1}", mzForm.format(precursorMZ),
+      title = MessageFormat.format("MS/MS for m/z={0} RT={1}", mzForm.format(precursorMZ),
           rtForm.format(rt));
     }
 
@@ -176,7 +178,14 @@ public class SpectrumChartFactory {
    * @param precursorMZ
    */
   private static void addPrecursorMarker(JFreeChart chart, double precursorMZ) {
-    chart.getXYPlot()
-        .addDomainMarker(new ValueMarker(precursorMZ, Color.ORANGE, new BasicStroke(2f)));
+    var color = Color.ORANGE;
+    var marker = new ValueMarker(precursorMZ, color, new BasicStroke(2f));
+    marker.setLabel(MZmineCore.getConfiguration().getGuiFormats().mz(precursorMZ));
+    marker.setLabelAnchor(RectangleAnchor.TOP_LEFT);
+    marker.setLabelTextAnchor(TextAnchor.TOP_RIGHT);
+    marker.setLabelPaint(color);
+    marker.setLabelBackgroundColor(new Color(0,0,0,0));
+    marker.setLabelOffset(new RectangleInsets(5,5,0,5));
+    chart.getXYPlot().addDomainMarker(marker);
   }
 }

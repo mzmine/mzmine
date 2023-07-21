@@ -128,6 +128,7 @@ import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
+import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
@@ -355,6 +356,7 @@ public class BatchModeModulesList {
       LibraryBatchGenerationModule.class, //
       GNPSLibraryBatchExportModule.class, //
       FeatureMLExportModularModule.class, //
+      MsMsQualityExportModule.class, //
 
       /*
        * needed in batch mode?

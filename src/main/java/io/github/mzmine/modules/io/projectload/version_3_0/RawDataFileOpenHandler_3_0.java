@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,11 +47,11 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
     File tempFile = null;
     FileOutputStream fstream = null;
     try {
-      tempFile = File.createTempFile(RawDataFileSaveHandler.TEMP_FILE_NAME, ".tmp");
+      tempFile = FileAndPathUtil.createTempFile(RawDataFileSaveHandler.TEMP_FILE_NAME, ".tmp");
       fstream = new FileOutputStream(tempFile);
       StreamCopy copyMachine = new StreamCopy();
       copyMachine.copy(batchFileStream, fstream);
@@ -212,7 +212,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       List<BatchQueue> batchQueues = loadBatchQueues();
       numSteps = batchQueues.size();
 
-      Path tempDir = Files.createTempDirectory(TEMP_RAW_DATA_FOLDER);
+      Path tempDir = FileAndPathUtil.createTempDirectory(TEMP_RAW_DATA_FOLDER);
 
       for (BatchQueue batchQueue : batchQueues) {
         final ParameterSet param = MZmineCore.getConfiguration()

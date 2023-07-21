@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,7 +22,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
@@ -79,6 +78,7 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
@@ -131,6 +131,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu searchMenu;
   final Menu idsMenu;
   final Menu exportMenu;
+
   private final FeatureTableFX table;
   @Nullable ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
@@ -255,6 +256,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     return annotations.get(0);
   }
 
+
   private void initExportMenu() {
     final MenuItem exportIsotopesItem = new ConditionalMenuItem("Export isotope pattern",
         () -> selectedRows.size() == 1 && selectedRows.get(0).getBestIsotopePattern() != null);
@@ -328,6 +330,10 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void initShowMenu() {
+
+    final MenuItem showNetworkVisualizerItem = new MenuItem("Feature network");
+    showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
+
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
     showXICItem.setOnAction(
@@ -515,7 +521,19 @@ public class FeatureTableContextMenu extends ContextMenu {
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
             showCompoundDBResults, showSpectralDBResults, showMatchedLipidSignals,
-            new SeparatorMenuItem(), showPeakRowSummaryItem);
+            new SeparatorMenuItem(), showPeakRowSummaryItem, showNetworkVisualizerItem);
+  }
+
+  /**
+   * Open molecular network and center on node
+   */
+  private void showNetworkVisualizer() {
+    var featureList = table.getFeatureList();
+    if (selectedRows.isEmpty() || featureList==null) {
+      return;
+    }
+    NetworkOverviewWindow networks = new NetworkOverviewWindow(featureList, table, selectedRows);
+    networks.show();
   }
 
   private void onShowAllMsMsClicked() {

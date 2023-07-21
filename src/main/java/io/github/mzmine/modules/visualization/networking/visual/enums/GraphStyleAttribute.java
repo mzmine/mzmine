@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -22,43 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import java.util.Arrays;
-import java.util.Iterator;
+/**
+ * Graphstream style attributes
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public enum GraphStyleAttribute {
+  COLOR, SIZE, LABEL, CLASS;
 
-public class IntensitySortedSeries<T extends IonTimeSeries<?>> implements Iterator<Integer> {
-
-  private final Integer[] indices;
-  T series;
-  final double[] intensities;
-  int index = -1;
-
-  public IntensitySortedSeries(T series) {
-    this.series = series;
-    intensities = new double[series.getNumberOfValues()];
-    series.getIntensityValues(intensities);
-
-    indices = new Integer[series.getNumberOfValues()];
-
-    for (int i = 0; i < indices.length; i++) {
-      indices[i] = i;
-    }
-
-    // sort by descending intensity
-    Arrays.sort(indices, (i1, i2) -> -1 * Double.compare(intensities[i1], intensities[i2]));
-  }
-
-
-  @Override
-  public boolean hasNext() {
-    return index + 1 < indices.length;
-  }
-
-  @Override
-  public Integer next() {
-    ++index;
-    return indices[index];
+  /**
+   * UI attribute String to access or set the attribute in graph stream
+   *
+   * @return
+   */
+  public String getUIString() {
+    return switch (this) {
+      case COLOR -> "ui.color";
+      case SIZE -> "ui.size";
+      case LABEL -> "ui.label";
+      case CLASS -> "ui.class";
+    };
   }
 }

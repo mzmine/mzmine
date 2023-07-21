@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -64,6 +65,23 @@ public class SignalFiltersParameters extends SimpleParameterSet {
   public SignalFiltersParameters() {
     super(removePrecursor, cropToMaxSignals, signalThresholdIntensityFilter,
         intensityPercentFilter);
+  }
+
+  public SpectralSignalFilter createFilter() {
+    return createFilter(this);
+  }
+
+  public static SpectralSignalFilter createFilter(ParameterSet params) {
+    boolean isRemovePrecursor = params.getValue(SignalFiltersParameters.removePrecursor);
+    var removePrecursorMz = params.getEmbeddedParameterValueIfSelectedOrElse(
+        SignalFiltersParameters.removePrecursor, 0d);
+    var cropToMaxSignals = params.getValue(SignalFiltersParameters.cropToMaxSignals);
+    var signalThresholdForTargetIntensityPercent = params.getValue(
+        SignalFiltersParameters.signalThresholdIntensityFilter);
+    var targetIntensityPercentage = params.getValue(
+        SignalFiltersParameters.intensityPercentFilter);
+    return new SpectralSignalFilter(isRemovePrecursor, removePrecursorMz, cropToMaxSignals,
+        signalThresholdForTargetIntensityPercent, targetIntensityPercentage);
   }
 
 }
