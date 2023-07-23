@@ -54,6 +54,9 @@ public sealed interface GraphStyler permits AbstractGraphStyler {
    * @return a value between 0-1 (including)
    */
   default float interpolate(float value, float min, float max) {
+    if (Float.compare(min, max) == 0) {
+      return 1;
+    }
     return (float) Math.min(1.0, Math.max(0.0, (value - min) / (max - min)));
   }
 
