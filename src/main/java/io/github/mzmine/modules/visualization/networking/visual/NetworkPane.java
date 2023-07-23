@@ -25,17 +25,16 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -443,9 +442,8 @@ public class NetworkPane extends BorderPane {
    */
   private String loadDefaultStyle() {
     try {
-      File file = new File(getClass().getClassLoader().getResource(DEFAULT_STYLE_FILE).getFile());
-      String style = Files.readLines(file, Charsets.UTF_8).stream()
-          .collect(Collectors.joining(" "));
+      var style = Resources.toString(Resources.getResource(DEFAULT_STYLE_FILE),
+          StandardCharsets.UTF_8);
       LOG.info("Default style from file: " + style);
       return style;
     } catch (IOException e) {
