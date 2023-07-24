@@ -63,30 +63,30 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Task to search and annotate lipids in spectra
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private Object[] selectedObjects;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Object[] selectedObjects;
   private DataPoint[] massList;
   private LipidClasses[] selectedLipids;
-  private int minChainLength;
-  private int maxChainLength;
-  private int maxDoubleBonds;
-  private int minDoubleBonds;
-  private MZTolerance mzTolerance;
+  private final int minChainLength;
+  private final int maxChainLength;
+  private final int maxDoubleBonds;
+  private final int minDoubleBonds;
+  private final MZTolerance mzTolerance;
   private IonizationType ionizationType;
-  private Boolean searchForCustomLipidClasses;
+  private final Boolean searchForCustomLipidClasses;
   private CustomLipidClass[] customLipidClasses;
-  private Boolean searchForMSMSFragments;
-  private Boolean ionizationAutoSearch;
-  private Scan currentScan;
-  private SpectraPlot spectraPlot;
-  private Map<DataPoint, String> annotatedMassList = new HashMap<>();
+  private final Boolean searchForMSMSFragments;
+  private final Boolean ionizationAutoSearch;
+  private final Scan currentScan;
+  private final SpectraPlot spectraPlot;
+  private final Map<DataPoint, String> annotatedMassList = new HashMap<>();
 
   private int finishedSteps = 0;
   private int totalSteps;
@@ -95,7 +95,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
   /**
    * Create the task.
-   * 
+   *
    * @param parameters task parameters.
    */
   public SpectraIdentificationLipidSearchTask(ParameterSet parameters, Scan currentScan,
@@ -230,9 +230,11 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
       ILipidClass[] lipidClasses) {
     // Try all combinations of fatty acid lengths and double bonds
     for (int i = 0; i < lipidClasses.length; i++) {
+      // TODO starting point to extend for better oxidized lipid support
+      int numberOfAdditionalOxygens = 0;
       for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds =
-            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
+        for (int chainDoubleBonds = minDoubleBonds; chainDoubleBonds <= maxDoubleBonds;
+            chainDoubleBonds++) {
 
           // If we have non-zero fatty acid, which is shorter
           // than minimal length, skip this lipid
@@ -250,7 +252,8 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
           // Prepare a lipid instance
           lipidDatabase.add(
-              LIPID_FACTORY.buildSpeciesLevelLipid(lipidClasses[i], chainLength, chainDoubleBonds));
+              LIPID_FACTORY.buildSpeciesLevelLipid(lipidClasses[i], chainLength, chainDoubleBonds,
+                  numberOfAdditionalOxygens));
         }
       }
     }
