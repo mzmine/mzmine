@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 public interface ILipidClass {
 
@@ -41,6 +41,10 @@ public interface ILipidClass {
   LipidChainType[] getChainTypes();
 
   LipidFragmentationRule[] getFragmentationRules();
+
+  LipidCategories getCoreClass();
+
+  LipidMainClasses getMainClass();
 
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
