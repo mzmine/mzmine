@@ -46,7 +46,8 @@ public enum LipidMainClasses {
 
   // Glycerophospholipids
   PHOSPHATIDYLCHOLINE("Phosphatidylcholine", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOETHANOLAMINES("Glycerophosphoethanolamines", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  GLYCEROPHOSPHOETHANOLAMINES("Glycerophosphoethanolamines",
+      LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHOSERINES("Glycerophosphoserines", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHOGLYCEROLS("Glycerophosphoglycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHOGLYCEROPHOSPHATES("Glycerophosphoglycerophosphates",
@@ -56,10 +57,13 @@ public enum LipidMainClasses {
       LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHATES("Glycerophosphates", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   CARDIOLIPIN("Cardiolipin", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
-  CDPGLYCEROLS("CDP-Glycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS); //
+  CDPGLYCEROLS("CDP-Glycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
 
-  private String name;
-  private LipidCategories coreClass;
+  // Sphingolipids
+  PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCategories.SPHINGOLIPIDS);
+
+  private final String name;
+  private final LipidCategories coreClass;
 
   LipidMainClasses(String name, LipidCategories coreClass) {
     this.name = name;

@@ -25,15 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * This enum contains all lipid classes. Each enum has information on: name, abbreviation,
@@ -673,7 +673,32 @@ public enum LipidClasses implements ILipidClass {
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
               LipidAnnotationLevel.SPECIES_LEVEL, "C6H11P2O8"), //
-      });
+      }),
+
+  // Sphingolipids
+
+  CERAMIDEPHOSPHOCHOLINES("Ceramide Phosphocholines (Sphingomyelins)", "SM",
+      LipidCategories.SPHINGOLIPIDS, LipidMainClasses.PHOSPHOSPHINGOLIPIDS, "C8H20O3PN",
+      new LipidChainType[]{LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
+          LipidChainType.AMID_CHAIN}, new LipidFragmentationRule[]{ //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+          "C5H15O4PN+"), //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+          "C5H14NO4P"), //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+          "C5H16NO5P"), //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+          "C3H9N"), //
+      //new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
+      //   LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_AND_SUBSTRUCTURE_NEUTRAL_LOSS_FRAGMENT,
+      //   LipidAnnotationLevel.SPECIES_LEVEL, "H4O2"), //
+
+  });
+
 
   private static final String XML_ELEMENT = "lipidclass";
   private static final String XML_LIPID_CLASS_NAME = "lipidclassname";
