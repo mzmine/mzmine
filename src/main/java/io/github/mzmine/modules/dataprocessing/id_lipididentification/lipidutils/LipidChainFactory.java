@@ -25,13 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
-import java.util.List;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AcylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AlkylLipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AmidLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.SphingolipidDiHydroxyBackboneChain;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.List;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * This class constructs alkyl and acyl chains for lipids.
@@ -47,13 +49,25 @@ public class LipidChainFactory {
     IMolecularFormula chainFormula = buildLipidChainFormula(chainType, chainLength, numberOfDBE);
     String chainAnnotation = buildLipidChainAnnotation(chainType, chainLength, numberOfDBE);
 
-    if (chainType.equals(LipidChainType.ACYL_CHAIN)) {
-      return new AcylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
-    } else if (chainType.equals(LipidChainType.ALKYL_CHAIN)) {
-      return new AlkylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
-    } else {
-      return null;
-    }
+    return switch (chainType) {
+      case ACYL_CHAIN:
+        yield new AcylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
+      case ACYL_MONO_HYDROXY_CHAIN:
+        yield null;
+      case ALKYL_CHAIN:
+        yield new AlkylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
+      case AMID_CHAIN:
+        yield null;//TODO
+      case AMID_MONO_HYDROXY_CHAIN:
+        yield new AmidLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
+      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN:
+        yield null;//TODO
+      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN:
+        yield new SphingolipidDiHydroxyBackboneChain(chainAnnotation, chainFormula, chainLength,
+            numberOfDBE);
+      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN:
+        yield null;//TODO
+    };
   }
 
   public IMolecularFormula buildLipidChainFormula(LipidChainType chainType, int chainLength,
@@ -63,7 +77,16 @@ public class LipidChainFactory {
     }
     return switch (chainType) {
       case ACYL_CHAIN -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
+      case ACYL_MONO_HYDROXY_CHAIN -> null; //TODO
       case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
+      case AMID_CHAIN -> calculateMolecularFormulaAmidChain(chainLength, numberOfDBE);//TODO
+      case AMID_MONO_HYDROXY_CHAIN -> null;//TODO
+      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN ->
+          calculateMolecularFormulaSphingolipidBackboneChain(chainLength, numberOfDBE, chainType);
+      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN ->
+          calculateMolecularFormulaSphingolipidBackboneChain(chainLength, numberOfDBE, chainType);
+      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN ->
+          calculateMolecularFormulaSphingolipidBackboneChain(chainLength, numberOfDBE, chainType);
     };
   }
 
@@ -81,11 +104,34 @@ public class LipidChainFactory {
     return FormulaUtils.createMajorIsotopeMolFormula("C" + chainLength + "H" + numberOfHAtoms);
   }
 
+  private IMolecularFormula calculateMolecularFormulaAmidChain(int chainLength,
+      int numberOfDoubleBonds) {
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 1;
+    int numberOfOAtoms = 1;
+    int numberOfNAtoms = 1;
+    return FormulaUtils.createMajorIsotopeMolFormula(
+        "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms + "N" + numberOfNAtoms);
+  }
+
+  private IMolecularFormula calculateMolecularFormulaSphingolipidBackboneChain(int chainLength,
+      int numberOfDoubleBonds, LipidChainType chainType) {
+    int numberOfOAtoms = chainType.getFixNumberOfOxygens();
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 1;
+    return FormulaUtils.createMajorIsotopeMolFormula(
+        "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
+  }
+
   private String buildLipidChainAnnotation(LipidChainType chainType, int chainLength,
       int numberOfDBE) {
     return switch (chainType) {
       case ACYL_CHAIN -> chainLength + ":" + numberOfDBE;
+      case ACYL_MONO_HYDROXY_CHAIN -> chainLength + ":" + numberOfDBE + ";O";
       case ALKYL_CHAIN -> "O-" + chainLength + ":" + numberOfDBE;
+      case AMID_CHAIN -> chainLength + ":" + numberOfDBE;
+      case AMID_MONO_HYDROXY_CHAIN -> chainLength + ":" + numberOfDBE + ";O";
+      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";O";
+      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";2O";
+      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";3O";
     };
   }
 

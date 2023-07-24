@@ -25,22 +25,85 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
-import java.util.ArrayList;
-import java.util.List;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class LipidFactory {
 
   private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
 
   public SpeciesLevelAnnotation buildSpeciesLevelLipid(ILipidClass lipidClass, int numberOfCarbons,
-      int numberOfDBEs) {
+      int numberOfDBEs, int numberOfAdditionalOxygens) {
+    int numberOfOxygens =
+        Arrays.stream(lipidClass.getChainTypes()).mapToInt(LipidChainType::getFixNumberOfOxygens)
+            .sum() + numberOfAdditionalOxygens;
+    System.out.println("Number of Oxygens:" + numberOfOxygens);
+    String annotation = buildAnnotation(lipidClass, numberOfCarbons, numberOfDBEs, numberOfOxygens);
+    if (annotation == null) {
+      return null;
+    }
+    IMolecularFormula molecularFormula = synthesisLipidMolecularFormula(
+        lipidClass.getBackBoneFormula(), numberOfCarbons, numberOfDBEs, numberOfAdditionalOxygens,
+        lipidClass.getChainTypes());
+    if (molecularFormula != null) {
+      return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
+          numberOfDBEs, numberOfOxygens);
+    } else {
+      return null;
+    }
+  }
+
+  @Nullable
+  private static String buildAnnotation(ILipidClass lipidClass, int numberOfCarbons,
+      int numberOfDBEs, int numberOfOxygens) {
+    if (lipidClass.getCoreClass() != null) {
+      switch (lipidClass.getCoreClass()) {
+
+        case FATTYACYLS -> {
+          return buildGlyceroAndGlycerophospholipidSpeciesAnnotation(lipidClass, numberOfCarbons,
+              numberOfDBEs, numberOfOxygens);
+        }
+        case GLYCEROLIPIDS -> {
+          return buildGlyceroAndGlycerophospholipidSpeciesAnnotation(lipidClass, numberOfCarbons,
+              numberOfDBEs, numberOfOxygens);
+        }
+        case GLYCEROPHOSPHOLIPIDS -> {
+          return buildGlyceroAndGlycerophospholipidSpeciesAnnotation(lipidClass, numberOfCarbons,
+              numberOfDBEs, numberOfOxygens);
+        }
+        case SPHINGOLIPIDS -> {
+          return buildSphingolipidSpeciesAnnotation(lipidClass, numberOfCarbons, numberOfDBEs,
+              numberOfOxygens);
+        }
+        case STEROLLIPIDS -> {
+          return "TODO Lipid Annotation formate";
+        }
+        case PRENOLLIPIDS -> {
+          return "TODO Lipid Annotation formate";
+        }
+        case SACCHAROLIPIDS -> {
+          return "TODO Lipid Annotation formate";
+        }
+        case POLYKETIDES -> {
+          return "TODO Lipid Annotation formate";
+        }
+      }
+    }
+    return "No Annotation";
+  }
+
+  @Nullable
+  private static String buildGlyceroAndGlycerophospholipidSpeciesAnnotation(ILipidClass lipidClass,
+      int numberOfCarbons, int numberOfDBEs, int numberOfOxygens) {
     String annotation;
     boolean hasAlkylChain = false;
     boolean hasNoChain = false;
@@ -65,18 +128,30 @@ public class LipidFactory {
     } else {
       annotation = lipidClass.getAbbr() + " " + numberOfCarbons + ':' + numberOfDBEs;
     }
-    IMolecularFormula molecularFormula = synthesisLipidMolecularFormula(
-        lipidClass.getBackBoneFormula(), numberOfCarbons, numberOfDBEs, lipidClass.getChainTypes());
-    if (molecularFormula != null) {
-      return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
-          numberOfDBEs);
-    } else {
+
+    if (numberOfOxygens > 0) {
+      annotation = annotation + ";" + numberOfOxygens + "O";
+    }
+    return annotation;
+  }
+
+  @Nullable
+  private static String buildSphingolipidSpeciesAnnotation(ILipidClass lipidClass,
+      int numberOfCarbons, int numberOfDBEs, int numberOfOxygens) {
+    String annotation;
+
+    if (numberOfCarbons < lipidClass.getChainTypes().length) {
       return null;
     }
+
+    annotation =
+        lipidClass.getAbbr() + " " + numberOfCarbons + ':' + numberOfDBEs + ";" + numberOfOxygens
+            + "O";
+    return annotation;
   }
 
   public MolecularSpeciesLevelAnnotation buildMolecularSpeciesLevelLipid(ILipidClass lipidClass,
-      int[] numberOfCarbons, int[] numberOfDBEs) {
+      int[] numberOfCarbons, int[] numberOfDBEs, int[] numberOfAdditionalOxygens) {
     List<ILipidChain> lipidChains = new ArrayList<>();
     LipidChainType[] lipidChainTypes = lipidClass.getChainTypes();
     for (int i = 0; i < lipidChainTypes.length; i++) {
@@ -85,11 +160,12 @@ public class LipidFactory {
     }
     int totalNumberOfCarbons = lipidChains.stream().mapToInt(ILipidChain::getNumberOfCarbons).sum();
     int totalNumberOfDBEs = lipidChains.stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
+    int totalNumberOfAdditionalOxygens = Arrays.stream(numberOfAdditionalOxygens).sum();
     String annotation =
         lipidClass.getAbbr() + " " + LIPID_CHAIN_FACTORY.connectLipidChainAnnotations(lipidChains);
-    IMolecularFormula molecularFormula =
-        synthesisLipidMolecularFormula(lipidClass.getBackBoneFormula(), totalNumberOfCarbons,
-            totalNumberOfDBEs, lipidClass.getChainTypes());
+    IMolecularFormula molecularFormula = synthesisLipidMolecularFormula(
+        lipidClass.getBackBoneFormula(), totalNumberOfCarbons, totalNumberOfDBEs,
+        totalNumberOfAdditionalOxygens, lipidClass.getChainTypes());
     if (molecularFormula != null) {
       return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
           lipidChains);
@@ -104,9 +180,11 @@ public class LipidFactory {
     int totalNumberOfDBEs = lipidChains.stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
     String annotation =
         lipidClass.getAbbr() + " " + LIPID_CHAIN_FACTORY.connectLipidChainAnnotations(lipidChains);
-    IMolecularFormula molecularFormula =
-        synthesisLipidMolecularFormula(lipidClass.getBackBoneFormula(), totalNumberOfCarbons,
-            totalNumberOfDBEs, lipidClass.getChainTypes());
+
+    //Additional oxygens must be handled in chains for MolecularSpeciesLevel
+    IMolecularFormula molecularFormula = synthesisLipidMolecularFormula(
+        lipidClass.getBackBoneFormula(), totalNumberOfCarbons, totalNumberOfDBEs, 0,
+        lipidClass.getChainTypes());
     if (molecularFormula != null) {
       return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
           lipidChains);
@@ -118,10 +196,11 @@ public class LipidFactory {
 
   // lipid synthesis
   private IMolecularFormula synthesisLipidMolecularFormula(String lipidBackbone, int chainLength,
-      int chainDoubleBonds, LipidChainType[] chainTypes) {
+      int chainDoubleBonds, int numberOfAdditionalOxygens, LipidChainType[] chainTypes) {
 
-    IMolecularFormula lipidBackboneFormula =
-        FormulaUtils.createMajorIsotopeMolFormula(lipidBackbone);
+    IMolecularFormula lipidFormula = null;
+    IMolecularFormula lipidBackboneFormula = FormulaUtils.createMajorIsotopeMolFormula(
+        lipidBackbone);
 
     int numberOfCarbonsPerChain = chainLength / chainTypes.length;
     int restCarbons = chainLength % chainTypes.length;
@@ -131,7 +210,7 @@ public class LipidFactory {
     // build chains
     for (int i = 0; i < chainTypes.length; i++) {
 
-      // add rests to last chainBUILDER
+      // add rests to last chain
       if (i == chainTypes.length - 1) {
         numberOfCarbonsPerChain = numberOfCarbonsPerChain + restCarbons;
         numberOfDoubleBondsPerChain = numberOfDoubleBondsPerChain + restDoubleBonds;
@@ -141,10 +220,18 @@ public class LipidFactory {
       if (chainFormula == null) {
         return null;
       }
-      lipidBackboneFormula =
-          doChainTypeSpecificSynthesis(chainTypes[i], lipidBackboneFormula, chainFormula);
+      lipidBackboneFormula = doChainTypeSpecificSynthesis(chainTypes[i], lipidBackboneFormula,
+          chainFormula);
+
     }
-    return lipidBackboneFormula;
+    // add additional oxygens
+    if (numberOfAdditionalOxygens != 0) {
+      lipidFormula = FormulaUtils.addFormula(lipidBackboneFormula,
+          FormulaUtils.createMajorIsotopeMolFormula(numberOfAdditionalOxygens + "O"));
+    } else {
+      lipidFormula = lipidBackboneFormula;
+    }
+    return lipidFormula;
   }
 
   // Chemical reactions
@@ -152,7 +239,16 @@ public class LipidFactory {
       IMolecularFormula lipidBackbone, IMolecularFormula chainFormula) {
     return switch (type) {
       case ACYL_CHAIN -> doEsterBonding(lipidBackbone, chainFormula);
+      case ACYL_MONO_HYDROXY_CHAIN -> doEsterBonding(lipidBackbone, chainFormula);
       case ALKYL_CHAIN -> doEtherBonding(lipidBackbone, chainFormula);
+      case AMID_CHAIN -> doAmidBonding(lipidBackbone, chainFormula);
+      case AMID_MONO_HYDROXY_CHAIN -> doAmidBonding(lipidBackbone, chainFormula);
+      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN ->
+          doSphingolipidBonding(lipidBackbone, chainFormula);
+      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN ->
+          doSphingolipidBonding(lipidBackbone, chainFormula);
+      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN ->
+          doSphingolipidBonding(lipidBackbone, chainFormula);
     };
   }
 
@@ -161,18 +257,30 @@ public class LipidFactory {
       IMolecularFormula chainFormula) {
     IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H2O");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
-    product = FormulaUtils.subtractFormula(product, secondaryProduct);
-    return product;
+    return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 
-  // create ester bonding
+  // create ether bonding
   private IMolecularFormula doEtherBonding(IMolecularFormula backboneFormula,
       IMolecularFormula chainFormula) {
     IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H2");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
-    product = FormulaUtils.subtractFormula(product, secondaryProduct);
-    return product;
+    return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 
+  private IMolecularFormula doAmidBonding(IMolecularFormula backboneFormula,
+      IMolecularFormula chainFormula) {
+    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H2");
+    IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
+    return FormulaUtils.subtractFormula(product, secondaryProduct);
+  }
+
+  private IMolecularFormula doSphingolipidBonding(IMolecularFormula backboneFormula,
+      IMolecularFormula chainFormula) {
+    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H");
+    IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
+    FormulaUtils.subtractFormula(product, FormulaUtils.createMajorIsotopeMolFormula("C3H6"));
+    return FormulaUtils.subtractFormula(product, secondaryProduct);
+  }
 
 }
