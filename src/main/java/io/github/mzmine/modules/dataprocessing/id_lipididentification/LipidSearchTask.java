@@ -37,7 +37,11 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.*;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -159,7 +163,7 @@ public class LipidSearchTask extends AbstractTask {
 
     List<FeatureListRow> rows = featureList.getRows();
     if (featureList instanceof ModularFeatureList) {
-      ((ModularFeatureList) featureList).addRowType(new LipidMatchListType());
+      featureList.addRowType(new LipidMatchListType());
     }
     totalSteps = rows.size();
 
@@ -202,17 +206,20 @@ public class LipidSearchTask extends AbstractTask {
       ILipidClass[] lipidClasses) {
     // Try all combinations of fatty acid lengths and double bonds
     for (ILipidClass lipidClass : lipidClasses) {
+
+      // TODO starting point to extend for better oxidized lipid support
+      int numberOfAdditionalOxygens = 0;
       for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds =
-            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
+        for (int chainDoubleBonds = minDoubleBonds; chainDoubleBonds <= maxDoubleBonds;
+            chainDoubleBonds++) {
 
           if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
             continue;
           }
 
           // Prepare a lipid instance
-          ILipidAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(lipidClass,
-              chainLength, chainDoubleBonds);
+          ILipidAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(lipidClass, chainLength,
+              chainDoubleBonds, numberOfAdditionalOxygens);
           if (lipid != null) {
             lipidDatabase.add(lipid);
           }
