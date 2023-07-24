@@ -25,15 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.util.FormulaUtils;
+import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.util.FormulaUtils;
 
 public class SpeciesLevelAnnotation implements ILipidAnnotation {
 
@@ -44,22 +44,25 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
   private static final String XML_LIPID_FORMULA = "molecularformula";
   private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
+  private static final String XML_NUMBER_OF_OXYGENS = "numberofoxygens";
 
   private ILipidClass lipidClass;
   private String annotation;
-  private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL =
-      LipidAnnotationLevel.SPECIES_LEVEL;
-  private IMolecularFormula molecularFormula;
-  private int numberOfCarbons;
-  private int numberOfDBEs;
+  private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL = LipidAnnotationLevel.SPECIES_LEVEL;
+  private final IMolecularFormula molecularFormula;
+  private final int numberOfCarbons;
+  private final int numberOfDBEs;
+  private final int numberOfOxygens;
 
   public SpeciesLevelAnnotation(ILipidClass lipidClass, String annotation,
-      IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs) {
+      IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
+      int numberOfOxygens) {
     this.lipidClass = lipidClass;
     this.annotation = annotation;
     this.molecularFormula = molecularFormula;
     this.numberOfCarbons = numberOfCarbons;
     this.numberOfDBEs = numberOfDBEs;
+    this.numberOfOxygens = numberOfOxygens;
   }
 
   @Override
@@ -96,48 +99,36 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     return numberOfCarbons;
   }
 
-  public void setNumberOfCarbons(int numberOfCarbons) {
-    this.numberOfCarbons = numberOfCarbons;
-  }
-
   public int getNumberOfDBEs() {
     return numberOfDBEs;
   }
 
-  public void setNumberOfDBEs(int numberOfDBEs) {
-    this.numberOfDBEs = numberOfDBEs;
+  public int getNumberOfOxygens() {
+    return numberOfOxygens;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SpeciesLevelAnnotation that = (SpeciesLevelAnnotation) o;
+    return numberOfCarbons == that.numberOfCarbons && numberOfDBEs == that.numberOfDBEs
+        && numberOfOxygens == that.numberOfOxygens && Objects.equals(lipidClass, that.lipidClass)
+        && Objects.equals(annotation, that.annotation) && Objects.equals(molecularFormula,
+        that.molecularFormula);
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((annotation == null) ? 0 : annotation.hashCode());
-    result = prime * result + numberOfCarbons;
-    result = prime * result + numberOfDBEs;
-    return result;
+    return Objects.hash(lipidClass, annotation, molecularFormula, numberOfCarbons, numberOfDBEs,
+        numberOfOxygens);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    SpeciesLevelAnnotation other = (SpeciesLevelAnnotation) obj;
-    if (annotation == null) {
-      if (other.annotation != null)
-        return false;
-    } else if (!annotation.equals(other.annotation))
-      return false;
-    if (numberOfCarbons != other.numberOfCarbons)
-      return false;
-    if (numberOfDBEs != other.numberOfDBEs)
-      return false;
-    return true;
-  }
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
@@ -173,6 +164,7 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     IMolecularFormula molecularFormula = null;
     Integer numberOfCarbons = null;
     Integer numberOfDBEs = null;
+    Integer numberOfOxygens = null;
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
@@ -206,6 +198,9 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
         case XML_NUMBER_OF_DBES:
           numberOfDBEs = Integer.parseInt(reader.getElementText());
           break;
+        case XML_NUMBER_OF_OXYGENS:
+          numberOfOxygens = Integer.parseInt(reader.getElementText());
+          break;
         default:
           break;
       }
@@ -214,8 +209,9 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     if (lipidAnnotationLevel != null
         && lipidAnnotationLevel.equals(LipidAnnotationLevel.SPECIES_LEVEL)) {
       return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
-          numberOfDBEs);
+          numberOfDBEs, numberOfOxygens);
     }
     return null;
   }
+
 }
