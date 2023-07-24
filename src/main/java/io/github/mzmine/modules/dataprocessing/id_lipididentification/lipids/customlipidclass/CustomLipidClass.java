@@ -25,17 +25,18 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidCategories;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidMainClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
 
 public class CustomLipidClass implements ILipidClass {
 
@@ -80,6 +81,18 @@ public class CustomLipidClass implements ILipidClass {
 
   public LipidFragmentationRule[] getFragmentationRules() {
     return fragmentationRules;
+  }
+
+  //TODO add to Task parameter set
+  @Override
+  public LipidCategories getCoreClass() {
+    return null;
+  }
+
+  //TODO add to Task parameter set
+  @Override
+  public LipidMainClasses getMainClass() {
+    return null;
   }
 
   @Override
@@ -146,6 +159,7 @@ public class CustomLipidClass implements ILipidClass {
 
       switch (reader.getLocalName()) {
         case XML_LIPID_CLASS_NAME:
+          name = reader.getElementText();
           break;
         case XML_LIPID_CLASS_ABBR:
           abbr = reader.getElementText();
