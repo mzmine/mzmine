@@ -56,16 +56,16 @@ public class AlkylLipidChain implements ILipidChain {
     this.molecularFormula = molecularFormula;
     this.numberOfCarbons = numberOfCarbons;
     this.numberOfDBEs = numberOfDBEs;
-    numberOfOxygens = 0;
+    numberOfOxygens = LIPID_CHAIN_TYPE.getFixNumberOfOxygens();
   }
 
   public AlkylLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
-      int numberOfCarbons, int numberOfDBEs, int numberOfOxygens) {
+      int numberOfCarbons, int numberOfDBEs, int numberOfAdditionalOxygens) {
     this.chainAnnotation = chainAnnotation;
     this.molecularFormula = molecularFormula;
     this.numberOfCarbons = numberOfCarbons;
     this.numberOfDBEs = numberOfDBEs;
-    this.numberOfOxygens = numberOfOxygens;
+    this.numberOfOxygens = LIPID_CHAIN_TYPE.getFixNumberOfOxygens() + numberOfAdditionalOxygens;
   }
 
   public int getNumberOfCarbons() {
@@ -119,7 +119,7 @@ public class AlkylLipidChain implements ILipidChain {
   public static ILipidChain loadFromXML(XMLStreamReader reader) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException(
-          "Cannot load acyl chain from the current element. Wrong name.");
+          "Cannot load alkyl chain from the current element. Wrong name.");
     }
 
     String chainAnnotation = null;
@@ -160,7 +160,8 @@ public class AlkylLipidChain implements ILipidChain {
       }
     }
     if (lipidChainType != null && lipidChainType.equals(LipidChainType.ALKYL_CHAIN)) {
-      return new AlkylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs);
+      return new AlkylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs,
+          numberOfOxygens);
     }
     return null;
   }

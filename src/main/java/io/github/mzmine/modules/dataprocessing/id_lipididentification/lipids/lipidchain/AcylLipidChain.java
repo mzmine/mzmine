@@ -25,14 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.util.FormulaUtils;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.util.FormulaUtils;
 
 public class AcylLipidChain implements ILipidChain {
 
@@ -57,16 +56,16 @@ public class AcylLipidChain implements ILipidChain {
     this.molecularFormula = molecularFormula;
     this.numberOfCarbons = numberOfCarbons;
     this.numberOfDBEs = numberOfDBEs;
-    numberOfOxygens = 0;
+    numberOfOxygens = LIPID_CHAIN_TYPE.getFixNumberOfOxygens();
   }
 
   public AcylLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
-      int numberOfCarbons, int numberOfDBEs, int numberOfOxygens) {
+      int numberOfCarbons, int numberOfDBEs, int numberOfAdditionalOxygens) {
     this.chainAnnotation = chainAnnotation;
     this.molecularFormula = molecularFormula;
     this.numberOfCarbons = numberOfCarbons;
     this.numberOfDBEs = numberOfDBEs;
-    this.numberOfOxygens= numberOfOxygens;
+    this.numberOfOxygens = LIPID_CHAIN_TYPE.getFixNumberOfOxygens() + numberOfAdditionalOxygens;
   }
 
   public String getChainAnnotation() {
