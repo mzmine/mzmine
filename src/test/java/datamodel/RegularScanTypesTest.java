@@ -250,10 +250,11 @@ public class RegularScanTypesTest {
 
     LipidFactory lipidFactory = new LipidFactory();
     SpeciesLevelAnnotation speciesLevelAnnotation = lipidFactory.buildSpeciesLevelLipid(
-        LipidClasses.DIACYLGLYCEROPHOSPHATES, 36, 2);
+        LipidClasses.DIACYLGLYCEROPHOSPHATES, 36, 2, 0);
 
     MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = lipidFactory.buildMolecularSpeciesLevelLipid(
-        LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, new int[]{12, 14}, new int[]{0, 2});
+        LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, new int[]{12, 14}, new int[]{0, 2},
+        new int[]{0, 0});
 
     List<MatchedLipid> value = new ArrayList<>();
 
