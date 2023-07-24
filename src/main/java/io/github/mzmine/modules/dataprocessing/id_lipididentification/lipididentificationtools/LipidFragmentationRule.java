@@ -25,16 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 public class LipidFragmentationRule {
 
@@ -45,11 +44,11 @@ public class LipidFragmentationRule {
   private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
   private static final String XML_LIPID_FORMULA = "molecularformula";
 
-  private PolarityType polarityType;
-  private IonizationType ionizationType;
+  private final PolarityType polarityType;
+  private final IonizationType ionizationType;
   private LipidFragmentationRuleType lipidFragmentationRuleType;
   private LipidAnnotationLevel lipidFragmentInformationLevelType;
-  private String molecularFormula;
+  private final String molecularFormula;
 
   public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType) {
     this.polarityType = polarityType;
