@@ -36,8 +36,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.Lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -66,21 +66,23 @@ public class MSMSLipidTools {
   public LipidFragment checkForClassSpecificFragment(Range<Double> mzTolRangeMSMS,
       ILipidAnnotation lipidAnnotation, IonizationType ionizationType,
       LipidFragmentationRule[] rules, DataPoint dataPoint, Scan msMsScan) {
+    LipidFragment lipidFragment = null;
     for (int i = 0; i < rules.length; i++) {
       if (!ionizationType.equals(rules[i].getIonizationType())
           || rules[i].getLipidFragmentationRuleType() == null) {
         continue;
       }
-      LipidFragment detectedFragment =
-          checkForSpecificRuleTpye(rules[i], mzTolRangeMSMS, lipidAnnotation, dataPoint, msMsScan);
+      LipidFragment detectedFragment = checkForSpecificRuleType(rules[i], mzTolRangeMSMS,
+          lipidAnnotation, dataPoint, msMsScan);
       if (detectedFragment != null) {
-        return detectedFragment;
+        lipidFragment = detectedFragment;
+        break;
       }
     }
-    return null;
+    return lipidFragment;
   }
 
-  private LipidFragment checkForSpecificRuleTpye(LipidFragmentationRule rule,
+  private LipidFragment checkForSpecificRuleType(LipidFragmentationRule rule,
       Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
       Scan msMsScan) {
     LipidFragmentationRuleType ruleType = rule.getLipidFragmentationRuleType();
@@ -130,6 +132,40 @@ public class MSMSLipidTools {
       case ALKYLCHAIN_PLUS_FORMULA_FRAGMENT_NL:
         return checkForAlkylChainPlusFormulaFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation,
             dataPoint, msMsScan);
+
+      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_FRAGMENT:
+        //TODO
+        return null;
+      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_FRAGMENT:
+        //TODO
+        return null;
+      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_FRAGMENT:
+        //TODO
+        return null;
+      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_AND_SUBSTRUCTURE_NEUTRAL_LOSS_FRAGMENT:
+        //TODO
+        return null;
+      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_AND_SUBSTRUCTURE_NEUTRAL_LOSS_FRAGMENT:
+        //TODO
+        return null;
+      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_AND_SUBSTRUCTURE_NEUTRAL_LOSS_FRAGMENT:
+        //TODO
+        return null;
+      case AMID_CHAIN_FRAGMENT:
+        //TODO
+        return null;
+      case AMID_CHAIN_PLUS_SUBSTRUCTURE_FRAGMENT:
+        //TODO
+        return null;
+      case AMID_CHAIN_AND_SUBSTRUCTURE_NEUTRAL_LOSS_FRAGMENT:
+        //TODO
+        return null;
+      case AMID_MONO_HYDROXY_CHAIN_PLUS_SUBSTRUCTURE_FRAGMENT:
+        //TODO
+        return null;
+      case AMID_MONO_HYDROXY_CHAIN_PLUS_SUBSTRUCTURE_MINUS_SUBSTRUCTURE_FRAGMENT:
+        //TODO
+        return null;
       default:
         return null;
     }
