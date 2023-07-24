@@ -25,21 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -55,6 +40,14 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -65,6 +58,13 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidDatabaseTableController {
 
@@ -222,16 +222,18 @@ public class LipidDatabaseTableController {
 
   private void addLipidsToTable(ILipidClass[] selectedLipids, int id) {
     for (int i = 0; i < selectedLipids.length; i++) {
+      // TODO starting point to extend for better oxidized lipid support
+      int numberOfAdditionalOxygens = 0;
       for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds =
-            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
+        for (int chainDoubleBonds = minDoubleBonds; chainDoubleBonds <= maxDoubleBonds;
+            chainDoubleBonds++) {
 
           if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
             continue;
           }
           // Prepare a lipid instance
           SpeciesLevelAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(selectedLipids[i],
-              chainLength, chainDoubleBonds);
+              chainLength, chainDoubleBonds, numberOfAdditionalOxygens);
           if (lipid == null) {
             continue;
           }
@@ -304,7 +306,7 @@ public class LipidDatabaseTableController {
             }
           }
           if (!sb.isEmpty()) {
-            tableData.get(j).setInfo(tableData.get(j).getInfo() + "\n" + sb.toString());
+            tableData.get(j).setInfo(tableData.get(j).getInfo() + "\n" + sb);
           }
         }
       }
