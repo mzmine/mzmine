@@ -25,22 +25,21 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AcylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AlkylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
@@ -223,6 +222,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
       if (!reader.isStartElement()) {
         continue;
       }
+
+      //TODO use switch to handle all chain cases
       if (reader.getLocalName().equals(LipidChainType.ACYL_CHAIN.name())) {
         lipidChains.add(AcylLipidChain.loadFromXML(reader));
       } else if (reader.getLocalName().equals(LipidChainType.ALKYL_CHAIN.name())) {
