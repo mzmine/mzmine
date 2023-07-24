@@ -25,9 +25,6 @@
 
 package util.lipidannotationtest;
 
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -41,7 +38,10 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.HashSet;
+import java.util.Set;
 import junit.framework.Assert;
+import org.junit.jupiter.api.Test;
 
 class LipidAnnotationTest {
 
@@ -381,19 +381,20 @@ class LipidAnnotationTest {
     int numberOfDBEs =
         lipidAnnotation.getLipidChains().stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
     return LIPID_FACTORY.buildSpeciesLevelLipid(lipidAnnotation.getLipidClass(), numberOfCarbons,
-        numberOfDBEs);
+        numberOfDBEs, 0);
   }
 
   private void printMsMsSpectrumTestReport(Set<MatchedLipid> matchedLipids,
       LipidAnnotationMsMsTestResource testResource) {
     for (MatchedLipid matchedLipid : matchedLipids) {
-      Assert.assertTrue(matchedLipid.getLipidAnnotation().getAnnotation()
-          .equals(testResource.getTestLipid().getAnnotation()));
+      Assert.assertEquals(matchedLipid.getLipidAnnotation().getAnnotation(),
+          testResource.getTestLipid().getAnnotation());
       Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
       System.out.println("\n---Test Result for " + testResource.getTestLipid().getAnnotation() + " "
           + testResource.getIonizationType() + " ---------");
-      System.out.println("Matched " + matchedFragments.size() + " of "
-          + testResource.getMzFragments().length + " possible signals");
+      System.out.println(
+          "Matched " + matchedFragments.size() + " of " + testResource.getMzFragments().length
+              + " possible signals");
       System.out.println("MS/MS score " + matchedLipid.getMsMsScore());
       System.out.println("Pseudo signals:");
       for (LipidFragment fragment : matchedFragments) {
