@@ -8,9 +8,9 @@ import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class AcylMonoHydroxyChain implements ILipidChain {
+public class AmidLipidChain implements ILipidChain {
 
-  private static final String XML_ELEMENT = "acylmonohydroxychain";
+  private static final String XML_ELEMENT = "amidchain";
   private static final String XML_CHAIN_ANNOTATION = "chainannotation";
   private static final String XML_CHAIN_FORMULA = "chainformula";
   private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
@@ -22,10 +22,10 @@ public class AcylMonoHydroxyChain implements ILipidChain {
   private final IMolecularFormula molecularFormula;
   private final int numberOfCarbons;
   private final int numberOfDBEs;
-  private static final LipidChainType LIPID_CHAIN_TYPE = LipidChainType.ACYL_CHAIN;
+  private static final LipidChainType LIPID_CHAIN_TYPE = LipidChainType.AMID_CHAIN;
   private final int numberOfOxygens;
 
-  public AcylMonoHydroxyChain(String chainAnnotation, IMolecularFormula molecularFormula,
+  public AmidLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
       int numberOfCarbons, int numberOfDBEs) {
     this.chainAnnotation = chainAnnotation;
     this.molecularFormula = molecularFormula;
@@ -34,7 +34,7 @@ public class AcylMonoHydroxyChain implements ILipidChain {
     numberOfOxygens = LIPID_CHAIN_TYPE.getFixNumberOfOxygens();
   }
 
-  public AcylMonoHydroxyChain(String chainAnnotation, IMolecularFormula molecularFormula,
+  public AmidLipidChain(String chainAnnotation, IMolecularFormula molecularFormula,
       int numberOfCarbons, int numberOfDBEs, int numberOfAdditionalOxygens) {
     this.chainAnnotation = chainAnnotation;
     this.molecularFormula = molecularFormula;
@@ -98,7 +98,7 @@ public class AcylMonoHydroxyChain implements ILipidChain {
   public static ILipidChain loadFromXML(XMLStreamReader reader) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException(
-          "Cannot load acyl mono hydroxy chain from the current element. Wrong name.");
+          "Cannot load amid chain from the current element. Wrong name.");
     }
 
     String chainAnnotation = null;
@@ -107,8 +107,8 @@ public class AcylMonoHydroxyChain implements ILipidChain {
     Integer numberOfDBEs = null;
     LipidChainType lipidChainType = null;
     Integer numberOfOxygens = null;
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -128,7 +128,8 @@ public class AcylMonoHydroxyChain implements ILipidChain {
           numberOfDBEs = Integer.parseInt(reader.getElementText());
           break;
         case XML_CHAIN_TYPE:
-          lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
+          lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(
+              reader.getElementText());
           break;
         case XML_NUMBER_OF_OXYGENS:
           numberOfOxygens = Integer.parseInt(reader.getElementText());
@@ -137,11 +138,11 @@ public class AcylMonoHydroxyChain implements ILipidChain {
           break;
       }
     }
-    if (lipidChainType != null && lipidChainType.equals(LipidChainType.ACYL_CHAIN)) {
-      return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs, numberOfOxygens);
+    if (lipidChainType != null && lipidChainType.equals(LipidChainType.AMID_CHAIN)) {
+      return new AmidLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs,
+          numberOfOxygens);
     }
     return null;
   }
 
 }
-

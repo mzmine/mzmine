@@ -27,23 +27,29 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.li
 
 public enum LipidChainType {
 
-  ACYL_CHAIN("Acyl chain"), //
-  ACYL_MONO_HYDROXY_CHAIN("Acyl mono hydroxy chain"),
-  ALKYL_CHAIN("Alkyl chain"),//
-  AMID_CHAIN("Amid chain"), //
-  AMID_MONO_HYDROXY_CHAIN("Amid mono hydroxy chain"), //
-  SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN("Shpingolipid mono hydroxy backbone chain"), //
-  SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN("Shpingolipid di hydroxy backbone chain"), //
-  SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN("Shpingolipid tri hydroxy backbone chain");// ;
+  ACYL_CHAIN("Acyl chain", 0), //
+  ACYL_MONO_HYDROXY_CHAIN("Acyl mono hydroxy chain", 1), ALKYL_CHAIN("Alkyl chain", 0),//
+  AMID_CHAIN("Amid chain", 0), //
+  AMID_MONO_HYDROXY_CHAIN("Amid mono hydroxy chain", 1), //
+  SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN("Shpingolipid mono hydroxy backbone chain", 1), //
+  SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN("Shpingolipid di hydroxy backbone chain", 2), //
+  SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN("Shpingolipid tri hydroxy backbone chain", 3);// ;
 
   private final String name;
 
-  LipidChainType(String name) {
+  private final int fixNumberOfOxygens;
+
+  LipidChainType(String name, int fixNumberOfOxygens) {
     this.name = name;
+    this.fixNumberOfOxygens = fixNumberOfOxygens;
   }
 
   public String getName() {
     return name;
+  }
+
+  public int getFixNumberOfOxygens() {
+    return fixNumberOfOxygens;
   }
 
 }
