@@ -50,7 +50,7 @@ public class LipidHierarchyComponent extends BorderPane {
   /**
    * Create the component.
    *
-   * @param theChoices the choices available to the user.
+   * @param choices the choices available to the user.
    */
   public LipidHierarchyComponent(final Object[] choices) {
 
