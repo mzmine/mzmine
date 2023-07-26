@@ -61,16 +61,15 @@ public class LipidClassesProvider {
     return lipidHierarchy;
   }
 
-  public static List<Object> getListOfAllGlyceroAndGlycerophospholipids() {
+  public static List<Object> getListOfLipidClassesByLipidCategories(
+      List<LipidCategories> lipidCategories) {
     List<Object> lipidHierarchy = new ArrayList<>();
     LipidMainClasses lastMain = null;
     LipidCategories lastLipidCategory = null;
     for (LipidClasses classes : LipidClasses.values()) {
       LipidCategories category = classes.getCoreClass();
       LipidMainClasses main = classes.getMainClass();
-      boolean isCorrectCategory =
-          category.equals(LipidCategories.GLYCEROPHOSPHOLIPIDS) || category.equals(
-              LipidCategories.GLYCEROLIPIDS);
+      boolean isCorrectCategory = lipidCategories.contains(category);
       if (!category.equals(lastLipidCategory) && isCorrectCategory) {
         lastLipidCategory = category;
         // add core to list

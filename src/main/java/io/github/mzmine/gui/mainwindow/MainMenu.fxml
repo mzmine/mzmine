@@ -492,6 +492,8 @@
       <Menu text="Lipids">
         <MenuItem text="Glycero- and Glycerophospholipid annotation" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationModule"/>
+        <MenuItem text="Sphingolipid annotation" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationModule"/>
       </Menu>
 
       <Menu text="EC-MS workflow">

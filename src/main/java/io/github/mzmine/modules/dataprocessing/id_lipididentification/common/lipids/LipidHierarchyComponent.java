@@ -73,8 +73,8 @@ public class LipidHierarchyComponent extends BorderPane {
           coreClassItem.setExpanded(true);
           coreClass = ((LipidClasses) lipidClass).getCoreClass();
           rootItem.getChildren().add(coreClassItem);
-        } else if (((LipidClasses) lipidClass).getMainClass() != mainClass
-            && coreClassItem != null) {
+        }
+        if (((LipidClasses) lipidClass).getMainClass() != mainClass && coreClassItem != null) {
           mainClassItem = new CheckBoxTreeItem<>(((LipidClasses) lipidClass).getMainClass());
           mainClassItem.setExpanded(true);
           mainClass = ((LipidClasses) lipidClass).getMainClass();

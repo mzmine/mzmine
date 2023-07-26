@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids;
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassParameter;
@@ -47,36 +47,36 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimpleParameterSet {
+public class SphingolipidAnnotationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
       "Lipid classes", "Selection of lipid backbones",
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
-          List.of(LipidCategories.GLYCEROLIPIDS, LipidCategories.GLYCEROPHOSPHOLIPIDS)).toArray());
+          List.of(LipidCategories.SPHINGOLIPIDS)).toArray());
 
   public static final IntRangeParameter chainLength = new IntRangeParameter(
       "Number of carbon atoms in chains", "Number of carbon atoms in chains");
 
-  public static final IntRangeParameter doubleBonds =
-      new IntRangeParameter("Number of double bonds in chains", "Number of double bonds in chains");
+  public static final IntRangeParameter doubleBonds = new IntRangeParameter(
+      "Number of double bonds in chains", "Number of double bonds in chains");
 
-  public static final MZToleranceParameter mzTolerance =
-      new MZToleranceParameter("m/z tolerance MS1 level:",
-          "Enter m/z tolerance for exact mass database matching on MS1 level");
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      "m/z tolerance MS1 level:",
+      "Enter m/z tolerance for exact mass database matching on MS1 level");
 
-  public static final OptionalModuleParameter<GlyceroAndGlycerophospholipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
+  public static final OptionalModuleParameter<SphingolipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
       "Search for lipid class specific fragments in MS/MS spectra",
       "Search for lipid class specific fragments in MS/MS spectra",
-      new GlyceroAndGlycerophospholipidAnnotationMSMSParameters());
+      new SphingolipidAnnotationMSMSParameters());
 
-  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses =
-      new OptionalParameter<>(new CustomLipidClassChoiceParameter("Search for custom lipid class",
+  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses = new OptionalParameter<>(
+      new CustomLipidClassChoiceParameter("Search for custom lipid class",
           "If checked the algorithm searches for custom, by the user defined lipid classes",
           new CustomLipidClass[0]));
 
-  public GlyceroAndGlycerophospholipidAnnotationParameters() {
+  public SphingolipidAnnotationParameters() {
     super(new Parameter[]{featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
             searchForMSMSFragments, customLipidClasses},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
@@ -84,7 +84,7 @@ public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimplePar
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog dialog = new GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog(
+    SphingolipidAnnotationParameterSetupDialog dialog = new SphingolipidAnnotationParameterSetupDialog(
         valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
