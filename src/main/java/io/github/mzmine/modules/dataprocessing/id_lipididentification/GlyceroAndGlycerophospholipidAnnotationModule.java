@@ -25,9 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -35,17 +32,19 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Module to search and annotate peaks as potential lipids
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidSearchModule implements MZmineProcessingModule {
+public class GlyceroAndGlycerophospholipidAnnotationModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Lipid annotation";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches and annotates for features which m/z value matches a predicted mass of selected lipids.";
+  private static final String MODULE_DESCRIPTION = "This method searches and annotates for features which m/z value matches a predicted mass of selected lipids.";
 
   @Override
   public @NotNull String getName() {
@@ -62,11 +61,13 @@ public class LipidSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList[] featureLists = parameters.getParameter(LipidSearchParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
+    FeatureList[] featureLists = parameters.getParameter(
+            GlyceroAndGlycerophospholipidAnnotationParameters.featureLists).getValue()
+        .getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new LipidSearchTask(parameters, featureList, moduleCallDate);
+      Task newTask = new GlyceroAndGlycerophospholipidAnnotationTask(parameters, featureList,
+          moduleCallDate);
       tasks.add(newTask);
     }
 
@@ -80,7 +81,7 @@ public class LipidSearchModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return LipidSearchParameters.class;
+    return GlyceroAndGlycerophospholipidAnnotationParameters.class;
   }
 
 }

@@ -45,15 +45,15 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidSearchParameters extends SimpleParameterSet {
+public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
       "Lipid classes", "Selection of lipid backbones", AllLipidClasses.getList().toArray());
 
-  public static final IntRangeParameter chainLength =
-      new IntRangeParameter("Number of carbon atoms in chains", "Number of carbon atoms in chains");
+  public static final IntRangeParameter chainLength = new IntRangeParameter(
+      "Number of carbon atoms in chains", "Number of carbon atoms in chains");
 
   public static final IntRangeParameter doubleBonds =
       new IntRangeParameter("Number of double bonds in chains", "Number of double bonds in chains");
@@ -62,26 +62,26 @@ public class LipidSearchParameters extends SimpleParameterSet {
       new MZToleranceParameter("m/z tolerance MS1 level:",
           "Enter m/z tolerance for exact mass database matching on MS1 level");
 
-  public static final OptionalModuleParameter<LipidSearchMSMSParameters> searchForMSMSFragments =
-      new OptionalModuleParameter<>("Search for lipid class specific fragments in MS/MS spectra",
-          "Search for lipid class specific fragments in MS/MS spectra",
-          new LipidSearchMSMSParameters());
+  public static final OptionalModuleParameter<GlyceroAndGlycerophospholipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
+      "Search for lipid class specific fragments in MS/MS spectra",
+      "Search for lipid class specific fragments in MS/MS spectra",
+      new GlyceroAndGlycerophospholipidAnnotationMSMSParameters());
 
   public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses =
       new OptionalParameter<>(new CustomLipidClassChoiceParameter("Search for custom lipid class",
           "If checked the algorithm searches for custom, by the user defined lipid classes",
           new CustomLipidClass[0]));
 
-  public LipidSearchParameters() {
-    super(new Parameter[] {featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
-        searchForMSMSFragments, customLipidClasses},
+  public GlyceroAndGlycerophospholipidAnnotationParameters() {
+    super(new Parameter[]{featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
+            searchForMSMSFragments, customLipidClasses},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    LipidSearchParameterSetupDialog dialog =
-        new LipidSearchParameterSetupDialog(valueCheckRequired, this);
+    GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog dialog = new GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog(
+        valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

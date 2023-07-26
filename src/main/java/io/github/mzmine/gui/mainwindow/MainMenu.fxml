@@ -484,11 +484,14 @@
         <MenuItem text="Chemical formula prediction"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule"/>
-        <MenuItem text="Lipid annotation" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchModule"/>
         <MenuItem text="MS2 similarity search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule"/>
+      </Menu>
+
+      <Menu text="Lipids">
+        <MenuItem text="Glycero- and Glycerophospholipid annotation" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.GlyceroAndGlycerophospholipidAnnotationModule"/>
       </Menu>
 
       <Menu text="EC-MS workflow">

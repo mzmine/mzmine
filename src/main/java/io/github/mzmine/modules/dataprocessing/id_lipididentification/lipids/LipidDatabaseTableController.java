@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.GlyceroAndGlycerophospholipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
@@ -134,22 +134,24 @@ public class LipidDatabaseTableController {
 
   public void initialize(ParameterSet parameters, LipidClasses[] selectedLipids) {
 
-    this.minChainLength =
-        parameters.getParameter(LipidSearchParameters.chainLength).getValue().lowerEndpoint();
-    this.maxChainLength =
-        parameters.getParameter(LipidSearchParameters.chainLength).getValue().upperEndpoint();
-    this.minDoubleBonds =
-        parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().lowerEndpoint();
-    this.maxDoubleBonds =
-        parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().upperEndpoint();
-    this.searchForCustomLipidClasses =
-        parameters.getParameter(LipidSearchParameters.customLipidClasses).getValue();
+    this.minChainLength = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().lowerEndpoint();
+    this.maxChainLength = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().upperEndpoint();
+    this.minDoubleBonds = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().lowerEndpoint();
+    this.maxDoubleBonds = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().upperEndpoint();
+    this.searchForCustomLipidClasses = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.customLipidClasses).getValue();
     if (searchForCustomLipidClasses) {
-      this.customLipidClasses = parameters.getParameter(LipidSearchParameters.customLipidClasses)
+      this.customLipidClasses = parameters.getParameter(
+              GlyceroAndGlycerophospholipidAnnotationParameters.customLipidClasses)
           .getEmbeddedParameter().getChoices();
     }
 
-    this.mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
+    this.mzTolerance = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.mzTolerance).getValue();
 
     int id = 1;
     addLipidsToTable(selectedLipids, id);

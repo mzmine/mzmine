@@ -25,18 +25,17 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
-import java.text.DecimalFormat;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.text.DecimalFormat;
 
-public class LipidSearchMSMSParameters extends SimpleParameterSet {
+public class GlyceroAndGlycerophospholipidAnnotationMSMSParameters extends SimpleParameterSet {
 
-  public static final MZToleranceParameter mzToleranceMS2 =
-      new MZToleranceParameter("m/z tolerance MS2 level:",
-          "Enter m/z tolerance for exact mass database matching on MS2 level");
+  public static final MZToleranceParameter mzToleranceMS2 = new MZToleranceParameter(
+      "m/z tolerance MS2 level:",
+      "Enter m/z tolerance for exact mass database matching on MS2 level");
 
   public static final DoubleParameter minimumMsMsScore = new DoubleParameter("Minimum MS/MS score:",
       "Explained intensity [%] of all signals in MS/MS spectrum", new DecimalFormat("#.0"), 60.0,
@@ -46,8 +45,8 @@ public class LipidSearchMSMSParameters extends SimpleParameterSet {
       "Keep unconfirmed annotations",
       "WARNING!: If checked, annotations based on accurate mass without headgroup fragment annotations are kept.");
 
-  public LipidSearchMSMSParameters() {
-    super(new Parameter[] {mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations});
+  public GlyceroAndGlycerophospholipidAnnotationMSMSParameters() {
+    super(mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
   }
 
 }

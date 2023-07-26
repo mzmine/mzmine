@@ -48,16 +48,18 @@ import javafx.stage.Stage;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
+public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
+    ParameterSetupDialog {
 
   private final Button showDatabaseTable;
   private Object[] selectedObjects;
   private CheckBoxTreeItem<Object> items;
 
   private static final Logger logger = Logger.getLogger(
-      LipidSearchParameterSetupDialog.class.getName());
+      GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog.class.getName());
 
-  public LipidSearchParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
+  public GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog(boolean valueCheckRequired,
+      ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     // Add buttons
@@ -69,7 +71,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
         updateParameterSetFromComponents();
 
         // commit the changes to the parameter set
-        selectedObjects = LipidSearchParameters.lipidClasses.getValue();
+        selectedObjects = GlyceroAndGlycerophospholipidAnnotationParameters.lipidClasses.getValue();
 
         // Convert Objects to LipidClasses
         LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)

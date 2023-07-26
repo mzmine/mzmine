@@ -68,7 +68,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidSearchTask extends AbstractTask {
+public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
@@ -90,43 +90,50 @@ public class LipidSearchTask extends AbstractTask {
 
   private final ParameterSet parameters;
 
-  public LipidSearchTask(ParameterSet parameters, FeatureList featureList,
-      @NotNull Instant moduleCallDate) {
+  public GlyceroAndGlycerophospholipidAnnotationTask(ParameterSet parameters,
+      FeatureList featureList, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureList = featureList;
     this.parameters = parameters;
 
-    this.minChainLength =
-        parameters.getParameter(LipidSearchParameters.chainLength).getValue().lowerEndpoint();
-    this.maxChainLength =
-        parameters.getParameter(LipidSearchParameters.chainLength).getValue().upperEndpoint();
-    this.minDoubleBonds =
-        parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().lowerEndpoint();
-    this.maxDoubleBonds =
-        parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().upperEndpoint();
-    this.mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
-    Object[] selectedObjects = parameters.getParameter(LipidSearchParameters.lipidClasses)
-        .getValue();
-    this.searchForMSMSFragments =
-        parameters.getParameter(LipidSearchParameters.searchForMSMSFragments).getValue();
+    this.minChainLength = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().lowerEndpoint();
+    this.maxChainLength = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().upperEndpoint();
+    this.minDoubleBonds = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().lowerEndpoint();
+    this.maxDoubleBonds = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().upperEndpoint();
+    this.mzTolerance = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.mzTolerance).getValue();
+    Object[] selectedObjects = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.lipidClasses).getValue();
+    this.searchForMSMSFragments = parameters.getParameter(
+        GlyceroAndGlycerophospholipidAnnotationParameters.searchForMSMSFragments).getValue();
     if (searchForMSMSFragments.booleanValue()) {
-      this.mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
-          .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.mzToleranceMS2)
+      this.mzToleranceMS2 = parameters.getParameter(
+              GlyceroAndGlycerophospholipidAnnotationParameters.searchForMSMSFragments)
+          .getEmbeddedParameters()
+          .getParameter(GlyceroAndGlycerophospholipidAnnotationMSMSParameters.mzToleranceMS2)
           .getValue();
-      this.keepUnconfirmedAnnotations = parameters
-          .getParameter(LipidSearchParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .getParameter(LipidSearchMSMSParameters.keepUnconfirmedAnnotations).getValue();
-      this.minMsMsScore = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
-          .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.minimumMsMsScore)
+      this.keepUnconfirmedAnnotations = parameters.getParameter(
+              GlyceroAndGlycerophospholipidAnnotationParameters.searchForMSMSFragments)
+          .getEmbeddedParameters().getParameter(
+              GlyceroAndGlycerophospholipidAnnotationMSMSParameters.keepUnconfirmedAnnotations)
+          .getValue();
+      this.minMsMsScore = parameters.getParameter(
+              GlyceroAndGlycerophospholipidAnnotationParameters.searchForMSMSFragments)
+          .getEmbeddedParameters()
+          .getParameter(GlyceroAndGlycerophospholipidAnnotationMSMSParameters.minimumMsMsScore)
           .getValue();
     } else {
       this.keepUnconfirmedAnnotations = true;
     }
     Boolean searchForCustomLipidClasses = parameters.getParameter(
-        LipidSearchParameters.customLipidClasses).getValue();
+        GlyceroAndGlycerophospholipidAnnotationParameters.customLipidClasses).getValue();
     if (searchForCustomLipidClasses.booleanValue()) {
-      this.customLipidClasses =
-          LipidSearchParameters.customLipidClasses.getEmbeddedParameter().getChoices();
+      this.customLipidClasses = GlyceroAndGlycerophospholipidAnnotationParameters.customLipidClasses.getEmbeddedParameter()
+          .getChoices();
     }
     // Convert Objects to LipidClasses
     this.selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
@@ -180,7 +187,7 @@ public class LipidSearchTask extends AbstractTask {
 
     // Add task description to featureList
     (featureList).addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid annotation",
-        LipidSearchModule.class, parameters, getModuleCallDate()));
+        GlyceroAndGlycerophospholipidAnnotationModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
