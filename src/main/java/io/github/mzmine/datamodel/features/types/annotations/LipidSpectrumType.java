@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;

@@ -23,46 +23,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package util.lipidannotationtest;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids;
 
-import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
+/**
+ * Enum that contains all lipid core classes names
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
+public enum LipidCategories {
+  FATTYACYLS("Fatty Acyls","FA"), //
+  GLYCEROLIPIDS("Glycerolipids","GL"), //
+  GLYCEROPHOSPHOLIPIDS("Glycerophospholipids","GP"), //
+  SPHINGOLIPIDS("Sphingolipids","SP"),//
+  STEROLLIPIDS("Sterol Lipids","ST"),//
+  PRENOLLIPIDS("Prenol Lipids","PR"),//
+  SACCHAROLIPIDS("Saccharolipids","SL"),//
+  POLYKETIDES("Polyketides","PK");//
 
-public class LipidAnnotationMsMsTestResource {
 
-  private double[] mzFragments;
-  private IonizationType ionizationType;
-  private ILipidAnnotation testLipid;
+  private final String name;
 
-  public LipidAnnotationMsMsTestResource(double[] mzFragments, IonizationType ionizationType,
-      ILipidAnnotation testLipid) {
-    this.mzFragments = mzFragments;
-    this.ionizationType = ionizationType;
-    this.testLipid = testLipid;
+  private final String abbreviation;
+
+  LipidCategories(String name, String abbreviation) {
+    this.name = name;this.abbreviation=abbreviation;
   }
 
-  public double[] getMzFragments() {
-    return mzFragments;
+  public String getName() {
+    return name;
   }
 
-  public void setMzFragments(double[] mzFragments) {
-    this.mzFragments = mzFragments;
+  public String getAbbreviation() {
+    return abbreviation;
   }
 
-  public IonizationType getIonizationType() {
-    return ionizationType;
+  @Override
+  public String toString() {
+    return this.name;
   }
-
-  public void setIonizationType(IonizationType ionizationType) {
-    this.ionizationType = ionizationType;
-  }
-
-  public ILipidAnnotation getTestLipid() {
-    return testLipid;
-  }
-
-  public void setTestLipid(ILipidAnnotation testLipid) {
-    this.testLipid = testLipid;
-  }
-
 }

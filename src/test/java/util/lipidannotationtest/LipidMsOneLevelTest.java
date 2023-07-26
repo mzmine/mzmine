@@ -27,8 +27,8 @@ package util.lipidannotationtest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.util.FormulaUtils;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;

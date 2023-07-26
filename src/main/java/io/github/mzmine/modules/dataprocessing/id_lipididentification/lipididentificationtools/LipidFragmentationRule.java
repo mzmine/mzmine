@@ -27,8 +27,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididen
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import javax.xml.stream.XMLStreamException;

@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import java.util.List;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.labels.XYItemLabelGenerator;

@@ -26,8 +26,8 @@
 package util.lipidannotationtest;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 
 public class LipidAnnotationMsMsTestSpectra {
 

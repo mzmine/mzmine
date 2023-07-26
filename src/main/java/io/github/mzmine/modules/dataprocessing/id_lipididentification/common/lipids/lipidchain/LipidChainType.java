@@ -23,46 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package util.lipidannotationtest;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain;
 
-import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
+public enum LipidChainType {
 
-public class LipidAnnotationMsMsTestResource {
+  ACYL_CHAIN("Acyl chain", 0), //
+  ACYL_MONO_HYDROXY_CHAIN("Acyl mono hydroxy chain", 1), ALKYL_CHAIN("Alkyl chain", 0),//
+  AMID_CHAIN("Amid chain", 0), //
+  AMID_MONO_HYDROXY_CHAIN("Amid mono hydroxy chain", 1), //
+  SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN("Shpingolipid mono hydroxy backbone chain", 1), //
+  SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN("Shpingolipid di hydroxy backbone chain", 2), //
+  SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN("Shpingolipid tri hydroxy backbone chain", 3);// ;
 
-  private double[] mzFragments;
-  private IonizationType ionizationType;
-  private ILipidAnnotation testLipid;
+  private final String name;
 
-  public LipidAnnotationMsMsTestResource(double[] mzFragments, IonizationType ionizationType,
-      ILipidAnnotation testLipid) {
-    this.mzFragments = mzFragments;
-    this.ionizationType = ionizationType;
-    this.testLipid = testLipid;
+  private final int fixNumberOfOxygens;
+
+  LipidChainType(String name, int fixNumberOfOxygens) {
+    this.name = name;
+    this.fixNumberOfOxygens = fixNumberOfOxygens;
   }
 
-  public double[] getMzFragments() {
-    return mzFragments;
+  public String getName() {
+    return name;
   }
 
-  public void setMzFragments(double[] mzFragments) {
-    this.mzFragments = mzFragments;
-  }
-
-  public IonizationType getIonizationType() {
-    return ionizationType;
-  }
-
-  public void setIonizationType(IonizationType ionizationType) {
-    this.ionizationType = ionizationType;
-  }
-
-  public ILipidAnnotation getTestLipid() {
-    return testLipid;
-  }
-
-  public void setTestLipid(ILipidAnnotation testLipid) {
-    this.testLipid = testLipid;
+  public int getFixNumberOfOxygens() {
+    return fixNumberOfOxygens;
   }
 
 }

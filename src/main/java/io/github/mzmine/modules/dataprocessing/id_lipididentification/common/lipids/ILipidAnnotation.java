@@ -23,46 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package util.lipidannotationtest;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids;
 
-import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class LipidAnnotationMsMsTestResource {
+public interface ILipidAnnotation {
 
-  private double[] mzFragments;
-  private IonizationType ionizationType;
-  private ILipidAnnotation testLipid;
+  ILipidClass getLipidClass();
 
-  public LipidAnnotationMsMsTestResource(double[] mzFragments, IonizationType ionizationType,
-      ILipidAnnotation testLipid) {
-    this.mzFragments = mzFragments;
-    this.ionizationType = ionizationType;
-    this.testLipid = testLipid;
-  }
+  void setLipidClass(ILipidClass lipidClasss);
 
-  public double[] getMzFragments() {
-    return mzFragments;
-  }
+  String getAnnotation();
 
-  public void setMzFragments(double[] mzFragments) {
-    this.mzFragments = mzFragments;
-  }
+  void setAnnotation(String annotation);
 
-  public IonizationType getIonizationType() {
-    return ionizationType;
-  }
+  LipidAnnotationLevel getLipidAnnotationLevel();
 
-  public void setIonizationType(IonizationType ionizationType) {
-    this.ionizationType = ionizationType;
-  }
+  IMolecularFormula getMolecularFormula();
 
-  public ILipidAnnotation getTestLipid() {
-    return testLipid;
-  }
-
-  public void setTestLipid(ILipidAnnotation testLipid) {
-    this.testLipid = testLipid;
-  }
+  void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
 }

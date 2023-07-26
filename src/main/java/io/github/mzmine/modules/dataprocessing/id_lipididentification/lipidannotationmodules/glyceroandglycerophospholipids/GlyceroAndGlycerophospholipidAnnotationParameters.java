@@ -23,31 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassChoiceParameter;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Parameters for lipid search module for speactra identification
+ * Parameters for lipid annotation module
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraIdentificationLipidSearchParameters extends SimpleParameterSet {
+public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimpleParameterSet {
+
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
       "Lipid classes", "Selection of lipid backbones",
-      LipidClassesProvider.getListOfAllLipidClasses().toArray());
+      LipidClassesProvider.getListOfAllGlyceroAndGlycerophospholipids().toArray());
 
-  public static final IntRangeParameter chainLength =
-      new IntRangeParameter("Number of carbon atoms in chains", "Number of carbon atoms in chains");
+  public static final IntRangeParameter chainLength = new IntRangeParameter(
+      "Number of carbon atoms in chains", "Number of carbon atoms in chains");
 
   public static final IntRangeParameter doubleBonds =
       new IntRangeParameter("Number of double bonds in chains", "Number of double bonds in chains");
@@ -56,19 +63,32 @@ public class SpectraIdentificationLipidSearchParameters extends SimpleParameterS
       new MZToleranceParameter("m/z tolerance MS1 level:",
           "Enter m/z tolerance for exact mass database matching on MS1 level");
 
-  public static final OptionalModuleParameter<LipidSpeactraSearchMSMSParameters> searchForMSMSFragments =
-      new OptionalModuleParameter<>("Search for lipid class specific fragments in MS/MS spectra",
-          "Search for lipid class specific fragments in MS/MS spectra",
-          new LipidSpeactraSearchMSMSParameters());
+  public static final OptionalModuleParameter<GlyceroAndGlycerophospholipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
+      "Search for lipid class specific fragments in MS/MS spectra",
+      "Search for lipid class specific fragments in MS/MS spectra",
+      new GlyceroAndGlycerophospholipidAnnotationMSMSParameters());
 
   public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses =
       new OptionalParameter<>(new CustomLipidClassChoiceParameter("Search for custom lipid class",
           "If checked the algorithm searches for custom, by the user defined lipid classes",
           new CustomLipidClass[0]));
 
+  public GlyceroAndGlycerophospholipidAnnotationParameters() {
+    super(new Parameter[]{featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
+            searchForMSMSFragments, customLipidClasses},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
+  }
 
-  public SpectraIdentificationLipidSearchParameters() {
-    super(lipidClasses, chainLength, doubleBonds, mzTolerance, searchForMSMSFragments,
-        customLipidClasses);
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog dialog = new GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog(
+        valueCheckRequired, this);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

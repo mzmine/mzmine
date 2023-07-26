@@ -23,46 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package util.lipidannotationtest;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids;
 
-import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
-public class LipidAnnotationMsMsTestResource {
+public interface ILipidClass {
 
-  private double[] mzFragments;
-  private IonizationType ionizationType;
-  private ILipidAnnotation testLipid;
+  String getName();
 
-  public LipidAnnotationMsMsTestResource(double[] mzFragments, IonizationType ionizationType,
-      ILipidAnnotation testLipid) {
-    this.mzFragments = mzFragments;
-    this.ionizationType = ionizationType;
-    this.testLipid = testLipid;
-  }
+  String getAbbr();
 
-  public double[] getMzFragments() {
-    return mzFragments;
-  }
+  String getBackBoneFormula();
 
-  public void setMzFragments(double[] mzFragments) {
-    this.mzFragments = mzFragments;
-  }
+  LipidChainType[] getChainTypes();
 
-  public IonizationType getIonizationType() {
-    return ionizationType;
-  }
+  LipidFragmentationRule[] getFragmentationRules();
 
-  public void setIonizationType(IonizationType ionizationType) {
-    this.ionizationType = ionizationType;
-  }
+  LipidCategories getCoreClass();
 
-  public ILipidAnnotation getTestLipid() {
-    return testLipid;
-  }
+  LipidMainClasses getMainClass();
 
-  public void setTestLipid(ILipidAnnotation testLipid) {
-    this.testLipid = testLipid;
-  }
+  void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
 }
