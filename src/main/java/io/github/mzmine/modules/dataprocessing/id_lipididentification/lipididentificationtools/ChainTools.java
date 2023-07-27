@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools;
 
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import io.github.mzmine.util.FormulaUtils;
 
 /**
  * This class contains methods to build fatty acids for MS/MS identification of lipids
@@ -93,13 +93,6 @@ public class ChainTools {
   public String calculateHydroCarbonFormula(int chainLength, int chainDoubleBonds) {
     int numberOfHydrogens = chainLength * 2 - chainDoubleBonds * 2 + 2;
     return "C" + chainLength + 'H' + numberOfHydrogens;
-  }
-
-  /**
-   * This method creates the systematic name of a fatty acid
-   */
-  public String getFattyAcidName(int fattyAcidLength, int fattyAcidDoubleBonds) {
-    return "(" + fattyAcidLength + ":" + fattyAcidDoubleBonds + ")";
   }
 
   public int getChainLengthFromFormula(String fattyAcidFormula) {
