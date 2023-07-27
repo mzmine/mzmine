@@ -80,7 +80,7 @@ public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
 
         Platform.runLater(() -> {
           FXMLLoader loader = new FXMLLoader(
-              (getClass().getResource("common/lipids/LipidDatabaseTable.fxml")));
+              (getClass().getResource("../../common/lipids/LipidDatabaseTable.fxml")));
           Stage stage = new Stage();
           try {
             BorderPane root = loader.load();
