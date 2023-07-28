@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -434,6 +434,15 @@ public class MainWindowController {
       if (event.getClickCount() == 2) {
         RawDataFile clickedFile = MZmineGUI.getSelectedRawDataFiles().get(0);
         if (clickedFile instanceof IMSRawDataFile) {
+          if (clickedFile instanceof ImagingRawDataFile) {
+            if (MZmineCore.getDesktop().displayConfirmation(
+                "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
+                    + "The amount of information may crash MZmine.\n"
+                    + "ould you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
+                == ButtonType.NO) {
+              return;
+            }
+          }
           handleShowIMSDataOverview(event);
         } else if (clickedFile instanceof ImagingRawDataFile) {
           handleShowImage(event);
