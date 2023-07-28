@@ -94,7 +94,7 @@ import org.openscience.cdk.smiles.SmilesParser;
 public class SpectralMatchPanelFX extends GridPane {
 
   public static final int META_WIDTH = 500;
-  public static final int ENTRY_HEIGHT = 500;
+  public static final int ENTRY_HEIGHT = 400;
   public static final int STRUCTURE_HEIGHT = 150;
   public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
@@ -135,7 +135,7 @@ public class SpectralMatchPanelFX extends GridPane {
 
     this.hit = hit;
 
-    setMinSize(950, 500);
+    setMinSize(750, 200);
 
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
@@ -192,17 +192,20 @@ public class SpectralMatchPanelFX extends GridPane {
 
     var totalSignals = hit.getLibraryDataPoints(DataPointsTag.FILTERED).length;
     var overlap = hit.getSimilarity().getOverlap();
-    var lblMatched = createLabel("%d / %d".formatted(overlap, totalSignals), matchedSignalsTooltip, styleWhiteScoreSmall);
+    var lblMatched = createLabel("%d / %d".formatted(overlap, totalSignals), matchedSignalsTooltip,
+        styleWhiteScoreSmall);
 
     var intensity = hit.getSimilarity().getExplainedLibraryIntensity();
-    var lblExplained = createLabel(COS_FORM.format(intensity), explIntTooltip, styleWhiteScoreSmall);
+    var lblExplained = createLabel(COS_FORM.format(intensity), explIntTooltip,
+        styleWhiteScoreSmall);
 
     lblExplained.getStyleClass().add(styleWhiteScoreSmall);
 
     var leftScores = new VBox(0, lblMatched, lblExplained);
     leftScores.setAlignment(Pos.CENTER);
 
-    var scoreDef = new VBox(0, createLabel("Matched signals:", matchedSignalsTooltip, styleWhiteScoreSmall),
+    var scoreDef = new VBox(0,
+        createLabel("Matched signals:", matchedSignalsTooltip, styleWhiteScoreSmall),
         createLabel("Expl. intensity:", explIntTooltip, styleWhiteScoreSmall));
     scoreDef.setAlignment(Pos.CENTER_RIGHT);
 
@@ -273,9 +276,9 @@ public class SpectralMatchPanelFX extends GridPane {
     }
 
     ColumnConstraints ccMetadata1 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
-        Priority.NEVER, HPos.LEFT, false);
+        Priority.ALWAYS, HPos.LEFT, false);
     ColumnConstraints ccMetadata2 = new ColumnConstraints(META_WIDTH / 2d, -1, Double.MAX_VALUE,
-        Priority.NEVER, HPos.LEFT, false);
+        Priority.ALWAYS, HPos.LEFT, false);
     ccMetadata1.setPercentWidth(50);
     ccMetadata2.setPercentWidth(50);
 
@@ -296,10 +299,10 @@ public class SpectralMatchPanelFX extends GridPane {
     leftBox.setPadding(Insets.EMPTY);
     var rightBox = new VBox(4, panelInstrument, pnOther, pnDB);
     rightBox.setPadding(new Insets(0, 0, 0, 15));
-    g1.add(leftBox, 0, 0);
-    g1.add(rightBox, 1, 0);
     g1.getColumnConstraints().add(0, ccMetadata1);
     g1.getColumnConstraints().add(1, ccMetadata2);
+    g1.add(leftBox, 0, 0);
+    g1.add(rightBox, 1, 0);
 
     metaDataPanel.getChildren().add(g1);
     metaDataPanel.setMinSize(META_WIDTH, ENTRY_HEIGHT);

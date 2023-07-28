@@ -23,27 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
-/**
- * Graphstream style attributes
- *
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-public enum GraphStyleAttribute {
-  COLOR, SIZE, LABEL, CLASS;
+import java.util.Optional;
+
+public sealed interface ElementType permits EdgeType, NodeType {
 
   /**
-   * UI attribute String to access or set the attribute in graph stream
+   * Some nodes define a special UI class in graph_network_style.css
    *
-   * @return
+   * @return the style class or empty
    */
-  public String getUIString() {
-    return switch (this) {
-      case COLOR -> "ui.color";
-      case SIZE -> "ui.size";
-      case LABEL -> "ui.label";
-      case CLASS -> "ui.class";
-    };
-  }
+  Optional<String> getUiClass();
 }

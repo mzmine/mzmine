@@ -52,6 +52,8 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -60,6 +62,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 
@@ -76,6 +79,7 @@ public class SpectraStackVisualizerPane extends BorderPane {
   //
   private final GridPane pnCharts;
   private final Label lbRawName;
+  private final FlowPane pnRawControls;
   private boolean exchangeTolerance = true;
   private MZTolerance mzTolerance = new MZTolerance(0.0015, 2.5d);
   // MS 1
@@ -85,12 +89,13 @@ public class SpectraStackVisualizerPane extends BorderPane {
   // to flag annotations in spectra
   // annotations for MSMS
   private List<AbstractMSMSIdentity> msmsAnnotations;
-  private int currentColumns = 1;
+  private int currentColumns = 2;
   private FeatureListRow[] rows;
   private RawDataFile selectedRaw;
   private RawDataFile[] allRaw;
   private boolean createMS1;
   private int rawIndex;
+  private boolean applyMzSorting = true;
 
   /**
    * Create the frame.
@@ -99,16 +104,12 @@ public class SpectraStackVisualizerPane extends BorderPane {
     parameters = MZmineCore.getConfiguration()
         .getModuleParameters(SpectraStackVisualizerModule.class).cloneParameterSet();
 
-//    contentPane.setPadding(new Insets(5));
-
     paramPane = new ParameterSetupPane(true, true, parameters) {
       @Override
       protected void callOkButton() {
         updateAllCharts();
       }
     };
-    Accordion paramAccordion = new Accordion(new TitledPane("Options", paramPane));
-    setBottom(paramAccordion);
 
     // top
     // reset zoom
@@ -128,11 +129,22 @@ public class SpectraStackVisualizerPane extends BorderPane {
     lbRawIndex = new Label("");
     lbRawName = new Label("");
 
-    Pane pnTopMenu = new FlowPane(3, 3, resetZoom, prevRaw, nextRaw, lbRawIndex, lbRawName);
-    setTop(pnTopMenu);
+    pnRawControls = new FlowPane(3, 0, prevRaw, nextRaw, lbRawIndex, lbRawName);
+    Pane pnTopMenu = new FlowPane(3, 3, resetZoom, pnRawControls);
+
+
+    Accordion paramAccordion = new Accordion(new TitledPane("Options", paramPane));
+    BorderPane wrapped = new BorderPane(paramAccordion);
+    wrapped.setTop(pnTopMenu);
+    setTop(wrapped);
 
     pnCharts = new GridPane();
-    setCenter(pnCharts);
+    var scrollPane = new ScrollPane(pnCharts);
+    scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
+    scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+    scrollPane.setFitToHeight(true);
+    scrollPane.setFitToWidth(true);
+    setCenter(scrollPane);
 
     // listeners
     paramPane.getComponentForParameter(
@@ -167,18 +179,19 @@ public class SpectraStackVisualizerPane extends BorderPane {
 
       int rows = currentRows();
       for (int i = 0; i < group.getList().size(); i++) {
-        JFreeChart chart = group.getList().get(i).getChart();
+        ChartViewWrapper chartView = group.getList().get(i);
+        JFreeChart chart = chartView.getChart();
         chart.getLegend().setVisible(showLegend);
         chart.getTitle().setVisible(showTitle);
 
         // show only the last domain axes
         ValueAxis axis = chart.getXYPlot().getDomainAxis();
         // last in column, last overall, or all
-        axis.setVisible(showAllAxes || (i + 1) % rows == 0 || i == group.size() - 1);
+        boolean mzAxisVisible = showAllAxes || (i + 1) % rows == 0 || i == group.size() - 1;
+        axis.setVisible(mzAxisVisible);
       }
     }
   }
-
 
   /**
    * ensures the correct number of columns
@@ -273,6 +286,7 @@ public class SpectraStackVisualizerPane extends BorderPane {
         }
       }
     }
+    pnRawControls.setVisible(allRaw != null);
 
     lbRawName.setText(selectedRaw == null ? "" : selectedRaw.getName());
     lbRawIndex.setText("(" + rawIndex + ") ");
@@ -282,7 +296,7 @@ public class SpectraStackVisualizerPane extends BorderPane {
   /**
    * Sort rows
    */
-  public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw,
+  public void setData(FeatureListRow[] rows, @Nullable RawDataFile[] allRaw, @Nullable RawDataFile raw,
       boolean createMS1, SortingProperty sorting, SortingDirection direction) {
     Arrays.sort(rows, new FeatureListRowSorter(sorting, direction));
     setData(rows, allRaw, raw, createMS1);
@@ -291,8 +305,15 @@ public class SpectraStackVisualizerPane extends BorderPane {
   /**
    * Create charts and show
    */
-  public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw,
+  public void setData(List<FeatureListRow> rows, boolean createMS1) {
+    setData(rows.toArray(FeatureListRow[]::new), null, null, createMS1);
+  }
+
+  public void setData(FeatureListRow[] rows, @Nullable RawDataFile[] allRaw, @Nullable RawDataFile raw,
       boolean createMS1) {
+    if (applyMzSorting) {
+      Arrays.sort(rows, FeatureListRowSorter.MZ_ASCENDING);
+    }
     this.rows = rows;
     this.allRaw = allRaw;
     this.createMS1 = createMS1;
@@ -324,7 +345,8 @@ public class SpectraStackVisualizerPane extends BorderPane {
       for (FeatureListRow r : rows) {
         Feature f = selectedRaw == null ? r.getBestFeature() : r.getFeature(selectedRaw);
         if (f != null && (best == null || Objects.compare(f, best,
-            Comparator.comparing(Feature::getHeight, Comparator.nullsLast(Comparator.comparingDouble(Float::doubleValue))))>0)) {
+            Comparator.comparing(Feature::getHeight,
+                Comparator.nullsLast(Comparator.comparingDouble(Float::doubleValue)))) > 0)) {
           best = f;
         }
       }
@@ -339,7 +361,7 @@ public class SpectraStackVisualizerPane extends BorderPane {
       // pseudo MS1 from all rows and isotope pattern
       EChartViewer cp = PseudoSpectrum.createChartViewer(rows, selectedRaw, false, "pseudo");
       if (cp != null) {
-        cp.setMinHeight(100);
+        cp.setMinHeight(75);
         cp.getChart().getLegend().setVisible(false);
         cp.getChart().getTitle().setVisible(false);
         msone = new ChartViewWrapper(cp);
@@ -469,7 +491,7 @@ public class SpectraStackVisualizerPane extends BorderPane {
 
     boolean changed =
         mzTolerance != this.mzTolerance || (this.mzTolerance == null && mzTolerance != null)
-            || !this.mzTolerance.equals(mzTolerance);
+        || !this.mzTolerance.equals(mzTolerance);
     this.mzTolerance = mzTolerance;
     exchangeTolerance = false;
 
@@ -499,5 +521,9 @@ public class SpectraStackVisualizerPane extends BorderPane {
     for (int i = start; i < group.getList().size(); i++) {
       op.accept(group.getList().get(i).getChart());
     }
+  }
+
+  public void setApplyMzSorting(final boolean applyMzSorting) {
+    this.applyMzSorting = applyMzSorting;
   }
 }

@@ -62,6 +62,7 @@ public class ProjectTest {
   @Test
   @Order(1)
   void projectTest() {
+    MZmineTestUtil.cleanProject();
     // state for testing should be headless
     assertEquals(true, MZmineCore.isHeadLessMode());
 

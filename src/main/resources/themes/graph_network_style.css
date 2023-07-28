@@ -6,43 +6,47 @@ edge {
   text-visibility-mode: under-zoom;
   text-visibility: 0.3;
   text-alignment: along;
-  fill-mode: none;
-  stroke-color: rgb(108, 108, 108);
-  stroke-width: 1px;
-  stroke-mode: plain;
+  fill-mode: plain;
+  fill-color: rgb(108, 108, 108);
+  /*stroke-width: 1px;*/
+  stroke-mode: none;
 }
 
 edge.medium {
-  stroke-color: rgb(108, 108, 108);
+  fill-color: rgb(108, 108, 108);
   stroke-width: 2.5px;
 }
 edge.IIN {
-  stroke-color: rgb(227, 116, 30);
+  fill-color: rgb(227, 116, 30);
   stroke-width: 1.5px;
   stroke-mode: dashes;
 }
 edge.FEATURECORR {
-  stroke-color: rgb(151, 124, 70);
+  fill-color: rgb(151, 124, 70);
   stroke-width: 1px;
 }
 edge.COSINE {
-  stroke-color: rgb(30, 86, 227);
   size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #8be4ff, #008eff, #19475d, #0d3549;
 }
 edge.GNPS {
-  stroke-color: rgb(77, 108, 187);
+  fill-color: rgb(77, 108, 187);
   size-mode: dyn-size;
+  size: 2.5px;
+  fill-mode: dyn-plain;
+  fill-color: #8be4ff, #008eff, #19475d, #0d3549;
 }
 
 edge.IINREL {
-  stroke-color: rgb(31, 173, 152);
+  fill-color: rgb(31, 173, 152);
   stroke-mode: dots;
 }
 
 node {
   shape: circle;
   text-visibility-mode: under-zoom;
-  text-visibility: 0.3;
+  text-visibility: 3;
   text-alignment: at-right;
   text-offset: 2;
   text-size: 12;
@@ -55,13 +59,18 @@ node {
 }
 
 node:clicked {
-  fill-color: #f8ec02;
+  /*fill-color: #f8ec02;*/
+  stroke-color: #0d3549;
+  stroke-width: 3px;
 }
 
 /* node.setAttribute("ui.class", "big, important"); */
 /* node.removeAttribute("ui.class"); // go back to default */
 node.important {
   fill-color: red;
+}
+node.annotated {
+  shape: diamond;
 }
 
 node.big {
@@ -80,7 +89,8 @@ node.NEUTRAL {
 }
 
 /* add gradient to node: node1.setAttribute("ui.color", 0); from 0 - 1 */
-node.GRADIENT {
+node.FEATURE {
   fill-mode: dyn-plain;
-  fill-color: yellow, orange, #c10000;
+  fill-color: #ffffe6, yellow, orange, #c10000,
+  #570025, black;
 }
