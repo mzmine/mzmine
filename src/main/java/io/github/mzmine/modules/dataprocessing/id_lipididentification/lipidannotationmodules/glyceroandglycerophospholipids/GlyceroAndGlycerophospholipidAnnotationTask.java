@@ -43,6 +43,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.GlyceroAndGlyceroPhospholipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
@@ -305,22 +307,22 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
         DataPoint[] massList = null;
         massList = msmsScan.getMassList().getDataPoints();
         massList = deisotopeMassList(massList);
-        MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
         LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
           for (DataPoint dataPoint : massList) {
             Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(dataPoint.getMZ());
-            LipidFragment annotatedFragment = msmsLipidTools.checkForClassSpecificFragment(
+            ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
                 mzTolRangeMSMS, lipid, ionization, rules,
                 new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan);
+            LipidFragment annotatedFragment = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragment();
             if (annotatedFragment != null) {
               annotatedFragments.add(annotatedFragment);
             }
           }
         }
         if (!annotatedFragments.isEmpty()) {
-
+          MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
           // check for class specific fragments like head group fragment
           MatchedLipid matchedLipid =
               msmsLipidTools.confirmSpeciesLevelAnnotation(row.getAverageMZ(), lipid,

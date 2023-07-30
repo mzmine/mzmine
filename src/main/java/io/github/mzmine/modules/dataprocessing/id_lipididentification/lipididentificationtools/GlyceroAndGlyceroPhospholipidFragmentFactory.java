@@ -12,7 +12,8 @@ import io.github.mzmine.util.FormulaUtils;
 import java.util.List;
 import java.util.Objects;
 
-public class GlyceroAndGlyceroPhospholipidFragmentFactory extends AbstractLipidFragmentFactory {
+public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
+    AbstractLipidFragmentFactory implements ILipidFragmentFactory {
 
   private static final ChainTools CHAIN_TOOLS = new ChainTools();
 
