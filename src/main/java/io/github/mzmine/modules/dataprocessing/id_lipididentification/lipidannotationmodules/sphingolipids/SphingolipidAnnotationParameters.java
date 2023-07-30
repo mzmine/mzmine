@@ -57,7 +57,7 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
       "Number of carbon atoms in chains", "Number of carbon atoms in chains");
 
   public static final IntRangeParameter doubleBonds = new IntRangeParameter(
-      "Number of double bond equivelents in chains", "Number of double bond equivelents in chains");
+      "Number of double bond equivalents in chains", "Number of double bond equivalents in chains");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "m/z tolerance MS1 level:",
