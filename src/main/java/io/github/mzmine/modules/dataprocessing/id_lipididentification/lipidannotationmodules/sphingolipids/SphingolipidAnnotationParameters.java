@@ -28,12 +28,9 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidanno
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassChoiceParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -52,7 +49,7 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
-      "Lipid classes", "Selection of lipid backbones",
+      "Sphingolipid classes", "Selection of lipid classes",
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
           List.of(LipidCategories.SPHINGOLIPIDS)).toArray());
 
@@ -60,7 +57,7 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
       "Number of carbon atoms in chains", "Number of carbon atoms in chains");
 
   public static final IntRangeParameter doubleBonds = new IntRangeParameter(
-      "Number of double bonds in chains", "Number of double bonds in chains");
+      "Number of double bond equivelents in chains", "Number of double bond equivelents in chains");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "m/z tolerance MS1 level:",
@@ -71,14 +68,16 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
       "Search for lipid class specific fragments in MS/MS spectra",
       new SphingolipidAnnotationMSMSParameters());
 
-  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses = new OptionalParameter<>(
-      new CustomLipidClassChoiceParameter("Search for custom lipid class",
-          "If checked the algorithm searches for custom, by the user defined lipid classes",
-          new CustomLipidClass[0]));
+//  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses = new OptionalParameter<>(
+//      new CustomLipidClassChoiceParameter("Search for custom lipid class",
+//          "If checked the algorithm searches for custom, by the user defined lipid classes",
+//          new CustomLipidClass[0]));
 
   public SphingolipidAnnotationParameters() {
     super(new Parameter[]{featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
-            searchForMSMSFragments, customLipidClasses},
+            searchForMSMSFragments,
+            //customLipidClasses
+        },
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 

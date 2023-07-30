@@ -123,12 +123,12 @@ public class SphingolipidAnnotationTask extends AbstractTask {
     } else {
       this.keepUnconfirmedAnnotations = true;
     }
-    Boolean searchForCustomLipidClasses = parameters.getParameter(
-        SphingolipidAnnotationParameters.customLipidClasses).getValue();
-    if (searchForCustomLipidClasses.booleanValue()) {
-      this.customLipidClasses = SphingolipidAnnotationParameters.customLipidClasses.getEmbeddedParameter()
-          .getChoices();
-    }
+//    Boolean searchForCustomLipidClasses = parameters.getParameter(
+//        SphingolipidAnnotationParameters.customLipidClasses).getValue();
+//    if (searchForCustomLipidClasses.booleanValue()) {
+//      this.customLipidClasses = SphingolipidAnnotationParameters.customLipidClasses.getEmbeddedParameter()
+//          .getChoices();
+//    }
     // Convert Objects to LipidClasses
     this.selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
         .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
@@ -343,7 +343,7 @@ public class SphingolipidAnnotationTask extends AbstractTask {
         MatchedLipid unconfirmedMatchedLipid = new MatchedLipid(lipid, row.getAverageMZ(),
             ionization, null, 0.0);
         unconfirmedMatchedLipid.setComment(
-            "Warning, this annotation is based on MS1 mass accurracy only!");
+            "Warning, this annotation is based on MS1 mass accuracy only!");
         matchedLipids.add(unconfirmedMatchedLipid);
       }
 

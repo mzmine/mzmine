@@ -50,7 +50,6 @@ import javafx.stage.Stage;
  */
 public class SphingolipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
 
-  private final Button showDatabaseTable;
   private Object[] selectedObjects;
   private CheckBoxTreeItem<Object> items;
 
@@ -62,9 +61,9 @@ public class SphingolipidAnnotationParameterSetupDialog extends ParameterSetupDi
     super(valueCheckRequired, parameters);
 
     // Add buttons
-    showDatabaseTable = new Button("Show database");
+    Button showDatabaseTable = new Button("Show database");
     showDatabaseTable.setTooltip(
-        new Tooltip("Show a database table for the selected classes and parameters"));
+        new Tooltip("Show a database table for the selected Sphingolipid classes and parameters"));
     showDatabaseTable.setOnAction(event -> {
       try {
         updateParameterSetFromComponents();
@@ -98,7 +97,7 @@ public class SphingolipidAnnotationParameterSetupDialog extends ParameterSetupDi
             e.printStackTrace();
             return;
           }
-          stage.setTitle("Lipid database");
+          stage.setTitle("Sphingolipid database");
           stage.show();
           stage.setMinWidth(stage.getWidth());
           stage.setMinHeight(stage.getHeight());
