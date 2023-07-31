@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,8 +43,11 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import java.awt.Dimension;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.HPos;
@@ -118,17 +121,16 @@ public class SpectralMatchPanelFX extends GridPane {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final EChartViewer mirrorChart;
   private final SpectralDBAnnotation hit;
+  private final BorderPane mirrorChartWrapper;
+  private final EStandardChartTheme theme;
   private boolean setCoupleZoomY;
   private XYPlot queryPlot;
   private XYPlot libraryPlot;
   private VBox metaDataPanel;
   private ScrollPane metaDataScroll;
   private GridPane pnExport;
-  private final BorderPane mirrorChartWrapper;
   private Label lblScore;
   private Label lblHit;
-  private final EStandardChartTheme theme;
-  private SpectralMatchPanel swingPanel;
 
   public SpectralMatchPanelFX(SpectralDBAnnotation hit) {
     super();
@@ -566,26 +568,57 @@ public class SpectralMatchPanelFX extends GridPane {
     // i'm so sorry ~SteffenHeu
     final JFrame[] frame = new JFrame[1];
     logger.info("Creating dummy window for spectral match export...");
+    SpectralMatchPanel[] swingPanel = new SpectralMatchPanel[1];
     SwingUtilities.invokeLater(() -> {
       frame[0] = new JFrame();
-      swingPanel = new SpectralMatchPanel(hit);
-      frame[0].setContentPane(swingPanel);
+      swingPanel[0] = new SpectralMatchPanel(hit);
+      frame[0].setContentPane(swingPanel[0]);
       frame[0].revalidate();
       frame[0].setVisible(true);
       frame[0].toBack();
-      swingPanel.calculateAndSetSize();
+      swingPanel[0].calculateAndSetSize();
     });
 
     // get file
     File file = chooser.showSaveDialog(null);
     if (file != null) {
-      swingPanel.exportToGraphics(format, file);
+      swingPanel[0].exportToGraphics(format, file);
     }
 
     logger.info("Disposing dummy window for spectral match export...");
     SwingUtilities.invokeLater(() -> frame[0].dispose());
 
     // it works though, until we figure something out
+  }
+
+  /**
+   * Please don't look into this method. Used for batch exporting
+   *
+   * @param format The format specifier to export this node to.
+   */
+  public Dimension exportToGraphics(String format, File path)
+      throws InterruptedException, InvocationTargetException {
+
+    // this is so unbelievably dirty
+    // i'm so sorry ~SteffenHeu
+    AtomicReference<Dimension> dim = new AtomicReference<>();
+    logger.info("Creating dummy window for spectral match export...");
+    SwingUtilities.invokeAndWait(() -> {
+      final var frame = new JFrame();
+      var swingPanel = new SpectralMatchPanel(hit);
+      frame.setContentPane(swingPanel);
+      frame.revalidate();
+      frame.setVisible(true);
+      frame.toBack();
+      swingPanel.calculateAndSetSize();
+      swingPanel.exportToGraphics(format, path);
+      dim.set(swingPanel.getSize());
+      logger.info("Disposing dummy window for spectral match export...");
+      frame.dispose();
+    });
+
+    // it works though, until we figure something out
+    return dim.get();
   }
 
   public SpectralDBAnnotation getHit() {
