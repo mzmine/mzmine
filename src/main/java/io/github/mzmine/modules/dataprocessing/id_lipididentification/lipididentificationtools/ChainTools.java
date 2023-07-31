@@ -38,27 +38,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class ChainTools {
 
   /**
-   * This method calculates all possible fatty acids formulas for a selected annotated lipid
-   */
-  public List<String> calculateFattyAcidFormulas() {
-    List<String> fattyAcidFormulas = new ArrayList<>();
-    int minFattyAcidLength = 2;
-    int maxFattyAcidLength = 26;
-    int minNumberOfDoubleBonds = 0;
-    int maxNumberOfDoubleBonds = 6;
-    for (int fattyAcidLength =
-        minFattyAcidLength; fattyAcidLength <= maxFattyAcidLength; fattyAcidLength++) {
-      for (int fattyAcidDoubleBonds =
-          minNumberOfDoubleBonds; fattyAcidDoubleBonds <= maxNumberOfDoubleBonds; fattyAcidDoubleBonds++) {
-        if (((fattyAcidDoubleBonds >= 0) && (fattyAcidDoubleBonds <= fattyAcidLength - 1))) {
-          fattyAcidFormulas.add(calculateFattyAcidFormula(fattyAcidLength, fattyAcidDoubleBonds));
-        }
-      }
-    }
-    return fattyAcidFormulas;
-  }
-
-  /**
    * This method calculates all possible hydro carbon formulas for a selected annotated lipid
    */
   public List<String> calculateHydroCarbonFormulas() {
@@ -98,6 +77,11 @@ public class ChainTools {
   public int getChainLengthFromFormula(String fattyAcidFormula) {
     IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(fattyAcidFormula);
     return FormulaUtils.countElement(formula, "C");
+  }
+
+  public IMolecularFormula removeSphingolipidBackboneAtomsFromMolecularFormula(
+      IMolecularFormula formula) {
+    return FormulaUtils.subtractFormula(formula, FormulaUtils.createMajorIsotopeMolFormula("C3H6"));
   }
 
   public int getNumberOfDoubleBondsFromFormula(String fattyAcidFormula) {

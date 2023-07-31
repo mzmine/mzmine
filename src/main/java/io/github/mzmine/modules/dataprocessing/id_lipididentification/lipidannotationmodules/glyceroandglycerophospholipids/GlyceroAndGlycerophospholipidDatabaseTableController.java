@@ -23,15 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
 import io.github.mzmine.parameters.ParameterSet;
@@ -66,7 +69,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class LipidDatabaseTableController {
+public class GlyceroAndGlycerophospholipidDatabaseTableController {
 
   @FXML
   private TableView<LipidClassDescription> lipidDatabaseTableView;
@@ -121,6 +124,7 @@ public class LipidDatabaseTableController {
   private int maxChainLength;
   private int minDoubleBonds;
   private int maxDoubleBonds;
+  private Boolean onlySearchForEvenChains;
   private MZTolerance mzTolerance;
   private boolean searchForCustomLipidClasses;
   private CustomLipidClass[] customLipidClasses;
@@ -135,13 +139,28 @@ public class LipidDatabaseTableController {
   public void initialize(ParameterSet parameters, LipidClasses[] selectedLipids) {
 
     this.minChainLength = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().lowerEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minChainLength)
+        .getValue();
     this.maxChainLength = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().upperEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.maxChainLength)
+        .getValue();
     this.minDoubleBonds = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().lowerEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minDBEs).getValue();
     this.maxDoubleBonds = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().upperEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minDBEs).getValue();
+    this.onlySearchForEvenChains = parameters.getParameter(
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getParameter(
+            GlyceroAndGlycerophospholipidAnnotationChainParameters.onlySearchForEvenChainLength)
+        .getValue();
     this.searchForCustomLipidClasses = parameters.getParameter(
         GlyceroAndGlycerophospholipidAnnotationParameters.customLipidClasses).getValue();
     if (searchForCustomLipidClasses) {
@@ -223,24 +242,32 @@ public class LipidDatabaseTableController {
   }
 
   private void addLipidsToTable(ILipidClass[] selectedLipids, int id) {
-    for (int i = 0; i < selectedLipids.length; i++) {
+    for (ILipidClass selectedLipid : selectedLipids) {
       // TODO starting point to extend for better oxidized lipid support
       int numberOfAdditionalOxygens = 0;
-      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds = minDoubleBonds; chainDoubleBonds <= maxDoubleBonds;
+      int minTotalChainLength = minChainLength * selectedLipid.getChainTypes().length;
+      int maxTotalChainLength = maxChainLength * selectedLipid.getChainTypes().length;
+      int minTotalDoubleBonds = minDoubleBonds * selectedLipid.getChainTypes().length;
+      int maxTotalDoubleBonds = maxDoubleBonds * selectedLipid.getChainTypes().length;
+      for (int chainLength = minTotalChainLength; chainLength <= maxTotalChainLength;
+          chainLength++) {
+        if (onlySearchForEvenChains && chainLength % 2 != 0) {
+          continue;
+        }
+        for (int chainDoubleBonds = minTotalDoubleBonds; chainDoubleBonds <= maxTotalDoubleBonds;
             chainDoubleBonds++) {
 
           if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
             continue;
           }
           // Prepare a lipid instance
-          SpeciesLevelAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(selectedLipids[i],
+          SpeciesLevelAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(selectedLipid,
               chainLength, chainDoubleBonds, numberOfAdditionalOxygens);
           if (lipid == null) {
             continue;
           }
-          List<LipidFragmentationRule> fragmentationRules =
-              Arrays.asList(selectedLipids[i].getFragmentationRules());
+          List<LipidFragmentationRule> fragmentationRules = Arrays.asList(
+              selectedLipid.getFragmentationRules());
           StringBuilder fragmentationRuleSB = new StringBuilder();
           fragmentationRules.stream().forEach(rule -> {
             fragmentationRuleSB.append(rule.toString()).append("\n");
@@ -255,7 +282,7 @@ public class LipidDatabaseTableController {
                 .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
           }
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
-              selectedLipids[i].getName(), // lipid class
+              selectedLipid.getName(), // lipid class
               MolecularFormulaManipulator.getString(lipid.getMolecularFormula()), // molecular
               // formula
               lipid.getAnnotation(),

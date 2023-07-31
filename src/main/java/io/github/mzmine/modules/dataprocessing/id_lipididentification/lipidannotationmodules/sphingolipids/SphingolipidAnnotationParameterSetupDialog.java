@@ -27,7 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidanno
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidDatabaseTableController;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidDatabaseTableController;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import java.io.IOException;
@@ -77,15 +77,15 @@ public class SphingolipidAnnotationParameterSetupDialog extends ParameterSetupDi
             .toArray(LipidClasses[]::new);
 
         Platform.runLater(() -> {
-          FXMLLoader loader = new FXMLLoader(
-              (getClass().getResource("common/lipids/LipidDatabaseTable.fxml")));
+          FXMLLoader loader = new FXMLLoader((getClass().getResource(
+              "common/lipids/GlyceroAndGlycerophospholipidDatabaseTable.fxml")));
           Stage stage = new Stage();
           try {
             BorderPane root = loader.load();
             Scene scene = new Scene(root, 1200, 800);
 
             // get controller
-            LipidDatabaseTableController controller = loader.getController();
+            GlyceroAndGlycerophospholipidDatabaseTableController controller = loader.getController();
             controller.initialize(parameters, selectedLipids);
 
             // Use main CSS

@@ -1,8 +1,12 @@
 package util.lipidannotationtest;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.ChainTools;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidChainToolsTest {
 
@@ -15,6 +19,30 @@ public class LipidChainToolsTest {
     Assertions.assertEquals(fattyAcidFormula, correctFattyAcidFormula,
         fattyAcidFormula + " is not the correct formula for FA 18:2. Correct formula is: "
             + correctFattyAcidFormula);
+  }
+
+  @Test
+  void testFattyAcidFormulaEqualsAcylChainFormula() {
+    String fattyAcidFormula = CHAIN_TOOLS.calculateFattyAcidFormula(18, 2);
+    LipidChainFactory lipidChainFactory = new LipidChainFactory();
+    IMolecularFormula lipidChainFormula = lipidChainFactory.buildLipidChainFormula(
+        LipidChainType.ACYL_CHAIN, 18, 2);
+    String acylChainFormulaString = MolecularFormulaManipulator.getString(lipidChainFormula);
+    Assertions.assertEquals(fattyAcidFormula, acylChainFormulaString,
+        fattyAcidFormula + " is not the correct formula for FA 18:2. Correct formula is: "
+            + acylChainFormulaString);
+  }
+
+  @Test
+  void testFattyAlkylFormulaEqualsAlkylChainFormula() {
+    String fattyAcidFormula = CHAIN_TOOLS.calculateHydroCarbonFormula(18, 2);
+    LipidChainFactory lipidChainFactory = new LipidChainFactory();
+    IMolecularFormula lipidChainFormula = lipidChainFactory.buildLipidChainFormula(
+        LipidChainType.ALKYL_CHAIN, 18, 2);
+    String acylChainFormulaString = MolecularFormulaManipulator.getString(lipidChainFormula);
+    Assertions.assertEquals(fattyAcidFormula, acylChainFormulaString,
+        fattyAcidFormula + " is not the correct formula for FA 18:2. Correct formula is: "
+            + acylChainFormulaString);
   }
 
   @Test

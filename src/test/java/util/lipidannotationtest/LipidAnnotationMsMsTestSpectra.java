@@ -424,14 +424,14 @@ public class LipidAnnotationMsMsTestSpectra {
     return LPA_16_0MMinusH;
   }
 
-  private final LipidAnnotationMsMsTestResource CL_70_4_MPlusNH4 = new LipidAnnotationMsMsTestResource(
+  private final LipidAnnotationMsMsTestResource CL_70_5_MPlusNH4 = new LipidAnnotationMsMsTestResource(
       new double[]{1430.011, 601.519, 577.519}, //
       IonizationType.AMMONIUM, //
       LIPID_FACTORY.buildSpeciesLevelLipid(
-          LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS, 70, 4, 0));
+          LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS, 70, 5, 0));
 
-  public LipidAnnotationMsMsTestResource getCL_70_4_MPlusNH4() {
-    return CL_70_4_MPlusNH4;
+  public LipidAnnotationMsMsTestResource getCL_70_5_MPlusNH4() {
+    return CL_70_5_MPlusNH4;
   }
 
   private final LipidAnnotationMsMsTestResource CL_70_5_MMinusH = new LipidAnnotationMsMsTestResource(

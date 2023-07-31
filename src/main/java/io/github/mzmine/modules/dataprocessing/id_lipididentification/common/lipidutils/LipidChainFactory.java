@@ -31,7 +31,9 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidDiHydroxyBackboneChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.TwoAcylLipidChains;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -54,6 +56,8 @@ public class LipidChainFactory {
         yield new AcylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
       case ACYL_MONO_HYDROXY_CHAIN:
         yield null;
+      case TWO_ACYL_CHAINS_COMBINED:
+        yield new TwoAcylLipidChains(chainAnnotation, chainFormula, chainLength, numberOfDBE);
       case ALKYL_CHAIN:
         yield new AlkylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
       case AMID_CHAIN:
@@ -78,6 +82,7 @@ public class LipidChainFactory {
     return switch (chainType) {
       case ACYL_CHAIN -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ACYL_MONO_HYDROXY_CHAIN -> null; //TODO
+      case TWO_ACYL_CHAINS_COMBINED -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
       case AMID_CHAIN -> calculateMolecularFormulaAmidChain(chainLength, numberOfDBE);//TODO
       case AMID_MONO_HYDROXY_CHAIN -> null;//TODO
@@ -89,6 +94,26 @@ public class LipidChainFactory {
           calculateMolecularFormulaSphingolipidBackboneChain(chainLength, numberOfDBE, chainType);
     };
   }
+
+  public List<ILipidChain> buildLipidChainsInRange(LipidChainType chainType, int minChainLength,
+      int maxChainLength, int minDBEs, int maxDBEs, boolean onlySearchForEvenChainLengths) {
+    List<ILipidChain> lipidChains = new ArrayList<>();
+    for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
+      if (onlySearchForEvenChainLengths && chainLength % 2 != 0) {
+        continue;
+      }
+      for (int numberOfDBEs = minDBEs; numberOfDBEs <= maxDBEs; numberOfDBEs++) {
+
+        if (chainLength / 2 < numberOfDBEs) {
+          continue;
+        }
+        ILipidChain chain = buildLipidChain(chainType, chainLength, numberOfDBEs);
+        lipidChains.add(chain);
+      }
+    }
+    return lipidChains;
+  }
+
 
   private IMolecularFormula calculateMolecularFormulaAcylChain(int chainLength,
       int numberOfDoubleBonds) {
@@ -126,6 +151,7 @@ public class LipidChainFactory {
     return switch (chainType) {
       case ACYL_CHAIN -> chainLength + ":" + numberOfDBE;
       case ACYL_MONO_HYDROXY_CHAIN -> chainLength + ":" + numberOfDBE + ";O";
+      case TWO_ACYL_CHAINS_COMBINED -> chainLength + ":" + numberOfDBE;
       case ALKYL_CHAIN -> "O-" + chainLength + ":" + numberOfDBE;
       case AMID_CHAIN -> chainLength + ":" + numberOfDBE;
       case AMID_MONO_HYDROXY_CHAIN -> chainLength + ":" + numberOfDBE + ";O";

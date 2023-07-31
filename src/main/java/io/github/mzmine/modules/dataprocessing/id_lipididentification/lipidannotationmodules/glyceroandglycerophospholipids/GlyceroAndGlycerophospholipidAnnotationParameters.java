@@ -34,9 +34,9 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
@@ -56,28 +56,27 @@ public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimplePar
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
           List.of(LipidCategories.GLYCEROLIPIDS, LipidCategories.GLYCEROPHOSPHOLIPIDS)).toArray());
 
-  public static final IntRangeParameter chainLength = new IntRangeParameter(
-      "Number of carbon atoms in chains", "Number of carbon atoms in chains");
+  public static final ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters>(
+      "Side chain parameters", "Optionally modify lipid chain parameters",
+      new GlyceroAndGlycerophospholipidAnnotationChainParameters());
 
-  public static final IntRangeParameter doubleBonds =
-      new IntRangeParameter("Number of double bonds in chains", "Number of double bonds in chains");
 
-  public static final MZToleranceParameter mzTolerance =
-      new MZToleranceParameter("m/z tolerance MS1 level:",
-          "Enter m/z tolerance for exact mass database matching on MS1 level");
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      "m/z tolerance MS1 level:",
+      "Enter m/z tolerance for exact mass database matching on MS1 level");
 
   public static final OptionalModuleParameter<GlyceroAndGlycerophospholipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
       "Search for lipid class specific fragments in MS/MS spectra",
       "Search for lipid class specific fragments in MS/MS spectra",
       new GlyceroAndGlycerophospholipidAnnotationMSMSParameters());
 
-  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses =
-      new OptionalParameter<>(new CustomLipidClassChoiceParameter("Search for custom lipid class",
+  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses = new OptionalParameter<>(
+      new CustomLipidClassChoiceParameter("Search for custom lipid class",
           "If checked the algorithm searches for custom, by the user defined lipid classes",
           new CustomLipidClass[0]));
 
   public GlyceroAndGlycerophospholipidAnnotationParameters() {
-    super(new Parameter[]{featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
+    super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
             searchForMSMSFragments, customLipidClasses},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }

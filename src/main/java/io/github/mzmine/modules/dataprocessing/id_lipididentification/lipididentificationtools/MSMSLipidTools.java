@@ -93,27 +93,27 @@ public class MSMSLipidTools {
       case HEADGROUP_FRAGMENT_NL:
         return checkForHeadgroupFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
             msMsScan);
-      case ACYLCHAIN_FRAGMENT:
-        return checkForAcylChainFragment(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
-            msMsScan);
-      case ACYLCHAIN_FRAGMENT_NL:
-        return checkForAcylChainFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
-            msMsScan);
-      case ACYLCHAIN_MINUS_FORMULA_FRAGMENT:
-        return checkForAcylChainMinusFormulaFragment(rule, mzTolRangeMSMS, lipidAnnotation,
-            dataPoint, msMsScan);
-      case ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL:
-        return checkForAcylChainMinusFormulaFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation,
-            dataPoint, msMsScan);
-      case ACYLCHAIN_PLUS_FORMULA_FRAGMENT:
-        return checkForAcylChainPlusFormulaFragment(rule, mzTolRangeMSMS, lipidAnnotation,
-            dataPoint, msMsScan);
-      case ACYLCHAIN_PLUS_FORMULA_FRAGMENT_NL:
-        return checkForAcylChainPlusFormulaFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation,
-            dataPoint, msMsScan);
-      case TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT:
-        return checkForTwoAcylChainsPlusFormulaFragment(rule, mzTolRangeMSMS, lipidAnnotation,
-            dataPoint, msMsScan);
+//      case ACYLCHAIN_FRAGMENT:
+//        return checkForAcylChainFragment(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
+//            msMsScan);
+//      case ACYLCHAIN_FRAGMENT_NL:
+//        return checkForAcylChainFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
+//            msMsScan);
+//      case ACYLCHAIN_MINUS_FORMULA_FRAGMENT:
+//        return checkForAcylChainMinusFormulaFragment(rule, mzTolRangeMSMS, lipidAnnotation,
+//            dataPoint, msMsScan);
+//      case ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL:
+//        return checkForAcylChainMinusFormulaFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation,
+//            dataPoint, msMsScan);
+//      case ACYLCHAIN_PLUS_FORMULA_FRAGMENT:
+//        return checkForAcylChainPlusFormulaFragment(rule, mzTolRangeMSMS, lipidAnnotation,
+//            dataPoint, msMsScan);
+//      case ACYLCHAIN_PLUS_FORMULA_FRAGMENT_NL:
+//        return checkForAcylChainPlusFormulaFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation,
+//            dataPoint, msMsScan);
+//      case TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT:
+//        return checkForTwoAcylChainsPlusFormulaFragment(rule, mzTolRangeMSMS, lipidAnnotation,
+//            dataPoint, msMsScan);
       case ALKYLCHAIN_FRAGMENT:
         return checkForAlkylChainFragment(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
             msMsScan);
@@ -204,172 +204,172 @@ public class MSMSLipidTools {
   }
 
   // Acly Chains
-  private LipidFragment checkForAcylChainFragment(LipidFragmentationRule rule,
-      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
-      Scan msMsScan) {
-
-    if (rule.getPolarityType().equals(PolarityType.NEGATIVE)) {
-      List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
-      for (String fattyAcidFormula : fattyAcidFormulas) {
-        Double mzExact = FormulaUtils.calculateExactMass(fattyAcidFormula)
-            + IonizationType.NEGATIVE_HYDROGEN.getAddedMass();
-        if (mzTolRangeMSMS.contains(mzExact)) {
-          int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
-          int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
-          return new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
-              lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-              LipidChainType.ACYL_CHAIN, msMsScan);
-        }
-      }
-    }
-
-    return null;
-  }
-
-  private LipidFragment checkForAcylChainFragmentNL(LipidFragmentationRule rule,
-      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
-      Scan msMsScan) {
-    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
-    Double mzPrecursorExact =
-        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
-            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
-    for (String fattyAcidFormula : fattyAcidFormulas) {
-      Double mzFattyAcid = FormulaUtils.calculateExactMass(fattyAcidFormula);
-      Double mzExact = mzPrecursorExact - mzFattyAcid;
-      if (mzTolRangeMSMS.contains(mzExact)) {
-        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
-        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
-        return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
-            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
-      }
-    }
-    return null;
-  }
-
-
-  private LipidFragment checkForAcylChainMinusFormulaFragment(LipidFragmentationRule rule,
-      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
-      Scan msMsScan) {
-
-    if (rule.getPolarityType().equals(PolarityType.NEGATIVE)) {
-      String fragmentFormula = rule.getMolecularFormula();
-      Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
-      List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
-      for (String fattyAcidFormula : fattyAcidFormulas) {
-//        @Ansgar the result is not used and the method itself is buggy as hell - please write a test
-//        FormulaUtils.ionizeFormula(fattyAcidFormula, IonizationType.NEGATIVE_HYDROGEN, 1);
-        Double mzExact = FormulaUtils.calculateExactMass(fattyAcidFormula) - mzFragmentExact;
-        if (mzTolRangeMSMS.contains(mzExact)) {
-          int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
-          int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
-          return new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
-              lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-              LipidChainType.ACYL_CHAIN, msMsScan);
-        }
-      }
-    }
-    return null;
-  }
-
-  private LipidFragment checkForAcylChainMinusFormulaFragmentNL(LipidFragmentationRule rule,
-      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
-      Scan msMsScan) {
-
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzPrecursorExact =
-        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
-            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
-    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
-    for (String fattyAcidFormula : fattyAcidFormulas) {
-      Double mzExact =
-          mzPrecursorExact - FormulaUtils.calculateExactMass(fattyAcidFormula) - mzFragmentExact;
-      if (mzTolRangeMSMS.contains(mzExact)) {
-        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
-        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
-        return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
-            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
-      }
-    }
-    return null;
-  }
-
-  private LipidFragment checkForAcylChainPlusFormulaFragment(LipidFragmentationRule rule,
-      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
-      Scan msMsScan) {
-
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
-    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
-    for (String fattyAcidFormula : fattyAcidFormulas) {
-      Double mzExact = FormulaUtils.calculateExactMass(fattyAcidFormula) + mzFragmentExact;
-      mzExact = ionizeFragmentBasedOnPolarity(mzExact, rule.getPolarityType());
-      if (mzTolRangeMSMS.contains(mzExact)) {
-        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
-        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
-        return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
-            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
-      }
-    }
-    return null;
-  }
-
-  private LipidFragment checkForAcylChainPlusFormulaFragmentNL(LipidFragmentationRule rule,
-      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
-      Scan msMsScan) {
-
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzPrecursorExact =
-        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
-            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
-    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
-    for (String fattyAcidFormula : fattyAcidFormulas) {
-      Double mzExact =
-          mzPrecursorExact - FormulaUtils.calculateExactMass(fattyAcidFormula) + mzFragmentExact;
-      if (mzTolRangeMSMS.contains(mzExact)) {
-        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
-        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
-        return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
-            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
-      }
-    }
-    return null;
-  }
-
-  private LipidFragment checkForTwoAcylChainsPlusFormulaFragment(LipidFragmentationRule rule,
-      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
-      Scan msMsScan) {
-
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
-    List<String> fattyAcidFormulasOne = CHAIN_TOOLS.calculateFattyAcidFormulas();
-    List<String> fattyAcidFormulasTwo = CHAIN_TOOLS.calculateFattyAcidFormulas();
-    for (int i = 0; i < fattyAcidFormulasOne.size(); i++) {
-      Double mzFattyAcidOne = FormulaUtils.calculateExactMass(fattyAcidFormulasOne.get(i));
-      for (int j = 0; j < fattyAcidFormulasTwo.size(); j++) {
-        Double mzFattyAcidTwo = FormulaUtils.calculateExactMass(fattyAcidFormulasTwo.get(j));
-        Double mzExact = mzFattyAcidOne + mzFattyAcidTwo + mzFragmentExact;
-        mzExact = ionizeFragmentBasedOnPolarity(mzExact, rule.getPolarityType());
-        if (mzTolRangeMSMS.contains(mzFattyAcidOne + mzFattyAcidTwo + mzFragmentExact)) {
-          return new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
-              lipidAnnotation.getLipidClass(), null, null, null, msMsScan);
-        }
-      }
-    }
-    return null;
-  }
+//  private LipidFragment checkForAcylChainFragment(LipidFragmentationRule rule,
+//      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+//      Scan msMsScan) {
+//
+//    if (rule.getPolarityType().equals(PolarityType.NEGATIVE)) {
+//      List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//      for (String fattyAcidFormula : fattyAcidFormulas) {
+//        Double mzExact = FormulaUtils.calculateExactMass(fattyAcidFormula)
+//            + IonizationType.NEGATIVE_HYDROGEN.getAddedMass();
+//        if (mzTolRangeMSMS.contains(mzExact)) {
+//          int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
+//          int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
+//          return new LipidFragment(rule.getLipidFragmentationRuleType(),
+//              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+//              lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
+//              LipidChainType.ACYL_CHAIN, msMsScan);
+//        }
+//      }
+//    }
+//
+//    return null;
+//  }
+//
+//  private LipidFragment checkForAcylChainFragmentNL(LipidFragmentationRule rule,
+//      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+//      Scan msMsScan) {
+//    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//    Double mzPrecursorExact =
+//        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
+//            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
+//    for (String fattyAcidFormula : fattyAcidFormulas) {
+//      Double mzFattyAcid = FormulaUtils.calculateExactMass(fattyAcidFormula);
+//      Double mzExact = mzPrecursorExact - mzFattyAcid;
+//      if (mzTolRangeMSMS.contains(mzExact)) {
+//        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
+//        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
+//        return new LipidFragment(rule.getLipidFragmentationRuleType(),
+//            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+//            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
+//            LipidChainType.ACYL_CHAIN, msMsScan);
+//      }
+//    }
+//    return null;
+//  }
+//
+//
+//  private LipidFragment checkForAcylChainMinusFormulaFragment(LipidFragmentationRule rule,
+//      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+//      Scan msMsScan) {
+//
+//    if (rule.getPolarityType().equals(PolarityType.NEGATIVE)) {
+//      String fragmentFormula = rule.getMolecularFormula();
+//      Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+//      List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//      for (String fattyAcidFormula : fattyAcidFormulas) {
+////        @Ansgar the result is not used and the method itself is buggy as hell - please write a test
+////        FormulaUtils.ionizeFormula(fattyAcidFormula, IonizationType.NEGATIVE_HYDROGEN, 1);
+//        Double mzExact = FormulaUtils.calculateExactMass(fattyAcidFormula) - mzFragmentExact;
+//        if (mzTolRangeMSMS.contains(mzExact)) {
+//          int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
+//          int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
+//          return new LipidFragment(rule.getLipidFragmentationRuleType(),
+//              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+//              lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
+//              LipidChainType.ACYL_CHAIN, msMsScan);
+//        }
+//      }
+//    }
+//    return null;
+//  }
+//
+//  private LipidFragment checkForAcylChainMinusFormulaFragmentNL(LipidFragmentationRule rule,
+//      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+//      Scan msMsScan) {
+//
+//    String fragmentFormula = rule.getMolecularFormula();
+//    Double mzPrecursorExact =
+//        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
+//            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
+//    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+//    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//    for (String fattyAcidFormula : fattyAcidFormulas) {
+//      Double mzExact =
+//          mzPrecursorExact - FormulaUtils.calculateExactMass(fattyAcidFormula) - mzFragmentExact;
+//      if (mzTolRangeMSMS.contains(mzExact)) {
+//        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
+//        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
+//        return new LipidFragment(rule.getLipidFragmentationRuleType(),
+//            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+//            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
+//            LipidChainType.ACYL_CHAIN, msMsScan);
+//      }
+//    }
+//    return null;
+//  }
+//
+//  private LipidFragment checkForAcylChainPlusFormulaFragment(LipidFragmentationRule rule,
+//      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+//      Scan msMsScan) {
+//
+//    String fragmentFormula = rule.getMolecularFormula();
+//    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+//    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//    for (String fattyAcidFormula : fattyAcidFormulas) {
+//      Double mzExact = FormulaUtils.calculateExactMass(fattyAcidFormula) + mzFragmentExact;
+//      mzExact = ionizeFragmentBasedOnPolarity(mzExact, rule.getPolarityType());
+//      if (mzTolRangeMSMS.contains(mzExact)) {
+//        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
+//        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
+//        return new LipidFragment(rule.getLipidFragmentationRuleType(),
+//            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+//            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
+//            LipidChainType.ACYL_CHAIN, msMsScan);
+//      }
+//    }
+//    return null;
+//  }
+//
+//  private LipidFragment checkForAcylChainPlusFormulaFragmentNL(LipidFragmentationRule rule,
+//      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+//      Scan msMsScan) {
+//
+//    String fragmentFormula = rule.getMolecularFormula();
+//    Double mzPrecursorExact =
+//        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
+//            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
+//    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+//    List<String> fattyAcidFormulas = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//    for (String fattyAcidFormula : fattyAcidFormulas) {
+//      Double mzExact =
+//          mzPrecursorExact - FormulaUtils.calculateExactMass(fattyAcidFormula) + mzFragmentExact;
+//      if (mzTolRangeMSMS.contains(mzExact)) {
+//        int chainLength = CHAIN_TOOLS.getChainLengthFromFormula(fattyAcidFormula);
+//        int numberOfDoubleBonds = CHAIN_TOOLS.getNumberOfDoubleBondsFromFormula(fattyAcidFormula);
+//        return new LipidFragment(rule.getLipidFragmentationRuleType(),
+//            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+//            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
+//            LipidChainType.ACYL_CHAIN, msMsScan);
+//      }
+//    }
+//    return null;
+//  }
+//
+//  private LipidFragment checkForTwoAcylChainsPlusFormulaFragment(LipidFragmentationRule rule,
+//      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+//      Scan msMsScan) {
+//
+//    String fragmentFormula = rule.getMolecularFormula();
+//    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+//    List<String> fattyAcidFormulasOne = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//    List<String> fattyAcidFormulasTwo = CHAIN_TOOLS.calculateFattyAcidFormulas();
+//    for (int i = 0; i < fattyAcidFormulasOne.size(); i++) {
+//      Double mzFattyAcidOne = FormulaUtils.calculateExactMass(fattyAcidFormulasOne.get(i));
+//      for (int j = 0; j < fattyAcidFormulasTwo.size(); j++) {
+//        Double mzFattyAcidTwo = FormulaUtils.calculateExactMass(fattyAcidFormulasTwo.get(j));
+//        Double mzExact = mzFattyAcidOne + mzFattyAcidTwo + mzFragmentExact;
+//        mzExact = ionizeFragmentBasedOnPolarity(mzExact, rule.getPolarityType());
+//        if (mzTolRangeMSMS.contains(mzFattyAcidOne + mzFattyAcidTwo + mzFragmentExact)) {
+//          return new LipidFragment(rule.getLipidFragmentationRuleType(),
+//              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+//              lipidAnnotation.getLipidClass(), null, null, null, msMsScan);
+//        }
+//      }
+//    }
+//    return null;
+//  }
 
   // Alkyl Chains
   private LipidFragment checkForAlkylChainFragment(LipidFragmentationRule rule,

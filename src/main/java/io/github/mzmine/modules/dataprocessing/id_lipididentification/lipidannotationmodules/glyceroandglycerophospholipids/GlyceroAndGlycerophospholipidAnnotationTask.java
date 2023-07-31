@@ -84,6 +84,7 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
   private final int maxChainLength;
   private final int maxDoubleBonds;
   private final int minDoubleBonds;
+  private final Boolean onlySearchForEvenChains;
   private final MZTolerance mzTolerance;
   private MZTolerance mzToleranceMS2;
   private final Boolean searchForMSMSFragments;
@@ -99,13 +100,33 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
     this.parameters = parameters;
 
     this.minChainLength = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().lowerEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minChainLength)
+        .getValue();
     this.maxChainLength = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.chainLength).getValue().upperEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.maxChainLength)
+        .getValue();
     this.minDoubleBonds = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().lowerEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minDBEs).getValue();
     this.maxDoubleBonds = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.doubleBonds).getValue().upperEndpoint();
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.maxDBEs).getValue();
+    this.onlySearchForEvenChains = parameters.getParameter(
+            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getParameter(
+            GlyceroAndGlycerophospholipidAnnotationChainParameters.onlySearchForEvenChainLength)
+        .getValue();
+    this.mzToleranceMS2 = parameters.getParameter(
+            GlyceroAndGlycerophospholipidAnnotationParameters.searchForMSMSFragments)
+        .getEmbeddedParameters()
+        .getParameter(GlyceroAndGlycerophospholipidAnnotationMSMSParameters.mzToleranceMS2)
+        .getValue();
     this.mzTolerance = parameters.getParameter(
         GlyceroAndGlycerophospholipidAnnotationParameters.mzTolerance).getValue();
     Object[] selectedObjects = parameters.getParameter(
@@ -218,8 +239,16 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
 
       // TODO starting point to extend for better oxidized lipid support
       int numberOfAdditionalOxygens = 0;
-      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds = minDoubleBonds; chainDoubleBonds <= maxDoubleBonds;
+      int minTotalChainLength = minChainLength * lipidClass.getChainTypes().length;
+      int maxTotalChainLength = maxChainLength * lipidClass.getChainTypes().length;
+      int minTotalDoubleBonds = minDoubleBonds * lipidClass.getChainTypes().length;
+      int maxTotalDoubleBonds = maxDoubleBonds * lipidClass.getChainTypes().length;
+      for (int chainLength = minTotalChainLength; chainLength <= maxTotalChainLength;
+          chainLength++) {
+        if (onlySearchForEvenChains && chainLength % 2 != 0) {
+          continue;
+        }
+        for (int chainDoubleBonds = minTotalDoubleBonds; chainDoubleBonds <= maxTotalDoubleBonds;
             chainDoubleBonds++) {
 
           if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
@@ -314,7 +343,10 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
             Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(dataPoint.getMZ());
             ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
                 mzTolRangeMSMS, lipid, ionization, rules,
-                new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan);
+                new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
+                parameters.getParameter(
+                        GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+                    .getEmbeddedParameters());
             LipidFragment annotatedFragment = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragment();
             if (annotatedFragment != null) {
               annotatedFragments.add(annotatedFragment);

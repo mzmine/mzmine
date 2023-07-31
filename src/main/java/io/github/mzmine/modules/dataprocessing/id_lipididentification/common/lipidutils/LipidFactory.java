@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.ChainTools;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class LipidFactory {
 
   private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
+  private static final ChainTools CHAIN_Tools = new ChainTools();
 
   public SpeciesLevelAnnotation buildSpeciesLevelLipid(ILipidClass lipidClass, int numberOfCarbons,
       int numberOfDBEs, int numberOfAdditionalOxygens) {
@@ -240,6 +242,7 @@ public class LipidFactory {
     return switch (type) {
       case ACYL_CHAIN -> doEsterBonding(lipidBackbone, chainFormula);
       case ACYL_MONO_HYDROXY_CHAIN -> doEsterBonding(lipidBackbone, chainFormula);
+      case TWO_ACYL_CHAINS_COMBINED -> doEsterBonding(lipidBackbone, chainFormula);
       case ALKYL_CHAIN -> doEtherBonding(lipidBackbone, chainFormula);
       case AMID_CHAIN -> doAmidBonding(lipidBackbone, chainFormula);
       case AMID_MONO_HYDROXY_CHAIN -> doAmidBonding(lipidBackbone, chainFormula);
@@ -279,7 +282,7 @@ public class LipidFactory {
       IMolecularFormula chainFormula) {
     IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
-    FormulaUtils.subtractFormula(product, FormulaUtils.createMajorIsotopeMolFormula("C3H6"));
+    CHAIN_Tools.removeSphingolipidBackboneAtomsFromMolecularFormula(product);
     return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 
