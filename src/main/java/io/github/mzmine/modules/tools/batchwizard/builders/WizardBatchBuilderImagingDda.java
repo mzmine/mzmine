@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,13 +27,25 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
@@ -51,7 +63,8 @@ import java.util.Optional;
 
 public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
-  private final Integer minDataPoints;
+  private final Integer minNumberOfPixels;
+  private final Boolean enableDeisotoping;
 
   public WizardBatchBuilderImagingDda(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -59,7 +72,8 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
     // special workflow parameter are extracted here
-    minDataPoints = getValue(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
+    minNumberOfPixels = getValue(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
+    enableDeisotoping = getValue(params, IonInterfaceImagingWizardParameters.enableDeisotoping);
 
 //    // DDA workflow parameters
 //    params = steps.get(WizardPart.WORKFLOW);
@@ -81,9 +95,13 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
-      makeAndAddSmoothingStep(q, false, minDataPoints, imsSmoothing);
+      makeAndAddSmoothingStep(q, false, minImsDataPoints, imsSmoothing);
       makeAndAddMobilityResolvingStep(q, null);
-      makeAndAddSmoothingStep(q, false, minDataPoints, imsSmoothing);
+      makeAndAddSmoothingStep(q, false, minImsDataPoints, imsSmoothing);
+    }
+
+    if (enableDeisotoping) {
+      makeAndAddDeisotopingStep(q, null);
     }
 
     makeAndAddIsotopeFinderStep(q);
@@ -95,6 +113,59 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     return q;
   }
 
+  @Override
+  protected void makeAndAddImportTask(final BatchQueue q) {
+    // todo make auto mass detector work, so we can use it here.
+
+    if (isImsActive && imsInstrumentType == MobilityType.TIMS) {
+      final ParameterSet param = MZmineCore.getConfiguration()
+          .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
+      final AdvancedSpectraImportParameters advancedParam = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
+
+      final CentroidMassDetector massDetector = MassDetectionParameters.centroid;
+      final ParameterSet massDetectorParam = MZmineCore.getConfiguration()
+          .getModuleParameters(CentroidMassDetector.class).cloneParameterSet();
+      massDetectorParam.setParameter(CentroidMassDetectorParameters.noiseLevel, noiseLevelMs1);
+      massDetectorParam.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
+      MZmineProcessingStep<MassDetector> massDetectorStep = new MZmineProcessingStepImpl<>(
+          massDetector, massDetectorParam);
+      advancedParam.setParameter(AdvancedSpectraImportParameters.msMassDetection, true,
+          massDetectorStep);
+
+      param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(true);
+      param.getParameter(AllSpectralDataImportParameters.advancedImport)
+          .setEmbeddedParameters(advancedParam);
+      param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
+      param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
+
+      q.add(new MZmineProcessingStepImpl<>(
+          MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
+    } else {
+      super.makeAndAddImportTask(q);
+    }
+  }
+
+  @Override
+  protected void makeAndAddImsExpanderStep(final BatchQueue q) {
+    ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
+        .cloneParameterSet();
+
+    param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
+    param.setParameter(ImsExpanderParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(ImsExpanderParameters.useRawData, false);
+    param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter()
+        .setValue(noiseLevelMs1);
+    param.setParameter(ImsExpanderParameters.mzTolerance, true);
+    param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
+        .setValue(mzTolScans);
+    param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
+    param.setParameter(ImsExpanderParameters.maxNumTraces, true, 5);
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
+        param));
+  }
+
 
   protected void makeAndImageBuilderStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -102,16 +173,15 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
-    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
-        new ScanSelection( 1));
+    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
     param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
     param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minFeatureHeight);
     param.setParameter(ImageBuilderParameters.minimumConsecutiveScans, 5);
-    param.setParameter(ImageBuilderParameters.minTotalSignals, minDataPoints);
+    param.setParameter(ImageBuilderParameters.minTotalSignals, minNumberOfPixels);
     param.setParameter(ImageBuilderParameters.suffix, "images");
 
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(ImageBuilderModule.class), param));
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImageBuilderModule.class),
+        param));
   }
 
 
@@ -137,6 +207,13 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
         param));
+  }
+
+  protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
+    if (isImsActive && imsInstrumentType == MobilityType.TIMS) {
+      makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
+      makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
+    }
   }
 
 }
