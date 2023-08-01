@@ -438,7 +438,7 @@ public class MainWindowController {
             if (MZmineCore.getDesktop().displayConfirmation(
                 "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
                     + "The amount of information may crash MZmine.\n"
-                    + "ould you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
+                    + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
                 == ButtonType.NO) {
               return;
             }
