@@ -40,7 +40,7 @@ public class ExportAllIdsGraphicalModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "Export all library identifications";
+    return "Spectral library/lipid matches to pdf";
   }
 
   @Override

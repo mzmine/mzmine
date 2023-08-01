@@ -332,7 +332,7 @@
         userData="io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule"/>
       <MenuItem text="FeatureML" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
-      <MenuItem text="All spectral library matches to pdf" onAction="#runModule"
+      <MenuItem text="Spectral library/lipid matches to pdf" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule"/>
     </Menu>
 

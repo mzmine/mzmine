@@ -25,11 +25,13 @@
 
 package io.github.mzmine.modules.io.export_features_all_speclib_matches;
 
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
@@ -44,8 +46,12 @@ public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
       "Set the number of matches to export. 1 will only export the best/selected match.", 1, 1,
       Integer.MAX_VALUE);
 
+  public static final ParameterSetParameter<GraphicsExportParameters> export = new ParameterSetParameter<>(
+      "Chart export parameters", "Set the parameters for lipid charts.",
+      new GraphicsExportParameters());
+
   public ExportAllIdsGraphicalParameters() {
-    super(flists, dir, numMatches);
+    super(flists, dir, numMatches, export);
   }
 
   @Override
