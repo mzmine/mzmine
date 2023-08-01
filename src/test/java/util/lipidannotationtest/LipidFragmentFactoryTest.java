@@ -181,6 +181,26 @@ public class LipidFragmentFactoryTest {
     compareTestAndBuildLipidFragments(lipidAcylChainFragment, testLipidAcylChainFragment);
   }
 
+  @Test
+  void findGlyceroAndGlyceroPhospholipidSpecificLipidAlkylChainPlusFormulaFragment() {
+    ILipidAnnotation testLipidAnnotationPI_18_0_20_4 = LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+        LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS, new int[]{16, 20}, new int[]{0, 4},
+        new int[]{0, 0});
+    DataPoint testDataPointAcylChain = new SimpleDataPoint(377.2462, 1);
+    LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS.getFragmentationRules();
+    GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
+        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
+        testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN, lipidFragmentationRules,
+        testDataPointAcylChain, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
+    LipidFragment lipidAcylChainFragment = lipidFragmentFactory.findLipidFragment();
+    LipidFragment testLipidAcylChainFragment = new LipidFragment(
+        LipidFragmentationRuleType.ALKYLCHAIN_PLUS_FORMULA_FRAGMENT,
+        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, 377.2462, testDataPointAcylChain,
+        LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS, 16, 0, LipidChainType.ALKYL_CHAIN,
+        TEST_SCAN);
+    compareTestAndBuildLipidFragments(lipidAcylChainFragment, testLipidAcylChainFragment);
+  }
+
 
   private static void compareTestAndBuildLipidFragments(LipidFragment buildLipidFragment,
       LipidFragment testLipidFragment) {

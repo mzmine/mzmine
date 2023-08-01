@@ -35,19 +35,25 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.GlyceroAndGlyceroPhospholipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.HashSet;
 import java.util.Set;
-import junit.framework.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class LipidAnnotationTest {
 
-  private static final LipidAnnotationMsMsTestSpectra MSMS_TEST_SPECTRA =
-      new LipidAnnotationMsMsTestSpectra();
+  private static final LipidAnnotationMsMsTestSpectra MSMS_TEST_SPECTRA = new LipidAnnotationMsMsTestSpectra();
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
+
+  public static final ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters> LIPID_CHAIN_PARAMETERS = new ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters>(
+      "Side chain parameters", "Optionally modify lipid chain parameters",
+      new GlyceroAndGlycerophospholipidAnnotationChainParameters());
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
   // Glycerlipids##############################################################################
@@ -333,32 +339,30 @@ class LipidAnnotationTest {
     if (rules != null && rules.length > 0) {
       for (int j = 0; j < massList.length; j++) {
         Range<Double> mzTolRangeMSMS = mzTolerance.getToleranceRange(massList[j].getMZ());
-        LipidFragment annotatedFragment =
-            MSMS_LIPID_TOOLS.checkForClassSpecificFragment(mzTolRangeMSMS, speciesLevelAnnotation,
-                testSpectrum.getIonizationType(), rules, massList[j], null);
+        GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
+            mzTolRangeMSMS, speciesLevelAnnotation, testSpectrum.getIonizationType(), rules,
+            massList[j], null, LIPID_CHAIN_PARAMETERS.getEmbeddedParameters());
+        LipidFragment annotatedFragment = lipidFragmentFactory.findLipidFragment();
         if (annotatedFragment != null) {
           annotatedFragments.add(annotatedFragment);
         }
       }
     }
 
-    Assert.assertTrue("No fragments detected", annotatedFragments.size() >= 1);
-    if (!annotatedFragments.isEmpty()) {
+    Assertions.assertTrue(annotatedFragments.size() >= 1, "No fragments detected");
+    // check for class specific fragments like head group fragment
+    if (testSpectrum.getTestLipid() instanceof SpeciesLevelAnnotation) {
+      matchedLipids.add(MSMS_LIPID_TOOLS.confirmSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
+          annotatedFragments, massList, 0.0, mzTolerance, testSpectrum.getIonizationType()));
+    } else if (testSpectrum.getTestLipid() instanceof MolecularSpeciesLevelAnnotation) {
 
-      // check for class specific fragments like head group fragment
-      if (testSpectrum.getTestLipid() instanceof SpeciesLevelAnnotation) {
-        matchedLipids
-            .add(MSMS_LIPID_TOOLS.confirmSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
-                annotatedFragments, massList, 0.0, mzTolerance, testSpectrum.getIonizationType()));
-      } else if (testSpectrum.getTestLipid() instanceof MolecularSpeciesLevelAnnotation) {
-
-        // predict molecular species level annotations
-        matchedLipids.addAll(MSMS_LIPID_TOOLS.predictMolecularSpeciesLevelAnnotation(
-            annotatedFragments, speciesLevelAnnotation, 0.0, massList, 0.0, mzTolerance,
-            testSpectrum.getIonizationType()));
-      }
+      // predict molecular species level annotations
+      matchedLipids.addAll(
+          MSMS_LIPID_TOOLS.predictMolecularSpeciesLevelAnnotation(annotatedFragments,
+              speciesLevelAnnotation, 0.0, massList, 0.0, mzTolerance,
+              testSpectrum.getIonizationType()));
     }
-    Assert.assertTrue("No lipid was matched", matchedLipids.size() >= 1);
+    Assertions.assertTrue(matchedLipids.size() >= 1, "No lipid was matched");
 
     printMsMsSpectrumTestReport(matchedLipids, testSpectrum);
   }
@@ -387,7 +391,7 @@ class LipidAnnotationTest {
   private void printMsMsSpectrumTestReport(Set<MatchedLipid> matchedLipids,
       LipidAnnotationMsMsTestResource testResource) {
     for (MatchedLipid matchedLipid : matchedLipids) {
-      Assert.assertEquals(matchedLipid.getLipidAnnotation().getAnnotation(),
+      Assertions.assertEquals(matchedLipid.getLipidAnnotation().getAnnotation(),
           testResource.getTestLipid().getAnnotation());
       Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
       System.out.println("\n---Test Result for " + testResource.getTestLipid().getAnnotation() + " "

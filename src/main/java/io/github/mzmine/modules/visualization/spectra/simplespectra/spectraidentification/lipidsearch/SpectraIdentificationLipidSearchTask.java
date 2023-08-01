@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
@@ -36,8 +37,10 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.GlyceroAndGlyceroPhospholipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
@@ -91,6 +94,8 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
   private int finishedSteps = 0;
   private int totalSteps;
 
+  private final ParameterSet parameters;
+
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   /**
@@ -101,6 +106,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
   public SpectraIdentificationLipidSearchTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.parameters = parameters;
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
 
@@ -298,20 +304,25 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
   }
 
   private void searchMsmsFragments(IonizationType ionization, ILipidAnnotation lipid) {
-    MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
     LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
     if (rules.length > 0) {
       for (int i = 0; i < massList.length; i++) {
-        Range<Double> mzTolRange = mzTolerance.getToleranceRange(massList[i].getMZ());
-        LipidFragment annotatedFragment = msmsLipidTools.checkForClassSpecificFragment(mzTolRange,
-            lipid, ionization, rules, massList[i], currentScan);
+        //TODO this needs to be reworked to allow searching for all lipid categories
+        Range<Double> mzTolRangeMSMS = mzTolerance.getToleranceRange(massList[i].getMZ());
+        ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
+            mzTolRangeMSMS, lipid, ionization, rules,
+            new SimpleDataPoint(massList[i].getMZ(), massList[i].getIntensity()), currentScan,
+            parameters.getParameter(
+                    GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+                .getEmbeddedParameters());
+        LipidFragment annotatedFragment = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragment();
         if (annotatedFragment != null) {
           double relMassDev = ((annotatedFragment.getMzExact() - massList[i].getMZ())
               / annotatedFragment.getMzExact()) * 1000000;
           annotatedMassList.put(massList[i],
               annotatedFragment.getLipidClass().getAbbr() + " " + annotatedFragment.getRuleType()
-                  + " " + ionization.getAdductName() + ", Δ "
-                  + NumberFormat.getInstance().format(relMassDev) + " ppm");
+                  + " " + ionization.getAdductName() + ", Δ " + NumberFormat.getInstance()
+                  .format(relMassDev) + " ppm");
         }
       }
     }
