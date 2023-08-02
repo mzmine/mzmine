@@ -38,9 +38,9 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.GlyceroAndGlyceroPhospholipidFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.lipidfragmentannotation.GlyceroAndGlyceroPhospholipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;

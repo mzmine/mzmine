@@ -30,7 +30,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.ChainTools;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +40,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class LipidFactory {
 
   private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
-  private static final ChainTools CHAIN_Tools = new ChainTools();
 
   public SpeciesLevelAnnotation buildSpeciesLevelLipid(ILipidClass lipidClass, int numberOfCarbons,
       int numberOfDBEs, int numberOfAdditionalOxygens) {
@@ -282,7 +280,8 @@ public class LipidFactory {
       IMolecularFormula chainFormula) {
     IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
-    CHAIN_Tools.removeSphingolipidBackboneAtomsFromMolecularFormula(product);
+    //remove Sphingolipid backbone atoms from Formula
+    FormulaUtils.subtractFormula(product, FormulaUtils.createMajorIsotopeMolFormula("C3H6"));
     return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 

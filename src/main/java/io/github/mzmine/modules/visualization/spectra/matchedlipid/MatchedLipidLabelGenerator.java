@@ -86,15 +86,6 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
         break;
       }
 
-      // If we find higher data point, bail out
-      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i))) {
-        return null;
-      }
-
-      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i))) {
-        return null;
-      }
-
     }
 
     // Create label
@@ -114,12 +105,14 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
     StringBuilder sb = new StringBuilder();
     if (lipidFragment.getLipidFragmentInformationLevelType()
         .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-      sb.append(lipidFragment.getLipidChainType().getName()).append("\n")
+      sb.append(lipidFragment.getLipidChainType().getName()).append(" ")
           .append(lipidFragment.getChainLength()).append(":")
-          .append(lipidFragment.getNumberOfDBEs());
+          .append(lipidFragment.getNumberOfDBEs()).append("\n")
+          .append(lipidFragment.getIonFormula()).append("\n")
+          .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()));
     } else {
-      sb.append(lipidFragment.getRuleType().toString()).append(" ")
-          .append(lipidFragment.getIonFormula())
+      sb.append(lipidFragment.getRuleType().toString()).append("\n")
+          .append(lipidFragment.getIonFormula()).append("\n")
           .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()));
     }
     return sb.toString();

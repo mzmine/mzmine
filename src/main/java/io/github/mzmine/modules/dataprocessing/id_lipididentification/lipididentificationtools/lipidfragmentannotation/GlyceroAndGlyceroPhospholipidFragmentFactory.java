@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.lipidfragmentannotation;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -11,6 +11,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
