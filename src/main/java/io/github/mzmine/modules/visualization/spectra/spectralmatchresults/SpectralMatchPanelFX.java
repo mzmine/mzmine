@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -481,7 +481,7 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
   public void applySettings(@Nullable ParameterSet param) {
-    pnExport.getChildren().removeAll();
+    pnExport.getChildren().clear();
     if (param == null) {
       return;
     }
@@ -492,6 +492,9 @@ public class SpectralMatchPanelFX extends GridPane {
    * @param param {@link SpectraIdentificationResultsParameters}
    */
   private void addExportButtons(ParameterSet param) {
+    if (param == null) {
+      return;
+    }
     Button btnExport = null;
 
     // TODO does not work - so remove
