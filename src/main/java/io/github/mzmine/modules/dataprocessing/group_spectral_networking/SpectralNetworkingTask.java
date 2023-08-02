@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarityList;
@@ -79,11 +80,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class SpectralNetworkingTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(SpectralNetworkingTask.class.getName());
-
   public final static Function<List<DataPoint[]>, Integer> DIFF_OVERLAP = list -> ScanMZDiffConverter.getOverlapOfAlignedDiff(
       list, 0, 1);
   public final static Function<List<DataPoint[]>, Integer> SIZE_OVERLAP = SpectralNetworkingTask::calcOverlap;
+  private static final Logger logger = Logger.getLogger(SpectralNetworkingTask.class.getName());
   // Logger.
   private final AtomicLong processedPairs = new AtomicLong(0);
   private final int minMatch;
@@ -91,18 +91,19 @@ public class SpectralNetworkingTask extends AbstractTask {
   private final double minCosineSimilarity;
   private final int maxDPForDiff;
   private final boolean onlyBestMS2Scan;
+  private final ParameterSet params;
   private final ModularFeatureList featureList;
   // target
   private final boolean checkNeutralLoss;
   private final SpectralSignalFilter signalFilter;
-  private List<FeatureListRow> rows;
   private final double maxMzDelta;
-
+  private List<FeatureListRow> rows;
   private long totalMaxPairs = 0;
 
   public SpectralNetworkingTask(final ParameterSet params, @Nullable ModularFeatureList featureList,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.params = params;
     this.featureList = featureList;
     mzTolerance = params.getValue(SpectralNetworkingParameters.MZ_TOLERANCE);
     maxMzDelta = params.getEmbeddedParameterValueIfSelectedOrElse(
@@ -379,6 +380,10 @@ public class SpectralNetworkingTask extends AbstractTask {
         logger.info(
             "Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
       }
+
+      featureList.addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod(SpectralNetworkingModule.class, params,
+              getModuleCallDate()));
 
       setStatus(TaskStatus.FINISHED);
 
