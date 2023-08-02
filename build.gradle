@@ -243,7 +243,8 @@ dependencies {
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
-    implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
+    //implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
+    implementation 'com.github.alanrace:jimzMLParser:master-SNAPSHOT'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
     implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
