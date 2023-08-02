@@ -118,8 +118,8 @@ repositories {
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
     maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
-//    // For jimzml
-//    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
+    // For jimzml
+    // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
 
 ext {
@@ -244,8 +244,9 @@ dependencies {
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     //implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
-    implementation 'com.github.alanrace:jimzMLParser:master-SNAPSHOT'
-    implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
+    //implementation 'com.github.alanrace:jimzMLParser:1.0.6'
+    implementation group: 'com.alanmrace', name: 'jimzmlparser', version: '1.0.3'
+    //implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
     implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
 
