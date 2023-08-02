@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -91,6 +92,8 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
+import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
+import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalParameters;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
@@ -139,6 +142,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -300,8 +304,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   // export for DDA
-  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final Boolean isExportActive,
-      final File exportPath, final Boolean exportGnps, final Boolean exportSirius) {
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final boolean isExportActive,
+      final File exportPath, final boolean exportGnps, final boolean exportSirius,
+      final boolean exportAnnotationGraphics) {
     if (isExportActive && exportPath != null) {
       if (exportGnps) {
         makeAndAddIimnGnpsExportStep(q, exportPath);
@@ -310,7 +315,35 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         makeAndAddSiriusExportStep(q, exportPath);
       }
       makeAndAddAllAnnotationExportStep(q, exportPath);
+      // have this last as it might fail
+      if(exportAnnotationGraphics) {
+        makeAndAddAnnotationGraphicsExportStep(q, exportPath);
+      }
     }
+  }
+
+  public static void makeAndAddAnnotationGraphicsExportStep(final BatchQueue q, final File exportPath) {
+    final ParameterSet param = new ExportAllIdsGraphicalParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), "graphics");
+
+    param.setParameter(ExportAllIdsGraphicalParameters.flists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // going back into scans so rather use scan mz tol
+    param.setParameter(ExportAllIdsGraphicalParameters.exportPdf, true);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportPng, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.dir, fileName);
+    param.setParameter(ExportAllIdsGraphicalParameters.dpiScalingFactor, 3);
+    param.setParameter(ExportAllIdsGraphicalParameters.numMatches, 1);
+    //
+    GraphicsExportParameters exp = param.getValue(ExportAllIdsGraphicalParameters.export);
+    exp.setParameter(GraphicsExportParameters.unit, DimUnit.MM);
+    exp.setParameter(GraphicsExportParameters.width, 180d);
+    exp.setParameter(GraphicsExportParameters.height, true,60d);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(ExportAllIdsGraphicalModule.class), param));
   }
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath) {

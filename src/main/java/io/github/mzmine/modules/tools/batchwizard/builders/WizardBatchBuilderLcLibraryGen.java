@@ -119,7 +119,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, true);
 
     // export
-    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false);
 
     // convert library to feature list
     makeAndAddLibraryToFeatureListStep(q);
