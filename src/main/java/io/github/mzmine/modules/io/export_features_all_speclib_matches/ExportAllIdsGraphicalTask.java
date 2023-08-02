@@ -116,6 +116,10 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
 
     totalIds = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
 
+    if (MZmineCore.isHeadLessMode()) {
+      MZmineCore.initJavaFxInHeadlessMode();
+    }
+
     try {
       for (FeatureList flist : flists) {
         final File flistFolder = new File(dir, flist.getName());

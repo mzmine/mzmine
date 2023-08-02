@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -84,6 +84,7 @@ public final class MZmineCore {
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static final MZmineCore instance = new MZmineCore();
+  private static boolean isFxInitialized = false;
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
@@ -169,7 +170,7 @@ public final class MZmineCore {
         } else {
           logger.log(Level.WARNING,
               "Cannot create or access temp file directory that was set via program argument: "
-                  + tempDirectory.getAbsolutePath());
+              + tempDirectory.getAbsolutePath());
         }
       }
 
@@ -554,9 +555,12 @@ public final class MZmineCore {
    * @param r runnable to either run directly or on the JavaFX thread
    */
   public static void runLater(Runnable r) {
-    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
+    if (Platform.isFxApplicationThread()) {
       r.run();
     } else {
+      if(isHeadLessMode() && !isFxInitialized) {
+        initJavaFxInHeadlessMode();
+      }
       Platform.runLater(r);
     }
   }
@@ -586,6 +590,18 @@ public final class MZmineCore {
    */
   public static @NotNull MZmineProject getProject() {
     return getProjectManager().getCurrentProject();
+  }
+
+  /**
+   * Might be needed for graphics export in headless batch mode
+   */
+  public static void initJavaFxInHeadlessMode() {
+    if (isFxInitialized) {
+      return;
+    }
+    Platform.startup(() -> {
+    });
+    isFxInitialized = true;
   }
 
   private void init() {
