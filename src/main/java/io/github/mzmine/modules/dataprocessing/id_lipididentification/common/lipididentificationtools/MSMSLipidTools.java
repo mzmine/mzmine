@@ -23,21 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
  */
 public class MSMSLipidTools {
 
-  private static final ChainTools CHAIN_TOOLS = new ChainTools();
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
   // Alkyl Chains
@@ -396,7 +395,7 @@ public class MSMSLipidTools {
   /**
    * Calculate the explained intensity of MS/MS signals by lipid fragmentation rules in %
    */
-  private Double calculateMsMsScore(DataPoint[] massList, Set<LipidFragment> annotatedFragments,
+  public Double calculateMsMsScore(DataPoint[] massList, Set<LipidFragment> annotatedFragments,
       Double precursor, MZTolerance mzTolRangeMSMS) {
     Double intensityAllSignals = Arrays.stream(massList)
         .filter(dp -> !mzTolRangeMSMS.checkWithinTolerance(dp.getMZ(), precursor))
