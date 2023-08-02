@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,13 +61,8 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -81,6 +76,7 @@ import javafx.util.Duration;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import org.controlsfx.control.Notifications;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -169,8 +165,8 @@ public class SpectralMatchPanelFX extends GridPane {
     getColumnConstraints().add(0, ccSpectrum);
     getColumnConstraints().add(1, ccMetadata);
 
-    setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-        BorderWidths.DEFAULT)));
+//    setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+//        BorderWidths.DEFAULT)));
   }
 
   private Pane createTitlePane() {
@@ -315,9 +311,10 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
     metaDataScroll.setFitToWidth(true);
     metaDataScroll.setFitToHeight(true);
-    metaDataScroll.setMinSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
-    metaDataScroll.setMaxSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
-    metaDataScroll.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
+    int margin = 20;
+    metaDataScroll.setMinSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
+    metaDataScroll.setMaxSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
+    metaDataScroll.setPrefSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
 
     return metaDataScroll;
   }
@@ -477,8 +474,11 @@ public class SpectralMatchPanelFX extends GridPane {
     return pn;
   }
 
-  public void applySettings(ParameterSet param) {
+  public void applySettings(@Nullable ParameterSet param) {
     pnExport.getChildren().removeAll();
+    if (param == null) {
+      return;
+    }
     addExportButtons(param);
   }
 

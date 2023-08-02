@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_features_all_speclib_matches;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -46,12 +47,20 @@ public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
       "Set the number of matches to export. 1 will only export the best/selected match.", 1, 1,
       Integer.MAX_VALUE);
 
+  public static final IntegerParameter dpiScalingFactor = new IntegerParameter("DPI scaling factor",
+      "This will multiply the pixels exported", 4, 1, Integer.MAX_VALUE);
+
+  public static final BooleanParameter exportPdf = new BooleanParameter("Export pdf", "", true);
+
+  public static final BooleanParameter exportPng = new BooleanParameter("Export png (⚠ freezes GUI)",
+      "This process takes long and freezes the GUI until all matches are exported.", false);
+
   public static final ParameterSetParameter<GraphicsExportParameters> export = new ParameterSetParameter<>(
       "Chart export parameters", "Set the parameters for lipid charts.",
       new GraphicsExportParameters());
 
   public ExportAllIdsGraphicalParameters() {
-    super(flists, dir, numMatches, export);
+    super(flists, dir, numMatches, dpiScalingFactor, exportPdf, exportPng, export);
   }
 
   @Override
