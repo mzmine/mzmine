@@ -27,7 +27,6 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -113,15 +112,13 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     assert mzs != null && intensities != null;
     assert mzs.length == intensities.length;
 
-    MZmineCore.getProjectManager().getCurrentProject().getCurrentSpectralLibraries();
-
-    var entry = new SpectralDBEntry(null, mzs, intensities, fields);
     if (libraryFileName != null) {
       final SpectralLibrary library = project.getCurrentSpectralLibraries().stream()
           .filter(l -> l.getName().equals(libraryFileName)).findFirst().orElse(null);
-      entry.setLibrary(library);
+      return new SpectralDBEntry(null, mzs, intensities, fields, library);
+    } else {
+      return new SpectralDBEntry(null, mzs, intensities, fields);
     }
-    return entry;
   }
 
   private static Map<DBEntryField, Object> loadDBEntriesFromXML(XMLStreamReader reader)
