@@ -781,7 +781,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final double noiseLevel;
     if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
-      noiseLevel = noiseLevelMs1 / 10; // lower threshold for mobility scans
+      noiseLevel = noiseLevelMs1 / 5; // lower threshold for mobility scans
     } else if (msLevel >= 2) {
       noiseLevel = noiseLevelMsn;
     } else {
@@ -852,6 +852,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
         .setValue(mzTolScans);
     param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
+    param.setParameter(ImsExpanderParameters.maxNumTraces, false);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
         param));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
     return switch (ims) {
       case NO_IMS, IMS, DTIMS, TWIMS -> null;
       case TIMS ->
-          new MassSpectrometerWizardParameters(QTOF, 1.5E2, 1E2, 1.0E3, new MZTolerance(0.005, 20),
+          new MassSpectrometerWizardParameters(QTOF, 500, 1E2, 1.0E3, new MZTolerance(0.005, 20),
               new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
     };
   }

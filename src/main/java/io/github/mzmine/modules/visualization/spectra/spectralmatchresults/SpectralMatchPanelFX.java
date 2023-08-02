@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -292,10 +292,11 @@ public class SpectralMatchPanelFX extends GridPane {
         DBEntryField.DATABASE_FIELDS);
     BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
         DBEntryField.OTHER_FIELDS);
+    BorderPane pnLib = extractLibraryPanel(hit.getEntry());
 
     var leftBox = new VBox(4, pnCompounds);
     leftBox.setPadding(Insets.EMPTY);
-    var rightBox = new VBox(4, panelInstrument, pnOther, pnDB);
+    var rightBox = new VBox(4, panelInstrument, pnOther, pnDB, pnLib);
     rightBox.setPadding(new Insets(0, 0, 0, 15));
     g1.getColumnConstraints().add(0, ccMetadata1);
     g1.getColumnConstraints().add(1, ccMetadata2);
@@ -317,6 +318,11 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataScroll.setPrefSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
 
     return metaDataScroll;
+  }
+
+  private BorderPane extractLibraryPanel(SpectralLibraryEntry entry) {
+    final Label library = new Label("Spectral library: " + entry.getLibraryName());
+    return new BorderPane(library);
   }
 
   private IAtomContainer parseStructure(final SpectralDBAnnotation hit) {
