@@ -212,6 +212,7 @@ public final class MZmineCore {
         try {
           logger.info("Starting MZmine GUI");
           Application.launch(MZmineGUI.class, args);
+          isFxInitialized = true;
         } catch (Throwable e) {
           e.printStackTrace();
           logger.log(Level.SEVERE, "Could not initialize GUI", e);
