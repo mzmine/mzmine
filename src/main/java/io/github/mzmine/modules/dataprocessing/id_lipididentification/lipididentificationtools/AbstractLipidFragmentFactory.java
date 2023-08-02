@@ -84,8 +84,8 @@ public abstract class AbstractLipidFragmentFactory {
     } catch (CloneNotSupportedException e) {
       throw new RuntimeException(e);
     }
+    rule.getIonizationType().ionizeFormula(lipidFormula);
     IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula, formulaNL);
-    rule.getIonizationType().ionizeFormula(fragmentFormula);
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
 
     if (mzTolRangeMSMS.contains(mzFragmentExact)) {
